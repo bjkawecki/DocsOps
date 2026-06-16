@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
 import { DocopsLogo } from '../../components/appShell/DocopsLogo';
+import { getLoginErrorDisplay } from './loginErrors';
 import { randomLoginTagline } from './loginTaglines';
 
 const LOGIN_ERROR_ID = 'login-error';
@@ -26,21 +27,16 @@ export function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       if (res.status === 401) throw new Error('Invalid credentials');
-      if (!res.ok) throw new Error('Login failed');
+      if (!res.ok) throw new Error(`HTTP_${res.status}`);
     },
     onSuccess: () => void navigate(from, { replace: true }),
     onError: (err) => {
-      const raw = err instanceof Error ? err.message : String(err);
-      const isNetwork =
-        raw === 'Failed to fetch' ||
-        raw.includes('NetworkError') ||
-        raw.toLowerCase().includes('load failed');
-      const message = isNetwork
-        ? 'Cannot reach the server. With the Docker stack, open the app at http://localhost:5000 (Caddy proxies /api). Vite on the host only: start the backend separately (e.g. `make dev` on port 8080) or set `VITE_DEV_PROXY_API`.'
-        : raw;
-      notifications.show({ title: 'Login failed', message, color: 'red' });
+      const { title, message } = getLoginErrorDisplay(err);
+      notifications.show({ title, message, color: 'red' });
     },
   });
+
+  const loginError = login.isError ? getLoginErrorDisplay(login.error) : null;
 
   useEffect(() => {
     if (login.isError) {
@@ -86,7 +82,7 @@ export function LoginPage() {
             e.preventDefault();
             login.mutate();
           }}
-          aria-describedby={login.isError ? LOGIN_ERROR_ID : undefined}
+          aria-describedby={loginError ? LOGIN_ERROR_ID : undefined}
         >
           <Stack gap="md">
             <TextInput
@@ -110,16 +106,21 @@ export function LoginPage() {
               autoComplete="current-password"
               disabled={login.isPending}
             />
-            {login.isError && (
+            {loginError && (
               <Alert
                 ref={errorAlertRef}
                 id={LOGIN_ERROR_ID}
                 role="alert"
                 color="red"
-                title="Login failed"
+                title={loginError.title}
                 tabIndex={-1}
               >
-                {login.error?.message}
+                {loginError.message}
+                {loginError.hint ? (
+                  <Text size="sm" c="dimmed" mt="xs">
+                    {loginError.hint}
+                  </Text>
+                ) : null}
               </Alert>
             )}
             <Button type="submit" variant="filled" size="md" loading={login.isPending} fullWidth>
