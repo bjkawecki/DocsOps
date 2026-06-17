@@ -56,12 +56,23 @@ export function secondaryDetail(
   eventType: string,
   payload: Record<string, unknown>
 ): string | null {
+  return notificationBodyText(eventType, payload, { preview: true });
+}
+
+export function notificationBodyText(
+  eventType: string,
+  payload: Record<string, unknown>,
+  options?: { preview?: boolean }
+): string | null {
+  const preview = options?.preview ?? false;
+  const truncate = (text: string, max: number) =>
+    preview && text.length > max ? `${text.slice(0, max)}…` : text;
+
   if (eventType === 'admin-broadcast') {
     const title = typeof payload.title === 'string' ? payload.title : 'System message';
     const message = typeof payload.message === 'string' ? payload.message : '';
     if (message.trim() !== '') {
-      const preview = message.length > 160 ? `${message.slice(0, 160)}…` : message;
-      return `${title}: ${preview}`;
+      return preview ? `${title}: ${truncate(message, 160)}` : message.trim();
     }
     return title;
   }
@@ -88,25 +99,28 @@ export function secondaryDetail(
   }
   if (eventType === 'backup-failed') {
     const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
-    return msg.length > 160 ? `${msg.slice(0, 160)}…` : msg;
+    return truncate(msg, 160);
   }
   if (eventType === 'backup-restore-succeeded') {
     return 'Database and object storage were restored from the backup archive.';
   }
   if (eventType === 'backup-restore-failed') {
     const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
-    return msg.length > 160 ? `${msg.slice(0, 160)}…` : msg;
+    return truncate(msg, 160);
   }
   if (eventType === 'document-comment-created') {
     const kind = typeof payload.kind === 'string' ? payload.kind : '';
-    const preview = typeof payload.commentPreview === 'string' ? payload.commentPreview.trim() : '';
+    const previewText =
+      typeof payload.commentPreview === 'string' ? payload.commentPreview.trim() : '';
     if (kind === 'mention') {
-      return preview !== '' ? preview : 'You were mentioned in a comment.';
+      return previewText !== '' ? truncate(previewText, 120) : 'You were mentioned in a comment.';
     }
     if (kind === 'reply') {
-      return preview !== '' ? preview : 'Someone replied in a comment thread.';
+      return previewText !== ''
+        ? truncate(previewText, 120)
+        : 'Someone replied in a comment thread.';
     }
-    if (preview !== '') return preview.length > 120 ? `${preview.slice(0, 120)}…` : preview;
+    if (previewText !== '') return truncate(previewText, 120);
     return 'New activity in a comment thread.';
   }
   const draftId = payloadDraftRequestId(payload);
@@ -116,6 +130,23 @@ export function secondaryDetail(
     return 'Your proposed changes were merged into the published version.';
   if (eventType === 'draft-request-rejected') return 'Your review request was rejected.';
   return 'Related to a review request.';
+}
+
+export function notificationSourceLabel(item: NotificationItem): string {
+  if (item.eventType === 'admin-broadcast') return 'System message';
+  if (
+    item.eventType.startsWith('team-') ||
+    item.eventType.startsWith('department-') ||
+    item.eventType.startsWith('company-') ||
+    item.eventType === 'admin-granted' ||
+    item.eventType === 'admin-revoked'
+  ) {
+    return 'Organization';
+  }
+  if (item.eventType.startsWith('backup-')) return 'System';
+  if (item.eventType.startsWith('draft-request-')) return 'Review';
+  if (payloadDocumentId(item.payload) != null) return 'Document';
+  return 'Notification';
 }
 
 export function documentDisplayTitle(item: NotificationItem): string {

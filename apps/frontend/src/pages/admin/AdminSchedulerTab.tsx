@@ -19,6 +19,7 @@ import { notifications } from '@mantine/notifications';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { getAdminJobLabel } from './adminJobLabels';
+import { AdminScheduledBroadcastsSection } from './AdminScheduledBroadcastsSection';
 
 type SchedulesResponse = {
   availableJobNames: string[];
@@ -561,6 +562,7 @@ export function AdminSchedulerTab() {
           })}
         </Table.Tbody>
       </Table>
+      <AdminScheduledBroadcastsSection />
     </Box>
   );
 }

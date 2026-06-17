@@ -19,6 +19,9 @@ export const jobPayloadSchemas = {
     targetUserIds: z.array(z.cuid()).max(1000),
     payload: z.record(z.string(), z.unknown()).default({}),
   }),
+  'notifications.admin-broadcast': z.object({
+    broadcastId: z.string().min(1).max(64),
+  }),
   'maintenance.cleanup': z.object({
     task: z.enum([
       'temporary-assets',

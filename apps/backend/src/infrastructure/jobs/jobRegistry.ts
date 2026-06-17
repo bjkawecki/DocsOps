@@ -18,6 +18,7 @@ import { backfillAllDocumentBlocks } from '../../domains/documents/services/bloc
 import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
 import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
 import { runOperationalRestore } from '../../domains/admin/services/operationalRestoreService.js';
+import { deliverAdminBroadcastById } from '../../domains/admin/services/adminBroadcastNotificationService.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -164,6 +165,14 @@ async function sendNotifications(
   );
 }
 
+async function sendScheduledAdminBroadcast(
+  payload: JobPayloadByType['notifications.admin-broadcast'],
+  context: JobContext
+): Promise<void> {
+  const result = await deliverAdminBroadcastById(context.prisma, payload.broadcastId);
+  context.logger.info({ payload, result }, 'Scheduled admin broadcast delivered');
+}
+
 async function maintenanceCleanup(
   payload: JobPayloadByType['maintenance.cleanup'],
   context: JobContext
@@ -246,6 +255,16 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 5,
     handler: (payload, context) =>
       sendNotifications(payload as JobPayloadByType['notifications.send'], context),
+  },
+  {
+    name: 'notifications.admin-broadcast',
+    schema: jobPayloadSchemas['notifications.admin-broadcast'],
+    retryLimit: 3,
+    handler: (payload, context) =>
+      sendScheduledAdminBroadcast(
+        payload as JobPayloadByType['notifications.admin-broadcast'],
+        context
+      ),
   },
   {
     name: 'maintenance.cleanup',

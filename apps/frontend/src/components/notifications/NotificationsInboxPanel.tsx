@@ -20,14 +20,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
+import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import { useMe } from '../../hooks/useMe';
+import { NotificationDetailModal } from './NotificationDetailModal.js';
 import { meNotificationsListQueryKey } from './meNotificationQueryParams.js';
 import {
   DEFAULT_LIMIT,
   PAGE_SIZE_OPTIONS,
   type MeNotificationCategory,
+  type NotificationItem,
   type NotificationsResponse,
 } from './meNotificationTypes.js';
 import {
@@ -69,10 +72,10 @@ export function NotificationsInboxPanel({
   embedded = false,
 }: NotificationsInboxPanelProps) {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { data: me } = useMe();
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [page, setPage] = useState(1);
+  const [detailItem, setDetailItem] = useState<NotificationItem | null>(null);
   const offset = (page - 1) * limit;
 
   useEffect(() => {
@@ -193,7 +196,7 @@ export function NotificationsInboxPanel({
           {cardTitle}
         </Text>
         <Text size="sm" c="dimmed">
-          Open a row to go to the document.
+          Click a row for details.
         </Text>
       </Stack>
       {filtersRow}
@@ -265,11 +268,9 @@ export function NotificationsInboxPanel({
                     return (
                       <Table.Tr
                         key={item.id}
-                        onClick={() => {
-                          if (docHref != null) void navigate(docHref);
-                        }}
+                        onClick={() => setDetailItem(item)}
                         style={{
-                          cursor: docHref != null ? 'pointer' : 'default',
+                          cursor: 'pointer',
                           borderLeft: unread
                             ? '3px solid var(--mantine-color-blue-filled)'
                             : '3px solid transparent',
@@ -314,7 +315,7 @@ export function NotificationsInboxPanel({
                         </Table.Td>
                         <Table.Td>
                           <Text size="sm" c="dimmed">
-                            {new Date(item.createdAt).toLocaleString()}
+                            {formatLocalDateTime(item.createdAt)}
                           </Text>
                         </Table.Td>
                         <Table.Td>
@@ -363,6 +364,13 @@ export function NotificationsInboxPanel({
       >
         {listContent}
       </Card>
+      <NotificationDetailModal
+        item={detailItem}
+        opened={detailItem != null}
+        onClose={() => setDetailItem(null)}
+        onMarkRead={(id) => markAsRead.mutate(id)}
+        markReadPending={markAsRead.isPending}
+      />
     </Stack>
   );
 }

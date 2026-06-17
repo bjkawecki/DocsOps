@@ -39,7 +39,7 @@ import { AdminCompanyTab } from './pages/admin/AdminCompanyTab';
 import { AdminJobsTab } from './pages/admin/AdminJobsTab';
 import { AdminSchedulerTab } from './pages/admin/AdminSchedulerTab';
 import { AdminBackupTab } from './pages/admin/AdminBackupTab/AdminBackupTab';
-import { AdminBroadcastTab } from './pages/admin/AdminBroadcastTab';
+import { AdminBroadcastTab } from './pages/admin/AdminBroadcastTab/index.js';
 
 function App() {
   return (

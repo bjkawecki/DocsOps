@@ -30,11 +30,15 @@ async function ensureQueue(jobType: JobType): Promise<void> {
 
 export async function enqueueJob<K extends JobType>(
   jobType: K,
-  payload: JobPayloadByType[K]
+  payload: JobPayloadByType[K],
+  options?: { startAfter?: Date; singletonKey?: string }
 ): Promise<string> {
   await ensureQueue(jobType);
   const pgBoss = await getBoss();
-  const jobId = await pgBoss.send(jobType, payload as object);
+  const sendOptions: { startAfter?: Date; singletonKey?: string } = {};
+  if (options?.startAfter != null) sendOptions.startAfter = options.startAfter;
+  if (options?.singletonKey != null) sendOptions.singletonKey = options.singletonKey;
+  const jobId = await pgBoss.send(jobType, payload as object, sendOptions);
   if (!jobId) throw new Error(`Failed to enqueue job: ${jobType}`);
   return jobId;
 }
