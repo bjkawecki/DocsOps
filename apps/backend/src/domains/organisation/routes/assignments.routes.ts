@@ -27,6 +27,7 @@ import {
   createTeamMemberAfterVerify,
   sendTeamAssignmentListIfAllowed,
 } from './assignments-route-helpers.js';
+import { enqueueOrgNotificationSafe } from '../../notifications/services/orgNotificationService.js';
 
 const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   // --- Company Lead ---
@@ -85,6 +86,17 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       await request.server.prisma.companyLead.create({
         data: { companyId, userId: body.userId },
       });
+      enqueueOrgNotificationSafe(request.log, {
+        eventType: 'company-lead-assigned',
+        targetUserIds: [body.userId],
+        actorUserId: userId,
+        payload: {
+          userId: body.userId,
+          scopeType: 'company',
+          scopeId: companyId,
+          scopeName: company.name,
+        },
+      });
       return reply.status(201).send({ companyId, userId: body.userId });
     }
   );
@@ -104,9 +116,27 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       });
       if (!existing) return reply.status(404).send({ error: 'Company lead assignment not found' });
 
+      const company = await request.server.prisma.company.findUnique({
+        where: { id: companyId },
+        select: { id: true, name: true },
+      });
+
       await request.server.prisma.companyLead.delete({
         where: { companyId_userId: { companyId, userId: targetUserId } },
       });
+      if (company != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'company-lead-removed',
+          targetUserIds: [targetUserId],
+          actorUserId: userId,
+          payload: {
+            userId: targetUserId,
+            scopeType: 'company',
+            scopeId: companyId,
+            scopeName: company.name,
+          },
+        });
+      }
       return reply.status(204).send();
     }
   );
@@ -149,6 +179,23 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         reply
       );
       if (!ok) return;
+      const team = await request.server.prisma.team.findUnique({
+        where: { id: teamId },
+        select: { id: true, name: true },
+      });
+      if (team != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'team-member-added',
+          targetUserIds: [body.userId],
+          actorUserId: userId,
+          payload: {
+            userId: body.userId,
+            scopeType: 'team',
+            scopeId: teamId,
+            scopeName: team.name,
+          },
+        });
+      }
       return reply.status(201).send({ teamId, userId: body.userId });
     }
   );
@@ -168,6 +215,14 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       });
       if (!existing) return reply.status(404).send({ error: 'Membership not found' });
 
+      const team = await request.server.prisma.team.findUnique({
+        where: { id: teamId },
+        select: { id: true, name: true },
+      });
+      const wasLead = await request.server.prisma.teamLead.findUnique({
+        where: { teamId_userId: { teamId, userId: targetUserId } },
+      });
+
       await request.server.prisma.$transaction([
         request.server.prisma.teamLead.deleteMany({
           where: { teamId, userId: targetUserId },
@@ -176,6 +231,32 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           where: { teamId_userId: { teamId, userId: targetUserId } },
         }),
       ]);
+      if (team != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'team-member-removed',
+          targetUserIds: [targetUserId],
+          actorUserId: userId,
+          payload: {
+            userId: targetUserId,
+            scopeType: 'team',
+            scopeId: teamId,
+            scopeName: team.name,
+          },
+        });
+        if (wasLead != null) {
+          enqueueOrgNotificationSafe(request.log, {
+            eventType: 'team-lead-removed',
+            targetUserIds: [targetUserId],
+            actorUserId: userId,
+            payload: {
+              userId: targetUserId,
+              scopeType: 'team',
+              scopeId: teamId,
+              scopeName: team.name,
+            },
+          });
+        }
+      }
       return reply.status(204).send();
     }
   );
@@ -193,6 +274,23 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
       const ok = await createTeamLeadAfterVerify(request.server.prisma, teamId, body.userId, reply);
       if (!ok) return;
+      const team = await request.server.prisma.team.findUnique({
+        where: { id: teamId },
+        select: { id: true, name: true },
+      });
+      if (team != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'team-lead-assigned',
+          targetUserIds: [body.userId],
+          actorUserId: userId,
+          payload: {
+            userId: body.userId,
+            scopeType: 'team',
+            scopeId: teamId,
+            scopeName: team.name,
+          },
+        });
+      }
       return reply.status(201).send({ teamId, userId: body.userId });
     }
   );
@@ -212,9 +310,27 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       });
       if (!existing) return reply.status(404).send({ error: 'Team lead assignment not found' });
 
+      const team = await request.server.prisma.team.findUnique({
+        where: { id: teamId },
+        select: { id: true, name: true },
+      });
+
       await request.server.prisma.teamLead.delete({
         where: { teamId_userId: { teamId, userId: targetUserId } },
       });
+      if (team != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'team-lead-removed',
+          targetUserIds: [targetUserId],
+          actorUserId: userId,
+          payload: {
+            userId: targetUserId,
+            scopeType: 'team',
+            scopeId: teamId,
+            scopeName: team.name,
+          },
+        });
+      }
       return reply.status(204).send();
     }
   );
@@ -275,6 +391,17 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       await request.server.prisma.departmentLead.create({
         data: { departmentId, userId: body.userId },
       });
+      enqueueOrgNotificationSafe(request.log, {
+        eventType: 'department-lead-assigned',
+        targetUserIds: [body.userId],
+        actorUserId: userId,
+        payload: {
+          userId: body.userId,
+          scopeType: 'department',
+          scopeId: departmentId,
+          scopeName: department.name,
+        },
+      });
       return reply.status(201).send({ departmentId, userId: body.userId });
     }
   );
@@ -297,9 +424,27 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       if (!existing)
         return reply.status(404).send({ error: 'Department lead assignment not found' });
 
+      const department = await request.server.prisma.department.findUnique({
+        where: { id: departmentId },
+        select: { id: true, name: true },
+      });
+
       await request.server.prisma.departmentLead.delete({
         where: { departmentId_userId: { departmentId, userId: targetUserId } },
       });
+      if (department != null) {
+        enqueueOrgNotificationSafe(request.log, {
+          eventType: 'department-lead-removed',
+          targetUserIds: [targetUserId],
+          actorUserId: userId,
+          payload: {
+            userId: targetUserId,
+            scopeType: 'department',
+            scopeId: departmentId,
+            scopeName: department.name,
+          },
+        });
+      }
       return reply.status(204).send();
     }
   );

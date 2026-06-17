@@ -2,7 +2,7 @@
 
 Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. Siehe [Technologie-Stack](Technologie-Stack.md), [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md) und [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md).
 
-**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Notifications (Konzept & Ausbau):** Abschnitt 23. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
+**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
 
 **Geplante Großumstellung Edit-/Kollaborationsmodell:** [Edit-System: Blocks (JSON), Suggestions, Lead-Draft (Variante A)](Edit-System-Blocks-Suggestions-Lead-Draft.md) – ersetzt Markdown-first-Editing schrittweise; Autoren nur Suggestions, Lead kuratiert Draft und published. **PR-/Epic-Aufteilung:** [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md). **EPIC-9 (Legacy abschalten):** `DOCUMENT_LEGACY_DRAFT_ENABLED` und HTTP 410 für persönlichen Markdown-Entwurf / Draft-Requests; Details im Epic-Abschnitt EPIC-9.
 
@@ -376,7 +376,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Rechte:** canReadComment / canCreateComment / canEditOwnComment / canDeleteOwnComment = canRead(documentId); canDeleteAnyComment = canWriteContext(contextId) oder isAdmin.
 [x] **Backend:** CRUD-API für Kommentare (z. B. GET/POST `/documents/:documentId/comments`, PATCH/DELETE `/documents/:documentId/comments/:commentId`); Pagination optional; Rechteprüfung bei jedem Zugriff.
 [x] **Frontend:** Auf der Dokument-Detailseite eine Kommentar-Sektion (unter dem Inhalt oder Sidebar): Liste, Formular zum Anlegen, Bearbeiten/Löschen eigener Kommentare; bei canDeleteAnyComment Löschen-Button für alle. Optional: Threads (Antworten via parentId).
-[ ] **Später (optional):** Inline-/Absatz-Kommentare (Anker auf Block/Zeile); Benachrichtigungen bei neuen Kommentaren.
+[x] **Später (optional):** Inline-/Absatz-Kommentare (Anker auf Block/Zeile); Benachrichtigungen bei neuen Kommentaren (enge Policy + Mentions, siehe §23 Dispatch).
 
 ---
 
@@ -392,6 +392,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 4. Inbox zweispaltig + API-Filter nach Typ/Kategorie.
 5. Retention / Aggregation bei Bedarf (Retention + Coalescing + Hard-Cap umgesetzt; siehe **Wachstum** unten).
 6. Admin-System-Meldungen, Zugriffs-/Rollen-Events, Kommentare (§22) nachziehen.
+7. Live-Updates per SSE (**§23a**) – Badge/Wartungsbanner ohne Polling; Inbox-Liste bleibt Pull.
 
 ### Zielbild & Navigation
 
@@ -413,9 +414,9 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Review abgeschlossen (falls im Code noch alte Event-Typen):** In-App an **beteiligte Autoren**; Event-Typen und Zielgruppe mit Zielmodell abstimmen.
 [x] **Archiviert / wiederhergestellt / Trash:** In-App an gewählte Zielgruppe (Leser+Schreiber oder enger laut Produktentscheid); Rechte beachten.
 [x] **Grants am Dokument:** In-App an **betroffene** Nutzer nach persistierter Änderung (Policy: einzeln vs. gebündelt festlegen).
-[ ] **Rollen / Mitgliedschaft** (Team, Abteilung, Firma, Leads): In-App an Betroffene; UI-Filter-Kategorie z. B. **Org** vorsehen.
-[ ] **Kommentare / Mentions:** In-App nach §22 und eigener Policy (Thread, Erwähnungen).
-[ ] **System / Wartung:** Admin kann In-App an Broadcast/Rolle/Nutzerliste senden; **Audit** wer was auslöste; eigener Event-Typ.
+[x] **Rollen / Mitgliedschaft** (Team, Abteilung, Firma, Leads): In-App an Betroffene bei Zuweisungs-APIs; Kategorie **Org** in Inbox + Settings `orgChanges`.
+[x] **Kommentare / Mentions:** enge Policy (Thread-Beteiligte + `@[userId]`-Mentions); kein Breiten-Ping an alle Leser; Mention-Candidates-API + UI.
+[x] **System / Wartung:** Admin-Broadcast (`POST /admin/notifications/broadcast`, Audit-Tabelle, Event `admin-broadcast`); Admin-Tab **Broadcast**.
 
 ### Bewusst kein Leser-Ping
 
@@ -434,6 +435,57 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Pagination** in der UI (bereits üblich); **Hard cap** optional per Env `NOTIFICATION_HARD_CAP_PER_USER` (älteste Zeilen pro Nutzer, `0` = aus).
 [x] **Settings / E-Mail:** wenige Kategorien statt Matrix pro Event-Typ (parallel §8, §17, §20) – UI [`SettingsNotificationsTab.tsx`](../apps/frontend/src/pages/settings/SettingsNotificationsTab.tsx), Backend-Kategorien in `resolveCategory`; Kurztext zu Grant-/Lifecycle-Events ergänzt.
 [x] **§20:** Punkte „Notifications (Inbox & Navigation)“ / Settings mit §23 konsolidieren, wenn Zielbild umgesetzt ist.
+
+**Lieferung zum Browser:** Persistenz und Dispatch wie oben (Worker → PostgreSQL). Push zum Client (Sidebar-Badge, Banner) siehe **§23a** – dort kein Intervall-Polling als Standard.
+
+---
+
+## 23a. Live Events (SSE – Push zum Browser)
+
+**Kurz:** Ein **Server-Sent-Events**-Kanal pro eingeloggter Session für zeitnahe UI-Updates. Ergänzt §23 (In-App-Inbox in der DB), ersetzt sie **nicht**. **Kein Redis** – Brücke Worker → API über **PostgreSQL `LISTEN`/`NOTIFY`** (Stack-konform: pg-boss, eine DB). **Polling nur Fallback** (Tab hidden, SSE aus, Reconnect-Backoff).
+
+### Zielbild & Abgrenzung
+
+[ ] **Ein Stream:** `GET /api/v1/me/events` (SSE, Session-Cookie wie REST); ein Hook in der App-Shell hält die Verbindung.
+[ ] **Pull bleibt:** Inbox `/notifications` (Liste, Pagination, Filter) weiter per `GET /me/notifications`; SSE invalidiert nur Cache / Badge-Zähler.
+[ ] **Kein zweites Messaging-System:** Events sind **Signale** („unread count geändert“, „Wartung an/aus“), keine Duplikation der Inbox-Payloads auf dem Draht.
+[ ] **Worker schreibt, API pushed:** `notifications.send` → `dispatchNotificationEvent` (PostgreSQL) → danach **`pg_notify`** mit `userId`(n); API-Prozess(e) **`LISTEN`** und leiten an offene SSE-Clients weiter.
+[ ] **Mehrere API-Instanzen:** Jede Instanz `LISTEN` + eigene In-Memory-Registry offener Streams; kein Redis nötig.
+[ ] **Caddy/Proxy:** SSE ohne Response-Buffering (Stream durchreichen).
+
+### Event-Typen (v1 → Ausbau)
+
+[ ] **`notification.unread-changed`** – Payload minimal: `{ unreadTotal }` oder nur „invalidate“; Sidebar + optional offene Inbox.
+[ ] **`maintenance.status-changed`** – `{ active, reason? }`; App-Shell-Banner + Admin-Backup-UI (ersetzt §25-Follow-up „Maintenance-Broadcast“).
+[ ] **Später (optional):** `suggestion.updated` o. ä. für [Edit-System Near-Realtime](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime); gleicher Stream, neuer `type`.
+
+### Backend (Komponenten)
+
+[ ] **SSE-Route** in Fastify (API-Prozess): Auth, Heartbeat/Keep-Alive, sauberes Schließen bei Logout.
+[ ] **Connection registry:** Map `userId → Set<SseReply>`; beim NOTIFY nur betroffene User.
+[ ] **Notify-Hook** am Ende von [`notificationDispatchService.ts`](../apps/backend/src/services/notificationDispatchService.ts) (pro betroffenem User nach INSERT/Coalesce).
+[ ] **Wartungsmodus:** Beim Setzen/Löschen von `maintenance` (Backup/Restore) zusätzlich Broadcast an **alle** verbundenen Clients oder separates NOTIFY-Kanal `maintenance`.
+[ ] **Admin-Broadcast (§23):** Nach manuellem System-Event ebenfalls NOTIFY an Ziel-User-IDs.
+
+### Frontend (Komponenten)
+
+[ ] **`useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen oder pausieren (kein Dauer-Polling).
+[ ] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
+[ ] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur** für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
+
+### Betrieb & Tests
+
+[ ] **Env (optional):** `LIVE_EVENTS_ENABLED` (Default an in Prod); `LIVE_EVENTS_FALLBACK_POLL_SECONDS` (0 = aus).
+[ ] **Tests:** Unit für NOTIFY-Payload; Integration API+Worker mit einem NOTIFY; manuell: Publish → Badge ohne Seitenreload.
+[ ] **Doku:** Kurzverweis in [Technologie-Stack](Technologie-Stack.md) §6 oder Env-Liste; §25 Maintenance-Broadcast hierher verweisen.
+
+### Reihenfolge (empfohlen)
+
+1. SSE-Endpoint + Registry + Frontend-Hook (Echo/Heartbeat).
+2. `notification.unread-changed` + Hook in `dispatchNotificationEvent`.
+3. `maintenance.status-changed` (Banner + Admin; §25-Follow-up ablösen).
+4. Admin-Broadcast aus §23 an NOTIFY anbinden.
+5. Optional: Suggestion-Events (Edit-System).
 
 ---
 
@@ -472,7 +524,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per HTTP `PUT` im selben Job nach Archiv-Fertigstellung.
 [x] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus **Historie** (nur bei lokaler Kopie) oder **Upload**; Job `maintenance.restore` mit Wartungsmodus, `pg_restore` + MinIO-Import; **kein** Remote-Fetch vom externen Ziel. **Nicht** Plattform-Import (§27).
-[ ] **Maintenance-Broadcast (Follow-up):** SSE/WebSocket für `maintenance.status` (Banner + Admin ohne Polling); aktuell Fetch-on-mount im App-Shell-Banner.
+[ ] **Maintenance-Broadcast (Follow-up):** in **§23a** (`maintenance.status-changed` per SSE); aktuell Fetch-on-mount im App-Shell-Banner ([`useMaintenanceStatus.ts`](../apps/frontend/src/hooks/useMaintenanceStatus.ts)).
 
 ---
 

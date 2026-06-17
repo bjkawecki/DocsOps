@@ -16,8 +16,8 @@ const CATEGORY_NAV: {
   { value: 'all', label: 'All' },
   { value: 'documents', label: 'Documents', description: 'Publish, updates, archive, …' },
   { value: 'reviews', label: 'Reviews', description: 'Draft requests' },
-  { value: 'system', label: 'System', description: 'Admin messages (reserved)' },
-  { value: 'org', label: 'Organization', description: 'Roles & membership (reserved)' },
+  { value: 'system', label: 'System', description: 'Backups and admin broadcasts' },
+  { value: 'org', label: 'Organization', description: 'Roles and membership' },
 ];
 
 const navLinkFullWidth = {

@@ -32,10 +32,11 @@ import {
   patchDocumentCommentBodySchema,
 } from '../schemas/documents.js';
 import {
-  excludeUserIds,
-  listUserIdsWhoCanReadDocument,
-} from '../../notifications/services/notificationRecipients.js';
-import { enqueueNotificationEvent } from '../services/route-support/documentRouteSupport.js';
+  listCommentNotificationRecipientIds,
+  listDocumentCommentMentionCandidates,
+  validateCommentMentionsForDocument,
+} from '../../notifications/services/commentNotificationRecipients.js';
+import { enqueueNotificationEvent } from '../../notifications/services/notificationEnqueueService.js';
 import {
   routePrismaUserDocumentCommentIds,
   routePrismaUserDocumentId,
@@ -152,6 +153,19 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
 
   registerCollaborationSuggestionRoutes(app);
 
+  /** GET users who can be @mentioned on this document (canRead). */
+  app.get<{ Params: { documentId: string } }>(
+    '/documents/:documentId/comments/mention-candidates',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
+    },
+    async (request, reply) => {
+      const { prisma, documentId } = routePrismaUserDocumentId(request);
+      const items = await listDocumentCommentMentionCandidates(prisma, documentId);
+      return reply.send({ items });
+    }
+  );
+
   /** GET Document comments (canRead). Top-level only (parentId null); pagination. */
   app.get<{ Params: { documentId: string }; Querystring: Record<string, string | undefined> }>(
     '/documents/:documentId/comments',
@@ -194,6 +208,16 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
       }
       const docSnapshot = await loadDocumentCommentAnchorSnapshot(prisma, documentId);
       if (!docSnapshot) return reply.status(404).send({ error: 'Document not found' });
+      const mentionCheck = await validateCommentMentionsForDocument(
+        prisma,
+        documentId,
+        parsed.data.text
+      );
+      if (!mentionCheck.ok) {
+        return reply.status(400).send({
+          error: 'One or more mentioned users cannot read this document.',
+        });
+      }
       const created = await createDocumentComment(prisma, {
         documentId,
         authorId: userId,
@@ -208,22 +232,28 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
       }
       const row = created.comment;
       try {
-        const readerIds = excludeUserIds(
-          await listUserIdsWhoCanReadDocument(prisma, documentId),
-          userId
-        );
-        await enqueueNotificationEvent({
-          eventType: 'document-comment-created',
-          targetUserIds: readerIds,
-          payload: {
-            documentId,
-            commentId: row.id,
-            parentId: row.parentId,
-            authorUserId: userId,
-            documentTitle: docSnapshot.title,
-            commentPreview: row.text.slice(0, 200),
-          },
+        const { recipientIds, kind } = await listCommentNotificationRecipientIds({
+          prisma,
+          documentId,
+          authorUserId: userId,
+          parentId: row.parentId,
+          text: row.text,
         });
+        if (recipientIds.length > 0) {
+          await enqueueNotificationEvent({
+            eventType: 'document-comment-created',
+            targetUserIds: recipientIds,
+            payload: {
+              documentId,
+              commentId: row.id,
+              parentId: row.parentId,
+              authorUserId: userId,
+              documentTitle: docSnapshot.title,
+              commentPreview: row.text.slice(0, 200),
+              kind,
+            },
+          });
+        }
       } catch (error) {
         request.log.warn(
           { error, documentId },

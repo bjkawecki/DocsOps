@@ -11,30 +11,12 @@ import type {
   OwnerScopeRow,
   UserPreferences,
 } from './route-types.js';
-
-const DOCUMENT_NOTIFICATION_EVENT_TYPES = [
-  'document-created',
-  'document-updated',
-  'document-published',
-  'document-archived',
-  'document-deleted',
-  'document-restored',
-  'document-grants-changed',
-  'document-comment-created',
-] as const;
-
-const REVIEW_NOTIFICATION_EVENT_TYPES = [
-  'draft-request-submitted',
-  'draft-request-merged',
-  'draft-request-rejected',
-] as const;
-
-const SYSTEM_NOTIFICATION_EVENT_TYPES = [
-  'backup-succeeded',
-  'backup-failed',
-  'backup-restore-succeeded',
-  'backup-restore-failed',
-] as const;
+import {
+  DOCUMENT_NOTIFICATION_EVENT_TYPES,
+  ORG_NOTIFICATION_EVENT_TYPES,
+  REVIEW_NOTIFICATION_EVENT_TYPES,
+  SYSTEM_NOTIFICATION_EVENT_TYPES,
+} from '../../../notifications/notificationEventTypes.js';
 
 const ownerScopeSelect = {
   teamId: true,
@@ -120,6 +102,9 @@ function notificationsCategorySql(category: string): Prisma.Sql {
   }
   if (category === 'system') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...SYSTEM_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'org') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...ORG_NOTIFICATION_EVENT_TYPES])})`;
   }
   return Prisma.sql`AND FALSE`;
 }

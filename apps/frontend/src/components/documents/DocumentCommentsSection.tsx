@@ -4,7 +4,10 @@ import {
   IconLayoutSidebarRightExpand,
   IconMessage,
 } from '@tabler/icons-react';
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '../../api/client.js';
+import { collectMentionUserIdsFromComments } from './documentComments/documentCommentMentionUtils.js';
 import { DocumentCommentsListBody } from './documentComments/DocumentCommentsListBody.js';
 import {
   COMMENT_META_COUNT_TEXT_STYLE,
@@ -90,6 +93,30 @@ export function DocumentCommentsSection({
     onCreateSuccess,
     onPatchSuccess,
   });
+
+  const mentionCandidatesQuery = useQuery({
+    queryKey: ['documents', documentId, 'comment-mention-candidates'] as const,
+    enabled: panelOpen,
+    queryFn: async () => {
+      const res = await apiFetch(`/api/v1/documents/${documentId}/comments/mention-candidates`);
+      if (!res.ok) throw new Error('Failed to load mention candidates');
+      const body = (await res.json()) as { items: Array<{ id: string; name: string }> };
+      return body.items;
+    },
+    staleTime: 60_000,
+  });
+
+  const mentionNameByUserId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of mentionCandidatesQuery.data ?? []) {
+      map.set(c.id, c.name);
+    }
+    const texts = items.flatMap((root) => [root.text, ...(root.replies ?? []).map((r) => r.text)]);
+    for (const id of collectMentionUserIdsFromComments(texts)) {
+      if (!map.has(id)) map.set(id, 'user');
+    }
+    return map;
+  }, [mentionCandidatesQuery.data, items]);
 
   const isRail = layout === 'rail';
   const contentWidth = panelOpen ? WIDTH_OPEN : WIDTH_CLOSED;
@@ -224,6 +251,9 @@ export function DocumentCommentsSection({
                 </Group>
                 <Box style={{ paddingLeft: 28 }}>
                   <DocumentCommentsListBody
+                    documentId={documentId}
+                    panelOpen={panelOpen}
+                    mentionNameByUserId={mentionNameByUserId}
                     listQuery={listQuery}
                     items={items}
                     hasNextPage={hasNextPage}

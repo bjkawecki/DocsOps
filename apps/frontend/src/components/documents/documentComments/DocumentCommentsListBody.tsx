@@ -1,4 +1,4 @@
-import { Box, Button, Group, Loader, Select, Stack, Text, Textarea } from '@mantine/core';
+import { Box, Button, Group, Loader, Select, Stack, Text } from '@mantine/core';
 import type {
   InfiniteData,
   UseInfiniteQueryResult,
@@ -6,6 +6,7 @@ import type {
 } from '@tanstack/react-query';
 import type { DocumentCommentItem, CommentsListResponse } from './documentCommentTypes.js';
 import { DocumentCommentItemView } from './DocumentCommentItemView.js';
+import { DocumentCommentMentionTextarea } from './DocumentCommentMentionTextarea.js';
 
 type CreatePayload = { text: string; parentId?: string; anchorHeadingId?: string };
 type PatchArgs = {
@@ -15,6 +16,9 @@ type PatchArgs = {
 };
 
 type Props = {
+  documentId: string;
+  panelOpen: boolean;
+  mentionNameByUserId: ReadonlyMap<string, string>;
   listQuery: UseInfiniteQueryResult<InfiniteData<CommentsListResponse>, Error>;
   items: DocumentCommentItem[];
   hasNextPage: boolean;
@@ -41,6 +45,9 @@ type Props = {
 };
 
 export function DocumentCommentsListBody({
+  documentId,
+  panelOpen,
+  mentionNameByUserId,
   listQuery,
   items,
   hasNextPage,
@@ -78,12 +85,13 @@ export function DocumentCommentsListBody({
           <Text size="xs" c="dimmed" mb={4}>
             Reply to thread
           </Text>
-          <Textarea
+          <DocumentCommentMentionTextarea
+            documentId={documentId}
+            enabled={panelOpen}
             placeholder="Write a reply…"
             value={replyDraft}
-            onChange={(e) => setReplyDraft(e.currentTarget.value)}
+            onChange={setReplyDraft}
             minRows={2}
-            maxLength={16_000}
           />
           <Group justify="flex-end" gap="xs" mt="xs">
             <Button size="xs" variant="default" onClick={() => setReplyToRootId(null)}>
@@ -118,13 +126,14 @@ export function DocumentCommentsListBody({
               onChange={setAnchorSlug}
             />
           )}
-          <Textarea
+          <DocumentCommentMentionTextarea
+            documentId={documentId}
+            enabled={panelOpen}
             label="Add a comment"
             placeholder="Write a comment…"
             value={newText}
-            onChange={(e) => setNewText(e.currentTarget.value)}
+            onChange={setNewText}
             minRows={2}
-            maxLength={16_000}
           />
           <Group justify="flex-end">
             <Button
@@ -164,6 +173,7 @@ export function DocumentCommentsListBody({
               <DocumentCommentItemView
                 c={root}
                 indent={false}
+                mentionNameByUserId={mentionNameByUserId}
                 headings={headings}
                 currentUserId={currentUserId}
                 editingId={editingId}
@@ -180,6 +190,7 @@ export function DocumentCommentsListBody({
                   key={r.id}
                   c={r}
                   indent
+                  mentionNameByUserId={mentionNameByUserId}
                   headings={headings}
                   currentUserId={currentUserId}
                   editingId={editingId}

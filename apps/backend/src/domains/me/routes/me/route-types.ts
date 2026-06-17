@@ -37,11 +37,15 @@ type UserPreferences = {
       documentChanges?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
     };
     email?: {
       documentChanges?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
     };
   };
 };

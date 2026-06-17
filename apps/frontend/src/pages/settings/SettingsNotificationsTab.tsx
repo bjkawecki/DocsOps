@@ -37,7 +37,7 @@ export function SettingsNotificationsTab() {
 
   const updateNotificationSetting = (
     channel: 'inApp' | 'email',
-    key: 'documentChanges' | 'draftRequests' | 'reminders' | 'system',
+    key: 'documentChanges' | 'draftRequests' | 'reminders' | 'system' | 'orgChanges',
     value: boolean
   ) => {
     patchPreferences.mutate({
@@ -75,8 +75,9 @@ export function SettingsNotificationsTab() {
             <Text size="xs" c="dimmed">
               <strong>Document changes</strong> covers publish, visible updates to published
               documents, archive/trash/restore, and sharing changes (grants).{' '}
-              <strong>Draft requests</strong> covers the review workflow. <strong>Reminders</strong>{' '}
-              is reserved for future use.
+              <strong>Draft requests</strong> covers the review workflow.{' '}
+              <strong>Organization</strong> covers team membership and lead roles.{' '}
+              <strong>Reminders</strong> is reserved for future use.
             </Text>
             <Group justify="space-between">
               <Text size="sm" fw={500}>
@@ -110,6 +111,18 @@ export function SettingsNotificationsTab() {
                 checked={inApp.reminders ?? true}
                 onChange={(event) =>
                   updateNotificationSetting('inApp', 'reminders', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between">
+              <Text size="sm" fw={500}>
+                In-app: organization
+              </Text>
+              <Switch
+                checked={inApp.orgChanges ?? true}
+                onChange={(event) =>
+                  updateNotificationSetting('inApp', 'orgChanges', event.currentTarget.checked)
                 }
                 disabled={patchPreferences.isPending}
               />
@@ -158,6 +171,30 @@ export function SettingsNotificationsTab() {
                 checked={email.reminders ?? false}
                 onChange={(event) =>
                   updateNotificationSetting('email', 'reminders', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between">
+              <Text size="sm" fw={500}>
+                Email: system
+              </Text>
+              <Switch
+                checked={email.system ?? false}
+                onChange={(event) =>
+                  updateNotificationSetting('email', 'system', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between">
+              <Text size="sm" fw={500}>
+                Email: organization
+              </Text>
+              <Switch
+                checked={email.orgChanges ?? false}
+                onChange={(event) =>
+                  updateNotificationSetting('email', 'orgChanges', event.currentTarget.checked)
                 }
                 disabled={patchPreferences.isPending}
               />

@@ -33,7 +33,7 @@ import {
 import {
   documentDisplayTitle,
   eventHeadline,
-  payloadDocumentId,
+  notificationDocumentHref,
   secondaryDetail,
 } from './notificationsInboxFormatters.js';
 
@@ -259,8 +259,7 @@ export function NotificationsInboxPanel({
                 </Table.Thead>
                 <Table.Tbody>
                   {notificationItems.map((item) => {
-                    const docId = payloadDocumentId(item.payload);
-                    const docHref = docId != null ? `/documents/${docId}` : null;
+                    const docHref = notificationDocumentHref(item.eventType, item.payload);
                     const detail = secondaryDetail(item.eventType, item.payload);
                     const unread = item.readAt == null;
                     return (

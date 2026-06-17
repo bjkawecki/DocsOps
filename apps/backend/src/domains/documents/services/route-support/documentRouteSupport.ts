@@ -1,9 +1,8 @@
 import { Prisma, type PrismaClient } from '../../../../../generated/prisma/client.js';
-import {
-  chunkUserIdsForNotificationJobs,
-  symmetricDiffUserIds,
-} from '../../../notifications/services/notificationRecipients.js';
+import { symmetricDiffUserIds } from '../../../notifications/services/notificationRecipients.js';
+import { enqueueNotificationEvent } from '../../../notifications/services/notificationEnqueueService.js';
 import { enqueueJob } from '../../../../infrastructure/jobs/client.js';
+export { enqueueNotificationEvent };
 import type { DocumentMetadataUpdateResult } from '../lifecycle/documentService.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import { documentMarkdownFromRow } from '../query/documentMarkdownSnapshot.js';
@@ -51,22 +50,6 @@ export async function enqueueIncrementalReindexForDocumentSafe(
     });
   } catch (error: unknown) {
     log.warn({ error, documentId: params.documentId }, params.warnMessage);
-  }
-}
-
-export async function enqueueNotificationEvent(args: {
-  eventType: string;
-  targetUserIds: string[];
-  payload: Record<string, unknown>;
-}): Promise<void> {
-  const chunks =
-    args.targetUserIds.length === 0 ? [] : chunkUserIdsForNotificationJobs(args.targetUserIds);
-  for (const targetUserIds of chunks) {
-    await enqueueJob('notifications.send', {
-      eventType: args.eventType,
-      targetUserIds,
-      payload: args.payload,
-    });
   }
 }
 

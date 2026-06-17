@@ -1,8 +1,8 @@
-import type { FastifyInstance, FastifyPluginAsync, FastifyReply } from 'fastify';
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import {
   requireAuthPreHandler,
   requireAdminPreHandler,
+  getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
 import { hashPassword } from '../../auth/services/password.js';
@@ -19,65 +19,12 @@ import {
   setOwnerDisplayName,
 } from '../../organisation/services/contextOwnerDisplay.js';
 import { GrantRole } from '../../../../generated/prisma/client.js';
-
-async function requireExistingAdminUserIdOr404(
-  prisma: PrismaClient,
-  userId: string,
-  reply: FastifyReply
-): Promise<string | undefined> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true },
-  });
-  if (!user) {
-    void reply.status(404).send({ error: 'User not found.' });
-    return undefined;
-  }
-  return user.id;
-}
-
-async function requireLocalPasswordUserIdOrRespond(
-  prisma: PrismaClient,
-  userId: string,
-  reply: FastifyReply,
-  ssoIneligibleMessage: string
-): Promise<string | undefined> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, passwordHash: true },
-  });
-  if (!user) {
-    void reply.status(404).send({ error: 'User not found.' });
-    return undefined;
-  }
-  if (user.passwordHash == null) {
-    void reply.status(400).send({ error: ssoIneligibleMessage });
-    return undefined;
-  }
-  return user.id;
-}
-
-function addTeamMembershipCatalogRow(
-  r: {
-    userId: string;
-    team: { id: string; name: string; department: { id: string; name: string } } | null;
-  },
-  teamsByUser: Map<string, Array<{ id: string; name: string; departmentName: string }>>,
-  departmentsByUser: Map<string, Array<{ id: string; name: string }>>
-): void {
-  const team = r.team;
-  if (!team?.department) return;
-  const list = teamsByUser.get(r.userId) ?? [];
-  if (!list.some((t) => t.id === team.id)) {
-    list.push({ id: team.id, name: team.name, departmentName: team.department.name });
-  }
-  teamsByUser.set(r.userId, list);
-  const deptList = departmentsByUser.get(r.userId) ?? [];
-  if (!deptList.some((d) => d.id === team.department.id)) {
-    deptList.push({ id: team.department.id, name: team.department.name });
-  }
-  departmentsByUser.set(r.userId, deptList);
-}
+import {
+  addTeamMembershipCatalogRow,
+  enqueueAdminRoleChangeNotification,
+  requireExistingAdminUserIdOr404,
+  requireLocalPasswordUserIdOrRespond,
+} from '../services/adminUsersRouteSupport.js';
 
 const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
@@ -369,6 +316,13 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       },
       select: { id: true, name: true, email: true, isAdmin: true, deletedAt: true },
     });
+    if (user.isAdmin) {
+      enqueueAdminRoleChangeNotification(request.log, {
+        targetUserId: user.id,
+        actorUserId: getEffectiveUserId(request as RequestWithUser),
+        granted: true,
+      });
+    }
     return reply.status(201).send(user);
   });
 
@@ -425,6 +379,9 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       } = {};
       if (body.name !== undefined) data.name = body.name;
       if (body.email !== undefined) data.email = body.email;
+      const actorUserId = getEffectiveUserId(request as RequestWithUser);
+      const wasAdmin = target.isAdmin;
+
       if (body.isAdmin !== undefined) data.isAdmin = body.isAdmin;
       if (body.deletedAt !== undefined) {
         data.deletedAt = body.deletedAt === null ? null : new Date(body.deletedAt);
@@ -449,6 +406,13 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           await setOwnerDisplayName(prisma, o.id);
           await refreshContextOwnerDisplayForOwner(prisma, o.id);
         }
+      }
+      if (body.isAdmin !== undefined && body.isAdmin !== wasAdmin) {
+        enqueueAdminRoleChangeNotification(request.log, {
+          targetUserId: userId,
+          actorUserId,
+          granted: body.isAdmin,
+        });
       }
       return reply.send(updated);
     }

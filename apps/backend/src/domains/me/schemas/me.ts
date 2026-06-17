@@ -20,6 +20,7 @@ const notificationChannelPreferencesSchema = z.object({
   draftRequests: z.boolean().optional(),
   reminders: z.boolean().optional(),
   system: z.boolean().optional(),
+  orgChanges: z.boolean().optional(),
 });
 
 export const notificationSettingsSchema = z.object({

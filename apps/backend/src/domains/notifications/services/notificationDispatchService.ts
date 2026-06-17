@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
-
-type NotificationCategory = 'documentChanges' | 'draftRequests' | 'reminders' | 'system';
+import {
+  resolveNotificationPreferenceCategory,
+  type NotificationPreferenceCategory,
+} from '../notificationEventTypes.js';
 
 /** Minutes: merge repeated `document-updated` for same user+document into one row. `0` = off. @default 15 */
 export function getNotificationCoalesceWindowMinutes(): number {
@@ -24,11 +26,8 @@ export function getNotificationHardCapPerUser(): number {
 }
 
 /** Maps event_type strings to preference channels (Settings / `me` preferences). */
-function resolveCategory(eventType: string): NotificationCategory {
-  if (eventType.startsWith('backup-')) return 'system';
-  if (eventType.includes('draft-request')) return 'draftRequests';
-  if (eventType.includes('reminder')) return 'reminders';
-  return 'documentChanges';
+function resolveCategory(eventType: string): NotificationPreferenceCategory {
+  return resolveNotificationPreferenceCategory(eventType);
 }
 
 function shouldCoalesceInAppEvent(eventType: string): boolean {
@@ -172,5 +171,6 @@ export async function dispatchNotificationEvent(
     }
   }
 
+  // TODO(§23a): pg_notify connected SSE clients after successful in-app delivery.
   return { deliveredCount, emailQueuedCount };
 }

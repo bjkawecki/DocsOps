@@ -2,6 +2,7 @@ import { Badge, Box, Button, Group, Select, Stack, Text, Textarea } from '@manti
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { DocumentCommentItem } from './documentCommentTypes.js';
 import { headingLabel } from './documentCommentsConstants.js';
+import { formatCommentMentionText } from './documentCommentMentionUtils.js';
 
 type PatchArgs = {
   commentId: string;
@@ -12,6 +13,7 @@ type PatchArgs = {
 type Props = {
   c: DocumentCommentItem;
   indent: boolean;
+  mentionNameByUserId: ReadonlyMap<string, string>;
   headings: { id: string; text: string }[];
   currentUserId: string | undefined;
   editingId: string | null;
@@ -27,6 +29,7 @@ type Props = {
 export function DocumentCommentItemView({
   c,
   indent,
+  mentionNameByUserId,
   headings,
   currentUserId,
   editingId,
@@ -135,7 +138,7 @@ export function DocumentCommentItemView({
               </Stack>
             ) : (
               <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                {c.text}
+                {formatCommentMentionText(c.text, mentionNameByUserId)}
               </Text>
             )}
           </Stack>
