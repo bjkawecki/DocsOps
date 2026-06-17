@@ -2,6 +2,16 @@
   background-color: var(--mantine-color-default-hover);
 }
 
+/* Backup history: shrink Size + action columns; destination column takes the rest. */
+.admin-backup-history-table th:nth-last-child(2),
+.admin-backup-history-table td:nth-last-child(2),
+.admin-backup-history-table th:last-child,
+.admin-backup-history-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .admin-link-hover:hover {
   text-decoration: underline;
 }

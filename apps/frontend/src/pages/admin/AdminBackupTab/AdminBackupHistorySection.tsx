@@ -59,7 +59,11 @@ export function AdminBackupHistorySection({
       {loading ? (
         <Loader size="sm" />
       ) : (
-        <Table withTableBorder withColumnBorders className="admin-table-hover">
+        <Table
+          withTableBorder
+          withColumnBorders
+          className="admin-table-hover admin-backup-history-table"
+        >
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Started</Table.Th>
@@ -135,7 +139,7 @@ export function AdminBackupHistorySection({
                   </Table.Td>
                   <Table.Td>
                     {run.status === 'succeeded' ? (
-                      <Group gap={4} justify="flex-end" wrap="nowrap">
+                      <Group gap={4} wrap="nowrap">
                         {run.localObjectKey ? (
                           <>
                             <Button
@@ -162,7 +166,7 @@ export function AdminBackupHistorySection({
                         )}
                       </Group>
                     ) : run.status === 'failed' ? (
-                      <Group gap={4} justify="flex-end" wrap="nowrap">
+                      <Group gap={4} wrap="nowrap">
                         <Button
                           size="xs"
                           variant="filled"
