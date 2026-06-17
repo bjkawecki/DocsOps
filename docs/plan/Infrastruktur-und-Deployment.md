@@ -88,7 +88,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 - **Umsetzung:**
   - Keine besonderen Hardware-Anforderungen; Ressourcenbedarf der App und ggf. DB dokumentieren.
   - Persistente **Volumes** für Daten und Konfiguration in der Compose-Datei vorsehen.
-  - **Backup (Operational):** Ein **Archiv** pro Lauf (`manifest.json` + `pg_dump -Fc` + MinIO-Objekte); kurzer **Wartungsmodus** ohne Writes; Job `maintenance.backup` im **Worker**; Upload im **selben Job** an Admin-Ziele (`s3_compatible`, `ssh`; WebDAV Phase 2). Kein Sidecar. Scheduler + Retention (`BACKUP_RETENTION_COUNT`). Restore zunächst Runbook + Test auf leerem Stack. **Plattform-Export** separat. Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4, Todos [§25](Umsetzungs-Todo.md).
+  - **Backup (Operational):** Ein **Archiv** pro Lauf (`manifest.json` + `pg_dump -Fc` + MinIO-Objekte); kurzer **Wartungsmodus** ohne Writes; Job `maintenance.backup` im **Worker**; Upload im **selben Job** an Admin-Ziele (`s3_compatible`, `ssh`; WebDAV Phase 2). Kein Sidecar. Scheduler + Retention (`BACKUP_RETENTION_COUNT`). Restore zunächst Runbook + Test auf leerem Stack. **Plattform-Export/Import** separater Job + Tab Migration (§4 / §27). Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4, Todos [§25](Umsetzungs-Todo.md), [§27](Umsetzungs-Todo.md).
   - **Vor Update:** Backup-Hinweis bzw. -Gate in Admin-UI (§26).
 
 ---
@@ -133,5 +133,5 @@ DocsOps bleibt **self-hosted-first**. Ein optionales **Managed-Hosting-Angebot**
 - [ ] `install.sh` und ggf. `scripts/update.sh` spezifizieren.
 - [ ] CI-Job zum Test des Install-Skripts (frischer Runner, install.sh, Health-Check).
 - [ ] Doku zu VPN (WireGuard o. Ä.) und Reverse Proxy in `docs/` planen.
-- [ ] Betrieb: What's new, Backup, Update – siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) und [Umsetzungs-Todo §24–§26](Umsetzungs-Todo.md).
+- [ ] Betrieb: What's new, Backup, Update, Migration – siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) und [Umsetzungs-Todo §24–§27](Umsetzungs-Todo.md).
 - [ ] Öffentliche Demo & Domains – siehe [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).

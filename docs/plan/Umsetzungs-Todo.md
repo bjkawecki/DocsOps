@@ -333,7 +333,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [ ] **Öffentliche Landing:** Zunächst **statisch, Deutsch** auf `docsops.de` (CTA Demo, Impressum, Datenschutz, Nutzungsbedingungen Demo); optional später integrierte Landing per `VITE_LANDING_PAGE_ENABLED` (§20).
 [ ] **App-i18n:** Englisch + Deutsch im Produkt; Landing getrennt (DE). Release Notes eingeloggt: **§24** (`/whats-new`).
 
-**Betrieb (Releases, Backup, Update):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§26**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
+**Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 
 ---
 
@@ -452,7 +452,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ## 25. Backup & Restore (Betrieb)
 
-**Ziel:** Operational Backup für Disaster Recovery – **wieder einspielbar** (PostgreSQL **und** MinIO in einem Archiv). Getrennt von Plattform-Export/Migration (später). Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4.
+**Ziel:** Operational Backup für Disaster Recovery – **wieder einspielbar** (PostgreSQL **und** MinIO in einem Archiv). Getrennt von Plattform-Export/Migration (§27). Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4.
 
 ### Phase 1 – Backup v1 (Bundle, Ziele, Upload im selben Job)
 
@@ -471,11 +471,32 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 ### Phase 2 – Restore-UI & WebDAV
 
 [ ] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per `PUT` im selben Job nach Archiv-Fertigstellung.
-[ ] **Restore:** Admin-Aktion oder geführtes Runbook in der UI; Wartungsmodus während Restore.
+[ ] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus Historie oder Upload, Wartungsmodus, `pg_restore` + MinIO (Job oder geführtes UI); Runbook-Link. **Nicht** Plattform-Import (§27).
 
-### Später – Plattform-Export
+---
 
-[ ] **Export/Import** für Migration auf anderen DocsOps-Server (eigenes Format, nicht tägliches Backup); Admin explizit anstoßen.
+## 27. Plattform-Export & Migration
+
+**Ziel:** Strukturierter Export/Import für Umzug, Klon, Testinstanz — getrennt von Operational Backup (§25). Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §4.
+
+### Phase 1 – Export, Import (leere Instanz)
+
+[ ] **Format:** `exportFormatVersion` + Manifest; Domänen-JSON (Organisation, User, Kontexte, Dokumente, Grants) + `files/`; stabile Export-IDs für ID-Remapping beim Import.
+[ ] **Jobs:** `maintenance.platform-export`, `maintenance.platform-import` (Worker); Metadaten + Status in DB; Audit.
+[ ] **Export-Service:** Serialisierung über Domänen-Layer; MinIO-Dateien ins Archiv; ohne Sessions/pg-boss/Backup-Metadaten (v1).
+[ ] **Import-Service:** Preflight (Format, Version); Import nur in **leere** Instanz; Phasen mit ID-Map; Default **Passwort-Reset** für importierte User.
+[ ] **Admin-API:** `POST/GET /api/v1/admin/platform-exports`, `POST /api/v1/admin/platform-imports`, Upload + Status; nur `requireAdmin`.
+[ ] **Admin-UI:** Tab **Migration** (`/admin/migration`) — Export starten, Historie, Import-Wizard (Upload, Preflight, Optionen, Fortschritt). **Nicht** im Backup-Tab.
+[ ] **Wartungsmodus** während Import; danach `search.reindex.full` anstoßen.
+[ ] **Benachrichtigungen:** In-App an Admins (`platform-export-succeeded` / `-failed`, `platform-import-succeeded` / `-failed`); Kategorie `system`.
+[ ] **Doku:** Abschnitt in Plan-Betrieb §4; Hinweis im [Runbook-Backup-Restore](Runbook-Backup-Restore.md), dass DR-Restore ≠ Plattform-Import.
+
+### Phase 2 – Erweiterungen
+
+[ ] **Cross-Version:** Importer-Adapter bei `APP_VERSION`- / Block-`schemaVersion`-Wechsel.
+[ ] **Selektiver Export:** eine Company / Tenant (Managed Hosting).
+[ ] **Merge-Import:** Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht v1-Default.
+[ ] **CLI:** optionales Offline-Import-Skript für air-gapped Restore.
 
 ---
 

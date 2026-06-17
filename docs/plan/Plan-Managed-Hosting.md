@@ -170,7 +170,7 @@ Konkrete Preise und Limits – später, wenn Self-hosted-Reife und Pilot-Kunden 
 - Rechtliches: AV-Vertrag, Datenort, Subprozessoren, Löschkonzept pro Tenant.
 - Billing: Stripe o. ä., Metriken (Nutzer, Storage).
 - Onboarding: erster Admin, E-Mail-Verifikation, Trial.
-- Suspend / Delete Tenant: Datenexport (Plattform-Export), Aufbewahrungsfrist.
+- Suspend / Delete Tenant: Datenexport ([Plattform-Export](Plan-Betrieb-Releases-Backup-Update.md) §4, Umsetzungs-Todo §27), Aufbewahrungsfrist.
 - Abgrenzung OSS vs. Hosted (welche Features nur Cloud? – möglichst vermeiden).
 - Eigenes Repo für Control Plane vs. Monorepo-Erweiterung.
 

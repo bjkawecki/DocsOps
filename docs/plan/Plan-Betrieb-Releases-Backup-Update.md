@@ -1,6 +1,6 @@
 # Betrieb: Releases, Backup, Update
 
-Plan für drei zusammenhängende Betriebs-Features: **What's new** (Release Notes für alle Nutzer), **Backup** (Disaster Recovery für Admins) und **Update** (Versionsverwaltung und Upgrade-Pfad für Admins). Ergänzt [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md); Umsetzungsschritte in [Umsetzungs-Todo §24–§26](Umsetzungs-Todo.md).
+Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **Update** und **Plattform-Migration**. Ergänzt [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md); Umsetzungsschritte in [Umsetzungs-Todo §24–§27](Umsetzungs-Todo.md).
 
 ---
 
@@ -111,21 +111,119 @@ Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Eve
 - `BACKUP_RETENTION_COUNT` (z. B. 7): älteste Backups am **konfigurierten Ziel** und in der Metadaten-Liste löschen.
 - Admin-UI: Destinations verwalten, Backups anstoßen, Historie (u. a. Started/Finished, Status, externes Ziel inkl. Typ), Download (falls lokale Kopie); Tab aktualisiert sich per Polling (schnell bei laufendem Job, sonst Intervall im Leerlauf).
 
-### Restore
+### Restore (Operational Backup)
 
 **Phase 1:** dokumentiertes **Runbook** (manuell): Wartungsmodus → Archiv entpacken → Manifest/Checksums prüfen → `pg_restore` → MinIO-Objekte zurück → App starten → Health/Reindex. **Restore einmal testen** (leerer Stack), bevor Produktion darauf vertraut.
 
-**Phase 2:** optionale Admin-Aktion „Restore from backup“ mit Wartungsmodus in der UI.
+**Phase 2:** Admin-Aktion **„Restore from backup“** im Tab **Admin → Backup** (Archiv aus Historie oder Upload); Wartungsmodus während Restore; Link zum Runbook.
+
+### Abgrenzung zu Plattform-Export (§4)
+
+Beide sichern **dieselbe logische Plattform** (Organisation, User, Kontexte, Dokumente, Rechte, Dateien). Der Unterschied liegt in **Zweck, Format und Restore-Szenario** — **nicht** in „Dokumente vs. Rest“:
+
+|                      | **Operational Backup** (§3)                               | **Plattform-Export** (§4)                                                          |
+| -------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Zweck**            | Disaster Recovery auf **derselben** Instanz               | Migration/Klon auf **anderem** Server oder nach Schema-Upgrade                     |
+| **Format**           | `pg_dump -Fc` + rohe MinIO-Keys                           | Strukturiertes, versioniertes Export-Format (Domänen-JSON + Dateien)               |
+| **Häufigkeit**       | Geplant (z. B. täglich), Retention                        | Selten, **explizit** vom Admin                                                     |
+| **Enthält typisch**  | Gesamte DB inkl. Sessions, Job-Queue, Backup-Metadaten    | Domänendaten; **ohne** Betriebsballast (Sessions, pg-boss, Notifications optional) |
+| **Restore/Import**   | `pg_restore` + MinIO (Bit-Snapshot)                       | Logischer Import mit **ID-Remapping** über Services                                |
+| **Gemeinsamer Job?** | **Nein** — getrennte Job-Typen, UI-Bereiche und Retention |
+
+Vor einer Migration kann ein Admin **nacheinander** DR-Backup und Plattform-Export anstoßen (Sicherheitsnetz + Migrationsartefakt) — das ist **keine** technische Kopplung in einem Job.
 
 ---
 
-## 4. Plattform-Export (später, separates Feature)
+## 4. Plattform-Export & Migration (separates Feature)
 
-**Ziel:** DocsOps auf einem **anderen** Server importieren (Umzug, Klon für Test).
+**Ziel:** DocsOps-Inhalte und Struktur auf einem **anderen** Server (oder frischen Stack) wieder nutzbar machen — Umzug, Staging-Klon, Testinstanz, später Tenant-Export (Managed Hosting).
 
-- Strukturiertes Archiv: Organisation, Teams, Nutzer (Passwort-Policy klären), Rechte, Dokumente, Kontexte, Dateien.
-- Versioniertes Import-Format + Skript – **nicht** mit täglichem Operational Backup vermischen.
-- Seltener, explizit angestoßen; eigener Admin-Bereich oder Job-Typ.
+**Nicht** dasselbe wie Operational Backup: kein Ersatz für tägliches DR; **nicht** im selben Job oder Scheduler wie `maintenance.backup`.
+
+### Wann welches Werkzeug?
+
+- **Server kaputt / Rollback auf gestern** → Operational Backup + Restore (§3).
+- **Neuer VPS, andere DocsOps-Version, bereinigter Klon, Datenportabilität** → Plattform-Export + Import (§4).
+
+### Architektur
+
+- **Eigene Job-Typen:** z. B. `maintenance.platform-export` und `maintenance.platform-import` (pg-boss, Worker) — analog Backup, aber **separater** Handler und Metadaten-Tabelle.
+- **Kein** `pg_dump` im Export; Import **kein** `pg_restore`. Daten fließen über **Domänen-Services** (Organisation, User, Kontexte, Dokumente, Rechte, Storage).
+- Kurzer **Wartungsmodus** während Import (Writes gesperrt); Export kann ohne Voll-Wartungsmodus laufen (konsistente Snapshots pro Phase dokumentieren).
+
+### Export-Archiv (Entwurf)
+
+```text
+docsops-platform-export-<exportId>-<timestamp>.tar.zst
+├── manifest.json           # exportFormatVersion, sourceAppVersion, createdAt, checksums, counts
+├── organization.json       # Company, Departments, Teams
+├── users.json              # User-Stubs, Rollen-Zuordnungen (Passwort-Policy s. u.)
+├── contexts.json           # Prozesse, Projekte, Hierarchie
+├── documents.json          # Metadaten, Versionen/Blocks, Tags
+├── grants.json             # explizite Document-Grants
+├── files/                  # Binaries (Export-Refs, nicht Quell-MinIO-Keys)
+└── attachments-map.json    # documentExportId → file refs
+```
+
+**Bewusst nicht** (Standard v1): Sessions, pg-boss-Jobs, In-App-Notifications, `BackupRun`/Destinations, Audit-Logs. Secrets (`.env`, `SESSION_SECRET`, `BACKUP_ENCRYPTION_KEY`) **nie** im Archiv.
+
+`manifest.json`: `exportFormatVersion`, SHA-256 pro Teil, Anzahlen (User, Dokumente, Dateigröße).
+
+### Export-Ablauf (Job)
+
+1. Metadaten-Snapshot / konsistente Lesephase (ggf. kurze Write-Pause nur wenn nötig)
+2. Domänendaten serialisieren (stabile **Export-IDs** in JSON, nicht DB-UUIDs als Import-Ziel)
+3. Dateien aus MinIO in `files/` kopieren
+4. Archiv + Checksummen; optional Download / externes Ziel (eigenes Retention-Modell, **nicht** `BACKUP_RETENTION_COUNT`)
+
+### Import-Ablauf (Job + UI)
+
+**Admin-UI (eigener Bereich):** Tab **Admin → Migration** (Route z. B. `/admin/migration`) — **nicht** im Backup-Tab. Backup-Tab bleibt **Operational / Disaster recovery**; Restore aus DR-Backups gehört dorthin (§3 Phase 2).
+
+**UI-Schritte (v1):**
+
+1. Export-Archiv **hochladen** (später: Pfad von S3)
+2. **Preflight:** Format lesbar, `exportFormatVersion` kompatibel, Vorschau (User-/Dokument-Anzahl)
+3. **Optionen (v1):** Ziel = **leere Instanz** (Pflicht); User-Passwörter = **Reset erzwingen** (Default) oder Hashes übernehmen (nur gleicher Stack, dokumentiert)
+4. **Bestätigung** mit Warnung (Wartungsmodus, Datenüberschreibung)
+5. Job starten → Fortschritt (Phasen + Fehlerlog)
+6. Abschluss: Report + optional `search.reindex.full`
+
+**Job-Phasen (sequenziell, Worker):**
+
+1. Wartungsmodus an
+2. Archiv entpacken; Manifest + Checksummen prüfen
+3. Kompatibilität: `exportFormatVersion` ↔ Importer (ggf. Adapter pro Quell-`APP_VERSION`)
+4. Import in Reihenfolge mit **ID-Remapping** (Export-ID → neue UUID):
+   - Organization → Users (+ TeamMember, Leads) → Contexts → Documents (+ Versionen, Tags, Rechte) → Files (MinIO, neue Keys, DB patchen)
+5. Import-Metadaten in DB; Temp aufräumen; Wartungsmodus aus
+6. Benachrichtigung an Admins (`platform-import-succeeded` / `-failed`); Reindex anstoßen
+
+Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-Regeln gelten wie bei normalem Betrieb.
+
+### v1-Umfang vs. später
+
+| v1                                        | Phase 2+                                                |
+| ----------------------------------------- | ------------------------------------------------------- |
+| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)               |
+| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln)            |
+| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert              |
+| Admin-UI + Job + Audit                    | Upload von externem Ziel; CLI-Skript für Offline-Import |
+
+### UI-Platzierung (festgelegt)
+
+| Bereich                                    | Inhalt                                                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Admin → Backup** (`/admin/backup`)       | Operational Backup: Ziele, Schedule-Hinweis, Historie, Download, **Restore aus DR-Archiv** (Phase 2) |
+| **Admin → Migration** (`/admin/migration`) | Plattform-Export starten, Export-Historie, **Import**                                                |
+| **Admin → System** (`/admin/system`, §5)   | Version, Update, Backup-Gate — kein Migrations-Export                                                |
+
+Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“ — zu unscharf; Plattform-Export ist ebenfalls „Daten“).
+
+### Abhängigkeiten
+
+- Block-Schema: Export serialisiert `schemaVersion`; Import braucht ggf. **Migrations-Adapter** bei DocsOps-Versionswechsel ([Edit-System](Edit-System-Blocks-Suggestions-Lead-Draft.md)).
+- Managed Hosting: Tenant-Löschung / Suspend → Plattform-Export ([Plan-Managed-Hosting](Plan-Managed-Hosting.md) §9).
 
 ---
 
@@ -156,8 +254,8 @@ Siehe auch [Infrastruktur §3](Infrastruktur-und-Deployment.md#3-update-aus-der-
 1. **Backup v1** (§25): Bundle + Wartungsmodus + `maintenance.backup` + Admin-Destinations (S3, SSH) + Upload im selben Job + Runbook/Restore-Test
 2. Version-API + Release-Manifest + `/whats-new` + Menü/Badge (§24; kann parallel zu Backup)
 3. Update UI Phase 1 + `update.sh` (§26; Backup-Gate)
-4. Backup Phase 2: Restore-UI, WebDAV-Ziel, optional Webhook-Härtung
-5. Plattform-Export (separates Feature)
+4. Backup Phase 2: Restore-UI im Backup-Tab, WebDAV-Ziel, optional Webhook-Härtung
+5. **Plattform-Export & Import** (§4, Umsetzungs-Todo §27) — eigener Admin-Tab Migration
 6. Update Phase 2 (Updater-Sidecar)
 
 Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hosting, optional, später).

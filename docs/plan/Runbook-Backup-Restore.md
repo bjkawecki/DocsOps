@@ -1,6 +1,8 @@
 # Runbook: Operational Backup & Restore
 
-Manual restore procedure for DocsOps operational backups (§25). Automated restore UI is planned for Phase 2.
+Manual restore procedure for DocsOps **operational** backups (§25). Automated restore UI is planned for Phase 2 (Admin → Backup).
+
+**Not for platform migration:** Import of a **platform export** (`docsops-platform-export-*.tar.zst`, logical domain format) is a separate feature — see [Plan-Betrieb §4](Plan-Betrieb-Releases-Backup-Update.md) and Umsetzungs-Todo §27. Do not use `pg_restore` on a platform export archive.
 
 ## Prerequisites
 

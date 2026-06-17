@@ -22,7 +22,8 @@ Referenz: [Umsetzungs-Todo §17](Umsetzungs-Todo.md#17-async-jobs), [Prisma-Sche
 - `search.reindex.full`
 - `notifications.send`
 - `maintenance.cleanup` (Tasks: `user-notifications-retention` umgesetzt; `temporary-assets`, `failed-jobs`, `orphaned-exports` noch Stub – **keine Priorität** vor Backup)
-- `maintenance.backup` (geplant §25: Operational Backup, Bundle + Upload an Admin-Ziele)
+- `maintenance.backup` (§25: Operational Backup, Bundle + Upload an Admin-Ziele)
+- `maintenance.platform-export` / `maintenance.platform-import` (geplant §27: Migration, logisches Archiv)
 
 Die Nutzersuche (Dashboard-Quick-Suche, Katalog mit Relevanzsortierung) liest den FTS-Index; `search.reindex.*`-Jobs halten ihn mit den Dokumentinhalten abgleichbar (kurze Verzögerung bis zur Verarbeitung ist aus API-Sicht akzeptabel, vgl. §18).
 
