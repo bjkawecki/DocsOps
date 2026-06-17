@@ -273,7 +273,7 @@ export function DraftsTabContent({
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c="dimmed">
-                    {d.scopeName || '—'}
+                    {d.scopeName || '–'}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -283,7 +283,7 @@ export function DraftsTabContent({
                     </Badge>
                   ) : (
                     <Text size="sm" c="dimmed">
-                      —
+                      –
                     </Text>
                   )}
                 </Table.Td>

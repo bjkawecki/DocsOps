@@ -248,7 +248,7 @@ Startseite ohne Quick Links (redundant zur Sidebar). **Suchleiste** oben mit Sch
 
 **Versionierung für veröffentlichte Dokumente:** Jede neue **Published**-Ausbaustufe entspricht einem **Snapshot** (`DocumentVersion`). Unveröffentlichte Dokumente (`publishedAt == null`) erzeugen keine öffentliche Versionskette.
 
-**Zielbild Bearbeitung:** Autoren arbeiten mit **Suggestions**, der **Scope-Lead** mit **Lead-Draft** und **Publish** — verbindlich beschrieben in [Edit-System: Blocks, Suggestions, Lead-Draft](Edit-System-Blocks-Suggestions-Lead-Draft.md), ergänzend [Versionierung als Snapshots + Deltas](../platform/versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [Prisma-Schema-Entwurf §8](Prisma-Schema-Entwurf.md#8-versionierung-bearbeitung).
+**Zielbild Bearbeitung:** Autoren arbeiten mit **Suggestions**, der **Scope-Lead** mit **Lead-Draft** und **Publish** – verbindlich beschrieben in [Edit-System: Blocks, Suggestions, Lead-Draft](Edit-System-Blocks-Suggestions-Lead-Draft.md), ergänzend [Versionierung als Snapshots + Deltas](../platform/versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [Prisma-Schema-Entwurf §8](Prisma-Schema-Entwurf.md#8-versionierung-bearbeitung).
 
 Die folgenden Unterabschnitte **15a–15e** fassen den **bereits umgesetzten** Grundstock (Publish, Versionen, Sichtbarkeit, Übersichten) zusammen und markieren, wo das Edit-System-Plan die nächste Ausbaustufe definiert.
 
@@ -256,7 +256,7 @@ Die folgenden Unterabschnitte **15a–15e** fassen den **bereits umgesetzten** G
 
 Detaillierter Plan (Meilenstein): [Plan-15a-Datenmodell-Rechte-Sichtbarkeit](Plan-15a-Datenmodell-Rechte-Sichtbarkeit.md).
 
-[x] **Prisma-Schema:** Document um `currentPublishedVersionId` (→ DocumentVersion) ergänzt; **DocumentVersion** angelegt; Migration ausgeführt. Übergangshilfen im Schema können bis zur Edit-System-Migration noch existieren — Zielmodell §8.
+[x] **Prisma-Schema:** Document um `currentPublishedVersionId` (→ DocumentVersion) ergänzt; **DocumentVersion** angelegt; Migration ausgeführt. Übergangshilfen im Schema können bis zur Edit-System-Migration noch existieren – Zielmodell §8.
 [x] **Rechte:** `canPublishDocument(prisma, userId, documentId)` (über `canWriteContext`); Export und Tests. Freigabe neuer Versionen: [Rechtesystem 6b](../platform/datenmodell/Rechtesystem.md#6b-freigabe-publish).
 [x] **Sichtbarkeit Draft:** Dokumente mit `publishedAt == null` nur für Nutzer mit `canWrite` (oder isAdmin) sichtbar. **Catalog** und **GET `/documents/:id`** sowie **Listen in Kontexten** angepasst. Bei GET document (Draft, Nutzer ohne canWrite): **403 Forbidden**. Response GET document um `canPublish` ergänzt.
 [x] **Dokument-Status:** `publishedAt: DateTime?` (null = Draft). [Prisma-Schema-Entwurf §3](Prisma-Schema-Entwurf.md#3-dokumente).
@@ -279,7 +279,7 @@ Detaillierter Plan (Meilenstein): [Plan-15a-Datenmodell-Rechte-Sichtbarkeit](Pla
 
 ### 15d. Konflikte & „auf neuesten Stand“
 
-Im **Zielmodell** lösen sich Konflikte aus **überlappenden Suggestions** (fachliche Entscheidung durch Lead), nicht durch automatisches Zusammenführen paralleler Volltext-Entwürfe — siehe Edit-System-Plan Abschnitt zu Überlappung und Lead-Entscheid.
+Im **Zielmodell** lösen sich Konflikte aus **überlappenden Suggestions** (fachliche Entscheidung durch Lead), nicht durch automatisches Zusammenführen paralleler Volltext-Entwürfe – siehe Edit-System-Plan Abschnitt zu Überlappung und Lead-Entscheid.
 
 **Ergebnis 15d:** Kein Pflicht-Schritt „Volltext manuell zusammenführen“ für Autoren im Soll-Produkt.
 
@@ -329,7 +329,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [ ] CI erweitern: Frontend-Tests (Unit/Component), optional E2E (z. B. Playwright)
 [ ] Caddy-Config im Repo, Doku zu VPN (WireGuard o. Ä.) und Reverse Proxy
 [ ] README: Voraussetzungen, Installation, Update
-[ ] **DocsOps-Demo online:** Eigene Instanz (z. B. `demo.docsops.de`), Reset + `DEMO_MODE`, Seed — Detailplan [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).
+[ ] **DocsOps-Demo online:** Eigene Instanz (z. B. `demo.docsops.de`), Reset + `DEMO_MODE`, Seed – Detailplan [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).
 [ ] **Öffentliche Landing:** Zunächst **statisch, Deutsch** auf `docsops.de` (CTA Demo, Impressum, Datenschutz, Nutzungsbedingungen Demo); optional später integrierte Landing per `VITE_LANDING_PAGE_ENABLED` (§20).
 [ ] **App-i18n:** Englisch + Deutsch im Produkt; Landing getrennt (DE). Release Notes eingeloggt: **§24** (`/whats-new`).
 
@@ -439,41 +439,41 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ## 24. What's new (Release Notes)
 
-**Ziel:** Alle Nutzer sehen Release Notes zur installierten App — Route `/whats-new`, **nicht** unter `/help`. Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §2.
+**Ziel:** Alle Nutzer sehen Release Notes zur installierten App – Route `/whats-new`, **nicht** unter `/help`. Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §2.
 
 [ ] **Inhalt:** `content/releases/manifest.json` + `content/releases/<version>.md` im Repo; mit Release aktualisieren (gleiche Version wie Root-`package.json` / Git-Tag `vX.Y.Z`).
 [ ] **API:** `GET /api/v1/system/version` (`APP_VERSION` aus Build); optional `GET /api/v1/releases` (Manifest + Markdown).
 [ ] **Frontend:** Route `/whats-new`, Markdown rendern (`react-markdown`); Liste nach Version (neueste zuerst).
 [ ] **Navigation:** Account-Menü (Sidebar unten): **What's new** als **erster** Eintrag (vor Admin / Help / Settings).
 [ ] **Badge:** `lastSeenReleaseVersion` in User-Preferences; Badge im Menü, bis Nutzer Seite besucht oder explizit „gelesen“; PATCH `/api/v1/me/preferences`.
-[ ] **Release-Prozess:** Doku in README/Runbook — bei Release: `package.json`-Version, `content/releases/X.Y.Z.md`, Git-Tag, GitHub Release.
+[ ] **Release-Prozess:** Doku in README/Runbook – bei Release: `package.json`-Version, `content/releases/X.Y.Z.md`, Git-Tag, GitHub Release.
 
 ---
 
 ## 25. Backup & Restore (Betrieb)
 
-**Ziel:** Operational Backup für Disaster Recovery — **wieder einspielbar** (PostgreSQL **und** MinIO in einem Archiv). Getrennt von Plattform-Export/Migration (später). Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4.
+**Ziel:** Operational Backup für Disaster Recovery – **wieder einspielbar** (PostgreSQL **und** MinIO in einem Archiv). Getrennt von Plattform-Export/Migration (später). Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4.
 
-### Phase 1 — Backup v1 (Bundle, Ziele, Upload im selben Job)
+### Phase 1 – Backup v1 (Bundle, Ziele, Upload im selben Job)
 
-[ ] **Wartungsmodus:** Kurz Writes sperren während Backup; API liefert klare Meldung (z. B. 503); nach Job wieder aufheben.
-[ ] **Bundle:** Ein Archiv pro Lauf (`tar.zst` o. ä.) mit `manifest.json`, `postgres/dump.custom` (`pg_dump -Fc`), `minio/objects/`; Checksummen vor `succeeded`.
-[ ] **Job:** `maintenance.backup` (pg-boss, **Worker** — kein Sidecar); Worker-Image: `postgresql-client`.
-[ ] **Ablauf im Job:** Wartungsmodus → Dump + MinIO-Export → Archiv → **Upload an Admin-Ziel** (falls konfiguriert) → Metadaten → Wartungsmodus aus.
-[ ] **Destinations (Admin):** CRUD für Backup-Ziele; Typen v1: `s3_compatible`, `ssh` (SFTP); Credentials verschlüsselt; SSRF-Schutz bei URLs.
-[ ] **Admin-API:** `POST /api/v1/admin/backups` (anstoßen, optional `destinationId`), `GET /api/v1/admin/backups` (Liste), `GET /api/v1/admin/backups/:id/download` (presigned URL, falls lokale Kopie); Destinations-API; nur `requireAdmin`; Audit-Log.
-[ ] **Admin-UI:** `/admin/system` → Backups + Destinations: Ziele anlegen, „Create backup“, Liste (Datum, Größe, Status, Ziel), Download.
-[ ] **Retention:** `BACKUP_RETENTION_COUNT`; älteste Backups am Ziel und in Metadaten löschen.
-[ ] **Scheduler:** Cron über pg-boss (Env `BACKUP_SCHEDULE_CRON` oder Admin-UI); `maintenance.backup` in `schedulableJobTypes`.
-[ ] **Webhook (optional):** HTTPS-URL pro Destination/global; JSON-Event bei Erfolg/Fehler; HMAC-Signatur; kein Datei-Upload über Webhook.
-[ ] **Doku/Runbook:** Manuelles Restore (`pg_restore`, MinIO zurück); `.env` nicht im Backup; **Restore einmal auf leerem Stack testen**.
+[x] **Wartungsmodus:** Kurz Writes sperren während Backup; API liefert klare Meldung (503); nach Job wieder aufheben.
+[x] **Bundle:** Ein Archiv pro Lauf (`tar.zst`) mit `manifest.json`, `postgres/dump.custom` (`pg_dump -Fc`), `minio/objects/`; Checksummen vor `succeeded`.
+[x] **Job:** `maintenance.backup` (pg-boss, **Worker** – kein Sidecar); Worker-Image: `postgresql-client`, `zstd`, `tar`.
+[x] **Ablauf im Job:** Wartungsmodus → Dump + MinIO-Export → Archiv → **Upload an Admin-Ziel** (falls konfiguriert) → Metadaten → Wartungsmodus aus.
+[x] **Destinations (Admin):** CRUD für Backup-Ziele; Typen v1: `S3_COMPATIBLE`, `SSH` (SFTP); Credentials verschlüsselt (`BACKUP_ENCRYPTION_KEY`); SSRF-Schutz bei URLs.
+[x] **Admin-API:** `GET /api/v1/admin/backups/status`, Settings, Destinations-CRUD; `POST/GET /api/v1/admin/backups`, `GET …/:id/download`; nur `requireAdmin`; Audit-Log.
+[x] **Admin-UI:** `/admin/backup` → Status, Retention, Default-Destination, Destinations, „Create backup“, Historie, Download; Automatik-Hinweis mit Link zum Scheduler.
+[x] **Retention:** `BackupSettings.retentionCount` (UI); Env `BACKUP_RETENTION_COUNT` nur Install-Default; älteste Backups am Ziel und in Metadaten löschen.
+[x] **Scheduler:** Cron-Feintuning im Scheduler-Tab (`maintenance.backup` → „Disaster recovery backup“); **Ein/Aus nur im Backup-Tab**; Scheduler-Zeile ausgegraut bis erstes Auto-Backup dort konfiguriert.
+[x] **Benachrichtigungen:** In-App an alle Admins bei Erfolg/Fehler (`backup-succeeded` / `backup-failed`); Kategorie `system` in Inbox und Einstellungen. _(Webhook bewusst nicht in v1.)_
+[x] **Doku/Runbook:** [Runbook-Backup-Restore.md](Runbook-Backup-Restore.md); `.env` nicht im Backup; Restore auf leerem Stack manuell testen.
 
-### Phase 2 — Restore-UI & WebDAV
+### Phase 2 – Restore-UI & WebDAV
 
 [ ] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per `PUT` im selben Job nach Archiv-Fertigstellung.
 [ ] **Restore:** Admin-Aktion oder geführtes Runbook in der UI; Wartungsmodus während Restore.
 
-### Später — Plattform-Export
+### Später – Plattform-Export
 
 [ ] **Export/Import** für Migration auf anderen DocsOps-Server (eigenes Format, nicht tägliches Backup); Admin explizit anstoßen.
 
@@ -490,7 +490,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [ ] **Admin-UI:** `/admin/system` (oder Tab unter Admin): installierte Version, „Check for updates“ (GitHub Releases o. ä.), Hinweis + Copy für `update.sh`.
 [ ] **Backup-Gate:** Vor Update-Hinweis Link/Button „Create backup“ (§25); Warnung in UI.
 
-### Phase 2 — Ein-Klick-Update
+### Phase 2 – Ein-Klick-Update
 
 [ ] **Updater-Sidecar:** separater Container/Agent mit begrenzten Rechten (kein voller Docker-Socket im App-Container); `POST /api/v1/admin/updates/apply`.
 [ ] **Wartungsmodus** während Update; Health-Check danach; Rollback-Doku (vorheriges Image-Tag).

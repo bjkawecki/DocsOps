@@ -81,7 +81,7 @@ export type BackfillDocumentBlocksResult = {
 };
 
 /**
- * EPIC-9b: Markdown-Spalte entfernt — Backfill aus DB-`content` entfällt (no-op, Job bleibt idempotent).
+ * EPIC-9b: Markdown-Spalte entfernt – Backfill aus DB-`content` entfällt (no-op, Job bleibt idempotent).
  */
 export async function backfillDocumentVersionBlocks(
   prisma: PrismaClient,

@@ -28,6 +28,9 @@ services:
       ADMIN_NAME: ${ADMIN_NAME:-}
       ADMIN_VORNAME: ${ADMIN_VORNAME:-}
       ADMIN_NACHNAME: ${ADMIN_NACHNAME:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
     # /ready prüft DB (SELECT 1); /health wäre ohne DB → Frontend/Worker starten zu früh.
     healthcheck:
       test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:8080/ready || exit 1']
@@ -59,3 +62,6 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}

@@ -421,7 +421,7 @@ describe('Permissions (canRead, canWrite)', () => {
           expect(ids.length).toBeGreaterThan(0);
           for (const uid of ids) {
             // admin.routes.test u. a. nutzen globale isAdmin-Updates; bei parallelen Suites kann
-            // jeder in der Liste betroffene Admin kurzzeitig demotet sein — Re-List nach Retry.
+            // jeder in der Liste betroffene Admin kurzzeitig demotet sein – Re-List nach Retry.
             if (uid === adminId) {
               await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
             }

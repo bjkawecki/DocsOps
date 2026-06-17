@@ -92,6 +92,8 @@ model User {
   documentAttachmentsUploaded DocumentAttachment[]
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   sessions              Session[]
+  backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
+  backupActionAudits    AdminBackupActionAudit[]
 }
 
 /// Session für Cookie-basierte Auth. Session-ID = id im httpOnly-Cookie; Ablauf über expiresAt.
@@ -418,4 +420,96 @@ model DocumentGrantDepartment {
   @@id([documentId, departmentId, role])
   @@index([documentId])
   @@index([departmentId])
+}
+
+// --- Operational backup (§25) ---
+
+enum BackupDestinationType {
+  S3_COMPATIBLE
+  SSH
+}
+
+enum BackupRunStatus {
+  queued
+  running
+  uploading
+  succeeded
+  failed
+}
+
+enum BackupRunTriggerSource {
+  manual
+  schedule
+}
+
+/// Singleton settings for operational backups (id = "default").
+model BackupSettings {
+  id                    String             @id @default("default")
+  retentionCount        Int                @default(7)
+  defaultDestinationId  String?
+  autoBackupConfigured  Boolean            @default(false)
+  defaultDestination    BackupDestination? @relation("BackupSettingsDefaultDestination", fields: [defaultDestinationId], references: [id], onDelete: SetNull)
+  updatedAt             DateTime           @updatedAt
+}
+
+/// External or secondary storage target for backup archives.
+model BackupDestination {
+  id                    String                 @id @default(cuid())
+  name                  String
+  type                  BackupDestinationType
+  enabled               Boolean                @default(true)
+  configJson            Json
+  credentialsCiphertext String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  backupRuns            BackupRun[]
+  defaultForSettings    BackupSettings[]       @relation("BackupSettingsDefaultDestination")
+}
+
+/// One operational backup execution (manual or scheduled).
+model BackupRun {
+  id                String                 @id @default(cuid())
+  destinationId     String?
+  destination       BackupDestination?     @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  status            BackupRunStatus        @default(queued)
+  triggerSource     BackupRunTriggerSource
+  triggeredByUserId String?
+  triggeredBy       User?                  @relation("BackupRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  archiveSha256     String?
+  sizeBytes         BigInt?
+  remotePath        String?
+  localObjectKey    String?
+  manifestJson      Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime               @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Active maintenance lock (singleton row id = "backup" during operational backup).
+model SystemMaintenanceLock {
+  id          String    @id @default("backup")
+  reason      String
+  backupRunId String?
+  lockedAt    DateTime  @default(now())
+}
+
+/// Audit log for admin backup actions.
+model AdminBackupActionAudit {
+  id           String   @id @default(cuid())
+  actorUserId  String
+  actor        User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action       String
+  backupRunId  String?
+  destinationId String?
+  status       String
+  details      Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action, status, createdAt(sort: Desc)])
 }

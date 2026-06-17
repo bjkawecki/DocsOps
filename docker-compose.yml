@@ -44,6 +44,9 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +69,9 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
     depends_on:
       postgres:
         condition: service_healthy

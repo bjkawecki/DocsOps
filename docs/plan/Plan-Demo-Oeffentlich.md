@@ -1,6 +1,6 @@
 # Öffentliche Demo, Domains & Sprache
 
-**Status:** Planungsnotiz — Details für Marketing, Live-Demo und rechtlichen Rahmen. Umsetzung über [Umsetzungs-Todo §19–§20](Umsetzungs-Todo.md), sobald die Plattform demo-tauglich ist. Ergänzt [Infrastruktur §11](Infrastruktur-und-Deployment.md).
+**Status:** Planungsnotiz – Details für Marketing, Live-Demo und rechtlichen Rahmen. Umsetzung über [Umsetzungs-Todo §19–§20](Umsetzungs-Todo.md), sobald die Plattform demo-tauglich ist. Ergänzt [Infrastruktur §11](Infrastruktur-und-Deployment.md).
 
 ---
 
@@ -11,7 +11,7 @@ DocsOps bleibt **self-hosted-first**. Zusätzlich eine **öffentliche Präsenz**
 | Schicht                      | Beispiel-URL              | Inhalt                                                             |
 | ---------------------------- | ------------------------- | ------------------------------------------------------------------ |
 | **Marketing**                | `https://docsops.de`      | Landing (zunächst **Deutsch**), Impressum, Datenschutz, CTA „Demo“ |
-| **Live-Demo**                | `https://demo.docsops.de` | **Eigene Instanz** — volle App, Wegwerf-Daten                      |
+| **Live-Demo**                | `https://demo.docsops.de` | **Eigene Instanz** – volle App, Wegwerf-Daten                      |
 | **OSS / Projekt** (optional) | `https://docsops.org`     | Redirect oder Projekt-Gesicht (GitHub, englische OSS-Doku)         |
 | **Self-hosted**              | beim Kunden               | unabhängig von Demo                                                |
 
@@ -23,7 +23,7 @@ DocsOps bleibt **self-hosted-first**. Zusätzlich eine **öffentliche Präsenz**
 
 ### Marketing vs. Demo trennen
 
-- **Landing** kann zunächst **statisch** sein (eigener Build, Caddy `file_server`, oder später `VITE_LANDING_PAGE_ENABLED` im App-Frontend — siehe §19).
+- **Landing** kann zunächst **statisch** sein (eigener Build, Caddy `file_server`, oder später `VITE_LANDING_PAGE_ENABLED` im App-Frontend – siehe §19).
 - **Demo** = immer **eigener Compose-Stack** (eigene PostgreSQL, MinIO, Volumes), idealerweise isoliert vom eigenen Betrieb.
 
 ```text
@@ -35,7 +35,7 @@ demo.docsops.de         → DocsOps-Stack (App, Worker, DB, MinIO, Caddy)
 
 - Öffentliche Marketing-Site + „Try live demo“
 - **Gemeinsamer Demo-Login** oder Button „Enter demo“ (Session ohne sichtbares Passwort)
-- **Writable Demo** mit **periodischem Reset** (Seed-Daten) — Standard bei OSS-Demos
+- **Writable Demo** mit **periodischem Reset** (Seed-Daten) – Standard bei OSS-Demos
 - Alternative **read-only** (weniger Abuse, weniger Überzeugungskraft)
 
 Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
@@ -48,11 +48,11 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 
 | Domain             | Rolle                                                                              |
 | ------------------ | ---------------------------------------------------------------------------------- |
-| **`docsops.de`**   | **Hauptmarke** — Landing, Demo-Subdomain, DACH-Vertrauen, Impressum                |
-| **`docsops.org`**  | **OSS/Projekt** — optional Redirect auf `.de` oder englische Projektseite / GitHub |
+| **`docsops.de`**   | **Hauptmarke** – Landing, Demo-Subdomain, DACH-Vertrauen, Impressum                |
+| **`docsops.org`**  | **OSS/Projekt** – optional Redirect auf `.de` oder englische Projektseite / GitHub |
 | **`docs-ops.com`** | günstig verfügbar; optional später international oder Redirect                     |
 
-`docsops.com` ist am Aftermarket teuer (Premium) — **nicht** nötig für den Start.
+`docsops.com` ist am Aftermarket teuer (Premium) – **nicht** nötig für den Start.
 
 ### TLD-Einordnung
 
@@ -61,9 +61,9 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 
 ### Subdomains (Vorschlag)
 
-- `docsops.de` — Marketing
-- `demo.docsops.de` — Live-Demo
-- `docs.docsops.de` — optionale Produkt-Doku (oder `/docs` auf Hauptdomain)
+- `docsops.de` – Marketing
+- `demo.docsops.de` – Live-Demo
+- `docs.docsops.de` – optionale Produkt-Doku (oder `/docs` auf Hauptdomain)
 
 ---
 
@@ -84,12 +84,12 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 - Default: **Browser** (`Accept-Language`) mit Fallback **EN**
 - Persistenz über `userPreferences.locale` (Settings)
 - Landing soll erwähnen: „Die App ist auf Deutsch und Englisch verfügbar“
-- Demo-Link optional mit `?lang=de` / Sprachwahl auf der Landing — vermeidet Sprung DE-Landing → EN-App ohne Hinweis
+- Demo-Link optional mit `?lang=de` / Sprachwahl auf der Landing – vermeidet Sprung DE-Landing → EN-App ohne Hinweis
 
 ### Pflege
 
 - Jeder neuer UI-Text: EN + DE (oder EN + TODO-DE für unwichtige Labels)
-- Landing **nicht** zwingend in App-i18n — statischer DE-Content entkoppelt
+- Landing **nicht** zwingend in App-i18n – statischer DE-Content entkoppelt
 
 ---
 
@@ -97,7 +97,7 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 
 ### Zugang
 
-- **Shared Credentials** auf der Landing sind branchenüblich — Risiko liegt bei **isolierter Demo**, nicht beim Passwort.
+- **Shared Credentials** auf der Landing sind branchenüblich – Risiko liegt bei **isolierter Demo**, nicht beim Passwort.
 - Alternative: Button **„Enter demo“** → Backend erzeugt Session für Demo-User (kein Passwort auf der Seite).
 
 ### Technische Maßnahmen
@@ -113,16 +113,16 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 | **Upload-Limits**                       | Storage-Missbrauch                                                          |
 | **Disclaimer** auf Landing + Login      | Keine vertraulichen echten Daten                                            |
 | **`robots.txt` / noindex** für Demo-App | SEO der Müll-Inhalte vermeiden                                              |
-| UI-Hinweis                              | z. B. „Demo — resets daily“                                                 |
+| UI-Hinweis                              | z. B. „Demo – resets daily“                                                 |
 
 Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 
 ### Nutzerinhalte & Verantwortung (keine Rechtsberatung)
 
 - Als **Betreiber** einer öffentlichen Demo mit **nutzergenerierten Inhalten** gilt: **nicht** pauschal für jeden Satz verantwortlich, aber **nicht** ignorieren, sobald **eindeutig illegale** Inhalte bekannt sind (löschen, ggf. melden).
-- **Schimpfwörter / Vandalismus:** vor allem **Image-Problem** — löst **Reset** + Seed, nicht Dauer-Moderation.
+- **Schimpfwörter / Vandalismus:** vor allem **Image-Problem** – löst **Reset** + Seed, nicht Dauer-Moderation.
 - **Strafrechtlich relevante Inhalte:** ernst nehmen, sofort entfernen, bei Bedarf anwaltlich klären.
-- **Nutzer** sollen **keine echten Interna** in der Demo eintragen — klar kommunizieren.
+- **Nutzer** sollen **keine echten Interna** in der Demo eintragen – klar kommunizieren.
 
 ### Rechtliches auf `.de` (Rahmen)
 
@@ -137,7 +137,7 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 ### Demo-Modus (Backend/Env)
 
 - `DEMO_MODE=true` auf Demo-Instanz
-- Job/Cron: **`demo.reset`** — DB leeren, Seed laden, MinIO-Demo-Bucket leeren
+- Job/Cron: **`demo.reset`** – DB leeren, Seed laden, MinIO-Demo-Bucket leeren
 - Seed-Daten: **eine** Sprache (DE oder EN) für Beispieldokumente; Hinweis „sample data“
 
 ### Optionale integrierte Landing (Alternative zu statisch)
@@ -147,13 +147,13 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 
 ### Abgrenzung
 
-- **What's new** (`/whats-new`, §24) = Release Notes für **eingeloggte** Nutzer — nicht die öffentliche Marketing-Docs-Page.
+- **What's new** (`/whats-new`, §24) = Release Notes für **eingeloggte** Nutzer – nicht die öffentliche Marketing-Docs-Page.
 
 ---
 
 ## 7. Go-Live-Checkliste (Demo)
 
-- [ ] `demo.docsops.de` — eigene Instanz, isolierte Volumes
+- [ ] `demo.docsops.de` – eigene Instanz, isolierte Volumes
 - [ ] Seed + automatischer Reset (Cron/Job dokumentiert)
 - [ ] `DEMO_MODE` + Rate Limits, kein E-Mail-Versand
 - [ ] Disclaimer + Nutzungsbedingungen Demo + Impressum/Datenschutz (DE)

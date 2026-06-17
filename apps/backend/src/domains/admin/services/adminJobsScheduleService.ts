@@ -5,7 +5,11 @@ import {
 } from '../../../infrastructure/jobs/client.js';
 import { type JobType } from '../../../infrastructure/jobs/jobTypes.js';
 
-export const schedulableJobTypes = ['search.reindex.full', 'maintenance.cleanup'] as const;
+export const schedulableJobTypes = [
+  'search.reindex.full',
+  'maintenance.cleanup',
+  'maintenance.backup',
+] as const;
 
 export function isSchedulableJobType(
   jobName: string

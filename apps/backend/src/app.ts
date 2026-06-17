@@ -15,6 +15,7 @@ import { meRoutes } from './domains/me/routes/index.js';
 import { pinnedRoutes } from './domains/pinned/routes/index.js';
 import adminRoutes from './domains/admin/routes/index.js';
 import { searchRoutes } from './domains/search/routes/index.js';
+import { maintenanceModePreHandler } from './infrastructure/maintenance/maintenancePreHandler.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json') as { name: string; version: string };
@@ -50,6 +51,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.decorate('prisma', prisma);
   const storage = await initStorage();
   app.decorate('storage', storage ?? null);
+  app.addHook('onRequest', maintenanceModePreHandler);
   app.addHook('onClose', async (instance) => {
     await instance.prisma.$disconnect();
   });

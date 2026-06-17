@@ -20,7 +20,7 @@ export function HelpOverviewPage() {
             Organisation & scopes
           </Anchor>
           <Text size="md" c="dimmed" mt={4}>
-            Company → department → team (and personal); projects with subcontexts vs processes—when
+            Company → department → team (and personal); projects with subcontexts vs processes–when
             to use which.
           </Text>
         </List.Item>

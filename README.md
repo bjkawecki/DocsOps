@@ -22,6 +22,29 @@ Startet den Stack. App nach kurzer Startzeit unter **http://localhost:5000** (He
 
 Manuell: `make up` oder `docker compose up -d`.
 
+## Operational backup
+
+Before configuring backup destinations in **Admin → Backup**, set `BACKUP_ENCRYPTION_KEY` in `.env` (encrypts stored destination credentials at rest).
+
+Generate a 32-byte key (base64):
+
+```bash
+openssl rand -base64 32
+# or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Add to `.env` (use quotes if the value contains `+` or `/`):
+
+```bash
+BACKUP_ENCRYPTION_KEY="<generated-value>"
+```
+
+Restart **app** and **worker** after changing `.env` (`docker compose up` or restart the dev processes). With Docker Compose, the key is passed from the repo-root `.env` into the containers.
+
+**Troubleshooting:** If Admin → Backup shows _Encryption not configured_ although the key is in `.env`, check that the value is quoted, the file is at the **repo root**, and app/worker were restarted. For local `make dev`, the backend loads the repo-root `.env` automatically.
+
+If you lose this key, existing destinations cannot be decrypted. The key is **not** included in backup archives – store it separately (e.g. password manager). See [Runbook-Backup-Restore](docs/plan/Runbook-Backup-Restore.md).
+
 ## Entwicklung
 
 Siehe [docs/Development-Anleitung.md](docs/Development-Anleitung.md).

@@ -2,7 +2,7 @@
 
 **Meilenstein (umgesetzt):** Unveröffentlichte Dokumente sind nur für Nutzer mit Schreibrecht (bzw. Scope-Lead) sichtbar; Leser sehen nur veröffentlichte Inhalte. Grundlage für **Publish** und Versions-Snapshots.
 
-**Aktuelles Zielbild Bearbeitung:** [Edit-System: Blocks, Suggestions, Lead-Draft](Edit-System-Blocks-Suggestions-Lead-Draft.md) — dort sind Lead-Draft, Suggestions und Migration vom heutigen Schema beschrieben.
+**Aktuelles Zielbild Bearbeitung:** [Edit-System: Blocks, Suggestions, Lead-Draft](Edit-System-Blocks-Suggestions-Lead-Draft.md) – dort sind Lead-Draft, Suggestions und Migration vom heutigen Schema beschrieben.
 
 Referenz: [Umsetzungs-Todo §15a](Umsetzungs-Todo.md#15a-datenmodell-rechte-sichtbarkeit-draftpublished), [Prisma-Schema-Entwurf §3, §8](Prisma-Schema-Entwurf.md).
 

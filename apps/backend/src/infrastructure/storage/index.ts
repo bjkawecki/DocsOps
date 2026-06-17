@@ -7,6 +7,9 @@ import {
   getPresignedGetUrl as s3GetPresignedGetUrl,
   getObject as s3GetObject,
   deleteObject as s3DeleteObject,
+  listObjectKeys as s3ListObjectKeys,
+  isBucketAvailable,
+  uploadFilePath as s3UploadFilePath,
   getS3ConfigFromEnv,
 } from './s3.js';
 
@@ -18,8 +21,11 @@ export interface StorageService {
   readonly bucket: string;
   getPresignedGetUrl(key: string, expiresInSeconds?: number): Promise<string>;
   uploadStream(key: string, body: Readable | Buffer, contentType?: string): Promise<void>;
+  uploadFilePath(key: string, filePath: string, contentType?: string): Promise<void>;
   getObject(key: string): Promise<{ Body: Readable; ContentType?: string } | null>;
   deleteObject(key: string): Promise<void>;
+  listObjectKeys(prefix?: string): Promise<string[]>;
+  isAvailable(): Promise<boolean>;
 }
 
 export function createStorageService(client: S3Client, bucket: string): StorageService {
@@ -29,11 +35,15 @@ export function createStorageService(client: S3Client, bucket: string): StorageS
       s3GetPresignedGetUrl(client, bucket, key, expiresInSeconds),
     uploadStream: (key, body, contentType) =>
       s3UploadStream(client, bucket, key, body, contentType),
+    uploadFilePath: (key, filePath, contentType) =>
+      s3UploadFilePath(client, bucket, key, filePath, contentType),
     getObject: async (key) => {
       const result = await s3GetObject(client, bucket, key);
       return result as { Body: Readable; ContentType?: string } | null;
     },
     deleteObject: (key) => s3DeleteObject(client, bucket, key),
+    listObjectKeys: (prefix) => s3ListObjectKeys(client, bucket, prefix),
+    isAvailable: () => isBucketAvailable(client, bucket),
   };
 }
 

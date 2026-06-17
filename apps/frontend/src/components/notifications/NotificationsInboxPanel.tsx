@@ -170,7 +170,7 @@ export function NotificationsInboxPanel({
       <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
         {notificationsQuery.data != null
           ? `${totalNotifications} notification${totalNotifications !== 1 ? 's' : ''}`
-          : '—'}
+          : '–'}
       </Text>
       <Select
         label="Per page"

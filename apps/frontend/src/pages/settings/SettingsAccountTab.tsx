@@ -146,7 +146,7 @@ export function SettingsAccountTab() {
               <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xl">
                 <Stack gap="sm">
                   <Text size="sm" fw={500} style={{ fontFamily: 'monospace' }}>
-                    {hasLocalLogin ? (user.email ?? '—') : '—'}
+                    {hasLocalLogin ? (user.email ?? '–') : '–'}
                   </Text>
                   <Text size="xs" c="dimmed">
                     {hasLocalLogin
@@ -179,7 +179,7 @@ export function SettingsAccountTab() {
               <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xl">
                 <Stack gap="sm">
                   <Text size="sm" fw={500} style={{ fontFamily: 'monospace', letterSpacing: 2 }}>
-                    {hasLocalLogin ? '**********' : '—'}
+                    {hasLocalLogin ? '**********' : '–'}
                   </Text>
                   <Text size="xs" c="dimmed">
                     {hasLocalLogin

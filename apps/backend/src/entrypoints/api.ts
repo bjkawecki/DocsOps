@@ -11,7 +11,7 @@ try {
 } catch (err) {
   app.log.error(
     { err },
-    'runSeedIfNeeded fehlgeschlagen — Server startet trotzdem (Migration/DB prüfen)'
+    'runSeedIfNeeded fehlgeschlagen – Server startet trotzdem (Migration/DB prüfen)'
   );
 }
 

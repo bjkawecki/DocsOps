@@ -1,0 +1,55 @@
+import { isIP } from 'node:net';
+
+const BLOCKED_HOSTNAMES = new Set(['localhost', 'metadata.google.internal']);
+
+function isPrivateIpv4(host: string): boolean {
+  const parts = host.split('.').map((p) => Number.parseInt(p, 10));
+  if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n) || n < 0 || n > 255)) {
+    return false;
+  }
+  const [a, b] = parts;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 0) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  return false;
+}
+
+function isPrivateIpv6(host: string): boolean {
+  const normalized = host.toLowerCase();
+  if (normalized === '::1') return true;
+  if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
+  if (normalized.startsWith('fe80')) return true;
+  return false;
+}
+
+export function assertSafeRemoteHost(host: string): void {
+  const trimmed = host.trim().toLowerCase();
+  if (!trimmed) throw new Error('Host is required');
+  if (BLOCKED_HOSTNAMES.has(trimmed)) {
+    throw new Error('Host is not allowed');
+  }
+  const ipVersion = isIP(trimmed);
+  if (ipVersion === 4 && isPrivateIpv4(trimmed)) {
+    throw new Error('Private IPv4 addresses are not allowed');
+  }
+  if (ipVersion === 6 && isPrivateIpv6(trimmed)) {
+    throw new Error('Private IPv6 addresses are not allowed');
+  }
+}
+
+export function assertSafeHttpsUrl(urlString: string): URL {
+  let url: URL;
+  try {
+    url = new URL(urlString);
+  } catch {
+    throw new Error('Invalid URL');
+  }
+  if (url.protocol !== 'https:') {
+    throw new Error('Only https URLs are allowed');
+  }
+  assertSafeRemoteHost(url.hostname);
+  return url;
+}

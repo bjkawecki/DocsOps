@@ -14,7 +14,7 @@ RUN ./node_modules/.bin/prisma generate --schema=apps/backend/prisma/schema.pris
 
 # Run
 FROM node:24-alpine
-RUN apk add --no-cache pandoc texlive texlive-latexextra texmf-dist-fontsrecommended
+RUN apk add --no-cache pandoc texlive texlive-latexextra texmf-dist-fontsrecommended postgresql-client zstd tar
 WORKDIR /app
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/package.json ./

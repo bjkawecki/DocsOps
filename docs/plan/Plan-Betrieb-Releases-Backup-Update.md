@@ -9,27 +9,27 @@ Plan für drei zusammenhängende Betriebs-Features: **What's new** (Release Note
 - **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`).
 - **Deploy:** Beim Image-/Stack-Build als `APP_VERSION` ins Backend (z. B. `GET /api/v1/system/version`).
 - **Release:** Git-Tag `v0.2.0`, GitHub Release, `scripts/update.sh` zieht diesen Tag bzw. Release-Artefakt.
-- **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) — wird mit der App ausgeliefert.
+- **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) – wird mit der App ausgeliefert.
 - **Nummer bestimmen:** manuell beim Release (Patch/Minor/Major nach SemVer); optional später Tooling (Changesets / semantic-release).
 
 ---
 
 ## 2. What's new (`/whats-new`)
 
-**Ziel:** Alle eingeloggten Nutzer sehen, was in der installierten bzw. neueren Versionen neu ist — getrennt von **Help** (Bedienhilfe unter `/help/*`).
+**Ziel:** Alle eingeloggten Nutzer sehen, was in der installierten bzw. neueren Versionen neu ist – getrennt von **Help** (Bedienhilfe unter `/help/*`).
 
 ### Inhalt & Quelle
 
 - **Nicht** als freie CMS-Inhalte nur in der DB (Drift zur deployten Version).
 - **Primär:** versionierte Markdown-Dateien im Repo (`content/releases/*.md`), beim Build eingebunden oder vom Backend aus dem Image gelesen.
 - **Rendering:** `react-markdown` (wie bei anderen Markdown-Inhalten im Frontend).
-- **API (optional):** `GET /api/v1/releases` — Liste aus Manifest + Markdown-Inhalt; `GET /api/v1/system/version` — aktuelle `APP_VERSION`.
+- **API (optional):** `GET /api/v1/releases` – Liste aus Manifest + Markdown-Inhalt; `GET /api/v1/system/version` – aktuelle `APP_VERSION`.
 
 ### Navigation & UX
 
 - Route **`/whats-new`** (eigene URL, nicht unter `/help`).
 - **Account-Menü** (Sidebar unten): erster Eintrag **What's new** (vor Admin / Help / Settings).
-- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) — Badge, solange installierte Version neuer ist als zuletzt gesehen.
+- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) – Badge, solange installierte Version neuer ist als zuletzt gesehen.
 
 ### Abgrenzung
 
@@ -41,12 +41,12 @@ Plan für drei zusammenhängende Betriebs-Features: **What's new** (Release Note
 
 ## 3. Backup (Operational Backup)
 
-**Ziel:** Disaster Recovery und Wiederherstellung nach Fehlbedienung — **wieder einspielbar** als Ganzes (DB + Dateien). **Nicht** dasselbe wie Plattform-Export/Migration (siehe §4).
+**Ziel:** Disaster Recovery und Wiederherstellung nach Fehlbedienung – **wieder einspielbar** als Ganzes (DB + Dateien). **Nicht** dasselbe wie Plattform-Export/Migration (siehe §4).
 
 ### Architektur
 
-- **Eigener Job-Typ** `maintenance.backup` (pg-boss) — **nicht** Untertask von `maintenance.cleanup`.
-- Ausführung im **Worker**-Prozess (gleiches Image wie API, Entrypoint `worker.ts`) — **kein Sidecar** für Backup v1. Sidecar nur für Update Phase 2 (Docker-Socket), vgl. §5.
+- **Eigener Job-Typ** `maintenance.backup` (pg-boss) – **nicht** Untertask von `maintenance.cleanup`.
+- Ausführung im **Worker**-Prozess (gleiches Image wie API, Entrypoint `worker.ts`) – **kein Sidecar** für Backup v1. Sidecar nur für Update Phase 2 (Docker-Socket), vgl. §5.
 - Worker-Image: zusätzlich `postgresql-client` (`pg_dump` / `pg_restore` für Runbook).
 
 ### Backup-Bundle (ein Archiv pro Lauf)
@@ -68,7 +68,7 @@ Secrets (`.env`, Session-Secret) **nicht** im Bundle; Restore-Runbook verweist a
 
 ### Konsistenz (Wartungsmodus)
 
-Kurz **Wartungsmodus** während der Erstellung: **keine Schreibzugriffe** auf die Plattform, dann `pg_dump` und MinIO-Export, danach Archiv bauen. So bleiben DB und Dateien zusammenpassend. Reads optional erlaubt oder komplett gesperrt — in der Implementierung festlegen und dokumentieren.
+Kurz **Wartungsmodus** während der Erstellung: **keine Schreibzugriffe** auf die Plattform, dann `pg_dump` und MinIO-Export, danach Archiv bauen. So bleiben DB und Dateien zusammenpassend. Reads optional erlaubt oder komplett gesperrt – in der Implementierung festlegen und dokumentieren.
 
 ### Job-Ablauf (ein Prozess)
 
@@ -76,14 +76,14 @@ Alles in **einem** `maintenance.backup`-Handler, sequenziell:
 
 1. Wartungsmodus an
 2. `pg_dump` + MinIO-Export → temporäres Archiv + `manifest.json` + Checksummen
-3. **Upload** an konfiguriertes Admin-Ziel (falls gesetzt) — im **selben Job**, direkt im Anschluss
+3. **Upload** an konfiguriertes Admin-Ziel (falls gesetzt) – im **selben Job**, direkt im Anschluss
 4. Metadaten in DB (Status, Größe, Ziel, Remote-Pfad, Checksum)
 5. Optional: Webhook(s) bei Erfolg/Fehler (nur Metadaten, s. u.)
 6. Temporäre Dateien aufräumen; Wartungsmodus aus
 
-Optional: zusätzliche Kopie im lokalen MinIO-Bucket `backups/` und **Download** per presigned URL — nur wenn gewünscht (Offsite-Ziel ist der Normalfall für DR).
+Optional: zusätzliche Kopie im lokalen MinIO-Bucket `backups/` und **Download** per presigned URL – nur wenn gewünscht (Offsite-Ziel ist der Normalfall für DR).
 
-**Audit** (wer, wann, Größe, Status, Ziel) — analog Admin-Jobs.
+**Audit** (wer, wann, Größe, Status, Ziel) – analog Admin-Jobs.
 
 Admin: **Create backup** → `POST /api/v1/admin/backups`.
 
@@ -93,9 +93,9 @@ Admins legen **Backup destinations** an (Credentials verschlüsselt in der DB, n
 
 | Typ                  | v1      | Umsetzung                                                                              |
 | -------------------- | ------- | -------------------------------------------------------------------------------------- |
-| **`s3_compatible`**  | ja      | AWS SDK (`PutObject` mit Stream) — gleiche Basis wie MinIO-Anbindung                   |
-| **`ssh`** (SFTP/scp) | ja      | SSH-Host, User, Key/Passwort, Zielpfad — nativ im Worker (z. B. `ssh2`), kein `rclone` |
-| **`webdav`**         | Phase 2 | HTTP `PUT` nach Archiv (Nextcloud o. Ä.) — gleicher Job-Ablauf wie S3/SSH              |
+| **`s3_compatible`**  | ja      | AWS SDK (`PutObject` mit Stream) – gleiche Basis wie MinIO-Anbindung                   |
+| **`ssh`** (SFTP/scp) | ja      | SSH-Host, User, Key/Passwort, Zielpfad – nativ im Worker (z. B. `ssh2`), kein `rclone` |
+| **`webdav`**         | Phase 2 | HTTP `PUT` nach Archiv (Nextcloud o. Ä.) – gleicher Job-Ablauf wie S3/SSH              |
 
 **Kein `rclone` im Image (v1):** Spart extra Binary, Subprocess-Debugging und generische Remote-Configs; S3 + SSH decken Self-hosted ab. `rclone` nur erwägen, wenn später viele Cloud-Anbieter ohne eigene Integration nötig sind.
 
@@ -103,7 +103,7 @@ SSRF-Schutz bei konfigurierbaren URLs (keine internen Ziele, nur `https`/`sftp` 
 
 ### Webhook (optional, v1)
 
-Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Event** erhält (`backupId`, `status`, `size`, `checksum`, `finishedAt`, optional zeitlich begrenzte `downloadUrl`). **Kein** Upload der Backup-Datei über den Webhook — nur Benachrichtigung oder Trigger für externe Automation. HMAC-Signatur (`X-DocsOps-Signature`) empfohlen.
+Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Event** erhält (`backupId`, `status`, `size`, `checksum`, `finishedAt`, optional zeitlich begrenzte `downloadUrl`). **Kein** Upload der Backup-Datei über den Webhook – nur Benachrichtigung oder Trigger für externe Automation. HMAC-Signatur (`X-DocsOps-Signature`) empfohlen.
 
 ### Automatik & Retention
 
@@ -124,7 +124,7 @@ Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Eve
 **Ziel:** DocsOps auf einem **anderen** Server importieren (Umzug, Klon für Test).
 
 - Strukturiertes Archiv: Organisation, Teams, Nutzer (Passwort-Policy klären), Rechte, Dokumente, Kontexte, Dateien.
-- Versioniertes Import-Format + Skript — **nicht** mit täglichem Operational Backup vermischen.
+- Versioniertes Import-Format + Skript – **nicht** mit täglichem Operational Backup vermischen.
 - Seltener, explizit angestoßen; eigener Admin-Bereich oder Job-Typ.
 
 ---
@@ -169,7 +169,7 @@ Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hostin
 | Variable                 | Bedeutung                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
 | `APP_VERSION`            | Aus Build/`package.json`                                                                  |
-| `BACKUP_RETENTION_COUNT` | Max. Anzahl behaltener Backups (pro Destination / global — bei Implementierung festlegen) |
+| `BACKUP_RETENTION_COUNT` | Max. Anzahl behaltener Backups (pro Destination / global – bei Implementierung festlegen) |
 | `BACKUP_SCHEDULE_CRON`   | Optional, Scheduler für automatische Backups                                              |
 | `UPDATE_CHECK_URL`       | Optional, URL für Versionsabfrage (Default: GitHub Releases)                              |
 

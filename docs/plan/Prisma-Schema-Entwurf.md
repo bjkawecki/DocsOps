@@ -137,9 +137,9 @@ Verbindliches Konzept: **[Edit-System: Blocks, Suggestions, Lead-Draft](Edit-Sys
 
 **Ziel-Tabellen (konzeptionell, Migration aus heute `schema.prisma`):**
 
-- **Document:** `publishedAt`, `currentPublishedVersionId`; kanonischer Inhalt künftig als **Block-JSON** (Published) plus separater **Lead-Draft** (JSON) mit Revisionszähler — Details im Edit-System-Plan.
+- **Document:** `publishedAt`, `currentPublishedVersionId`; kanonischer Inhalt künftig als **Block-JSON** (Published) plus separater **Lead-Draft** (JSON) mit Revisionszähler – Details im Edit-System-Plan.
 - **DocumentVersion:** Snapshot der **veröffentlichten** Version zum Zeitpunkt des Publish (Full-Version); optionale Kette über `parentVersionId`.
-- **Suggestion (neu):** Änderungsvorschläge von Schreibern mit Status und Bezug auf Draft-Revision — Felder siehe Edit-System-Plan.
+- **Suggestion (neu):** Änderungsvorschläge von Schreibern mit Status und Bezug auf Draft-Revision – Felder siehe Edit-System-Plan.
 
 **Ist-Stand im Repo:** `apps/backend/prisma/schema.prisma` kann bis zur Migration noch ältere Hilfsmodelle enthalten; die Plattform-Doku beschreibt das **Zielmodell** in den verlinkten Dokumenten.
 

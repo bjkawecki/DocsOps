@@ -407,7 +407,7 @@ export function SettingsGeneralTab() {
                     </List>
                   ) : (
                     <Text size="sm" c="dimmed">
-                      —
+                      –
                     </Text>
                   )}
                 </div>

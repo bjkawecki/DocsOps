@@ -5,8 +5,10 @@ import {
   DeleteObjectCommand,
   HeadBucketCommand,
   CreateBucketCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { createReadStream } from 'node:fs';
 import type { Readable } from 'node:stream';
 
 const DEFAULT_EXPIRES_IN = 60;
@@ -107,6 +109,48 @@ export async function getObject(
  */
 export async function deleteObject(client: S3Client, bucket: string, key: string): Promise<void> {
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+}
+
+export async function listObjectKeys(
+  client: S3Client,
+  bucket: string,
+  prefix?: string
+): Promise<string[]> {
+  const keys: string[] = [];
+  let continuationToken: string | undefined;
+  do {
+    const response = await client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      })
+    );
+    for (const item of response.Contents ?? []) {
+      if (item.Key) keys.push(item.Key);
+    }
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+  } while (continuationToken);
+  return keys;
+}
+
+export async function isBucketAvailable(client: S3Client, bucket: string): Promise<boolean> {
+  try {
+    await client.send(new HeadBucketCommand({ Bucket: bucket }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function uploadFilePath(
+  client: S3Client,
+  bucket: string,
+  key: string,
+  filePath: string,
+  contentType?: string
+): Promise<void> {
+  await uploadStream(client, bucket, key, createReadStream(filePath), contentType);
 }
 
 export function getS3ConfigFromEnv(): S3Config | null {

@@ -37,7 +37,7 @@ export function SettingsNotificationsTab() {
 
   const updateNotificationSetting = (
     channel: 'inApp' | 'email',
-    key: 'documentChanges' | 'draftRequests' | 'reminders',
+    key: 'documentChanges' | 'draftRequests' | 'reminders' | 'system',
     value: boolean
   ) => {
     patchPreferences.mutate({
@@ -110,6 +110,18 @@ export function SettingsNotificationsTab() {
                 checked={inApp.reminders ?? true}
                 onChange={(event) =>
                   updateNotificationSetting('inApp', 'reminders', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between">
+              <Text size="sm" fw={500}>
+                In-app: system (backups)
+              </Text>
+              <Switch
+                checked={inApp.system ?? true}
+                onChange={(event) =>
+                  updateNotificationSetting('inApp', 'system', event.currentTarget.checked)
                 }
                 disabled={patchPreferences.isPending}
               />

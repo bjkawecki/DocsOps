@@ -7,7 +7,7 @@ export function HelpCollaborationPage() {
       <Text size="md">
         Many teams are fine with <strong>real-time collaborative editing</strong> (several people in
         one live draft). DocsOps is aimed especially at organisations where that model is{' '}
-        <strong>not</strong> how they want to ship documentation—whether because of regulation,
+        <strong>not</strong> how they want to ship documentation–whether because of regulation,
         distributed teams, or the need for a clear, agreed “official” version.
       </Text>
       <Title order={3}>Regulated and accountable work</Title>
@@ -23,14 +23,14 @@ export function HelpCollaborationPage() {
         When people work across time zones or calendars, expecting everyone to be online in the same
         document at once is fragile. A workflow built around{' '}
         <strong>drafts, comments, and merge</strong> fits hand-offs: you finish a change, others
-        review when they can, and the merged result becomes the shared truth—without requiring
+        review when they can, and the merged result becomes the shared truth–without requiring
         simultaneous presence.
       </Text>
       <Title order={3}>Why merge, not fancy live sync?</Title>
       <Text size="md">
         Keeping many cursors in sync in one surface is a deep engineering problem on its own. That
-        is a secondary point: the main one is product fit. A <strong>merge-based</strong> path—draft
-        → review (where needed) → integrate into a published version—matches how many organisations
+        is a secondary point: the main one is product fit. A <strong>merge-based</strong> path–draft
+        → review (where needed) → integrate into a published version–matches how many organisations
         want
         <strong> predictable outcomes</strong>, readable history, and a single place for sign-off.
       </Text>

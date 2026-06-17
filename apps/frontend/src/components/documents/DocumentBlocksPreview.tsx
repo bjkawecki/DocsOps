@@ -113,7 +113,7 @@ type Props = {
   doc: BlockDocumentV0 | null;
 };
 
-/** Lesevorschau aus Blocks — Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */
+/** Lesevorschau aus Blocks – Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */
 export function DocumentBlocksPreview({ title, doc }: Props) {
   if (doc == null || doc.blocks.length === 0) return null;
   const text = blockDocumentToPlainPreview(doc);

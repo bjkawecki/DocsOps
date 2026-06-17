@@ -29,6 +29,8 @@ const REVIEW_NOTIFICATION_EVENT_TYPES = [
   'draft-request-rejected',
 ] as const;
 
+const SYSTEM_NOTIFICATION_EVENT_TYPES = ['backup-succeeded', 'backup-failed'] as const;
+
 const ownerScopeSelect = {
   teamId: true,
   departmentId: true,
@@ -110,6 +112,9 @@ function notificationsCategorySql(category: string): Prisma.Sql {
   }
   if (category === 'reviews') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...REVIEW_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'system') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...SYSTEM_NOTIFICATION_EVENT_TYPES])})`;
   }
   return Prisma.sql`AND FALSE`;
 }

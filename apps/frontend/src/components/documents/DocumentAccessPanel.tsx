@@ -176,7 +176,7 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
       )}
 
       {userOptionsQuery.isError && (
-        <Alert color="yellow" variant="light" title="User list unavailable">
+        <Alert color="yellow" title="User list unavailable">
           Eligible scope users could not be loaded.
         </Alert>
       )}
@@ -185,7 +185,7 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
         userOptions.length === 0 &&
         !userOptionsQuery.isPending &&
         !userOptionsQuery.isError && (
-          <Alert color="yellow" variant="light" title="No eligible users found">
+          <Alert color="yellow" title="No eligible users found">
             No scope users with read access are currently available for write assignment.
           </Alert>
         )}

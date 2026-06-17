@@ -38,7 +38,7 @@ async function main(): Promise<void> {
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }
-  console.error('wait-for-database: Timeout — Postgres nicht erreichbar. DATABASE_URL prüfen.');
+  console.error('wait-for-database: Timeout – Postgres nicht erreichbar. DATABASE_URL prüfen.');
   process.exit(1);
 }
 

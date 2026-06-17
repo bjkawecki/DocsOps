@@ -1,8 +1,8 @@
 # Managed Hosting (optional, später)
 
-**Status:** Planungsnotiz — **keine Umsetzungspriorität**; wird fortgeführt, wenn Self-hosted-Betrieb (Install, Backup, Update) steht. Keine Einträge in [Umsetzungs-Todo](Umsetzungs-Todo.md) in dieser Phase.
+**Status:** Planungsnotiz – **keine Umsetzungspriorität**; wird fortgeführt, wenn Self-hosted-Betrieb (Install, Backup, Update) steht. Keine Einträge in [Umsetzungs-Todo](Umsetzungs-Todo.md) in dieser Phase.
 
-DocsOps ist primär **self-hosted** (Firma betreibt eigenen Stack). Optional kann ein **Managed-Hosting-Angebot** ergänzt werden — ähnlich der Idee von [Coolify](https://coolify.io), aber **deutlich schmaler**: DocsOps-spezifisch, kein generisches PaaS, und typischerweise **ein Server (oder wenige)** statt Multi-Server-Orchestrierung.
+DocsOps ist primär **self-hosted** (Firma betreibt eigenen Stack). Optional kann ein **Managed-Hosting-Angebot** ergänzt werden – ähnlich der Idee von [Coolify](https://coolify.io), aber **deutlich schmaler**: DocsOps-spezifisch, kein generisches PaaS, und typischerweise **ein Server (oder wenige)** statt Multi-Server-Orchestrierung.
 
 Verwandte Pläne: [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md), [Betrieb: Releases, Backup, Update](Plan-Betrieb-Releases-Backup-Update.md).
 
@@ -32,13 +32,13 @@ Verwandte Pläne: [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md),
 - Ein leistungsfähiger Server (z. B. 8–16 GB RAM) reicht für **mehrere kleine Tenants** oder **einen großen Kunden**.
 - Statt Multi-Server-PaaS: **Multi-Instanz auf einem Host** (oder wenigen Hosts).
 
-Coolify-ähnlich wird DocsOps Hosting nur in einem Punkt: **einfache Bereitstellung ohne manuelles Compose** — nicht in der Komplexität (Cluster, viele Nodes).
+Coolify-ähnlich wird DocsOps Hosting nur in einem Punkt: **einfache Bereitstellung ohne manuelles Compose** – nicht in der Komplexität (Cluster, viele Nodes).
 
 ---
 
 ## 3. Zwei Varianten (später wählbar)
 
-### Variante A — DocsOps Cloud (voll managed)
+### Variante A – DocsOps Cloud (voll managed)
 
 Kunde registriert sich → erhält eine eigene Instanz (Subdomain oder Custom Domain).
 
@@ -48,7 +48,7 @@ Kunde registriert sich → erhält eine eigene Instanz (Subdomain oder Custom Do
 
 Geeignet für Firmen ohne eigene Ops-Kapazität.
 
-### Variante B — Control Plane auf Kunden-VPS (Coolify-Nähe)
+### Variante B – Control Plane auf Kunden-VPS (Coolify-Nähe)
 
 Kunde bringt **eigenen VPS**; Anbieter liefert ein **schmales Panel**:
 
@@ -85,7 +85,7 @@ Ein VPS / Dedicated Server
 
 ### Tenant-Modell
 
-- **Single-Tenant pro Firma:** eigene Postgres-DB, eigene MinIO-Daten/Volumes — **keine** gemeinsame Datenbank für alle Kunden (passt zu Rechten, Compliance, Blast Radius).
+- **Single-Tenant pro Firma:** eigene Postgres-DB, eigene MinIO-Daten/Volumes – **keine** gemeinsame Datenbank für alle Kunden (passt zu Rechten, Compliance, Blast Radius).
 - **Kein** Multi-Tenant in einer DB für unterschiedliche Firmen (zu riskant für interne Doku).
 
 ### Skalierung
@@ -150,7 +150,7 @@ Managed braucht **zusätzlich** (später, eigenes Projekt/Repo möglich):
 - **Pro aktivem Nutzer** (SaaS-klassisch)
 - **Tiers:** z. B. Shared Host · Dedicated Server · Enterprise (SSO, SLA)
 
-Konkrete Preise und Limits — später, wenn Self-hosted-Reife und Pilot-Kunden vorliegen.
+Konkrete Preise und Limits – später, wenn Self-hosted-Reife und Pilot-Kunden vorliegen.
 
 ---
 
@@ -158,7 +158,7 @@ Konkrete Preise und Limits — später, wenn Self-hosted-Reife und Pilot-Kunden 
 
 1. **Self-hosted produktionsreif:** `install.sh`, Backup, Update, Version-API (Betriebsplan).
 2. **Manueller Managed-Pilot:** ein Server, Tenants per Hand (Compose + Subdomain), Erfahrung sammeln.
-3. **Leichtes Control Plane:** Tenant anlegen, Backup/Update zentral — **kein** Coolify-Klon.
+3. **Leichtes Control Plane:** Tenant anlegen, Backup/Update zentral – **kein** Coolify-Klon.
 4. Optional: Kunden-VPS-Agent (Variante B), zweiter Host, Billing-Integration.
 
 **Nicht vorziehen:** Multi-Server-Cluster, generisches App-Hosting, Multi-Tenant in einer DB.
@@ -171,7 +171,7 @@ Konkrete Preise und Limits — später, wenn Self-hosted-Reife und Pilot-Kunden 
 - Billing: Stripe o. ä., Metriken (Nutzer, Storage).
 - Onboarding: erster Admin, E-Mail-Verifikation, Trial.
 - Suspend / Delete Tenant: Datenexport (Plattform-Export), Aufbewahrungsfrist.
-- Abgrenzung OSS vs. Hosted (welche Features nur Cloud? — möglichst vermeiden).
+- Abgrenzung OSS vs. Hosted (welche Features nur Cloud? – möglichst vermeiden).
 - Eigenes Repo für Control Plane vs. Monorepo-Erweiterung.
 
 ---

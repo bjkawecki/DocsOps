@@ -11,5 +11,7 @@ overrides:
 allowBuilds:
   '@prisma/engines': true
   argon2: true
+  cpu-features: true
   esbuild: true
   prisma: true
+  ssh2: true

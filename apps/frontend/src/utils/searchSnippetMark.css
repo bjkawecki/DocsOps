@@ -19,7 +19,7 @@
   color: var(--mantine-color-dimmed);
 }
 
-/* Line clamp on a real block (not Mantine Text/span + lineClamp — that hid the snippet). */
+/* Line clamp on a real block (not Mantine Text/span + lineClamp – that hid the snippet). */
 .docsops-search-hit-quote-inner {
   display: -webkit-box;
   -webkit-line-clamp: 4;

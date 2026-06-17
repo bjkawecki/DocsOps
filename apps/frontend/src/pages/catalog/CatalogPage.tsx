@@ -328,7 +328,7 @@ export function CatalogPage() {
               style={{ minWidth: 200 }}
             />
             <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-              {data != null ? `${data.total} document${data.total !== 1 ? 's' : ''}` : '—'}
+              {data != null ? `${data.total} document${data.total !== 1 ? 's' : ''}` : '–'}
             </Text>
             <Select
               label="Per page"
@@ -438,7 +438,7 @@ export function CatalogPage() {
                         title={doc.contextName}
                         className="catalog-table-link-style"
                       >
-                        {doc.contextName || '—'}
+                        {doc.contextName || '–'}
                       </Anchor>
                     </Table.Td>
                     <Table.Td>
@@ -450,7 +450,7 @@ export function CatalogPage() {
                         ))}
                         {doc.documentTags.length === 0 && (
                           <Text size="sm" c="dimmed">
-                            —
+                            –
                           </Text>
                         )}
                       </Group>

@@ -3,7 +3,7 @@ import { canPublishDocument } from './canPublishDocument.js';
 import { canWrite } from './canWrite.js';
 
 /**
- * Lead darf den gemeinsamen Lead-Draft (Block-JSON) bearbeiten — gleiche Schwelle wie Publish
+ * Lead darf den gemeinsamen Lead-Draft (Block-JSON) bearbeiten – gleiche Schwelle wie Publish
  * (`canWriteContext` auf dem Dokument-Kontext, vgl. `canPublishDocument`).
  */
 export async function canEditLeadDraft(

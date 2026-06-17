@@ -21,7 +21,7 @@ export function HelpOrganisationPage() {
       <Text size="md">
         A <strong>process</strong> represents an operational or recurring flow: procedures,
         playbooks, or line-of-business documentation that is often tied to how work runs rather than
-        to a single initiative. Naming is a guide, not a rule—pick the shape your team will
+        to a single initiative. Naming is a guide, not a rule–pick the shape your team will
         recognise.
       </Text>
       <Title order={3}>When to choose which</Title>

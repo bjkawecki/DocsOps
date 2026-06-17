@@ -381,7 +381,7 @@ export function TrashArchiveTabCore({
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">
-                    {dateValue(item) ? formatTableDate(dateValue(item)!, { withTime: true }) : '—'}
+                    {dateValue(item) ? formatTableDate(dateValue(item)!, { withTime: true }) : '–'}
                   </Text>
                 </Table.Td>
                 <Table.Td>

@@ -38,6 +38,7 @@ import { AdminDepartmentsTab } from './pages/admin/AdminDepartmentsTab';
 import { AdminCompanyTab } from './pages/admin/AdminCompanyTab';
 import { AdminJobsTab } from './pages/admin/AdminJobsTab';
 import { AdminSchedulerTab } from './pages/admin/AdminSchedulerTab';
+import { AdminBackupTab } from './pages/admin/AdminBackupTab/AdminBackupTab';
 
 function App() {
   return (
@@ -106,6 +107,7 @@ function App() {
             <Route path="company" element={<AdminCompanyTab />} />
             <Route path="jobs" element={<AdminJobsTab />} />
             <Route path="scheduler" element={<AdminSchedulerTab />} />
+            <Route path="backup" element={<AdminBackupTab />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

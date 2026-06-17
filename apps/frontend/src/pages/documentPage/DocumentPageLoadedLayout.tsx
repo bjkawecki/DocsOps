@@ -379,12 +379,7 @@ export function DocumentPageLoadedLayout({
                       </Tabs.List>
                       <Tabs.Panel value="draft" pt="md">
                         {!hasDraftBlocks && !hasPublishedBlocks && (
-                          <Alert
-                            color="yellow"
-                            variant="light"
-                            mb="md"
-                            title="Draft content is empty"
-                          >
+                          <Alert color="yellow" mb="md" title="Draft content is empty">
                             <Text size="sm">
                               No block content is currently available for this document. Save the
                               draft once to initialize it.

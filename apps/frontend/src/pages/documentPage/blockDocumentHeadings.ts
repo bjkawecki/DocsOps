@@ -9,7 +9,7 @@ export function slugify(text: string): string {
     .replace(/[^\w\u00C0-\u024F-]/g, '');
 }
 
-/** Wie Backend `nodeText` — Kindelemente ohne Separator verketten. */
+/** Wie Backend `nodeText` – Kindelemente ohne Separator verketten. */
 export function nodeText(node: BlockNodeV0): string {
   const ownText = typeof node.meta?.text === 'string' ? node.meta.text : '';
   const children = Array.isArray(node.content) ? node.content.map(nodeText).join('') : '';
@@ -54,7 +54,7 @@ export type BlockDocumentHeadingData = {
 };
 
 /**
- * Überschriftenliste (TOC) und Anker-IDs pro Heading-Block — Reihenfolge/Slugs wie Backend
+ * Überschriftenliste (TOC) und Anker-IDs pro Heading-Block – Reihenfolge/Slugs wie Backend
  * {@link apps/backend/src/domains/documents/services/blocks/blockHeadingSlugs.ts}.
  */
 export function getBlockDocumentHeadingData(

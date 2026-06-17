@@ -12,29 +12,29 @@ Vollständige Liste der HTTP-Endpunkte (aus `backend/src/routes/` + `auth/routes
 
 | Methode | Pfad         | PreHandler            | Permission im Handler |
 | ------- | ------------ | --------------------- | --------------------- |
-| POST    | /auth/login  | —                     | — (öffentlich)        |
-| POST    | /auth/logout | —                     | — (Cookie)            |
-| GET     | /auth/me     | requireAuthPreHandler | — (eigener User)      |
+| POST    | /auth/login  | –                     | – (öffentlich)        |
+| POST    | /auth/logout | –                     | – (Cookie)            |
+| GET     | /auth/me     | requireAuthPreHandler | – (eigener User)      |
 
 ### Organisation (`organisation.ts`)
 
 | Methode | Pfad                              | PreHandler                                    | Permission im Handler |
 | ------- | --------------------------------- | --------------------------------------------- | --------------------- |
-| GET     | /companies                        | requireAuthPreHandler                         | —                     |
-| POST    | /companies                        | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| GET     | /companies/:companyId             | requireAuthPreHandler                         | —                     |
-| PATCH   | /companies/:companyId             | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| DELETE  | /companies/:companyId             | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| GET     | /companies/:companyId/departments | requireAuthPreHandler                         | —                     |
-| POST    | /companies/:companyId/departments | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| GET     | /departments/:departmentId        | requireAuthPreHandler                         | —                     |
-| PATCH   | /departments/:departmentId        | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| DELETE  | /departments/:departmentId        | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| GET     | /departments/:departmentId/teams  | requireAuthPreHandler                         | —                     |
-| POST    | /departments/:departmentId/teams  | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| GET     | /teams/:teamId                    | requireAuthPreHandler                         | —                     |
-| PATCH   | /teams/:teamId                    | requireAuthPreHandler, requireAdminPreHandler | —                     |
-| DELETE  | /teams/:teamId                    | requireAuthPreHandler, requireAdminPreHandler | —                     |
+| GET     | /companies                        | requireAuthPreHandler                         | –                     |
+| POST    | /companies                        | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| GET     | /companies/:companyId             | requireAuthPreHandler                         | –                     |
+| PATCH   | /companies/:companyId             | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| DELETE  | /companies/:companyId             | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| GET     | /companies/:companyId/departments | requireAuthPreHandler                         | –                     |
+| POST    | /companies/:companyId/departments | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| GET     | /departments/:departmentId        | requireAuthPreHandler                         | –                     |
+| PATCH   | /departments/:departmentId        | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| DELETE  | /departments/:departmentId        | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| GET     | /departments/:departmentId/teams  | requireAuthPreHandler                         | –                     |
+| POST    | /departments/:departmentId/teams  | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| GET     | /teams/:teamId                    | requireAuthPreHandler                         | –                     |
+| PATCH   | /teams/:teamId                    | requireAuthPreHandler, requireAdminPreHandler | –                     |
+| DELETE  | /teams/:teamId                    | requireAuthPreHandler, requireAdminPreHandler | –                     |
 
 ### Contexts (`contexts.ts`)
 
@@ -61,7 +61,7 @@ Vollständige Liste der HTTP-Endpunkte (aus `backend/src/routes/` + `auth/routes
 
 ### Documents (`documents.ts`)
 
-Zielbild für Bearbeitung veröffentlichter Inhalte: [Edit-System-Plan](Edit-System-Blocks-Suggestions-Lead-Draft.md). Die **vollständige** Route-Liste und jede Permission-Prüfung sind maßgeblich im Quellcode unter `apps/backend/src/routes/documents.ts` (und zugehörigen Services) — die Tabelle nennt die zentralen Les-/Schreib-Pfade.
+Zielbild für Bearbeitung veröffentlichter Inhalte: [Edit-System-Plan](Edit-System-Blocks-Suggestions-Lead-Draft.md). Die **vollständige** Route-Liste und jede Permission-Prüfung sind maßgeblich im Quellcode unter `apps/backend/src/routes/documents.ts` (und zugehörigen Services) – die Tabelle nennt die zentralen Les-/Schreib-Pfade.
 
 | Methode | Pfad                                             | PreHandler                                            | Permission im Handler                            |
 | ------- | ------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------ |
@@ -72,17 +72,17 @@ Zielbild für Bearbeitung veröffentlichter Inhalte: [Edit-System-Plan](Edit-Sys
 | PATCH   | /documents/:documentId                           | requireAuthPreHandler, requireDocumentAccess('write') | canWriteContext bei contextId-Änderung           |
 | DELETE  | /documents/:documentId                           | requireAuthPreHandler                                 | canDeleteDocument                                |
 | POST    | /documents/:documentId/restore                   | requireAuthPreHandler                                 | canDeleteDocument oder canSeeDocumentInTrash     |
-| GET     | /documents/:documentId/grants                    | requireAuthPreHandler, requireDocumentAccess('read')  | —                                                |
-| PUT     | /documents/:documentId/grants/users              | requireAuthPreHandler, requireDocumentAccess('write') | —                                                |
-| PUT     | /documents/:documentId/grants/teams              | requireAuthPreHandler, requireDocumentAccess('write') | —                                                |
-| PUT     | /documents/:documentId/grants/departments        | requireAuthPreHandler, requireDocumentAccess('write') | —                                                |
+| GET     | /documents/:documentId/grants                    | requireAuthPreHandler, requireDocumentAccess('read')  | –                                                |
+| PUT     | /documents/:documentId/grants/users              | requireAuthPreHandler, requireDocumentAccess('write') | –                                                |
+| PUT     | /documents/:documentId/grants/teams              | requireAuthPreHandler, requireDocumentAccess('write') | –                                                |
+| PUT     | /documents/:documentId/grants/departments        | requireAuthPreHandler, requireDocumentAccess('write') | –                                                |
 | POST    | /documents/:documentId/publish                   | requireAuthPreHandler, requireDocumentAccess('read')  | canPublishDocument                               |
-| GET     | /documents/:documentId/versions                  | requireAuthPreHandler, requireDocumentAccess('read')  | —                                                |
-| GET     | /documents/:documentId/versions/:versionId       | requireAuthPreHandler, requireDocumentAccess('read')  | —                                                |
-| GET     | /documents/:documentId/attachments               | requireAuthPreHandler, requireDocumentAccess('read')  | —                                                |
-| POST    | /documents/:documentId/attachments               | requireAuthPreHandler, requireDocumentAccess('write') | —                                                |
-| GET     | /documents/:documentId/attachments/:attachmentId | requireAuthPreHandler, requireDocumentAccess('read')  | —                                                |
-| DELETE  | /documents/:documentId/attachments/:attachmentId | requireAuthPreHandler, requireDocumentAccess('write') | —                                                |
+| GET     | /documents/:documentId/versions                  | requireAuthPreHandler, requireDocumentAccess('read')  | –                                                |
+| GET     | /documents/:documentId/versions/:versionId       | requireAuthPreHandler, requireDocumentAccess('read')  | –                                                |
+| GET     | /documents/:documentId/attachments               | requireAuthPreHandler, requireDocumentAccess('read')  | –                                                |
+| POST    | /documents/:documentId/attachments               | requireAuthPreHandler, requireDocumentAccess('write') | –                                                |
+| GET     | /documents/:documentId/attachments/:attachmentId | requireAuthPreHandler, requireDocumentAccess('read')  | –                                                |
+| DELETE  | /documents/:documentId/attachments/:attachmentId | requireAuthPreHandler, requireDocumentAccess('write') | –                                                |
 | GET     | /tags/catalog                                    | requireAuthPreHandler                                 | Catalog-Tags (getReadableCatalogScope)           |
 | GET     | /tags                                            | requireAuthPreHandler                                 | canReadScopeForOwner(ownerId)                    |
 | POST    | /tags                                            | requireAuthPreHandler                                 | canCreateTagForOwner(ownerId)                    |
@@ -137,14 +137,14 @@ Zielbild für Bearbeitung veröffentlichter Inhalte: [Edit-System-Plan](Edit-Sys
 
 | Methode                | Pfad                             | PreHandler              | Permission im Handler |
 | ---------------------- | -------------------------------- | ----------------------- | --------------------- |
-| POST                   | /admin/impersonate               | preAdmin (Auth + Admin) | —                     |
-| DELETE                 | /admin/impersonate               | preAdmin                | —                     |
-| GET                    | /admin/users                     | preAdmin                | —                     |
-| GET                    | /admin/users/:userId             | preAdmin                | —                     |
-| PATCH                  | /admin/users/:userId             | preAdmin                | —                     |
-| POST                   | /admin/users                     | preAdmin                | —                     |
-| GET                    | /admin/departments/member-counts | preAdmin                | —                     |
-| (weitere Admin-Routen) | preAdmin                         | —                       |
+| POST                   | /admin/impersonate               | preAdmin (Auth + Admin) | –                     |
+| DELETE                 | /admin/impersonate               | preAdmin                | –                     |
+| GET                    | /admin/users                     | preAdmin                | –                     |
+| GET                    | /admin/users/:userId             | preAdmin                | –                     |
+| PATCH                  | /admin/users/:userId             | preAdmin                | –                     |
+| POST                   | /admin/users                     | preAdmin                | –                     |
+| GET                    | /admin/departments/member-counts | preAdmin                | –                     |
+| (weitere Admin-Routen) | preAdmin                         | –                       |
 
 ---
 
@@ -156,37 +156,37 @@ Kompakte Tabelle: **Route | Permission | Scope Level | Ownership Check | Risiko*
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------- | ----------------- | ------------------------------- |
 | GET /documents                                                               | getReadableCatalogScope (Where)                               | catalog                 | implizit in Where | low                             |
 | GET /documents/:id                                                           | requireDocumentAccess('read'), canSeeDocumentInTrash          | document                | canRead(doc)      | low                             |
-| POST /documents                                                              | canWriteContext / nur Auth (kontextfrei)                      | context / —             | —                 | low                             |
+| POST /documents                                                              | canWriteContext / nur Auth (kontextfrei)                      | context / –             | –                 | low                             |
 | PATCH /documents/:id                                                         | requireDocumentAccess('write'), canWriteContext bei contextId | document                | canWrite(doc)     | low (nur Metadaten)             |
 | POST /documents/:id/archive                                                  | requireDocumentAccess('write')                                | document                | canWrite(doc)     | low                             |
 | DELETE /documents/:id                                                        | canDeleteDocument                                             | document/context        | canWriteContext   | low                             |
 | POST /documents/:id/restore                                                  | canDeleteDocument oder canSeeDocumentInTrash                  | document                | Owner/Lead        | low                             |
 | POST /documents/:id/publish                                                  | canPublishDocument                                            | document/context        | canWriteContext   | low                             |
 | GET/PUT …/grants/\*                                                          | requireDocumentAccess read/write                              | document                | canRead/canWrite  | low                             |
-| GET /contexts/:contextId/documents                                           | canReadContext, canWriteContext                               | context                 | —                 | low                             |
-| GET /processes, /projects                                                    | canReadContext pro Item                                       | context                 | —                 | low                             |
-| GET /processes/:id, /projects/:id                                            | canReadContext, canWriteContext                               | context                 | —                 | low                             |
-| PATCH/DELETE /processes/:id, /projects/:id                                   | canWriteContext                                               | context                 | —                 | low                             |
-| POST …/restore (process/project)                                             | canWriteContext                                               | context                 | —                 | low                             |
-| Subcontexts                                                                  | canReadContext, canWriteContext (Project)                     | context                 | —                 | low                             |
-| GET /companies, /companies/:id                                               | canViewCompany (optional) / nur Auth                          | company                 | —                 | low (mit Check) / medium (ohne) |
-| GET /companies/:id/departments                                               | canViewCompany (optional)                                     | company                 | —                 | low / medium                    |
-| GET /departments/:id, /departments/:id/teams                                 | canViewDepartment (optional)                                  | department              | —                 | low / medium                    |
-| GET /teams/:id                                                               | canViewTeam (optional)                                        | team                    | —                 | low / medium                    |
-| POST/PATCH/DELETE Organisation                                               | requireAdminPreHandler                                        | —                       | —                 | low                             |
-| GET/POST/DELETE …/company-leads, …/members, …/team-leads, …/department-leads | canView*, canManage*                                          | company/department/team | —                 | low                             |
-| GET /pinned                                                                  | getVisiblePinnedScopeIds                                      | scope                   | —                 | low                             |
-| POST /pinned                                                                 | canPinForScope, canRead(doc)                                  | scope, document         | —                 | low                             |
-| DELETE /pinned/:id                                                           | canPinForScope                                                | scope                   | —                 | low                             |
-| GET /me/\*                                                                   | Auth, effectiveUserId / scope-Filter                          | user / scope            | —                 | low                             |
-| PATCH /me, /me/preferences, /me/account                                      | nur eigenes (request.user.id)                                 | user                    | —                 | low                             |
-| GET /me/storage (team/dept/company)                                          | canPinForScope                                                | scope                   | —                 | low                             |
-| POST /me/deactivate                                                          | Auth, isAdmin (letzter Admin)                                 | user                    | —                 | low                             |
-| Admin-Routen                                                                 | requireAdminPreHandler                                        | —                       | —                 | low                             |
-| GET /tags                                                                    | canReadScopeForOwner(ownerId)                                 | owner                   | —                 | low                             |
-| POST /tags                                                                   | canCreateTagForOwner(ownerId)                                 | owner                   | —                 | low                             |
-| DELETE /tags/:id                                                             | canCreateTagForOwner(tag.ownerId)                             | owner                   | —                 | low                             |
-| GET /tags/catalog                                                            | Catalog-Scope (getReadableCatalogScope)                       | catalog                 | —                 | low                             |
+| GET /contexts/:contextId/documents                                           | canReadContext, canWriteContext                               | context                 | –                 | low                             |
+| GET /processes, /projects                                                    | canReadContext pro Item                                       | context                 | –                 | low                             |
+| GET /processes/:id, /projects/:id                                            | canReadContext, canWriteContext                               | context                 | –                 | low                             |
+| PATCH/DELETE /processes/:id, /projects/:id                                   | canWriteContext                                               | context                 | –                 | low                             |
+| POST …/restore (process/project)                                             | canWriteContext                                               | context                 | –                 | low                             |
+| Subcontexts                                                                  | canReadContext, canWriteContext (Project)                     | context                 | –                 | low                             |
+| GET /companies, /companies/:id                                               | canViewCompany (optional) / nur Auth                          | company                 | –                 | low (mit Check) / medium (ohne) |
+| GET /companies/:id/departments                                               | canViewCompany (optional)                                     | company                 | –                 | low / medium                    |
+| GET /departments/:id, /departments/:id/teams                                 | canViewDepartment (optional)                                  | department              | –                 | low / medium                    |
+| GET /teams/:id                                                               | canViewTeam (optional)                                        | team                    | –                 | low / medium                    |
+| POST/PATCH/DELETE Organisation                                               | requireAdminPreHandler                                        | –                       | –                 | low                             |
+| GET/POST/DELETE …/company-leads, …/members, …/team-leads, …/department-leads | canView*, canManage*                                          | company/department/team | –                 | low                             |
+| GET /pinned                                                                  | getVisiblePinnedScopeIds                                      | scope                   | –                 | low                             |
+| POST /pinned                                                                 | canPinForScope, canRead(doc)                                  | scope, document         | –                 | low                             |
+| DELETE /pinned/:id                                                           | canPinForScope                                                | scope                   | –                 | low                             |
+| GET /me/\*                                                                   | Auth, effectiveUserId / scope-Filter                          | user / scope            | –                 | low                             |
+| PATCH /me, /me/preferences, /me/account                                      | nur eigenes (request.user.id)                                 | user                    | –                 | low                             |
+| GET /me/storage (team/dept/company)                                          | canPinForScope                                                | scope                   | –                 | low                             |
+| POST /me/deactivate                                                          | Auth, isAdmin (letzter Admin)                                 | user                    | –                 | low                             |
+| Admin-Routen                                                                 | requireAdminPreHandler                                        | –                       | –                 | low                             |
+| GET /tags                                                                    | canReadScopeForOwner(ownerId)                                 | owner                   | –                 | low                             |
+| POST /tags                                                                   | canCreateTagForOwner(ownerId)                                 | owner                   | –                 | low                             |
+| DELETE /tags/:id                                                             | canCreateTagForOwner(tag.ownerId)                             | owner                   | –                 | low                             |
+| GET /tags/catalog                                                            | Catalog-Scope (getReadableCatalogScope)                       | catalog                 | –                 | low                             |
 
 ---
 

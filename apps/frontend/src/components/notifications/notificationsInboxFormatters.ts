@@ -13,6 +13,8 @@ export function eventHeadline(eventType: string): string {
     'draft-request-submitted': 'Review request submitted',
     'draft-request-merged': 'Review request merged',
     'draft-request-rejected': 'Review request rejected',
+    'backup-succeeded': 'Backup completed successfully',
+    'backup-failed': 'Backup failed',
   };
   return labels[eventType] ?? eventType.replace(/-/g, ' ');
 }
@@ -29,6 +31,19 @@ export function secondaryDetail(
   eventType: string,
   payload: Record<string, unknown>
 ): string | null {
+  if (eventType === 'backup-succeeded') {
+    const dest =
+      typeof payload.destinationName === 'string' && payload.destinationName.trim() !== ''
+        ? payload.destinationName
+        : 'local storage';
+    const size =
+      typeof payload.sizeBytes === 'number' ? ` (${Math.round(payload.sizeBytes / 1024)} KB)` : '';
+    return `Operational backup finished${size}. Destination: ${dest}.`;
+  }
+  if (eventType === 'backup-failed') {
+    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    return msg.length > 160 ? `${msg.slice(0, 160)}…` : msg;
+  }
   if (eventType === 'document-comment-created') {
     const preview = typeof payload.commentPreview === 'string' ? payload.commentPreview.trim() : '';
     if (preview !== '') return preview.length > 120 ? `${preview.slice(0, 120)}…` : preview;

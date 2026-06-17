@@ -16,6 +16,7 @@ import { dispatchNotificationEvent } from '../../domains/notifications/services/
 import { runUserNotificationRetention } from '../../domains/notifications/services/notificationRetentionService.js';
 import { backfillAllDocumentBlocks } from '../../domains/documents/services/blocks/documentBlocksBackfill.js';
 import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
+import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -174,6 +175,16 @@ async function maintenanceCleanup(
   await notImplementedHandler('maintenance.cleanup', payload, context);
 }
 
+async function maintenanceBackup(
+  payload: JobPayloadByType['maintenance.backup'],
+  context: JobContext
+): Promise<void> {
+  const normalized: JobPayloadByType['maintenance.backup'] =
+    payload && typeof payload === 'object' && 'mode' in payload ? payload : { mode: 'schedule' };
+  await runOperationalBackup(context.prisma, normalized, context.logger);
+  context.logger.info({ payload: normalized }, 'maintenance.backup completed');
+}
+
 async function backfillDocumentBlocksJob(
   payload: JobPayloadByType['documents.blocks.backfill'],
   context: JobContext
@@ -240,5 +251,12 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 1,
     handler: (payload, context) =>
       backfillDocumentBlocksJob(payload as JobPayloadByType['documents.blocks.backfill'], context),
+  },
+  {
+    name: 'maintenance.backup',
+    schema: jobPayloadSchemas['maintenance.backup'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      maintenanceBackup(payload as JobPayloadByType['maintenance.backup'], context),
   },
 ];

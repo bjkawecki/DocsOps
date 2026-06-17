@@ -32,6 +32,11 @@ import {
   removeAdminJobSchedule,
   upsertAdminJobSchedule,
 } from '../services/index.js';
+import {
+  assertBackupScheduleCronUpdateAllowed,
+  assertBackupScheduleEnableDisableForbidden,
+  isBackupScheduleActive,
+} from '../services/adminBackupScheduleService.js';
 
 const QUEUE_RETRY_AFTER_SECONDS = 15;
 
@@ -241,6 +246,22 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         return reply.status(400).send({ error: 'Job type is not schedulable' });
       }
 
+      if (jobName === 'maintenance.backup') {
+        if (!body.enabled) {
+          const forbidden = assertBackupScheduleEnableDisableForbidden();
+          return reply.status(forbidden.statusCode).send({ error: forbidden.error });
+        }
+        const scheduleActive = await isBackupScheduleActive();
+        if (!scheduleActive) {
+          const forbidden = assertBackupScheduleEnableDisableForbidden();
+          return reply.status(forbidden.statusCode).send({ error: forbidden.error });
+        }
+        const guard = await assertBackupScheduleCronUpdateAllowed(request.server.prisma);
+        if (guard.error) {
+          return reply.status(guard.statusCode ?? 403).send({ error: guard.error });
+        }
+      }
+
       const key = body.key?.trim() || undefined;
       if (!body.enabled) {
         try {
@@ -268,10 +289,14 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       }
 
       try {
+        const schedulePayload =
+          jobName === 'maintenance.backup'
+            ? (body.payload ?? { mode: 'schedule' })
+            : (body.payload ?? {});
         await upsertAdminJobSchedule({
           jobType: jobName as JobType,
           cron: body.cron!,
-          payload: body.payload ?? {},
+          payload: schedulePayload,
           tz: body.tz?.trim() || undefined,
           key,
         });

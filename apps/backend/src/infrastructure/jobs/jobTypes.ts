@@ -33,6 +33,18 @@ export const jobPayloadSchemas = {
     documentId: z.cuid().optional(),
     limit: z.number().int().positive().max(500).optional(),
   }),
+  'maintenance.backup': z.discriminatedUnion('mode', [
+    z.object({
+      mode: z.literal('manual'),
+      backupRunId: z.cuid(),
+      destinationId: z.cuid().optional(),
+      requestedByUserId: z.cuid().optional(),
+    }),
+    z.object({
+      mode: z.literal('schedule'),
+      destinationId: z.cuid().optional(),
+    }),
+  ]),
 } as const;
 
 export type JobType = keyof typeof jobPayloadSchemas;

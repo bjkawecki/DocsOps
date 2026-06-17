@@ -146,7 +146,7 @@ export function ScopedContextDocumentsList({
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">
-                        {d.contextName || '—'}
+                        {d.contextName || '–'}
                       </Text>
                     </Table.Td>
                     <Table.Td>

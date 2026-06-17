@@ -81,7 +81,7 @@ export function DocumentLeadDraftPanelView({
         )}
       </Group>
       {canEdit && draftLooksEmpty && publishedFallbackAvailable && (
-        <Alert color="yellow" variant="light" title="Draft is currently empty">
+        <Alert color="yellow" title="Draft is currently empty">
           <Stack gap="xs">
             <Text size="sm">
               The shared draft has no visible text, but a published version with content exists.

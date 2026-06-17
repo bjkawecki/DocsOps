@@ -16,7 +16,9 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
+import { getAdminJobLabel } from './adminJobLabels';
 
 type SchedulesResponse = {
   availableJobNames: string[];
@@ -46,6 +48,12 @@ const DEFAULT_CRON_FORM: CronFormState = {
   hour: '0',
   weekday: '1',
   dayOfMonth: '1',
+};
+
+const BACKUP_JOB_NAME = 'maintenance.backup';
+
+type BackupStatusResponse = {
+  autoBackupConfigured: boolean;
 };
 
 const INTERVAL_OPTIONS = ['1', '2', '5', '10', '15', '30', '45', '59'];
@@ -195,6 +203,15 @@ export function AdminSchedulerTab() {
     },
   });
 
+  const backupStatus = useQuery({
+    queryKey: ['admin', 'backups', 'status'],
+    queryFn: async (): Promise<BackupStatusResponse> => {
+      const res = await apiFetch('/api/v1/admin/backups/status');
+      if (!res.ok) throw new Error('Failed to load backup status');
+      return (await res.json()) as BackupStatusResponse;
+    },
+  });
+
   const scheduleMutation = useMutation({
     mutationFn: async (payload: { jobName: string; enabled: boolean; cron?: string }) => {
       const res = await apiFetch(`/api/v1/admin/jobs/schedules/${payload.jobName}`, {
@@ -215,6 +232,7 @@ export function AdminSchedulerTab() {
       });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'schedules'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'health'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'backups', 'status'] });
     },
     onError: (error: Error) => {
       notifications.show({ title: 'Error', message: error.message, color: 'red' });
@@ -246,7 +264,7 @@ export function AdminSchedulerTab() {
     return buildCronFromForm(getOrCreateFormInput(jobName, fallbackCron));
   };
 
-  if (schedules.isPending) return <Loader size="sm" />;
+  if (schedules.isPending || backupStatus.isPending) return <Loader size="sm" />;
   if (schedules.isError) {
     return (
       <Alert color="red" title="Failed to load scheduler">
@@ -297,38 +315,67 @@ export function AdminSchedulerTab() {
             const cronValue = cronInputs[name] ?? existing?.cron ?? '';
             const formValue = getOrCreateFormInput(name, cronValue);
             const resolvedCron = resolveCronForJob(name, cronValue);
+            const jobMeta = getAdminJobLabel(name);
+            const isBackupJob = name === BACKUP_JOB_NAME;
+            const backupConfigured = backupStatus.data?.autoBackupConfigured ?? false;
+            const backupRowLocked = isBackupJob && !backupConfigured;
+            const controlsDisabled = backupRowLocked || scheduleMutation.isPending;
+
             return (
-              <Table.Tr key={name}>
+              <Table.Tr key={name} style={backupRowLocked ? { opacity: 0.55 } : undefined}>
                 <Table.Td>
-                  <Text size="sm">{name}</Text>
+                  <Text size="sm" fw={500}>
+                    {jobMeta.label}
+                  </Text>
+                  <Text size="xs" c="dimmed" ff="monospace">
+                    {jobMeta.technicalName}
+                  </Text>
+                  {jobMeta.description ? (
+                    <Text size="xs" c="dimmed">
+                      {jobMeta.description}
+                    </Text>
+                  ) : null}
+                  {backupRowLocked && (
+                    <Text size="xs" c="dimmed" mt={4}>
+                      Configure automatic backups in the <Link to="/admin/backup">Backup</Link> tab
+                      first.
+                    </Text>
+                  )}
                 </Table.Td>
                 <Table.Td>
-                  <Switch
-                    checked={Boolean(existing)}
-                    onChange={(event) => {
-                      const enabled = event.currentTarget.checked;
-                      if (!enabled) {
-                        scheduleMutation.mutate({ jobName: name, enabled: false });
-                        return;
-                      }
-                      if (!resolvedCron) {
-                        notifications.show({
-                          title: 'Cron required',
-                          message: 'Please enter a valid cron expression first.',
-                          color: 'yellow',
+                  {isBackupJob ? (
+                    <Badge color={existing ? 'green' : 'gray'} variant="light">
+                      {existing ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  ) : (
+                    <Switch
+                      checked={Boolean(existing)}
+                      disabled={controlsDisabled}
+                      onChange={(event) => {
+                        const enabled = event.currentTarget.checked;
+                        if (!enabled) {
+                          scheduleMutation.mutate({ jobName: name, enabled: false });
+                          return;
+                        }
+                        if (!resolvedCron) {
+                          notifications.show({
+                            title: 'Cron required',
+                            message: 'Please enter a valid cron expression first.',
+                            color: 'yellow',
+                          });
+                          return;
+                        }
+                        scheduleMutation.mutate({
+                          jobName: name,
+                          enabled: true,
+                          cron: resolvedCron,
                         });
-                        return;
-                      }
-                      scheduleMutation.mutate({
-                        jobName: name,
-                        enabled: true,
-                        cron: resolvedCron,
-                      });
-                    }}
-                  />
+                      }}
+                    />
+                  )}
                 </Table.Td>
                 <Table.Td>
-                  <Stack gap={6}>
+                  <Stack gap={6} style={backupRowLocked ? { pointerEvents: 'none' } : undefined}>
                     {cronMode === 'text' ? (
                       <TextInput
                         value={cronValue}
@@ -504,7 +551,7 @@ export function AdminSchedulerTab() {
                         cron: resolvedCron,
                       });
                     }}
-                    disabled={!resolvedCron || scheduleMutation.isPending}
+                    disabled={controlsDisabled || !resolvedCron || (isBackupJob && !existing)}
                   >
                     Save
                   </Button>

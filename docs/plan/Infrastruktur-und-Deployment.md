@@ -34,7 +34,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 - **Version:** Single Source of Truth = `version` in Root-`package.json` (SemVer); beim Build als `APP_VERSION`; Release = Git-Tag `vX.Y.Z` + GitHub Release. Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1.
 - **Phasen:**
   - **Phase 1 (empfohlen zuerst):** Admin-UI zeigt installierte vs. verfügbare Version, „Check for updates“, Verweis auf `./scripts/update.sh` auf dem Server; **Backup-Gate** (Hinweis/Pflicht vor Update, vgl. Abschnitt 8).
-  - **Phase 2 (Ein-Klick):** Separater **Updater-Sidecar** — eigener Container/Agent neben dem App-Stack, der nur das Update-Skript ausführt (`git pull`, `compose pull`, `compose up`). Die Haupt-App ruft ihn per API an; **nicht** voller Docker-Socket im App-Container (Sicherheit).
+  - **Phase 2 (Ein-Klick):** Separater **Updater-Sidecar** – eigener Container/Agent neben dem App-Stack, der nur das Update-Skript ausführt (`git pull`, `compose pull`, `compose up`). Die Haupt-App ruft ihn per API an; **nicht** voller Docker-Socket im App-Container (Sicherheit).
 - **Wichtig:** Daten in Volumes; Rollback = vorheriges Image-Tag. Vollständige Todos: [Umsetzungs-Todo §26](Umsetzungs-Todo.md).
 
 ---
@@ -116,13 +116,13 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 - **Ziel:** Öffentliche Präsenz für Marketing und **Live-Demo** auf eigener Instanz (z. B. `docsops.de` + `demo.docsops.de`), getrennt von Self-hosted-Kunden.
 - **Kurz:** Landing zunächst **statisch, Deutsch**; Demo **writable** mit **periodischem Reset**; App **i18n EN/DE**; Domains `docsops.de` (Hauptmarke), `docsops.org` (optional OSS/Redirect).
 - **Detailplan:** [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) (Architektur, Missbrauch/UGC, Domains, Sprache, Go-Live).
-- **Umsetzung im Repo:** Feature-Flag `VITE_LANDING_PAGE_ENABLED` optional (integrierte Landing); alternativ statische Seite — siehe [Umsetzungs-Todo §19–§20](Umsetzungs-Todo.md). Release Notes für eingeloggte Nutzer: **§24** (`/whats-new`), nicht die öffentliche Marketing-Seite.
+- **Umsetzung im Repo:** Feature-Flag `VITE_LANDING_PAGE_ENABLED` optional (integrierte Landing); alternativ statische Seite – siehe [Umsetzungs-Todo §19–§20](Umsetzungs-Todo.md). Release Notes für eingeloggte Nutzer: **§24** (`/whats-new`), nicht die öffentliche Marketing-Seite.
 
 ---
 
 ## 12. Managed Hosting (optional, später)
 
-DocsOps bleibt **self-hosted-first**. Ein optionales **Managed-Hosting-Angebot** (DocsOps Cloud, ein Server mit vielen Tenant-Instanzen — nicht Coolify-ähnliches Multi-Server-PaaS) ist als **separater Plan** dokumentiert, ohne aktuelle Umsetzungs-Todos: [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
+DocsOps bleibt **self-hosted-first**. Ein optionales **Managed-Hosting-Angebot** (DocsOps Cloud, ein Server mit vielen Tenant-Instanzen – nicht Coolify-ähnliches Multi-Server-PaaS) ist als **separater Plan** dokumentiert, ohne aktuelle Umsetzungs-Todos: [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 
 ---
 
@@ -133,5 +133,5 @@ DocsOps bleibt **self-hosted-first**. Ein optionales **Managed-Hosting-Angebot**
 - [ ] `install.sh` und ggf. `scripts/update.sh` spezifizieren.
 - [ ] CI-Job zum Test des Install-Skripts (frischer Runner, install.sh, Health-Check).
 - [ ] Doku zu VPN (WireGuard o. Ä.) und Reverse Proxy in `docs/` planen.
-- [ ] Betrieb: What's new, Backup, Update — siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) und [Umsetzungs-Todo §24–§26](Umsetzungs-Todo.md).
-- [ ] Öffentliche Demo & Domains — siehe [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).
+- [ ] Betrieb: What's new, Backup, Update – siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) und [Umsetzungs-Todo §24–§26](Umsetzungs-Todo.md).
+- [ ] Öffentliche Demo & Domains – siehe [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).

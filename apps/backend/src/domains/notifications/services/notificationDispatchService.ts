@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
 
-type NotificationCategory = 'documentChanges' | 'draftRequests' | 'reminders';
+type NotificationCategory = 'documentChanges' | 'draftRequests' | 'reminders' | 'system';
 
 /** Minutes: merge repeated `document-updated` for same user+document into one row. `0` = off. @default 15 */
 export function getNotificationCoalesceWindowMinutes(): number {
@@ -23,8 +23,9 @@ export function getNotificationHardCapPerUser(): number {
   return n;
 }
 
-/** Maps event_type strings to the three preference channels (Settings / `me` preferences). */
+/** Maps event_type strings to preference channels (Settings / `me` preferences). */
 function resolveCategory(eventType: string): NotificationCategory {
+  if (eventType.startsWith('backup-')) return 'system';
   if (eventType.includes('draft-request')) return 'draftRequests';
   if (eventType.includes('reminder')) return 'reminders';
   return 'documentChanges';

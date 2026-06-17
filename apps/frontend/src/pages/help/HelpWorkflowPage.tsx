@@ -10,19 +10,19 @@ export function HelpWorkflowPage() {
       </Text>
       <List type="ordered" size="md" spacing="sm">
         <List.Item>
-          <strong>Create</strong> — Start a draft in a context you can write to. The draft is yours
+          <strong>Create</strong> – Start a draft in a context you can write to. The draft is yours
           or your team&apos;s working copy until it is published or shared as your process defines.
         </List.Item>
         <List.Item>
-          <strong>Edit</strong> — Update content, titles, and metadata. Version history helps you
+          <strong>Edit</strong> – Update content, titles, and metadata. Version history helps you
           see what changed over time.
         </List.Item>
         <List.Item>
-          <strong>Review</strong> — When enabled, reviewers can comment or approve so changes meet
+          <strong>Review</strong> – When enabled, reviewers can comment or approve so changes meet
           bar for accuracy and compliance before they land in the canonical published line.
         </List.Item>
         <List.Item>
-          <strong>Merge / publish</strong> — Accepted changes are integrated into the published
+          <strong>Merge / publish</strong> – Accepted changes are integrated into the published
           document (or a new published version), so readers see a stable, reviewed result rather
           than every keystroke in progress.
         </List.Item>

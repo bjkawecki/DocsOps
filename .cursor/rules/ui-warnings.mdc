@@ -1,0 +1,22 @@
+---
+description: Mantine warning alerts use filled style, not variant light
+globs: apps/frontend/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Warning and error alerts (Mantine)
+
+For **warnings** (`color="yellow"`, `color="orange"`, `color="amber"`) and **errors** (`color="red"`):
+
+- Use the default **filled** Alert (omit `variant`, or set `variant="filled"`).
+- Do **not** use `variant="light"` for warnings – it looks muddy in dark mode and is too weak.
+
+Neutral/info alerts (`gray`, `blue`) may use `variant="light"` when a subtle tone is intended.
+
+```tsx
+// Good
+<Alert color="yellow" title="Encryption not configured">...</Alert>
+
+// Avoid for warnings
+<Alert color="yellow" variant="light" title="...">...</Alert>
+```
