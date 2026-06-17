@@ -1,0 +1,38 @@
+---
+description: Am Ende von Änderungen eine Commit-Message vorschlagen (ohne zu committen)
+alwaysApply: true
+---
+
+# Commit-Message am Schluss
+
+Wenn du **Dateien im Repo geändert** hast und die Aufgabe abgeschlossen ist, schlage **am Ende der Antwort** eine Commit-Message vor — **nur wenn es passt**.
+
+## Wann vorschlagen
+
+- Code-, Config- oder Doku-Änderungen mit klarem thematischen Fokus
+- Mehrere zusammengehörige Dateien aus derselben Aufgabe
+
+## Wann weglassen
+
+- Nur Fragen beantwortet, Review ohne Edits, reine Planung
+- Nutzer hat ausdrücklich **keine** Message gewollt
+- Änderungen sind noch unfertig / explizit Work-in-Progress
+
+## Format
+
+- **Eine Zeile** (Subject), Conventional Commits: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, …
+- Scope optional, z. B. `fix(backup): …`
+- **Kein Body**, es sei denn der Nutzer bittet um Beschreibung
+- Englisch (wie bestehende Commits im Repo)
+- Fokus auf **Warum/Zweck**, nicht Dateiliste
+
+## Wichtig
+
+- **Nicht committen**, es sei denn der Nutzer verlangt es ausdrücklich (siehe Git-Safety in User Rules).
+- Message als eigenen Abschnitt am Ende, z. B. **Commit message:** mit fenced code block zum Kopieren.
+
+## Beispiel
+
+```
+docs(plan): specify platform export/import and backup separation
+```
