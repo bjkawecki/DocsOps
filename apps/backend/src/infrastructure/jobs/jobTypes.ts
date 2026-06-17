@@ -45,6 +45,12 @@ export const jobPayloadSchemas = {
       destinationId: z.cuid().optional(),
     }),
   ]),
+  'maintenance.restore': z.object({
+    restoreRunId: z.cuid(),
+    source: z.enum(['history', 'upload']),
+    backupRunId: z.cuid().optional(),
+    uploadObjectKey: z.string().min(1).max(1024).optional(),
+  }),
 } as const;
 
 export type JobType = keyof typeof jobPayloadSchemas;

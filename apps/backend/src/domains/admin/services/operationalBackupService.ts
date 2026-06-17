@@ -10,7 +10,7 @@ import type {
 import { invalidateMaintenanceLockCache } from '../../../infrastructure/maintenance/maintenancePreHandler.js';
 import {
   acquireBackupMaintenanceLock,
-  releaseBackupMaintenanceLock,
+  releaseMaintenanceLock,
 } from '../../../infrastructure/maintenance/maintenanceModeService.js';
 import { initStorage, type StorageService } from '../../../infrastructure/storage/index.js';
 import {
@@ -228,7 +228,7 @@ export async function runOperationalBackup(
     }
     throw error;
   } finally {
-    await releaseBackupMaintenanceLock(prisma).catch(() => undefined);
+    await releaseMaintenanceLock(prisma).catch(() => undefined);
     invalidateMaintenanceLockCache();
     if (workDir) {
       await rm(workDir, { recursive: true, force: true }).catch(() => undefined);

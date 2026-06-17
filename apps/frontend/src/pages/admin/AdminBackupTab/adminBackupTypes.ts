@@ -2,6 +2,9 @@ export type BackupStatus = {
   minioAvailable: boolean;
   workerConnected: boolean;
   maintenanceActive: boolean;
+  maintenanceReason?: string | null;
+  maintenanceBackupRunId?: string | null;
+  maintenanceRestoreRunId?: string | null;
   encryptionConfigured: boolean;
   retentionCount: number;
   defaultDestinationId: string | null;
@@ -28,6 +31,18 @@ export type BackupRun = {
   destination: { id: string; name: string; type: 'S3_COMPATIBLE' | 'SSH' | 'WEBDAV' } | null;
   localObjectKey: string | null;
   remotePath: string | null;
+};
+
+export type RestoreRun = {
+  id: string;
+  status: string;
+  source: 'history' | 'upload';
+  backupRunId: string | null;
+  errorMessage: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  createdAt: string;
+  backupRun: { id: string; createdAt: string } | null;
 };
 
 export const BACKUP_STATUS_COLOR: Record<string, string> = {

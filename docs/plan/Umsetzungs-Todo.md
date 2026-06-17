@@ -471,7 +471,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 ### Phase 2 – Restore-UI & WebDAV
 
 [x] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per HTTP `PUT` im selben Job nach Archiv-Fertigstellung.
-[ ] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus Historie oder Upload, Wartungsmodus, `pg_restore` + MinIO (Job oder geführtes UI); Runbook-Link. **Nicht** Plattform-Import (§27).
+[x] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus **Historie** (nur bei lokaler Kopie) oder **Upload**; Job `maintenance.restore` mit Wartungsmodus, `pg_restore` + MinIO-Import; **kein** Remote-Fetch vom externen Ziel. **Nicht** Plattform-Import (§27).
 
 ---
 

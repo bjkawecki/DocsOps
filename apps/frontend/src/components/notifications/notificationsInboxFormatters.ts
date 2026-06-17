@@ -15,6 +15,8 @@ export function eventHeadline(eventType: string): string {
     'draft-request-rejected': 'Review request rejected',
     'backup-succeeded': 'Backup completed successfully',
     'backup-failed': 'Backup failed',
+    'backup-restore-succeeded': 'Restore completed successfully',
+    'backup-restore-failed': 'Restore failed',
   };
   return labels[eventType] ?? eventType.replace(/-/g, ' ');
 }
@@ -41,6 +43,13 @@ export function secondaryDetail(
     return `Operational backup finished${size}. External destination: ${dest}.`;
   }
   if (eventType === 'backup-failed') {
+    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    return msg.length > 160 ? `${msg.slice(0, 160)}…` : msg;
+  }
+  if (eventType === 'backup-restore-succeeded') {
+    return 'Database and object storage were restored from the backup archive.';
+  }
+  if (eventType === 'backup-restore-failed') {
     const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
     return msg.length > 160 ? `${msg.slice(0, 160)}…` : msg;
   }

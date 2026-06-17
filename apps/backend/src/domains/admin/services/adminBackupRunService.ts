@@ -1,7 +1,10 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { basename } from 'node:path';
 import type { Readable } from 'node:stream';
-import { getMaintenanceLock } from '../../../infrastructure/maintenance/maintenanceModeService.js';
+import {
+  getMaintenanceLock,
+  assertMaintenanceAvailable,
+} from '../../../infrastructure/maintenance/maintenanceModeService.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { listAdminJobSchedules } from './adminJobsScheduleService.js';
 import { getAdminJobsHealth } from './adminJobsQueryService.js';
@@ -67,6 +70,9 @@ export async function getBackupStatus(prisma: PrismaClient) {
     minioAvailable,
     workerConnected: health.workerConnected,
     maintenanceActive: maintenance.active,
+    maintenanceReason: maintenance.reason ?? null,
+    maintenanceRestoreRunId: maintenance.restoreRunId ?? null,
+    maintenanceBackupRunId: maintenance.backupRunId ?? null,
     encryptionConfigured: isBackupEncryptionConfigured(),
     retentionCount,
     defaultDestinationId: settings.defaultDestinationId,
@@ -120,6 +126,7 @@ export async function triggerManualBackup(
   if (!isBackupEncryptionConfigured()) {
     throw new Error('BACKUP_ENCRYPTION_KEY is not configured');
   }
+  await assertMaintenanceAvailable(prisma);
 
   const run = await prisma.backupRun.create({
     data: {

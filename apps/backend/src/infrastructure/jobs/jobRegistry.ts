@@ -17,6 +17,7 @@ import { runUserNotificationRetention } from '../../domains/notifications/servic
 import { backfillAllDocumentBlocks } from '../../domains/documents/services/blocks/documentBlocksBackfill.js';
 import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
 import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
+import { runOperationalRestore } from '../../domains/admin/services/operationalRestoreService.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -185,6 +186,14 @@ async function maintenanceBackup(
   context.logger.info({ payload: normalized }, 'maintenance.backup completed');
 }
 
+async function maintenanceRestore(
+  payload: JobPayloadByType['maintenance.restore'],
+  context: JobContext
+): Promise<void> {
+  await runOperationalRestore(context.prisma, payload, context.logger);
+  context.logger.info({ payload }, 'maintenance.restore completed');
+}
+
 async function backfillDocumentBlocksJob(
   payload: JobPayloadByType['documents.blocks.backfill'],
   context: JobContext
@@ -258,5 +267,12 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 0,
     handler: (payload, context) =>
       maintenanceBackup(payload as JobPayloadByType['maintenance.backup'], context),
+  },
+  {
+    name: 'maintenance.restore',
+    schema: jobPayloadSchemas['maintenance.restore'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      maintenanceRestore(payload as JobPayloadByType['maintenance.restore'], context),
   },
 ];

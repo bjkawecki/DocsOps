@@ -6,6 +6,8 @@ type Props = {
 };
 
 export function AdminBackupStatusAlerts({ status }: Props) {
+  const isRestoreMaintenance = status.maintenanceReason === 'restore';
+
   return (
     <>
       {!status.minioAvailable && (
@@ -19,7 +21,13 @@ export function AdminBackupStatusAlerts({ status }: Props) {
           for how to generate a key.
         </Alert>
       )}
-      {status.maintenanceActive && (
+      {status.maintenanceActive && isRestoreMaintenance && (
+        <Alert color="orange" variant="filled" title="Restore in progress">
+          A disaster-recovery restore is running. Write operations are temporarily blocked. Users
+          may need to sign in again after restore completes.
+        </Alert>
+      )}
+      {status.maintenanceActive && !isRestoreMaintenance && (
         <Alert color="blue" variant="filled" title="Maintenance mode">
           A backup is in progress. Write operations are temporarily blocked.
         </Alert>

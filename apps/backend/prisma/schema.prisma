@@ -93,6 +93,7 @@ model User {
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   sessions              Session[]
   backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
+  restoreRunsTriggered  RestoreRun[] @relation("RestoreRunTriggeredBy")
   backupActionAudits    AdminBackupActionAudit[]
 }
 
@@ -487,29 +488,68 @@ model BackupRun {
   finishedAt        DateTime?
   createdAt         DateTime               @default(now())
 
+  restoreRuns       RestoreRun[]
+
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }
 
-/// Active maintenance lock (singleton row id = "backup" during operational backup).
+/// Active maintenance lock (singleton row id = "backup" during operational backup or restore).
 model SystemMaintenanceLock {
-  id          String    @id @default("backup")
-  reason      String
-  backupRunId String?
-  lockedAt    DateTime  @default(now())
+  id           String    @id @default("backup")
+  reason       String
+  backupRunId  String?
+  restoreRunId String?
+  lockedAt     DateTime  @default(now())
+}
+
+enum RestoreRunStatus {
+  queued
+  running
+  validating
+  restoring_db
+  restoring_minio
+  succeeded
+  failed
+}
+
+enum RestoreRunSource {
+  history
+  upload
+}
+
+/// One operational disaster-recovery restore execution.
+model RestoreRun {
+  id                String           @id @default(cuid())
+  status            RestoreRunStatus @default(queued)
+  source            RestoreRunSource
+  backupRunId       String?
+  backupRun         BackupRun?       @relation(fields: [backupRunId], references: [id], onDelete: SetNull)
+  uploadObjectKey   String?
+  triggeredByUserId String?
+  triggeredBy       User?            @relation("RestoreRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime         @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 /// Audit log for admin backup actions.
 model AdminBackupActionAudit {
-  id           String   @id @default(cuid())
-  actorUserId  String
-  actor        User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
-  action       String
-  backupRunId  String?
+  id            String   @id @default(cuid())
+  actorUserId   String
+  actor         User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action        String
+  backupRunId   String?
+  restoreRunId  String?
   destinationId String?
-  status       String
-  details      Json     @default("{}")
-  createdAt    DateTime @default(now())
+  status        String
+  details       Json     @default("{}")
+  createdAt     DateTime @default(now())
 
   @@index([createdAt(sort: Desc)])
   @@index([action, status, createdAt(sort: Desc)])

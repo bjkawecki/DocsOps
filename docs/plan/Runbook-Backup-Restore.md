@@ -1,10 +1,16 @@
 # Runbook: Operational Backup & Restore
 
-Manual restore procedure for DocsOps **operational** backups (§25). Automated restore UI is planned for Phase 2 (Admin → Backup).
+Manual restore procedure for DocsOps **operational** backups (§25). **Admin → Backup** also offers guided restore (history with local copy, or archive upload). This runbook covers manual steps when the UI is unavailable.
 
 **Not for platform migration:** Import of a **platform export** (`docsops-platform-export-*.tar.zst`, logical domain format) is a separate feature — see [Plan-Betrieb §4](Plan-Betrieb-Releases-Backup-Update.md) and Umsetzungs-Todo §27. Do not use `pg_restore` on a platform export archive.
 
-## Prerequisites
+## UI restore (Admin → Backup)
+
+- **From history:** Restore button on succeeded runs that still have a local copy in MinIO (`localObjectKey`).
+- **From file:** Upload `docsops-backup-*.tar.zst` (e.g. copied manually from external destination). No remote fetch from S3/SSH/WebDAV.
+- Writes are blocked during restore (maintenance mode). Sessions are invalidated — users sign in again after restore. `.env` secrets are not in the archive.
+
+## Prerequisites (manual runbook)
 
 - Backup archive (`docsops-backup-*.tar.zst`) from Admin → Backup or external destination
 - `.env` / secrets **not** in the backup – restore session secret and credentials separately

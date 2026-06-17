@@ -10,7 +10,8 @@ export type AdminBackupAuditAction =
   | 'destination-update'
   | 'destination-delete'
   | 'settings-update'
-  | 'schedule-update';
+  | 'schedule-update'
+  | 'restore-create';
 
 export async function writeAdminBackupAudit(
   prisma: PrismaClient,
@@ -19,6 +20,7 @@ export async function writeAdminBackupAudit(
     action: AdminBackupAuditAction;
     status: 'success' | 'failed';
     backupRunId?: string | null;
+    restoreRunId?: string | null;
     destinationId?: string | null;
     details?: Record<string, unknown>;
   }
@@ -30,6 +32,7 @@ export async function writeAdminBackupAudit(
       action: args.action,
       status: args.status,
       backupRunId: args.backupRunId ?? null,
+      restoreRunId: args.restoreRunId ?? null,
       destinationId: args.destinationId ?? null,
       details: (args.details ?? {}) as Prisma.InputJsonValue,
     },

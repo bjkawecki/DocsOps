@@ -115,7 +115,7 @@ Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Eve
 
 **Phase 1:** dokumentiertes **Runbook** (manuell): Wartungsmodus → Archiv entpacken → Manifest/Checksums prüfen → `pg_restore` → MinIO-Objekte zurück → App starten → Health/Reindex. **Restore einmal testen** (leerer Stack), bevor Produktion darauf vertraut.
 
-**Phase 2:** Admin-Aktion **„Restore from backup“** im Tab **Admin → Backup** (Archiv aus Historie oder Upload); Wartungsmodus während Restore; Link zum Runbook.
+**Phase 2:** Admin-Aktion **Restore** im Tab **Admin → Backup**: Archiv aus **Historie** (nur wenn `localObjectKey` vorhanden) oder **Upload** eines `docsops-backup-*.tar.zst` (z. B. manuell von S3/SSH/WebDAV kopiert). Job `maintenance.restore`; Wartungsmodus während Restore; **kein** Download vom externen Ziel. Runbook bleibt für manuelle Notfall-Prozedur.
 
 ### Abgrenzung zu Plattform-Export (§4)
 

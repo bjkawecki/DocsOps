@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Badge, Button, Group, Loader, Popover, Stack, Table, Text } from '@mantine/core';
+import { Badge, Button, Group, Loader, Popover, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { AdminBackupDeleteFailedModal } from './AdminBackupDeleteFailedModal';
 import { AdminBackupDeleteLocalModal } from './AdminBackupDeleteLocalModal';
 import { BACKUP_STATUS_COLOR, type BackupRun } from './adminBackupTypes';
@@ -14,6 +14,9 @@ type Props = {
   onDownload: (id: string) => void;
   onDeleteLocal: (id: string) => Promise<void>;
   onDeleteRun: (id: string) => Promise<void>;
+  onRestore?: (run: BackupRun) => void;
+  restoreLoading?: boolean;
+  maintenanceActive?: boolean;
 };
 
 export function AdminBackupHistorySection({
@@ -25,6 +28,9 @@ export function AdminBackupHistorySection({
   onDownload,
   onDeleteLocal,
   onDeleteRun,
+  onRestore,
+  restoreLoading = false,
+  maintenanceActive = false,
 }: Props) {
   const items = runs ?? [];
   const [deleteLocalTarget, setDeleteLocalTarget] = useState<BackupRun | null>(null);
@@ -150,6 +156,18 @@ export function AdminBackupHistorySection({
                             >
                               Download
                             </Button>
+                            {onRestore ? (
+                              <Button
+                                size="xs"
+                                variant="filled"
+                                color="orange"
+                                disabled={maintenanceActive}
+                                loading={restoreLoading}
+                                onClick={() => onRestore(run)}
+                              >
+                                Restore
+                              </Button>
+                            ) : null}
                             <Button
                               size="xs"
                               variant="filled"
@@ -160,9 +178,11 @@ export function AdminBackupHistorySection({
                             </Button>
                           </>
                         ) : (
-                          <Text size="xs" c="dimmed">
-                            {run.remotePath ? 'Local removed' : 'No local copy'}
-                          </Text>
+                          <Tooltip label="No local copy — upload archive manually or copy from external destination">
+                            <Text size="xs" c="dimmed">
+                              {run.remotePath ? 'Local removed' : 'No local copy'}
+                            </Text>
+                          </Tooltip>
                         )}
                       </Group>
                     ) : run.status === 'failed' ? (

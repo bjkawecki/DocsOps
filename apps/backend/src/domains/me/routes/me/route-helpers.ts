@@ -29,7 +29,12 @@ const REVIEW_NOTIFICATION_EVENT_TYPES = [
   'draft-request-rejected',
 ] as const;
 
-const SYSTEM_NOTIFICATION_EVENT_TYPES = ['backup-succeeded', 'backup-failed'] as const;
+const SYSTEM_NOTIFICATION_EVENT_TYPES = [
+  'backup-succeeded',
+  'backup-failed',
+  'backup-restore-succeeded',
+  'backup-restore-failed',
+] as const;
 
 const ownerScopeSelect = {
   teamId: true,

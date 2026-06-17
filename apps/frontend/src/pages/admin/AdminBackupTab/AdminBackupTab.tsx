@@ -6,11 +6,18 @@ import { notifications } from '@mantine/notifications';
 import { apiBase, apiFetch } from '../../../api/client';
 import { AdminBackupDestinationsManageModal } from './AdminBackupDestinationsManageModal';
 import { buildDestinationBody, type DestinationFormState } from './adminBackupDestinationForm';
-import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
+import { AdminBackupRestoreModal } from './AdminBackupRestoreModal';
+import { AdminBackupRestoreSection } from './AdminBackupRestoreSection';
 import { AdminBackupHistorySection } from './AdminBackupHistorySection';
 import { AdminBackupOverviewBar } from './AdminBackupOverviewBar';
 import { AdminBackupStatusAlerts } from './AdminBackupStatusAlerts';
-import { type BackupRun, type BackupStatus, type Destination } from './adminBackupTypes';
+import {
+  type BackupRun,
+  type BackupStatus,
+  type Destination,
+  type RestoreRun,
+} from './adminBackupTypes';
+import { hasInProgressRestoreRun, isInProgressRestoreStatus } from './restoreRunPolling';
 import {
   BACKUP_POLL_BOOST_MS,
   BACKUP_RUN_IDLE_POLL_INTERVAL_MS,
@@ -32,7 +39,12 @@ export function AdminBackupTab() {
   const backupRunStatusSnapshot = useRef<Map<string, string>>(new Map());
   const backupRunStatusInitialized = useRef(false);
   const pendingBackupRunIds = useRef(new Set<string>());
+  const pendingRestoreRunIds = useRef(new Set<string>());
+  const restoreRunStatusSnapshot = useRef<Map<string, string>>(new Map());
+  const restoreRunStatusInitialized = useRef(false);
   const [backupPollBoostUntil, setBackupPollBoostUntil] = useState(0);
+  const [restorePollBoostUntil, setRestorePollBoostUntil] = useState(0);
+  const [restoreTarget, setRestoreTarget] = useState<BackupRun | null>(null);
   const [isTabVisible, setIsTabVisible] = useState(() => document.visibilityState === 'visible');
 
   useEffect(() => {
@@ -56,7 +68,11 @@ export function AdminBackupTab() {
     },
     refetchInterval: (q) => {
       const runs = queryClient.getQueryData<{ items: BackupRun[] }>(['admin', 'backups', 'runs']);
-      const polling = shouldPollBackupRuns(runs?.items, backupPollBoostUntil);
+      const polling =
+        shouldPollBackupRuns(runs?.items, backupPollBoostUntil) ||
+        hasInProgressRestoreRun(
+          queryClient.getQueryData<{ items: RestoreRun[] }>(['admin', 'restores', 'runs'])?.items
+        );
       const fastPoll = polling || q.state.data?.maintenanceActive;
       if (fastPoll) return BACKUP_RUN_POLL_INTERVAL_MS;
       return isTabVisible ? BACKUP_RUN_IDLE_POLL_INTERVAL_MS : false;
@@ -71,6 +87,66 @@ export function AdminBackupTab() {
       return (await res.json()) as { items: Destination[] };
     },
   });
+
+  const restoresQuery = useQuery({
+    queryKey: ['admin', 'restores', 'runs'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/admin/restores?limit=10&offset=0');
+      if (!res.ok) throw new Error('Failed to load restores');
+      return (await res.json()) as { items: RestoreRun[] };
+    },
+    refetchInterval: (query) => {
+      const fast =
+        hasInProgressRestoreRun(query.state.data?.items) ||
+        Date.now() < restorePollBoostUntil ||
+        statusQuery.data?.maintenanceActive;
+      if (fast) return BACKUP_RUN_POLL_INTERVAL_MS;
+      return isTabVisible ? BACKUP_RUN_IDLE_POLL_INTERVAL_MS : false;
+    },
+  });
+
+  useEffect(() => {
+    const items = restoresQuery.data?.items;
+    if (!items) return;
+
+    if (!restoreRunStatusInitialized.current) {
+      for (const run of items) {
+        restoreRunStatusSnapshot.current.set(run.id, run.status);
+      }
+      restoreRunStatusInitialized.current = true;
+      return;
+    }
+
+    for (const run of items) {
+      const previous = restoreRunStatusSnapshot.current.get(run.id);
+      if (previous === run.status) continue;
+      restoreRunStatusSnapshot.current.set(run.id, run.status);
+
+      const isPending = pendingRestoreRunIds.current.has(run.id);
+      const wasInProgress = previous != null && isInProgressRestoreStatus(previous);
+      const notifyTerminal =
+        run.status === 'failed' || run.status === 'succeeded' ? isPending || wasInProgress : false;
+
+      if (!notifyTerminal) continue;
+      pendingRestoreRunIds.current.delete(run.id);
+
+      if (run.status === 'failed') {
+        notifications.show({
+          title: 'Restore failed',
+          message: run.errorMessage ?? 'Unknown error',
+          color: 'red',
+          autoClose: 10_000,
+        });
+      } else {
+        notifications.show({
+          title: 'Restore completed',
+          message: 'Database and object storage were restored. Users may need to sign in again.',
+          color: 'green',
+          autoClose: 10_000,
+        });
+      }
+    }
+  }, [restoresQuery.data?.items]);
 
   const runsQuery = useQuery({
     queryKey: ['admin', 'backups', 'runs'],
@@ -133,6 +209,7 @@ export function AdminBackupTab() {
 
   const invalidateBackup = () => {
     void queryClient.invalidateQueries({ queryKey: ['admin', 'backups'] });
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'restores'] });
     void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'schedules'] });
   };
 
@@ -306,6 +383,30 @@ export function AdminBackupTab() {
     },
   });
 
+  const triggerRestore = useMutation({
+    mutationFn: async (backupRunId: string) => {
+      const res = await apiFetch(`/api/v1/admin/restores/from-backup/${backupRunId}`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? 'Failed to start restore');
+      }
+      return res.json() as Promise<{ restoreRunId: string; jobId: string }>;
+    },
+    onSuccess: (result) => {
+      pendingRestoreRunIds.current.add(result.restoreRunId);
+      restoreRunStatusSnapshot.current.set(result.restoreRunId, 'queued');
+      setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
+      setRestoreTarget(null);
+      invalidateBackup();
+      notifications.show({ title: 'Restore started', message: '', color: 'blue' });
+    },
+    onError: (e: Error) => {
+      notifications.show({ title: 'Error', message: e.message, color: 'red' });
+    },
+  });
+
   const deleteFailedBackup = useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/v1/admin/backups/${id}`, { method: 'DELETE' });
@@ -381,12 +482,43 @@ export function AdminBackupTab() {
         downloadLoading={downloadingBackupId != null}
         deleteLocalLoading={deleteLocalBackup.isPending}
         deleteRunLoading={deleteFailedBackup.isPending}
+        restoreLoading={triggerRestore.isPending}
+        maintenanceActive={status.maintenanceActive}
         onDownload={handleDownloadBackup}
+        onRestore={(run) => setRestoreTarget(run)}
         onDeleteLocal={async (id) => {
           await deleteLocalBackup.mutateAsync(id);
         }}
         onDeleteRun={async (id) => {
           await deleteFailedBackup.mutateAsync(id);
+        }}
+      />
+
+      <AdminBackupRestoreSection
+        restores={restoresQuery.data?.items}
+        loading={restoresQuery.isPending}
+        maintenanceActive={status.maintenanceActive}
+        onUploadComplete={(restoreRunId) => {
+          pendingRestoreRunIds.current.add(restoreRunId);
+          restoreRunStatusSnapshot.current.set(restoreRunId, 'queued');
+          setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
+          invalidateBackup();
+          notifications.show({ title: 'Restore started', message: '', color: 'blue' });
+        }}
+      />
+
+      <AdminBackupRestoreModal
+        opened={restoreTarget != null}
+        onClose={() => setRestoreTarget(null)}
+        loading={triggerRestore.isPending}
+        sourceLabel={
+          restoreTarget
+            ? `backup from ${new Date(restoreTarget.createdAt).toLocaleString()}`
+            : 'selected backup'
+        }
+        onConfirm={() => {
+          if (!restoreTarget) return;
+          triggerRestore.mutate(restoreTarget.id);
         }}
       />
 
