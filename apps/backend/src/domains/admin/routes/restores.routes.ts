@@ -97,45 +97,49 @@ const adminRestoresRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
     }
   );
 
-  app.post('/admin/restores/upload', { preHandler: preAdmin }, async (request, reply) => {
-    const file = await request.file();
-    if (!file) {
-      return reply.status(400).send({ error: 'Missing file upload' });
-    }
-
-    const filename = file.filename?.trim() || 'upload.tar.zst';
-
-    try {
-      const result = await triggerRestoreFromUpload(request.server.prisma, {
-        fileStream: file.file,
-        triggeredByUserId: (request as RequestWithUser).user.id,
-        filename,
-      });
-      await writeAuditSafe(request as RequestWithUser, {
-        action: 'restore-create',
-        status: 'success',
-        restoreRunId: result.restoreRunId,
-        details: { source: 'upload', jobId: result.jobId, filename },
-      });
-      return reply.status(202).send(result);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      await writeAuditSafe(request as RequestWithUser, {
-        action: 'restore-create',
-        status: 'failed',
-        details: { source: 'upload', error: message },
-      });
-      if (
-        message.includes('.tar.zst') ||
-        message.includes('MinIO') ||
-        message.includes('already in progress') ||
-        message.includes('Another restore')
-      ) {
-        return reply.status(400).send({ error: message });
+  app.post(
+    '/admin/restores/upload',
+    { preHandler: preAdmin, bodyLimit: maxUploadBytes },
+    async (request, reply) => {
+      const file = await request.file();
+      if (!file) {
+        return reply.status(400).send({ error: 'Missing file upload' });
       }
-      throw error;
+
+      const filename = file.filename?.trim() || 'upload.tar.zst';
+
+      try {
+        const result = await triggerRestoreFromUpload(request.server.prisma, {
+          fileStream: file.file,
+          triggeredByUserId: (request as RequestWithUser).user.id,
+          filename,
+        });
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'restore-create',
+          status: 'success',
+          restoreRunId: result.restoreRunId,
+          details: { source: 'upload', jobId: result.jobId, filename },
+        });
+        return reply.status(202).send(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'restore-create',
+          status: 'failed',
+          details: { source: 'upload', error: message },
+        });
+        if (
+          message.includes('.tar.zst') ||
+          message.includes('MinIO') ||
+          message.includes('already in progress') ||
+          message.includes('Another restore')
+        ) {
+          return reply.status(400).send({ error: message });
+        }
+        throw error;
+      }
     }
-  });
+  );
 };
 
 export default adminRestoresRoutes;

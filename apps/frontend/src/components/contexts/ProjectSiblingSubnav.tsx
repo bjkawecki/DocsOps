@@ -62,7 +62,7 @@ export function ProjectSiblingSubnav({ variant, siblings }: ProjectSiblingSubnav
                 to={to}
                 label={sibling.name}
                 active={pathname === to}
-                variant="filled"
+                variant="light"
                 style={navLinkFullWidth}
               />
             );

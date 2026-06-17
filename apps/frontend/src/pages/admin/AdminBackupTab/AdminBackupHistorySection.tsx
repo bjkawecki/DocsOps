@@ -1,39 +1,35 @@
 import { useState } from 'react';
-import { Badge, Button, Group, Loader, Popover, Stack, Table, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Badge, Group, Loader, Menu, Popover, Stack, Table, Text } from '@mantine/core';
+import { IconDotsVertical, IconDownload } from '@tabler/icons-react';
 import { AdminBackupDeleteFailedModal } from './AdminBackupDeleteFailedModal';
-import { AdminBackupDeleteLocalModal } from './AdminBackupDeleteLocalModal';
+import { AdminBackupDeleteModal } from './AdminBackupDeleteModal';
 import { BACKUP_STATUS_COLOR, type BackupRun } from './adminBackupTypes';
 import { formatExternalDestinationLabel } from './backupRunPolling';
+import { isSupersededMaintenanceFailure } from './restoreRunPolling';
 
 type Props = {
   runs: BackupRun[] | undefined;
   loading: boolean;
   downloadLoading: boolean;
-  deleteLocalLoading: boolean;
+  deleteBackupLoading: boolean;
   deleteRunLoading: boolean;
   onDownload: (id: string) => void;
-  onDeleteLocal: (id: string) => Promise<void>;
+  onDeleteBackup: (id: string) => Promise<void>;
   onDeleteRun: (id: string) => Promise<void>;
-  onRestore?: (run: BackupRun) => void;
-  restoreLoading?: boolean;
-  maintenanceActive?: boolean;
 };
 
 export function AdminBackupHistorySection({
   runs,
   loading,
   downloadLoading,
-  deleteLocalLoading,
+  deleteBackupLoading,
   deleteRunLoading,
   onDownload,
-  onDeleteLocal,
+  onDeleteBackup,
   onDeleteRun,
-  onRestore,
-  restoreLoading = false,
-  maintenanceActive = false,
 }: Props) {
-  const items = runs ?? [];
-  const [deleteLocalTarget, setDeleteLocalTarget] = useState<BackupRun | null>(null);
+  const items = (runs ?? []).filter((run) => !isSupersededMaintenanceFailure(run));
+  const [deleteTarget, setDeleteTarget] = useState<BackupRun | null>(null);
   const [deleteRunTarget, setDeleteRunTarget] = useState<BackupRun | null>(null);
 
   return (
@@ -43,18 +39,19 @@ export function AdminBackupHistorySection({
           {items.length} backup(s)
         </Text>
       </Group>
-      <AdminBackupDeleteLocalModal
-        run={deleteLocalTarget}
-        opened={deleteLocalTarget != null}
-        onClose={() => setDeleteLocalTarget(null)}
-        loading={deleteLocalLoading}
+      <AdminBackupDeleteModal
+        run={deleteTarget}
+        opened={deleteTarget != null}
+        onClose={() => setDeleteTarget(null)}
+        loading={deleteBackupLoading}
         onConfirm={() => {
-          if (!deleteLocalTarget) return;
-          void onDeleteLocal(deleteLocalTarget.id).then(() => setDeleteLocalTarget(null));
+          if (!deleteTarget) return;
+          void onDeleteBackup(deleteTarget.id).then(() => setDeleteTarget(null));
         }}
       />
       <AdminBackupDeleteFailedModal
         opened={deleteRunTarget != null}
+        runStatus={deleteRunTarget?.status}
         onClose={() => setDeleteRunTarget(null)}
         loading={deleteRunLoading}
         onConfirm={() => {
@@ -145,57 +142,43 @@ export function AdminBackupHistorySection({
                   </Table.Td>
                   <Table.Td>
                     {run.status === 'succeeded' ? (
-                      <Group gap={4} wrap="nowrap">
-                        {run.localObjectKey ? (
-                          <>
-                            <Button
-                              size="xs"
-                              variant="filled"
+                      <Menu shadow="md" position="bottom-end">
+                        <Menu.Target>
+                          <ActionIcon variant="subtle" aria-label="Backup actions">
+                            <IconDotsVertical size={18} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          {run.localObjectKey ? (
+                            <Menu.Item
+                              leftSection={<IconDownload size={14} />}
+                              disabled={downloadLoading}
                               onClick={() => onDownload(run.id)}
-                              loading={downloadLoading}
                             >
                               Download
-                            </Button>
-                            {onRestore ? (
-                              <Button
-                                size="xs"
-                                variant="filled"
-                                color="orange"
-                                disabled={maintenanceActive}
-                                loading={restoreLoading}
-                                onClick={() => onRestore(run)}
-                              >
-                                Restore
-                              </Button>
-                            ) : null}
-                            <Button
-                              size="xs"
-                              variant="filled"
-                              color="red"
-                              onClick={() => setDeleteLocalTarget(run)}
-                            >
-                              Delete local
-                            </Button>
-                          </>
-                        ) : (
-                          <Tooltip label="No local copy — upload archive manually or copy from external destination">
-                            <Text size="xs" c="dimmed">
-                              {run.remotePath ? 'Local removed' : 'No local copy'}
-                            </Text>
-                          </Tooltip>
-                        )}
-                      </Group>
-                    ) : run.status === 'failed' ? (
-                      <Group gap={4} wrap="nowrap">
-                        <Button
-                          size="xs"
-                          variant="filled"
-                          color="red"
-                          onClick={() => setDeleteRunTarget(run)}
-                        >
-                          Delete
-                        </Button>
-                      </Group>
+                            </Menu.Item>
+                          ) : null}
+                          <Menu.Item color="red" onClick={() => setDeleteTarget(run)}>
+                            Delete
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    ) : run.status === 'failed' ||
+                      run.status === 'queued' ||
+                      run.status === 'running' ||
+                      run.status === 'uploading' ? (
+                      <Menu shadow="md" position="bottom-end">
+                        <Menu.Target>
+                          <ActionIcon variant="subtle" aria-label="Backup actions">
+                            <IconDotsVertical size={18} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item color="red" onClick={() => setDeleteRunTarget(run)}>
+                            Remove from history
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
                     ) : null}
                   </Table.Td>
                 </Table.Tr>

@@ -3,8 +3,13 @@ import { basename } from 'node:path';
 import type { Readable } from 'node:stream';
 import {
   getMaintenanceLock,
+  getPublicMaintenanceStatus,
   assertMaintenanceAvailable,
+  IN_PROGRESS_BACKUP_STATUSES,
+  releaseMaintenanceLockIfOwned,
 } from '../../../infrastructure/maintenance/maintenanceModeService.js';
+import { isBackupRunActivelyRunning } from '../../../infrastructure/maintenance/maintenanceRunActivity.js';
+import { cancelJob } from '../../../infrastructure/jobs/client.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { listAdminJobSchedules } from './adminJobsScheduleService.js';
 import { getAdminJobsHealth } from './adminJobsQueryService.js';
@@ -13,6 +18,11 @@ import { isMinioAvailableForBackup } from './operationalBackupService.js';
 import { getEffectiveRetentionCount } from '../../../infrastructure/backup/retention.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import { isBackupEncryptionConfigured } from '../../../infrastructure/crypto/secretBox.js';
+import {
+  isSupersededFailedMaintenanceRun,
+  purgeSupersededFailedMaintenanceRuns,
+  supersededFailedMaintenanceRunWhere,
+} from '../../../infrastructure/maintenance/maintenanceSupersededRuns.js';
 
 function serializeBackupRun(run: {
   id: string;
@@ -37,9 +47,10 @@ function serializeBackupRun(run: {
 }
 
 export async function getBackupStatus(prisma: PrismaClient) {
-  const [minioAvailable, health, maintenance, settings, retentionCount] = await Promise.all([
+  const [minioAvailable, health, maintenance, lock, settings, retentionCount] = await Promise.all([
     isMinioAvailableForBackup(),
     getAdminJobsHealth(prisma),
+    getPublicMaintenanceStatus(prisma),
     getMaintenanceLock(prisma),
     getBackupSettings(prisma),
     getEffectiveRetentionCount(prisma),
@@ -71,8 +82,8 @@ export async function getBackupStatus(prisma: PrismaClient) {
     workerConnected: health.workerConnected,
     maintenanceActive: maintenance.active,
     maintenanceReason: maintenance.reason ?? null,
-    maintenanceRestoreRunId: maintenance.restoreRunId ?? null,
-    maintenanceBackupRunId: maintenance.backupRunId ?? null,
+    maintenanceRestoreRunId: lock.restoreRunId ?? null,
+    maintenanceBackupRunId: lock.backupRunId ?? null,
     encryptionConfigured: isBackupEncryptionConfigured(),
     retentionCount,
     defaultDestinationId: settings.defaultDestinationId,
@@ -85,7 +96,14 @@ export async function listBackupRuns(
   prisma: PrismaClient,
   query: { limit: number; offset: number; status?: string }
 ) {
-  const where = query.status ? { status: query.status as never } : undefined;
+  await purgeSupersededFailedMaintenanceRuns(prisma);
+
+  const where = query.status
+    ? {
+        AND: [{ status: query.status as never }, { NOT: supersededFailedMaintenanceRunWhere() }],
+      }
+    : { NOT: supersededFailedMaintenanceRunWhere() };
+
   const [items, total] = await Promise.all([
     prisma.backupRun.findMany({
       where,
@@ -112,6 +130,10 @@ export async function getBackupRun(prisma: PrismaClient, id: string) {
     include: { destination: { select: { id: true, name: true, type: true } } },
   });
   if (!run) return null;
+  if (isSupersededFailedMaintenanceRun(run)) {
+    await prisma.backupRun.delete({ where: { id } }).catch(() => undefined);
+    return null;
+  }
   return serializeBackupRun(run);
 }
 
@@ -192,11 +214,34 @@ export async function deleteLocalBackupCopy(prisma: PrismaClient, id: string) {
   return serializeBackupRun(updated);
 }
 
-export async function deleteFailedBackupRun(prisma: PrismaClient, id: string): Promise<boolean> {
+async function assertBackupRunNotActivelyRunning(
+  prisma: PrismaClient,
+  run: { id: string; pgBossJobId: string | null }
+): Promise<void> {
+  if (await isBackupRunActivelyRunning(prisma, run)) {
+    throw new Error('Backup is still in progress');
+  }
+}
+
+export async function deleteBackupRun(prisma: PrismaClient, id: string): Promise<boolean> {
   const run = await prisma.backupRun.findUnique({ where: { id } });
   if (!run) return false;
-  if (run.status !== 'failed') {
-    throw new Error('Only failed backup runs can be deleted');
+
+  const isInProgress = (IN_PROGRESS_BACKUP_STATUSES as readonly string[]).includes(run.status);
+  const isSucceeded = run.status === 'succeeded';
+
+  if (!isSucceeded && run.status !== 'failed' && !isInProgress) {
+    throw new Error(`Cannot delete backup run in status: ${run.status}`);
+  }
+
+  if (isInProgress) {
+    await assertBackupRunNotActivelyRunning(prisma, run);
+    if (run.pgBossJobId) {
+      await cancelJob('maintenance.backup', run.pgBossJobId).catch(() => undefined);
+    }
+    await releaseMaintenanceLockIfOwned(prisma, { reason: 'backup', runId: id }).catch(
+      () => undefined
+    );
   }
 
   if (run.localObjectKey) {
@@ -208,6 +253,11 @@ export async function deleteFailedBackupRun(prisma: PrismaClient, id: string): P
 
   await prisma.backupRun.delete({ where: { id } });
   return true;
+}
+
+/** @deprecated Use deleteBackupRun */
+export async function deleteFailedBackupRun(prisma: PrismaClient, id: string): Promise<boolean> {
+  return deleteBackupRun(prisma, id);
 }
 
 export { updateBackupSettings };

@@ -1,28 +1,36 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Loader, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { apiBase, apiFetch } from '../../../api/client';
-import { AdminBackupDestinationsManageModal } from './AdminBackupDestinationsManageModal';
+import { meQueryKey } from '../../../hooks/useMe';
 import { buildDestinationBody, type DestinationFormState } from './adminBackupDestinationForm';
-import { AdminBackupRestoreModal } from './AdminBackupRestoreModal';
-import { AdminBackupRestoreSection } from './AdminBackupRestoreSection';
+import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
 import { AdminBackupHistorySection } from './AdminBackupHistorySection';
 import { AdminBackupOverviewBar } from './AdminBackupOverviewBar';
+import { AdminBackupSettingsModal } from './AdminBackupSettingsModal';
 import { AdminBackupStatusAlerts } from './AdminBackupStatusAlerts';
+import { formatActiveJobStatus } from './backupRestoreHelpers';
 import {
   type BackupRun,
   type BackupStatus,
   type Destination,
   type RestoreRun,
 } from './adminBackupTypes';
-import { hasInProgressRestoreRun, isInProgressRestoreStatus } from './restoreRunPolling';
+import {
+  hasInProgressRestoreRun,
+  isInProgressRestoreStatus,
+  isSupersededMaintenanceFailure,
+  isSupersededRestoreFailure,
+} from './restoreRunPolling';
 import {
   BACKUP_POLL_BOOST_MS,
   BACKUP_RUN_IDLE_POLL_INTERVAL_MS,
   BACKUP_RUN_POLL_INTERVAL_MS,
   getBackupRunsRefetchIntervalMs,
+  hasInProgressBackupRun,
   isInProgressBackupStatus,
   shouldPollBackupRuns,
 } from './backupRunPolling';
@@ -34,7 +42,8 @@ type CreateBackupResult = { backupRunId: string; jobId: string };
 
 export function AdminBackupTab() {
   const queryClient = useQueryClient();
-  const [manageOpened, { open: openManage, close: closeManage }] = useDisclosure(false);
+  const navigate = useNavigate();
+  const [settingsOpened, { open: openSettings, close: closeSettings }] = useDisclosure(false);
   const [enableAutoOpened, { open: openEnableAuto, close: closeEnableAuto }] = useDisclosure(false);
   const backupRunStatusSnapshot = useRef<Map<string, string>>(new Map());
   const backupRunStatusInitialized = useRef(false);
@@ -44,7 +53,6 @@ export function AdminBackupTab() {
   const restoreRunStatusInitialized = useRef(false);
   const [backupPollBoostUntil, setBackupPollBoostUntil] = useState(0);
   const [restorePollBoostUntil, setRestorePollBoostUntil] = useState(0);
-  const [restoreTarget, setRestoreTarget] = useState<BackupRun | null>(null);
   const [isTabVisible, setIsTabVisible] = useState(() => document.visibilityState === 'visible');
 
   useEffect(() => {
@@ -105,6 +113,12 @@ export function AdminBackupTab() {
     },
   });
 
+  const invalidateBackup = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'backups'] });
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'restores'] });
+    void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'schedules'] });
+  }, [queryClient]);
+
   useEffect(() => {
     const items = restoresQuery.data?.items;
     if (!items) return;
@@ -131,6 +145,7 @@ export function AdminBackupTab() {
       pendingRestoreRunIds.current.delete(run.id);
 
       if (run.status === 'failed') {
+        if (isSupersededRestoreFailure(run)) continue;
         notifications.show({
           title: 'Restore failed',
           message: run.errorMessage ?? 'Unknown error',
@@ -138,15 +153,19 @@ export function AdminBackupTab() {
           autoClose: 10_000,
         });
       } else {
+        invalidateBackup();
+        void queryClient.removeQueries({ queryKey: meQueryKey });
         notifications.show({
           title: 'Restore completed',
-          message: 'Database and object storage were restored. Users may need to sign in again.',
+          message:
+            'Database and object storage were restored. All sessions were invalidated — sign in again to continue.',
           color: 'green',
-          autoClose: 10_000,
+          autoClose: 15_000,
         });
+        void navigate('/login', { replace: true, state: { from: '/admin/backup' } });
       }
     }
-  }, [restoresQuery.data?.items]);
+  }, [restoresQuery.data?.items, invalidateBackup, navigate, queryClient]);
 
   const runsQuery = useQuery({
     queryKey: ['admin', 'backups', 'runs'],
@@ -191,6 +210,7 @@ export function AdminBackupTab() {
       pendingBackupRunIds.current.delete(run.id);
 
       if (run.status === 'failed') {
+        if (isSupersededMaintenanceFailure(run)) continue;
         notifications.show({
           title: 'Backup failed',
           message: run.errorMessage ?? 'Unknown error',
@@ -206,12 +226,6 @@ export function AdminBackupTab() {
       }
     }
   }, [runsQuery.data?.items]);
-
-  const invalidateBackup = () => {
-    void queryClient.invalidateQueries({ queryKey: ['admin', 'backups'] });
-    void queryClient.invalidateQueries({ queryKey: ['admin', 'restores'] });
-    void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'schedules'] });
-  };
 
   const patchSettings = useMutation({
     mutationFn: async (body: { retentionCount?: number; defaultDestinationId?: string | null }) => {
@@ -365,18 +379,17 @@ export function AdminBackupTab() {
     window.setTimeout(() => setDownloadingBackupId(null), 1500);
   };
 
-  const deleteLocalBackup = useMutation({
+  const deleteBackup = useMutation({
     mutationFn: async (id: string) => {
-      const res = await apiFetch(`/api/v1/admin/backups/${id}/local`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/v1/admin/backups/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to delete local copy');
+        throw new Error(err.error ?? 'Failed to delete backup');
       }
-      return (await res.json()) as BackupRun;
     },
     onSuccess: () => {
       invalidateBackup();
-      notifications.show({ title: 'Local copy deleted', message: '', color: 'green' });
+      notifications.show({ title: 'Backup deleted', message: '', color: 'green' });
     },
     onError: (e: Error) => {
       notifications.show({ title: 'Error', message: e.message, color: 'red' });
@@ -398,7 +411,7 @@ export function AdminBackupTab() {
       pendingRestoreRunIds.current.add(result.restoreRunId);
       restoreRunStatusSnapshot.current.set(result.restoreRunId, 'queued');
       setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
-      setRestoreTarget(null);
+      closeSettings();
       invalidateBackup();
       notifications.show({ title: 'Restore started', message: '', color: 'blue' });
     },
@@ -417,17 +430,30 @@ export function AdminBackupTab() {
     },
     onSuccess: () => {
       invalidateBackup();
-      notifications.show({ title: 'Backup run deleted', message: '', color: 'green' });
+      notifications.show({ title: 'Backup run removed', message: '', color: 'green' });
     },
     onError: (e: Error) => {
       notifications.show({ title: 'Error', message: e.message, color: 'red' });
     },
   });
 
+  const handleRestoreUploadComplete = (restoreRunId: string) => {
+    pendingRestoreRunIds.current.add(restoreRunId);
+    restoreRunStatusSnapshot.current.set(restoreRunId, 'queued');
+    setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
+    invalidateBackup();
+    notifications.show({ title: 'Restore started', message: '', color: 'blue' });
+  };
+
   const destinations = useMemo(
     () => destinationsQuery.data?.items ?? [],
     [destinationsQuery.data?.items]
   );
+
+  const activeRestoreStatus = useMemo(() => {
+    const inProgress = restoresQuery.data?.items?.find((r) => isInProgressRestoreStatus(r.status));
+    return inProgress?.status ?? null;
+  }, [restoresQuery.data?.items]);
 
   if (statusQuery.isPending) return <Loader size="sm" />;
 
@@ -448,31 +474,33 @@ export function AdminBackupTab() {
         ? 'Object storage is unavailable'
         : null;
 
+  const activeJobStatus = formatActiveJobStatus({
+    maintenanceActive: status.maintenanceActive,
+    maintenanceReason: status.maintenanceReason,
+    backupRuns: runsQuery.data?.items,
+    restoreStatus: activeRestoreStatus,
+  });
+
+  const showActiveJobStatus =
+    activeJobStatus ??
+    (hasInProgressBackupRun(runsQuery.data?.items)
+      ? formatActiveJobStatus({
+          maintenanceActive: true,
+          maintenanceReason: 'backup',
+          backupRuns: runsQuery.data?.items,
+        })
+      : null);
+
   return (
     <Stack gap="md">
       <AdminBackupStatusAlerts status={status} />
 
       <AdminBackupOverviewBar
         status={status}
-        destinations={destinations}
-        retentionCount={status.retentionCount}
-        onRetentionChange={(retentionCount) => patchSettings.mutate({ retentionCount })}
-        onDefaultDestinationChange={(defaultDestinationId) =>
-          patchSettings.mutate({ defaultDestinationId })
-        }
+        activeJobStatus={showActiveJobStatus}
         canBackup={canBackup}
-        canEnableAuto={canEnableAuto}
-        enableBlockReason={enableBlockReason}
-        scheduleSaving={patchSchedule.isPending}
         backupLoading={createBackup.isPending}
-        onAutoToggle={(enabled) => {
-          if (enabled) {
-            openEnableAuto();
-          } else {
-            patchSchedule.mutate({ enabled: false });
-          }
-        }}
-        onManageDestinations={openManage}
+        onOpenSettings={openSettings}
         onBackupNow={() => createBackup.mutate(status.defaultDestinationId ?? undefined)}
       />
 
@@ -480,66 +508,51 @@ export function AdminBackupTab() {
         runs={runsQuery.data?.items}
         loading={runsQuery.isPending}
         downloadLoading={downloadingBackupId != null}
-        deleteLocalLoading={deleteLocalBackup.isPending}
+        deleteBackupLoading={deleteBackup.isPending}
         deleteRunLoading={deleteFailedBackup.isPending}
-        restoreLoading={triggerRestore.isPending}
-        maintenanceActive={status.maintenanceActive}
         onDownload={handleDownloadBackup}
-        onRestore={(run) => setRestoreTarget(run)}
-        onDeleteLocal={async (id) => {
-          await deleteLocalBackup.mutateAsync(id);
+        onDeleteBackup={async (id) => {
+          await deleteBackup.mutateAsync(id);
         }}
         onDeleteRun={async (id) => {
           await deleteFailedBackup.mutateAsync(id);
         }}
       />
 
-      <AdminBackupRestoreSection
-        restores={restoresQuery.data?.items}
-        loading={restoresQuery.isPending}
-        maintenanceActive={status.maintenanceActive}
-        onUploadComplete={(restoreRunId) => {
-          pendingRestoreRunIds.current.add(restoreRunId);
-          restoreRunStatusSnapshot.current.set(restoreRunId, 'queued');
-          setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
-          invalidateBackup();
-          notifications.show({ title: 'Restore started', message: '', color: 'blue' });
-        }}
-      />
-
-      <AdminBackupRestoreModal
-        opened={restoreTarget != null}
-        onClose={() => setRestoreTarget(null)}
-        loading={triggerRestore.isPending}
-        sourceLabel={
-          restoreTarget
-            ? `backup from ${new Date(restoreTarget.createdAt).toLocaleString()}`
-            : 'selected backup'
-        }
-        onConfirm={() => {
-          if (!restoreTarget) return;
-          triggerRestore.mutate(restoreTarget.id);
-        }}
-      />
-
-      <AdminBackupDestinationsManageModal
-        opened={manageOpened}
-        onClose={closeManage}
+      <AdminBackupSettingsModal
+        opened={settingsOpened}
+        onClose={closeSettings}
+        status={status}
         destinations={destinations}
-        defaultDestinationId={status.defaultDestinationId}
+        backups={runsQuery.data?.items}
+        canEnableAuto={canEnableAuto}
+        enableBlockReason={enableBlockReason}
+        scheduleSaving={patchSchedule.isPending}
+        restoreFromBackupLoading={triggerRestore.isPending}
         savingDestination={saveDestination.isPending}
         deletingDestination={deleteDestinationMutation.isPending}
         togglingDestinationId={
           patchDestinationEnabled.isPending ? (patchDestinationEnabled.variables?.id ?? null) : null
         }
+        onRetentionChange={(retentionCount) => patchSettings.mutate({ retentionCount })}
+        onDefaultDestinationChange={(defaultDestinationId) =>
+          patchSettings.mutate({ defaultDestinationId })
+        }
+        onAutoToggle={(enabled) => {
+          if (enabled) {
+            openEnableAuto();
+          } else {
+            patchSchedule.mutate({ enabled: false });
+          }
+        }}
         onSaveDestination={async (form, destinationId) => {
           await saveDestination.mutateAsync({ form, destinationId });
         }}
         onDeleteDestination={(d) => deleteDestinationMutation.mutate(d.id)}
-        onSetDefault={(destinationId) =>
+        onSetDefaultDestination={(destinationId) =>
           patchSettings.mutate({ defaultDestinationId: destinationId })
         }
-        onToggleEnabled={(destinationId, enabled) => {
+        onToggleDestinationEnabled={(destinationId, enabled) => {
           patchDestinationEnabled.mutate(
             { id: destinationId, enabled },
             {
@@ -551,6 +564,8 @@ export function AdminBackupTab() {
             }
           );
         }}
+        onRestoreFromBackup={(backupRunId) => triggerRestore.mutate(backupRunId)}
+        onRestoreUploadComplete={handleRestoreUploadComplete}
       />
 
       <AdminBackupEnableAutoModal

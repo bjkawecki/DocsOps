@@ -6,17 +6,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { assertMaintenanceAvailable } from '../../../infrastructure/maintenance/maintenanceModeService.js';
+import {
+  isSupersededFailedMaintenanceRun,
+  purgeSupersededFailedMaintenanceRuns,
+  supersededFailedMaintenanceRunWhere,
+} from '../../../infrastructure/maintenance/maintenanceSupersededRuns.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import { getRestoreUploadMaxBytes } from './operationalRestoreService.js';
-
-const IN_PROGRESS_RESTORE_STATUSES = new Set([
-  'queued',
-  'running',
-  'validating',
-  'restoring_db',
-  'restoring_minio',
-]);
 
 function serializeRestoreRun(run: {
   id: string;
@@ -46,16 +43,6 @@ function serializeRestoreRun(run: {
   };
 }
 
-async function assertNoConcurrentRestore(prisma: PrismaClient): Promise<void> {
-  const active = await prisma.restoreRun.findFirst({
-    where: { status: { in: [...IN_PROGRESS_RESTORE_STATUSES] } },
-    select: { id: true },
-  });
-  if (active) {
-    throw new Error('Another restore is already in progress');
-  }
-}
-
 async function enqueueRestoreJob(
   prisma: PrismaClient,
   args: {
@@ -66,7 +53,6 @@ async function enqueueRestoreJob(
   }
 ) {
   await assertMaintenanceAvailable(prisma);
-  await assertNoConcurrentRestore(prisma);
 
   const run = await prisma.restoreRun.create({
     data: {
@@ -97,8 +83,15 @@ export async function listRestoreRuns(
   prisma: PrismaClient,
   query: { limit: number; offset: number }
 ) {
+  await purgeSupersededFailedMaintenanceRuns(prisma);
+
+  const where = {
+    NOT: supersededFailedMaintenanceRunWhere(),
+  };
+
   const [items, total] = await Promise.all([
     prisma.restoreRun.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       take: query.limit,
       skip: query.offset,
@@ -106,7 +99,7 @@ export async function listRestoreRuns(
         backupRun: { select: { id: true, createdAt: true } },
       },
     }),
-    prisma.restoreRun.count(),
+    prisma.restoreRun.count({ where }),
   ]);
   return {
     items: items.map(serializeRestoreRun),
@@ -124,6 +117,10 @@ export async function getRestoreRun(prisma: PrismaClient, id: string) {
     },
   });
   if (!run) return null;
+  if (isSupersededFailedMaintenanceRun(run)) {
+    await prisma.restoreRun.delete({ where: { id } }).catch(() => undefined);
+    return null;
+  }
   return serializeRestoreRun(run);
 }
 

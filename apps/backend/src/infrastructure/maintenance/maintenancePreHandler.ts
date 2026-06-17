@@ -1,23 +1,27 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { getMaintenanceLock, shouldBlockForMaintenance } from './maintenanceModeService.js';
+import {
+  getPublicMaintenanceStatus,
+  shouldBlockForMaintenance,
+  type PublicMaintenanceStatus,
+} from './maintenanceModeService.js';
 
-let cachedLock: { at: number; info: Awaited<ReturnType<typeof getMaintenanceLock>> } | null = null;
+let cachedStatus: { at: number; info: PublicMaintenanceStatus } | null = null;
 const CACHE_MS = 1000;
 
-async function getCachedMaintenanceLock(
+async function getCachedMaintenanceStatus(
   prisma: FastifyRequest['server']['prisma']
-): Promise<Awaited<ReturnType<typeof getMaintenanceLock>>> {
+): Promise<PublicMaintenanceStatus> {
   const now = Date.now();
-  if (cachedLock && now - cachedLock.at < CACHE_MS) {
-    return cachedLock.info;
+  if (cachedStatus && now - cachedStatus.at < CACHE_MS) {
+    return cachedStatus.info;
   }
-  const info = await getMaintenanceLock(prisma);
-  cachedLock = { at: now, info };
+  const info = await getPublicMaintenanceStatus(prisma);
+  cachedStatus = { at: now, info };
   return info;
 }
 
 export function invalidateMaintenanceLockCache(): void {
-  cachedLock = null;
+  cachedStatus = null;
 }
 
 export async function maintenanceModePreHandler(
@@ -26,12 +30,12 @@ export async function maintenanceModePreHandler(
 ): Promise<void> {
   if (!shouldBlockForMaintenance(request.method, request.url)) return;
 
-  const lock = await getCachedMaintenanceLock(request.server.prisma);
-  if (!lock.active) return;
+  const status = await getCachedMaintenanceStatus(request.server.prisma);
+  if (!status.active) return;
 
   return reply.status(503).send({
     error: 'Maintenance in progress',
-    reason: lock.reason ?? 'backup',
+    reason: status.reason ?? 'backup',
     code: 'MAINTENANCE_MODE',
   });
 }

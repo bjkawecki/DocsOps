@@ -40,7 +40,7 @@ services:
       BACKUP_S3_DESTINATION_SECRET_KEY: ${BACKUP_S3_DESTINATION_SECRET_KEY:-}
       BACKUP_S3_DESTINATION_REGION: ${BACKUP_S3_DESTINATION_REGION:-}
       BACKUP_S3_DESTINATION_BASE_PATH: ${BACKUP_S3_DESTINATION_BASE_PATH:-}
-    # /ready prüft DB (SELECT 1); /health wäre ohne DB → Frontend/Worker starten zu früh.
+      LOG_HTTP_REQUESTS: ${LOG_HTTP_REQUESTS:-false}
     healthcheck:
       test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:8080/ready || exit 1']
       interval: 5s

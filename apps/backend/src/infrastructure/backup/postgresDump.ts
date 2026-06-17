@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { buildPgDumpArgs } from './postgresBackupTargets.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -25,7 +26,7 @@ export async function runPostgresDump(outputPath: string): Promise<void> {
   try {
     await execFileAsync(
       process.env.PG_DUMP_BIN?.trim() || 'pg_dump',
-      ['-Fc', '-f', outputPath, '--dbname', databaseUrl],
+      buildPgDumpArgs(outputPath, databaseUrl),
       {
         timeout: 600_000,
         maxBuffer: 4 * 1024 * 1024,

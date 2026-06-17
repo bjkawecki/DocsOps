@@ -201,12 +201,57 @@ describe('Admin backup routes', () => {
     expect(persisted).toBeNull();
   });
 
-  it('DELETE /admin/backups/:id for succeeded run → 400', async () => {
+  it('DELETE /admin/backups/:id removes stuck running run without active lock', async () => {
+    const run = await prisma.backupRun.create({
+      data: {
+        status: 'running',
+        triggerSource: 'manual',
+        startedAt: new Date(),
+      },
+    });
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/admin/backups/${run.id}`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(204);
+    const persisted = await prisma.backupRun.findUnique({ where: { id: run.id } });
+    expect(persisted).toBeNull();
+  });
+
+  it('DELETE /admin/backups/:id for actively locked running run → 400', async () => {
+    const run = await prisma.backupRun.create({
+      data: {
+        status: 'running',
+        triggerSource: 'manual',
+        startedAt: new Date(),
+      },
+    });
+    await prisma.systemMaintenanceLock.create({
+      data: { id: 'backup', reason: 'backup', backupRunId: run.id },
+    });
+    invalidateMaintenanceLockCache();
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/admin/backups/${run.id}`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toEqual({ error: 'Backup is still in progress' });
+    await prisma.systemMaintenanceLock.deleteMany({ where: { id: 'backup' } });
+    invalidateMaintenanceLockCache();
+    await prisma.backupRun.delete({ where: { id: run.id } });
+  });
+
+  it('DELETE /admin/backups/:id deletes succeeded run with local copy', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'succeeded',
         triggerSource: 'manual',
         localObjectKey: 'backups/test/archive.tar.zst',
+        remotePath: 'offsite/archive.tar.zst',
         finishedAt: new Date(),
       },
     });
@@ -216,7 +261,30 @@ describe('Admin backup routes', () => {
       url: `/api/v1/admin/backups/${run.id}`,
       headers: { cookie },
     });
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(204);
+    const persisted = await prisma.backupRun.findUnique({ where: { id: run.id } });
+    expect(persisted).toBeNull();
+  });
+
+  it('DELETE /admin/backups/:id deletes succeeded run without local copy', async () => {
+    const run = await prisma.backupRun.create({
+      data: {
+        status: 'succeeded',
+        triggerSource: 'manual',
+        localObjectKey: null,
+        remotePath: 'offsite/archive.tar.zst',
+        finishedAt: new Date(),
+      },
+    });
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/admin/backups/${run.id}`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(204);
+    const persisted = await prisma.backupRun.findUnique({ where: { id: run.id } });
+    expect(persisted).toBeNull();
   });
 
   it('GET /admin/backups/:id/download without local copy → 404', async () => {

@@ -104,17 +104,16 @@ services:
       VITE_DEV_PROXY_API: http://app:8080
     volumes:
       - .:/app
-    # --ignore-scripts avoids backend prepare (prisma generate) in this container;
-    # we run prisma generate once so frontend has types. No dependency on app.
+    # App-Container (depends_on) führt bereits `pnpm install` + prisma generate aus.
+    # Kein prisma generate hier — vermeidet pnpm/@prisma/dev „pathe“-Auflösungsfehler nach --ignore-scripts.
     healthcheck:
       test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:5173/ || exit 1']
       interval: 5s
       timeout: 5s
       retries: 30
-      # Frontend braucht beim ersten Start oft länger (pnpm install + prisma generate + vite).
-      # Längeres Startfenster verhindert False-Negatives beim Healthcheck.
+      # Frontend braucht beim ersten Start oft länger (pnpm install + vite).
       start_period: 120s
-    command: sh -c "pnpm install --ignore-scripts && pnpm --filter backend exec prisma generate && pnpm --filter frontend run dev"
+    command: sh -c "pnpm install --ignore-scripts && pnpm --filter frontend run dev"
 
   caddy:
     container_name: ${COMPOSE_PROJECT_NAME:-docsops}-caddy

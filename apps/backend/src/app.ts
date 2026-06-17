@@ -16,6 +16,8 @@ import { pinnedRoutes } from './domains/pinned/routes/index.js';
 import adminRoutes from './domains/admin/routes/index.js';
 import { searchRoutes } from './domains/search/routes/index.js';
 import { maintenanceModePreHandler } from './infrastructure/maintenance/maintenancePreHandler.js';
+import { maintenanceRoutes } from './infrastructure/maintenance/maintenanceRoutes.js';
+import { shouldDisableHttpRequestLogging } from './infrastructure/logging/httpRequestLogging.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json') as { name: string; version: string };
@@ -46,7 +48,10 @@ function buildLoggerConfig(): {
  * Für Server-Start in index.ts und für Tests (app.inject()).
  */
 export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({ logger: buildLoggerConfig() });
+  const app = Fastify({
+    logger: buildLoggerConfig(),
+    disableRequestLogging: shouldDisableHttpRequestLogging,
+  });
   await app.register(fastifyCookie, { secret: process.env.SESSION_SECRET });
   app.decorate('prisma', prisma);
   const storage = await initStorage();
@@ -154,6 +159,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.register(meRoutes, { prefix: '/api/v1' });
   app.register(pinnedRoutes, { prefix: '/api/v1' });
   app.register(searchRoutes, { prefix: '/api/v1' });
+  app.register(maintenanceRoutes, { prefix: '/api/v1' });
   app.register(adminRoutes, { prefix: '/api/v1' });
   return app;
 }

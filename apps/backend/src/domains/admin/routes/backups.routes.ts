@@ -23,7 +23,7 @@ import {
   updateBackupSettings,
 } from '../services/adminBackupDestinationService.js';
 import {
-  deleteFailedBackupRun,
+  deleteBackupRun,
   deleteLocalBackupCopy,
   getLocalBackupDownload,
   getBackupRun,
@@ -249,7 +249,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     async (request, reply) => {
       const { id } = backupRunIdParamSchema.parse(request.params);
       try {
-        const deleted = await deleteFailedBackupRun(request.server.prisma, id);
+        const deleted = await deleteBackupRun(request.server.prisma, id);
         if (!deleted) return reply.status(404).send({ error: 'Backup not found' });
         await writeAuditSafe(request as RequestWithUser, {
           action: 'backup-run-delete',
@@ -265,7 +265,11 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           backupRunId: id,
           details: { error: message },
         });
-        if (message.includes('Only failed')) {
+        if (
+          message.includes('still in progress') ||
+          message.includes('cannot be deleted') ||
+          message.includes('Cannot delete backup run')
+        ) {
           return reply.status(400).send({ error: message });
         }
         throw error;
