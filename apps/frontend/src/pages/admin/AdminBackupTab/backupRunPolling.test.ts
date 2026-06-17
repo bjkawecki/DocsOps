@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import {
   BACKUP_POLL_BOOST_MS,
+  formatExternalDestinationLabel,
   hasInProgressBackupRun,
   shouldPollBackupRuns,
 } from './backupRunPolling';
@@ -44,5 +45,20 @@ describe('backupRunPolling', () => {
     expect(shouldPollBackupRuns([{ ...baseRun, status: 'succeeded' }], boostUntil)).toBe(true);
     vi.setSystemTime(boostUntil);
     expect(shouldPollBackupRuns([{ ...baseRun, status: 'succeeded' }], boostUntil)).toBe(false);
+  });
+
+  it('formats external destination with type', () => {
+    expect(
+      formatExternalDestinationLabel({
+        ...baseRun,
+        destination: { id: 'd1', name: 'AWS prod', type: 'S3_COMPATIBLE' },
+      })
+    ).toBe('AWS prod (S3)');
+    expect(
+      formatExternalDestinationLabel({
+        ...baseRun,
+        destination: { id: 'd2', name: 'Borg host', type: 'SSH' },
+      })
+    ).toBe('Borg host (SSH)');
   });
 });

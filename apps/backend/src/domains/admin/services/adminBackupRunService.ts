@@ -25,7 +25,7 @@ function serializeBackupRun(run: {
   startedAt: Date | null;
   finishedAt: Date | null;
   createdAt: Date;
-  destination: { id: string; name: string } | null;
+  destination: { id: string; name: string; type: string } | null;
 }) {
   return {
     ...run,
@@ -87,7 +87,7 @@ export async function listBackupRuns(
       take: query.limit,
       skip: query.offset,
       include: {
-        destination: { select: { id: true, name: true } },
+        destination: { select: { id: true, name: true, type: true } },
       },
     }),
     prisma.backupRun.count({ where }),
@@ -103,7 +103,7 @@ export async function listBackupRuns(
 export async function getBackupRun(prisma: PrismaClient, id: string) {
   const run = await prisma.backupRun.findUnique({
     where: { id },
-    include: { destination: { select: { id: true, name: true } } },
+    include: { destination: { select: { id: true, name: true, type: true } } },
   });
   if (!run) return null;
   return serializeBackupRun(run);
@@ -180,7 +180,7 @@ export async function deleteLocalBackupCopy(prisma: PrismaClient, id: string) {
   const updated = await prisma.backupRun.update({
     where: { id },
     data: { localObjectKey: null },
-    include: { destination: { select: { id: true, name: true } } },
+    include: { destination: { select: { id: true, name: true, type: true } } },
   });
   return serializeBackupRun(updated);
 }

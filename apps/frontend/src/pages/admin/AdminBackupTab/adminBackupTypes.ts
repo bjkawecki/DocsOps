@@ -25,7 +25,7 @@ export type BackupRun = {
   createdAt: string;
   finishedAt: string | null;
   errorMessage: string | null;
-  destination: { id: string; name: string } | null;
+  destination: { id: string; name: string; type: 'S3_COMPATIBLE' | 'SSH' } | null;
   localObjectKey: string | null;
   remotePath: string | null;
 };

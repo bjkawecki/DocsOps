@@ -1,6 +1,7 @@
 import { Badge, Button, Group, NumberInput, Select, Switch, Text, Tooltip } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import type { BackupStatus, Destination } from './adminBackupTypes';
+import { formatBackupScheduleLabel } from './backupScheduleLabel';
 
 type Props = {
   status: BackupStatus;
@@ -37,7 +38,9 @@ export function AdminBackupOverviewBar({
     .filter((d) => d.enabled)
     .map((d) => ({ value: d.id, label: d.name }));
 
-  const scheduleShortLabel = status.schedule.enabled ? 'Daily at 03:00 UTC' : 'Not scheduled';
+  const scheduleShortLabel = status.schedule.enabled
+    ? formatBackupScheduleLabel(status.schedule.cron, status.schedule.tz)
+    : 'Not scheduled';
   const scheduleDetail =
     status.schedule.enabled && status.schedule.cron
       ? `${status.schedule.cron} (${status.schedule.tz ?? 'UTC'})`

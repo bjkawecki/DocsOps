@@ -23,8 +23,14 @@ export function isInProgressBackupStatus(status: string): boolean {
   return IN_PROGRESS_BACKUP_STATUSES.has(status);
 }
 
+function formatDestinationTypeShort(type: 'S3_COMPATIBLE' | 'SSH'): string {
+  return type === 'S3_COMPATIBLE' ? 'S3' : 'SSH';
+}
+
 export function formatExternalDestinationLabel(run: BackupRun): string {
-  if (run.destination?.name) return run.destination.name;
+  if (run.destination?.name) {
+    return `${run.destination.name} (${formatDestinationTypeShort(run.destination.type)})`;
+  }
   if (run.status === 'succeeded') return 'Local only';
   return '–';
 }

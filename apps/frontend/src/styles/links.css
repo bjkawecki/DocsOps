@@ -95,3 +95,13 @@ a.mantine-Button-root:visited,
 [data-user-menu-dropdown] .mantine-Anchor-root:visited {
   color: inherit;
 }
+
+/* Sidebar account menu trigger: hover, active press, and open state. */
+[data-user-menu-trigger] {
+  transition: background-color 100ms ease;
+}
+[data-user-menu-trigger]:hover,
+[data-user-menu-trigger][data-expanded],
+[data-user-menu-trigger]:active {
+  background-color: var(--mantine-color-default-hover);
+}
