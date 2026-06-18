@@ -54,13 +54,17 @@
   margin: 0;
 }
 
-.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root .mantine-NavLink-section[data-position='left'] {
+.app-shell-sidebar-nav-link--mini
+  > .mantine-NavLink-root
+  .mantine-NavLink-section[data-position='left'] {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root .mantine-NavLink-section[data-position='right'] {
+.app-shell-sidebar-nav-link--mini
+  > .mantine-NavLink-root
+  .mantine-NavLink-section[data-position='right'] {
   display: none;
 }
 

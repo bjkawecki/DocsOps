@@ -84,7 +84,7 @@ Dabei wird `docker-compose.override.yml` automatisch geladen: Die App (Backend) 
 
 ## Qualität vor Commit / wie CI
 
-**Automatisch bei jedem Commit:** Über **Husky** + **lint-staged** werden vor dem Commit nur die gestagten Dateien mit Prettier formatiert und mit ESLint geprüft (und wo möglich automatisch gefixt). Nach einem frischen Clone einmal `pnpm install` ausführen, dann sind die Hooks aktiv.
+**Automatisch bei jedem Commit:** Über **Husky** laufen vor dem Commit zuerst **lint-staged** (Prettier + ESLint auf gestagten Dateien, inkl. CSS), danach **`pnpm run lint`** und **`pnpm run format:check`** wie in der CI. Nach einem frischen Clone einmal `pnpm install` ausführen, dann sind die Hooks aktiv.
 
 Manuell (wie im CI):
 
