@@ -72,22 +72,83 @@ clone_or_update() {
   fi
 }
 
+# Only install-prod.sh flags pass through; optional path sets DOCSOPS_INSTALL_DIR.
+parse_args() {
+  INSTALL_PROD_ARGS=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --reconfigure | --install-systemd | -h | --help)
+        INSTALL_PROD_ARGS+=("$1")
+        shift
+        ;;
+      -*)
+        die "Unbekanntes Argument: $1"
+        ;;
+      *)
+        DOCSOPS_INSTALL_DIR="$1"
+        export DOCSOPS_INSTALL_DIR
+        shift
+        ;;
+    esac
+  done
+}
+
+docsops_raw_url() {
+  local path="$1"
+  local slug="${DOCSOPS_REPO%.git}"
+  slug="${slug#https://github.com/}"
+  echo "https://raw.githubusercontent.com/${slug}/${DOCSOPS_VERSION}/${path}"
+}
+
+source_install_common() {
+  local common_sh="" tmp=""
+  if [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/scripts/install/lib/common.sh" ]]; then
+    common_sh="${SCRIPT_DIR}/scripts/install/lib/common.sh"
+  elif [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh" ]]; then
+    common_sh="${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh"
+  elif command -v curl >/dev/null 2>&1; then
+    tmp="$(mktemp)"
+    if curl -fsSL "$(docsops_raw_url scripts/install/lib/common.sh)" -o "$tmp"; then
+      common_sh="$tmp"
+    else
+      rm -f "$tmp"
+      die "Install-Hilfen konnten nicht geladen werden. curl oder lokaler Clone erforderlich."
+    fi
+  else
+    die "curl fehlt – install.sh kann den Disclaimer nicht laden. Bitte curl installieren oder Repository manuell klonen."
+  fi
+  # shellcheck source=scripts/install/lib/common.sh
+  source "$common_sh"
+  [[ -n "$tmp" ]] && rm -f "$tmp"
+}
+
+bootstrap_confirm_before_clone() {
+  export DOCSOPS_BOOTSTRAP_CONFIRM=1
+  source_install_common
+  print_security_notice
+  confirm_or_exit
+  export DOCSOPS_INSTALL_CONFIRMED=1
+  unset DOCSOPS_BOOTSTRAP_CONFIRM
+}
+
 main() {
   require_root
+  parse_args "$@"
 
-  # Lokaler Checkout (sudo ./install.sh im Repo)
+  # Lokaler Checkout (sudo ./install.sh im Repo) → Disclaimer in install-prod.sh
   if [[ -n "$SCRIPT_DIR" ]]; then
-    run_from_checkout "$SCRIPT_DIR" "$@"
+    run_from_checkout "$SCRIPT_DIR" "${INSTALL_PROD_ARGS[@]}"
   fi
 
-  # Bereits unter /opt/docsops installiert
-  run_from_checkout "$DOCSOPS_INSTALL_DIR" "$@"
+  # curl | bash: Disclaimer vor Clone/Download
+  bootstrap_confirm_before_clone
 
-  # Bootstrap: curl -fsSL …/install.sh | sudo bash
   ensure_clone_prerequisites
   clone_or_update
   export DOCSOPS_INSTALL_DIR
-  exec "${DOCSOPS_INSTALL_DIR}/scripts/install-prod.sh" "$@"
+  run_from_checkout "$DOCSOPS_INSTALL_DIR" "${INSTALL_PROD_ARGS[@]}"
+
+  die "install-prod.sh nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
 }
 
 main "$@"

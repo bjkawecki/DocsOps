@@ -22,6 +22,7 @@ Options:
 Environment:
   DOCSOPS_NON_INTERACTIVE=1   Keine Prompts (ADMIN_EMAIL/PASSWORD Pflicht)
   DOCSOPS_ASSUME_YES=1        Disclaimer-Bestätigung überspringen
+  DOCSOPS_INSTALL_CONFIRMED=1 Disclaimer bereits in install.sh bestätigt
   DOCSOPS_INSTALL_DIR         Default: /opt/docsops
   DOCSOPS_EXTRA_COMPOSE_FILES z. B. docker-compose.ci.yml für CI
   DOCSOPS_HEALTH_URL          Default: http://127.0.0.1/health
@@ -88,8 +89,10 @@ main() {
   resolve_install_dir "$(cd "${SCRIPT_DIR}/.." && pwd)" \
     || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR} (DOCSOPS_INSTALL_DIR setzen oder aus Repo-Checkout starten)"
 
-  print_security_notice
-  confirm_or_exit
+  if [[ "${DOCSOPS_INSTALL_CONFIRMED:-}" != "1" ]]; then
+    print_security_notice
+    confirm_or_exit
+  fi
 
   ensure_docker_compose
   require_publish_port_free

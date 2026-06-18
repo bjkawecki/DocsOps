@@ -35,28 +35,39 @@ read_tty() {
   read -r "$@" </dev/tty
 }
 
+cancel_install() {
+  echo ""
+  echo "Installation nicht gestartet."
+  echo "Es wurden keine Änderungen vorgenommen."
+  exit 0
+}
+
 confirm_or_exit() {
-  if [[ "${DOCSOPS_ASSUME_YES:-}" == "1" ]]; then
+  if [[ "${DOCSOPS_ASSUME_YES:-}" == "1" || "${DOCSOPS_INSTALL_CONFIRMED:-}" == "1" ]]; then
     return 0
   fi
   require_interactive_tty
   echo ""
-  read_tty -p "Fortfahren? [y/N] " reply
+  local prompt="Fortfahren? [y/N] "
+  if [[ "${DOCSOPS_BOOTSTRAP_CONFIRM:-}" == "1" ]]; then
+    prompt="Fortfahren? Das Repository (${DOCSOPS_VERSION}) wird nach ${DOCSOPS_INSTALL_DIR} geklont bzw. aktualisiert. [y/N] "
+  fi
+  read_tty -p "$prompt" reply
   case "${reply}" in
     y | Y | yes | YES) ;;
-    *) die "Abgebrochen." ;;
+    *) cancel_install ;;
   esac
 }
 
 print_security_notice() {
-  cat <<'EOF'
+  cat <<EOF
 
 DocsOps Production-Installation
 ================================
 
 Dieses Skript wird als root ausgeführt und kann:
   - Systempakete installieren (git, curl, openssl, Docker)
-  - Quellcode nach /opt/docsops klonen
+  - Quellcode nach ${DOCSOPS_INSTALL_DIR} klonen
   - /etc/docsops/docsops.env mit Secrets anlegen
   - Docker-Container bauen und starten (Port 80 muss auf dem Host frei sein)
 
@@ -74,6 +85,10 @@ bevorzugt einen Release-Tag (DOCSOPS_VERSION=vX.Y.Z) statt main.
 Alternativ: Repository klonen und sudo ./install.sh aus dem Checkout starten.
 
 EOF
+  if [[ "${DOCSOPS_BOOTSTRAP_CONFIRM:-}" == "1" ]]; then
+    echo "Nach deiner Bestätigung wird ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR} heruntergeladen."
+    echo ""
+  fi
 }
 
 ensure_docker_compose() {
