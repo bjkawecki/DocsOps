@@ -61,15 +61,23 @@ run_from_checkout() {
 clone_or_update() {
   if [[ -d "${DOCSOPS_INSTALL_DIR}/.git" ]]; then
     log "Bestehendes Repository unter ${DOCSOPS_INSTALL_DIR} – aktualisiere (${DOCSOPS_VERSION})"
-    git -C "$DOCSOPS_INSTALL_DIR" fetch --depth 1 origin "$DOCSOPS_VERSION" 2>/dev/null \
-      || git -C "$DOCSOPS_INSTALL_DIR" fetch origin
-    git -C "$DOCSOPS_INSTALL_DIR" checkout "$DOCSOPS_VERSION"
-    git -C "$DOCSOPS_INSTALL_DIR" pull --ff-only 2>/dev/null || true
-  else
-    log "Klone ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR}"
-    install -d "$(dirname "$DOCSOPS_INSTALL_DIR")"
-    git clone --depth 1 --branch "$DOCSOPS_VERSION" "$DOCSOPS_REPO" "$DOCSOPS_INSTALL_DIR"
+    git -C "$DOCSOPS_INSTALL_DIR" remote set-url origin "$DOCSOPS_REPO"
+    if git -C "$DOCSOPS_INSTALL_DIR" fetch --depth 1 origin "$DOCSOPS_VERSION" \
+      && git -C "$DOCSOPS_INSTALL_DIR" reset --hard FETCH_HEAD \
+      && git -C "$DOCSOPS_INSTALL_DIR" clean -fd; then
+      log "Git-Stand: $(git -C "$DOCSOPS_INSTALL_DIR" rev-parse --short HEAD)"
+      return 0
+    fi
+    log "Inkrementelles Update fehlgeschlagen – erstelle Clone neu …"
+    rm -rf "$DOCSOPS_INSTALL_DIR"
+  elif [[ -e "$DOCSOPS_INSTALL_DIR" ]]; then
+    die "${DOCSOPS_INSTALL_DIR} existiert, ist aber kein Git-Repository. Bitte manuell entfernen oder DOCSOPS_INSTALL_DIR ändern."
   fi
+
+  log "Klone ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR}"
+  install -d "$(dirname "$DOCSOPS_INSTALL_DIR")"
+  git clone --depth 1 --branch "$DOCSOPS_VERSION" "$DOCSOPS_REPO" "$DOCSOPS_INSTALL_DIR"
+  log "Git-Stand: $(git -C "$DOCSOPS_INSTALL_DIR" rev-parse --short HEAD)"
 }
 
 # Only install-prod.sh flags pass through; optional path sets DOCSOPS_INSTALL_DIR.
