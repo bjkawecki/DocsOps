@@ -26,15 +26,26 @@ Vor Install: `df -h /`, `free -h` — unter **~4 GB frei** oft `no space left on
 
 ## Konfiguration: Dev vs. Production
 
-|                      | **Entwicklung**                                   | **Production (Stufe 2)**                                              |
-| -------------------- | ------------------------------------------------- | --------------------------------------------------------------------- |
-| Code                 | Git-Clone beliebig                                | `/opt/docsops` (Default)                                              |
-| Secrets/Konfig       | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`** – **nicht** im Clone                   |
-| Compose              | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → Port **80** (HTTP) |
-| Zugriff              | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                 |
-| TLS / HTTPS          | nicht nötig (Dev)                                 | **Standard: aus** – optional später (Caddy TLS)                       |
-| Session-Cookies      | Dev-Stack                                         | **ohne** `Secure` (HTTP); mit HTTPS: `SESSION_COOKIE_SECURE=1`        |
-| Wer legt Secrets an? | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                       |
+|                        | **Entwicklung**                                   | **Production (Stufe 2)**                                              |
+| ---------------------- | ------------------------------------------------- | --------------------------------------------------------------------- |
+| Code                   | Git-Clone beliebig                                | `/opt/docsops` (Default)                                              |
+| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`** – **nicht** im Clone                   |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → Port **80** (HTTP) |
+| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                 |
+| TLS / HTTPS            | nicht nötig (Dev)                                 | **Standard: aus** – optional später (Caddy TLS)                       |
+| Session-Cookies        | Dev-Stack                                         | **ohne** `Secure` (HTTP); mit HTTPS: `SESSION_COOKIE_SECURE=1`        |
+| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                      |
+| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                         |
+| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                       |
+
+### Production vs. Demo
+
+|                       | **Intranet-Production** (Install-Skript)         | **Demo** (öffentliche Demo-Instanz)  |
+| --------------------- | ------------------------------------------------ | ------------------------------------ |
+| Compose               | `docker-compose.yml` + `docker-compose.prod.yml` | zusätzlich `docker-compose.demo.yml` |
+| `DEMO_MODE`           | **nicht** setzen                                 | `true`                               |
+| Seed                  | nein                                             | ja (CSV bei leerer DB)               |
+| Debug / Impersonation | nein                                             | nein                                 |
 
 In Production brauchst du **keine `.env` im Repository-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 

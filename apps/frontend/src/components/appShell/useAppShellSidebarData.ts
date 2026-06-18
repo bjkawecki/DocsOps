@@ -25,10 +25,13 @@ export function useAppShellSidebarData() {
   const { data: unreadNotificationsTotal } = useMeNotificationsUnreadTotal();
   const unreadNotificationsCount = unreadNotificationsTotal ?? 0;
   const isAdmin = me?.user?.isAdmin === true;
+  const debugMenuEnabled = import.meta.env.DEV;
   const isImpersonating =
-    me?.impersonation?.active === true ||
-    (me?.impersonation != null && 'realUser' in me.impersonation);
-  const showDebugMenu = isAdmin || isImpersonating || location.pathname.startsWith('/admin');
+    debugMenuEnabled &&
+    (me?.impersonation?.active === true ||
+      (me?.impersonation != null && 'realUser' in me.impersonation));
+  const showDebugMenu =
+    debugMenuEnabled && (isAdmin || isImpersonating || location.pathname.startsWith('/admin'));
   const isCompanyLead = (me?.identity?.companyLeads?.length ?? 0) > 0;
   const isDepartmentLead = (me?.identity?.departmentLeads?.length ?? 0) > 0;
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
@@ -99,7 +102,7 @@ export function useAppShellSidebarData() {
       if (!res.ok) throw new Error('Failed to load users');
       return (await res.json()) as { items: AdminUser[]; total: number };
     },
-    enabled: showDebugMenu,
+    enabled: debugMenuEnabled && showDebugMenu,
   });
 
   const impersonateMutation = useMutation({

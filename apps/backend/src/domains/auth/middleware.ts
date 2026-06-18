@@ -1,4 +1,5 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { isAdminImpersonationEnabled } from '../../config/runtimeMode.js';
 import { findValidSession } from './services/session.js';
 import type { RequestUser } from './types.js';
 
@@ -39,7 +40,12 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply):
   req.user = result.user;
 
   const impersonateId = request.cookies[IMPERSONATE_COOKIE_NAME];
-  if (req.user.isAdmin && typeof impersonateId === 'string' && impersonateId.trim() !== '') {
+  if (
+    isAdminImpersonationEnabled() &&
+    req.user.isAdmin &&
+    typeof impersonateId === 'string' &&
+    impersonateId.trim() !== ''
+  ) {
     const target = await request.server.prisma.user.findFirst({
       where: { id: impersonateId.trim(), deletedAt: null },
       select: { id: true },

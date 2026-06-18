@@ -1,0 +1,11 @@
+# Demo production: same stack as prod, but loads CSV seed on empty DB (DEMO_MODE).
+# Usage:
+#   docker compose --env-file /etc/docsops/docsops.env \
+#     -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.demo.yml up -d --build
+#
+# Intranet production must NOT include this file (no seed, no debug tools).
+
+services:
+  app:
+    environment:
+      DEMO_MODE: 'true'

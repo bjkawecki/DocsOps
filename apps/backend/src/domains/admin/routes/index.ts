@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { isAdminImpersonationEnabled } from '../../../config/runtimeMode.js';
 import impersonationRoutes from './impersonation.routes.js';
 import usersRoutes from './users.routes.js';
 import organisationRoutes from './organisation.routes.js';
@@ -12,7 +13,9 @@ const adminRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   app.register(backupsRoutes);
   app.register(restoresRoutes);
   app.register(notificationsRoutes);
-  app.register(impersonationRoutes);
+  if (isAdminImpersonationEnabled()) {
+    app.register(impersonationRoutes);
+  }
   app.register(usersRoutes);
   app.register(organisationRoutes);
   return Promise.resolve();

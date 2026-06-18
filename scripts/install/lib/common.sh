@@ -103,6 +103,7 @@ DocsOps Production ist für einen **Linux-Server im Intranet** gedacht:
   - Hostname optional – internes DNS oder /etc/hosts auf Clients
   - Kein öffentliches Internet / keine TLS-Pflicht in der Standard-Installation
   - Session-Cookies funktionieren über http:// (kein Secure-Flag)
+  - Keine Demo-Seed-Daten; kein Admin-Debug („View as user“)
 
 HTTPS oder Zugriff von außen (VPN) sind optional (spätere Phase): Caddy mit TLS,
 dann in ${DOCSOPS_ENV_FILE} SESSION_COOKIE_SECURE=1 setzen.

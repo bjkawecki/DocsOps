@@ -25,6 +25,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
   const createdUserIds: string[] = [];
 
   beforeAll(async () => {
+    process.env.ALLOW_ADMIN_IMPERSONATION = '1';
     app = await buildApp();
     const passwordHash = await hashPassword(PASSWORD);
     const [admin, normal, sso] = await Promise.all([

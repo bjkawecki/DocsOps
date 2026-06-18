@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { AppShell as MantineAppShell, Box } from '@mantine/core';
-import { AppShellDebugMenu } from './AppShellDebugMenu.js';
-import { AppShellImpersonationBanner } from './AppShellImpersonationBanner.js';
+import { AppShellDebugMenuSlot } from './AppShellDebugMenuSlot.js';
+import { AppShellImpersonationBannerSlot } from './AppShellImpersonationBannerSlot.js';
 import { AppShellMaintenanceBanner } from './AppShellMaintenanceBanner.js';
 import { AppShellMainToolbar } from './AppShellMainToolbar.js';
 import { AppShellNavbar } from './AppShellNavbar.js';
@@ -38,7 +38,7 @@ export function AppShell() {
         header={{ height: 0 }}
         style={{ flex: 1, minHeight: 0 }}
       >
-        <AppShellDebugMenu
+        <AppShellDebugMenuSlot
           show={s.showDebugMenu}
           adminUsersLoading={s.adminUsersLoading}
           adminUsersError={s.adminUsersError}
@@ -64,7 +64,7 @@ export function AppShell() {
               mobileOpened={layout.mobileOpened}
               onToggleMobile={layout.toggleMobile}
             />
-            <AppShellImpersonationBanner
+            <AppShellImpersonationBannerSlot
               me={s.me}
               resolvedColorScheme={s.resolvedColorScheme}
               stopImpersonateMutation={s.stopImpersonateMutation}

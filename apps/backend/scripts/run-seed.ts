@@ -4,9 +4,9 @@
  */
 import './load-env.js';
 import { prisma } from '../src/db.js';
-import { runSeedIfNeeded } from '../src/seed.js';
+import { runSeedIfEmpty } from '../src/seed.js';
 
-void runSeedIfNeeded(prisma)
+void runSeedIfEmpty(prisma)
   .then(() => {
     console.log('Seed finished (data created only if no company existed).');
     process.exit(0);
