@@ -129,4 +129,5 @@ Gleicher Stack wie im Abschnitt **Caddy + Backend in der Entwicklung starten**: 
 ## Siehe auch
 
 - [README.md](../README.md) – Installation, Entwicklungsumgebung, Branch-Strategie
+- [install.md](install.md) – **Production** (Intranet): `/etc/docsops/docsops.env`, systemd, Port 80
 - [docs/plan/Umsetzungs-Todo.md](plan/Umsetzungs-Todo.md) – Umsetzungsplan und Reihenfolge

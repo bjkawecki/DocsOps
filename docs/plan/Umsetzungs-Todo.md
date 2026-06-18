@@ -324,14 +324,41 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ## 19. Deployment & Doku
 
-[ ] `install.sh` und ggf. `scripts/update.sh` finalisieren
-[ ] CI-Job für Install-Skript-Test (bereits in Abschnitt 1 angelegt; hier finalisieren)
-[ ] CI erweitern: Frontend-Tests (Unit/Component), optional E2E (z. B. Playwright)
-[ ] Caddy-Config im Repo, Doku zu VPN (WireGuard o. Ä.) und Reverse Proxy
-[ ] README: Voraussetzungen, Installation, Update
-[ ] **DocsOps-Demo online:** Eigene Instanz (z. B. `demo.docsops.de`), Reset + `DEMO_MODE`, Seed – Detailplan [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).
-[ ] **Öffentliche Landing:** Zunächst **statisch, Deutsch** auf `docsops.de` (CTA Demo, Impressum, Datenschutz, Nutzungsbedingungen Demo); optional später integrierte Landing per `VITE_LANDING_PAGE_ENABLED` (§20).
-[ ] **App-i18n:** Englisch + Deutsch im Produkt; Landing getrennt (DE). Release Notes eingeloggt: **§24** (`/whats-new`).
+**Ziel (Intranet-Self-hosted):** Nach `./install.sh` (mit `sudo`) läuft DocsOps im **Prod-Stack** und ist unter **Port 80** erreichbar (HTTPS/443 optional später). Dev bleibt unverändert: `docker compose` + Override → Port 5000, Vite.
+
+### 19a. Installations-Skripte
+
+[ ] **`install.sh` (Bootstrap):** Nur mit `sudo`; am Start kurze Erläuterung (was passiert, warum `curl | bash` mit Root riskant ist, warum es hier vertretbar sein kann – FOSS, Repo prüfbar); optional Bestätigung `[y/N]`; klont Repo nach `/opt/docsops` (Default), ruft `scripts/install-prod.sh` auf; aus lokalem Clone kein erneutes Klonen
+[ ] **`scripts/install-prod.sh`:** System-Abhängigkeiten prüfen/nachinstallieren (`git`, `curl`, `openssl`, **Docker** + Compose-Plugin; distro-spezifisch Debian/Fedora/Arch); Repo-Version per `DOCSOPS_VERSION` (Default: Release-Tag, nicht `main`)
+[ ] **Interaktiv:** `ADMIN_EMAIL`, `ADMIN_PASSWORD` (masked, Mindestlänge); optional `DOCSOPS_HOSTNAME` (z. B. `docsops.intranet`); Hinweis für Clients: `/etc/hosts` oder internes DNS – Skript richtet kein zentrales DNS ein
+[ ] **Non-interactive:** `DOCSOPS_NON_INTERACTIVE=1` + Env-Vars (CI, Automation)
+[ ] **Konfig Stufe 2:** `/etc/docsops/docsops.env` anlegen (`root:root`, `chmod 600`) – **keine** `.env` im Clone unter `/opt/docsops`; Skript generiert `SESSION_SECRET`, `BACKUP_ENCRYPTION_KEY` (`openssl rand -base64 32`), schreibt Admin-Daten + optional `DOCSOPS_HOSTNAME`; **`BACKUP_ENCRYPTION_KEY` einmal im Terminal an Admin** – Hinweis Passwortmanager; Doku [install.md](../install.md)
+[ ] **Prod-Compose starten:** `docker compose --env-file /etc/docsops/docsops.env -f docker-compose.yml -f docker-compose.prod.yml up -d --build` – **ohne** `docker-compose.override.yml`
+[ ] **Health-Wait** und Abschlussausgabe (URL per IP oder Hostname, Admin-E-Mail, Pfad `/etc/docsops/docsops.env`)
+
+### 19b. Prod-Stack (Compose, Caddy, Frontend)
+
+[ ] **`docker-compose.prod.yml`:** Caddy Host `80:80`; Postgres/MinIO ohne Host-Ports; Prod-Images; kein Vite-Dev-Server
+[ ] **`Caddyfile.prod`:** Szenario B – `/api/*` → Backend, `/` → statisches Frontend; HTTP Intranet v1 (`http://:80`)
+[ ] **Frontend-Prod-Image:** Vite-Build + nginx (SPA `try_files`); kein Volume-Mount des Quellcodes
+[ ] **Backend-Prod-Entrypoint:** `prisma migrate deploy` + `create-admin` (wenn `ADMIN_*` gesetzt) + API-Start
+[ ] **Postgres-Passwort:** Entscheidung offen – v1 fest `app/app` (isoliertes LAN) oder beim Install randomisieren und in `/etc/docsops/docsops.env`/Compose synchron halten
+[ ] **HTTPS/443 (Phase 2):** Caddy `tls internal` oder echte Domain/ACME – nach Intranet-HTTP-Go-Live
+
+### 19c. Update, CI, Doku
+
+[ ] **`scripts/update.sh`:** `git pull` / Release, `compose pull`, Prod-Compose `up -d` – siehe auch §26
+[ ] **CI Install-Test** reaktivieren: frischer Runner, Prod-Compose, Health auf Port 80, non-interactive (Abschnitt 1-Job hier finalisieren)
+[ ] **CI erweitern:** Frontend-Tests (Unit/Component), optional E2E (z. B. Playwright)
+[ ] **README** + [install.md](../install.md): Voraussetzungen, `sudo ./install.sh`, Release-Tag, Stufe-2-Konfig (`/etc/docsops/docsops.env`), Intranet-Zugriff (IP/Hostname)
+[ ] **Caddy-Config im Repo** (erledigt mit Prod-Variante); **Doku VPN** (WireGuard o. Ä.) – nur Hinweis, keine Einrichtung im Skript
+[ ] **systemd-Unit** `/etc/systemd/system/docsops.service` mit `EnvironmentFile=/etc/docsops/docsops.env` (optional beim Install registrieren; Autostart nach Reboot) – Beispiel in [install.md](../install.md)
+
+### 19d. Demo, Landing, i18n (getrennt von Self-hosted-Install)
+
+[ ] **DocsOps-Demo online:** Eigene Instanz (z. B. `demo.docsops.de`), Reset + `DEMO_MODE`, Seed – [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md)
+[ ] **Öffentliche Landing:** Statisch, Deutsch auf `docsops.de`; optional später `VITE_LANDING_PAGE_ENABLED` (§20)
+[ ] **App-i18n:** Englisch + Deutsch im Produkt; Landing getrennt (DE). Release Notes: **§24** (`/whats-new`)
 
 **Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 

@@ -4,6 +4,19 @@
 
 ---
 
+## Wo liegen Secrets? (Dev vs. Production)
+
+| Umgebung                           | Datei                                             | Anmerkung                                                                                                               |
+| ---------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Entwicklung / prod-nah lokal**   | `.env` im **Repo-Root** (Vorlage: `.env.example`) | Für `make dev`, `docker compose` + Override                                                                             |
+| **Production (Intranet, Stufe 2)** | **`/etc/docsops/docsops.env`**                    | Vom Install-Skript angelegt; Clone unter `/opt/docsops` **ohne** `.env`; Compose: `--env-file /etc/docsops/docsops.env` |
+
+Persistente **Daten** in Production: Docker-Volumes `postgres_data`, `minio_data` (optional später `caddy_data` für TLS). Secrets bleiben auf dem Host in der Env-Datei – kein separates Secrets-Volume nötig.
+
+Details: [install.md](../install.md).
+
+---
+
 ## Umgebungsvariablen (geplant)
 
 | Variable                                 | Beschreibung                                                                                                                                                                                                                                                                                                                      | Beispiel (nur Format)                     |
@@ -28,8 +41,9 @@
 
 - **MinIO (Dev):** MinIO-Container nutzt `MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD`; dieselben Werte können als `MINIO_ACCESS_KEY`/`MINIO_SECRET_KEY` für den Backend-S3-Client verwendet werden (Fallback im Code, wenn ACCESS_KEY/SECRET_KEY nicht gesetzt).
 - **Backup-Ziele (§25):** S3-Endpoint, SSH-Host, WebDAV-URL usw. primär als **Admin-Destinations in der DB** (verschlüsselte Credentials), nicht als flache Env-Liste. Siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3.
-- Alle Werte über Umgebung oder `.env` (nicht committen; `.env.example` ohne echte Secrets möglich).
-- Docker Compose: Variablen aus `env_file` oder `environment` in den Service-Definitionen.
+- **BACKUP_ENCRYPTION_KEY:** Verschlüsselt Destination-Credentials in der DB. In Production vom Install-Skript generiert, **einmal an den Admin** ausgeben; zusätzlich in Passwortmanager sichern. Nicht in Backup-Archiven enthalten.
+- Werte über Umgebung oder Env-Datei (nicht committen). Dev: `.env` im Repo-Root; Production: `/etc/docsops/docsops.env`.
+- Docker Compose: `docker compose --env-file …` bzw. systemd `EnvironmentFile=…`; zusätzlich `environment` in Service-Definitionen wo fest codiert.
 
 ---
 

@@ -19,12 +19,13 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 
 - **Ziel:** Einmalige Installation mit einem Skript, ohne manuelles Zusammenpuzzeln.
 - **Umsetzung:**
-  - Ein `install.sh` (oder vergleichbar) im Repo.
-  - Skript prüft Voraussetzungen (Docker oder Podman, ggf. Docker Compose / Podman Compose).
-  - Lädt Quellcode/Artefakte (z. B. `git clone` oder Download eines Releases).
-  - Startet Container-Stack per `docker compose up -d` bzw. Podman-Äquivalent.
-  - Optional: Anlegen einer minimalen Konfiguration und Hinweis auf Reverse Proxy (siehe Abschnitt 7).
-  - Dokumentation: Ablauf im README und ggf. in `docs/install.md`.
+  - Ein `install.sh` (Bootstrap, `sudo`) und `scripts/install-prod.sh` im Repo.
+  - Skript prüft/installiert Voraussetzungen (Docker, git, curl, openssl).
+  - Klont Quellcode nach `/opt/docsops` (Release-Tag empfohlen).
+  - **Konfiguration Stufe 2:** Secrets in **`/etc/docsops/docsops.env`** (`chmod 600`), **keine** `.env` im Clone; Install-Skript generiert `SESSION_SECRET` und `BACKUP_ENCRYPTION_KEY`, fragt Admin ab; `BACKUP_ENCRYPTION_KEY` einmal an den Betreiber ausgeben.
+  - Start: `docker compose --env-file /etc/docsops/docsops.env -f docker-compose.yml -f docker-compose.prod.yml up -d`.
+  - Optional: systemd-Unit mit `EnvironmentFile=/etc/docsops/docsops.env` (Autostart).
+  - Dokumentation: [install.md](../install.md), README.
 
 ---
 

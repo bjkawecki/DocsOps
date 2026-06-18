@@ -14,17 +14,31 @@ Interne Dokumentationsplattform .
 
 ## Installation
 
+### Production (Intranet-Server)
+
+Geplant: `sudo ./install.sh` – klont nach `/opt/docsops`, legt Secrets in **`/etc/docsops/docsops.env`** an (nicht im Git-Clone), startet Prod-Stack auf **Port 80**.
+
+Vollständige Anleitung (Stufe 2: Code/Secrets-Trennung, systemd, Backup-Key): **[docs/install.md](docs/install.md)**.
+
+### Entwicklung / prod-nah lokal
+
 ```bash
-./install.sh
+make up
+# oder: docker compose up -d
 ```
 
-Startet den Stack. App nach kurzer Startzeit unter **http://localhost:5000** (Health: http://localhost:5000/health). Optional: Vite direkt unter **http://localhost:5173** (gleiches Repo; API per Proxy zum Backend).
+App nach kurzer Startzeit unter **http://localhost:5000** (Health: http://localhost:5000/health). Konfiguration: `.env` im Repo-Root (siehe `.env.example`).
 
-Manuell: `make up` oder `docker compose up -d`.
+Siehe [docs/Development-Anleitung.md](docs/Development-Anleitung.md).
 
 ## Operational backup
 
-Before configuring backup destinations in **Admin → Backup**, set `BACKUP_ENCRYPTION_KEY` in `.env` (encrypts stored destination credentials at rest).
+Before configuring backup destinations in **Admin → Backup**, set `BACKUP_ENCRYPTION_KEY` (encrypts stored destination credentials at rest).
+
+| Umgebung        | Wo setzen                                                                     |
+| --------------- | ----------------------------------------------------------------------------- |
+| **Development** | `.env` im Repo-Root                                                           |
+| **Production**  | `/etc/docsops/docsops.env` (vom Install-Skript; Key einmal an Admin ausgeben) |
 
 Generate a 32-byte key (base64):
 
@@ -33,17 +47,19 @@ openssl rand -base64 32
 # or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Add to `.env` (use quotes if the value contains `+` or `/`):
+Development: add to `.env` (use quotes if the value contains `+` or `/`):
 
 ```bash
 BACKUP_ENCRYPTION_KEY="<generated-value>"
 ```
 
-Restart **docsops-app** and **docsops-job-worker** after changing `.env` (`docker compose up` or restart the dev processes). With Docker Compose, the key is passed from the repo-root `.env` into the containers.
+Restart **docsops-app** and **docsops-job-worker** after changing env (`docker compose up` or restart dev processes). With Docker Compose, variables are passed from the env file into the containers.
 
-**Troubleshooting:** If Admin → Backup shows _Encryption not configured_ although the key is in `.env`, check that the value is quoted, the file is at the **repo root**, and `docsops-app` / `docsops-job-worker` were restarted. For local `make dev`, the backend loads the repo-root `.env` automatically.
+**Troubleshooting (Dev):** If Admin → Backup shows _Encryption not configured_ although the key is set, check quoting, file at **repo root**, and container restart. For local `make dev`, the backend loads the repo-root `.env` automatically.
 
-If you lose this key, existing destinations cannot be decrypted. The key is **not** included in backup archives – store it separately (e.g. password manager). See [Runbook-Backup-Restore](docs/plan/Runbook-Backup-Restore.md).
+**Production:** Store `BACKUP_ENCRYPTION_KEY` in a password manager in addition to `/etc/docsops/docsops.env`. See [docs/install.md](docs/install.md).
+
+If you lose this key, existing destinations cannot be decrypted. The key is **not** included in backup archives. See [Runbook-Backup-Restore](docs/plan/Runbook-Backup-Restore.md).
 
 ## Entwicklung
 
