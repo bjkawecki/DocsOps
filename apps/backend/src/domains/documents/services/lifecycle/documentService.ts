@@ -42,24 +42,35 @@ export interface DocumentMetadataUpdateResult {
 }
 
 /**
- * Publishes a draft document: creates version 1 and sets publishedAt.
- * Caller must enforce canPublishDocument. Document must have contextId and publishedAt null.
+ * Publishes the lead draft: first call creates version 1 and sets publishedAt;
+ * later calls create the next version from the current draft (republish).
+ * Caller must enforce canPublishDocument. Document must have contextId and valid draft blocks.
  */
 export async function publishDocument(
   prisma: PrismaClient,
   documentId: string,
   userId: string
-): Promise<{ id: string; publishedAt: Date; currentPublishedVersionId: string }> {
+): Promise<{
+  id: string;
+  publishedAt: Date;
+  currentPublishedVersionId: string;
+  isRepublish: boolean;
+}> {
   const doc = await prisma.document.findUnique({
     where: { id: documentId, deletedAt: null },
-    select: { id: true, contextId: true, publishedAt: true, draftBlocks: true },
+    select: {
+      id: true,
+      contextId: true,
+      publishedAt: true,
+      draftBlocks: true,
+      currentPublishedVersion: { select: { blocks: true } },
+    },
   });
   if (!doc) throw new DocumentNotFoundError(documentId);
   if (doc.contextId == null)
     throw new DocumentNotPublishableError(
       'Document must be assigned to a context before publishing'
     );
-  if (doc.publishedAt != null) throw new DocumentAlreadyPublishedError(documentId);
 
   const draftParsed = parseBlockDocumentFromDb(doc.draftBlocks);
   if (!draftParsed) {
@@ -68,14 +79,33 @@ export async function publishDocument(
     );
   }
   const versionBlocksJson = draftParsed as unknown as Prisma.InputJsonValue;
+  const isRepublish = doc.publishedAt != null;
+
+  if (isRepublish) {
+    const publishedParsed = parseBlockDocumentFromDb(doc.currentPublishedVersion?.blocks ?? null);
+    if (publishedParsed && JSON.stringify(publishedParsed) === JSON.stringify(draftParsed)) {
+      throw new DocumentNotPublishableError(
+        'Draft matches the current published version – nothing to publish.'
+      );
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
+    const versionNumber = isRepublish
+      ? ((
+          await tx.documentVersion.aggregate({
+            where: { documentId },
+            _max: { versionNumber: true },
+          })
+        )._max.versionNumber ?? 0) + 1
+      : 1;
+
     const v = await tx.documentVersion.create({
       data: {
         documentId,
         blocks: versionBlocksJson,
         blocksSchemaVersion: 0,
-        versionNumber: 1,
+        versionNumber,
         createdById: userId,
       },
       select: { id: true },
@@ -83,8 +113,9 @@ export async function publishDocument(
     await tx.document.update({
       where: { id: documentId },
       data: {
-        publishedAt: new Date(),
+        ...(isRepublish ? {} : { publishedAt: new Date() }),
         currentPublishedVersionId: v.id,
+        draftRevision: 0,
       },
     });
     await tx.documentSuggestion.updateMany({
@@ -104,6 +135,7 @@ export async function publishDocument(
     id: updated.id,
     publishedAt: updated.publishedAt,
     currentPublishedVersionId: updated.currentPublishedVersionId,
+    isRepublish,
   };
 }
 

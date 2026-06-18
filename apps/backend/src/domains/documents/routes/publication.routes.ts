@@ -19,7 +19,6 @@ import {
   restoreDocument,
   DocumentNotFoundError,
   DocumentNotPublishableError,
-  DocumentAlreadyPublishedError,
   DocumentDeletedError,
   DocumentNotInTrashError,
 } from '../services/lifecycle/documentService.js';
@@ -174,7 +173,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** POST Publish – Draft als Version 1 veröffentlichen. Nur canPublishDocument; nur wenn publishedAt null. */
+  /** POST Publish – Lead-Draft als Version veröffentlichen (v1 oder nächste Version). */
   app.post<{ Params: { documentId: string } }>(
     '/documents/:documentId/publish',
     {
@@ -189,7 +188,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
       }
 
       try {
-        await publishDocument(prisma, documentId, userId);
+        const result = await publishDocument(prisma, documentId, userId);
         const doc = await prisma.document.findUnique({
           where: { id: documentId },
           select: {
@@ -225,9 +224,13 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
             userId
           );
           await enqueueNotificationEvent({
-            eventType: 'document-published',
+            eventType: result.isRepublish ? 'document-updated' : 'document-published',
             targetUserIds: readerIds,
-            payload: { documentId, contextId: doc.contextId, publishedByUserId: userId },
+            payload: {
+              documentId,
+              contextId: doc.contextId,
+              ...(result.isRepublish ? { updatedByUserId: userId } : { publishedByUserId: userId }),
+            },
           });
         } catch (error) {
           request.log.warn(
@@ -250,9 +253,6 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
         }
         if (err instanceof DocumentNotPublishableError) {
           return reply.status(400).send({ error: err.message });
-        }
-        if (err instanceof DocumentAlreadyPublishedError) {
-          return reply.status(409).send({ error: 'Document is already published' });
         }
         throw err;
       }

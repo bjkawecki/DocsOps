@@ -55,16 +55,77 @@ describe('Documents routes / publication', () => {
       select: { versionNumber: true },
     });
     expect(versions.some((version) => version.versionNumber === 1)).toBe(true);
+
+    const afterPublish = await prisma.document.findUnique({
+      where: { id: context.draftDocId },
+      select: { draftRevision: true },
+    });
+    expect(afterPublish?.draftRevision).toBe(0);
   });
 
-  it('POST /documents/:documentId/publish erneut -> 409', async () => {
+  it('POST /documents/:documentId/publish erneut mit geändertem Draft -> 200, Version 2', async () => {
     const cookie = await context.loginAsScopeLead();
+    const revisionRow = await prisma.document.findUnique({
+      where: { id: context.draftDocId },
+      select: { draftRevision: true },
+    });
+    const draftBlocks = {
+      schemaVersion: 0 as const,
+      blocks: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440099',
+          type: 'paragraph',
+          content: [
+            {
+              id: '550e8400-e29b-41d4-a716-44665544009a',
+              type: 'text',
+              attrs: {},
+              meta: { text: 'Updated for republish' },
+            },
+          ],
+        },
+      ],
+    };
+    const patchRes = await context.app.inject({
+      method: 'PATCH',
+      url: `/api/v1/documents/${context.draftDocId}/lead-draft`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: {
+        expectedRevision: revisionRow?.draftRevision ?? 0,
+        blocks: draftBlocks,
+      },
+    });
+    expect(patchRes.statusCode).toBe(200);
+
     const res = await context.app.inject({
       method: 'POST',
       url: `/api/v1/documents/${context.draftDocId}/publish`,
       headers: { cookie },
     });
-    expect(res.statusCode).toBe(409);
+    expect(res.statusCode).toBe(200);
+
+    const versions = await prisma.documentVersion.findMany({
+      where: { documentId: context.draftDocId },
+      select: { versionNumber: true },
+      orderBy: { versionNumber: 'asc' },
+    });
+    expect(versions.map((v) => v.versionNumber)).toEqual([1, 2]);
+
+    const afterRepublish = await prisma.document.findUnique({
+      where: { id: context.draftDocId },
+      select: { draftRevision: true },
+    });
+    expect(afterRepublish?.draftRevision).toBe(0);
+  });
+
+  it('POST /documents/:documentId/publish ohne Draft-Änderung -> 400', async () => {
+    const cookie = await context.loginAsScopeLead();
+    const res = await context.app.inject({
+      method: 'POST',
+      url: `/api/v1/documents/${context.publishedDocId}/publish`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(400);
   });
 
   it('Publish mit Lead-Draft-Blocks: Version.blocks aus Draft; pending -> superseded', async () => {
