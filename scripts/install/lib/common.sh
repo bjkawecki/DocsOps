@@ -8,6 +8,7 @@ DOCSOPS_REPO="${DOCSOPS_REPO:-https://github.com/bjkawecki/docs-ops.git}"
 DOCSOPS_VERSION="${DOCSOPS_VERSION:-main}"
 DOCSOPS_HEALTH_URL="${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}"
 DOCSOPS_COMPOSE_FILES="${DOCSOPS_COMPOSE_FILES:-docker-compose.yml:docker-compose.prod.yml}"
+DOCSOPS_DOCKER_COMPOSE_VERSION="${DOCSOPS_DOCKER_COMPOSE_VERSION:-v2.32.4}"
 
 log() {
   echo "==> $*"
@@ -91,29 +92,63 @@ EOF
   fi
 }
 
+docker_compose_ready() {
+  command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1
+}
+
+# Debian docker.io has no compose plugin in default repos; official GitHub binary works.
+install_compose_plugin_binary() {
+  local arch dest url version
+  version="${DOCSOPS_DOCKER_COMPOSE_VERSION}"
+  arch="$(uname -m)"
+  case "$arch" in
+    x86_64) arch=x86_64 ;;
+    aarch64 | arm64) arch=aarch64 ;;
+    armv7l) arch=armv7 ;;
+    *) die "Architektur ${arch} wird für docker compose nicht unterstützt." ;;
+  esac
+  dest="/usr/lib/docker/cli-plugins/docker-compose"
+  install -d "$(dirname "$dest")"
+  url="https://github.com/docker/compose/releases/download/${version}/docker-compose-linux-${arch}"
+  log "Installiere docker compose ${version} …"
+  curl -fsSL "$url" -o "$dest"
+  chmod +x "$dest"
+}
+
 ensure_docker_compose() {
-  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    return 0
-  fi
+  docker_compose_ready && return 0
 
-  log "Docker wird installiert …"
-  if [[ -f /etc/debian_version ]]; then
-    apt-get update
-    apt-get install -y git curl openssl ca-certificates docker.io docker-compose-plugin
-  elif [[ -f /etc/fedora-release ]] || grep -qE '^ID="?(fedora|rhel|centos)"?' /etc/os-release 2>/dev/null; then
-    if command -v dnf >/dev/null 2>&1; then
-      dnf install -y git curl openssl docker docker-compose-plugin
+  if ! command -v docker >/dev/null 2>&1; then
+    log "Docker wird installiert …"
+    if [[ -f /etc/debian_version ]]; then
+      apt-get update
+      apt-get install -y git curl openssl ca-certificates docker.io
+    elif [[ -f /etc/fedora-release ]] || grep -qE '^ID="?(fedora|rhel|centos)"?' /etc/os-release 2>/dev/null; then
+      if command -v dnf >/dev/null 2>&1; then
+        dnf install -y git curl openssl docker docker-compose-plugin
+      else
+        die "Unsupported RPM-based system (dnf fehlt)."
+      fi
+    elif [[ -f /etc/arch-release ]]; then
+      pacman -Sy --noconfirm git curl openssl docker docker-compose
     else
-      die "Unsupported RPM-based system (dnf fehlt)."
+      die "Unbekannte Distribution. Bitte Docker und docker compose manuell installieren."
     fi
-  elif [[ -f /etc/arch-release ]]; then
-    pacman -Sy --noconfirm git curl openssl docker docker-compose
-  else
-    die "Unbekannte Distribution. Bitte Docker und docker compose manuell installieren."
+    systemctl enable --now docker 2>/dev/null || true
   fi
 
-  systemctl enable --now docker 2>/dev/null || true
-  command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 \
+  if ! docker compose version >/dev/null 2>&1; then
+    if [[ -f /etc/debian_version ]] && apt-cache show docker-compose-plugin >/dev/null 2>&1; then
+      log "Installiere docker-compose-plugin (Paket) …"
+      apt-get install -y docker-compose-plugin || true
+    fi
+  fi
+
+  if ! docker compose version >/dev/null 2>&1; then
+    install_compose_plugin_binary
+  fi
+
+  docker_compose_ready \
     || die "Docker Compose ist nach der Installation nicht verfügbar."
 }
 
