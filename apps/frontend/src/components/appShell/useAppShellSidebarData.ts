@@ -9,6 +9,7 @@ import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
 import type { AdminUser, DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
 import { getNavLinkStyles } from './appShellNavUtils.js';
+import { shouldShowOrganizationNav } from '../../lib/organizationNav.js';
 
 export function useAppShellSidebarData() {
   const location = useLocation();
@@ -291,6 +292,11 @@ export function useAppShellSidebarData() {
     return map;
   }, [scopeIdsForCounts.teamIds, scopeIdsForCounts.departmentIds.length, scopeCountQueries]);
 
+  const showOrganizationNav = useMemo(
+    () => shouldShowOrganizationNav(me, isAdmin, effectiveCompanyId),
+    [me, isAdmin, effectiveCompanyId]
+  );
+
   return {
     location,
     expandedDepartmentIds,
@@ -329,5 +335,6 @@ export function useAppShellSidebarData() {
     reviewsCount,
     departmentCounts,
     teamCounts,
+    showOrganizationNav,
   };
 }

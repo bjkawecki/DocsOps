@@ -103,35 +103,39 @@ export function AppShellNavbar({
                 badgeCount={s.catalogCount}
                 onNavigate={onNavigate}
               />
-              {!isMiniRail ? (
-                <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
-                  Organization
-                </Text>
+              {s.showOrganizationNav ? (
+                <>
+                  {!isMiniRail ? (
+                    <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
+                      Organization
+                    </Text>
+                  ) : null}
+                  <AppShellRoleBasedNav
+                    pathname={s.location.pathname}
+                    navLinkStyles={s.navLinkStyles}
+                    me={s.me}
+                    isAdmin={s.isAdmin}
+                    isCompanyLead={s.isCompanyLead}
+                    isDepartmentLead={s.isDepartmentLead}
+                    departmentId={s.departmentId}
+                    userTeamId={s.userTeamId}
+                    userDepartmentId={s.userDepartmentId}
+                    companyDepartments={s.companyDepartments}
+                    departmentTeams={s.departmentTeams}
+                    companyCount={s.companyCount}
+                    departmentCounts={s.departmentCounts}
+                    teamCounts={s.teamCounts}
+                    departmentsSectionExpanded={s.departmentsSectionExpanded}
+                    setDepartmentsSectionExpanded={s.setDepartmentsSectionExpanded}
+                    teamsSectionExpanded={s.teamsSectionExpanded}
+                    setTeamsSectionExpanded={s.setTeamsSectionExpanded}
+                    expandedDepartmentIds={s.expandedDepartmentIds}
+                    setExpandedDepartmentIds={s.setExpandedDepartmentIds}
+                    isMiniRail={isMiniRail}
+                    onNavigate={onNavigate}
+                  />
+                </>
               ) : null}
-              <AppShellRoleBasedNav
-                pathname={s.location.pathname}
-                navLinkStyles={s.navLinkStyles}
-                me={s.me}
-                isAdmin={s.isAdmin}
-                isCompanyLead={s.isCompanyLead}
-                isDepartmentLead={s.isDepartmentLead}
-                departmentId={s.departmentId}
-                userTeamId={s.userTeamId}
-                userDepartmentId={s.userDepartmentId}
-                companyDepartments={s.companyDepartments}
-                departmentTeams={s.departmentTeams}
-                companyCount={s.companyCount}
-                departmentCounts={s.departmentCounts}
-                teamCounts={s.teamCounts}
-                departmentsSectionExpanded={s.departmentsSectionExpanded}
-                setDepartmentsSectionExpanded={s.setDepartmentsSectionExpanded}
-                teamsSectionExpanded={s.teamsSectionExpanded}
-                setTeamsSectionExpanded={s.setTeamsSectionExpanded}
-                expandedDepartmentIds={s.expandedDepartmentIds}
-                setExpandedDepartmentIds={s.setExpandedDepartmentIds}
-                isMiniRail={isMiniRail}
-                onNavigate={onNavigate}
-              />
               {!isMiniRail ? (
                 <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
                   Personal

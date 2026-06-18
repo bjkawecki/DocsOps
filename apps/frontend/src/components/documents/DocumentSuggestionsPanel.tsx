@@ -21,6 +21,7 @@ import type {
   DocumentSuggestionItem,
 } from '../../api/document-types';
 import { innerTextFromBlockNode } from '../../lib/blockDocumentTiptap';
+import { randomId } from '../../lib/randomId.js';
 
 const POLL_MS = 15_000;
 
@@ -46,7 +47,7 @@ function editableBlockLabel(block: BlockNodeV0): string {
 
 function buildReplacementBlock(source: BlockNodeV0, text: string): BlockNodeV0 {
   const leaf = {
-    id: crypto.randomUUID(),
+    id: randomId(),
     type: 'text',
     attrs: {},
     meta: { text },

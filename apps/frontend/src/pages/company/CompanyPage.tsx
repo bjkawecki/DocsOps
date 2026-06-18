@@ -1,8 +1,8 @@
-import { Box, Text } from '@mantine/core';
+import { Box, Button, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, Fragment } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   ArchiveTabContent,
   DraftsTabContent,
@@ -47,7 +47,7 @@ export function CompanyPage() {
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
   const isAdmin = me?.user?.isAdmin === true;
 
-  const { data: firstCompany } = useQuery({
+  const { data: firstCompany, isPending: firstCompanyPending } = useQuery({
     queryKey: ['companies', 'first'],
     queryFn: async (): Promise<CompanyRes | null> => {
       const res = await apiFetch('/api/v1/companies?limit=1');
@@ -184,12 +184,31 @@ export function CompanyPage() {
   const companyDocs = companyDocsRes?.items ?? [];
   const docsPreview = companyDocs.slice(0, 5);
 
-  if (effectiveCompanyId != null && mePending)
+  if (mePending || (!companyIdFromLead && firstCompanyPending))
     return (
       <Text size="sm" c="dimmed">
         Loading…
       </Text>
     );
+
+  if (effectiveCompanyId == null) {
+    if (isAdmin) {
+      return (
+        <Box maw={480}>
+          <Text fw={600} mb="xs">
+            No company yet
+          </Text>
+          <Text size="sm" c="dimmed" mb="md">
+            Create your organization in Admin before using company contexts.
+          </Text>
+          <Button component={Link} to="/admin/company">
+            Set up company
+          </Button>
+        </Box>
+      );
+    }
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Box>

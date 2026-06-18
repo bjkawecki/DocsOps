@@ -1,8 +1,9 @@
 import type { JSONContent } from '@tiptap/core';
 import type { BlockDocumentV0, BlockNodeV0 } from '../api/document-types';
+import { randomId } from './randomId.js';
 
 function newId(): string {
-  return crypto.randomUUID();
+  return randomId();
 }
 
 function textLeaf(text: string): BlockNodeV0 {
