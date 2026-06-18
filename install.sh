@@ -5,8 +5,12 @@ DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
 DOCSOPS_REPO="${DOCSOPS_REPO:-https://github.com/bjkawecki/docs-ops.git}"
 DOCSOPS_VERSION="${DOCSOPS_VERSION:-main}"
 
-SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+# curl | sudo bash: script on stdin → BASH_SOURCE[0] unset; skip local checkout detection.
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+  SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+  SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+fi
 
 log() {
   echo "==> $*"
@@ -71,7 +75,9 @@ main() {
   require_root
 
   # Lokaler Checkout (sudo ./install.sh im Repo)
-  run_from_checkout "$SCRIPT_DIR" "$@"
+  if [[ -n "$SCRIPT_DIR" ]]; then
+    run_from_checkout "$SCRIPT_DIR" "$@"
+  fi
 
   # Bereits unter /opt/docsops installiert
   run_from_checkout "$DOCSOPS_INSTALL_DIR" "$@"
