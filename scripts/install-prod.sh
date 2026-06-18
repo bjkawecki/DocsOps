@@ -82,6 +82,16 @@ prompt_admin_credentials() {
   export ADMIN_EMAIL ADMIN_PASSWORD DOCSOPS_HOSTNAME
 }
 
+load_existing_env() {
+  [[ -f "$DOCSOPS_ENV_FILE" ]] || return 1
+  # shellcheck disable=SC1090
+  set -a
+  source "$DOCSOPS_ENV_FILE"
+  set +a
+  export ADMIN_EMAIL="${ADMIN_EMAIL:-}"
+  export DOCSOPS_HOSTNAME="${DOCSOPS_HOSTNAME:-}"
+}
+
 main() {
   parse_args "$@"
   require_root
@@ -96,13 +106,12 @@ main() {
 
   ensure_docker_compose
   require_publish_port_free
-  prompt_admin_credentials
 
   if [[ -f "$DOCSOPS_ENV_FILE" && "$RECONFIGURE" != "1" ]]; then
-    die "Installation bereits vorhanden (${DOCSOPS_ENV_FILE}). Für neue Secrets: --reconfigure. Stack manuell: siehe docs/install.md"
-  fi
-
-  if [[ "$RECONFIGURE" == "1" ]] || [[ ! -f "$DOCSOPS_ENV_FILE" ]]; then
+    log "Bestehende Konfiguration (${DOCSOPS_ENV_FILE}) – Repository-Stand wird angewendet …"
+    load_existing_env || die "Konfiguration konnte nicht gelesen werden: ${DOCSOPS_ENV_FILE}"
+  else
+    prompt_admin_credentials
     export DOCSOPS_RECONFIGURE=1
     write_env_file
   fi

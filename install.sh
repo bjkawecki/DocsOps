@@ -104,6 +104,15 @@ source_install_common() {
   local common_sh="" tmp=""
   if [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/scripts/install/lib/common.sh" ]]; then
     common_sh="${SCRIPT_DIR}/scripts/install/lib/common.sh"
+  elif [[ -z "$SCRIPT_DIR" ]] && command -v curl >/dev/null 2>&1; then
+    # curl | bash: immer von GitHub (nicht aus altem Clone vor clone_or_update)
+    tmp="$(mktemp)"
+    if curl -fsSL "$(docsops_raw_url scripts/install/lib/common.sh)" -o "$tmp"; then
+      common_sh="$tmp"
+    else
+      rm -f "$tmp"
+      die "Install-Hilfen konnten nicht geladen werden. curl oder lokaler Clone erforderlich."
+    fi
   elif [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh" ]]; then
     common_sh="${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh"
   elif command -v curl >/dev/null 2>&1; then
