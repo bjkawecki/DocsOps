@@ -38,7 +38,11 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # Job worker: PDF export (pandoc + typst — deutlich kleiner als TeX)
 FROM runtime-base AS worker
-RUN apk add --no-cache pandoc typst postgresql-client zstd tar wget
+ARG TYPST_VERSION=0.13.1
+COPY docker/install-typst-alpine.sh /tmp/install-typst-alpine.sh
+RUN apk add --no-cache pandoc postgresql-client zstd tar wget xz \
+  && TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
+  && rm /tmp/install-typst-alpine.sh
 ENV NODE_ENV=production
 ENV PANDOC_ARGS=--pdf-engine=typst
 ENTRYPOINT ["node", "dist/src/entrypoints/worker.js"]
