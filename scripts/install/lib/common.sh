@@ -397,22 +397,79 @@ abort_stack_failure() {
   exit 1
 }
 
+# In-place build progress on /dev/tty (one line per service/stage key).
+declare -gA COMPOSE_BUILD_PROGRESS_SLOT=()
+declare -g COMPOSE_BUILD_PROGRESS_LINE_COUNT=0
+
+compose_build_progress_reset() {
+  COMPOSE_BUILD_PROGRESS_SLOT=()
+  COMPOSE_BUILD_PROGRESS_LINE_COUNT=0
+}
+
+compose_build_progress_update() {
+  local line="$1" body key display slot lines_up
+  if [[ "$line" =~ (CANCELED|ERROR|failed\ to\ solve) ]]; then
+    printf '\n%s\n' "$line" >/dev/tty
+    return
+  fi
+  if [[ "$line" != *"→"* ]]; then
+    printf '%s\n' "$line" >/dev/tty
+    return
+  fi
+
+  body="${line#  → }"
+  # Load/metadata steps (no N/M) – skip; keeps one line per build stage.
+  if [[ "$body" =~ [[:space:]]internal$ ]]; then
+    return
+  fi
+  if [[ "$body" =~ ^(.+)[[:space:]]([0-9]+)/([0-9]+)$ ]]; then
+    key="${BASH_REMATCH[1]}"
+  else
+    key="$body"
+  fi
+  display="  → ${body}"
+
+  if [[ -z "${COMPOSE_BUILD_PROGRESS_SLOT[$key]+x}" ]]; then
+    COMPOSE_BUILD_PROGRESS_SLOT[$key]=$COMPOSE_BUILD_PROGRESS_LINE_COUNT
+    COMPOSE_BUILD_PROGRESS_LINE_COUNT=$((COMPOSE_BUILD_PROGRESS_LINE_COUNT + 1))
+    printf '%s\n' "$display" >/dev/tty
+    return
+  fi
+
+  slot=${COMPOSE_BUILD_PROGRESS_SLOT[$key]}
+  lines_up=$((COMPOSE_BUILD_PROGRESS_LINE_COUNT - slot - 1))
+  if ((lines_up > 0)); then
+    printf '\033[%dA' "$lines_up" >/dev/tty
+  fi
+  printf '\033[2K\r%s' "$display" >/dev/tty
+  if ((lines_up > 0)); then
+    printf '\033[%dB' "$lines_up" >/dev/tty
+  fi
+}
+
 compose_build_with_progress() {
-  local status
+  local build_status
   compose_stack_setup
   if [[ ! -r /dev/tty ]]; then
     compose_stack_cmd build --quiet
     return
   fi
-  echo "  Build-Log: nur Meilensteine (Service/Schritt)" >/dev/tty
-  compose_stack_cmd build --progress=plain 2>&1 \
-    | stdbuf -oL grep -E --line-buffered '^\#[0-9]+ \[[^]]+\]|CANCELED|ERROR|failed to solve|Successfully built|^Built$' \
-    | stdbuf -oL sed -u -E \
-      -e 's/^#[0-9]+ \[([^]]+)\].*$/  → \1/' \
-      -e 's/^/  /' \
-    | while IFS= read -r line; do echo "$line" >/dev/tty; done
-  status=${PIPESTATUS[0]}
-  [[ "$status" -eq 0 ]] || die "Docker-Build fehlgeschlagen (Exit ${status})"
+  echo "  Build-Log: Fortschritt pro Service/Stufe (Zeile wird aktualisiert)" >/dev/tty
+  compose_build_progress_reset
+  {
+    while IFS= read -r line; do
+      compose_build_progress_update "$line"
+    done
+  } < <(
+    compose_stack_cmd build --progress=plain 2>&1 \
+      | stdbuf -oL grep -E --line-buffered '^\#[0-9]+ \[[^]]+\]|CANCELED|ERROR|failed to solve|Successfully built|^Built$' \
+      | stdbuf -oL sed -u -E \
+        -e 's/^#[0-9]+ \[([^]]+)\].*$/  → \1/' \
+        -e 's/^/  /'
+  )
+  build_status=${PIPESTATUS[0]}
+  printf '\n' >/dev/tty
+  [[ "$build_status" -eq 0 ]] || die "Docker-Build fehlgeschlagen (Exit ${build_status})"
 }
 
 compose_up_prod() {
