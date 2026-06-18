@@ -58,13 +58,15 @@ prompt_admin_credentials() {
     return 0
   fi
 
+  require_interactive_tty
+
   while [[ -z "${ADMIN_EMAIL:-}" ]]; do
-    read -r -p "Admin E-Mail: " ADMIN_EMAIL
+    read_tty -p "Admin E-Mail: " ADMIN_EMAIL
     ADMIN_EMAIL="$(echo "$ADMIN_EMAIL" | tr -d '[:space:]')"
   done
 
   while true; do
-    read -r -s -p "Admin Passwort (min. 12 Zeichen): " ADMIN_PASSWORD
+    read_tty -s -p "Admin Passwort (min. 12 Zeichen): " ADMIN_PASSWORD
     echo ""
     if [[ "${#ADMIN_PASSWORD}" -ge 12 ]]; then
       break
@@ -73,7 +75,7 @@ prompt_admin_credentials() {
   done
 
   if [[ -z "${DOCSOPS_HOSTNAME:-}" ]]; then
-    read -r -p "Hostname optional (z. B. docsops.intranet, leer = nur IP): " DOCSOPS_HOSTNAME
+    read_tty -p "Hostname optional (z. B. docsops.intranet, leer = nur IP): " DOCSOPS_HOSTNAME
   fi
 
   export ADMIN_EMAIL ADMIN_PASSWORD DOCSOPS_HOSTNAME

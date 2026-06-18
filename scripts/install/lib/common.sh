@@ -24,11 +24,24 @@ require_root() {
   fi
 }
 
+# curl | bash: stdin is the script; prompts must read from the controlling terminal.
+require_interactive_tty() {
+  if [[ ! -r /dev/tty ]]; then
+    die "Kein interaktives Terminal (TTY). Setze DOCSOPS_ASSUME_YES=1 bzw. DOCSOPS_NON_INTERACTIVE=1 mit ADMIN_EMAIL/PASSWORD, oder führe install.sh als Datei aus."
+  fi
+}
+
+read_tty() {
+  read -r "$@" </dev/tty
+}
+
 confirm_or_exit() {
   if [[ "${DOCSOPS_ASSUME_YES:-}" == "1" ]]; then
     return 0
   fi
-  read -r -p "Fortfahren? [y/N] " reply
+  require_interactive_tty
+  echo ""
+  read_tty -p "Fortfahren? [y/N] " reply
   case "${reply}" in
     y | Y | yes | YES) ;;
     *) die "Abgebrochen." ;;
