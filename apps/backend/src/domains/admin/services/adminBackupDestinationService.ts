@@ -109,7 +109,7 @@ export async function updateBackupDestination(
   }
 
   const nextConfig =
-    body.config != null && existing.type === 'S3_COMPATIBLE'
+    body.config != null && existing.type === 'S3_COMPATIBLE' && 'endpoint' in body.config
       ? enrichS3DestinationConfig(body.config)
       : body.config;
 

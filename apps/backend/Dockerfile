@@ -11,9 +11,7 @@ COPY apps/backend ./apps/backend
 # Root devDependencies (eslint, husky, …) are for local/CI only – not production image builds.
 RUN node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));delete p.devDependencies;if(p.scripts)delete p.scripts.prepare;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
 RUN pnpm install --filter backend... --no-frozen-lockfile
-# Use root node_modules binaries (hoisted); pnpm exec would point to backend/node_modules which doesn't exist
-RUN ./node_modules/.bin/prisma generate --schema=apps/backend/prisma/schema.prisma && \
-    ./node_modules/.bin/tsc -p apps/backend/tsconfig.build.json
+RUN pnpm --filter backend run build
 
 # Run
 FROM node:24-alpine

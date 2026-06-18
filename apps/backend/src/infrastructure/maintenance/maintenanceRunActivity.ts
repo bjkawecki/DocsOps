@@ -5,8 +5,10 @@ const MAINTENANCE_LOCK_ID = 'backup';
 
 export const ACTIVE_PG_BOSS_JOB_STATES = new Set(['active', 'retry', 'created']);
 
+type MaintenanceActivityDb = Pick<PrismaClient, 'systemMaintenanceLock'>;
+
 async function lockHeldForRun(
-  prisma: PrismaClient,
+  prisma: MaintenanceActivityDb,
   args: { reason: 'backup' | 'restore'; runId: string }
 ): Promise<boolean> {
   const row = await prisma.systemMaintenanceLock.findUnique({ where: { id: MAINTENANCE_LOCK_ID } });
@@ -25,7 +27,7 @@ async function pgBossJobActive(
 
 /** True when the backup worker or lock indicates this run is executing — not a stale DB row. */
 export async function isBackupRunActivelyRunning(
-  prisma: PrismaClient,
+  prisma: MaintenanceActivityDb,
   run: { id: string; pgBossJobId: string | null }
 ): Promise<boolean> {
   if (await lockHeldForRun(prisma, { reason: 'backup', runId: run.id })) return true;
@@ -35,7 +37,7 @@ export async function isBackupRunActivelyRunning(
 
 /** True when the restore worker or lock indicates this run is executing — not a stale DB row. */
 export async function isRestoreRunActivelyRunning(
-  prisma: PrismaClient,
+  prisma: MaintenanceActivityDb,
   run: { id: string; pgBossJobId: string | null }
 ): Promise<boolean> {
   if (await lockHeldForRun(prisma, { reason: 'restore', runId: run.id })) return true;

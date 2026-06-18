@@ -115,8 +115,8 @@ export async function dispatchNotificationEvent(
       user.preferences != null && typeof user.preferences === 'object'
         ? (user.preferences as {
             notificationSettings?: {
-              inApp?: Partial<Record<NotificationCategory, boolean>>;
-              email?: Partial<Record<NotificationCategory, boolean>>;
+              inApp?: Partial<Record<NotificationPreferenceCategory, boolean>>;
+              email?: Partial<Record<NotificationPreferenceCategory, boolean>>;
             };
           })
         : {};

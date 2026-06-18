@@ -31,8 +31,13 @@ function lockBusyMessage(reason: string | undefined): string {
     : 'A backup is already in progress';
 }
 
+type MaintenanceConflictDb = Pick<
+  PrismaClient,
+  'backupRun' | 'restoreRun' | 'systemMaintenanceLock'
+>;
+
 async function findConflictingMaintenanceRun(
-  prisma: PrismaClient,
+  prisma: MaintenanceConflictDb,
   args: { reason: MaintenanceReason; backupRunId?: string; restoreRunId?: string }
 ): Promise<void> {
   const [inProgressBackups, inProgressRestores] = await Promise.all([

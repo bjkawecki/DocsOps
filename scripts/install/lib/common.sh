@@ -294,6 +294,23 @@ EOF
   confirm_backup_key_saved
 }
 
+compose_build_with_progress() {
+  local status
+  if [[ ! -r /dev/tty ]]; then
+    docker compose --env-file "$DOCSOPS_ENV_FILE" build --quiet
+    return
+  fi
+  echo "  Build-Log: nur Meilensteine (Service/Schritt)" >/dev/tty
+  docker compose --env-file "$DOCSOPS_ENV_FILE" build --progress=plain 2>&1 \
+    | stdbuf -oL grep -E --line-buffered '^\#[0-9]+ \[[^]]+\]|CANCELED|ERROR|failed to solve|Successfully built|^Built$' \
+    | stdbuf -oL sed -u -E \
+      -e 's/^#[0-9]+ \[([^]]+)\].*$/  → \1/' \
+      -e 's/^/  /' \
+    | while IFS= read -r line; do echo "$line" >/dev/tty; done
+  status=${PIPESTATUS[0]}
+  [[ "$status" -eq 0 ]] || die "Docker-Build fehlgeschlagen (Exit ${status})"
+}
+
 compose_up_prod() {
   local compose_files extra_files
   compose_files="${DOCSOPS_COMPOSE_FILES}"
@@ -304,7 +321,7 @@ compose_up_prod() {
   export COMPOSE_FILE="$compose_files"
   cd "$DOCSOPS_INSTALL_DIR"
   log "Baue Docker-Images (kann einige Minuten dauern) …"
-  docker compose --env-file "$DOCSOPS_ENV_FILE" build --quiet
+  compose_build_with_progress
   log "Starte Container …"
   docker compose --env-file "$DOCSOPS_ENV_FILE" up -d
 }
