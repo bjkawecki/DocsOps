@@ -114,15 +114,18 @@ Das Install-Skript richtet kein VPN und kein zentrales DNS ein (Hinweis in Doku 
 
 ## Installation
 
+**Standard (VM / Intranet-Server):**
+
 ```bash
-# Aus Release-Clone auf dem Server (empfohlen: DOCSOPS_VERSION=vX.Y.Z)
-sudo ./install.sh
-
-# Optional: systemd-Autostart registrieren
-sudo ./install.sh --install-systemd
-
-# Bootstrap von GitHub (Release-Tag empfohlen)
 curl -fsSL https://raw.githubusercontent.com/bjkawecki/docs-ops/main/install.sh | sudo bash
+```
+
+Klont nach `/opt/docsops`, installiert bei Bedarf git/Docker und startet DocsOps auf **Port 80** (Port muss vorher frei sein – z. B. `systemctl stop httpd` / `apache2`).
+
+**Aus lokalem Checkout:**
+
+```bash
+sudo ./install.sh
 ```
 
 **Non-interactive** (CI/Automation):

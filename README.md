@@ -17,10 +17,14 @@ Interne Dokumentationsplattform .
 ### Production (Intranet-Server)
 
 ```bash
-sudo ./install.sh
+curl -fsSL https://raw.githubusercontent.com/bjkawecki/docs-ops/main/install.sh | bash
 ```
 
-Klont nach `/opt/docsops` (Default), legt Secrets in **`/etc/docsops/docsops.env`** an, startet Prod-Stack auf **Port 80**.
+**Root erforderlich:** Die Pipeline mit `sudo` ausführen, z. B. `curl … | sudo bash`. Das Skript bricht ohne root ab (Absicht: Installation bewusst mit Administratorrechten starten).
+
+Klont nach `/opt/docsops`, legt Secrets in **`/etc/docsops/docsops.env`** an und startet den Prod-Stack auf **Port 80** (Port muss vorher frei sein).
+
+Alternativ aus Clone: `./install.sh` (ebenfalls mit `sudo`) · optional `--install-systemd`
 
 Vollständige Anleitung: **[docs/install.md](docs/install.md)**.
 

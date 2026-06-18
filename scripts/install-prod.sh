@@ -83,14 +83,14 @@ main() {
   parse_args "$@"
   require_root
 
-  if [[ ! -f "${DOCSOPS_INSTALL_DIR}/docker-compose.prod.yml" ]]; then
-    die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
-  fi
+  resolve_install_dir "$(cd "${SCRIPT_DIR}/.." && pwd)" \
+    || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR} (DOCSOPS_INSTALL_DIR setzen oder aus Repo-Checkout starten)"
 
   print_security_notice
   confirm_or_exit
 
   ensure_docker_compose
+  require_publish_port_free
   prompt_admin_credentials
 
   if [[ -f "$DOCSOPS_ENV_FILE" && "$RECONFIGURE" != "1" ]]; then

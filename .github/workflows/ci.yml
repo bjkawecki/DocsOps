@@ -33,7 +33,6 @@ jobs:
       - name: Format check
         run: pnpm run format:check
 
-  # install-test: vorübergehend deaktiviert
   install-test:
     runs-on: ubuntu-latest
     steps:
@@ -49,7 +48,8 @@ jobs:
           ADMIN_EMAIL: install-test@example.com
           ADMIN_PASSWORD: install-test-password-12
         run: |
-          sudo bash scripts/install-prod.sh
+          # -E: DOCSOPS_* / ADMIN_* aus dem Step-Env an root übergeben (sudo resettet sonst die Umgebung).
+          sudo -E bash scripts/install-prod.sh
 
       - name: Health check
         run: curl -sf http://127.0.0.1:8080/health

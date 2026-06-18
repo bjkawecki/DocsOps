@@ -45,7 +45,7 @@ Dieses Skript wird als root ausgeführt und kann:
   - Systempakete installieren (git, curl, openssl, Docker)
   - Quellcode nach /opt/docsops klonen
   - /etc/docsops/docsops.env mit Secrets anlegen
-  - Docker-Container bauen und starten (Port 80)
+  - Docker-Container bauen und starten (Port 80 muss auf dem Host frei sein)
 
 Warum root-Skripte aus dem Internet riskant sind
 -------------------------------------------------
@@ -87,6 +87,81 @@ ensure_docker_compose() {
   systemctl enable --now docker 2>/dev/null || true
   command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 \
     || die "Docker Compose ist nach der Installation nicht verfügbar."
+}
+
+resolve_install_dir() {
+  local checkout_root="${1:-}"
+
+  if [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.prod.yml" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$checkout_root" && -f "${checkout_root}/docker-compose.prod.yml" ]]; then
+    log "DOCSOPS_INSTALL_DIR nicht gesetzt – verwende Checkout: ${checkout_root}"
+    DOCSOPS_INSTALL_DIR="$checkout_root"
+    export DOCSOPS_INSTALL_DIR
+    return 0
+  fi
+
+  return 1
+}
+
+publish_port_from_health_url() {
+  local url="${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}"
+  if [[ "$url" =~ :([0-9]+)/ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo 80
+  fi
+}
+
+port_in_use() {
+  local port="$1"
+  ss -tlnH "sport = :${port}" 2>/dev/null | grep -q .
+}
+
+pids_on_port() {
+  local port="$1"
+  ss -tlnHp "sport = :${port}" 2>/dev/null \
+    | grep -oE 'pid=[0-9]+' \
+    | cut -d= -f2 \
+    | sort -u
+}
+
+process_names_on_port() {
+  local port="$1" pid name names=()
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    name="$(ps -o comm= -p "$pid" 2>/dev/null | tr -d ' ')"
+    [[ -n "$name" ]] && names+=("$name(pid=$pid)")
+  done < <(pids_on_port "$port")
+  (IFS=', '; echo "${names[*]}")
+}
+
+# Prüft den Publish-Port (Default 80, aus DOCSOPS_HEALTH_URL ableitbar) – beendet keine fremden Dienste.
+require_publish_port_free() {
+  local port proc_info
+  port="$(publish_port_from_health_url)"
+
+  if ! port_in_use "$port"; then
+    log "Port ${port} ist frei"
+    return 0
+  fi
+
+  echo "Port ${port} ist belegt:" >&2
+  ss -tlnp "sport = :${port}" 2>/dev/null || true
+  proc_info="$(process_names_on_port "$port")"
+  [[ -n "$proc_info" ]] && echo "Prozesse: ${proc_info}" >&2
+
+  if [[ "$port" == "80" ]]; then
+    die "Port 80 muss frei sein, bevor DocsOps installiert wird. Bitte den bestehenden Webserver stoppen (z. B. systemctl stop apache2 oder systemctl stop httpd) und das Skript erneut starten."
+  fi
+
+  die "Port ${port} muss frei sein, bevor DocsOps installiert wird (DOCSOPS_HEALTH_URL=${DOCSOPS_HEALTH_URL})."
+}
+
+require_port_80_free() {
+  require_publish_port_free
 }
 
 write_env_file() {

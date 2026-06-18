@@ -8,29 +8,60 @@ DOCSOPS_VERSION="${DOCSOPS_VERSION:-main}"
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
+log() {
+  echo "==> $*"
+}
+
+die() {
+  echo "Fehler: $*" >&2
+  exit 1
+}
+
 require_root() {
   if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
-    echo "Fehler: Bitte mit sudo ausführen: sudo $0" >&2
-    exit 1
+    die "Bitte mit sudo ausführen: sudo bash  (oder: curl … | sudo bash)"
   fi
 }
 
-run_from_repo() {
-  if [[ -f "${SCRIPT_DIR}/docker-compose.prod.yml" && -f "${SCRIPT_DIR}/scripts/install-prod.sh" ]]; then
-    export DOCSOPS_INSTALL_DIR="$SCRIPT_DIR"
-    exec "${SCRIPT_DIR}/scripts/install-prod.sh" "$@"
+# curl | bash: git/curl vor dem Clone; auf der VM oft noch nicht installiert.
+ensure_clone_prerequisites() {
+  if command -v git >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
+    return 0
+  fi
+  log "Installiere git und curl für den Repository-Clone …"
+  if [[ -f /etc/debian_version ]]; then
+    apt-get update
+    apt-get install -y git curl ca-certificates
+  elif [[ -f /etc/fedora-release ]] || grep -qE '^ID="?(fedora|rhel|centos|almalinux|rocky)"?' /etc/os-release 2>/dev/null; then
+    if command -v dnf >/dev/null 2>&1; then
+      dnf install -y git curl
+    else
+      die "dnf fehlt – bitte git und curl manuell installieren."
+    fi
+  elif [[ -f /etc/arch-release ]]; then
+    pacman -Sy --noconfirm git curl
+  else
+    die "Unbekannte Distribution – bitte git und curl installieren."
+  fi
+}
+
+run_from_checkout() {
+  local root="$1"
+  if [[ -f "${root}/docker-compose.prod.yml" && -f "${root}/scripts/install-prod.sh" ]]; then
+    export DOCSOPS_INSTALL_DIR="$root"
+    exec "${root}/scripts/install-prod.sh" "$@"
   fi
 }
 
 clone_or_update() {
   if [[ -d "${DOCSOPS_INSTALL_DIR}/.git" ]]; then
-    echo "==> Bestehendes Repository unter ${DOCSOPS_INSTALL_DIR} – git fetch"
+    log "Bestehendes Repository unter ${DOCSOPS_INSTALL_DIR} – aktualisiere (${DOCSOPS_VERSION})"
     git -C "$DOCSOPS_INSTALL_DIR" fetch --depth 1 origin "$DOCSOPS_VERSION" 2>/dev/null \
       || git -C "$DOCSOPS_INSTALL_DIR" fetch origin
     git -C "$DOCSOPS_INSTALL_DIR" checkout "$DOCSOPS_VERSION"
     git -C "$DOCSOPS_INSTALL_DIR" pull --ff-only 2>/dev/null || true
   else
-    echo "==> Klone ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR}"
+    log "Klone ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR}"
     install -d "$(dirname "$DOCSOPS_INSTALL_DIR")"
     git clone --depth 1 --branch "$DOCSOPS_VERSION" "$DOCSOPS_REPO" "$DOCSOPS_INSTALL_DIR"
   fi
@@ -38,7 +69,15 @@ clone_or_update() {
 
 main() {
   require_root
-  run_from_repo "$@"
+
+  # Lokaler Checkout (sudo ./install.sh im Repo)
+  run_from_checkout "$SCRIPT_DIR" "$@"
+
+  # Bereits unter /opt/docsops installiert
+  run_from_checkout "$DOCSOPS_INSTALL_DIR" "$@"
+
+  # Bootstrap: curl -fsSL …/install.sh | sudo bash
+  ensure_clone_prerequisites
   clone_or_update
   export DOCSOPS_INSTALL_DIR
   exec "${DOCSOPS_INSTALL_DIR}/scripts/install-prod.sh" "$@"
