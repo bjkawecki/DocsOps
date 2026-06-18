@@ -4,7 +4,7 @@ FROM node:24-alpine AS builder
 RUN corepack enable pnpm
 WORKDIR /app
 RUN echo "node-linker=hoisted" > .npmrc
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY apps ./apps
 RUN pnpm install --frozen-lockfile || pnpm install
 RUN pnpm --filter frontend run build

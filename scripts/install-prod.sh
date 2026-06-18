@@ -67,12 +67,12 @@ prompt_admin_credentials() {
   done
 
   while true; do
-    read_tty -s -p "Admin Passwort (min. 12 Zeichen): " ADMIN_PASSWORD
+    read_tty -s -p "Admin Passwort (min. 6 Zeichen): " ADMIN_PASSWORD
     echo ""
-    if [[ "${#ADMIN_PASSWORD}" -ge 12 ]]; then
+    if [[ "${#ADMIN_PASSWORD}" -ge 6 ]]; then
       break
     fi
-    echo "Passwort zu kurz (mindestens 12 Zeichen)."
+    echo "Passwort zu kurz (mindestens 6 Zeichen)."
   done
 
   if [[ -z "${DOCSOPS_HOSTNAME:-}" ]]; then
@@ -99,14 +99,27 @@ main() {
   resolve_install_dir "$(cd "${SCRIPT_DIR}/.." && pwd)" \
     || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR} (DOCSOPS_INSTALL_DIR setzen oder aus Repo-Checkout starten)"
 
+  local stage_total=5
   if [[ "${DOCSOPS_INSTALL_CONFIRMED:-}" != "1" ]]; then
+    stage_total=$((stage_total + 1))
+  fi
+  if [[ "$INSTALL_SYSTEMD" == "1" || "${DOCSOPS_INSTALL_SYSTEMD:-}" == "1" ]]; then
+    stage_total=$((stage_total + 1))
+  fi
+  export DOCSOPS_INSTALL_STAGE_TOTAL=$stage_total
+  INSTALL_STAGE_N=0
+
+  if [[ "${DOCSOPS_INSTALL_CONFIRMED:-}" != "1" ]]; then
+    install_stage "Sicherheitshinweis"
     print_security_notice
     confirm_or_exit
   fi
 
+  install_stage "Voraussetzungen prüfen"
   ensure_docker_compose
   require_publish_port_free
 
+  install_stage "Konfiguration"
   if [[ -f "$DOCSOPS_ENV_FILE" && "$RECONFIGURE" != "1" ]]; then
     log "Bestehende Konfiguration (${DOCSOPS_ENV_FILE}) – Repository-Stand wird angewendet …"
     load_existing_env || die "Konfiguration konnte nicht gelesen werden: ${DOCSOPS_ENV_FILE}"
@@ -116,13 +129,18 @@ main() {
     write_env_file
   fi
 
+  install_stage "Docker-Stack bereitstellen"
   compose_up_prod
+
+  install_stage "Bereitschaft prüfen"
   wait_for_health
 
   if [[ "$INSTALL_SYSTEMD" == "1" || "${DOCSOPS_INSTALL_SYSTEMD:-}" == "1" ]]; then
+    install_stage "systemd einrichten"
     install_systemd_unit
   fi
 
+  install_stage "Abschluss"
   print_finish
 }
 

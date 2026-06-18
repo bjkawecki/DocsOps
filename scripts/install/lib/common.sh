@@ -14,6 +14,18 @@ log() {
   echo "==> $*"
 }
 
+install_stage() {
+  local title="$1"
+  local total="${DOCSOPS_INSTALL_STAGE_TOTAL:-?}"
+  INSTALL_STAGE_N="${INSTALL_STAGE_N:-0}"
+  INSTALL_STAGE_N=$((INSTALL_STAGE_N + 1))
+  echo ""
+  echo "────────────────────────────────────────────────────────"
+  echo " Schritt ${INSTALL_STAGE_N}/${total}: ${title}"
+  echo "────────────────────────────────────────────────────────"
+  echo ""
+}
+
 die() {
   echo "Fehler: $*" >&2
   exit 1
@@ -58,6 +70,24 @@ confirm_or_exit() {
     y | Y | yes | YES) ;;
     *) cancel_install ;;
   esac
+}
+
+confirm_backup_key_saved() {
+  if [[ "${DOCSOPS_NON_INTERACTIVE:-}" == "1" || "${DOCSOPS_ASSUME_YES:-}" == "1" ]]; then
+    echo "Hinweis: BACKUP_ENCRYPTION_KEY liegt in ${DOCSOPS_ENV_FILE} – bitte zusätzlich extern sichern."
+    return 0
+  fi
+  require_interactive_tty
+  echo "Notiere den BACKUP_ENCRYPTION_KEY jetzt (Passwortmanager o. Ä.)."
+  echo "Ohne diesen Schlüssel sind Backups nicht wiederherstellbar."
+  echo ""
+  while true; do
+    read_tty -p "Key notiert – fortfahren? [y/N] " reply
+    case "${reply}" in
+      y | Y | yes | YES) return 0 ;;
+      *) echo "Nimm dir Zeit zum Notieren. Bestätige mit y, wenn du bereit bist." ;;
+    esac
+  done
 }
 
 print_security_notice() {
@@ -261,6 +291,7 @@ EOF
   echo "================================================================"
   echo "Gespeichert in: ${DOCSOPS_ENV_FILE}"
   echo ""
+  confirm_backup_key_saved
 }
 
 compose_up_prod() {
@@ -272,7 +303,10 @@ compose_up_prod() {
   fi
   export COMPOSE_FILE="$compose_files"
   cd "$DOCSOPS_INSTALL_DIR"
-  docker compose --env-file "$DOCSOPS_ENV_FILE" up -d --build
+  log "Baue Docker-Images (kann einige Minuten dauern) …"
+  docker compose --env-file "$DOCSOPS_ENV_FILE" build --quiet
+  log "Starte Container …"
+  docker compose --env-file "$DOCSOPS_ENV_FILE" up -d
 }
 
 wait_for_health() {

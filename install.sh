@@ -134,6 +134,7 @@ source_install_common() {
 bootstrap_confirm_before_clone() {
   export DOCSOPS_BOOTSTRAP_CONFIRM=1
   source_install_common
+  install_stage "Sicherheitshinweis"
   print_security_notice
   confirm_or_exit
   export DOCSOPS_INSTALL_CONFIRMED=1
@@ -150,8 +151,11 @@ main() {
   fi
 
   # curl | bash: Disclaimer vor Clone/Download
+  export DOCSOPS_INSTALL_STAGE_TOTAL=2
+  INSTALL_STAGE_N=0
   bootstrap_confirm_before_clone
 
+  install_stage "Repository aktualisieren"
   ensure_clone_prerequisites
   clone_or_update
   export DOCSOPS_INSTALL_DIR

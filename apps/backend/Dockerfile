@@ -5,7 +5,7 @@ RUN corepack enable pnpm
 WORKDIR /app
 # Hoisted node_modules so binaries (prisma, tsc) are in PATH when running from any package
 RUN echo "node-linker=hoisted" > .npmrc
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY apps ./apps
 RUN pnpm install --frozen-lockfile || pnpm install
 # Use root node_modules binaries (hoisted); pnpm exec would point to backend/node_modules which doesn't exist
