@@ -64,8 +64,10 @@ export type DocumentPageLoadedLayoutProps = {
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   suggestionsPanelRef: RefObject<DocumentSuggestionsPanelHandle | null>;
   leadDraftLastSynced: string | null;
+  leadDraftDirty: boolean;
   hasDraftBlocks: boolean;
   hasPublishedBlocks: boolean;
+  showPublishButton: boolean;
   me: { user?: { id?: string; isAdmin?: boolean } } | undefined;
   isTabVisible: boolean;
   tagOptions: { value: string; label: string }[];
@@ -106,8 +108,10 @@ export function DocumentPageLoadedLayout({
   leadDraftPanelRef,
   suggestionsPanelRef,
   leadDraftLastSynced,
+  leadDraftDirty,
   hasDraftBlocks,
   hasPublishedBlocks,
+  showPublishButton,
   me,
   isTabVisible,
   tagOptions,
@@ -167,6 +171,7 @@ export function DocumentPageLoadedLayout({
                   <Button
                     size="sm"
                     loading={saveLoading}
+                    disabled={editTab === 'draft' && !leadDraftDirty}
                     onClick={() =>
                       void (editTab === 'draft'
                         ? leadDraftPanelRef.current?.saveDraft()
@@ -192,7 +197,7 @@ export function DocumentPageLoadedLayout({
                   <IconPencil size={18} />
                 </ActionIcon>
               )}
-              {mode === 'edit' && data.canPublish && !data.publishedAt && (
+              {mode === 'edit' && showPublishButton && (
                 <Button
                   variant="filled"
                   size="sm"
@@ -201,7 +206,7 @@ export function DocumentPageLoadedLayout({
                   loading={publishLoading}
                   onClick={() => void handlePublish()}
                 >
-                  Publish
+                  {data.publishedAt ? 'Publish changes' : 'Publish'}
                 </Button>
               )}
               <Menu shadow="md" position="bottom-end">

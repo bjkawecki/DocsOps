@@ -21,6 +21,7 @@ export const DocumentLeadDraftPanel = forwardRef<
     data,
     applyIncoming,
     canEdit,
+    dirty,
     handleSave,
     remotePending,
     ...viewProps
@@ -30,14 +31,14 @@ export const DocumentLeadDraftPanel = forwardRef<
     ref,
     () => ({
       saveDraft: async () => {
-        if (!canEdit) return false;
+        if (!canEdit || !dirty) return false;
         return handleSave();
       },
       loadLatestServerDraft: () => {
         if (remotePending) applyIncoming(remotePending.revision, remotePending.doc);
       },
     }),
-    [applyIncoming, canEdit, handleSave, remotePending]
+    [applyIncoming, canEdit, dirty, handleSave, remotePending]
   );
 
   if (q.isPending) {

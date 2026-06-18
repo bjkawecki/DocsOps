@@ -6,11 +6,13 @@ import type { DocumentSuggestionsPanelHandle } from '../../components/documents/
 export function useDocumentPageKeyboardEffects(args: {
   mode: 'view' | 'edit';
   editTab: 'draft' | 'suggestions' | 'metadata' | 'access';
+  leadDraftDirty: boolean;
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   suggestionsPanelRef: RefObject<DocumentSuggestionsPanelHandle | null>;
   handleSave: () => Promise<void>;
 }) {
-  const { mode, editTab, leadDraftPanelRef, suggestionsPanelRef, handleSave } = args;
+  const { mode, editTab, leadDraftDirty, leadDraftPanelRef, suggestionsPanelRef, handleSave } =
+    args;
   const handleSaveShortcutRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function useDocumentPageKeyboardEffects(args: {
       if (event.key.toLowerCase() === 's') {
         event.preventDefault();
         if (editTab === 'draft') {
-          void leadDraftPanelRef.current?.saveDraft();
+          if (leadDraftDirty) void leadDraftPanelRef.current?.saveDraft();
         } else {
           void handleSaveShortcutRef.current();
         }
@@ -37,5 +39,5 @@ export function useDocumentPageKeyboardEffects(args: {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [editTab, mode, leadDraftPanelRef, suggestionsPanelRef]);
+  }, [editTab, leadDraftDirty, mode, leadDraftPanelRef, suggestionsPanelRef]);
 }

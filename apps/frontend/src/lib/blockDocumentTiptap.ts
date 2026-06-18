@@ -35,12 +35,16 @@ function readBlockId(attrs: Record<string, unknown> | undefined): string {
   return typeof raw === 'string' && raw.length > 0 ? raw : newId();
 }
 
+function tiptapTextContent(text: string): JSONContent[] {
+  return text.length > 0 ? [{ type: 'text', text }] : [];
+}
+
 function paragraphOurToTiptap(p: BlockNodeV0): JSONContent {
   const text = innerTextFromBlockNode(p);
   return {
     type: 'paragraph',
     attrs: { blockId: p.id },
-    content: [{ type: 'text', text }],
+    content: tiptapTextContent(text),
   };
 }
 
@@ -69,7 +73,7 @@ function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null {
       return {
         type: 'heading',
         attrs: { level, blockId: block.id },
-        content: [{ type: 'text', text }],
+        content: tiptapTextContent(text),
       };
     }
     case 'paragraph':
@@ -99,7 +103,7 @@ function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null {
       return {
         type: 'paragraph',
         attrs: { blockId: block.id },
-        content: [{ type: 'text', text }],
+        content: tiptapTextContent(text),
       };
     }
   }
@@ -116,7 +120,7 @@ export function blockDocumentToTiptapJson(doc: BlockDocumentV0): JSONContent {
         {
           type: 'paragraph',
           attrs: { blockId: newId() },
-          content: [{ type: 'text', text: '' }],
+          content: [],
         },
       ],
     };

@@ -124,6 +124,7 @@ export function useDocumentLeadDraftPanelState({
 
   const handleSave = useCallback(async () => {
     if (!data || 'forbidden' in data) return false;
+    if (!dirty) return true;
     const parsed = editorRef.current?.getBlockDocument() ?? appliedDoc;
     const expectedRevision = appliedRevision ?? incomingRevision;
     if (parsed.schemaVersion !== 0 || !Array.isArray(parsed.blocks)) {
@@ -183,6 +184,7 @@ export function useDocumentLeadDraftPanelState({
     incomingRevision,
     q,
     queryClient,
+    dirty,
   ]);
 
   const runSuggestionAction = useCallback(

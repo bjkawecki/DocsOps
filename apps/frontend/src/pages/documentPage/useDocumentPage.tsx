@@ -181,6 +181,17 @@ export function useDocumentPage() {
   const hasDraftBlocks = (data?.blocks?.blocks?.length ?? 0) > 0;
   const hasPublishedBlocks = (data?.publishedBlocks?.blocks?.length ?? 0) > 0;
 
+  const draftDiffersFromPublished = useMemo(() => {
+    if (!data?.blocks || !data.publishedBlocks) return false;
+    return JSON.stringify(data.blocks) !== JSON.stringify(data.publishedBlocks);
+  }, [data?.blocks, data?.publishedBlocks]);
+
+  const showPublishButton = useMemo(() => {
+    if (!data?.canPublish) return false;
+    if (!data.publishedAt) return true;
+    return !leadDraftDirty && draftDiffersFromPublished;
+  }, [data?.canPublish, data?.publishedAt, leadDraftDirty, draftDiffersFromPublished]);
+
   const handleDeleteConfirm = async () => {
     if (!documentId) return;
     setDeleteLoading(true);
@@ -317,9 +328,12 @@ export function useDocumentPage() {
       if (res.ok) {
         invalidateDocumentIndexCaches(queryClient, documentId, data?.contextId);
         invalidateMeDraftsAndPersonalDocuments(queryClient);
+        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+        void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
+        const isRepublish = Boolean(data?.publishedAt);
         notifications.show({
-          title: 'Published',
-          message: 'Document was published.',
+          title: isRepublish ? 'Published changes' : 'Published',
+          message: isRepublish ? 'A new published version was created.' : 'Document was published.',
           color: 'green',
         });
       } else {
@@ -446,6 +460,7 @@ export function useDocumentPage() {
   useDocumentPageKeyboardEffects({
     mode,
     editTab,
+    leadDraftDirty,
     leadDraftPanelRef,
     suggestionsPanelRef,
     handleSave,
@@ -491,6 +506,7 @@ export function useDocumentPage() {
     numberedHeadings,
     hasDraftBlocks,
     hasPublishedBlocks,
+    showPublishButton,
     tagOptions,
     tags,
     assignContextOptions,

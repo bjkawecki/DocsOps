@@ -181,7 +181,7 @@ export function DocumentLeadDraftPanelView({
       <Group justify="space-between" gap="xs">
         <Group gap="xs">
           {canEdit && (
-            <Button size="sm" onClick={() => void handleSave()}>
+            <Button size="sm" disabled={!dirty} onClick={() => void handleSave()}>
               Save draft
             </Button>
           )}

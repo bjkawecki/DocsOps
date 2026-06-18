@@ -44,8 +44,10 @@ export function DocumentPage() {
         leadDraftPanelRef={vm.leadDraftPanelRef}
         suggestionsPanelRef={vm.suggestionsPanelRef}
         leadDraftLastSynced={vm.leadDraftLastSynced}
+        leadDraftDirty={vm.leadDraftDirty}
         hasDraftBlocks={vm.hasDraftBlocks}
         hasPublishedBlocks={vm.hasPublishedBlocks}
+        showPublishButton={vm.showPublishButton}
         me={vm.me}
         isTabVisible={vm.isTabVisible}
         tagOptions={vm.tagOptions}
