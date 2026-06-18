@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError, treeifyError } from 'zod';
 import fastifyCookie from '@fastify/cookie';
@@ -18,9 +17,7 @@ import { searchRoutes } from './domains/search/routes/index.js';
 import { maintenanceModePreHandler } from './infrastructure/maintenance/maintenancePreHandler.js';
 import { maintenanceRoutes } from './infrastructure/maintenance/maintenanceRoutes.js';
 import { shouldDisableHttpRequestLogging } from './infrastructure/logging/httpRequestLogging.js';
-
-const require = createRequire(import.meta.url);
-const pkg = require('../package.json') as { name: string; version: string };
+import { backendPackageName, backendPackageVersion } from './infrastructure/packageInfo.js';
 
 function buildLoggerConfig(): {
   level: string;
@@ -133,8 +130,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   );
 
   app.get('/', () => ({
-    name: pkg.name,
-    version: pkg.version,
+    name: backendPackageName,
+    version: backendPackageVersion,
     _links: { health: '/health', ready: '/ready' },
   }));
   app.get('/health', () => ({ status: 'ok' }));

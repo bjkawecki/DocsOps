@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -29,9 +28,7 @@ import {
 } from '../../../infrastructure/backup/retention.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import type { JobPayloadByType } from '../../../infrastructure/jobs/jobTypes.js';
-
-const require = createRequire(import.meta.url);
-const pkg = require('../../../../package.json') as { version: string };
+import { backendPackageVersion } from '../../../infrastructure/packageInfo.js';
 
 export type JobLogger = {
   info: (obj: unknown, msg?: string) => void;
@@ -162,7 +159,7 @@ export async function runOperationalBackup(
       backupFormatVersion: BACKUP_FORMAT_VERSION,
       backupRunId,
       createdAt: new Date().toISOString(),
-      appVersion: process.env.APP_VERSION ?? pkg.version,
+      appVersion: process.env.APP_VERSION ?? backendPackageVersion,
       postgres: {
         path: 'postgres/dump.custom',
         sizeBytes: dumpStat.size,
