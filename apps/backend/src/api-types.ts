@@ -3,6 +3,13 @@
  * Eine Quelle (Prisma), Frontend importiert von backend/api-types.
  */
 export type {
+  ReleaseDetailResponse,
+  ReleaseSummary,
+  ReleasesListResponse,
+  SystemVersionResponse,
+} from './domains/system/schemas/releases.js';
+
+export type {
   Company,
   Department,
   Team,

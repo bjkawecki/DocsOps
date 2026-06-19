@@ -11,10 +11,4 @@ if [ -z "${APP_VERSION:-}" ]; then
   exit 1
 fi
 
-npx prisma migrate deploy
-
-if [ -n "${ADMIN_EMAIL:-}" ] && [ -n "${ADMIN_PASSWORD:-}" ]; then
-  node dist/scripts/create-admin.js || true
-fi
-
-exec node dist/src/entrypoints/api.js
+exec node dist/src/entrypoints/worker.js

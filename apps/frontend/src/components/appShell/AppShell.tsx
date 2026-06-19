@@ -56,7 +56,8 @@ export function AppShell() {
 
         <MantineAppShell.Main id={MAIN_CONTENT_ID} component="main">
           <Box
-            py={{ base: 'md', md: 'lg', xl: 'xl' }}
+            pt={{ base: 'md', md: 'sm' }}
+            pb={{ base: 'md', md: 'lg', xl: 'xl' }}
             px={{ base: 'md', md: 'lg', xl: 'xl' }}
             style={{ minHeight: '100%' }}
           >

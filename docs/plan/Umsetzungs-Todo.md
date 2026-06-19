@@ -511,8 +511,8 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 **Ziel:** Release Notes zur installierten App — Route `/whats-new`, **nicht** unter `/help`. Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §2. **`APP_VERSION`** hier und in **§26** (Admin) gemeinsam nutzen.
 
-[ ] **Inhalt & Release-Prozess:** `content/releases/manifest.json` + `content/releases/<version>.md`; bei Release synchron mit Root-`package.json`, Git-Tag `vX.Y.Z`, GitHub Release (vgl. **§19** Punkt 1).
-[ ] **API:** `GET /api/v1/system/version` (`APP_VERSION` im Build); optional `GET /api/v1/releases`.
+[x] **Inhalt & Release-Prozess (v1):** `content/releases/manifest.json` + `content/releases/0.1.0.md`; Release-Ritual in [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1 (Git-Tag/GitHub Release: **§19**).
+[x] **API:** `GET /api/v1/system/version` (`APP_VERSION` im Build); `GET /api/v1/releases`, `GET /api/v1/releases/:version`.
 [ ] **Frontend:** Route `/whats-new` (Markdown); Account-Menü — **What's new** als erster Eintrag; Badge via `lastSeenReleaseVersion` + PATCH `/me/preferences`.
 
 ---

@@ -17,6 +17,9 @@ RUN pnpm --filter backend run build
 # Shared runtime (Node app + prod dependencies)
 FROM node:24-alpine AS runtime-base
 WORKDIR /app
+COPY --from=builder /app/package.json /tmp/root-package.json
+RUN node -e "const fs=require('fs');const v=JSON.parse(fs.readFileSync('/tmp/root-package.json','utf8')).version;if(!v||!/^\d+\.\d+\.\d+$/.test(v)){console.error('ERROR: invalid root package.json version');process.exit(1);}fs.writeFileSync('/APP_VERSION',v);"
+COPY content/releases ./content/releases
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/generated ./generated
 COPY --from=builder /app/apps/backend/prisma ./prisma
@@ -45,4 +48,6 @@ RUN apk add --no-cache pandoc postgresql-client zstd tar wget xz \
   && rm /tmp/install-typst-alpine.sh
 ENV NODE_ENV=production
 ENV PANDOC_ARGS=--pdf-engine=typst
-ENTRYPOINT ["node", "dist/src/entrypoints/worker.js"]
+COPY docker/entrypoint-worker-prod.sh /entrypoint-worker.sh
+RUN chmod +x /entrypoint-worker.sh
+ENTRYPOINT ["/entrypoint-worker.sh"]

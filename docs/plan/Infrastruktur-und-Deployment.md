@@ -32,7 +32,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 ## 3. Update aus der App
 
 - **Ziel:** Updates möglichst einfach, idealerweise aus der App heraus anstoßbar.
-- **Version:** Single Source of Truth = `version` in Root-`package.json` (SemVer); beim Build als `APP_VERSION`; Release = Git-Tag `vX.Y.Z` + GitHub Release. Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1.
+- **Version:** Single Source of Truth = `version` in Root-`package.json` (SemVer); Image-Build setzt `APP_VERSION` daraus; Runtime nur Env. Release = Git-Tag `vX.Y.Z` + GitHub Release. Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1.
 - **Phasen:**
   - **Phase 1 (empfohlen zuerst):** Admin-UI zeigt installierte vs. verfügbare Version, „Check for updates“, Verweis auf `./scripts/update.sh` auf dem Server; **Backup-Gate** (Hinweis/Pflicht vor Update, vgl. Abschnitt 8).
   - **Phase 2 (Ein-Klick):** Separater **Updater-Sidecar** – eigener Container/Agent neben dem App-Stack, der nur das Update-Skript ausführt (`git pull`, `compose pull`, `compose up`). Die Haupt-App ruft ihn per API an; **nicht** voller Docker-Socket im App-Container (Sicherheit).

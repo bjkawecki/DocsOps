@@ -7,11 +7,11 @@
     "./api-types": "./src/api-types.ts"
   },
   "scripts": {
-    "dev": "tsx watch src/entrypoints/api.ts",
-    "worker:dev": "tsx watch src/entrypoints/worker.ts",
+    "dev": "tsx scripts/run-with-app-version.ts -- tsx watch src/entrypoints/api.ts",
+    "worker:dev": "tsx scripts/run-with-app-version.ts -- tsx watch src/entrypoints/worker.ts",
     "build": "pnpm exec prisma generate && tsc -p tsconfig.build.json",
-    "start": "node dist/src/entrypoints/api.js",
-    "worker:start": "node dist/src/entrypoints/worker.js",
+    "start": "tsx scripts/run-with-app-version.ts -- node dist/src/entrypoints/api.js",
+    "worker:start": "tsx scripts/run-with-app-version.ts -- node dist/src/entrypoints/worker.js",
     "prepare": "pnpm exec prisma generate",
     "prisma:generate": "pnpm exec prisma generate",
     "test": "vitest run",

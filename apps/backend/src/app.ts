@@ -17,7 +17,9 @@ import { searchRoutes } from './domains/search/routes/index.js';
 import { maintenanceModePreHandler } from './infrastructure/maintenance/maintenancePreHandler.js';
 import { maintenanceRoutes } from './infrastructure/maintenance/maintenanceRoutes.js';
 import { shouldDisableHttpRequestLogging } from './infrastructure/logging/httpRequestLogging.js';
-import { backendPackageName, backendPackageVersion } from './infrastructure/packageInfo.js';
+import { appVersion } from './infrastructure/appVersion.js';
+import { backendPackageName } from './infrastructure/packageInfo.js';
+import { systemRoutes } from './domains/system/routes/index.js';
 
 function buildLoggerConfig(): {
   level: string;
@@ -131,7 +133,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.get('/', () => ({
     name: backendPackageName,
-    version: backendPackageVersion,
+    version: appVersion,
     _links: { health: '/health', ready: '/ready' },
   }));
   app.get('/health', () => ({ status: 'ok' }));
@@ -157,6 +159,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.register(pinnedRoutes, { prefix: '/api/v1' });
   app.register(searchRoutes, { prefix: '/api/v1' });
   app.register(maintenanceRoutes, { prefix: '/api/v1' });
+  app.register(systemRoutes, { prefix: '/api/v1' });
   app.register(adminRoutes, { prefix: '/api/v1' });
   return app;
 }

@@ -28,7 +28,7 @@ import {
 } from '../../../infrastructure/backup/retention.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import type { JobPayloadByType } from '../../../infrastructure/jobs/jobTypes.js';
-import { backendPackageVersion } from '../../../infrastructure/packageInfo.js';
+import { appVersion } from '../../../infrastructure/appVersion.js';
 
 export type JobLogger = {
   info: (obj: unknown, msg?: string) => void;
@@ -159,7 +159,7 @@ export async function runOperationalBackup(
       backupFormatVersion: BACKUP_FORMAT_VERSION,
       backupRunId,
       createdAt: new Date().toISOString(),
-      appVersion: process.env.APP_VERSION ?? backendPackageVersion,
+      appVersion,
       postgres: {
         path: 'postgres/dump.custom',
         sizeBytes: dumpStat.size,

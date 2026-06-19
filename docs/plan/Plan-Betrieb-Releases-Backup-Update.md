@@ -6,12 +6,26 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 
 ## 1. Versionierung (gemeinsame Basis)
 
-- **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`).
-- **Deploy:** Beim Image-/Stack-Build als `APP_VERSION` ins Backend (z. B. `GET /api/v1/system/version`).
+- **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`) — **einzige** manuelle Stelle beim Release.
+- **Deploy:** Beim Image-Build wird `APP_VERSION` **deterministisch aus** Root-`package.json` abgeleitet (`/APP_VERSION` im Image, Entrypoint exportiert). **Kein** separates SemVer-Env (`DOCSOPS_VERSION` ist nur Git-Ref beim Install, nicht App-Version).
+- **Runtime:** Backend liest **nur** `process.env.APP_VERSION`; fehlt der Wert → Fehler (kein Fallback auf andere `package.json`).
 - **Release:** Git-Tag `v0.2.0`, GitHub Release mit **Deploy-Bundle** (`docsops-v0.2.0.tar.gz`: Compose, Caddy, Install-Skripte) und **Container-Images** auf GHCR (`ghcr.io/<owner>/docsops-*:v0.2.0`, public wie Coolify). Production: `pull` + `up -d` — kein Monorepo-Clone, kein lokaler Build. Details: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
 - **Update:** `scripts/update.sh` lädt neues Bundle + Image-Tags, dann `compose pull` + `up -d` (§26).
 - **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) – wird mit der App ausgeliefert.
-- **Nummer bestimmen:** manuell beim Release (Patch/Minor/Major nach SemVer); optional später Tooling (Changesets / semantic-release).
+- **Nummer bestimmen:** **manuell beim Release** (bewusst, nicht pro Commit). Ein Release = ein SemVer-Sprung + Release Note + Git-Tag + deploytes Image/Bundle.
+- **SemVer-Kriterien:** **Patch** = Bugfixes/kleine UX; **Minor** = neue Features, rückwärtskompatibel; **Major** = Breaking Changes (Migration, inkompatible API). Während `0.x.y`: API/Betrieb dürfen sich noch ändern.
+- **Kein Auto-Patch pro Commit:** CI-Build-Nummern oder lange Patch-Zahlen (wie bei Enterprise-Software) sind **kein** Ziel — sie dienen dort oft als eindeutige Build-IDs bei tausenden Deployments. DocsOps: seltene, admin-gesteuerte Releases; `APP_VERSION` bleibt kurz und lesbar (`0.2.0`).
+- **Build-Metadaten (optional, später):** Git-Commit-SHA oder Build-Datum **getrennt** von `APP_VERSION` (z. B. in Logs, Backup-Manifest, Admin-About) — nicht als viertes SemVer-Segment oder aufgeblähter Patch.
+- **Tooling (optional, später):** [Changesets](https://github.com/changesets/changesets) für halbautomatischen Version-Bump beim Release-PR; kein vollautomatisches semantic-release mit Patch pro Merge.
+
+### Release-Ritual (Checkliste)
+
+1. `version` in Root-`package.json` bumpen (Patch/Minor/Major nach Kriterien oben).
+2. `content/releases/<version>.md` schreiben (Englisch, nutzerrelevante Änderungen).
+3. Eintrag in `content/releases/manifest.json`.
+4. `pnpm run lint` + Tests.
+5. Git-Tag `vX.Y.Z`, GitHub Release (Bundle + Images, vgl. **§19**).
+6. Stack/Images bauen bzw. pullen (`APP_VERSION` kommt aus Schritt 1 automatisch im Image).
 
 ---
 
@@ -267,7 +281,7 @@ Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hostin
 
 | Variable                 | Bedeutung                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
-| `APP_VERSION`            | Aus Build/`package.json`                                                                  |
+| `APP_VERSION`            | Beim Image-Build aus Root-`package.json`; Runtime nur Env (kein Fallback)                 |
 | `BACKUP_RETENTION_COUNT` | Max. Anzahl behaltener Backups (pro Destination / global – bei Implementierung festlegen) |
 | `BACKUP_SCHEDULE_CRON`   | Optional, Scheduler für automatische Backups                                              |
 | `UPDATE_CHECK_URL`       | Optional, URL für Versionsabfrage (Default: GitHub Releases)                              |

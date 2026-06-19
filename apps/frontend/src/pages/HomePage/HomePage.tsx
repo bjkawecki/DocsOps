@@ -165,7 +165,13 @@ export function HomePage() {
 
   return (
     <Box>
-      <Stack align="center" mb="md" gap="md" py="xl" pt="3rem" pb="2rem">
+      <Stack
+        align="center"
+        mb={{ base: 'md', md: 'sm' }}
+        gap={{ base: 'md', md: 'sm' }}
+        pt={{ base: '2rem', md: '0.75rem' }}
+        pb={{ base: '1.5rem', md: '0.75rem' }}
+      >
         <Group gap="lg" justify="center">
           <DocopsLogo width={112} height={112} />
           <Box component="span">
@@ -187,7 +193,7 @@ export function HomePage() {
         </Group>
       </Stack>
 
-      <Stack align="center" gap="md" mb="md">
+      <Stack align="center" gap="md" mb={{ base: 'md', md: 'sm' }}>
         <Box component="form" onSubmit={handleSearchSubmit} w="100%" maw={600} mx="auto">
           <TextInput
             ref={heroSearchInputRef}

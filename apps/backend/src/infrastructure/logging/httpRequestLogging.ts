@@ -1,7 +1,12 @@
 import type { FastifyRequest } from 'fastify';
 
 /** Probe and high-frequency read routes — not logged unless LOG_HTTP_REQUESTS=true. */
-const QUIET_HTTP_PATHS = new Set(['/ready', '/health', '/api/v1/maintenance/status']);
+const QUIET_HTTP_PATHS = new Set([
+  '/ready',
+  '/health',
+  '/api/v1/maintenance/status',
+  '/api/v1/system/version',
+]);
 
 function requestPath(req: FastifyRequest): string {
   return (req.url ?? '').split('?')[0] ?? '';

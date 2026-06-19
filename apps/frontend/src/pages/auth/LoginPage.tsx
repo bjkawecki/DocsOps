@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { fetchMe, meQueryKey } from '../../hooks/useMe';
 import { DocopsLogo } from '../../components/appShell/DocopsLogo';
+import { AppVersionLabel } from '../../components/AppVersionLabel';
 import { AppShellMaintenanceBanner } from '../../components/appShell/AppShellMaintenanceBanner';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus';
 import {
@@ -63,7 +64,14 @@ export function LoginPage() {
   }, [login.isError, redirectError]);
 
   return (
-    <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <Box
+      style={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100dvh',
+      }}
+    >
       <AppShellMaintenanceBanner status={maintenanceQuery.data} />
       <Box
         component="main"
@@ -154,6 +162,16 @@ export function LoginPage() {
             Forgot password? Contact your administrator. Need access? Contact IT.
           </Text>
         </Paper>
+      </Box>
+      <Box
+        component="footer"
+        style={{
+          position: 'absolute',
+          bottom: 'var(--mantine-spacing-xs)',
+          left: 'var(--mantine-spacing-md)',
+        }}
+      >
+        <AppVersionLabel variant="brand" />
       </Box>
     </Box>
   );

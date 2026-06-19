@@ -19,6 +19,7 @@ import {
 } from '@tabler/icons-react';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { MeResponse } from '../../api/me-types.js';
+import { AppVersionLabel } from '../AppVersionLabel.js';
 
 type Props = {
   me: MeResponse | undefined;
@@ -96,45 +97,54 @@ export function AppShellAccountMenu({
   return (
     <>
       <Divider my="sm" />
-      <Menu
-        position={isMiniRail ? 'right-end' : 'top-end'}
-        shadow="md"
-        width={200}
-        opened={accountMenuOpen}
-        onChange={setAccountMenuOpen}
-      >
-        <Menu.Target>
-          {isMiniRail ? (
-            <Tooltip label="Account" position="right" withArrow>
-              {trigger}
-            </Tooltip>
-          ) : (
-            trigger
-          )}
-        </Menu.Target>
-        <Menu.Dropdown data-user-menu-dropdown>
-          {me?.user?.isAdmin && (
-            <Menu.Item component={Link} to="/admin/users" leftSection={<IconShield size={14} />}>
-              Admin
+      <Stack gap={4} align={isMiniRail ? 'center' : 'stretch'}>
+        <Menu
+          position={isMiniRail ? 'right-end' : 'top-end'}
+          shadow="md"
+          width={200}
+          opened={accountMenuOpen}
+          onChange={setAccountMenuOpen}
+        >
+          <Menu.Target>
+            {isMiniRail ? (
+              <Tooltip label="Account" position="right" withArrow>
+                {trigger}
+              </Tooltip>
+            ) : (
+              trigger
+            )}
+          </Menu.Target>
+          <Menu.Dropdown data-user-menu-dropdown>
+            {me?.user?.isAdmin && (
+              <Menu.Item component={Link} to="/admin/users" leftSection={<IconShield size={14} />}>
+                Admin
+              </Menu.Item>
+            )}
+            <Menu.Item component={Link} to="/help/overview" leftSection={<IconHelp size={14} />}>
+              Help
             </Menu.Item>
-          )}
-          <Menu.Item component={Link} to="/help/overview" leftSection={<IconHelp size={14} />}>
-            Help
-          </Menu.Item>
-          <Menu.Item component={Link} to="/settings" leftSection={<IconSettings size={14} />}>
-            Settings
-          </Menu.Item>
-          <Menu.Divider />
-          <Menu.Item
-            leftSection={<IconLogout size={14} />}
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
-            color="red"
-          >
-            Log out
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
+            <Menu.Item component={Link} to="/settings" leftSection={<IconSettings size={14} />}>
+              Settings
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item
+              leftSection={<IconLogout size={14} />}
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
+              color="red"
+            >
+              Log out
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+        <AppVersionLabel
+          variant="compact"
+          ta={isMiniRail ? 'center' : 'left'}
+          pl={isMiniRail ? 0 : 'sm'}
+          fz={10}
+          lh={1.2}
+        />
+      </Stack>
     </>
   );
 }
