@@ -22,7 +22,7 @@ Install baut Images auf dem Server (`docker compose build`, Ausgabe unterdrückt
 
 Host: Linux, `sudo`, Port **80** frei; git/curl/openssl/Docker bei Bedarf via Skript.
 
-Vor Install: `df -h /`, `free -h` — unter **~4 GB frei** oft `no space left on device`. Dann `docker system prune -af` / Disk vergrößern.
+Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on device`. Dann `docker system prune -af` / Disk vergrößern.
 
 ---
 

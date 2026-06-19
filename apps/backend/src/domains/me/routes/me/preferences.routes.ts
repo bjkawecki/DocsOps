@@ -55,6 +55,9 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
       ...(body.primaryColor !== undefined && { primaryColor: body.primaryColor }),
       ...(body.textSize !== undefined && { textSize: body.textSize }),
       ...(body.recentItemsByScope !== undefined && { recentItemsByScope }),
+      ...(body.lastSeenReleaseVersion !== undefined && {
+        lastSeenReleaseVersion: body.lastSeenReleaseVersion,
+      }),
       ...(body.notificationSettings !== undefined && {
         notificationSettings: {
           inApp: {

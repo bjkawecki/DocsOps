@@ -50,6 +50,10 @@ export const patchPreferencesBodySchema = z.object({
   textSize: z.enum(['default', 'large', 'larger']).optional(),
   recentItemsByScope: z.record(z.string(), z.array(recentItemSchema).max(8)).optional(),
   notificationSettings: notificationSettingsSchema.optional(),
+  lastSeenReleaseVersion: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/, 'Version must be SemVer (e.g. 0.1.0)')
+    .optional(),
 });
 
 export type PatchPreferencesBody = z.infer<typeof patchPreferencesBodySchema>;

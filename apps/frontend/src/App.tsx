@@ -40,6 +40,7 @@ import { AdminJobsTab } from './pages/admin/AdminJobsTab';
 import { AdminSchedulerTab } from './pages/admin/AdminSchedulerTab';
 import { AdminBackupTab } from './pages/admin/AdminBackupTab/AdminBackupTab';
 import { AdminBroadcastTab } from './pages/admin/AdminBroadcastTab/index.js';
+import { WhatsNewPage } from './pages/whatsNew/WhatsNewPage';
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="whats-new" element={<WhatsNewPage />} />
           <Route path="help" element={<HelpLayout />}>
             <Route index element={<Navigate to="overview" replace />} />
             <Route path="overview" element={<HelpOverviewPage />} />

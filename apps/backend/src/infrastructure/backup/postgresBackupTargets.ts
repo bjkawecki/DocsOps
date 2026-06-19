@@ -1,7 +1,7 @@
 /** PostgreSQL objects excluded from operational backup/restore (see runbook). */
 export const BACKUP_EXCLUDED_SCHEMAS = ['pgboss'] as const;
 
-/** Volatile singleton row — must not be restored from archive snapshots. */
+/** Volatile singleton row – must not be restored from archive snapshots. */
 export const BACKUP_EXCLUDED_TABLE_DATA = ['public."SystemMaintenanceLock"'] as const;
 
 export function buildPgDumpArgs(outputPath: string, databaseUrl: string): string[] {

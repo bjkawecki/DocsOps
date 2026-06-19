@@ -17,7 +17,7 @@ function deleteConfirmMessage(run: BackupRun): string {
     return 'Remove the local copy from DocsOps and delete this entry from backup history. The archive on the external destination is kept.';
   }
   if (hasLocal && !hasExternal) {
-    return 'Remove the local copy and delete this entry from backup history. There is no external copy — this backup will no longer be available in DocsOps.';
+    return 'Remove the local copy and delete this entry from backup history. There is no external copy – this backup will no longer be available in DocsOps.';
   }
   if (!hasLocal && hasExternal) {
     return 'Delete this entry from backup history in DocsOps. The archive on the external destination is kept.';

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
   Avatar,
+  Badge,
   Box,
   Divider,
   Group,
@@ -16,9 +17,11 @@ import {
   IconLogout,
   IconSettings,
   IconShield,
+  IconSparkles,
 } from '@tabler/icons-react';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { MeResponse } from '../../api/me-types.js';
+import { useWhatsNewBadge } from '../../hooks/useWhatsNewBadge.js';
 import { AppVersionLabel } from '../AppVersionLabel.js';
 
 type Props = {
@@ -46,6 +49,7 @@ export function AppShellAccountMenu({
   isMiniRail = false,
 }: Props) {
   const displayName = me?.user?.name ?? 'Account';
+  const showWhatsNewBadge = useWhatsNewBadge();
 
   const trigger = (
     <UnstyledButton
@@ -115,6 +119,20 @@ export function AppShellAccountMenu({
             )}
           </Menu.Target>
           <Menu.Dropdown data-user-menu-dropdown>
+            <Menu.Item
+              component={Link}
+              to="/whats-new"
+              leftSection={<IconSparkles size={14} />}
+              rightSection={
+                showWhatsNewBadge ? (
+                  <Badge size="xs" variant="filled">
+                    New
+                  </Badge>
+                ) : undefined
+              }
+            >
+              What&apos;s new
+            </Menu.Item>
             {me?.user?.isAdmin && (
               <Menu.Item component={Link} to="/admin/users" leftSection={<IconShield size={14} />}>
                 Admin

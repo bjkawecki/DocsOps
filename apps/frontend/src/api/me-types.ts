@@ -60,6 +60,7 @@ export type MeResponse = {
         orgChanges?: boolean;
       };
     };
+    lastSeenReleaseVersion?: string;
   };
   /** Nur gesetzt, wenn Admin gerade als anderer Nutzer agiert. */
   impersonation?: { active: true; realUser: { id: string; name: string } };

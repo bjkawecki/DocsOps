@@ -1,5 +1,5 @@
 ---
-description: Fallbacks vermeiden — nur mit expliziter Zustimmung einführen
+description: Fallbacks vermeiden – nur mit expliziter Zustimmung einführen
 alwaysApply: true
 ---
 
@@ -10,20 +10,20 @@ Fallbacks (Alternative Code-Pfade, wenn die primäre Quelle fehlt oder fehlschl�
 ## Regeln
 
 1. **Primärquelle explizit:** Eine dokumentierte SSoT oder Pflicht-Konfiguration; fehlt sie → **klarer Fehler** (Throw, Startup-Abbruch, 503 mit erklärender Meldung), nicht stiller Ersatzwert.
-2. **Kein Fallback ohne Absprache:** Neue Fallback-Ketten (`A ?? B ?? C`, Default-Env, „irgendwie weiterlaufen“) nur nach **expliziter Zustimmung** im Task/Review — in Code-Kommentar oder Plan kurz begründen.
+2. **Kein Fallback ohne Absprache:** Neue Fallback-Ketten (`A ?? B ?? C`, Default-Env, „irgendwie weiterlaufen“) nur nach **expliziter Zustimmung** im Task/Review – in Code-Kommentar oder Plan kurz begründen.
 3. **Ableitung ≠ Fallback:** Werte, die **deterministisch** aus der SSoT beim Build/Start gesetzt werden (z. B. `APP_VERSION` aus Root-`package.json` im Dockerfile), sind kein Laufzeit-Fallback, solange Runtime **nur** den gesetzten Wert liest und bei Fehlen abbricht.
-4. **Dev/Test:** Gleiche Strenge; Umgebung über dokumentierte Skripte (`run-with-app-version`, Vitest-`env`) aus SSoT befüllen — nicht in Produktionscode aus `package.json` nachladen.
+4. **Dev/Test:** Gleiche Strenge; Umgebung über dokumentierte Skripte (`run-with-app-version`, Vitest-`env`) aus SSoT befüllen – nicht in Produktionscode aus `package.json` nachladen.
 
 ## Beispiele
 
 ```typescript
-// ❌ BAD — stille Fallback-Kette
+// ❌ BAD – stille Fallback-Kette
 const version = process.env.APP_VERSION ?? readPackageJson() ?? '0.0.0';
 
-// ✅ GOOD — eine Lesequelle, sonst Fehler
+// ✅ GOOD – eine Lesequelle, sonst Fehler
 const version = process.env.APP_VERSION?.trim();
 if (!version) throw new AppVersionNotConfiguredError();
 
-// ✅ GOOD — Build setzt APP_VERSION aus SSoT; Runtime liest nur Env
+// ✅ GOOD – Build setzt APP_VERSION aus SSoT; Runtime liest nur Env
 // (Dockerfile: aus root package.json; Entrypoint exportiert)
 ```

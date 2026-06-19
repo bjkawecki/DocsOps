@@ -32,6 +32,7 @@ type UserPreferences = {
     | 'fuchsia';
   textSize?: 'default' | 'large' | 'larger';
   recentItemsByScope?: Record<string, RecentPreferencesItem[]>;
+  lastSeenReleaseVersion?: string;
   notificationSettings?: {
     inApp?: {
       documentChanges?: boolean;

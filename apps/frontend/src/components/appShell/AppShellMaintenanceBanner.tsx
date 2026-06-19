@@ -7,9 +7,9 @@ type Props = {
 
 function bannerMessage(status: MaintenanceStatus): string {
   if (status.reason === 'restore') {
-    return 'Disaster recovery restore in progress — write operations are temporarily blocked. You may need to sign in again when complete.';
+    return 'Disaster recovery restore in progress – write operations are temporarily blocked. You may need to sign in again when complete.';
   }
-  return 'Backup in progress — write operations are temporarily blocked.';
+  return 'Backup in progress – write operations are temporarily blocked.';
 }
 
 export function AppShellMaintenanceBanner({ status }: Props) {

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Install typst binary on Alpine (musl). Not in all Alpine repos — use GitHub release.
+# Install typst binary on Alpine (musl). Not in all Alpine repos – use GitHub release.
 # Expects: tar, xz, and wget or curl (worker/dev Dockerfiles install these before calling).
 set -eu
 

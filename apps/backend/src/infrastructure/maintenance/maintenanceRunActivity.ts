@@ -25,7 +25,7 @@ async function pgBossJobActive(
   return job != null && ACTIVE_PG_BOSS_JOB_STATES.has(job.state);
 }
 
-/** True when the backup worker or lock indicates this run is executing — not a stale DB row. */
+/** True when the backup worker or lock indicates this run is executing – not a stale DB row. */
 export async function isBackupRunActivelyRunning(
   prisma: MaintenanceActivityDb,
   run: { id: string; pgBossJobId: string | null }
@@ -35,7 +35,7 @@ export async function isBackupRunActivelyRunning(
   return pgBossJobActive('maintenance.backup', run.pgBossJobId);
 }
 
-/** True when the restore worker or lock indicates this run is executing — not a stale DB row. */
+/** True when the restore worker or lock indicates this run is executing – not a stale DB row. */
 export async function isRestoreRunActivelyRunning(
   prisma: MaintenanceActivityDb,
   run: { id: string; pgBossJobId: string | null }

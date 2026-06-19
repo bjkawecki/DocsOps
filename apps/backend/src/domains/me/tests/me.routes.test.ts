@@ -325,6 +325,36 @@ describe('Me routes (GET/PATCH /me, GET/PATCH /me/preferences)', () => {
     expect(prefs?.recentItemsByScope?.[scopeKey]).toHaveLength(2);
   });
 
+  it('PATCH /api/v1/me/preferences → lastSeenReleaseVersion gespeichert und per GET geliefert', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
+    });
+    const cookie = getCookieHeader(loginRes);
+
+    const patchRes = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/me/preferences',
+      headers: { cookie },
+      payload: { lastSeenReleaseVersion: '0.2.0' },
+    });
+    expect(patchRes.statusCode).toBe(200);
+    expect((patchRes.json() as { lastSeenReleaseVersion?: string }).lastSeenReleaseVersion).toBe(
+      '0.2.0'
+    );
+
+    const getRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/me/preferences',
+      headers: { cookie },
+    });
+    expect(getRes.statusCode).toBe(200);
+    expect((getRes.json() as { lastSeenReleaseVersion?: string }).lastSeenReleaseVersion).toBe(
+      '0.2.0'
+    );
+  });
+
   it('GET /api/v1/me/drafts ohne Cookie → 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/me/drafts' });
     expect(res.statusCode).toBe(401);

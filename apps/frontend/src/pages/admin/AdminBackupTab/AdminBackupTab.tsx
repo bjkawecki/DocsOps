@@ -167,7 +167,7 @@ export function AdminBackupTab() {
         notifications.show({
           title: 'Restore completed',
           message:
-            'Database and object storage were restored. All sessions were invalidated — sign in again to continue.',
+            'Database and object storage were restored. All sessions were invalidated – sign in again to continue.',
           color: 'green',
           autoClose: 15_000,
         });

@@ -39,7 +39,7 @@ ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Job worker: PDF export (pandoc + typst — deutlich kleiner als TeX)
+# Job worker: PDF export (pandoc + typst – deutlich kleiner als TeX)
 FROM runtime-base AS worker
 ARG TYPST_VERSION=0.13.1
 COPY docker/install-typst-alpine.sh /tmp/install-typst-alpine.sh

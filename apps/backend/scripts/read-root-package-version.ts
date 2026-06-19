@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Reads SemVer from root package.json (SSoT). For dev/test/build tooling only —
+ * Reads SemVer from root package.json (SSoT). For dev/test/build tooling only –
  * runtime code must use process.env.APP_VERSION via resolveAppVersion().
  */
 export function readRootPackageVersion(): string {

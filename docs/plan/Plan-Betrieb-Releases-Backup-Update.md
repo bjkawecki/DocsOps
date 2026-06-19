@@ -6,16 +6,16 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 
 ## 1. Versionierung (gemeinsame Basis)
 
-- **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`) — **einzige** manuelle Stelle beim Release.
+- **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`) – **einzige** manuelle Stelle beim Release.
 - **Deploy:** Beim Image-Build wird `APP_VERSION` **deterministisch aus** Root-`package.json` abgeleitet (`/APP_VERSION` im Image, Entrypoint exportiert). **Kein** separates SemVer-Env (`DOCSOPS_VERSION` ist nur Git-Ref beim Install, nicht App-Version).
 - **Runtime:** Backend liest **nur** `process.env.APP_VERSION`; fehlt der Wert → Fehler (kein Fallback auf andere `package.json`).
-- **Release:** Git-Tag `v0.2.0`, GitHub Release mit **Deploy-Bundle** (`docsops-v0.2.0.tar.gz`: Compose, Caddy, Install-Skripte) und **Container-Images** auf GHCR (`ghcr.io/<owner>/docsops-*:v0.2.0`, public wie Coolify). Production: `pull` + `up -d` — kein Monorepo-Clone, kein lokaler Build. Details: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
+- **Release:** Git-Tag `v0.2.0`, GitHub Release mit **Deploy-Bundle** (`docsops-v0.2.0.tar.gz`: Compose, Caddy, Install-Skripte) und **Container-Images** auf GHCR (`ghcr.io/<owner>/docsops-*:v0.2.0`, public wie Coolify). Production: `pull` + `up -d` – kein Monorepo-Clone, kein lokaler Build. Details: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
 - **Update:** `scripts/update.sh` lädt neues Bundle + Image-Tags, dann `compose pull` + `up -d` (§26).
 - **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) – wird mit der App ausgeliefert.
 - **Nummer bestimmen:** **manuell beim Release** (bewusst, nicht pro Commit). Ein Release = ein SemVer-Sprung + Release Note + Git-Tag + deploytes Image/Bundle.
 - **SemVer-Kriterien:** **Patch** = Bugfixes/kleine UX; **Minor** = neue Features, rückwärtskompatibel; **Major** = Breaking Changes (Migration, inkompatible API). Während `0.x.y`: API/Betrieb dürfen sich noch ändern.
-- **Kein Auto-Patch pro Commit:** CI-Build-Nummern oder lange Patch-Zahlen (wie bei Enterprise-Software) sind **kein** Ziel — sie dienen dort oft als eindeutige Build-IDs bei tausenden Deployments. DocsOps: seltene, admin-gesteuerte Releases; `APP_VERSION` bleibt kurz und lesbar (`0.2.0`).
-- **Build-Metadaten (optional, später):** Git-Commit-SHA oder Build-Datum **getrennt** von `APP_VERSION` (z. B. in Logs, Backup-Manifest, Admin-About) — nicht als viertes SemVer-Segment oder aufgeblähter Patch.
+- **Kein Auto-Patch pro Commit:** CI-Build-Nummern oder lange Patch-Zahlen (wie bei Enterprise-Software) sind **kein** Ziel – sie dienen dort oft als eindeutige Build-IDs bei tausenden Deployments. DocsOps: seltene, admin-gesteuerte Releases; `APP_VERSION` bleibt kurz und lesbar (`0.2.0`).
+- **Build-Metadaten (optional, später):** Git-Commit-SHA oder Build-Datum **getrennt** von `APP_VERSION` (z. B. in Logs, Backup-Manifest, Admin-About) – nicht als viertes SemVer-Segment oder aufgeblähter Patch.
 - **Tooling (optional, später):** [Changesets](https://github.com/changesets/changesets) für halbautomatischen Version-Bump beim Release-PR; kein vollautomatisches semantic-release mit Patch pro Merge.
 
 ### Release-Ritual (Checkliste)
@@ -44,7 +44,27 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 
 - Route **`/whats-new`** (eigene URL, nicht unter `/help`).
 - **Account-Menü** (Sidebar unten): erster Eintrag **What's new** (vor Admin / Help / Settings).
-- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) – Badge, solange installierte Version neuer ist als zuletzt gesehen.
+- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) – Badge, solange installierte Version neuer ist als zuletzt gesehen. Beim Besuch von `/whats-new` wird `lastSeenReleaseVersion` auf die installierte Version gesetzt (Badge verschwindet danach).
+
+### Markdown-Konvention (Release Notes)
+
+**Metadaten** in `content/releases/manifest.json`: `version`, `date`, `title` (Kurztitel für API/Liste – sollte mit dem `#`-Titel in der Markdown-Datei übereinstimmen). **Karten-Header:** Package-Icon + `vX.Y.Z`, Datum, Status-Badges. **`#`-Titel und Changelog** im einklappbaren Body (nur neueste Version standardmäßig offen).
+
+In `content/releases/*.md`:
+
+- **`# Release-Titel`** als erste Zeile (z. B. `# Editor & admin polish`) – kein `# DocsOps X.Y.Z` (Version steht in der Karten-Meta-Zeile).
+- Optional 1–2 Einleitungssätze als Fließtext.
+- Strukturierte Abschnitte unter `###` (case-insensitive):
+
+| `###`-Überschrift | Darstellung in `/whats-new` |
+| ----------------- | --------------------------- |
+| Features          | grünes Häkchen-Icon         |
+| Fixes             | gelbes Bug-Icon             |
+| Performance       | violettes Blitz-Icon        |
+| Other             | normale `h3`, kein Icon     |
+| unbekannt         | normale `h3`, kein Icon     |
+
+Kein `## Highlights`. Listen unter `###` sind Standard-Markdown-Bullets.
 
 ### Abgrenzung
 
@@ -134,7 +154,7 @@ Pro Destination oder global: **HTTPS-URL**, die bei Erfolg/Fehler ein **JSON-Eve
 
 ### Abgrenzung zu Plattform-Export (§4)
 
-Beide sichern **dieselbe logische Plattform** (Organisation, User, Kontexte, Dokumente, Rechte, Dateien). Der Unterschied liegt in **Zweck, Format und Restore-Szenario** — **nicht** in „Dokumente vs. Rest“:
+Beide sichern **dieselbe logische Plattform** (Organisation, User, Kontexte, Dokumente, Rechte, Dateien). Der Unterschied liegt in **Zweck, Format und Restore-Szenario** – **nicht** in „Dokumente vs. Rest“:
 
 |                      | **Operational Backup** (§3)                               | **Plattform-Export** (§4)                                                          |
 | -------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -143,15 +163,15 @@ Beide sichern **dieselbe logische Plattform** (Organisation, User, Kontexte, Dok
 | **Häufigkeit**       | Geplant (z. B. täglich), Retention                        | Selten, **explizit** vom Admin                                                     |
 | **Enthält typisch**  | Gesamte DB inkl. Sessions, Job-Queue, Backup-Metadaten    | Domänendaten; **ohne** Betriebsballast (Sessions, pg-boss, Notifications optional) |
 | **Restore/Import**   | `pg_restore` + MinIO (Bit-Snapshot)                       | Logischer Import mit **ID-Remapping** über Services                                |
-| **Gemeinsamer Job?** | **Nein** — getrennte Job-Typen, UI-Bereiche und Retention |
+| **Gemeinsamer Job?** | **Nein** – getrennte Job-Typen, UI-Bereiche und Retention |
 
-Vor einer Migration kann ein Admin **nacheinander** DR-Backup und Plattform-Export anstoßen (Sicherheitsnetz + Migrationsartefakt) — das ist **keine** technische Kopplung in einem Job.
+Vor einer Migration kann ein Admin **nacheinander** DR-Backup und Plattform-Export anstoßen (Sicherheitsnetz + Migrationsartefakt) – das ist **keine** technische Kopplung in einem Job.
 
 ---
 
 ## 4. Plattform-Export & Migration (separates Feature)
 
-**Ziel:** DocsOps-Inhalte und Struktur auf einem **anderen** Server (oder frischen Stack) wieder nutzbar machen — Umzug, Staging-Klon, Testinstanz, später Tenant-Export (Managed Hosting).
+**Ziel:** DocsOps-Inhalte und Struktur auf einem **anderen** Server (oder frischen Stack) wieder nutzbar machen – Umzug, Staging-Klon, Testinstanz, später Tenant-Export (Managed Hosting).
 
 **Nicht** dasselbe wie Operational Backup: kein Ersatz für tägliches DR; **nicht** im selben Job oder Scheduler wie `maintenance.backup`.
 
@@ -162,7 +182,7 @@ Vor einer Migration kann ein Admin **nacheinander** DR-Backup und Plattform-Expo
 
 ### Architektur
 
-- **Eigene Job-Typen:** z. B. `maintenance.platform-export` und `maintenance.platform-import` (pg-boss, Worker) — analog Backup, aber **separater** Handler und Metadaten-Tabelle.
+- **Eigene Job-Typen:** z. B. `maintenance.platform-export` und `maintenance.platform-import` (pg-boss, Worker) – analog Backup, aber **separater** Handler und Metadaten-Tabelle.
 - **Kein** `pg_dump` im Export; Import **kein** `pg_restore`. Daten fließen über **Domänen-Services** (Organisation, User, Kontexte, Dokumente, Rechte, Storage).
 - Kurzer **Wartungsmodus** während Import (Writes gesperrt); Export kann ohne Voll-Wartungsmodus laufen (konsistente Snapshots pro Phase dokumentieren).
 
@@ -193,7 +213,7 @@ docsops-platform-export-<exportId>-<timestamp>.tar.zst
 
 ### Import-Ablauf (Job + UI)
 
-**Admin-UI (eigener Bereich):** Tab **Admin → Migration** (Route z. B. `/admin/migration`) — **nicht** im Backup-Tab. Backup-Tab bleibt **Operational / Disaster recovery**; Restore aus DR-Backups gehört dorthin (§3 Phase 2).
+**Admin-UI (eigener Bereich):** Tab **Admin → Migration** (Route z. B. `/admin/migration`) – **nicht** im Backup-Tab. Backup-Tab bleibt **Operational / Disaster recovery**; Restore aus DR-Backups gehört dorthin (§3 Phase 2).
 
 **UI-Schritte (v1):**
 
@@ -231,9 +251,9 @@ Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | **Admin → Backup** (`/admin/backup`)       | Operational Backup: Ziele, Schedule-Hinweis, Historie, Download, **Restore aus DR-Archiv** (Phase 2) |
 | **Admin → Migration** (`/admin/migration`) | Plattform-Export starten, Export-Historie, **Import**                                                |
-| **Admin → System** (`/admin/system`, §5)   | Version, Update, Backup-Gate — kein Migrations-Export                                                |
+| **Admin → System** (`/admin/system`, §5)   | Version, Update, Backup-Gate – kein Migrations-Export                                                |
 
-Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“ — zu unscharf; Plattform-Export ist ebenfalls „Daten“).
+Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“ – zu unscharf; Plattform-Export ist ebenfalls „Daten“).
 
 ### Abhängigkeiten
 
@@ -270,7 +290,7 @@ Siehe auch [Infrastruktur §3](Infrastruktur-und-Deployment.md#3-update-aus-der-
 2. Version-API + Release-Manifest + `/whats-new` + Menü/Badge (§24; kann parallel zu Backup)
 3. Update UI Phase 1 + `update.sh` (§26; Backup-Gate)
 4. Backup Phase 2: Restore-UI im Backup-Tab, WebDAV-Ziel, optional Webhook-Härtung
-5. **Plattform-Export & Import** (§4, Umsetzungs-Todo §27) — eigener Admin-Tab Migration
+5. **Plattform-Export & Import** (§4, Umsetzungs-Todo §27) – eigener Admin-Tab Migration
 6. Update Phase 2 (Updater-Sidecar)
 
 Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hosting, optional, später).

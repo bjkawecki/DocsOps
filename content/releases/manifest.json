@@ -5,6 +5,16 @@
       "version": "0.1.0",
       "date": "2026-06-16",
       "title": "Initial internal release"
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-07-01",
+      "title": "Notifications & What's new"
+    },
+    {
+      "version": "0.3.0",
+      "date": "2026-08-15",
+      "title": "Editor & admin polish"
     }
   ]
 }
