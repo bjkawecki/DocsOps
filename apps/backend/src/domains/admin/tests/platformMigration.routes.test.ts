@@ -15,6 +15,27 @@ function getCookieHeader(res: { headers: Record<string, unknown> }): string {
   return '';
 }
 
+const INSTANCE_COUNT_KEYS = [
+  'companies',
+  'departments',
+  'teams',
+  'users',
+  'contexts',
+  'processes',
+  'projects',
+  'subcontexts',
+  'documents',
+  'attachmentFiles',
+] as const;
+
+type InstanceCountsKey = (typeof INSTANCE_COUNT_KEYS)[number];
+
+function expectNumericInstanceCounts(counts: Record<InstanceCountsKey, number>): void {
+  for (const key of INSTANCE_COUNT_KEYS) {
+    expect(typeof counts[key]).toBe('number');
+  }
+}
+
 describe('Admin platform migration routes', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
   let adminId: string;
@@ -106,11 +127,26 @@ describe('Admin platform migration routes', () => {
     const body = res.json() as {
       minioAvailable: boolean;
       workerConnected: boolean;
+      instanceEmpty: boolean;
+      instanceCounts: {
+        companies: number;
+        departments: number;
+        teams: number;
+        users: number;
+        contexts: number;
+        processes: number;
+        projects: number;
+        subcontexts: number;
+        documents: number;
+        attachmentFiles: number;
+      };
       lastExportRun: unknown;
       lastImportRun: unknown;
     };
     expect(typeof body.minioAvailable).toBe('boolean');
     expect(typeof body.workerConnected).toBe('boolean');
+    expect(typeof body.instanceEmpty).toBe('boolean');
+    expectNumericInstanceCounts(body.instanceCounts);
     expect(body.lastExportRun === null || typeof body.lastExportRun === 'object').toBe(true);
     expect(body.lastImportRun === null || typeof body.lastImportRun === 'object').toBe(true);
   });

@@ -123,10 +123,11 @@ export async function buildApp(): Promise<FastifyInstance> {
 
       // Unbekannt → 500
       request.log.error(err);
-      const message =
-        process.env.NODE_ENV === 'test'
-          ? err.message || 'Interner Serverfehler'
-          : 'Interner Serverfehler';
+      const showErrorDetail =
+        process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';
+      const message = showErrorDetail
+        ? err.message || 'Interner Serverfehler'
+        : 'Interner Serverfehler';
       return reply.status(500).send({ error: message });
     }
   );

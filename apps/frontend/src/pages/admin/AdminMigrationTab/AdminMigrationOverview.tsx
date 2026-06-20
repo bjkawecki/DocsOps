@@ -1,128 +1,142 @@
-import { Alert, Badge, Button, Card, Group, Stack, Text, Title } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { Button, Group, Text, Tooltip } from '@mantine/core';
 import {
-  type PlatformMigrationStatus,
   formatBytes,
-  formatPlatformExportStatus,
-  formatPlatformImportStatus,
-  isFailedPlatformImportStatus,
+  formatPlatformRunStatus,
+  type PlatformMigrationStatus,
 } from './adminMigrationTypes';
+import { MigrationInfrastructureBadges } from './MigrationInfrastructureBadges';
+import { PlatformInstanceCountsTable } from './PlatformInstanceCountsTable';
+import { triggerPlatformExportDownload } from './migrationUiHelpers';
 
 type Props = {
   status: PlatformMigrationStatus;
-  onExport: () => void;
-  onImport: () => void;
   exportDisabled: boolean;
   importDisabled: boolean;
+  exportDisabledReason: string | null;
+  importDisabledReason: string | null;
+  onExport: () => void;
+  onImport: () => void;
 };
 
-function exportStatusColor(status: string): string {
-  if (status === 'succeeded') return 'green';
-  if (status === 'failed') return 'red';
-  return 'blue';
+function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus }) {
+  const { lastExportRun, activeExportRun } = status;
+  const canDownload = lastExportRun?.status === 'succeeded' && lastExportRun.localObjectKey != null;
+
+  if (activeExportRun) {
+    return (
+      <Group gap={6} wrap="wrap" align="center">
+        <Text size="sm" c="dimmed">
+          Export in progress…
+        </Text>
+        {canDownload && lastExportRun ? (
+          <Text
+            component="button"
+            type="button"
+            size="sm"
+            c="dimmed"
+            td="underline"
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+            onClick={() => triggerPlatformExportDownload(lastExportRun.id)}
+          >
+            Download previous archive
+          </Text>
+        ) : null}
+      </Group>
+    );
+  }
+
+  if (canDownload && lastExportRun) {
+    const sizeLabel = lastExportRun.sizeBytes != null ? formatBytes(lastExportRun.sizeBytes) : null;
+    return (
+      <Group gap={6} wrap="wrap" align="center">
+        {sizeLabel ? (
+          <Text size="sm" c="dimmed">
+            {sizeLabel}
+          </Text>
+        ) : null}
+        <Text
+          component="button"
+          type="button"
+          size="sm"
+          c="dimmed"
+          td="underline"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+          onClick={() => triggerPlatformExportDownload(lastExportRun.id)}
+        >
+          Download export archive
+        </Text>
+      </Group>
+    );
+  }
+
+  if (lastExportRun && lastExportRun.status !== 'succeeded') {
+    return (
+      <Text size="sm" c="dimmed">
+        Last export {formatPlatformRunStatus(lastExportRun.status, 'export').toLowerCase()}.
+      </Text>
+    );
+  }
+
+  return (
+    <Text size="sm" c="dimmed">
+      No export archive yet.
+    </Text>
+  );
 }
 
 export function AdminMigrationOverview({
   status,
-  onExport,
-  onImport,
   exportDisabled,
   importDisabled,
+  exportDisabledReason,
+  importDisabledReason,
+  onExport,
+  onImport,
 }: Props) {
-  const lastExport = status.lastExportRun;
-  const activeExport = status.activeExportRun;
-  const activeImport = status.activeImportRun;
-  const lastImport = status.lastImportRun;
-  const manifest = lastExport?.manifestJson;
-  const counts = manifest?.counts;
-
-  const lastImportFailed = lastImport != null && isFailedPlatformImportStatus(lastImport.status);
-
   return (
-    <Stack gap="md">
-      <Card withBorder padding="md" radius="md">
-        <Stack gap="sm">
-          <Group justify="space-between" align="center">
-            <Title order={4}>Export</Title>
-            <Button onClick={onExport} disabled={exportDisabled}>
+    <>
+      <Group mb="md" justify="space-between" wrap="wrap" gap="sm" align="center">
+        <Group gap="md" wrap="wrap" align="center">
+          <MigrationInfrastructureBadges
+            minioAvailable={status.minioAvailable}
+            workerConnected={status.workerConnected}
+          />
+          <ExportArchiveCommandHint status={status} />
+        </Group>
+        <Group gap="sm" align="center" wrap="nowrap">
+          <Tooltip
+            label={exportDisabledReason ?? ''}
+            disabled={!exportDisabled || !exportDisabledReason}
+          >
+            <Button size="xs" disabled={exportDisabled} onClick={onExport}>
               Export platform
             </Button>
-          </Group>
-          <Group gap="xs" wrap="wrap">
-            <Badge color={status.minioAvailable ? 'green' : 'red'} variant="filled">
-              MinIO {status.minioAvailable ? 'OK' : 'unavailable'}
-            </Badge>
-            <Badge color={status.workerConnected ? 'green' : 'yellow'} variant="filled">
-              Worker {status.workerConnected ? 'OK' : 'disconnected'}
-            </Badge>
-          </Group>
-          {activeExport ? (
-            <Text size="sm" c="blue">
-              Export in progress: {formatPlatformExportStatus(activeExport.status)}…
-            </Text>
-          ) : lastExport ? (
-            <Stack gap={4}>
-              <Group gap="xs">
-                <Badge color={exportStatusColor(lastExport.status)}>{lastExport.status}</Badge>
-                <Text size="sm" c="dimmed">
-                  {new Date(lastExport.createdAt).toLocaleString()}
-                </Text>
-              </Group>
-              <Text size="sm">
-                Size: {formatBytes(lastExport.sizeBytes)}
-                {manifest?.sourceAppVersion ? ` · Version ${manifest.sourceAppVersion}` : ''}
-              </Text>
-              {counts ? (
-                <Text size="sm" c="dimmed">
-                  Users: {counts.users ?? 0} · Documents: {counts.documents ?? 0} · Files:{' '}
-                  {counts.attachmentFiles ?? 0}
-                </Text>
-              ) : null}
-              {lastExport.errorMessage ? (
-                <Text size="sm" c="red">
-                  {lastExport.errorMessage}
-                </Text>
-              ) : null}
-            </Stack>
-          ) : (
-            <Text size="sm" c="dimmed">
-              No platform export yet.
-            </Text>
-          )}
-        </Stack>
-      </Card>
-
-      <Card withBorder padding="md" radius="md">
-        <Stack gap="sm">
-          <Group justify="space-between" align="center">
-            <Title order={4}>Import</Title>
-            <Button onClick={onImport} disabled={importDisabled}>
+          </Tooltip>
+          <Tooltip
+            label={importDisabledReason ?? ''}
+            disabled={!importDisabled || !importDisabledReason}
+          >
+            <Button size="xs" variant="default" disabled={importDisabled} onClick={onImport}>
               Import platform
             </Button>
-          </Group>
-          <Text size="sm" c="dimmed">
-            Upload a platform export archive on an empty instance. For disaster recovery, use{' '}
-            <Link to="/admin/backup">Backup</Link>.
-          </Text>
-          {activeImport ? (
-            <Text size="sm" c="blue">
-              Import in progress: {formatPlatformImportStatus(activeImport.status)}…
-            </Text>
-          ) : null}
-          {lastImportFailed && lastImport ? (
-            <Alert color="red" variant="filled" title="Last import did not succeed">
-              <Text size="sm">
-                {new Date(lastImport.createdAt).toLocaleString()} — {lastImport.status}
-              </Text>
-              {lastImport.errorMessage ? (
-                <Text size="sm" mt={4}>
-                  {lastImport.errorMessage}
-                </Text>
-              ) : null}
-            </Alert>
-          ) : null}
-        </Stack>
-      </Card>
-    </Stack>
+          </Tooltip>
+        </Group>
+      </Group>
+
+      <PlatformInstanceCountsTable
+        instanceEmpty={status.instanceEmpty}
+        counts={status.instanceCounts}
+      />
+    </>
   );
 }

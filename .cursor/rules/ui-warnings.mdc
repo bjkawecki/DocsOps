@@ -1,22 +1,34 @@
 ---
-description: Mantine warning alerts use filled style, not variant light
+description: Mantine warnings and errors use red filled Alerts/Badges, not yellow or variant light
 globs: apps/frontend/**/*.{tsx,ts}
 alwaysApply: false
 ---
 
-# Warning and error alerts (Mantine)
+# Warnings, errors, and status badges (Mantine)
 
-For **warnings** (`color="yellow"`, `color="orange"`, `color="amber"`) and **errors** (`color="red"`):
+For **warnings**, **errors**, and **critical blocking states** (`color="red"` on `Alert` or `Badge`):
 
-- Use the default **filled** Alert (omit `variant`, or set `variant="filled"`).
-- Do **not** use `variant="light"` for warnings – it looks muddy in dark mode and is too weak.
+- Use **filled** style: omit `variant` on `Alert`, or set `variant="filled"`.
+- On `Badge`, use `variant="filled"`.
+- Do **not** use `color="yellow"`, `orange`, or `amber` for warnings or unavailable/critical states – use **red**.
+- Do **not** use `variant="light"` for these – it looks muddy in dark mode and is too weak.
+
+**Success** status (`color="green"` on Alert or Badge): use `variant="filled"`, not `variant="light"`.
 
 Neutral/info alerts (`gray`, `blue`) may use `variant="light"` when a subtle tone is intended.
 
-```tsx
-// Good
-<Alert color="yellow" title="Encryption not configured">...</Alert>
+`Button` and `ThemeIcon` are not covered here; `variant="light"` on those is still fine when appropriate.
 
-// Avoid for warnings
+```tsx
+// Good – warning / error / blocked Alert
+<Alert color="red" variant="filled" title="Import not available">...</Alert>
+
+// Good – status Badge
+<Badge color="green" variant="filled">Succeeded</Badge>
+<Badge color={minioOk ? 'green' : 'red'} variant="filled">MinIO OK</Badge>
+
+// Avoid
+<Alert color="yellow" variant="filled" title="...">...</Alert>
 <Alert color="yellow" variant="light" title="...">...</Alert>
+<Badge color="green" variant="light">Succeeded</Badge>
 ```

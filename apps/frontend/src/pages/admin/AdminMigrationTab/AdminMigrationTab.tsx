@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Alert, Stack } from '@mantine/core';
+import { Alert, Loader, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../api/client';
 import { AdminMigrationExportModal } from './AdminMigrationExportModal';
 import { AdminMigrationImportModal } from './AdminMigrationImportModal';
 import { AdminMigrationOverview } from './AdminMigrationOverview';
+import { AdminMigrationStatusAlerts } from './AdminMigrationStatusAlerts';
 import type { PlatformMigrationStatus } from './adminMigrationTypes';
 import { getMigrationStatusRefetchIntervalMs } from './migrationRunPolling';
+import { getExportDisabledReason, getImportDisabledReason } from './migrationUiHelpers';
 
 export function AdminMigrationTab() {
   const queryClient = useQueryClient();
@@ -42,30 +44,32 @@ export function AdminMigrationTab() {
   });
 
   const status = statusQuery.data;
-  const exportDisabled =
-    !status?.minioAvailable || Boolean(status?.activeExportRun) || statusQuery.isLoading;
-  const importDisabled =
-    Boolean(status?.activeImportRun) ||
-    status?.maintenanceReason === 'platform-import' ||
-    statusQuery.isLoading;
+  const exportDisabledReason = getExportDisabledReason(status, statusQuery.isLoading);
+  const importDisabledReason = getImportDisabledReason(status, statusQuery.isLoading);
+  const exportDisabled = exportDisabledReason != null;
+  const importDisabled = importDisabledReason != null;
 
   return (
-    <Stack gap="lg">
-      <Alert color="blue" variant="light">
-        Platform migration exports logical domain data for moving to another server or cloning a
-        test instance. This is not disaster recovery. For rollback, use the Backup tab.
-      </Alert>
-
+    <Stack gap="md">
       {statusQuery.isError ? (
-        <Alert color="red">Failed to load migration status.</Alert>
+        <Alert color="red" variant="filled">
+          Failed to load migration status.
+        </Alert>
+      ) : statusQuery.isPending ? (
+        <Loader size="sm" />
       ) : status ? (
-        <AdminMigrationOverview
-          status={status}
-          onExport={openExport}
-          onImport={openImport}
-          exportDisabled={exportDisabled}
-          importDisabled={importDisabled}
-        />
+        <>
+          <AdminMigrationStatusAlerts status={status} />
+          <AdminMigrationOverview
+            status={status}
+            exportDisabled={exportDisabled}
+            importDisabled={importDisabled}
+            exportDisabledReason={exportDisabledReason}
+            importDisabledReason={importDisabledReason}
+            onExport={openExport}
+            onImport={openImport}
+          />
+        </>
       ) : null}
 
       <AdminMigrationExportModal

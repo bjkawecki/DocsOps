@@ -7,6 +7,7 @@ import type { StorageService } from '../../../../infrastructure/storage/index.js
 import { ExportIdMap } from './idRemap.js';
 import type { AttachmentsMap } from './exportDomainData.js';
 import type { PlatformImportRunStatus } from '../../../../../generated/prisma/client.js';
+import { readExportUsers, resolveOrCreateImportedUser } from './platformImportUsers.js';
 
 async function readJson<T>(path: string): Promise<T> {
   const raw = await readFile(path, 'utf8');
@@ -61,34 +62,13 @@ export async function importDomainDataFromDirectory(
     idMap.set(t.exportId, created.id);
   }
 
-  const users = await readJson<
-    Array<{
-      exportId: string;
-      name: string;
-      email: string | null;
-      externalId: string | null;
-      isAdmin: boolean;
-      deletedAt: string | null;
-      preferences: Prisma.InputJsonValue | null;
-      passwordHash: string | null;
-    }>
-  >(join(args.bundleDir, 'users.json'));
+  const users = await readExportUsers(args.bundleDir);
 
   await args.onPhase('importing_users');
 
   for (const u of users) {
-    const created = await prisma.user.create({
-      data: {
-        name: u.name,
-        email: u.email,
-        externalId: u.externalId,
-        isAdmin: u.isAdmin,
-        deletedAt: u.deletedAt ? new Date(u.deletedAt) : null,
-        preferences: u.preferences ?? undefined,
-        passwordHash: args.transferPasswordHashes ? u.passwordHash : null,
-      },
-    });
-    idMap.set(u.exportId, created.id);
+    const userId = await resolveOrCreateImportedUser(prisma, u, args.transferPasswordHashes);
+    idMap.set(u.exportId, userId);
   }
 
   for (const m of org.teamMembers) {
@@ -271,7 +251,8 @@ export async function importDomainDataFromDirectory(
         contextId: idMap.get(d.contextExportId),
         deletedAt: d.deletedAt ? new Date(d.deletedAt) : null,
         archivedAt: d.archivedAt ? new Date(d.archivedAt) : null,
-        publishedAt: d.publishedAt ? new Date(d.publishedAt) : null,
+        // publishedAt deferred until currentPublishedVersionId exists (DB CHECK constraint).
+        publishedAt: null,
         description: d.description,
         createdById: idMap.get(d.createdByExportId),
         createdAt: new Date(d.createdAt),
@@ -325,6 +306,7 @@ export async function importDomainDataFromDirectory(
       where: { id: idMap.getOrThrow(d.exportId) },
       data: {
         currentPublishedVersionId: idMap.getOrThrow(d.currentPublishedVersionExportId),
+        publishedAt: d.publishedAt ? new Date(d.publishedAt) : null,
       },
     });
   }

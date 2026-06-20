@@ -9,6 +9,7 @@ import {
   type PlatformExportManifest,
 } from './platformManifest.js';
 import { appVersion } from '../../../../infrastructure/appVersion.js';
+import { findExistingEmailsForExportUsers, readExportUsers } from './platformImportUsers.js';
 
 export type PlatformImportPreflightResult = {
   ok: boolean;
@@ -76,6 +77,18 @@ export async function runPlatformImportPreflight(
     warnings.push(
       `Source app version (${manifest.sourceAppVersion}) differs from target (${appVersion}). Password hash transfer will be disabled.`
     );
+  }
+
+  try {
+    const exportUsers = await readExportUsers(bundleDir);
+    const overlappingEmails = await findExistingEmailsForExportUsers(prisma, exportUsers);
+    if (overlappingEmails.length > 0) {
+      warnings.push(
+        `${overlappingEmails.length} export user(s) share an email with an existing account on this instance (${overlappingEmails.join(', ')}). Those accounts will be linked during import instead of creating duplicates.`
+      );
+    }
+  } catch {
+    // users.json missing or invalid; covered by manifest file checks above
   }
 
   return {

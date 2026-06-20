@@ -104,39 +104,51 @@ export async function triggerPlatformImportUpload(
     },
   });
 
-  const uploadObjectKey = await uploadPlatformImportArchive(storage, args.fileStream, run.id);
-
-  await prisma.platformImportRun.update({
-    where: { id: run.id },
-    data: { uploadObjectKey },
-  });
-
+  const uploadObjectKey = `platform-imports/uploads/${run.id}.tar.zst`;
   const workDir = await mkdtemp(join(tmpdir(), 'docsops-platform-preflight-'));
-  const archivePath = join(workDir, 'archive.tar.zst');
+  const archivePath = join(workDir, filename);
   const bundleDir = join(workDir, 'bundle');
 
   try {
-    const object = await storage.getObject(uploadObjectKey);
-    if (!object) throw new Error('Failed to read uploaded archive');
-    await pipeline(object.Body, createWriteStream(archivePath));
-    await extractZstdTarArchive(archivePath, bundleDir);
-    const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+    try {
+      await pipeline(args.fileStream, createWriteStream(archivePath));
+      await uploadPlatformImportArchive(storage, archivePath, run.id);
 
-    const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
-    await prisma.platformImportRun.update({
-      where: { id: run.id },
-      data: {
+      await prisma.platformImportRun.update({
+        where: { id: run.id },
+        data: { uploadObjectKey },
+      });
+
+      await extractZstdTarArchive(archivePath, bundleDir);
+      const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+
+      const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
+      await prisma.platformImportRun.update({
+        where: { id: run.id },
+        data: {
+          status,
+          preflightJson: preflight,
+          errorMessage: preflight.ok ? null : preflight.errors.join('; '),
+        },
+      });
+
+      return {
+        platformImportRunId: run.id,
+        preflight,
         status,
-        preflightJson: preflight,
-        errorMessage: preflight.ok ? null : preflight.errors.join('; '),
-      },
-    });
-
-    return {
-      platformImportRunId: run.id,
-      preflight,
-      status,
-    };
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await storage.deleteObject(uploadObjectKey).catch(() => undefined);
+      await prisma.platformImportRun.update({
+        where: { id: run.id },
+        data: {
+          status: 'preflight_failed',
+          errorMessage: message,
+        },
+      });
+      throw error;
+    }
   } finally {
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }

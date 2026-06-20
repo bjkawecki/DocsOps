@@ -64,32 +64,75 @@ function serializeImportRun(run: {
 }
 
 export async function getPlatformMigrationStatus(prisma: PrismaClient) {
-  const [minioAvailable, health, maintenance, activeExport, lastExport, activeImport, lastImport] =
-    await Promise.all([
-      isMinioAvailableForPlatformMigration(),
-      getAdminJobsHealth(prisma),
-      getPublicMaintenanceStatus(prisma),
-      prisma.platformExportRun.findFirst({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.platformExportRun.findFirst({
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.platformImportRun.findFirst({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.platformImportRun.findFirst({
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
+  const [
+    minioAvailable,
+    health,
+    maintenance,
+    activeExport,
+    lastExport,
+    activeImport,
+    lastImport,
+    companyCount,
+    documentCount,
+    userCount,
+    departmentCount,
+    teamCount,
+    contextCount,
+    processCount,
+    projectCount,
+    subcontextCount,
+    attachmentFileCount,
+  ] = await Promise.all([
+    isMinioAvailableForPlatformMigration(),
+    getAdminJobsHealth(prisma),
+    getPublicMaintenanceStatus(prisma),
+    prisma.platformExportRun.findFirst({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.platformExportRun.findFirst({
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.platformImportRun.findFirst({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.platformImportRun.findFirst({
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.company.count(),
+    prisma.document.count(),
+    prisma.user.count({ where: { deletedAt: null } }),
+    prisma.department.count(),
+    prisma.team.count(),
+    prisma.context.count(),
+    prisma.process.count(),
+    prisma.project.count(),
+    prisma.subcontext.count(),
+    prisma.documentAttachment.count(),
+  ]);
+
+  const instanceEmpty = companyCount === 0 && documentCount === 0;
+  const configuredCompanyCount = companyCount > 0 ? 1 : 0;
 
   return {
     minioAvailable,
     workerConnected: health.workerConnected,
     maintenanceActive: maintenance.active,
     maintenanceReason: maintenance.reason ?? null,
+    instanceEmpty,
+    instanceCounts: {
+      companies: configuredCompanyCount,
+      departments: departmentCount,
+      teams: teamCount,
+      users: userCount,
+      contexts: contextCount,
+      processes: processCount,
+      projects: projectCount,
+      subcontexts: subcontextCount,
+      documents: documentCount,
+      attachmentFiles: attachmentFileCount,
+    },
     activeExportRun: activeExport ? serializeExportRun(activeExport) : null,
     lastExportRun: lastExport ? serializeExportRun(lastExport) : null,
     activeImportRun: activeImport ? serializeImportRun(activeImport) : null,

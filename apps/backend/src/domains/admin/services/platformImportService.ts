@@ -1,4 +1,3 @@
-import type { Readable } from 'node:stream';
 import { createWriteStream } from 'node:fs';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -16,6 +15,10 @@ import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import type { JobPayloadByType } from '../../../infrastructure/jobs/jobTypes.js';
 import { appVersion } from '../../../infrastructure/appVersion.js';
 import { importDomainDataFromDirectory } from './platformMigration/importDomainData.js';
+import {
+  capturePreImportUserSnapshots,
+  rollbackFailedPlatformImport,
+} from './platformMigration/platformDomainDataCleanup.js';
 import {
   runPlatformImportPreflight,
   type PlatformImportPreflightResult,
@@ -141,16 +144,41 @@ export async function runPlatformImport(
       throw new Error(preflight.errors.join('; ') || 'Preflight failed');
     }
 
-    await importDomainDataFromDirectory(prisma, storage, {
-      bundleDir,
-      transferPasswordHashes,
-      onPhase: async (status) => {
-        await prisma.platformImportRun.update({
-          where: { id: platformImportRunId },
-          data: { status },
+    const preImportUsers = await capturePreImportUserSnapshots(prisma);
+    let importStarted = false;
+
+    try {
+      importStarted = true;
+      await importDomainDataFromDirectory(prisma, storage, {
+        bundleDir,
+        transferPasswordHashes,
+        onPhase: async (status) => {
+          await prisma.platformImportRun.update({
+            where: { id: platformImportRunId },
+            data: { status },
+          });
+        },
+      });
+    } catch (importError) {
+      if (importStarted) {
+        logger.warn(
+          { platformImportRunId },
+          'Platform import failed mid-run; rolling back imported domain data'
+        );
+        await rollbackFailedPlatformImport(prisma, storage, preImportUsers).catch(
+          (rollbackError: unknown) => {
+            logger.error(
+              { platformImportRunId, error: rollbackError },
+              'Platform import rollback failed'
+            );
+          }
+        );
+        await enqueueJob('search.reindex.full', { reason: 'manual' }).catch((err: unknown) => {
+          logger.warn({ err }, 'Failed to enqueue search reindex after import rollback');
         });
-      },
-    });
+      }
+      throw importError;
+    }
 
     await prisma.platformImportRun.update({
       where: { id: platformImportRunId },
@@ -193,12 +221,12 @@ export async function runPlatformImport(
 }
 
 export async function uploadPlatformImportArchive(
-  storage: Awaited<ReturnType<typeof initStorage>>,
-  fileStream: Readable,
+  storage: NonNullable<Awaited<ReturnType<typeof initStorage>>>,
+  filePath: string,
   platformImportRunId: string
 ): Promise<string> {
   const key = `platform-imports/uploads/${platformImportRunId}.tar.zst`;
-  await storage.uploadStream(key, fileStream, 'application/zstd');
+  await storage.uploadFilePath(key, filePath, 'application/zstd');
   return key;
 }
 

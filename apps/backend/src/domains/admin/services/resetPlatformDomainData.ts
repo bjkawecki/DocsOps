@@ -2,6 +2,10 @@ import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import type { StorageService } from '../../../infrastructure/storage/index.js';
 import { assertMaintenanceAvailable } from '../../../infrastructure/maintenance/maintenanceModeService.js';
 import { assertDevDestructiveDebugOperationAllowed } from './devDebugGuard.js';
+import {
+  clearPlatformDomainDataInTransaction,
+  deleteNonAdminUsersInTransaction,
+} from './platformMigration/platformDomainDataCleanup.js';
 
 const DOMAIN_OBJECT_PREFIXES = ['attachments/', 'platform-exports/', 'platform-imports/'] as const;
 
@@ -22,30 +26,8 @@ export async function resetPlatformDomainData(
   await assertMaintenanceAvailable(prisma);
 
   const deletedNonAdminUsers = await prisma.$transaction(async (tx) => {
-    await tx.document.updateMany({
-      data: { currentPublishedVersionId: null, publishedAt: null },
-    });
-    await tx.document.deleteMany({});
-    await tx.context.deleteMany({});
-    await tx.owner.deleteMany({});
-    await tx.teamMember.deleteMany({});
-    await tx.teamLead.deleteMany({});
-    await tx.departmentLead.deleteMany({});
-    await tx.companyLead.deleteMany({});
-    await tx.team.deleteMany({});
-    await tx.department.deleteMany({});
-    await tx.company.deleteMany({});
-
-    const nonAdminUsers = await tx.user.findMany({
-      where: { isAdmin: false },
-      select: { id: true },
-    });
-    const nonAdminIds = nonAdminUsers.map((u) => u.id);
-    if (nonAdminIds.length > 0) {
-      await tx.session.deleteMany({ where: { userId: { in: nonAdminIds } } });
-      await tx.user.deleteMany({ where: { id: { in: nonAdminIds } } });
-    }
-    return nonAdminIds.length;
+    await clearPlatformDomainDataInTransaction(tx);
+    return deleteNonAdminUsersInTransaction(tx);
   });
 
   if (storage) {

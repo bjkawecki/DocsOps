@@ -18,6 +18,7 @@ import {
   runPlatformImportPreflightForRun,
   triggerPlatformImportUpload,
 } from '../services/adminPlatformImportRunService.js';
+import { formatPlatformImportUploadError } from '../services/platformImportUploadErrors.js';
 import { writeAdminPlatformMigrationAudit } from '../services/adminPlatformMigrationAuditService.js';
 
 const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
@@ -63,12 +64,13 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
     '/admin/platform-imports/upload',
     { preHandler: preAdmin, bodyLimit: maxUploadBytes },
     async (request, reply) => {
-      const file = await request.file();
-      if (!file) {
-        return reply.status(400).send({ error: 'Missing file upload' });
-      }
-      const filename = file.filename?.trim() || 'upload.tar.zst';
+      let filename = 'upload.tar.zst';
       try {
+        const file = await request.file();
+        if (!file) {
+          return reply.status(400).send({ error: 'Missing file upload' });
+        }
+        filename = file.filename?.trim() || 'upload.tar.zst';
         const result = await triggerPlatformImportUpload(request.server.prisma, {
           fileStream: file.file,
           triggeredByUserId: (request as RequestWithUser).user.id,
@@ -82,17 +84,13 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
         });
         return reply.status(202).send(result);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const { clientError, message } = formatPlatformImportUploadError(error);
         await writeAuditSafe(request as RequestWithUser, {
           action: 'platform-import-upload',
           status: 'failed',
           details: { error: message, filename },
         });
-        if (
-          message.includes('.tar.zst') ||
-          message.includes('MinIO') ||
-          message.includes('already in progress')
-        ) {
+        if (clientError) {
           return reply.status(400).send({ error: message });
         }
         throw error;
@@ -115,8 +113,11 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
         });
         return reply.send(result);
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return reply.status(400).send({ error: message });
+        const { clientError, message } = formatPlatformImportUploadError(error);
+        if (clientError) {
+          return reply.status(400).send({ error: message });
+        }
+        throw error;
       }
     }
   );
@@ -149,13 +150,9 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
           platformImportRunId: id,
           details: { error: message },
         });
-        if (
-          message.includes('not ready') ||
-          message.includes('Preflight') ||
-          message.includes('already in progress') ||
-          message.includes('Password hash')
-        ) {
-          return reply.status(400).send({ error: message });
+        const { clientError, message: clientMessage } = formatPlatformImportUploadError(error);
+        if (clientError) {
+          return reply.status(400).send({ error: clientMessage });
         }
         throw error;
       }

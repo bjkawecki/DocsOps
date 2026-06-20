@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Group, Loader, Modal, Stack, Stepper, Text } from '@mantine/core';
+import { Alert, Loader, Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { apiBase, apiFetch } from '../../../api/client';
+import { apiFetch } from '../../../api/client';
 import {
   type PlatformExportRun,
+  formatBytes,
   formatPlatformExportStatus,
   isInProgressPlatformExportStatus,
 } from './adminMigrationTypes';
+import { triggerPlatformExportDownload } from './migrationUiHelpers';
+import { MigrationWizardFooter } from './MigrationWizardFooter';
+import { MigrationWizardLayout } from './MigrationWizardLayout';
 import { isTerminalExportStatus, MIGRATION_RUN_POLL_INTERVAL_MS } from './migrationRunPolling';
 
 type Props = {
@@ -16,7 +20,12 @@ type Props = {
   onClose: () => void;
 };
 
-const EXPORT_STEPS = ['Overview', 'Confirm', 'Progress', 'Done'] as const;
+const EXPORT_WIZARD_STEPS = [
+  { label: 'Overview', description: 'What is exported' },
+  { label: 'Confirm', description: 'Start export job' },
+  { label: 'Progress', description: 'Job status' },
+  { label: 'Done', description: 'Download archive' },
+] as const;
 
 export function AdminMigrationExportModal({ opened, onClose }: Props) {
   const queryClient = useQueryClient();
@@ -32,7 +41,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
       if (!res.ok) throw new Error('Failed to load export status');
       return res.json() as Promise<PlatformExportRun>;
     },
-    enabled: opened && exportRunId != null,
+    enabled: opened && exportRunId != null && activeStep >= 2,
     refetchInterval: (query) => {
       const run = query.state.data;
       if (!run || isTerminalExportStatus(run.status)) return false;
@@ -57,7 +66,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     if (!exportRun || exportRun.status !== 'succeeded' || activeStep !== 3) return;
     if (autoDownloadedRef.current === exportRun.id) return;
     autoDownloadedRef.current = exportRun.id;
-    triggerDownload(exportRun.id);
+    triggerPlatformExportDownload(exportRun.id);
   }, [exportRun, activeStep]);
 
   const exportMutation = useMutation({
@@ -79,12 +88,6 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     },
   });
 
-  const triggerDownload = (id: string) => {
-    const anchor = document.createElement('a');
-    anchor.href = `${apiBase}/api/v1/admin/platform-exports/${id}/download`;
-    anchor.click();
-  };
-
   const handleClose = () => {
     setActiveStep(0);
     setExportRunId(null);
@@ -93,106 +96,139 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
   };
 
   useEffect(() => {
-    if (!opened) return;
-    setActiveStep(0);
-    setExportRunId(null);
-    autoDownloadedRef.current = null;
+    if (!opened) {
+      setActiveStep(0);
+      setExportRunId(null);
+      autoDownloadedRef.current = null;
+    }
   }, [opened]);
+
+  const stepContent = (() => {
+    if (activeStep === 0) {
+      return (
+        <Stack gap="sm">
+          <Text size="sm">
+            Creates a <code>docsops-platform-export-*.tar.zst</code> archive with organization,
+            users, contexts, documents, grants, tags, pins, comments, suggestions, and file
+            attachments. Sessions, notifications, and backup metadata are not included.
+          </Text>
+          <Alert color="red" variant="filled" title="Not disaster recovery">
+            For disaster recovery on the same server, use operational backup on the{' '}
+            <Link to="/admin/backup">Backup</Link> tab instead.
+          </Alert>
+        </Stack>
+      );
+    }
+
+    if (activeStep === 1) {
+      return (
+        <Alert color="blue" variant="light">
+          The export job reads domain data from the database and MinIO. Large instances may take
+          several minutes.
+        </Alert>
+      );
+    }
+
+    if (activeStep === 2) {
+      return (
+        <Stack gap="sm" align="center">
+          <Loader size="sm" />
+          <Text size="sm">
+            {exportRun ? formatPlatformExportStatus(exportRun.status) : 'Starting export…'}
+          </Text>
+          {exportRun?.status === 'packaging' ? (
+            <Text size="xs" c="dimmed">
+              Packaging archive for download…
+            </Text>
+          ) : null}
+        </Stack>
+      );
+    }
+
+    if (activeStep === 3 && exportRun) {
+      if (exportRun.status === 'succeeded') {
+        return (
+          <Stack gap="sm">
+            <Alert color="green" variant="filled" title="Export complete">
+              Archive size: {formatBytes(exportRun.sizeBytes)}
+            </Alert>
+            <Text size="sm" c="dimmed">
+              The download should start automatically. If not, use Download again below.
+            </Text>
+          </Stack>
+        );
+      }
+
+      return (
+        <Alert color="red" title="Export failed">
+          {exportRun.errorMessage ?? 'Unknown error'}
+        </Alert>
+      );
+    }
+
+    return null;
+  })();
+
+  const footer = (() => {
+    if (activeStep === 0) {
+      return (
+        <MigrationWizardFooter
+          onCancel={handleClose}
+          showPrimary
+          primaryLabel="Continue"
+          onPrimary={() => setActiveStep(1)}
+        />
+      );
+    }
+
+    if (activeStep === 1) {
+      return (
+        <MigrationWizardFooter
+          onCancel={handleClose}
+          showBack
+          onBack={() => setActiveStep(0)}
+          showPrimary
+          primaryLabel="Start export"
+          onPrimary={() => exportMutation.mutate()}
+          primaryLoading={exportMutation.isPending}
+        />
+      );
+    }
+
+    if (activeStep === 3 && exportRun?.status === 'succeeded') {
+      return (
+        <MigrationWizardFooter
+          secondaryLabel="Download again"
+          onSecondary={() => triggerPlatformExportDownload(exportRun.id)}
+          showPrimary
+          primaryLabel="Done"
+          onPrimary={handleClose}
+        />
+      );
+    }
+
+    if (activeStep === 3 && exportRun?.status === 'failed') {
+      return <MigrationWizardFooter onCancel={handleClose} cancelLabel="Close" />;
+    }
+
+    return null;
+  })();
 
   return (
     <Modal
       opened={opened}
       onClose={handleClose}
       title="Export platform"
-      size="lg"
+      size="xl"
       closeOnClickOutside={activeStep < 2}
     >
-      <Stack gap="md">
-        <Stepper active={activeStep} size="sm">
-          {EXPORT_STEPS.map((label) => (
-            <Stepper.Step key={label} label={label} />
-          ))}
-        </Stepper>
-
-        {activeStep === 0 && (
-          <Stack gap="sm">
-            <Text size="sm">
-              Creates a <code>docsops-platform-export-*.tar.zst</code> archive with organization,
-              users, contexts, documents, grants, tags, pins, comments, suggestions, and file
-              attachments. Sessions, notifications, and backup metadata are not included.
-            </Text>
-            <Alert color="blue" variant="filled">
-              For disaster recovery on the same server, use operational backup on the{' '}
-              <Link to="/admin/backup">Backup</Link> tab instead.
-            </Alert>
-            <Group justify="flex-end">
-              <Button variant="default" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button onClick={() => setActiveStep(1)}>Continue</Button>
-            </Group>
-          </Stack>
-        )}
-
-        {activeStep === 1 && (
-          <Stack gap="sm">
-            <Alert color="orange" variant="filled">
-              The export job reads domain data from the database and MinIO. Large instances may take
-              several minutes.
-            </Alert>
-            <Group justify="flex-end">
-              <Button variant="default" onClick={() => setActiveStep(0)}>
-                Back
-              </Button>
-              <Button loading={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
-                Start export
-              </Button>
-            </Group>
-          </Stack>
-        )}
-
-        {activeStep === 2 && (
-          <Stack gap="sm" align="center">
-            <Loader size="sm" />
-            <Text size="sm">
-              {exportRun ? formatPlatformExportStatus(exportRun.status) : 'Starting export…'}
-            </Text>
-          </Stack>
-        )}
-
-        {activeStep === 3 && exportRun && (
-          <Stack gap="sm">
-            {exportRun.status === 'succeeded' ? (
-              <>
-                <Alert color="green" variant="filled" title="Export complete">
-                  Archive size:{' '}
-                  {exportRun.sizeBytes != null
-                    ? `${Math.round(exportRun.sizeBytes / 1024)} KB`
-                    : 'unknown'}
-                </Alert>
-                <Text size="sm" c="dimmed">
-                  The download should start automatically. If not, use the button below.
-                </Text>
-                <Group justify="flex-end">
-                  <Button variant="filled" onClick={() => triggerDownload(exportRun.id)}>
-                    Download again
-                  </Button>
-                  <Button onClick={handleClose}>Done</Button>
-                </Group>
-              </>
-            ) : (
-              <>
-                <Alert color="red" title="Export failed">
-                  {exportRun.errorMessage ?? 'Unknown error'}
-                </Alert>
-                <Group justify="flex-end">
-                  <Button onClick={handleClose}>Close</Button>
-                </Group>
-              </>
-            )}
-          </Stack>
-        )}
-      </Stack>
+      <MigrationWizardLayout
+        activeStep={activeStep}
+        steps={[...EXPORT_WIZARD_STEPS]}
+        footer={footer}
+      >
+        {stepContent}
+      </MigrationWizardLayout>
     </Modal>
   );
 }

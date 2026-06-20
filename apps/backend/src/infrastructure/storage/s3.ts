@@ -65,12 +65,14 @@ export async function uploadStream(
   body: Readable | Buffer,
   contentType?: string
 ): Promise<void> {
+  const contentLength = Buffer.isBuffer(body) ? body.byteLength : undefined;
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       Body: body,
       ContentType: contentType ?? undefined,
+      ...(contentLength != null ? { ContentLength: contentLength } : {}),
     })
   );
 }

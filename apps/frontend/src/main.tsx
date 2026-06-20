@@ -8,6 +8,7 @@ import App from './App';
 import { COLOR_SCHEME_STORAGE_KEY } from './constants';
 import { appTheme } from './theme';
 import '@mantine/core/styles.css';
+import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
 import './styles/links.css';
 import './styles/table-rows.css';
