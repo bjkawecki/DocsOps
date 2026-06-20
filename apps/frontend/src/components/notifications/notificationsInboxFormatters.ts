@@ -17,6 +17,10 @@ export function eventHeadline(eventType: string): string {
     'backup-failed': 'Backup failed',
     'backup-restore-succeeded': 'Restore completed successfully',
     'backup-restore-failed': 'Restore failed',
+    'platform-export-succeeded': 'Platform export completed',
+    'platform-export-failed': 'Platform export failed',
+    'platform-import-succeeded': 'Platform import completed',
+    'platform-import-failed': 'Platform import failed',
     'admin-broadcast': 'System message',
     'team-member-added': 'Added to team',
     'team-member-removed': 'Removed from team',
@@ -108,6 +112,26 @@ export function notificationBodyText(
     const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
     return truncate(msg, 160);
   }
+  if (eventType === 'platform-export-succeeded') {
+    const count = typeof payload.documentCount === 'number' ? payload.documentCount : null;
+    const size =
+      typeof payload.sizeBytes === 'number' ? ` (${Math.round(payload.sizeBytes / 1024)} KB)` : '';
+    return `Platform export finished${size}${count != null ? ` · ${count} documents` : ''}.`;
+  }
+  if (eventType === 'platform-export-failed') {
+    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    return truncate(msg, 160);
+  }
+  if (eventType === 'platform-import-succeeded') {
+    const count = typeof payload.documentCount === 'number' ? payload.documentCount : null;
+    return count != null
+      ? `Imported ${count} documents. Search index reindex was queued.`
+      : 'Platform data imported. Search index reindex was queued.';
+  }
+  if (eventType === 'platform-import-failed') {
+    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    return truncate(msg, 160);
+  }
   if (eventType === 'document-comment-created') {
     const kind = typeof payload.kind === 'string' ? payload.kind : '';
     const previewText =
@@ -144,6 +168,7 @@ export function notificationSourceLabel(item: NotificationItem): string {
     return 'Organization';
   }
   if (item.eventType.startsWith('backup-')) return 'System';
+  if (item.eventType.startsWith('platform-')) return 'System';
   if (item.eventType.startsWith('draft-request-')) return 'Review';
   if (payloadDocumentId(item.payload) != null) return 'Document';
   return 'Notification';
@@ -172,6 +197,9 @@ export function notificationDocumentHref(
   eventType: string,
   payload: Record<string, unknown>
 ): string | null {
+  if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-')) {
+    return '/admin/migration';
+  }
   const docId = payloadDocumentId(payload);
   if (docId == null) return null;
   const commentId = payloadCommentId(payload);

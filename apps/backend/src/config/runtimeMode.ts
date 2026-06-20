@@ -24,3 +24,12 @@ export function isAdminImpersonationEnabled(): boolean {
   if (process.env.ALLOW_ADMIN_IMPERSONATION === '0') return false;
   return process.env.NODE_ENV === 'development';
 }
+
+/**
+ * Dev-only reset of platform domain data (admin users kept).
+ */
+export function isPlatformResetEnabled(): boolean {
+  if (process.env.ALLOW_PLATFORM_RESET === '1') return true;
+  if (process.env.ALLOW_PLATFORM_RESET === '0') return false;
+  return process.env.NODE_ENV === 'development';
+}

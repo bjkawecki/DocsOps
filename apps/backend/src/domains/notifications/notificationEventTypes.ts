@@ -20,6 +20,10 @@ export const BACKUP_SYSTEM_NOTIFICATION_EVENT_TYPES = [
   'backup-failed',
   'backup-restore-succeeded',
   'backup-restore-failed',
+  'platform-export-succeeded',
+  'platform-export-failed',
+  'platform-import-succeeded',
+  'platform-import-failed',
 ] as const;
 
 export const ADMIN_SYSTEM_NOTIFICATION_EVENT_TYPES = ['admin-broadcast'] as const;
@@ -59,6 +63,8 @@ export function resolveNotificationPreferenceCategory(
   eventType: string
 ): NotificationPreferenceCategory {
   if (eventType === 'admin-broadcast' || eventType.startsWith('backup-')) return 'system';
+  if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-'))
+    return 'system';
   if (ORG_EVENT_TYPE_SET.has(eventType)) return 'orgChanges';
   if (eventType.includes('draft-request')) return 'draftRequests';
   if (eventType.includes('reminder')) return 'reminders';

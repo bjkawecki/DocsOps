@@ -95,6 +95,9 @@ model User {
   backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
   restoreRunsTriggered  RestoreRun[] @relation("RestoreRunTriggeredBy")
   backupActionAudits    AdminBackupActionAudit[]
+  platformExportRunsTriggered PlatformExportRun[] @relation("PlatformExportRunTriggeredBy")
+  platformImportRunsTriggered PlatformImportRun[] @relation("PlatformImportRunTriggeredBy")
+  platformMigrationAudits     AdminPlatformMigrationAudit[]
 }
 
 /// Session für Cookie-basierte Auth. Session-ID = id im httpOnly-Cookie; Ablauf über expiresAt.
@@ -494,13 +497,14 @@ model BackupRun {
   @@index([createdAt(sort: Desc)])
 }
 
-/// Active maintenance lock (singleton row id = "backup" during operational backup or restore).
+/// Active maintenance lock (singleton row id = "backup" during operational backup, restore, or platform import).
 model SystemMaintenanceLock {
-  id           String    @id @default("backup")
-  reason       String
-  backupRunId  String?
-  restoreRunId String?
-  lockedAt     DateTime  @default(now())
+  id                 String    @id @default("backup")
+  reason             String
+  backupRunId        String?
+  restoreRunId       String?
+  platformImportRunId String?
+  lockedAt           DateTime  @default(now())
 }
 
 enum RestoreRunStatus {
@@ -550,6 +554,98 @@ model AdminBackupActionAudit {
   status        String
   details       Json     @default("{}")
   createdAt     DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action, status, createdAt(sort: Desc)])
+}
+
+// --- Platform export / import (§27) ---
+
+enum PlatformExportRunStatus {
+  queued
+  running
+  packaging
+  succeeded
+  failed
+}
+
+enum PlatformImportRunStatus {
+  uploaded
+  preflight_failed
+  awaiting_confirm
+  queued
+  running
+  importing_organization
+  importing_users
+  importing_owners
+  importing_contexts
+  importing_documents
+  importing_versions
+  importing_tags
+  importing_grants
+  importing_pins
+  importing_comments
+  importing_suggestions
+  importing_files
+  succeeded
+  failed
+}
+
+enum PlatformImportRunSource {
+  upload
+}
+
+/// One platform export execution (logical domain archive for migration).
+model PlatformExportRun {
+  id                String                  @id @default(cuid())
+  status            PlatformExportRunStatus @default(queued)
+  triggeredByUserId String?
+  triggeredBy       User?                   @relation("PlatformExportRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  archiveSha256     String?
+  sizeBytes         BigInt?
+  localObjectKey    String?
+  manifestJson      Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime                @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// One platform import execution (logical domain restore into empty instance).
+model PlatformImportRun {
+  id                String                   @id @default(cuid())
+  status            PlatformImportRunStatus  @default(uploaded)
+  source            PlatformImportRunSource  @default(upload)
+  uploadObjectKey   String?
+  triggeredByUserId String?
+  triggeredBy       User?                    @relation("PlatformImportRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  preflightJson     Json?
+  optionsJson       Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime                 @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Audit log for admin platform migration actions.
+model AdminPlatformMigrationAudit {
+  id                  String   @id @default(cuid())
+  actorUserId         String
+  actor               User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action              String
+  platformExportRunId String?
+  platformImportRunId String?
+  status              String
+  details             Json     @default("{}")
+  createdAt           DateTime @default(now())
 
   @@index([createdAt(sort: Desc)])
   @@index([action, status, createdAt(sort: Desc)])

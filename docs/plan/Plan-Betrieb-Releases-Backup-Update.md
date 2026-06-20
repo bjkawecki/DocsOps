@@ -44,11 +44,12 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 
 - Route **`/whats-new`** (eigene URL, nicht unter `/help`).
 - **Account-Menü** (Sidebar unten): erster Eintrag **What's new** (vor Admin / Help / Settings).
-- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) – Badge, solange installierte Version neuer ist als zuletzt gesehen. Beim Besuch von `/whats-new` wird `lastSeenReleaseVersion` auf die installierte Version gesetzt (Badge verschwindet danach).
+- **Badge „Neu“:** `userPreferences.lastSeenReleaseVersion` (PATCH über `/api/v1/me/preferences`) – Badge, solange die **installierte** Version neuer ist als zuletzt gesehen (Nutzer hat Release Notes der laufenden Version noch nicht geöffnet). Beim Besuch von `/whats-new` wird `lastSeenReleaseVersion` auf die installierte Version gesetzt (Badge verschwindet danach). **Kein** Hinweis auf extern verfügbare Updates (das ist **§26**, nur Admin).
+- **Keine** Anzeige „You're on vX.Y.Z“ auf der Seite – installierte Version ist Endnutzern operativ irrelevant; Admins sehen sie unter **§26** (`/admin/system`) und im Account-Menü-Footer.
 
 ### Markdown-Konvention (Release Notes)
 
-**Metadaten** in `content/releases/manifest.json`: `version`, `date`, `title` (Kurztitel für API/Liste – sollte mit dem `#`-Titel in der Markdown-Datei übereinstimmen). **Karten-Header:** Package-Icon + `vX.Y.Z`, Datum, Status-Badges. **`#`-Titel und Changelog** im einklappbaren Body (nur neueste Version standardmäßig offen).
+**Metadaten** in `content/releases/manifest.json`: `version`, `date`, `title` (Kurztitel für API/Liste – sollte mit dem `#`-Titel in der Markdown-Datei übereinstimmen). **Karten-Header:** Package-Icon + `vX.Y.Z`, Datum, optional Badge **Latest** (oberster Manifest-Eintrag). Kein Badge **Installed** (in Prod entspricht Latest meist der installierten Version; Versionsvergleich gehört zu §26). **`#`-Titel und Changelog** im einklappbaren Body (nur neueste Version standardmäßig offen).
 
 In `content/releases/*.md`:
 
@@ -217,12 +218,23 @@ docsops-platform-export-<exportId>-<timestamp>.tar.zst
 
 **UI-Schritte (v1):**
 
-1. Export-Archiv **hochladen** (später: Pfad von S3)
-2. **Preflight:** Format lesbar, `exportFormatVersion` kompatibel, Vorschau (User-/Dokument-Anzahl)
-3. **Optionen (v1):** Ziel = **leere Instanz** (Pflicht); User-Passwörter = **Reset erzwingen** (Default) oder Hashes übernehmen (nur gleicher Stack, dokumentiert)
-4. **Bestätigung** mit Warnung (Wartungsmodus, Datenüberschreibung)
-5. Job starten → Fortschritt (Phasen + Fehlerlog)
-6. Abschluss: Report + optional `search.reindex.full`
+**Export-Wizard (Modal):**
+
+1. **Overview** – Inhalt des Pakets; Hinweis DR ≠ Migration (Link Backup-Tab)
+2. **Confirm** – Export starten
+3. **Progress** – Job-Status (Polling)
+4. **Done** – Auto-Download bei Erfolg, erneuter Download optional
+
+**Import-Wizard (Modal):**
+
+1. Export-Archiv **hochladen**
+2. **Preflight** – Format, Version, Vorschau; Fehlerliste prominent
+3. **Optionen** – Passwort-Hashes übernehmen (nur gleiche `APP_VERSION`)
+4. **Bestätigung** – Warnung Wartungsmodus / leere Instanz
+5. **Progress** – Phasen + Fehler
+6. **Done** – Report
+
+Die Tab-Ansicht zeigt **letzten Export-Status** und Import-CTA; **keine** Export-/Import-Historie-Tabellen (Runs bleiben in DB für Audit/Jobs).
 
 **Job-Phasen (sequenziell, Worker):**
 
@@ -238,19 +250,20 @@ Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-
 
 ### v1-Umfang vs. später
 
-| v1                                        | Phase 2+                                                |
-| ----------------------------------------- | ------------------------------------------------------- |
-| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)               |
-| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln)            |
-| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert              |
-| Admin-UI + Job + Audit                    | Upload von externem Ziel; CLI-Skript für Offline-Import |
+| v1                                        | Phase 2+                                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)                                                       |
+| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln)                                                    |
+| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert                                                      |
+| Admin-UI + Job + Audit                    | Upload von externem Ziel; CLI-Skript für Offline-Import                                         |
+| **Push an Ziel-Instanz**                  | Ziel erzeugt URL + Token; Quell-Wizard liefert Paket direkt (TTL, single-use, Confirm auf Ziel) |
 
 ### UI-Platzierung (festgelegt)
 
 | Bereich                                    | Inhalt                                                                                               |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | **Admin → Backup** (`/admin/backup`)       | Operational Backup: Ziele, Schedule-Hinweis, Historie, Download, **Restore aus DR-Archiv** (Phase 2) |
-| **Admin → Migration** (`/admin/migration`) | Plattform-Export starten, Export-Historie, **Import**                                                |
+| **Admin → Migration** (`/admin/migration`) | Letzter Export-Status, Export-/Import-Wizard (Stepper-Modals), kein Historie-Grid                    |
 | **Admin → System** (`/admin/system`, §5)   | Version, Update, Backup-Gate – kein Migrations-Export                                                |
 
 Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“ – zu unscharf; Plattform-Export ist ebenfalls „Daten“).
@@ -266,12 +279,33 @@ Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“
 
 **Ziel:** Admins sehen installierte vs. verfügbare Version und können Updates kontrolliert anstoßen.
 
+### Abgrenzung zu §24 (What's new)
+
+| Thema                    | §24 (alle Nutzer)                                      | §26 (Admin)                                 |
+| ------------------------ | ------------------------------------------------------ | ------------------------------------------- |
+| Release Notes lesen      | `/whats-new`, Markdown aus dem **Image**               | –                                           |
+| Installierte Version     | intern für `lastSeen`-Badge; **nicht** prominent in UI | **`APP_VERSION`** sichtbar                  |
+| Neuere Version verfügbar | **nein** (Notes nur für mitgelieferte Versionen)       | GitHub Releases / Registry vs. installiert  |
+| Update anstoßen          | **nein**                                               | Runbook / `update.sh` (§19), später Sidecar |
+
+Release Notes im Image enthalten nur Versionen, die beim Build mitgeliefert wurden. Endnutzer sehen **keine** Changelogs für noch nicht deployte Versionen.
+
 ### Phase 1 (empfohlen zuerst)
 
-- Admin-Route z. B. **`/admin/system`** (Tab oder Seite neben Users/Teams/…).
-- Anzeige: `APP_VERSION` (installiert) vs. neueste Version (GitHub Releases API oder mitgelieferte `version.json`).
-- Aktionen: **Check for updates**, Anzeige von `./scripts/update.sh` / Runbook-Link.
-- **Backup-Gate:** Hinweis bzw. Pflicht „Backup vor Update“ mit Link zur Backup-UI.
+- Admin-Tab **`/admin/system`** (neben Users, Backup, …).
+- Anzeige: **`APP_VERSION`** (installiert) vs. neueste Version (GitHub Releases API, wenn konfiguriert).
+- Env **`DOCSOPS_UPDATE_GITHUB_REPO`** (`owner/repo`, optional): fehlt → Update-Check deaktiviert, nur installierte Version anzeigen (kein Fallback auf andere Quellen).
+- Aktionen: **Check for updates** (Refresh + optional In-App an Admins, Kategorie `system`, Event z. B. `update-available`).
+- Links: GitHub-Release-URL, `./scripts/update.sh` / Runbook (**§19**).
+- **Backup-Gate:** Hinweis „Backup vor Update“ mit Link zu **§25** (`/admin/backup`).
+
+### Phase 1 – Umsetzungsschritte (Skizze)
+
+1. Zod-Schema + `GET /api/v1/admin/system/update-status` (Cache TTL für GitHub-Abfrage).
+2. Optional `POST /api/v1/admin/system/check-updates` (Refresh, Admin-Notification bei `latest > installed`).
+3. Admin-UI: Statuskarten, Fehlerzustand wenn Check deaktiviert/Fehler, Tab-Badge bei Update verfügbar.
+4. Frontend-Notification-Formatter + Link `/admin/system` für `update-available`.
+5. Tests (Mock GitHub); Doku in [Env-und-Config](Env-und-Config.md).
 
 ### Phase 2 (Ein-Klick-Update)
 
@@ -299,11 +333,12 @@ Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hostin
 
 ## 7. Env-Variablen (Entwurf)
 
-| Variable                 | Bedeutung                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------- |
-| `APP_VERSION`            | Beim Image-Build aus Root-`package.json`; Runtime nur Env (kein Fallback)                 |
-| `BACKUP_RETENTION_COUNT` | Max. Anzahl behaltener Backups (pro Destination / global – bei Implementierung festlegen) |
-| `BACKUP_SCHEDULE_CRON`   | Optional, Scheduler für automatische Backups                                              |
-| `UPDATE_CHECK_URL`       | Optional, URL für Versionsabfrage (Default: GitHub Releases)                              |
+| Variable                     | Bedeutung                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `APP_VERSION`                | Beim Image-Build aus Root-`package.json`; Runtime nur Env (kein Fallback)                    |
+| `DOCSOPS_UPDATE_GITHUB_REPO` | Optional: `owner/repo` für Admin Update-Check (GitHub Releases API, §26). Fehlt → Check aus. |
+| `BACKUP_RETENTION_COUNT`     | Max. Anzahl behaltener Backups (pro Destination / global – bei Implementierung festlegen)    |
+| `BACKUP_SCHEDULE_CRON`       | Optional, Scheduler für automatische Backups                                                 |
+| `UPDATE_CHECK_URL`           | Optional, URL für Versionsabfrage (Default: GitHub Releases)                                 |
 
 Backup-Ziele (S3-Endpoint, SSH-Host, …) primär **in der DB** über Admin-Destinations, nicht als flache Env-Liste. Details in [Env-und-Config](Env-und-Config.md), sobald implementiert.

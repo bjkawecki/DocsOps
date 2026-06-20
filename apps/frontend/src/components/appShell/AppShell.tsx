@@ -44,6 +44,8 @@ export function AppShell() {
           adminUsersError={s.adminUsersError}
           adminUsers={s.adminUsersRes?.items}
           impersonateMutation={s.impersonateMutation}
+          resetPlatformMutation={s.resetPlatformMutation}
+          reseedPlatformMutation={s.reseedPlatformMutation}
         />
 
         <AppShellNavbar

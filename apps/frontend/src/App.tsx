@@ -39,6 +39,7 @@ import { AdminCompanyTab } from './pages/admin/AdminCompanyTab';
 import { AdminJobsTab } from './pages/admin/AdminJobsTab';
 import { AdminSchedulerTab } from './pages/admin/AdminSchedulerTab';
 import { AdminBackupTab } from './pages/admin/AdminBackupTab/AdminBackupTab';
+import { AdminMigrationTab } from './pages/admin/AdminMigrationTab/AdminMigrationTab';
 import { AdminBroadcastTab } from './pages/admin/AdminBroadcastTab/index.js';
 import { WhatsNewPage } from './pages/whatsNew/WhatsNewPage';
 
@@ -111,6 +112,7 @@ function App() {
             <Route path="jobs" element={<AdminJobsTab />} />
             <Route path="scheduler" element={<AdminSchedulerTab />} />
             <Route path="backup" element={<AdminBackupTab />} />
+            <Route path="migration" element={<AdminMigrationTab />} />
             <Route path="broadcast" element={<AdminBroadcastTab />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />

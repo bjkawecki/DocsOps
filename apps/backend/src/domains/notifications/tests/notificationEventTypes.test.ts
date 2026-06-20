@@ -15,6 +15,8 @@ describe('resolveNotificationPreferenceCategory', () => {
   it('maps admin broadcast and backup to system', () => {
     expect(resolveNotificationPreferenceCategory('admin-broadcast')).toBe('system');
     expect(resolveNotificationPreferenceCategory('backup-failed')).toBe('system');
+    expect(resolveNotificationPreferenceCategory('platform-export-succeeded')).toBe('system');
+    expect(resolveNotificationPreferenceCategory('platform-import-failed')).toBe('system');
   });
 
   it('maps comments to documentChanges', () => {
@@ -27,6 +29,8 @@ describe('resolveNotificationPreferenceCategory', () => {
 describe('notification event type lists', () => {
   it('includes admin-broadcast in system types', () => {
     expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('admin-broadcast');
+    expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('platform-export-succeeded');
+    expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('platform-import-succeeded');
   });
 
   it('includes team membership in org types', () => {

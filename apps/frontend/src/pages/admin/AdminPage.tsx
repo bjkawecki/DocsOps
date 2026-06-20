@@ -10,6 +10,7 @@ const adminTabs = [
   { to: '/admin/jobs', label: 'Jobs' },
   { to: '/admin/scheduler', label: 'Scheduler' },
   { to: '/admin/backup', label: 'Backup' },
+  { to: '/admin/migration', label: 'Migration' },
   { to: '/admin/broadcast', label: 'Broadcast' },
 ] as const;
 

@@ -72,14 +72,7 @@ export function WhatsNewPage() {
       <Stack gap="lg" mt="md">
         <Group gap="sm" align="center">
           <IconSparkles size={32} stroke={1.5} color="var(--mantine-color-dimmed)" aria-hidden />
-          <Stack gap={2}>
-            <Title order={1}>What&apos;s new</Title>
-            {installedVersion && (
-              <Text size="sm" c="dimmed">
-                You&apos;re on v{installedVersion}
-              </Text>
-            )}
-          </Stack>
+          <Title order={1}>What&apos;s new</Title>
         </Group>
 
         {(listPending || detailsPending) && (
@@ -107,7 +100,6 @@ export function WhatsNewPage() {
                 key={release.version}
                 release={release}
                 isLatest={index === 0}
-                isInstalled={release.version === installedVersion}
                 defaultExpanded={index === 0}
               />
             ))}

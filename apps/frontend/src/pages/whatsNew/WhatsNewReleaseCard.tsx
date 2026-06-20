@@ -10,18 +10,11 @@ import { releaseMarkdownComponents } from './releaseMarkdownComponents.js';
 type Props = {
   release: ReleaseDetailResponse;
   isLatest: boolean;
-  isInstalled: boolean;
   defaultExpanded?: boolean;
 };
 
-export function WhatsNewReleaseCard({
-  release,
-  isLatest,
-  isInstalled,
-  defaultExpanded = false,
-}: Props) {
+export function WhatsNewReleaseCard({ release, isLatest, defaultExpanded = false }: Props) {
   const [opened, setOpened] = useState(defaultExpanded);
-  const showStatusBadges = isLatest || isInstalled;
   const hasBody = release.markdown.trim().length > 0;
 
   return (
@@ -74,19 +67,10 @@ export function WhatsNewReleaseCard({
                     v{release.version}
                   </Title>
                 </Group>
-                {showStatusBadges && (
-                  <Group gap="xs" wrap="wrap" style={{ flexShrink: 0 }}>
-                    {isLatest && (
-                      <Badge variant="light" color="violet">
-                        Latest
-                      </Badge>
-                    )}
-                    {isInstalled && (
-                      <Badge variant="light" color="blue">
-                        Installed
-                      </Badge>
-                    )}
-                  </Group>
+                {isLatest && (
+                  <Badge variant="light" color="violet" style={{ flexShrink: 0 }}>
+                    Latest
+                  </Badge>
                 )}
               </Group>
               <Group gap={6} c="dimmed" wrap="nowrap">

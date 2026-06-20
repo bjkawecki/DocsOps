@@ -54,6 +54,20 @@ export const jobPayloadSchemas = {
     backupRunId: z.cuid().optional(),
     uploadObjectKey: z.string().min(1).max(1024).optional(),
   }),
+  'maintenance.platform-export': z.object({
+    platformExportRunId: z.cuid(),
+    requestedByUserId: z.cuid().optional(),
+  }),
+  'maintenance.platform-import': z.object({
+    platformImportRunId: z.cuid(),
+    source: z.literal('upload'),
+    uploadObjectKey: z.string().min(1).max(1024),
+    options: z
+      .object({
+        transferPasswordHashes: z.boolean().optional(),
+      })
+      .default({}),
+  }),
 } as const;
 
 export type JobType = keyof typeof jobPayloadSchemas;

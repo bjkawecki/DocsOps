@@ -3,6 +3,10 @@
  * Pflicht: ADMIN_EMAIL, ADMIN_PASSWORD sowie ein Anzeigename über ADMIN_NAME
  * oder ADMIN_VORNAME + ADMIN_NACHNAME (dann Anzeigename = "Vorname Nachname").
  * DATABASE_URL wird wie im Rest der App verwendet (z. B. aus .env).
+ *
+ * Wenn ADMIN_EMAIL bereits existiert, wird dieser Nutzer immer auf isAdmin=true gesetzt
+ * (Passwort-Hash wird aktualisiert). So bleibt der Dev-Login stabil, auch wenn ein
+ * anderer Admin in der DB existiert (z. B. nach Test-Läufen).
  */
 import { assertRequiredEnv } from './load-env.js';
 import { prisma } from '../src/db.js';
@@ -34,20 +38,25 @@ async function main() {
     email ||
     'Admin';
 
-  const existingAdmin = await prisma.user.findFirst({ where: { isAdmin: true } });
-  if (existingAdmin) {
-    console.log('Es existiert bereits ein Admin:', existingAdmin.email ?? existingAdmin.id);
-    return;
-  }
-
   const passwordHash = await hashPassword(password);
   const existingByEmail = await prisma.user.findUnique({ where: { email } });
+
   if (existingByEmail) {
     await prisma.user.update({
       where: { id: existingByEmail.id },
       data: { name, passwordHash, isAdmin: true },
     });
-    console.log('Bestehenden Nutzer zum Admin gemacht:', email);
+    console.log('Admin-Zugang eingerichtet für bestehenden Nutzer:', email);
+    return;
+  }
+
+  const existingAdmin = await prisma.user.findFirst({ where: { isAdmin: true } });
+  if (existingAdmin) {
+    console.log(
+      'Es existiert bereits ein Admin:',
+      existingAdmin.email ?? existingAdmin.id,
+      '(ADMIN_EMAIL hat keinen Nutzer in der DB – bitte E-Mail prüfen oder Nutzer anlegen)'
+    );
     return;
   }
 

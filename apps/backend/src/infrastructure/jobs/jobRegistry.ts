@@ -18,6 +18,8 @@ import { backfillAllDocumentBlocks } from '../../domains/documents/services/bloc
 import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
 import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
 import { runOperationalRestore } from '../../domains/admin/services/operationalRestoreService.js';
+import { runPlatformExport } from '../../domains/admin/services/platformExportService.js';
+import { runPlatformImport } from '../../domains/admin/services/platformImportService.js';
 import { deliverAdminBroadcastById } from '../../domains/admin/services/adminBroadcastNotificationService.js';
 
 const execFileAsync = promisify(execFile);
@@ -227,6 +229,22 @@ async function backfillDocumentBlocksJob(
   context.logger.info({ payload, result }, 'documents.blocks.backfill completed');
 }
 
+async function maintenancePlatformExport(
+  payload: JobPayloadByType['maintenance.platform-export'],
+  context: JobContext
+): Promise<void> {
+  await runPlatformExport(context.prisma, payload, context.logger);
+  context.logger.info({ payload }, 'maintenance.platform-export completed');
+}
+
+async function maintenancePlatformImport(
+  payload: JobPayloadByType['maintenance.platform-import'],
+  context: JobContext
+): Promise<void> {
+  await runPlatformImport(context.prisma, payload, context.logger);
+  context.logger.info({ payload }, 'maintenance.platform-import completed');
+}
+
 export const jobDefinitions: ReadonlyArray<JobDefinition> = [
   {
     name: 'documents.export.pdf',
@@ -293,5 +311,25 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 0,
     handler: (payload, context) =>
       maintenanceRestore(payload as JobPayloadByType['maintenance.restore'], context),
+  },
+  {
+    name: 'maintenance.platform-export',
+    schema: jobPayloadSchemas['maintenance.platform-export'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      maintenancePlatformExport(
+        payload as JobPayloadByType['maintenance.platform-export'],
+        context
+      ),
+  },
+  {
+    name: 'maintenance.platform-import',
+    schema: jobPayloadSchemas['maintenance.platform-import'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      maintenancePlatformImport(
+        payload as JobPayloadByType['maintenance.platform-import'],
+        context
+      ),
   },
 ];

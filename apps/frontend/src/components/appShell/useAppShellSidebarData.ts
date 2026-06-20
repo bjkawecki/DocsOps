@@ -151,6 +151,50 @@ export function useAppShellSidebarData() {
     },
   });
 
+  const resetPlatformMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/v1/admin/debug/reset-platform', { method: 'POST' });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? 'Platform reset failed');
+      }
+      return res.json() as Promise<{ deletedNonAdminUsers: number }>;
+    },
+    onSuccess: (data) => {
+      void queryClient.invalidateQueries();
+      notifications.show({
+        title: 'Platform reset complete',
+        message: `Removed ${data.deletedNonAdminUsers} non-admin user(s). Reload recommended.`,
+        color: 'green',
+      });
+    },
+    onError: (err: Error) => {
+      notifications.show({ title: 'Reset failed', message: err.message, color: 'red' });
+    },
+  });
+
+  const reseedPlatformMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/v1/admin/debug/reseed-platform', { method: 'POST' });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? 'Re-seed failed');
+      }
+      return res.json() as Promise<{ seeded: true }>;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries();
+      notifications.show({
+        title: 'Re-seed complete',
+        message: 'CSV seed data loaded. Reload recommended.',
+        color: 'green',
+      });
+    },
+    onError: (err: Error) => {
+      notifications.show({ title: 'Re-seed failed', message: err.message, color: 'red' });
+    },
+  });
+
   const logout = useMutation({
     mutationFn: async () => {
       const res = await apiFetch('/api/v1/auth/logout', { method: 'POST' });
@@ -327,6 +371,8 @@ export function useAppShellSidebarData() {
     adminUsersError,
     impersonateMutation,
     stopImpersonateMutation,
+    resetPlatformMutation,
+    reseedPlatformMutation,
     logout,
     companyCount,
     catalogCount,

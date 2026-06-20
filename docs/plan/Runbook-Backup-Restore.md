@@ -2,7 +2,7 @@
 
 Manual restore procedure for DocsOps **operational** backups (§25). **Admin → Backup** also offers guided restore (history with local copy, or archive upload). This runbook covers manual steps when the UI is unavailable.
 
-**Not for platform migration:** Import of a **platform export** (`docsops-platform-export-*.tar.zst`, logical domain format) is a separate feature – see [Plan-Betrieb §4](Plan-Betrieb-Releases-Backup-Update.md) and Umsetzungs-Todo §27. Do not use `pg_restore` on a platform export archive.
+**Not for platform migration:** Import of a **platform export** (`docsops-platform-export-*.tar.zst`, logical domain format) is a separate feature – use **Admin → Migration** (`/admin/migration`) or see [Plan-Betrieb §4](Plan-Betrieb-Releases-Backup-Update.md) and Umsetzungs-Todo §27. Do not use `pg_restore` on a platform export archive.
 
 ## UI restore (Admin → Backup)
 

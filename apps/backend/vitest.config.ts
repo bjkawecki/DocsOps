@@ -18,6 +18,8 @@ export default defineConfig({
     environment: 'node',
     env: {
       APP_VERSION: appVersion,
+      ALLOW_PLATFORM_RESET: '1',
+      ALLOW_DESTRUCTIVE_DB_ANY: '1',
     },
     include: ['src/**/*.test.ts'],
     exclude: ['node_modules', 'dist'],
