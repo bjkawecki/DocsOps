@@ -59,6 +59,9 @@ importers:
       '@rollup/rollup-linux-x64-gnu':
         specifier: 4.59.0
         version: 4.59.0
+      '@rollup/rollup-linux-x64-musl':
+        specifier: 4.59.0
+        version: 4.59.0
 
   apps/backend:
     dependencies:
