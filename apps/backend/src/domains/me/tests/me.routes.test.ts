@@ -73,6 +73,52 @@ describe('Me routes (GET/PATCH /me, GET/PATCH /me/preferences)', () => {
     expect(body.preferences).toBeDefined();
   });
 
+  it('GET /api/v1/me includes team lead-only assignment in identity.teams', async () => {
+    const TS = Date.now();
+    const pw = await hashPassword(TEST_PASSWORD);
+    const company = await prisma.company.create({ data: { name: `Me Lead Co ${TS}` } });
+    const department = await prisma.department.create({
+      data: { name: `Me Lead Dept ${TS}`, companyId: company.id },
+    });
+    const team = await prisma.team.create({
+      data: { name: `Me Lead Team ${TS}`, departmentId: department.id },
+    });
+    const leadOnly = await prisma.user.create({
+      data: { name: 'Lead Only', email: `lead-only-${TS}@test.de`, passwordHash: pw },
+    });
+    await prisma.teamLead.create({ data: { teamId: team.id, userId: leadOnly.id } });
+
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: `lead-only-${TS}@test.de`, password: TEST_PASSWORD },
+    });
+    expect(loginRes.statusCode).toBe(204);
+    const cookie = getCookieHeader(loginRes);
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/me',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as {
+      identity: {
+        teams: Array<{ teamId: string; role: string }>;
+      };
+    };
+    expect(body.identity.teams).toHaveLength(1);
+    expect(body.identity.teams[0].teamId).toBe(team.id);
+    expect(body.identity.teams[0].role).toBe('leader');
+
+    await prisma.teamLead.deleteMany({ where: { userId: leadOnly.id } });
+    await prisma.team.delete({ where: { id: team.id } });
+    await prisma.department.delete({ where: { id: department.id } });
+    await prisma.company.delete({ where: { id: company.id } });
+    await prisma.session.deleteMany({ where: { userId: leadOnly.id } });
+    await prisma.user.delete({ where: { id: leadOnly.id } });
+  });
+
   it('PATCH /api/v1/me → Name aktualisiert', async () => {
     const loginRes = await app.inject({
       method: 'POST',

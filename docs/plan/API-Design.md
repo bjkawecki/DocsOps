@@ -53,14 +53,18 @@ Zuordnungen zwischen Nutzern und Teams bzw. Abteilungen werden über eigene Endp
   `POST /api/v1/teams/:teamId/team-leads` – Body `{ userId }` – User als Team Lead hinzufügen.
   `DELETE /api/v1/teams/:teamId/team-leads/:userId` – Team-Lead-Zuordnung entfernen.
 
-  **Invariante: Team Lead ⇒ Team-Mitglied.** Beim Setzen eines Team Leads ist zu prüfen, ob die Person bereits **TeamMember** in diesem Team ist; wenn nicht, entweder zuerst TeamMember anlegen oder die API mit **409** und Fehlermeldung „muss zuerst Mitglied sein“ (bzw. „User must be a team member before being assigned as team lead.“) ablehnen. Beim Entfernen aus dem Team: Wenn **TeamMember(teamId, userId)** gelöscht wird, muss auch **TeamLead(teamId, userId)** gelöscht werden (per Cascade im Schema oder im gleichen Handler/Transaktion).
+  **Team Lead:** `POST` legt einen Team Lead an – **ohne** vorherige Team-Mitgliedschaft (Lead-only). Team Lead und Team Member sind **mutual exclusive** pro Person (409).
+
+  Beim Entfernen aus dem Team: Wenn **TeamMember(teamId, userId)** gelöscht wird, wird auch **TeamLead(teamId, userId)** gelöscht (im Handler/Transaktion).
 
 - **Department Lead (Abteilung):**  
   `GET /api/v1/departments/:departmentId/department-leads` – Liste (id, name), paginiert.  
   `POST /api/v1/departments/:departmentId/department-leads` – Body `{ userId }` – User als Department Lead hinzufügen.  
   `DELETE /api/v1/departments/:departmentId/department-leads/:userId` – Department-Lead-Zuordnung entfernen.
 
-**Berechtigungsmatrix:**
+**Exklusivitäts-Matrix (409 Conflict bei Verletzung):** Jede Person hat **genau eine Rolle** – Plattform-**Admin** (`isAdmin`) **oder** eine organisatorische Scope-Rolle, nie beides. Org-Rollen: `CompanyLead` > `DepartmentLead` > `TeamLead` | `TeamMember` (Team-Ebene: Lead **oder** Member, nicht beides; max. eine Team-Zuordnung). Beispiele: Admin mit Org-Zuordnung → 409; Team Member + Team Lead → 409; `PATCH /admin/users/:id` mit `isAdmin: true` bei bestehenden Org-Zuordnungen → 409 („Remove organization roles first“).
+
+**Berechtigungsmatrix (Zuordnungen verwalten):**
 
 - **Admin:** Darf alle Zuordnungen (TeamMember, Team Lead, Department Lead) anlegen und entfernen.
 - **Department Lead:** Darf für Teams **seiner Abteilung** TeamMember und Team Lead anlegen/entfernen (nicht Department-Lead-Zuordnungen).

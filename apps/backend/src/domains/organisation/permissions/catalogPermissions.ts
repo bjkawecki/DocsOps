@@ -158,7 +158,10 @@ export async function getReadableCatalogScope(
     ...user.teamMemberships.map((m) => m.team.departmentId),
     ...user.leadOfTeams.map((l) => l.team.departmentId),
   ]);
-  const teamIds = user.teamMemberships.map((m) => m.team.id);
+  const teamIds = uniqueStrings([
+    ...user.teamMemberships.map((m) => m.team.id),
+    ...user.leadOfTeams.map((l) => l.teamId),
+  ]);
   const uniqueDepartmentIds = uniqueStrings(departmentIds);
 
   if (user.isAdmin) {

@@ -65,6 +65,23 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
       });
     }
 
+    const teamIdsInIdentity = new Set(teams.map((t) => t.teamId));
+    for (const leadEntry of user.leadOfTeams) {
+      if (teamIdsInIdentity.has(leadEntry.teamId)) continue;
+      teams.push({
+        teamId: leadEntry.team.id,
+        teamName: leadEntry.team.name,
+        departmentId: leadEntry.team.department.id,
+        departmentName: leadEntry.team.department.name,
+        companyId: leadEntry.team.department.companyId,
+        role: 'leader',
+      });
+      departmentMap.set(leadEntry.team.department.id, {
+        id: leadEntry.team.department.id,
+        name: leadEntry.team.department.name,
+      });
+    }
+
     const departmentLeads = user.departmentLeads.map((entry) => ({
       id: entry.department.id,
       name: entry.department.name,

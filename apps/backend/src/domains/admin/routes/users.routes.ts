@@ -25,6 +25,10 @@ import {
   requireExistingAdminUserIdOr404,
   requireLocalPasswordUserIdOrRespond,
 } from '../services/adminUsersRouteSupport.js';
+import {
+  assertCanAssignScopeRole,
+  ScopeAssignmentConflictError,
+} from '../../organisation/services/scopeAssignmentRules.js';
 
 const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
@@ -381,6 +385,20 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       if (body.email !== undefined) data.email = body.email;
       const actorUserId = getEffectiveUserId(request as RequestWithUser);
       const wasAdmin = target.isAdmin;
+
+      if (body.isAdmin === true && !target.isAdmin) {
+        try {
+          await assertCanAssignScopeRole(request.server.prisma, {
+            userId,
+            kind: 'admin',
+          });
+        } catch (err) {
+          if (err instanceof ScopeAssignmentConflictError) {
+            return reply.status(409).send({ error: err.message });
+          }
+          throw err;
+        }
+      }
 
       if (body.isAdmin !== undefined) data.isAdmin = body.isAdmin;
       if (body.deletedAt !== undefined) {

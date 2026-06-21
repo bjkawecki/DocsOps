@@ -8,6 +8,7 @@ import { ExportIdMap } from './idRemap.js';
 import type { AttachmentsMap } from './exportDomainData.js';
 import type { PlatformImportRunStatus } from '../../../../../generated/prisma/client.js';
 import { readExportUsers, resolveOrCreateImportedUser } from './platformImportUsers.js';
+import { stripIncompatibleOrgAssignments } from '../../../organisation/services/scopeAssignmentRules.js';
 
 async function readJson<T>(path: string): Promise<T> {
   const raw = await readFile(path, 'utf8');
@@ -66,9 +67,11 @@ export async function importDomainDataFromDirectory(
 
   await args.onPhase('importing_users');
 
+  const importedUserIds: string[] = [];
   for (const u of users) {
     const userId = await resolveOrCreateImportedUser(prisma, u, args.transferPasswordHashes);
     idMap.set(u.exportId, userId);
+    importedUserIds.push(userId);
   }
 
   for (const m of org.teamMembers) {
@@ -102,6 +105,10 @@ export async function importDomainDataFromDirectory(
         userId: idMap.getOrThrow(l.userExportId),
       },
     });
+  }
+
+  for (const userId of importedUserIds) {
+    await stripIncompatibleOrgAssignments(prisma, userId);
   }
 
   const owners = await readJson<

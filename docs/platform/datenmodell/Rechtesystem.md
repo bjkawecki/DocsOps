@@ -68,6 +68,8 @@ Pro Unit (Team, Department, Company) existieren Rollen:
 
 **Company-Lead** ist eine Governance-Rolle: Leserecht auf alle Organisations-Kontexte (siehe unten), kein automatisches globales Schreibrecht.
 
+**Eine Rolle pro Person:** Plattform-**Admin** (`isAdmin`) oder genau **eine** organisatorische Scope-Rolle (`CompanyLead`, `DepartmentLead`, `TeamLead`, `TeamMember`) – nicht kombinierbar. Team Lead erfordert keine Team-Mitgliedschaft; Lead und Member sind auf Team-Ebene mutual exclusive. Zuordnungs-APIs und Admin-User-`isAdmin`-Grant enforced das per 409.
+
 ---
 
 ### 5. Leserechte (Prinzip)

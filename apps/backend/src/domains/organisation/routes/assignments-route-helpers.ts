@@ -1,6 +1,10 @@
 import type { FastifyReply } from 'fastify';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { canViewScope } from '../permissions/scopeVisibility.js';
+import {
+  assertCanAssignScopeRole,
+  ScopeAssignmentConflictError,
+} from '../services/scopeAssignmentRules.js';
 
 export async function verifyTeamAndAssignmentUserExist(
   prisma: PrismaClient,
@@ -95,6 +99,19 @@ export async function createTeamMemberAfterVerify(
     void reply.status(409).send({ error: 'User is already a member' });
     return false;
   }
+  try {
+    await assertCanAssignScopeRole(prisma, {
+      userId: bodyUserId,
+      kind: 'teamMember',
+      teamId,
+    });
+  } catch (err) {
+    if (err instanceof ScopeAssignmentConflictError) {
+      void reply.status(409).send({ error: err.message });
+      return false;
+    }
+    throw err;
+  }
   await prisma.teamMember.create({
     data: { teamId, userId: bodyUserId },
   });
@@ -116,14 +133,18 @@ export async function createTeamLeadAfterVerify(
     void reply.status(409).send({ error: 'User is already team lead' });
     return false;
   }
-  const isMember = await prisma.teamMember.findUnique({
-    where: { teamId_userId: { teamId, userId: bodyUserId } },
-  });
-  if (!isMember) {
-    void reply.status(409).send({
-      error: 'User must be a team member before being assigned as team lead.',
+  try {
+    await assertCanAssignScopeRole(prisma, {
+      userId: bodyUserId,
+      kind: 'teamLead',
+      teamId,
     });
-    return false;
+  } catch (err) {
+    if (err instanceof ScopeAssignmentConflictError) {
+      void reply.status(409).send({ error: err.message });
+      return false;
+    }
+    throw err;
   }
   await prisma.teamLead.create({
     data: { teamId, userId: bodyUserId },

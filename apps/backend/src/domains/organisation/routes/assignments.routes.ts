@@ -27,6 +27,10 @@ import {
   sendTeamAssignmentListIfAllowed,
 } from './assignments-route-helpers.js';
 import { enqueueOrgNotificationSafe } from '../../notifications/services/orgNotificationService.js';
+import {
+  assertCanAssignScopeRole,
+  ScopeAssignmentConflictError,
+} from '../services/scopeAssignmentRules.js';
 
 const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   // --- Company Lead ---
@@ -84,6 +88,18 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         where: { companyId_userId: { companyId, userId: body.userId } },
       });
       if (existing) return reply.status(409).send({ error: 'User is already company lead' });
+
+      try {
+        await assertCanAssignScopeRole(request.server.prisma, {
+          userId: body.userId,
+          kind: 'companyLead',
+        });
+      } catch (err) {
+        if (err instanceof ScopeAssignmentConflictError) {
+          return reply.status(409).send({ error: err.message });
+        }
+        throw err;
+      }
 
       await request.server.prisma.companyLead.create({
         data: { companyId, userId: body.userId },
@@ -392,6 +408,18 @@ const assignmentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         where: { departmentId_userId: { departmentId, userId: body.userId } },
       });
       if (existing) return reply.status(409).send({ error: 'User is already department lead' });
+
+      try {
+        await assertCanAssignScopeRole(request.server.prisma, {
+          userId: body.userId,
+          kind: 'departmentLead',
+        });
+      } catch (err) {
+        if (err instanceof ScopeAssignmentConflictError) {
+          return reply.status(409).send({ error: err.message });
+        }
+        throw err;
+      }
 
       await request.server.prisma.departmentLead.create({
         data: { departmentId, userId: body.userId },

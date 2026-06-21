@@ -403,4 +403,57 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
       expect(meBody.impersonation).toBeUndefined();
     });
   });
+
+  it('PATCH isAdmin true for user with team membership → 409', async () => {
+    const TS = Date.now();
+    const pw = await hashPassword(PASSWORD);
+    const company = await prisma.company.create({ data: { name: `Admin Role Co ${TS}` } });
+    const department = await prisma.department.create({
+      data: { name: `Admin Role Dept ${TS}`, companyId: company.id },
+    });
+    const team = await prisma.team.create({
+      data: { name: `Admin Role Team ${TS}`, departmentId: department.id },
+    });
+    const member = await prisma.user.create({
+      data: { name: 'Member', email: `member-admin-${TS}@test.de`, passwordHash: pw },
+    });
+    await prisma.teamMember.create({ data: { teamId: team.id, userId: member.id } });
+
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/admin/users/${member.id}`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { isAdmin: true },
+    });
+    expect(res.statusCode).toBe(409);
+
+    await prisma.teamMember.deleteMany({ where: { userId: member.id } });
+    await prisma.team.delete({ where: { id: team.id } });
+    await prisma.department.delete({ where: { id: department.id } });
+    await prisma.company.delete({ where: { id: company.id } });
+    await prisma.user.delete({ where: { id: member.id } });
+  });
+
+  it('PATCH isAdmin true for user without org assignments → 200', async () => {
+    const TS = Date.now();
+    const pw = await hashPassword(PASSWORD);
+    const user = await prisma.user.create({
+      data: { name: 'Promote', email: `promote-${TS}@test.de`, passwordHash: pw },
+    });
+
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/admin/users/${user.id}`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { isAdmin: true },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { isAdmin: boolean };
+    expect(body.isAdmin).toBe(true);
+
+    await prisma.user.update({ where: { id: user.id }, data: { isAdmin: false } });
+    await prisma.user.delete({ where: { id: user.id } });
+  });
 });

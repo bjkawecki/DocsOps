@@ -1,4 +1,4 @@
-import { Button, Group, Select, Stack } from '@mantine/core';
+import { Alert, Button, Group, Select, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -13,6 +13,8 @@ type Props = {
 };
 
 export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }: Props) {
+  const isPlatformAdmin = user.isAdmin || user.role === 'Admin';
+
   const allTeams = departments.flatMap((d) =>
     (d.teams ?? []).map((t) => ({
       id: t.id,
@@ -115,6 +117,17 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
   });
 
+  const removeFromTeamSilent = async (tid: string) => {
+    const res = await apiFetch(`/api/v1/teams/${tid}/members/${user.id}`, {
+      method: 'DELETE',
+    });
+    if (res.status === 404) return;
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(err.error ?? res.statusText);
+    }
+  };
+
   const isPendingMut =
     removeFromTeam.isPending ||
     addToTeam.isPending ||
@@ -123,26 +136,50 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     addDepartmentLead.isPending ||
     removeDepartmentLead.isPending;
 
+  const clearTeamAssignment = async (tid: string, wasLead: boolean) => {
+    if (wasLead) await removeTeamLead.mutateAsync(tid);
+    if (wasLead) await removeFromTeamSilent(tid);
+    else await removeFromTeam.mutateAsync(tid);
+  };
+
   const handleSave = async () => {
     try {
       for (const t of user.teams ?? []) {
-        if (t.id !== teamId) await removeFromTeam.mutateAsync(t.id);
+        if (t.id !== teamId) await clearTeamAssignment(t.id, t.isLead === true);
       }
-      if (teamId && !user.teams?.some((t) => t.id === teamId)) {
-        await addToTeam.mutateAsync(teamId);
-      }
+
       if (teamId) {
+        const existing = user.teams?.find((t) => t.id === teamId);
         const wantLead = teamRole === 'Lead';
-        const current = user.teams?.find((t) => t.id === teamId)?.isLead ?? false;
-        if (wantLead && !current) await addTeamLead.mutateAsync(teamId);
-        if (!wantLead && current) await removeTeamLead.mutateAsync(teamId);
+
+        if (wantLead) {
+          if (existing && !existing.isLead) {
+            await removeFromTeam.mutateAsync(teamId);
+          }
+          if (!existing?.isLead) {
+            await addTeamLead.mutateAsync(teamId);
+          }
+        } else {
+          if (existing?.isLead) {
+            await removeTeamLead.mutateAsync(teamId);
+          }
+          if (!existing || existing.isLead) {
+            await addToTeam.mutateAsync(teamId);
+          }
+        }
+      } else {
+        for (const t of user.teams ?? []) {
+          await clearTeamAssignment(t.id, t.isLead === true);
+        }
       }
+
       for (const d of user.departmentsAsLead ?? []) {
         if (d.id !== departmentLeadId) await removeDepartmentLead.mutateAsync(d.id);
       }
       if (departmentLeadId && !user.departmentsAsLead?.some((d) => d.id === departmentLeadId)) {
         await addDepartmentLead.mutateAsync(departmentLeadId);
       }
+
       notifications.show({
         title: 'Assignments updated',
         message: 'Team and department assignments were saved.',
@@ -150,9 +187,25 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       });
       onSave();
     } catch {
-      // errors already shown
+      // errors already shown via mutation onError
     }
   };
+
+  if (isPlatformAdmin) {
+    return (
+      <Stack gap="sm">
+        <Alert color="blue" title="Platform administrator">
+          Platform administrators cannot have organization assignments. Remove the administrator
+          role first to assign team or department roles.
+        </Alert>
+        <Group gap="xs">
+          <Button size="sm" variant="default" onClick={onCancel}>
+            Close
+          </Button>
+        </Group>
+      </Stack>
+    );
+  }
 
   const teamOptions = allTeams.map((t) => ({
     value: t.id,
@@ -161,8 +214,16 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
 
   const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }));
 
+  const hasChanges =
+    teamId !== (currentTeam?.id ?? '') ||
+    (teamId !== '' && teamRole !== (currentTeam?.isLead ? 'Lead' : 'Member')) ||
+    departmentLeadId !== (currentDeptLead?.id ?? '');
+
   return (
     <Stack gap="sm">
+      <Text size="xs" c="dimmed">
+        Each user has one organization role. Team lead does not require team membership.
+      </Text>
       <Select
         label="Team"
         placeholder="Select team"
@@ -180,6 +241,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         ]}
         value={teamRole}
         onChange={(v) => v && setTeamRole(v as 'Member' | 'Lead')}
+        disabled={!teamId}
         size="sm"
       />
       <Select
@@ -200,7 +262,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
           size="sm"
           onClick={() => void handleSave()}
           loading={isPendingMut}
-          disabled={!teamId}
+          disabled={!hasChanges}
         >
           Save
         </Button>
