@@ -156,6 +156,25 @@ function tiptapListItemToOur(node: JSONContent): BlockNodeV0 {
   };
 }
 
+export function ensureUniqueBlockIdsInDocument(doc: BlockDocumentV0): BlockDocumentV0 {
+  const seen = new Set<string>();
+
+  const walk = (node: BlockNodeV0): BlockNodeV0 => {
+    let id = node.id;
+    if (!id || seen.has(id)) {
+      id = newId();
+    }
+    seen.add(id);
+    const content = node.content?.map(walk);
+    return content != null ? { ...node, id, content } : { ...node, id };
+  };
+
+  return {
+    schemaVersion: doc.schemaVersion,
+    blocks: doc.blocks.map(walk),
+  };
+}
+
 function tiptapTopLevelToOur(node: JSONContent): BlockNodeV0 | null {
   switch (node.type) {
     case 'heading': {
@@ -227,5 +246,5 @@ export function tiptapJsonToBlockDocument(json: JSONContent): BlockDocumentV0 {
       blocks: [{ id: newId(), type: 'paragraph', content: [textLeaf('')] }],
     };
   }
-  return { schemaVersion: 0, blocks };
+  return ensureUniqueBlockIdsInDocument({ schemaVersion: 0, blocks });
 }

@@ -1,6 +1,7 @@
 import { Box, Code, List, Stack, Text, Title } from '@mantine/core';
 import { Fragment, type ReactNode } from 'react';
 import type { BlockDocumentV0, BlockNodeV0 } from '../../api/document-types';
+import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
 import {
   getBlockDocumentHeadingData,
   nodeText,
@@ -116,16 +117,17 @@ type Props = {
 /** Lesevorschau aus Blocks – Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */
 export function DocumentBlocksPreview({ title, doc }: Props) {
   if (doc == null || doc.blocks.length === 0) return null;
-  const text = blockDocumentToPlainPreview(doc);
+  const normalizedDoc = ensureUniqueBlockIdsInDocument(doc);
+  const text = blockDocumentToPlainPreview(normalizedDoc);
   if (!text.trim()) return null;
-  const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(doc);
+  const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(normalizedDoc);
   return (
     <Box mb="md" className="document-content">
       <Text size="xs" tt="uppercase" fw={600} c="dimmed" mb="xs">
         {title}
       </Text>
       <Stack gap="md">
-        {doc.blocks.map((block) => {
+        {normalizedDoc.blocks.map((block) => {
           const el = renderNode(block, anchorIdByBlockNodeId);
           if (el == null) return null;
           return <Box key={block.id}>{el}</Box>;
