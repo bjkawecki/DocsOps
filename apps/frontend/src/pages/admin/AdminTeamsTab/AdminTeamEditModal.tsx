@@ -27,8 +27,8 @@ export type AdminTeamEditModalProps = {
   setEditName: (v: string) => void;
   editDepartmentId: string;
   setEditDepartmentId: (v: string) => void;
-  editLeadIds: string[];
-  setEditLeadIds: (v: string[]) => void;
+  editLeadId: string;
+  setEditLeadId: (v: string) => void;
   editMemberIds: string[];
   setEditMemberIds: (v: string[]) => void;
   userOptions: { value: string; label: string }[];
@@ -55,8 +55,8 @@ export function AdminTeamEditModal({
   setEditName,
   editDepartmentId,
   setEditDepartmentId,
-  editLeadIds,
-  setEditLeadIds,
+  editLeadId,
+  setEditLeadId,
   editMemberIds,
   setEditMemberIds,
   userOptions,
@@ -111,12 +111,12 @@ export function AdminTeamEditModal({
                   onChange={(v) => v && setEditDepartmentId(v)}
                   required
                 />
-                <MultiSelect
+                <Select
                   label="Lead"
-                  placeholder="Select team leads"
+                  placeholder="Select team lead"
                   data={userOptions}
-                  value={editLeadIds}
-                  onChange={setEditLeadIds}
+                  value={editLeadId || null}
+                  onChange={(v) => setEditLeadId(v ?? '')}
                   searchable
                   clearable
                 />
@@ -166,13 +166,7 @@ export function AdminTeamEditModal({
                   ) : leadsForEdit.length === 0 ? (
                     <Text size="sm">–</Text>
                   ) : (
-                    <Group gap="xs" mt={4}>
-                      {leadsForEdit.map((u) => (
-                        <Badge key={u.id} size="sm" variant="filled">
-                          {u.name}
-                        </Badge>
-                      ))}
-                    </Group>
+                    <Text size="sm">{leadsForEdit[0]?.name ?? '–'}</Text>
                   )}
                 </div>
                 <div>

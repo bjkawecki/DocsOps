@@ -43,7 +43,7 @@ export function AdminBroadcastCreateModal({
   const usersQuery = useQuery({
     queryKey: ['admin', 'users', 'broadcast-picker'] as const,
     queryFn: async () => {
-      const res = await apiFetch('/api/v1/admin/users?limit=200&offset=0&includeDeactivated=false');
+      const res = await apiFetch('/api/v1/admin/users?limit=100&offset=0&includeDeactivated=false');
       if (!res.ok) throw new Error('Failed to load users');
       const body = (await res.json()) as {
         items: Array<{ id: string; name: string; email: string | null }>;

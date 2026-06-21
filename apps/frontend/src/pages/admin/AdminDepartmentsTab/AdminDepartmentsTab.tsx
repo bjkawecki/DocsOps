@@ -45,7 +45,7 @@ export function AdminDepartmentsTab() {
   const [editingDepartment, setEditingDepartment] = useState<DepartmentWithCompany | null>(null);
   const [departmentCardEditing, setDepartmentCardEditing] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editLeadIds, setEditLeadIds] = useState<string[]>([]);
+  const [editLeadId, setEditLeadId] = useState('');
   const [deleteConfirmDepartment, setDeleteConfirmDepartment] =
     useState<DepartmentWithCompany | null>(null);
 
@@ -126,7 +126,7 @@ export function AdminDepartmentsTab() {
   const { data: adminUsersData } = useQuery({
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
-      const res = await apiFetch('/api/v1/admin/users?limit=200&includeDeactivated=false');
+      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
       if (!res.ok) throw new Error('Failed to load');
       return (await res.json()) as AdminUsersRes;
     },
@@ -296,22 +296,21 @@ export function AdminDepartmentsTab() {
           });
         }
         const currentIds = leadsForEdit.map((u) => u.id);
-        const toAdd = editLeadIds.filter((id) => !currentIds.includes(id));
-        const toRemove = currentIds.filter((id) => !editLeadIds.includes(id));
-        await Promise.all([
-          ...toAdd.map((userId) =>
-            addLead.mutateAsync({
+        const targetLeadId = editLeadId || null;
+        for (const userId of currentIds) {
+          if (userId !== targetLeadId) {
+            await removeLead.mutateAsync({
               departmentId: dept.id,
               userId,
-            })
-          ),
-          ...toRemove.map((userId) =>
-            removeLead.mutateAsync({
-              departmentId: dept.id,
-              userId,
-            })
-          ),
-        ]);
+            });
+          }
+        }
+        if (targetLeadId && !currentIds.includes(targetLeadId)) {
+          await addLead.mutateAsync({
+            departmentId: dept.id,
+            userId: targetLeadId,
+          });
+        }
         setEditingDepartment((prev) => (prev && prev.id === dept.id ? { ...prev, name } : prev));
         invalidateLeads(dept.id);
         setDepartmentCardEditing(false);
@@ -322,7 +321,7 @@ export function AdminDepartmentsTab() {
   }, [
     editingDepartment,
     editName,
-    editLeadIds,
+    editLeadId,
     leadsForEdit,
     updateDepartment,
     addLead,
@@ -333,7 +332,7 @@ export function AdminDepartmentsTab() {
   const handleStartEditCard = useCallback(() => {
     if (!editingDepartment) return;
     setEditName(editingDepartment.name);
-    setEditLeadIds(leadsForEdit.map((u) => u.id));
+    setEditLeadId(leadsForEdit[0]?.id ?? '');
     setDepartmentCardEditing(true);
   }, [editingDepartment, leadsForEdit]);
 
@@ -399,8 +398,8 @@ export function AdminDepartmentsTab() {
           setDepartmentCardEditing={setDepartmentCardEditing}
           editName={editName}
           setEditName={setEditName}
-          editLeadIds={editLeadIds}
-          setEditLeadIds={setEditLeadIds}
+          editLeadId={editLeadId}
+          setEditLeadId={setEditLeadId}
           userOptions={userOptions}
           leadsForEdit={leadsForEdit}
           leadsForEditPending={leadsForEditPending}

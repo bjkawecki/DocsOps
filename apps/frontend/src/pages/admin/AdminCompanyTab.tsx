@@ -12,7 +12,7 @@ import {
   Table,
   Tabs,
   TextInput,
-  MultiSelect,
+  Select,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -52,7 +52,7 @@ export function AdminCompanyTab() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [companyCardEditing, setCompanyCardEditing] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editLeadIds, setEditLeadIds] = useState<string[]>([]);
+  const [editLeadId, setEditLeadId] = useState('');
   const [deleteConfirmCompany, setDeleteConfirmCompany] = useState<Company | null>(null);
 
   const { data: companiesData, isPending: companiesPending } = useQuery({
@@ -96,7 +96,7 @@ export function AdminCompanyTab() {
   const { data: adminUsersData } = useQuery({
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
-      const res = await apiFetch('/api/v1/admin/users?limit=200&includeDeactivated=false');
+      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
       if (!res.ok) throw new Error('Failed to load');
       return (await res.json()) as AdminUsersRes;
     },
@@ -341,7 +341,7 @@ export function AdminCompanyTab() {
                       leftSection={<IconPencil size={14} />}
                       onClick={() => {
                         setEditName(editingCompany.name);
-                        setEditLeadIds(leadsForEdit.map((u) => u.id));
+                        setEditLeadId(leadsForEdit[0]?.id ?? '');
                         setCompanyCardEditing(true);
                       }}
                     >
@@ -357,12 +357,12 @@ export function AdminCompanyTab() {
                       onChange={(e) => setEditName(e.currentTarget.value)}
                       required
                     />
-                    <MultiSelect
+                    <Select
                       label="Lead"
-                      placeholder="Select company leads"
+                      placeholder="Select company lead"
                       data={userOptions}
-                      value={editLeadIds}
-                      onChange={setEditLeadIds}
+                      value={editLeadId || null}
+                      onChange={(v) => setEditLeadId(v ?? '')}
                       searchable
                       clearable
                     />
@@ -385,16 +385,21 @@ export function AdminCompanyTab() {
                                 await updateCompany.mutateAsync({ id: editingCompany.id, name });
                               }
                               const currentIds = leadsForEdit.map((u) => u.id);
-                              const toAdd = editLeadIds.filter((id) => !currentIds.includes(id));
-                              const toRemove = currentIds.filter((id) => !editLeadIds.includes(id));
-                              await Promise.all([
-                                ...toAdd.map((userId) =>
-                                  addLead.mutateAsync({ companyId: editingCompany.id, userId })
-                                ),
-                                ...toRemove.map((userId) =>
-                                  removeLead.mutateAsync({ companyId: editingCompany.id, userId })
-                                ),
-                              ]);
+                              const targetLeadId = editLeadId || null;
+                              for (const userId of currentIds) {
+                                if (userId !== targetLeadId) {
+                                  await removeLead.mutateAsync({
+                                    companyId: editingCompany.id,
+                                    userId,
+                                  });
+                                }
+                              }
+                              if (targetLeadId && !currentIds.includes(targetLeadId)) {
+                                await addLead.mutateAsync({
+                                  companyId: editingCompany.id,
+                                  userId: targetLeadId,
+                                });
+                              }
                               setEditingCompany((prev) =>
                                 prev && prev.id === editingCompany.id ? { ...prev, name } : prev
                               );
@@ -429,9 +434,7 @@ export function AdminCompanyTab() {
                         Lead
                       </Text>
                       <Text size="sm">
-                        {leadsForEdit.length === 0
-                          ? '–'
-                          : leadsForEdit.map((u) => u.name).join(', ')}
+                        {leadsForEdit.length === 0 ? '–' : (leadsForEdit[0]?.name ?? '–')}
                       </Text>
                     </div>
                   </Stack>

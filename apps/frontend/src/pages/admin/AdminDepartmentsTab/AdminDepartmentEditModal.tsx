@@ -4,7 +4,7 @@ import {
   Group,
   Loader,
   Modal,
-  MultiSelect,
+  Select,
   Stack,
   Tabs,
   Text,
@@ -21,8 +21,8 @@ export type AdminDepartmentEditModalProps = {
   setDepartmentCardEditing: (v: boolean) => void;
   editName: string;
   setEditName: (v: string) => void;
-  editLeadIds: string[];
-  setEditLeadIds: (v: string[]) => void;
+  editLeadId: string;
+  setEditLeadId: (v: string) => void;
   userOptions: { value: string; label: string }[];
   leadsForEdit: { id: string; name: string }[];
   leadsForEditPending: boolean;
@@ -42,8 +42,8 @@ export function AdminDepartmentEditModal({
   setDepartmentCardEditing,
   editName,
   setEditName,
-  editLeadIds,
-  setEditLeadIds,
+  editLeadId,
+  setEditLeadId,
   userOptions,
   leadsForEdit,
   leadsForEditPending,
@@ -93,12 +93,12 @@ export function AdminDepartmentEditModal({
                   onChange={(e) => setEditName(e.currentTarget.value)}
                   required
                 />
-                <MultiSelect
+                <Select
                   label="Lead"
-                  placeholder="Select department leads"
+                  placeholder="Select department lead"
                   data={userOptions}
-                  value={editLeadIds}
-                  onChange={setEditLeadIds}
+                  value={editLeadId || null}
+                  onChange={(v) => setEditLeadId(v ?? '')}
                   searchable
                   clearable
                 />
@@ -135,7 +135,7 @@ export function AdminDepartmentEditModal({
                     Lead
                   </Text>
                   <Text size="sm">
-                    {leadsForEdit.length === 0 ? '–' : leadsForEdit.map((u) => u.name).join(', ')}
+                    {leadsForEdit.length === 0 ? '–' : (leadsForEdit[0]?.name ?? '–')}
                   </Text>
                 </div>
               </Stack>

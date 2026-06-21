@@ -48,7 +48,7 @@ export function AdminTeamsTab() {
   const [teamCardEditing, setTeamCardEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDepartmentId, setEditDepartmentId] = useState('');
-  const [editLeadIds, setEditLeadIds] = useState<string[]>([]);
+  const [editLeadId, setEditLeadId] = useState('');
   const [editMemberIds, setEditMemberIds] = useState<string[]>([]);
   const [deleteConfirmTeam, setDeleteConfirmTeam] = useState<TeamWithDept | null>(null);
 
@@ -145,7 +145,7 @@ export function AdminTeamsTab() {
   const { data: adminUsersData } = useQuery({
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
-      const res = await apiFetch('/api/v1/admin/users?limit=200&includeDeactivated=false');
+      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
       if (!res.ok) throw new Error('Failed to load');
       return (await res.json()) as AdminUsersRes;
     },
@@ -400,7 +400,7 @@ export function AdminTeamsTab() {
     if (!editingTeam) return;
     setEditName(editingTeam.name);
     setEditDepartmentId(editingTeam.departmentId);
-    setEditLeadIds(leadsForEdit.map((u) => u.id));
+    setEditLeadId(leadsForEdit[0]?.id ?? '');
     setEditMemberIds(membersForEdit.map((m) => m.id));
     setTeamCardEditing(true);
   }, [editingTeam, leadsForEdit, membersForEdit]);
@@ -433,12 +433,15 @@ export function AdminTeamsTab() {
           await addMember.mutateAsync({ teamId: tid, userId });
         }
         const currentLeadIds = leadsForEdit.map((u) => u.id);
-        const toAddLeads = editLeadIds.filter((id) => !currentLeadIds.includes(id));
-        const toRemoveLeads = currentLeadIds.filter((id) => !editLeadIds.includes(id));
-        await Promise.all([
-          ...toAddLeads.map((userId) => addLeader.mutateAsync({ teamId: tid, userId })),
-          ...toRemoveLeads.map((userId) => removeLeader.mutateAsync({ teamId: tid, userId })),
-        ]);
+        const targetLeadId = editLeadId || null;
+        for (const userId of currentLeadIds) {
+          if (userId !== targetLeadId) {
+            await removeLeader.mutateAsync({ teamId: tid, userId });
+          }
+        }
+        if (targetLeadId && !currentLeadIds.includes(targetLeadId)) {
+          await addLeader.mutateAsync({ teamId: tid, userId: targetLeadId });
+        }
         setEditingTeam((prev) =>
           prev && prev.id === tid
             ? {
@@ -460,7 +463,7 @@ export function AdminTeamsTab() {
     editingTeam,
     editName,
     editDepartmentId,
-    editLeadIds,
+    editLeadId,
     editMemberIds,
     leadsForEdit,
     membersForEdit,
@@ -532,8 +535,8 @@ export function AdminTeamsTab() {
           setEditName={setEditName}
           editDepartmentId={editDepartmentId}
           setEditDepartmentId={setEditDepartmentId}
-          editLeadIds={editLeadIds}
-          setEditLeadIds={setEditLeadIds}
+          editLeadId={editLeadId}
+          setEditLeadId={setEditLeadId}
           editMemberIds={editMemberIds}
           setEditMemberIds={setEditMemberIds}
           userOptions={userOptions}
