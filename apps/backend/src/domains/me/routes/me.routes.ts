@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { registerMeAccountSessionRoutes } from './me/account-sessions.routes.js';
 import { registerMeDocumentsRoutes } from './me/documents.routes.js';
+import { registerMeLiveEventsRoutes } from './me/live-events.routes.js';
 import { registerMeNotificationRoutes } from './me/notifications.routes.js';
 import { registerMePreferencesRoutes } from './me/preferences.routes.js';
 import { registerMeProfileRoutes } from './me/profile.routes.js';
@@ -16,6 +17,7 @@ const meRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   registerMeTrashArchiveRoutes(app);
   registerMeStorageRoutes(app);
   registerMeNotificationRoutes(app);
+  registerMeLiveEventsRoutes(app);
   registerMeAccountSessionRoutes(app);
   return Promise.resolve();
 };

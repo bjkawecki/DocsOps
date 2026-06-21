@@ -10,7 +10,7 @@ export function maintenanceStatusQueryKey(): readonly ['maintenance', 'status'] 
   return ['maintenance', 'status'] as const;
 }
 
-/** Fetch-on-mount only; live updates via SSE planned in plan §23a. */
+/** Fetch-on-mount; live updates via SSE (plan §23a). */
 export function useMaintenanceStatus() {
   return useQuery({
     queryKey: maintenanceStatusQueryKey(),

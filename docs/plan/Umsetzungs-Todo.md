@@ -464,38 +464,38 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 ### Zielbild & Abgrenzung
 
-[ ] **Ein Stream:** `GET /api/v1/me/events` (SSE, Session-Cookie wie REST); ein Hook in der App-Shell hält die Verbindung.
-[ ] **Pull bleibt:** Inbox `/notifications` (Liste, Pagination, Filter) weiter per `GET /me/notifications`; SSE invalidiert nur Cache / Badge-Zähler.
-[ ] **Kein zweites Messaging-System:** Events sind **Signale** („unread count geändert“, „Wartung an/aus“), keine Duplikation der Inbox-Payloads auf dem Draht.
-[ ] **Worker schreibt, API pushed:** `notifications.send` → `dispatchNotificationEvent` (PostgreSQL) → danach **`pg_notify`** mit `userId`(n); API-Prozess(e) **`LISTEN`** und leiten an offene SSE-Clients weiter.
-[ ] **Mehrere API-Instanzen:** Jede Instanz `LISTEN` + eigene In-Memory-Registry offener Streams; kein Redis nötig.
-[ ] **Caddy/Proxy:** SSE ohne Response-Buffering (Stream durchreichen).
+[x] **Ein Stream:** `GET /api/v1/me/events` (SSE, Session-Cookie wie REST); ein Hook in der App-Shell hält die Verbindung.
+[x] **Pull bleibt:** Inbox `/notifications` (Liste, Pagination, Filter) weiter per `GET /me/notifications`; SSE invalidiert nur Cache / Badge-Zähler.
+[x] **Kein zweites Messaging-System:** Events sind **Signale** („unread count geändert“, „Wartung an/aus“), keine Duplikation der Inbox-Payloads auf dem Draht.
+[x] **Worker schreibt, API pushed:** `notifications.send` → `dispatchNotificationEvent` (PostgreSQL) → danach **`pg_notify`** mit `userId`(n); API-Prozess(e) **`LISTEN`** und leiten an offene SSE-Clients weiter.
+[x] **Mehrere API-Instanzen:** Jede Instanz `LISTEN` + eigene In-Memory-Registry offener Streams; kein Redis nötig.
+[x] **Caddy/Proxy:** SSE ohne Response-Buffering (Stream durchreichen).
 
 ### Event-Typen (v1 → Ausbau)
 
-[ ] **`notification.unread-changed`** – Payload minimal: `{ unreadTotal }` oder nur „invalidate“; Sidebar + optional offene Inbox.
-[ ] **`maintenance.status-changed`** – `{ active, reason? }`; App-Shell-Banner + Admin-Backup-UI (ersetzt §25-Follow-up „Maintenance-Broadcast“).
+[x] **`notification.unread-changed`** – Invalidate-only; Sidebar + optional offene Inbox.
+[x] **`maintenance.status-changed`** – `{ active, reason? }`; App-Shell-Banner (ersetzt §25-Follow-up „Maintenance-Broadcast“).
 [ ] **Später (optional):** `suggestion.updated` o. ä. für [Edit-System Near-Realtime](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime); gleicher Stream, neuer `type`.
 
 ### Backend (Komponenten)
 
-[ ] **SSE-Route** in Fastify (API-Prozess): Auth, Heartbeat/Keep-Alive, sauberes Schließen bei Logout.
-[ ] **Connection registry:** Map `userId → Set<SseReply>`; beim NOTIFY nur betroffene User.
-[ ] **Notify-Hook** am Ende von [`notificationDispatchService.ts`](../apps/backend/src/services/notificationDispatchService.ts) (pro betroffenem User nach INSERT/Coalesce).
-[ ] **Wartungsmodus:** Beim Setzen/Löschen von `maintenance` (Backup/Restore) zusätzlich Broadcast an **alle** verbundenen Clients oder separates NOTIFY-Kanal `maintenance`.
-[ ] **Admin-Broadcast (§23):** Nach manuellem System-Event ebenfalls NOTIFY an Ziel-User-IDs.
+[x] **SSE-Route** in Fastify (API-Prozess): Auth, Heartbeat/Keep-Alive, sauberes Schließen bei Logout.
+[x] **Connection registry:** Map `userId → Set<SseReply>`; beim NOTIFY nur betroffene User; **`getStats()`** + `/ready`.
+[x] **Notify-Hook** am Ende von [`notificationDispatchService.ts`](../apps/backend/src/domains/notifications/services/notificationDispatchService.ts) (pro betroffenem User nach INSERT/Coalesce).
+[x] **Wartungsmodus:** `maintenance.status-changed` per NOTIFY an alle Clients bei Statuswechsel (Lock + Export ohne Lock).
+[x] **Admin-Broadcast (§23):** über `dispatchNotificationEvent` → NOTIFY (kein separater Hook).
 
 ### Frontend (Komponenten)
 
-[ ] **`useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen oder pausieren (kein Dauer-Polling).
-[ ] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
-[ ] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur** für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
+[x] **`useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen.
+[x] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
+[x] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur** für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
 
 ### Betrieb & Tests
 
-[ ] **Env (optional):** `LIVE_EVENTS_ENABLED` (Default an in Prod); `LIVE_EVENTS_FALLBACK_POLL_SECONDS` (0 = aus).
-[ ] **Tests:** Unit für NOTIFY-Payload; Integration API+Worker mit einem NOTIFY; manuell: Publish → Badge ohne Seitenreload.
-[ ] **Doku:** Kurzverweis in [Technologie-Stack](Technologie-Stack.md) §6 oder Env-Liste; §25 Maintenance-Broadcast hierher verweisen.
+[x] **Env (optional):** `LIVE_EVENTS_ENABLED` (Default an in Prod); `LIVE_EVENTS_FALLBACK_POLL_SECONDS` / `VITE_LIVE_EVENTS_FALLBACK_POLL_SECONDS` (0 = aus).
+[x] **Tests:** Unit für NOTIFY-Payload, Registry, Maintenance-Dedupe; Route-Auth + `/ready`-Metriken.
+[x] **Doku:** Env-Liste; §25 Maintenance-Broadcast → §23a.
 
 ### Reihenfolge (empfohlen)
 
@@ -539,7 +539,7 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 [x] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per HTTP `PUT` im selben Job nach Archiv-Fertigstellung.
 [x] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus **Historie** (nur bei lokaler Kopie) oder **Upload**; Job `maintenance.restore` mit Wartungsmodus, `pg_restore` + MinIO-Import; **kein** Remote-Fetch vom externen Ziel. **Nicht** Plattform-Import (§27).
-[ ] **Maintenance-Broadcast:** **§23a** (`maintenance.status-changed` per SSE); aktuell Fetch-on-mount ([`useMaintenanceStatus.ts`](../apps/frontend/src/hooks/useMaintenanceStatus.ts)).
+[x] **Maintenance-Broadcast:** **§23a** (`maintenance.status-changed` per SSE); [`useMaintenanceStatus.ts`](../apps/frontend/src/hooks/useMaintenanceStatus.ts) + SSE `setQueryData`.
 
 ---
 

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { Prisma } from '../../../../../generated/prisma/client.js';
+import { notifyNotificationUnreadChanged } from '../../../../infrastructure/liveEvents/notificationLiveEvents.js';
 import {
   requireAuthPreHandler,
   getEffectiveUserId,
@@ -77,6 +78,7 @@ function registerMeNotificationRoutes(app: FastifyInstance): void {
         RETURNING id
       `);
       if (rows.length === 0) return reply.status(404).send({ error: 'Notification not found' });
+      await notifyNotificationUnreadChanged(request.server.prisma, userId);
       return reply.status(204).send();
     }
   );
@@ -97,6 +99,7 @@ function registerMeNotificationRoutes(app: FastifyInstance): void {
       WHERE user_id = ${userId}
         AND (${before == null}::boolean OR created_at <= ${before})
     `;
+      await notifyNotificationUnreadChanged(request.server.prisma, userId);
       return reply.status(204).send();
     }
   );

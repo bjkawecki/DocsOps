@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
-import { invalidateMaintenanceLockCache } from '../../../infrastructure/maintenance/maintenancePreHandler.js';
+import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { buildZstdTarArchive } from '../../../infrastructure/backup/archiveBuilder.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
@@ -91,7 +91,7 @@ export async function runPlatformExport(
       where: { id: platformExportRunId },
       data: { status: 'running', startedAt: new Date() },
     });
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
 
     workDir = await mkdtemp(join(tmpdir(), 'docsops-platform-export-'));
     const bundleDir = join(workDir, 'bundle');
@@ -142,7 +142,7 @@ export async function runPlatformExport(
     await failRun(prisma, platformExportRunId, error, logger);
     throw error;
   } finally {
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
     if (workDir) {
       await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
     }

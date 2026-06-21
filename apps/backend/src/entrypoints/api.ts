@@ -2,6 +2,7 @@ import { buildApp } from '../app.js';
 import { prisma } from '../infrastructure/db/prisma.js';
 import { runSeedIfNeeded } from '../seed.js';
 import { ensureDefaultBackupDestinationFromEnv } from '../domains/admin/services/adminBackupDestinationBootstrap.js';
+import { startLiveEventListener } from '../infrastructure/liveEvents/liveEventListener.js';
 
 const app = await buildApp();
 const port = Number(process.env.PORT) || 8080;
@@ -27,6 +28,7 @@ try {
 
 try {
   await app.listen({ port, host });
+  await startLiveEventListener(app.log);
 } catch (err) {
   app.log.error(err);
   process.exit(1);

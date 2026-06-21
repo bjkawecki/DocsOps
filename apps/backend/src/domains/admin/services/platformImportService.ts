@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
-import { invalidateMaintenanceLockCache } from '../../../infrastructure/maintenance/maintenancePreHandler.js';
+import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
   tryAcquireMaintenanceLock,
@@ -121,7 +121,7 @@ export async function runPlatformImport(
       reason: 'platform-import',
       platformImportRunId,
     });
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
 
     await prisma.platformImportRun.update({
       where: { id: platformImportRunId },
@@ -193,7 +193,7 @@ export async function runPlatformImport(
       reason: 'platform-import',
       runId: platformImportRunId,
     });
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
 
     await enqueueJob('search.reindex.full', { reason: 'manual' }).catch((err: unknown) => {
       logger.warn({ err }, 'Failed to enqueue search reindex after platform import');
@@ -210,7 +210,7 @@ export async function runPlatformImport(
       reason: 'platform-import',
       runId: platformImportRunId,
     }).catch(() => undefined);
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
     await failRun(prisma, platformImportRunId, error, logger);
     throw error;
   } finally {

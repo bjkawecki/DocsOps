@@ -1,6 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../api/client';
 import { useMe } from './useMe';
+import { useLiveEventsContext } from './liveEventsContext';
+
+function getFallbackPollIntervalMs(): number {
+  const raw = import.meta.env.VITE_LIVE_EVENTS_FALLBACK_POLL_SECONDS;
+  if (raw == null || raw === '') return 0;
+  const seconds = Number.parseInt(raw, 10);
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return seconds * 1000;
+}
 
 type NotificationsResponse = {
   items: unknown[];
@@ -12,6 +21,10 @@ type NotificationsResponse = {
  */
 export function useMeNotificationsUnreadTotal() {
   const { data: me } = useMe();
+  const { fallbackPollingActive } = useLiveEventsContext();
+  const fallbackMs = getFallbackPollIntervalMs();
+  const refetchInterval = fallbackPollingActive && fallbackMs > 0 ? fallbackMs : false;
+
   return useQuery({
     queryKey: ['me', 'notifications', 'unread-count'] as const,
     queryFn: async (): Promise<number> => {
@@ -29,5 +42,6 @@ export function useMeNotificationsUnreadTotal() {
     },
     enabled: !!me,
     staleTime: 30_000,
+    refetchInterval,
   });
 }

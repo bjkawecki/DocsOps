@@ -20,6 +20,9 @@ import { shouldDisableHttpRequestLogging } from './infrastructure/logging/httpRe
 import { appVersion } from './infrastructure/appVersion.js';
 import { backendPackageName } from './infrastructure/packageInfo.js';
 import { systemRoutes } from './domains/system/routes/index.js';
+import { isLiveEventsEnabled } from './infrastructure/liveEvents/liveEventConfig.js';
+import { getLiveEventRegistryStats } from './infrastructure/liveEvents/liveEventRegistry.js';
+import { stopLiveEventListener } from './infrastructure/liveEvents/liveEventListener.js';
 
 function buildLoggerConfig(): {
   level: string;
@@ -57,6 +60,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.decorate('storage', storage ?? null);
   app.addHook('onRequest', maintenanceModePreHandler);
   app.addHook('onClose', async (instance) => {
+    await stopLiveEventListener(instance.log);
     await instance.prisma.$disconnect();
   });
 
@@ -141,7 +145,19 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.get('/ready', async (request, reply) => {
     try {
       await request.server.prisma.$queryRaw`SELECT 1`;
-      return reply.send({ status: 'ok' });
+      const body: {
+        status: string;
+        liveEvents?: { enabled: boolean; connections: number; uniqueUsers: number };
+      } = { status: 'ok' };
+      if (isLiveEventsEnabled()) {
+        const stats = getLiveEventRegistryStats();
+        body.liveEvents = {
+          enabled: true,
+          connections: stats.connections,
+          uniqueUsers: stats.uniqueUsers,
+        };
+      }
+      return reply.send(body);
     } catch (err) {
       request.log.error(err);
       return reply.status(503).send({

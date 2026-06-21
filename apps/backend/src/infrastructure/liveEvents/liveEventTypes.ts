@@ -1,0 +1,52 @@
+import { z } from 'zod';
+
+export const LIVE_EVENT_VERSION = 1 as const;
+
+export const publicMaintenanceStatusPayloadSchema = z.object({
+  active: z.boolean(),
+  reason: z.enum(['backup', 'restore', 'platform-import']).optional(),
+});
+
+export type PublicMaintenanceStatusPayload = z.infer<typeof publicMaintenanceStatusPayloadSchema>;
+
+export const liveClientEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    v: z.literal(LIVE_EVENT_VERSION),
+    type: z.literal('notification.unread-changed'),
+  }),
+  z.object({
+    v: z.literal(LIVE_EVENT_VERSION),
+    type: z.literal('maintenance.status-changed'),
+    payload: publicMaintenanceStatusPayloadSchema,
+  }),
+]);
+
+export type LiveClientEvent = z.infer<typeof liveClientEventSchema>;
+
+export const liveNotifyTargetSchema = z.discriminatedUnion('target', [
+  z.object({
+    target: z.literal('user'),
+    userId: z.uuid(),
+    event: liveClientEventSchema,
+  }),
+  z.object({
+    target: z.literal('all'),
+    event: liveClientEventSchema,
+  }),
+]);
+
+export type LiveNotifyEnvelope = z.infer<typeof liveNotifyTargetSchema>;
+
+export function serializeLiveClientEvent(event: LiveClientEvent): string {
+  return JSON.stringify(event);
+}
+
+export function parseLiveNotifyPayload(raw: string): LiveNotifyEnvelope | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    const result = liveNotifyTargetSchema.safeParse(parsed);
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}

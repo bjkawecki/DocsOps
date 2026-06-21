@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import type { PrismaClient, RestoreRunSource } from '../../../../generated/prisma/client.js';
-import { invalidateMaintenanceLockCache } from '../../../infrastructure/maintenance/maintenancePreHandler.js';
+import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
   tryAcquireMaintenanceLock,
@@ -50,7 +50,7 @@ async function reestablishRestoreControlPlane(
   if (status !== 'failed') {
     await tryAcquireMaintenanceLock(prisma, { reason: 'restore', restoreRunId: snapshot.id });
   }
-  invalidateMaintenanceLockCache();
+  await refreshMaintenanceLiveState(prisma);
 
   await prisma.restoreRun.upsert({
     where: { id: snapshot.id },
@@ -161,7 +161,7 @@ export async function runOperationalRestore(
     };
 
     await tryAcquireMaintenanceLock(prisma, { reason: 'restore', restoreRunId });
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
 
     await prisma.restoreRun.update({
       where: { id: restoreRunId },
@@ -274,7 +274,7 @@ export async function runOperationalRestore(
     await prisma.systemMaintenanceLock
       .deleteMany({ where: { id: 'backup', reason: 'backup' } })
       .catch(() => undefined);
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
     if (workDir) {
       await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
     }

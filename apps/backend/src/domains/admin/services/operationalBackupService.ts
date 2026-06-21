@@ -6,7 +6,7 @@ import type {
   BackupDestination,
   Prisma,
 } from '../../../../generated/prisma/client.js';
-import { invalidateMaintenanceLockCache } from '../../../infrastructure/maintenance/maintenancePreHandler.js';
+import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
   tryAcquireMaintenanceLock,
@@ -129,7 +129,7 @@ export async function runOperationalBackup(
     if (!backupRunId) throw new Error('backupRunId is required');
 
     await tryAcquireMaintenanceLock(prisma, { reason: 'backup', backupRunId });
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
 
     await prisma.backupRun.update({
       where: { id: backupRunId },
@@ -231,7 +231,7 @@ export async function runOperationalBackup(
         runId: backupRunId,
       }).catch(() => undefined);
     }
-    invalidateMaintenanceLockCache();
+    await refreshMaintenanceLiveState(prisma);
     if (workDir) {
       await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
     }

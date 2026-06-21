@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
+import { notifyNotificationUnreadChanged } from '../../../infrastructure/liveEvents/notificationLiveEvents.js';
 import {
   resolveNotificationPreferenceCategory,
   type NotificationPreferenceCategory,
@@ -137,6 +138,7 @@ export async function dispatchNotificationEvent(
       }
       await truncateUserNotificationsToCap(prisma, user.id, getNotificationHardCapPerUser());
       deliveredCount += 1;
+      await notifyNotificationUnreadChanged(prisma, user.id);
     }
 
     if (emailQueueEnabled) {
@@ -171,6 +173,5 @@ export async function dispatchNotificationEvent(
     }
   }
 
-  // TODO(§23a): pg_notify connected SSE clients after successful in-app delivery.
   return { deliveredCount, emailQueuedCount };
 }
