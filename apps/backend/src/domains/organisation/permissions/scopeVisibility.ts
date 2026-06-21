@@ -87,6 +87,33 @@ export function evaluateScopeCapability(
   return false;
 }
 
+/**
+ * Single decision point for scope people roster visibility (not the same as canViewScope).
+ * Admin/company lead see people across the company; dept lead sees own department;
+ * team member/lead sees own team only.
+ */
+export function evaluateScopePeopleCapability(
+  user: LoadedUser,
+  hierarchy: ScopeHierarchy
+): boolean {
+  if (user.isAdmin) return true;
+
+  const { companyId, departmentId, teamId } = hierarchy;
+
+  if (teamId) {
+    if (companyId && isCompanyLead(user, companyId)) return true;
+    return isTeamMember(user, teamId) || isTeamLead(user, teamId);
+  }
+  if (departmentId) {
+    if (companyId && isCompanyLead(user, companyId)) return true;
+    return isDepartmentLead(user, departmentId);
+  }
+  if (companyId) {
+    return isCompanyLead(user, companyId);
+  }
+  return false;
+}
+
 function enrichHierarchyFromUser(user: LoadedUser, hierarchy: ScopeHierarchy): ScopeHierarchy {
   const enriched = { ...hierarchy };
   if (enriched.teamId && !enriched.departmentId) {
@@ -250,6 +277,19 @@ export async function isScopeLead(
   const hierarchy = await resolveScopeHierarchy(prisma, scope);
   if (!hierarchy) return false;
   return evaluateScopeCapability(user, hierarchy, 'lead');
+}
+
+/** Whether the user may view the scope people roster (lead hierarchy; not canViewScope). */
+export async function canViewScopePeople(
+  prisma: PrismaClient,
+  userId: string,
+  scope: ScopeRef
+): Promise<boolean> {
+  const user = await loadActiveUser(prisma, userId);
+  if (!user) return false;
+  const hierarchy = await resolveScopeHierarchy(prisma, scope);
+  if (!hierarchy) return false;
+  return evaluateScopePeopleCapability(user, hierarchy);
 }
 
 /**

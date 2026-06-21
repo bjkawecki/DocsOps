@@ -192,6 +192,23 @@ export const meCanWriteInScopeResponseSchema = z.object({
 });
 export type MeCanWriteInScopeResponse = z.infer<typeof meCanWriteInScopeResponseSchema>;
 
+/** Query: GET /me/can-view-scope-people – scope and scope id (company, department, or team). */
+export const meCanViewScopePeopleQuerySchema = z
+  .object({
+    scope: z.enum(['company', 'department', 'team']),
+    companyId: z.cuid().optional(),
+    departmentId: z.cuid().optional(),
+    teamId: z.cuid().optional(),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeCanViewScopePeopleQuery = z.infer<typeof meCanViewScopePeopleQuerySchema>;
+
+/** Response: GET /me/can-view-scope-people. */
+export const meCanViewScopePeopleResponseSchema = z.object({
+  canViewPeople: z.boolean(),
+});
+export type MeCanViewScopePeopleResponse = z.infer<typeof meCanViewScopePeopleResponseSchema>;
+
 /** GET /me/notifications – Inbox-Kategorie (Whitelist im Backend). */
 export const meNotificationCategorySchema = z.enum([
   'all',

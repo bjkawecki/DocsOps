@@ -4,7 +4,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
-import { canViewScope, isScopeLead } from '../permissions/scopeVisibility.js';
+import { canViewScopePeople } from '../permissions/scopeVisibility.js';
 import {
   companyIdParamSchema,
   departmentIdParamSchema,
@@ -29,11 +29,11 @@ const scopePeopleRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       const { teamId } = teamIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
 
-      const allowed = await canViewScope(request.server.prisma, userId, {
+      const allowed = await canViewScopePeople(request.server.prisma, userId, {
         type: 'team',
         teamId,
       });
-      if (!allowed) return reply.status(403).send({ error: 'No access to this team' });
+      if (!allowed) return reply.status(403).send({ error: 'No access to team people' });
 
       const data = await getTeamPeople(request.server.prisma, teamId);
       return reply.send(teamPeopleResponseSchema.parse(data));
@@ -47,11 +47,11 @@ const scopePeopleRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       const { departmentId } = departmentIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
 
-      const allowed = await canViewScope(request.server.prisma, userId, {
+      const allowed = await canViewScopePeople(request.server.prisma, userId, {
         type: 'department',
         departmentId,
       });
-      if (!allowed) return reply.status(403).send({ error: 'No access to this department' });
+      if (!allowed) return reply.status(403).send({ error: 'No access to department people' });
 
       const data = await getDepartmentPeople(request.server.prisma, departmentId);
       return reply.send(departmentPeopleResponseSchema.parse(data));
@@ -65,11 +65,11 @@ const scopePeopleRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       const { companyId } = companyIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
 
-      const allowed = await isScopeLead(request.server.prisma, userId, {
+      const allowed = await canViewScopePeople(request.server.prisma, userId, {
         type: 'company',
         companyId,
       });
-      if (!allowed) return reply.status(403).send({ error: 'Company lead access required' });
+      if (!allowed) return reply.status(403).send({ error: 'No access to company people' });
 
       const data = await getCompanyPeople(request.server.prisma, companyId);
       return reply.send(companyPeopleResponseSchema.parse(data));

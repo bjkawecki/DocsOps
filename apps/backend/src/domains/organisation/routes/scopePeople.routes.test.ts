@@ -36,35 +36,41 @@ describe('scope people routes', () => {
   let teamMemberId: string;
   let outsiderId: string;
   let teamLeadId: string;
+  let departmentLeadId: string;
 
   beforeAll(async () => {
     app = await buildApp();
     const pw = await hashPassword(PASSWORD);
-    const [company, companyLead, teamMember, outsider, teamLead] = await Promise.all([
-      prisma.company.create({ data: { name: `People Co ${TS}` } }),
-      prisma.user.create({
-        data: { name: 'Co Lead', email: `co-lead-${TS}@test.de`, passwordHash: pw },
-      }),
-      prisma.user.create({
-        data: {
-          name: 'Member',
-          email: `member-${TS}@test.de`,
-          passwordHash: pw,
-          lastActiveAt: new Date(),
-        },
-      }),
-      prisma.user.create({
-        data: { name: 'Outsider', email: `outsider-${TS}@test.de`, passwordHash: pw },
-      }),
-      prisma.user.create({
-        data: { name: 'Team Lead', email: `team-lead-${TS}@test.de`, passwordHash: pw },
-      }),
-    ]);
+    const [company, companyLead, teamMember, outsider, teamLead, departmentLead] =
+      await Promise.all([
+        prisma.company.create({ data: { name: `People Co ${TS}` } }),
+        prisma.user.create({
+          data: { name: 'Co Lead', email: `co-lead-${TS}@test.de`, passwordHash: pw },
+        }),
+        prisma.user.create({
+          data: {
+            name: 'Member',
+            email: `member-${TS}@test.de`,
+            passwordHash: pw,
+            lastActiveAt: new Date(),
+          },
+        }),
+        prisma.user.create({
+          data: { name: 'Outsider', email: `outsider-${TS}@test.de`, passwordHash: pw },
+        }),
+        prisma.user.create({
+          data: { name: 'Team Lead', email: `team-lead-${TS}@test.de`, passwordHash: pw },
+        }),
+        prisma.user.create({
+          data: { name: 'Dept Lead', email: `dept-lead-${TS}@test.de`, passwordHash: pw },
+        }),
+      ]);
     companyId = company.id;
     companyLeadId = companyLead.id;
     teamMemberId = teamMember.id;
     outsiderId = outsider.id;
     teamLeadId = teamLead.id;
+    departmentLeadId = departmentLead.id;
 
     const department = await prisma.department.create({
       data: { name: `Dept ${TS}`, companyId },
@@ -78,6 +84,7 @@ describe('scope people routes', () => {
 
     await Promise.all([
       prisma.companyLead.create({ data: { companyId, userId: companyLeadId } }),
+      prisma.departmentLead.create({ data: { departmentId, userId: departmentLeadId } }),
       prisma.teamMember.create({ data: { teamId, userId: teamMemberId } }),
       prisma.teamLead.create({ data: { teamId, userId: teamLeadId } }),
     ]);
@@ -86,11 +93,12 @@ describe('scope people routes', () => {
   afterAll(async () => {
     await prisma.teamLead.deleteMany({ where: { teamId } });
     await prisma.teamMember.deleteMany({ where: { teamId } });
+    await prisma.departmentLead.deleteMany({ where: { departmentId } });
     await prisma.companyLead.deleteMany({ where: { companyId } });
     await prisma.team.deleteMany({ where: { id: teamId } });
     await prisma.department.deleteMany({ where: { id: departmentId } });
     await prisma.company.deleteMany({ where: { id: companyId } });
-    const userIds = [companyLeadId, teamMemberId, outsiderId, teamLeadId];
+    const userIds = [companyLeadId, teamMemberId, outsiderId, teamLeadId, departmentLeadId];
     await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
     await app.close();
@@ -117,8 +125,18 @@ describe('scope people routes', () => {
     expect(lead?.roles).toContain('lead');
   });
 
-  it('outsider cannot list team people', async () => {
-    const cookie = await login(`outsider-${TS}@test.de`);
+  it('team member cannot list department people', async () => {
+    const cookie = await login(`member-${TS}@test.de`);
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/departments/${departmentId}/people`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('department lead without team membership cannot list team people', async () => {
+    const cookie = await login(`dept-lead-${TS}@test.de`);
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/teams/${teamId}/people`,
@@ -127,8 +145,8 @@ describe('scope people routes', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('team member can list department people with team member names', async () => {
-    const cookie = await login(`member-${TS}@test.de`);
+  it('department lead can list department people', async () => {
+    const cookie = await login(`dept-lead-${TS}@test.de`);
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/departments/${departmentId}/people`,
@@ -140,9 +158,19 @@ describe('scope people routes', () => {
       summary: { peopleCount: number; teamCount: number };
     };
     expect(body.summary.teamCount).toBe(1);
-    expect(body.summary.peopleCount).toBe(2);
+    expect(body.summary.peopleCount).toBe(3);
     expect(body.teams[0]?.members.some((m) => m.name === 'Member')).toBe(true);
     expect(body.teams[0]?.teamLeads.some((l) => l.name === 'Team Lead')).toBe(true);
+  });
+
+  it('outsider cannot list team people', async () => {
+    const cookie = await login(`outsider-${TS}@test.de`);
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/teams/${teamId}/people`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(403);
   });
 
   it('plain member cannot list company people', async () => {
@@ -153,6 +181,31 @@ describe('scope people routes', () => {
       headers: { cookie },
     });
     expect(res.statusCode).toBe(403);
+  });
+
+  it('company lead can list team, department, and company people', async () => {
+    const cookie = await login(`co-lead-${TS}@test.de`);
+
+    const teamRes = await app.inject({
+      method: 'GET',
+      url: `/api/v1/teams/${teamId}/people`,
+      headers: { cookie },
+    });
+    expect(teamRes.statusCode).toBe(200);
+
+    const deptRes = await app.inject({
+      method: 'GET',
+      url: `/api/v1/departments/${departmentId}/people`,
+      headers: { cookie },
+    });
+    expect(deptRes.statusCode).toBe(200);
+
+    const companyRes = await app.inject({
+      method: 'GET',
+      url: `/api/v1/companies/${companyId}/people`,
+      headers: { cookie },
+    });
+    expect(companyRes.statusCode).toBe(200);
   });
 
   it('company lead gets org overview without member names in teams', async () => {
@@ -179,5 +232,24 @@ describe('scope people routes', () => {
     expect(teamEntry).not.toHaveProperty('members');
     expect(teamEntry).toHaveProperty('peopleCount');
     expect(teamEntry).toHaveProperty('onlineCount');
+  });
+
+  it('GET /me/can-view-scope-people reflects lead hierarchy', async () => {
+    const memberCookie = await login(`member-${TS}@test.de`);
+    const memberTeam = await app.inject({
+      method: 'GET',
+      url: `/api/v1/me/can-view-scope-people?scope=team&teamId=${teamId}`,
+      headers: { cookie: memberCookie },
+    });
+    expect(memberTeam.statusCode).toBe(200);
+    expect(memberTeam.json()).toEqual({ canViewPeople: true });
+
+    const memberDept = await app.inject({
+      method: 'GET',
+      url: `/api/v1/me/can-view-scope-people?scope=department&departmentId=${departmentId}`,
+      headers: { cookie: memberCookie },
+    });
+    expect(memberDept.statusCode).toBe(200);
+    expect(memberDept.json()).toEqual({ canViewPeople: false });
   });
 });

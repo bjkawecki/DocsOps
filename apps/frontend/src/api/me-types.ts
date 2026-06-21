@@ -70,3 +70,15 @@ export type MeResponse = {
 export type CanWriteInScopeResponse = {
   canWrite: boolean;
 };
+
+/** Response GET /api/v1/me/can-view-scope-people (?scope=team&teamId=...). */
+export type CanViewScopePeopleResponse = {
+  canViewPeople: boolean;
+};
+
+export type ScopePeopleQueryScope = 'company' | 'department' | 'team';
+
+export type CanViewScopePeopleParams =
+  | { scope: 'company'; companyId: string }
+  | { scope: 'department'; departmentId: string }
+  | { scope: 'team'; teamId: string };

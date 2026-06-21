@@ -13,6 +13,7 @@ import {
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
 import { ScopePeopleMenu } from '../../components/scopePeople';
+import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { useMe } from '../../hooks/useMe';
 import { canShowWriteTabs } from '../../lib/canShowWriteTabs';
 import { TeamContextPageModals } from './TeamContextPageModals';
@@ -44,7 +45,6 @@ export function TeamContextPage() {
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [peopleMenuOpen, setPeopleMenuOpen] = useState(false);
   const { data: me, isPending: mePending } = useMe();
 
   const {
@@ -77,6 +77,11 @@ export function TeamContextPage() {
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
   const canManage = !!(isAdmin || isTeamLead || isDepartmentLead || isCompanyLead);
+
+  const { data: canViewPeopleData } = useCanViewScopePeople(
+    teamId ? { scope: 'team', teamId } : null
+  );
+  const showPeopleMenu = canViewPeopleData?.canViewPeople === true;
 
   const { data: processesData, isPending: processesPending } = useQuery({
     queryKey: ['processes', 'team', teamId ?? ''],
@@ -204,12 +209,7 @@ export function TeamContextPage() {
         actions={
           teamId ? (
             <Group gap="xs">
-              <ScopePeopleMenu
-                scope="team"
-                scopeId={teamId}
-                opened={peopleMenuOpen}
-                onChange={setPeopleMenuOpen}
-              />
+              {showPeopleMenu ? <ScopePeopleMenu scope="team" scopeId={teamId} /> : null}
               {canManage ? (
                 <CreateContextMenu
                   onCreateProcess={() => {
@@ -244,7 +244,6 @@ export function TeamContextPage() {
               canWrite={canWrite}
               teamId={teamId}
               onGoToTab={setActiveTab}
-              onOpenPeopleMenu={() => setPeopleMenuOpen(true)}
             />
           </Fragment>,
           <Fragment key="processes">

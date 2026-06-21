@@ -5,8 +5,12 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../../auth/middleware.js';
-import { canWriteInScope } from '../../../organisation/permissions/scopeVisibility.js';
 import {
+  canViewScopePeople,
+  canWriteInScope,
+} from '../../../organisation/permissions/scopeVisibility.js';
+import {
+  meCanViewScopePeopleQuerySchema,
   meCanWriteInScopeQuerySchema,
   meDocumentsListQuerySchema,
   meDraftsQuerySchema,
@@ -119,6 +123,37 @@ function registerMeDocumentsRoutes(app: FastifyInstance): void {
 
       const canWrite = await canWriteInScope(prisma, userId, scopeRef);
       return reply.send({ canWrite });
+    }
+  );
+
+  app.get(
+    '/me/can-view-scope-people',
+    { preHandler: requireAuthPreHandler },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      const query = meCanViewScopePeopleQuerySchema.parse(request.query);
+
+      const scopeRef = scopeRefFromQuery(query);
+      if (!scopeRef) return reply.send({ canViewPeople: false });
+
+      if (scopeRef.type === 'department') {
+        const dept = await prisma.department.findUnique({
+          where: { id: scopeRef.departmentId },
+          select: { id: true },
+        });
+        if (!dept) return reply.send({ canViewPeople: false });
+      }
+      if (scopeRef.type === 'team') {
+        const team = await prisma.team.findUnique({
+          where: { id: scopeRef.teamId },
+          select: { id: true },
+        });
+        if (!team) return reply.send({ canViewPeople: false });
+      }
+
+      const canViewPeople = await canViewScopePeople(prisma, userId, scopeRef);
+      return reply.send({ canViewPeople });
     }
   );
 

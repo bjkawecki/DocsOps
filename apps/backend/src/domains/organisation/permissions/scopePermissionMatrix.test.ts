@@ -6,6 +6,8 @@ import { canReadContext } from './contextPermissions.js';
 import {
   canReadOwnerScopeResolved,
   evaluateScopeCapability,
+  evaluateScopePeopleCapability,
+  canViewScopePeople,
   isScopeLead,
   canViewScope,
 } from './scopeVisibility.js';
@@ -168,5 +170,26 @@ describe('scope permission matrix', () => {
     expect(evaluateScopeCapability(coLead!, hierarchy, 'lead')).toBe(true);
     expect(evaluateScopeCapability(member!, hierarchy, 'view')).toBe(true);
     expect(evaluateScopeCapability(member!, hierarchy, 'lead')).toBe(false);
+  });
+
+  it('evaluateScopePeopleCapability is separate from canViewScope for roster visibility', async () => {
+    const coLead = await loadActiveUser(prisma, companyLeadId);
+    const member = await loadActiveUser(prisma, teamMemberId);
+    expect(coLead).not.toBeNull();
+    expect(member).not.toBeNull();
+    const hierarchy = { teamId, departmentId, companyId };
+    expect(evaluateScopePeopleCapability(coLead!, hierarchy)).toBe(true);
+    expect(evaluateScopePeopleCapability(member!, hierarchy)).toBe(true);
+    expect(evaluateScopePeopleCapability(member!, { departmentId, companyId })).toBe(false);
+    expect(evaluateScopePeopleCapability(member!, { companyId })).toBe(false);
+    expect(await canViewScope(prisma, teamMemberId, { type: 'department', departmentId })).toBe(
+      true
+    );
+    expect(
+      await canViewScopePeople(prisma, teamMemberId, { type: 'department', departmentId })
+    ).toBe(false);
+    expect(
+      await canViewScopePeople(prisma, companyLeadId, { type: 'department', departmentId })
+    ).toBe(true);
   });
 });

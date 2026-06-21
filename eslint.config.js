@@ -128,7 +128,7 @@ module.exports = tseslint.config(
                 'isTeamLeadInDepartment',
               ],
               message:
-                'Scope hierarchy decisions must use scopeVisibility.ts (canViewScope, isScopeLead, canReadOwnerScope, evaluateScopeCapability).',
+                'Scope hierarchy decisions must use scopeVisibility.ts (canViewScope, canViewScopePeople, isScopeLead, canReadOwnerScope, evaluateScopeCapability).',
             },
           ],
         },

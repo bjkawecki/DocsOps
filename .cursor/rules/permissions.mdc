@@ -32,6 +32,7 @@ Org scope decisions (view unit, scope lead, read owner context) live in **one mo
 Use:
 
 - `canViewScope(prisma, userId, scopeRef)` – navigate / see org unit
+- `canViewScopePeople(prisma, userId, scopeRef)` – scope people roster (lead hierarchy; not `canViewScope`)
 - `isScopeLead(prisma, userId, scopeRef)` – drafts, trash tabs, lead features
 - `canReadOwnerScope(user, userId, ownerInput)` – read contexts/documents by owner scope (sync)
 

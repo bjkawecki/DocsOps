@@ -10,6 +10,7 @@ import {
 } from '../../components/trashArchive';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
+import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { canShowWriteTabs } from '../../lib/canShowWriteTabs';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
@@ -44,7 +45,6 @@ export function CompanyPage() {
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [peopleMenuOpen, setPeopleMenuOpen] = useState(false);
   const { data: me, isPending: mePending } = useMe();
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
   const isAdmin = me?.user?.isAdmin === true;
@@ -74,10 +74,11 @@ export function CompanyPage() {
   });
 
   const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0 || isAdmin;
-  const isCompanyLead =
-    isAdmin ||
-    (effectiveCompanyId != null &&
-      (me?.identity?.companyLeads?.some((c) => c.id === effectiveCompanyId) ?? false));
+
+  const { data: canViewPeopleData } = useCanViewScopePeople(
+    effectiveCompanyId != null ? { scope: 'company', companyId: effectiveCompanyId } : null
+  );
+  const showPeopleMenu = canViewPeopleData?.canViewPeople === true;
 
   const { data: processesData, isPending: processesPending } = useQuery({
     queryKey: ['processes', effectiveCompanyId ?? ''],
@@ -225,13 +226,8 @@ export function CompanyPage() {
         actions={
           effectiveCompanyId ? (
             <Group gap="xs">
-              {isCompanyLead ? (
-                <ScopePeopleMenu
-                  scope="company"
-                  scopeId={effectiveCompanyId}
-                  opened={peopleMenuOpen}
-                  onChange={setPeopleMenuOpen}
-                />
+              {showPeopleMenu ? (
+                <ScopePeopleMenu scope="company" scopeId={effectiveCompanyId} />
               ) : null}
               {canManage ? (
                 <CreateContextMenu
@@ -267,8 +263,6 @@ export function CompanyPage() {
               docsPending={docsPending}
               docsPreview={docsPreview}
               setActiveTab={setActiveTab}
-              showOrganization={isCompanyLead}
-              onOpenPeopleMenu={() => setPeopleMenuOpen(true)}
             />
           </Fragment>,
           <Fragment key="processes">

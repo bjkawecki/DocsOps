@@ -11,6 +11,7 @@ import {
 import { apiFetch } from '../../api/client';
 import { canShowWriteTabs } from '../../lib/canShowWriteTabs';
 import { useMe } from '../../hooks/useMe';
+import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
 import { ScopePeopleMenu } from '../../components/scopePeople';
@@ -45,7 +46,6 @@ export function DepartmentContextPage() {
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [peopleMenuOpen, setPeopleMenuOpen] = useState(false);
   const { data: me, isPending: mePending } = useMe();
 
   const {
@@ -73,6 +73,11 @@ export function DepartmentContextPage() {
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
   const canManage = !!(isAdmin || isDepartmentLead || isCompanyLead);
+
+  const { data: canViewPeopleData } = useCanViewScopePeople(
+    departmentId ? { scope: 'department', departmentId } : null
+  );
+  const showPeopleMenu = canViewPeopleData?.canViewPeople === true;
 
   const { data: processesData, isPending: processesPending } = useQuery({
     queryKey: ['processes', 'department', departmentId ?? ''],
@@ -201,12 +206,9 @@ export function DepartmentContextPage() {
         actions={
           departmentId ? (
             <Group gap="xs">
-              <ScopePeopleMenu
-                scope="department"
-                scopeId={departmentId}
-                opened={peopleMenuOpen}
-                onChange={setPeopleMenuOpen}
-              />
+              {showPeopleMenu ? (
+                <ScopePeopleMenu scope="department" scopeId={departmentId} />
+              ) : null}
               {canManage ? (
                 <CreateContextMenu
                   onCreateProcess={() => {
@@ -241,7 +243,6 @@ export function DepartmentContextPage() {
               canWrite={canWrite}
               departmentId={departmentId}
               setActiveTab={setActiveTab}
-              onOpenPeopleMenu={() => setPeopleMenuOpen(true)}
             />
           </Fragment>,
           <Fragment key="processes">

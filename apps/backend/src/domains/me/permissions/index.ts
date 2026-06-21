@@ -1,1 +1,4 @@
-export { canWriteInScope } from '../../organisation/permissions/scopeVisibility.js';
+export {
+  canWriteInScope,
+  canViewScopePeople,
+} from '../../organisation/permissions/scopeVisibility.js';

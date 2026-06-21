@@ -2,10 +2,11 @@ const ONLINE_THRESHOLD_MS = 5 * 60_000;
 
 /**
  * Formats presence for scope people UI (English).
+ * Returns null when offline and no last activity timestamp is known.
  */
-export function formatPresence(isOnline: boolean, lastActiveAt: string | null): string {
+export function formatPresence(isOnline: boolean, lastActiveAt: string | null): string | null {
   if (isOnline) return 'Online';
-  if (lastActiveAt == null) return 'Last seen unknown';
+  if (lastActiveAt == null) return null;
 
   const last = new Date(lastActiveAt);
   const diffMs = Date.now() - last.getTime();

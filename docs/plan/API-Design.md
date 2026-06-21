@@ -75,15 +75,25 @@ GET-Listen setzen voraus, dass das Team bzw. die Abteilung für den Nutzer sicht
 
 ## Scope People (Mitglieder + Presence)
 
-Read-only Endpunkte für Mitglieder-Anzeige in Scope-Kopfzeile und Overview. Keine E-Mail-Adressen in Responses. Presence über `User.lastActiveAt` (wird bei authentifizierten Requests und SSE-Register throttled aktualisiert); `isOnline` wenn `lastActiveAt >= now - PRESENCE_ONLINE_THRESHOLD_SECONDS`.
+Read-only Endpunkte für Mitglieder-Anzeige in der Scope-Kopfzeile. Keine E-Mail-Adressen in Responses. Presence über `User.lastActiveAt` (wird bei authentifizierten Requests und SSE-Register throttled aktualisiert); `isOnline` wenn `lastActiveAt >= now - PRESENCE_ONLINE_THRESHOLD_SECONDS`.
 
-- **`GET /api/v1/teams/:teamId/people`** – Flache Liste aller Personen im Team (Members + Leads). **Permission:** `canViewScope(team)`.
+**Permission:** `canViewScopePeople` in `scopeVisibility.ts` (Lead-Hierarchie – **nicht** `canViewScope`).
+
+| Rolle                | Team                           | Department        | Company            |
+| -------------------- | ------------------------------ | ----------------- | ------------------ |
+| Admin / Company Lead | Ja                             | Ja                | Ja (Org-Übersicht) |
+| Department Lead      | Nur wenn Member/Lead des Teams | Ja (eigenes Dept) | Nein               |
+| Team Lead / Member   | Ja (eigenes Team)              | Nein              | Nein               |
+
+UI-Sichtbarkeit: `GET /api/v1/me/can-view-scope-people?scope=…&{companyId|departmentId|teamId}=…` → `{ canViewPeople: boolean }`.
+
+- **`GET /api/v1/teams/:teamId/people`** – Flache Liste aller Personen im Team (Members + Leads). **Permission:** `canViewScopePeople(team)`.
   - Response: `{ items: [{ id, name, roles?: ('member'|'lead')[], isOnline, lastActiveAt }], total, onlineCount }`
 
-- **`GET /api/v1/departments/:departmentId/people`** – Strukturiert: Department Leads + Teams mit Member-Namen. **Permission:** `canViewScope(department)`.
+- **`GET /api/v1/departments/:departmentId/people`** – Strukturiert: Department Leads + Teams mit Member-Namen. **Permission:** `canViewScopePeople(department)`.
   - Response: `{ departmentLeads, teams: [{ id, name, teamLeads, members }], summary: { peopleCount, onlineCount, teamCount } }`
 
-- **`GET /api/v1/companies/:companyId/people`** – Org-Übersicht: Company Leads + Department/Team-Aggregates (Counts, keine Member-Namen fremder Teams). **Permission:** `isScopeLead(company)` (Company Lead oder Admin) – Plain Member mit `canViewScope(company)` erhält **403**.
+- **`GET /api/v1/companies/:companyId/people`** – Org-Übersicht: Company Leads + Department/Team-Aggregates (Counts, keine Member-Namen fremder Teams). **Permission:** `canViewScopePeople(company)`.
   - Response: `{ companyLeads, departments: [{ id, name, departmentLeads, teams: [{ id, name, peopleCount, onlineCount }], peopleCount, onlineCount, teamCount }], summary: { peopleCount, onlineCount, departmentCount } }`
 
 Verwaltung (Mitglied hinzufügen/entfernen) bleibt über die Zuordnungs-Endpunkte oben.

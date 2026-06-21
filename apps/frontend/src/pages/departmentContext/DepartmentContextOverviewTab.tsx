@@ -1,6 +1,4 @@
-import { Stack } from '@mantine/core';
 import { DraftsCard } from '../../components/trashArchive';
-import { ScopePeopleSummaryCard } from '../../components/scopePeople';
 import { ScopedContextOverviewCards } from '../contextScope/ScopedContextOverviewCards';
 import type {
   ProcessItem,
@@ -18,7 +16,6 @@ type Props = {
   canWrite: boolean;
   departmentId: string | undefined;
   setActiveTab: (tab: string) => void;
-  onOpenPeopleMenu: () => void;
 };
 
 export function DepartmentContextOverviewTab({
@@ -31,37 +28,27 @@ export function DepartmentContextOverviewTab({
   canWrite,
   departmentId,
   setActiveTab,
-  onOpenPeopleMenu,
 }: Props) {
   return (
-    <Stack gap="md">
-      {departmentId != null && (
-        <ScopePeopleSummaryCard
-          scope="department"
-          scopeId={departmentId}
-          onViewAll={onOpenPeopleMenu}
-        />
-      )}
-      <ScopedContextOverviewCards
-        onGoToTab={setActiveTab}
-        processesCount={processes.length}
-        projectsCount={projects.length}
-        processesPreview={processesPreview}
-        projectsPreview={projectsPreview}
-        docsTotal={docsTotal}
-        noCompanySelected={false}
-        documentRows={departmentDocs.slice(0, 5)}
-        draftsSlot={
-          canWrite ? (
-            <DraftsCard
-              scopeParams={departmentId ? { departmentId } : {}}
-              limit={10}
-              enabled={!!departmentId}
-              onViewMore={() => setActiveTab('drafts')}
-            />
-          ) : undefined
-        }
-      />
-    </Stack>
+    <ScopedContextOverviewCards
+      onGoToTab={setActiveTab}
+      processesCount={processes.length}
+      projectsCount={projects.length}
+      processesPreview={processesPreview}
+      projectsPreview={projectsPreview}
+      docsTotal={docsTotal}
+      noCompanySelected={false}
+      documentRows={departmentDocs.slice(0, 5)}
+      draftsSlot={
+        canWrite ? (
+          <DraftsCard
+            scopeParams={departmentId ? { departmentId } : {}}
+            limit={10}
+            enabled={!!departmentId}
+            onViewMore={() => setActiveTab('drafts')}
+          />
+        ) : undefined
+      }
+    />
   );
 }

@@ -115,23 +115,27 @@ Zielbild für Bearbeitung veröffentlichter Inhalte: [Edit-System-Plan](Edit-Sys
 
 ### Me (`me.ts`)
 
-| Methode | Pfad                   | PreHandler            | Permission im Handler                                    |
-| ------- | ---------------------- | --------------------- | -------------------------------------------------------- |
-| GET     | /me                    | requireAuthPreHandler | effectiveUserId (eigene Daten)                           |
-| GET     | /me/personal-documents | requireAuthPreHandler | ownerUserId = userId (implizit)                          |
-| GET     | /me/trash              | requireAuthPreHandler | scope + getTrashOrArchiveItems (leer bei kein Zugriff)   |
-| GET     | /me/archive            | requireAuthPreHandler | scope + getTrashOrArchiveItems                           |
-| GET     | /me/can-write-in-scope | requireAuthPreHandler | isScopeLead, getWritableCatalogScope, canWriteInScope    |
-| GET     | /me/shared-documents   | requireAuthPreHandler | Grants des Users (implizit)                              |
-| GET     | /me/drafts             | requireAuthPreHandler | getDraftsScope, writable (implizit)                      |
-| PATCH   | /me                    | requireAuthPreHandler | userId = request.user.id (nur eigenes Profil)            |
-| GET     | /me/storage            | requireAuthPreHandler | canPinForScope bei team/department/company               |
-| POST    | /me/deactivate         | requireAuthPreHandler | userId = request.user.id + isAdmin-Check (letzter Admin) |
-| GET     | /me/preferences        | requireAuthPreHandler | effectiveUserId                                          |
-| PATCH   | /me/preferences        | requireAuthPreHandler | request.user.id (nur eigenes)                            |
-| PATCH   | /me/account            | requireAuthPreHandler | request.user.id (nur eigenes)                            |
-| GET     | /me/sessions           | requireAuthPreHandler | request.user.id (eigene Sessions)                        |
-| DELETE  | /me/sessions           | requireAuthPreHandler | request.user.id (eigene löschen)                         |
+| Methode | Pfad                              | PreHandler            | Permission im Handler                                    |
+| ------- | --------------------------------- | --------------------- | -------------------------------------------------------- |
+| GET     | /me                               | requireAuthPreHandler | effectiveUserId (eigene Daten)                           |
+| GET     | /me/personal-documents            | requireAuthPreHandler | ownerUserId = userId (implizit)                          |
+| GET     | /me/trash                         | requireAuthPreHandler | scope + getTrashOrArchiveItems (leer bei kein Zugriff)   |
+| GET     | /me/archive                       | requireAuthPreHandler | scope + getTrashOrArchiveItems                           |
+| GET     | /me/can-write-in-scope            | requireAuthPreHandler | isScopeLead, getWritableCatalogScope, canWriteInScope    |
+| GET     | /me/can-view-scope-people         | requireAuthPreHandler | canViewScopePeople                                       |
+| GET     | /teams/:teamId/people             | requireAuthPreHandler | canViewScopePeople                                       |
+| GET     | /departments/:departmentId/people | requireAuthPreHandler | canViewScopePeople                                       |
+| GET     | /companies/:companyId/people      | requireAuthPreHandler | canViewScopePeople                                       |
+| GET     | /me/shared-documents              | requireAuthPreHandler | Grants des Users (implizit)                              |
+| GET     | /me/drafts                        | requireAuthPreHandler | getDraftsScope, writable (implizit)                      |
+| PATCH   | /me                               | requireAuthPreHandler | userId = request.user.id (nur eigenes Profil)            |
+| GET     | /me/storage                       | requireAuthPreHandler | canPinForScope bei team/department/company               |
+| POST    | /me/deactivate                    | requireAuthPreHandler | userId = request.user.id + isAdmin-Check (letzter Admin) |
+| GET     | /me/preferences                   | requireAuthPreHandler | effectiveUserId                                          |
+| PATCH   | /me/preferences                   | requireAuthPreHandler | request.user.id (nur eigenes)                            |
+| PATCH   | /me/account                       | requireAuthPreHandler | request.user.id (nur eigenes)                            |
+| GET     | /me/sessions                      | requireAuthPreHandler | request.user.id (eigene Sessions)                        |
+| DELETE  | /me/sessions                      | requireAuthPreHandler | request.user.id (eigene löschen)                         |
 
 ### Admin (`admin.ts`)
 
@@ -206,6 +210,8 @@ Kompakte Tabelle: **Route | Permission | Scope Level | Ownership Check | Risiko*
 ## D. Duplizierte Permission-Logik
 
 - **can-write-in-scope:** Die Logik ist in eine Hilfsfunktion **canWriteInScope(prisma, userId, scopeRef)** (permissions) ausgelagert; GET /me/can-write-in-scope ruft sie für company/department/team auf.
+
+- **can-view-scope-people:** **canViewScopePeople(prisma, userId, scopeRef)** in `scopeVisibility.ts`; GET /me/can-view-scope-people und die drei `/…/people`-Routen nutzen sie. Frontend: **useCanViewScopePeople** (keine Identity-Duplikation für People-Button).
 
 - **Routen:** Es gibt **keine** Inline-Checks der Form `if (user.isAdmin) …` oder `if (user.id === ownerId)` für Zugriffsentscheidungen in den Route-Handlern (außer in me.ts für „eigenes Profil“ und deactivate). Alle dokument- und kontextbezogenen Entscheidungen laufen über Funktionen in `permissions/`.
 

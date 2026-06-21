@@ -22,8 +22,8 @@ export type ScopePeopleScope = 'team' | 'department' | 'company';
 type ScopePeopleMenuProps = {
   scope: ScopePeopleScope;
   scopeId: string;
-  opened?: boolean;
-  onChange?: (opened: boolean) => void;
+  /** When false, people queries do not run (menu should not be mounted). */
+  enabled?: boolean;
 };
 
 function PersonLine({ person }: { person: ScopePersonRow }) {
@@ -36,6 +36,7 @@ function PersonLine({ person }: { person: ScopePersonRow }) {
         : person.roles?.includes('member')
           ? 'Member'
           : null;
+  const detail = [roleLabel, presence].filter(Boolean).join(' · ');
 
   return (
     <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -48,31 +49,22 @@ function PersonLine({ person }: { person: ScopePersonRow }) {
         <Text size="sm" fw={500} lineClamp={1}>
           {person.name}
         </Text>
-        <Text size="xs" c="dimmed">
-          {roleLabel != null ? `${roleLabel} · ${presence}` : presence}
-        </Text>
+        {detail ? (
+          <Text size="xs" c="dimmed">
+            {detail}
+          </Text>
+        ) : null}
       </Box>
     </Group>
   );
 }
 
-function badgeLabel(summary: string): string {
-  return summary;
-}
+export function ScopePeopleMenu({ scope, scopeId, enabled = true }: ScopePeopleMenuProps) {
+  const [opened, setOpened] = useState(false);
 
-export function ScopePeopleMenu({
-  scope,
-  scopeId,
-  opened: controlledOpened,
-  onChange,
-}: ScopePeopleMenuProps) {
-  const [internalOpened, setInternalOpened] = useState(false);
-  const opened = controlledOpened ?? internalOpened;
-  const setOpened = onChange ?? setInternalOpened;
-
-  const teamQuery = useTeamPeople(scopeId, scope === 'team');
-  const deptQuery = useDepartmentPeople(scopeId, scope === 'department');
-  const companyQuery = useCompanyPeople(scopeId, scope === 'company');
+  const teamQuery = useTeamPeople(scopeId, enabled && scope === 'team');
+  const deptQuery = useDepartmentPeople(scopeId, enabled && scope === 'department');
+  const companyQuery = useCompanyPeople(scopeId, enabled && scope === 'company');
 
   const activeQuery =
     scope === 'team' ? teamQuery : scope === 'department' ? deptQuery : companyQuery;
@@ -211,7 +203,7 @@ export function ScopePeopleMenu({
           rightSection={
             summaryText != null ? (
               <Badge variant="light" size="sm">
-                {badgeLabel(summaryText)}
+                {summaryText}
               </Badge>
             ) : undefined
           }
