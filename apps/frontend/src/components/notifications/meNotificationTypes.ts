@@ -18,5 +18,12 @@ export type NotificationsResponse = {
 export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 export const DEFAULT_LIMIT = 10;
 
-export const ME_NOTIFICATION_CATEGORIES = ['all', 'documents', 'reviews', 'system', 'org'] as const;
+export const ME_NOTIFICATION_CATEGORIES = [
+  'all',
+  'documents',
+  'reviews',
+  'announcements',
+  'operations',
+  'org',
+] as const;
 export type MeNotificationCategory = (typeof ME_NOTIFICATION_CATEGORIES)[number];

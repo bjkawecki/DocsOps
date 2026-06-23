@@ -1,6 +1,7 @@
 import { ME_NOTIFICATION_CATEGORIES, type MeNotificationCategory } from './meNotificationTypes.js';
 
 export function parseMeNotificationCategory(raw: string | null): MeNotificationCategory {
+  if (raw === 'system') return 'announcements';
   if (raw != null && ME_NOTIFICATION_CATEGORIES.includes(raw as MeNotificationCategory)) {
     return raw as MeNotificationCategory;
   }

@@ -9,6 +9,14 @@ export const publicMaintenanceStatusPayloadSchema = z.object({
 
 export type PublicMaintenanceStatusPayload = z.infer<typeof publicMaintenanceStatusPayloadSchema>;
 
+export const documentCollaborationChangedPayloadSchema = z.object({
+  documentId: z.cuid(),
+});
+
+export type DocumentCollaborationChangedPayload = z.infer<
+  typeof documentCollaborationChangedPayloadSchema
+>;
+
 export const liveClientEventSchema = z.discriminatedUnion('type', [
   z.object({
     v: z.literal(LIVE_EVENT_VERSION),
@@ -18,6 +26,11 @@ export const liveClientEventSchema = z.discriminatedUnion('type', [
     v: z.literal(LIVE_EVENT_VERSION),
     type: z.literal('maintenance.status-changed'),
     payload: publicMaintenanceStatusPayloadSchema,
+  }),
+  z.object({
+    v: z.literal(LIVE_EVENT_VERSION),
+    type: z.literal('document.collaboration-changed'),
+    payload: documentCollaborationChangedPayloadSchema,
   }),
 ]);
 

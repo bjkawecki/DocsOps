@@ -19,6 +19,9 @@ const notificationChannelPreferencesSchema = z.object({
   documentChanges: z.boolean().optional(),
   draftRequests: z.boolean().optional(),
   reminders: z.boolean().optional(),
+  announcements: z.boolean().optional(),
+  operations: z.boolean().optional(),
+  /** @deprecated use announcements + operations */
   system: z.boolean().optional(),
   orgChanges: z.boolean().optional(),
 });
@@ -214,6 +217,9 @@ export const meNotificationCategorySchema = z.enum([
   'all',
   'documents',
   'reviews',
+  'announcements',
+  'operations',
+  /** @deprecated use announcements or operations */
   'system',
   'org',
 ]);

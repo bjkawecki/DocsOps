@@ -16,6 +16,7 @@ import {
 import { hashPassword } from '../../auth/services/password.js';
 import {
   listUserIdsWhoCanReadDocument,
+  listUserIdsWhoCanReadLeadDraft,
   symmetricDiffUserIds,
 } from '../../notifications/services/notificationRecipients.js';
 import { emptyBlockDocumentJson } from '../services/blocks/documentBlocksBackfill.js';
@@ -441,6 +442,18 @@ describe('Permissions (canRead, canWrite)', () => {
         }
       }
       throw lastError;
+    });
+
+    it('listUserIdsWhoCanReadLeadDraft: writers and leads included; reader-only excluded', async () => {
+      const ids = await listUserIdsWhoCanReadLeadDraft(prisma, docProcessId);
+      expect(ids.length).toBeGreaterThan(0);
+      for (const uid of ids) {
+        expect(await canReadLeadDraft(prisma, uid, docProcessId)).toBe(true);
+      }
+      expect(await canReadLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
+      expect(ids).toContain(writerOnlyUserId);
+      expect(await canReadLeadDraft(prisma, supervisorId, docProcessId)).toBe(true);
+      expect(ids).toContain(supervisorId);
     });
 
     it('symmetricDiffUserIds', () => {

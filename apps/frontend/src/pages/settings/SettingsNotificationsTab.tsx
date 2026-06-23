@@ -6,6 +6,26 @@ import { apiFetch } from '../../api/client';
 import { meQueryKey, useMe } from '../../hooks/useMe';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
 
+type NotificationPrefKey =
+  | 'documentChanges'
+  | 'draftRequests'
+  | 'reminders'
+  | 'announcements'
+  | 'operations'
+  | 'orgChanges';
+
+function readNotificationPref(
+  channel: Record<string, boolean | undefined>,
+  key: 'announcements' | 'operations',
+  defaultValue: boolean
+): boolean {
+  const value = channel[key];
+  if (value !== undefined) return value;
+  const legacy = channel.system;
+  if (legacy !== undefined) return legacy;
+  return defaultValue;
+}
+
 export function SettingsNotificationsTab() {
   const queryClient = useQueryClient();
   const { data: me, isPending: mePending, isError: meError, error: meErr } = useMe();
@@ -37,7 +57,7 @@ export function SettingsNotificationsTab() {
 
   const updateNotificationSetting = (
     channel: 'inApp' | 'email',
-    key: 'documentChanges' | 'draftRequests' | 'reminders' | 'system' | 'orgChanges',
+    key: NotificationPrefKey,
     value: boolean
   ) => {
     patchPreferences.mutate({
@@ -58,6 +78,7 @@ export function SettingsNotificationsTab() {
     );
   }
 
+  const isAdmin = me.user.isAdmin === true;
   const prefs = me.preferences.notificationSettings ?? {};
   const inApp = prefs.inApp ?? {};
   const email = prefs.email ?? {};
@@ -77,7 +98,8 @@ export function SettingsNotificationsTab() {
               documents, archive/trash/restore, and sharing changes (grants).{' '}
               <strong>Draft requests</strong> covers the review workflow.{' '}
               <strong>Organization</strong> covers team membership and lead roles.{' '}
-              <strong>Reminders</strong> is reserved for future use.
+              <strong>Announcements</strong> covers admin broadcasts. <strong>Reminders</strong> is
+              reserved for future use.
             </Text>
             <Group justify="space-between">
               <Text size="sm" fw={500}>
@@ -129,16 +151,30 @@ export function SettingsNotificationsTab() {
             </Group>
             <Group justify="space-between">
               <Text size="sm" fw={500}>
-                In-app: system (backups)
+                In-app: announcements
               </Text>
               <Switch
-                checked={inApp.system ?? true}
+                checked={readNotificationPref(inApp, 'announcements', true)}
                 onChange={(event) =>
-                  updateNotificationSetting('inApp', 'system', event.currentTarget.checked)
+                  updateNotificationSetting('inApp', 'announcements', event.currentTarget.checked)
                 }
                 disabled={patchPreferences.isPending}
               />
             </Group>
+            {isAdmin && (
+              <Group justify="space-between">
+                <Text size="sm" fw={500}>
+                  In-app: operations
+                </Text>
+                <Switch
+                  checked={readNotificationPref(inApp, 'operations', true)}
+                  onChange={(event) =>
+                    updateNotificationSetting('inApp', 'operations', event.currentTarget.checked)
+                  }
+                  disabled={patchPreferences.isPending}
+                />
+              </Group>
+            )}
             <Group justify="space-between">
               <Text size="sm" fw={500}>
                 Email: document changes
@@ -177,16 +213,30 @@ export function SettingsNotificationsTab() {
             </Group>
             <Group justify="space-between">
               <Text size="sm" fw={500}>
-                Email: system
+                Email: announcements
               </Text>
               <Switch
-                checked={email.system ?? false}
+                checked={readNotificationPref(email, 'announcements', false)}
                 onChange={(event) =>
-                  updateNotificationSetting('email', 'system', event.currentTarget.checked)
+                  updateNotificationSetting('email', 'announcements', event.currentTarget.checked)
                 }
                 disabled={patchPreferences.isPending}
               />
             </Group>
+            {isAdmin && (
+              <Group justify="space-between">
+                <Text size="sm" fw={500}>
+                  Email: operations
+                </Text>
+                <Switch
+                  checked={readNotificationPref(email, 'operations', false)}
+                  onChange={(event) =>
+                    updateNotificationSetting('email', 'operations', event.currentTarget.checked)
+                  }
+                  disabled={patchPreferences.isPending}
+                />
+              </Group>
+            )}
             <Group justify="space-between">
               <Text size="sm" fw={500}>
                 Email: organization

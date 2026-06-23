@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import type { Prisma } from '../../../../generated/prisma/client.js';
 import { prisma } from '../../../db.js';
+import * as liveEventNotify from '../../../infrastructure/liveEvents/liveEventNotify.js';
 import { exampleBlockDocumentV0 } from '../services/blocks/blockSchema.js';
 import {
   createDocumentsTestContext,
@@ -61,6 +62,40 @@ describe('Documents routes / suggestions', () => {
     expect(res.statusCode).toBe(409);
     const body = res.json() as { code?: string };
     expect(body.code).toBe('stale_suggestion');
+  });
+
+  it('Writer POST Suggestion emits document.collaboration-changed live event', async () => {
+    const notifySpy = vi.spyOn(liveEventNotify, 'notifyLiveEvent').mockResolvedValue();
+    const revisionRow = await prisma.document.findUnique({
+      where: { id: context.publishedDocId },
+      select: { draftRevision: true },
+    });
+    const cookie = await context.loginAsWriter();
+    const res = await context.app.inject({
+      method: 'POST',
+      url: `/api/v1/documents/${context.publishedDocId}/suggestions`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: JSON.stringify({
+        baseDraftRevision: revisionRow!.draftRevision,
+        ops: [{ op: 'deleteBlock', blockId: '550e8400-e29b-41d4-a716-446655440001' }],
+      }),
+    });
+    expect(res.statusCode).toBe(201);
+    await vi.waitFor(() => expect(notifySpy.mock.calls.length).toBeGreaterThan(0));
+    const collaborationCalls = notifySpy.mock.calls.filter((call) => {
+      const envelope = call[1] as { event?: { type?: string } };
+      return envelope.event?.type === 'document.collaboration-changed';
+    });
+    expect(collaborationCalls.length).toBeGreaterThan(0);
+    const envelope = collaborationCalls[0]![1] as {
+      target: string;
+      userId?: string;
+      event: { payload: { documentId: string } };
+    };
+    expect(envelope.target).toBe('user');
+    expect(envelope.event.payload.documentId).toBe(context.publishedDocId);
+    expect(envelope.userId).not.toBe(context.writerId);
+    notifySpy.mockRestore();
   });
 
   it('Writer POST gueltige Suggestion -> 201; withdraw -> 200', async () => {

@@ -38,6 +38,8 @@ type UserPreferences = {
       documentChanges?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
       system?: boolean;
       orgChanges?: boolean;
     };
@@ -45,6 +47,8 @@ type UserPreferences = {
       documentChanges?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
       system?: boolean;
       orgChanges?: boolean;
     };

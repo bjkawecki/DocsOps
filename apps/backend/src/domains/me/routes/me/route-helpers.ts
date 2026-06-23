@@ -12,7 +12,9 @@ import type {
   UserPreferences,
 } from './route-types.js';
 import {
+  ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES,
   DOCUMENT_NOTIFICATION_EVENT_TYPES,
+  OPERATIONS_NOTIFICATION_EVENT_TYPES,
   ORG_NOTIFICATION_EVENT_TYPES,
   REVIEW_NOTIFICATION_EVENT_TYPES,
   SYSTEM_NOTIFICATION_EVENT_TYPES,
@@ -99,6 +101,12 @@ function notificationsCategorySql(category: string): Prisma.Sql {
   }
   if (category === 'reviews') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...REVIEW_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'announcements') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'operations') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...OPERATIONS_NOTIFICATION_EVENT_TYPES])})`;
   }
   if (category === 'system') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...SYSTEM_NOTIFICATION_EVENT_TYPES])})`;

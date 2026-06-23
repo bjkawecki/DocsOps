@@ -14,7 +14,21 @@ type LiveClientEvent =
       v: 1;
       type: 'maintenance.status-changed';
       payload: MaintenanceStatus;
+    }
+  | {
+      v: 1;
+      type: 'document.collaboration-changed';
+      payload: { documentId: string };
     };
+
+function invalidateDocumentCollaborationQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  documentId: string
+): void {
+  void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+  void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
+  void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'suggestions'] });
+}
 
 function getFallbackPollSeconds(): number {
   const raw = import.meta.env.VITE_LIVE_EVENTS_FALLBACK_POLL_SECONDS;
@@ -54,6 +68,17 @@ function parseLiveClientEvent(data: string): LiveClientEvent | null {
           active: p.active,
           ...(reason != null ? { reason } : {}),
         },
+      };
+    }
+    if (event.type === 'document.collaboration-changed') {
+      const payload = event.payload;
+      if (payload == null || typeof payload !== 'object') return null;
+      const documentId = (payload as Record<string, unknown>).documentId;
+      if (typeof documentId !== 'string' || documentId.length === 0) return null;
+      return {
+        v: 1,
+        type: 'document.collaboration-changed',
+        payload: { documentId },
       };
     }
     return null;
@@ -106,6 +131,10 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
     (event: LiveClientEvent) => {
       if (event.type === 'notification.unread-changed') {
         void queryClient.invalidateQueries({ queryKey: ['me', 'notifications', 'unread-count'] });
+        return;
+      }
+      if (event.type === 'document.collaboration-changed') {
+        invalidateDocumentCollaborationQueries(queryClient, event.payload.documentId);
         return;
       }
       queryClient.setQueryData(maintenanceStatusQueryKey(), event.payload);

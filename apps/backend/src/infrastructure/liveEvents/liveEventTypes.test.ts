@@ -51,4 +51,26 @@ describe('liveEventTypes', () => {
       '{"v":1,"type":"maintenance.status-changed","payload":{"active":false}}'
     );
   });
+
+  it('parses document collaboration NOTIFY envelope', () => {
+    const documentId = 'clh3test000008l008eazy0001';
+    const raw = JSON.stringify({
+      target: 'user',
+      userId: '550e8400-e29b-41d4-a716-446655440000',
+      event: {
+        v: LIVE_EVENT_VERSION,
+        type: 'document.collaboration-changed',
+        payload: { documentId },
+      },
+    });
+    const parsed = parseLiveNotifyPayload(raw);
+    expect(parsed?.target).toBe('user');
+    expect(liveNotifyTargetSchema.safeParse(parsed).success).toBe(true);
+    if (parsed?.target === 'user') {
+      expect(parsed.event.type).toBe('document.collaboration-changed');
+      if (parsed.event.type === 'document.collaboration-changed') {
+        expect(parsed.event.payload.documentId).toBe(documentId);
+      }
+    }
+  });
 });

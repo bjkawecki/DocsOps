@@ -12,7 +12,7 @@ Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. S
 
 [x] Repo-Struktur anlegen (Backend, Frontend, `docker-compose.yml`, `docs/`, `scripts/`)
 [x] `docker-compose.yml`: App, PostgreSQL, MinIO, Caddy (ggf. separater Worker später)
-[x] Dev-Setup: **Schnell-Dev** (nur DB + MinIO in Docker, App/Frontend auf Host) und **Prod-nah** (vollständiger Stack mit Caddy, App per Volume + Watch; Zugriff über http://localhost:5000) – siehe [Infrastruktur §9](Infrastruktur-und-Deployment.md#9-entwicklungsumgebung)
+[x] Dev-Setup: **Schnell-Dev** (nur DB + MinIO in Docker, App/Frontend auf Host) und **Prod-nah** (vollständiger Stack mit Caddy, App per Volume + Watch; Zugriff über [http://localhost:5000](http://localhost:5000)) – siehe [Infrastruktur §9](Infrastruktur-und-Deployment.md#9-entwicklungsumgebung)
 [x] `install.sh`: Voraussetzungen prüfen (Docker/Podman), Stack starten
 [x] Caddy-Beispiel-Config (Reverse Proxy auf App)
 [x] Minimale App startet und ist über Caddy erreichbar
@@ -219,7 +219,7 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 ## 13. Dashboard / Home
 
-Startseite ohne Quick Links (redundant zur Sidebar). **Suchleiste** oben mit Schalter **Normal / KI-Modus** (vgl. §18, §21): Normal = klassische Volltextsuche → Suchseite/Catalog; KI = Frage an Dokumente → Suchseite mit KI-Chat. Drei Blöcke (weitere Blöcke siehe §15e, §17; optional KI-Assistent §21):
+Startseite ohne Quick Links (redundant zur Sidebar). **Suchleiste** auf dem Dashboard für **Normal-Suche** (Quick-Search-Modal → FTS/Catalog) ist umgesetzt. **KI-Schalter** (Normal/KI) bleibt optional in **§21**. Drei Blöcke (weitere Blöcke siehe §15e, §17):
 
 [x] **Pinned:** Nur **Dokumente** (Flag am Document: „in Liste von Scopes gepinnt“). Team Lead kann für sein Team anpinnen, Department Lead für sein Department, Company Lead für alle (es gibt nur eine Company). Nur Scope-Lead (und Admin) darf anpinnen; Anzeige für Nutzer: Pins aus eigenem Team, eigenem Department, Company-weit. Datenmodell: DocumentPinnedInScope (documentId, scopeType, scopeId, order, pinnedById); siehe [Prisma-Schema-Entwurf §7 (Pinned)](Prisma-Schema-Entwurf.md#7-pinned-geplant); danach API und Dashboard-Block.
 [x] **Recent:** Zuletzt angesehene Einträge (aus bestehender recentItemsByScope, auf dem Dashboard aggregiert, z. B. Top 10 über alle Scopes).
@@ -243,8 +243,6 @@ Startseite ohne Quick Links (redundant zur Sidebar). **Suchleiste** oben mit Sch
 ---
 
 ## 15. Versionierung & Ausblick
-
-<span id="15-versionierung--ausblick"></span>
 
 **Versionierung für veröffentlichte Dokumente:** Jede neue **Published**-Ausbaustufe entspricht einem **Snapshot** (`DocumentVersion`). Unveröffentlichte Dokumente (`publishedAt == null`) erzeugen keine öffentliche Versionskette.
 
@@ -318,7 +316,9 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] **PostgreSQL Full-Text-Search:** Produktiv über den Suchindex `document_search_index` und Roh-SQL im Backend (`documentSearchService`); kein separates MVP mit externer Engine (Meilisearch/Typesense).
 [x] **Such-API:** `GET /api/v1/search/documents` mit Query `q`, Pagination und optionalen Scope-Filtern; Nutzung im **Katalog** (Relevanzsortierung) und im **Dashboard-Quick-Search-Modal** auf der Startseite.
-[x] **Dashboard (Normal):** Nach Submit der Startseiten-Suchleiste öffnet ein Quick-Search-Modal; Treffer über dieselbe Such-API wie der Katalog. **[ ]** **Suchleiste mit Schalter Normal/KI** (§13) und Sidebar-Suchfeld (§20) bleiben offen.
+[x] **Dashboard (Normal):** Nach Submit der Startseiten-Suchleiste öffnet ein Quick-Search-Modal; Treffer über dieselbe Such-API wie der Katalog.
+
+[x] **§18 Normal-Suche abgeschlossen** (FTS, API, Catalog, Dashboard). Kein separates Sidebar-Suchfeld – redundant zu Catalog-NavLink und Dashboard-Suche. Offen bleibt nur der **KI-Schalter** (optional **§21**).
 
 ---
 
@@ -326,7 +326,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 **Ziel (Intranet-Self-hosted):** Nach `curl | sudo bash` läuft DocsOps im **Prod-Stack** unter **Port 80** (HTTPS optional später). Dev: `docker compose` + Override → Port 5000.
 
-**Status:** **Interim v1** (Git-Clone + lokaler Build) ist umgesetzt. **Ziel v2** (Vorbild [Coolify](https://coolify.io/docs/get-started/installation)): Release-Bundle + **`docker compose pull`** – kein Monorepo auf der VM, kein Build auf schwacher Hardware.
+**Status:** **Interim v1** (Git-Clone + lokaler Build) ist umgesetzt. **Ziel v2** (Vorbild [Coolify](https://coolify.io/docs/get-started/installation)): Release-Bundle + `**docker compose pull`\*\* – kein Monorepo auf der VM, kein Build auf schwacher Hardware.
 
 ### Erledigt (Interim v1)
 
@@ -338,9 +338,9 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 **Reihenfolge:**
 
-1. [ ] **Release-Pipeline:** Git-Tag `v*` → CI: Images nach **GHCR public** (`ghcr.io/<owner>/docsops-{app,worker,frontend}:vX.Y.Z`) + Release-Asset `docsops-vX.Y.Z.tar.gz`. Erstes Release **`v0.1.0`**.
+1. [ ] **Release-Pipeline:** Git-Tag `v*` → CI: Images nach **GHCR public** (`ghcr.io/<owner>/docsops-{app,worker,frontend}:vX.Y.Z`) + Release-Asset `docsops-vX.Y.Z.tar.gz`. Erstes Release `**v0.1.0`\*\*.
 2. [ ] **Compose & Env:** `docker-compose.prod.yml` mit `image:` + Tag aus `/etc/docsops/docsops.env` (`DOCSOPS_VERSION`, optional Registry-Override); `build:` nur Dev / Fallback `DOCSOPS_COMPOSE_BUILD=1`.
-3. [ ] **Install:** Bundle statt `git clone` nach `/opt/docsops`; Release-URL (`curl …/releases/download/vX.Y.Z/install.sh`); `pull` + `up -d`; **`main` warnen/blockieren**; Doku README + [install.md](../install.md).
+3. [ ] **Install:** Bundle statt `git clone` nach `/opt/docsops`; Release-URL (`curl …/releases/download/vX.Y.Z/install.sh`); `pull` + `up -d`; `**main` warnen/blockieren\*\*; Doku README + [install.md](../install.md).
 4. [ ] **Update:** `scripts/update.sh` – Bundle tauschen + `pull` + `up -d` + Rollback-Doku. Admin-Hinweis: **§26**.
 5. [ ] **CI Install-Test:** Pull + Bundle statt lokalem Build.
 
@@ -379,7 +379,7 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 [ ] **Admin: KI-Settings** – Konfiguration des KI-Assistenten (vgl. §21): API-Endpoint, Modell, Feature-Flag ein/aus, ggf. globale Rate-Limits; nur für Admins; Persistenz in Config/DB.
 [ ] **Admin: Chat-History pro User** – Übersicht der KI-Chat-Verläufe pro Nutzer (z. B. Liste der Sitzungen/Threads, letzte Frage, Datum); nur für Admins; dient Support und Audit; Backend speichert Chat-Verläufe pro User (vgl. §21).
 [ ] **Admin: Token-Verbrauch pro User** – Anzeige des verbrauchten Token-Volumens (Input/Output) pro Nutzer (aggregiert oder pro Zeitraum); nur für Admins; Backend trackt Token-Nutzung je Anfrage (vgl. §21).
-[ ] **Suchleiste mit Schalter (Normal/KI-Modus):** Einheitliches Suchfeld auf dem Dashboard (ggf. auch in Sidebar §20); Schalter oder Tabs „Normal“ / „KI“. Normal: Eingabe führt zu klassischer Suche (Suchseite oder Catalog mit Treffern). KI: Eingabe öffnet bzw. fokussiert Suchseite im KI-Chat-Modus (vgl. §18).
+[ ] **Suchleiste mit Schalter (Normal/KI-Modus):** Einheitliches Suchfeld auf dem Dashboard mit Schalter oder Tabs „Normal“ / „KI“. Normal: Eingabe führt zu klassischer Suche (Catalog mit Treffern). KI: Eingabe öffnet bzw. fokussiert Suchseite im KI-Chat-Modus (vgl. §18).
 [ ] **Suchseite:** Dedizierte Route (z. B. `/search`) mit einheitlicher Such-UI; Anbindung an Volltextsuche (Filter, Tags). Bei Aufruf aus dem Dashboard im **KI-Modus** (vgl. §13): gleiche Suchseite, aber **KI-Chat-Ansicht** – Nutzer sieht Konversation (Frage → Antwort + Quellen), Fortsetzung des Dialogs möglich. Normal-Modus: klassische Trefferliste (Dokumente, Kontexte). Eine Suchseite, zwei Darstellungsmodi (Listen- vs. Chat-UI) je nach Herkunft oder expliziter Umschaltung.
 
 **Ergebnis:** Nutzer können (Dashboard/Suchseite) im KI-Modus Fragen in natürlicher Sprache stellen und erhalten eine Antwort mit **Links zu den Quell-Dokumenten**, ausschließlich aus Dokumenten, die sie lesen dürfen. Admin hat Übersicht über KI-Settings, Chat-History und Token-Verbrauch pro User.
@@ -448,10 +448,10 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 ### Wachstum, Settings, Abgleich
 
-[x] **Retention:** alte Einträge nach **X Tagen** (Policy + Job/Cleanup). Umsetzung: Env `NOTIFICATION_RETENTION_DAYS` (Default 90, `0` = aus), Job `maintenance.cleanup` mit Task `user-notifications-retention` ([`notificationRetentionService.ts`](../apps/backend/src/services/notificationRetentionService.ts)); Worker muss den Job ausführen.
-[x] **Coalescing:** mehrere `document-updated` für dasselbe Dokument + Nutzer im Zeitfenster → eine Zeile (Payload/`created_at` aktualisiert, wieder ungelesen). Env `NOTIFICATION_COALESCE_WINDOW_MINUTES` (Default 15, `0` = aus) in [`notificationDispatchService.ts`](../apps/backend/src/services/notificationDispatchService.ts).
+[x] **Retention:** alte Einträge nach **X Tagen** (Policy + Job/Cleanup). Umsetzung: Env `NOTIFICATION_RETENTION_DAYS` (Default 90, `0` = aus), Job `maintenance.cleanup` mit Task `user-notifications-retention` (`[notificationRetentionService.ts](../apps/backend/src/services/notificationRetentionService.ts)`); Worker muss den Job ausführen.
+[x] **Coalescing:** mehrere `document-updated` für dasselbe Dokument + Nutzer im Zeitfenster → eine Zeile (Payload/`created_at` aktualisiert, wieder ungelesen). Env `NOTIFICATION_COALESCE_WINDOW_MINUTES` (Default 15, `0` = aus) in `[notificationDispatchService.ts](../apps/backend/src/services/notificationDispatchService.ts)`.
 [x] **Pagination** in der UI (bereits üblich); **Hard cap** optional per Env `NOTIFICATION_HARD_CAP_PER_USER` (älteste Zeilen pro Nutzer, `0` = aus).
-[x] **Settings / E-Mail:** wenige Kategorien statt Matrix pro Event-Typ (parallel §8, §17, §20) – UI [`SettingsNotificationsTab.tsx`](../apps/frontend/src/pages/settings/SettingsNotificationsTab.tsx), Backend-Kategorien in `resolveCategory`; Kurztext zu Grant-/Lifecycle-Events ergänzt.
+[x] **Settings / E-Mail:** wenige Kategorien statt Matrix pro Event-Typ (parallel §8, §17, §20) – UI `[SettingsNotificationsTab.tsx](../apps/frontend/src/pages/settings/SettingsNotificationsTab.tsx)`, Backend-Kategorien in `resolveCategory`; Kurztext zu Grant-/Lifecycle-Events ergänzt.
 [x] **§20:** Punkte „Notifications (Inbox & Navigation)“ / Settings mit §23 konsolidieren, wenn Zielbild umgesetzt ist.
 
 **Lieferung zum Browser:** Persistenz und Dispatch wie oben (Worker → PostgreSQL). Push zum Client (Sidebar-Badge, Banner) siehe **§23a** – dort kein Intervall-Polling als Standard.
@@ -467,29 +467,29 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 [x] **Ein Stream:** `GET /api/v1/me/events` (SSE, Session-Cookie wie REST); ein Hook in der App-Shell hält die Verbindung.
 [x] **Pull bleibt:** Inbox `/notifications` (Liste, Pagination, Filter) weiter per `GET /me/notifications`; SSE invalidiert nur Cache / Badge-Zähler.
 [x] **Kein zweites Messaging-System:** Events sind **Signale** („unread count geändert“, „Wartung an/aus“), keine Duplikation der Inbox-Payloads auf dem Draht.
-[x] **Worker schreibt, API pushed:** `notifications.send` → `dispatchNotificationEvent` (PostgreSQL) → danach **`pg_notify`** mit `userId`(n); API-Prozess(e) **`LISTEN`** und leiten an offene SSE-Clients weiter.
+[x] **Worker schreibt, API pushed:** `notifications.send` → `dispatchNotificationEvent` (PostgreSQL) → danach `**pg_notify`** mit `userId`(n); API-Prozess(e) `**LISTEN**` und leiten an offene SSE-Clients weiter.
 [x] **Mehrere API-Instanzen:** Jede Instanz `LISTEN` + eigene In-Memory-Registry offener Streams; kein Redis nötig.
-[x] **Caddy/Proxy:** SSE ohne Response-Buffering (Stream durchreichen).
+[x] **Caddy/Proxy:\*\* SSE ohne Response-Buffering (Stream durchreichen).
 
 ### Event-Typen (v1 → Ausbau)
 
-[x] **`notification.unread-changed`** – Invalidate-only; Sidebar + optional offene Inbox.
-[x] **`maintenance.status-changed`** – `{ active, reason? }`; App-Shell-Banner (ersetzt §25-Follow-up „Maintenance-Broadcast“).
-[ ] **Später (optional):** `suggestion.updated` o. ä. für [Edit-System Near-Realtime](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime); gleicher Stream, neuer `type`.
+[x] `**notification.unread-changed`** – Invalidate-only; Sidebar + optional offene Inbox.
+[x] `**maintenance.status-changed**`–`{ active, reason? }`; App-Shell-Banner (ersetzt §25-Follow-up „Maintenance-Broadcast“).
+[x] **`document.collaboration-changed`\*\* – `{ documentId }`; Invalidate für Lead-Draft, Suggestions und Dokument-Detail (Near-Realtime für [Edit-System §5.4](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime)); Empfänger: Kollaborations-Audience bei Draft/Suggestions, alle Leser bei Publish.
 
 ### Backend (Komponenten)
 
 [x] **SSE-Route** in Fastify (API-Prozess): Auth, Heartbeat/Keep-Alive, sauberes Schließen bei Logout.
-[x] **Connection registry:** Map `userId → Set<SseReply>`; beim NOTIFY nur betroffene User; **`getStats()`** + `/ready`.
-[x] **Notify-Hook** am Ende von [`notificationDispatchService.ts`](../apps/backend/src/domains/notifications/services/notificationDispatchService.ts) (pro betroffenem User nach INSERT/Coalesce).
+[x] **Connection registry:** Map `userId → Set<SseReply>`; beim NOTIFY nur betroffene User; `**getStats()`** + `/ready`.
+[x] **Notify-Hook** am Ende von `[notificationDispatchService.ts](../apps/backend/src/domains/notifications/services/notificationDispatchService.ts)` (pro betroffenem User nach INSERT/Coalesce).
 [x] **Wartungsmodus:** `maintenance.status-changed` per NOTIFY an alle Clients bei Statuswechsel (Lock + Export ohne Lock).
-[x] **Admin-Broadcast (§23):** über `dispatchNotificationEvent` → NOTIFY (kein separater Hook).
+[x] **Admin-Broadcast (§23):\*\* über `dispatchNotificationEvent` → NOTIFY (kein separater Hook).
 
 ### Frontend (Komponenten)
 
-[x] **`useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen.
+[x] `**useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen.
 [x] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
-[x] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur** für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
+[x] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur\*\* für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
 
 ### Betrieb & Tests
 
@@ -503,13 +503,13 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 2. `notification.unread-changed` + Hook in `dispatchNotificationEvent`.
 3. `maintenance.status-changed` (Banner + Admin; §25-Follow-up ablösen).
 4. Admin-Broadcast aus §23 an NOTIFY anbinden.
-5. Optional: Suggestion-Events (Edit-System).
+5. [x] `document.collaboration-changed` (Edit-System Near-Realtime).
 
 ---
 
 ## 24. What's new (Release Notes)
 
-**Ziel:** Release Notes zur installierten App – Route `/whats-new`, **nicht** unter `/help`. Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §2. **`APP_VERSION`** hier und in **§26** (Admin) gemeinsam nutzen.
+**Ziel:** Release Notes zur installierten App – Route `/whats-new`, **nicht** unter `/help`. Plan: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §2. `**APP_VERSION`** hier und in **§26\*\* (Admin) gemeinsam nutzen.
 
 [x] **Inhalt & Release-Prozess (v1):** `content/releases/manifest.json` + `content/releases/0.1.0.md`; Release-Ritual in [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1 (Git-Tag/GitHub Release: **§19**).
 [x] **API:** `GET /api/v1/system/version` (`APP_VERSION` im Build); `GET /api/v1/releases`, `GET /api/v1/releases/:version`.
@@ -539,7 +539,7 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 
 [x] **WebDAV-Ziel:** Admin-Typ `webdav`; Upload per HTTP `PUT` im selben Job nach Archiv-Fertigstellung.
 [x] **Restore (DR):** Im Tab **Admin → Backup**: Archiv aus **Historie** (nur bei lokaler Kopie) oder **Upload**; Job `maintenance.restore` mit Wartungsmodus, `pg_restore` + MinIO-Import; **kein** Remote-Fetch vom externen Ziel. **Nicht** Plattform-Import (§27).
-[x] **Maintenance-Broadcast:** **§23a** (`maintenance.status-changed` per SSE); [`useMaintenanceStatus.ts`](../apps/frontend/src/hooks/useMaintenanceStatus.ts) + SSE `setQueryData`.
+[x] **Maintenance-Broadcast:** **§23a** (`maintenance.status-changed` per SSE); `[useMaintenanceStatus.ts](../apps/frontend/src/hooks/useMaintenanceStatus.ts)` + SSE `setQueryData`.
 
 ---
 
@@ -554,9 +554,9 @@ Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/do
 [ ] **Env & Doku:** `DOCSOPS_UPDATE_GITHUB_REPO` (`owner/repo`, optional) in [Env-und-Config](Env-und-Config.md); ohne Env kein externer Check.
 [ ] **API:** `GET /api/v1/admin/system/update-status` – `installedVersion`, `updateCheckEnabled`, `latestVersion`, `updateAvailable`, `releaseUrl`, `checkedAt`, `checkError`; GitHub Releases mit Cache.
 [ ] **API (optional):** `POST /api/v1/admin/system/check-updates` – Refresh; bei `latest > installed` In-App an alle Admins (`update-available`, Kategorie `system`).
-[ ] **Admin-UI:** Tab **`/admin/system`** – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Tab-Badge wenn Update verfügbar.
+[ ] **Admin-UI:** Tab `**/admin/system`** – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Tab-Badge wenn Update verfügbar.
 [ ] **Notifications:** Formatter + Inbox-Link `/admin/system` für `update-available`.
-[ ] **Tests:** Admin-Route (401/403), Mock GitHub-Response, SemVer-Vergleich.
+[ ] **Tests:\*\* Admin-Route (401/403), Mock GitHub-Response, SemVer-Vergleich.
 
 **Später (optional):** Ein-Klick-Update via Updater-Sidecar (`POST /api/v1/admin/updates/apply`, Bundle + `pull` + `up -d`, Wartungsmodus, Health-Check) – Coolify `AUTO_UPDATE` analog.
 

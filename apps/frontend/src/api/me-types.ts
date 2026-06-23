@@ -49,6 +49,8 @@ export type MeResponse = {
         documentChanges?: boolean;
         draftRequests?: boolean;
         reminders?: boolean;
+        announcements?: boolean;
+        operations?: boolean;
         system?: boolean;
         orgChanges?: boolean;
       };
@@ -56,6 +58,8 @@ export type MeResponse = {
         documentChanges?: boolean;
         draftRequests?: boolean;
         reminders?: boolean;
+        announcements?: boolean;
+        operations?: boolean;
         system?: boolean;
         orgChanges?: boolean;
       };

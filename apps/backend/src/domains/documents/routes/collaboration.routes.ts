@@ -42,6 +42,7 @@ import {
   routePrismaUserDocumentId,
 } from './collaboration-route-helpers.js';
 import { registerCollaborationSuggestionRoutes } from './collaboration-suggestions.routes.js';
+import { notifyLeadDraftCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
 
 async function loadDocumentWithCommentModeration(
   prisma: PrismaClient,
@@ -143,6 +144,7 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
       }
 
       reply.header('ETag', `"${patchResult.draftRevision}"`);
+      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
       return reply.send({
         draftRevision: patchResult.draftRevision,
         blocks: patchResult.blocks,

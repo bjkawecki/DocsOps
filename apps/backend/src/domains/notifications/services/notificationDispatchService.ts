@@ -2,8 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
 import { notifyNotificationUnreadChanged } from '../../../infrastructure/liveEvents/notificationLiveEvents.js';
 import {
+  isNotificationPreferenceEnabled,
   resolveNotificationPreferenceCategory,
-  type NotificationPreferenceCategory,
+  type NotificationSettingsPrefs,
 } from '../notificationEventTypes.js';
 
 /** Minutes: merge repeated `document-updated` for same user+document into one row. `0` = off. @default 15 */
@@ -27,10 +28,6 @@ export function getNotificationHardCapPerUser(): number {
 }
 
 /** Maps event_type strings to preference channels (Settings / `me` preferences). */
-function resolveCategory(eventType: string): NotificationPreferenceCategory {
-  return resolveNotificationPreferenceCategory(eventType);
-}
-
 function shouldCoalesceInAppEvent(eventType: string): boolean {
   return eventType === 'document-updated';
 }
@@ -105,24 +102,24 @@ export async function dispatchNotificationEvent(
     select: { id: true, email: true, preferences: true },
   });
 
-  const category = resolveCategory(args.eventType);
+  const category = resolveNotificationPreferenceCategory(args.eventType);
   let deliveredCount = 0;
   let emailQueuedCount = 0;
   const emailQueueEnabled =
     (process.env.NOTIFICATION_EMAIL_QUEUE_ENABLED ?? 'false').toLowerCase() === 'true';
 
   for (const user of users) {
-    const prefs =
+    const prefs: { notificationSettings?: NotificationSettingsPrefs } =
       user.preferences != null && typeof user.preferences === 'object'
-        ? (user.preferences as {
-            notificationSettings?: {
-              inApp?: Partial<Record<NotificationPreferenceCategory, boolean>>;
-              email?: Partial<Record<NotificationPreferenceCategory, boolean>>;
-            };
-          })
+        ? (user.preferences as { notificationSettings?: NotificationSettingsPrefs })
         : {};
 
-    const inAppEnabled = prefs.notificationSettings?.inApp?.[category] ?? true;
+    const inAppEnabled = isNotificationPreferenceEnabled(
+      'inApp',
+      category,
+      prefs.notificationSettings,
+      true
+    );
     if (inAppEnabled) {
       const coalesced = await tryCoalesceInAppNotification(
         prisma,
@@ -142,7 +139,12 @@ export async function dispatchNotificationEvent(
     }
 
     if (emailQueueEnabled) {
-      const emailEnabled = prefs.notificationSettings?.email?.[category] ?? false;
+      const emailEnabled = isNotificationPreferenceEnabled(
+        'email',
+        category,
+        prefs.notificationSettings,
+        false
+      );
       if (emailEnabled && user.email != null && user.email.trim() !== '') {
         await prisma.$executeRaw(Prisma.sql`
           INSERT INTO notification_email_outbox (

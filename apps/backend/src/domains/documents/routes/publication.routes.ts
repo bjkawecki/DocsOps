@@ -32,6 +32,7 @@ import {
   excludeUserIds,
   listUserIdsWhoCanReadDocument,
 } from '../../notifications/services/notificationRecipients.js';
+import { notifyDocumentPublishedCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
 import {
   buildPdfDownloadFilename,
   enqueueIncrementalReindexForDocumentSafe,
@@ -238,6 +239,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
             'Failed to enqueue notification job after document publish'
           );
         }
+        notifyDocumentPublishedCollaborationChanged(prisma, documentId, userId);
         return reply.send({
           ...doc,
           content: documentMarkdownFromRow({

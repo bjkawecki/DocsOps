@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
+  ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES,
+  OPERATIONS_NOTIFICATION_EVENT_TYPES,
   ORG_NOTIFICATION_EVENT_TYPES,
   resolveNotificationPreferenceCategory,
   SYSTEM_NOTIFICATION_EVENT_TYPES,
+  isNotificationPreferenceEnabled,
 } from '../notificationEventTypes.js';
 import { parseMentionUserIds } from '../services/commentMentionParser.js';
 
@@ -12,11 +15,28 @@ describe('resolveNotificationPreferenceCategory', () => {
     expect(resolveNotificationPreferenceCategory('admin-granted')).toBe('orgChanges');
   });
 
-  it('maps admin broadcast and backup to system', () => {
-    expect(resolveNotificationPreferenceCategory('admin-broadcast')).toBe('system');
-    expect(resolveNotificationPreferenceCategory('backup-failed')).toBe('system');
-    expect(resolveNotificationPreferenceCategory('platform-export-succeeded')).toBe('system');
-    expect(resolveNotificationPreferenceCategory('platform-import-failed')).toBe('system');
+  it('maps admin broadcast to announcements and backup/export to operations', () => {
+    expect(resolveNotificationPreferenceCategory('admin-broadcast')).toBe('announcements');
+    expect(resolveNotificationPreferenceCategory('backup-failed')).toBe('operations');
+    expect(resolveNotificationPreferenceCategory('platform-export-succeeded')).toBe('operations');
+    expect(resolveNotificationPreferenceCategory('platform-import-failed')).toBe('operations');
+  });
+
+  it('falls back from legacy system pref to announcements and operations', () => {
+    expect(
+      isNotificationPreferenceEnabled('inApp', 'announcements', { inApp: { system: false } }, true)
+    ).toBe(false);
+    expect(
+      isNotificationPreferenceEnabled('inApp', 'operations', { inApp: { system: true } }, false)
+    ).toBe(true);
+    expect(
+      isNotificationPreferenceEnabled(
+        'inApp',
+        'announcements',
+        { inApp: { announcements: false, system: true } },
+        true
+      )
+    ).toBe(false);
   });
 
   it('maps comments to documentChanges', () => {
@@ -27,10 +47,11 @@ describe('resolveNotificationPreferenceCategory', () => {
 });
 
 describe('notification event type lists', () => {
-  it('includes admin-broadcast in system types', () => {
+  it('includes admin-broadcast in announcement types and export in operations', () => {
+    expect(ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES).toContain('admin-broadcast');
+    expect(OPERATIONS_NOTIFICATION_EVENT_TYPES).toContain('platform-export-succeeded');
+    expect(OPERATIONS_NOTIFICATION_EVENT_TYPES).toContain('platform-import-succeeded');
     expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('admin-broadcast');
-    expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('platform-export-succeeded');
-    expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('platform-import-succeeded');
   });
 
   it('includes team membership in org types', () => {

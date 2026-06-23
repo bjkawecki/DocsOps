@@ -2,6 +2,7 @@ import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { DocumentForPermission } from '../../documents/permissions/documentLoad.js';
 import { canRead, getDocumentOwner, loadDocument } from '../../documents/permissions/canRead.js';
+import { canReadLeadDraft } from '../../documents/permissions/canEditLeadDraft.js';
 import {
   contextWithOwnerInclude,
   ownerFromContextRow,
@@ -323,4 +324,29 @@ export async function listUserIdsWhoCanReadOrWriteDocument(
     listUserIdsWhoCanWriteDocument(prisma, documentId),
   ]);
   return filterActiveUserIds(prisma, [...new Set([...readers, ...writers])]);
+}
+
+/**
+ * Users who may read the lead draft and suggestions list ({@link canReadLeadDraft}).
+ * Pure readers without write/lead access are excluded.
+ */
+export async function listUserIdsWhoCanReadLeadDraft(
+  prisma: PrismaClient,
+  documentId: string
+): Promise<string[]> {
+  const doc = await loadDocument(prisma, documentId);
+  if (!doc) return [];
+
+  const writerIds = await listUserIdsWhoCanWriteDocument(prisma, documentId);
+  const contextLeadIds =
+    doc.contextId != null ? await listUserIdsWhoCanWriteContext(prisma, doc.contextId) : [];
+
+  const candidates = await filterActiveUserIds(prisma, [
+    ...new Set([...writerIds, ...contextLeadIds]),
+  ]);
+  const verified: string[] = [];
+  for (const uid of candidates) {
+    if (await canReadLeadDraft(prisma, uid, documentId)) verified.push(uid);
+  }
+  return verified;
 }

@@ -7,16 +7,24 @@ import {
   parseMeNotificationUnreadOnly,
   type MeNotificationCategory,
 } from '../../components/notifications/NotificationsInboxPanel';
+import { useMe } from '../../hooks/useMe';
 
 const CATEGORY_NAV: {
   value: MeNotificationCategory;
   label: string;
   description?: string;
+  adminOnly?: boolean;
 }[] = [
   { value: 'all', label: 'All' },
   { value: 'documents', label: 'Documents', description: 'Publish, updates, archive, …' },
   { value: 'reviews', label: 'Reviews', description: 'Draft requests' },
-  { value: 'system', label: 'System', description: 'Backups and admin broadcasts' },
+  { value: 'announcements', label: 'Announcements', description: 'Admin broadcasts' },
+  {
+    value: 'operations',
+    label: 'Operations',
+    description: 'Backups and migration jobs',
+    adminOnly: true,
+  },
   { value: 'org', label: 'Organization', description: 'Roles and membership' },
 ];
 
@@ -26,9 +34,14 @@ const navLinkFullWidth = {
 } as const;
 
 export function NotificationsPage() {
+  const { data: me } = useMe();
+  const isAdmin = me?.user.isAdmin === true;
   const [searchParams, setSearchParams] = useSearchParams();
-  const category = parseMeNotificationCategory(searchParams.get('category'));
+  const parsedCategory = parseMeNotificationCategory(searchParams.get('category'));
+  const category = parsedCategory === 'operations' && !isAdmin ? 'announcements' : parsedCategory;
   const unreadOnly = parseMeNotificationUnreadOnly(searchParams.get('unreadOnly'));
+
+  const visibleCategories = CATEGORY_NAV.filter((item) => !item.adminOnly || isAdmin);
 
   const categoryHref = (next: MeNotificationCategory) => {
     const p = new URLSearchParams(searchParams);
@@ -90,7 +103,7 @@ export function NotificationsPage() {
                 w="100%"
                 aria-label="Notification categories"
               >
-                {CATEGORY_NAV.map((item) => (
+                {visibleCategories.map((item) => (
                   <NavLink
                     key={item.value}
                     component={Link}

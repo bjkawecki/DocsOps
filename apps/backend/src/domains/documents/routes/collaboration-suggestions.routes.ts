@@ -30,6 +30,7 @@ import {
   resolveSuggestionBodyIfLeadAllowed,
   sendAcceptSuggestionResolveErrors,
 } from './collaboration-route-helpers.js';
+import { notifyLeadDraftCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
 
 export function registerCollaborationSuggestionRoutes(app: FastifyInstance): void {
   /** GET Suggestions (EPIC-5): nur Writer/Lead wie Lead-Draft-Lesen. */
@@ -87,6 +88,7 @@ export function registerCollaborationSuggestionRoutes(app: FastifyInstance): voi
           ops: body.ops,
           publishedVersionId: body.publishedVersionId,
         });
+        notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
         return reply.status(201).send(serializeDocumentSuggestion(row));
       } catch (err) {
         if (err instanceof SuggestionParentDocumentNotFoundError) {
@@ -124,6 +126,7 @@ export function registerCollaborationSuggestionRoutes(app: FastifyInstance): voi
 
       try {
         const row = await withdrawDocumentSuggestion(prisma, documentId, suggestionId, userId);
+        notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
         return reply.send(serializeDocumentSuggestion(row));
       } catch (err) {
         if (handleSuggestionNotFoundOrInvalidState(err, reply)) return;
@@ -163,6 +166,7 @@ export function registerCollaborationSuggestionRoutes(app: FastifyInstance): voi
           body
         );
         reply.header('ETag', `"${result.draftRevision}"`);
+        notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
         return reply.send({
           suggestion: serializeDocumentSuggestion(result.suggestion),
           draftRevision: result.draftRevision,
@@ -196,6 +200,7 @@ export function registerCollaborationSuggestionRoutes(app: FastifyInstance): voi
 
       try {
         const row = await rejectDocumentSuggestion(prisma, documentId, suggestionId, userId, body);
+        notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
         return reply.send(serializeDocumentSuggestion(row));
       } catch (err) {
         if (handleSuggestionNotFoundOrInvalidState(err, reply)) return;
