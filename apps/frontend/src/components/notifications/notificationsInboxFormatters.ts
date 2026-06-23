@@ -21,6 +21,7 @@ export function eventHeadline(eventType: string): string {
     'platform-export-failed': 'Platform export failed',
     'platform-import-succeeded': 'Platform import completed',
     'platform-import-failed': 'Platform import failed',
+    'update-available': 'Software update available',
     'admin-broadcast': 'System message',
     'team-member-added': 'Added to team',
     'team-member-removed': 'Removed from team',
@@ -132,6 +133,16 @@ export function notificationBodyText(
     const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
     return truncate(msg, 160);
   }
+  if (eventType === 'update-available') {
+    const latest =
+      typeof payload.latestVersion === 'string' ? payload.latestVersion : 'a newer version';
+    const installed =
+      typeof payload.installedVersion === 'string' ? payload.installedVersion : null;
+    if (installed != null) {
+      return `Version ${latest} is available (installed: ${installed}). Open Admin → System for update steps.`;
+    }
+    return `Version ${latest} is available. Open Admin → System for update steps.`;
+  }
   if (eventType === 'document-comment-created') {
     const kind = typeof payload.kind === 'string' ? payload.kind : '';
     const previewText =
@@ -168,6 +179,7 @@ export function notificationSourceLabel(item: NotificationItem): string {
     return 'Organization';
   }
   if (item.eventType.startsWith('backup-')) return 'System';
+  if (item.eventType === 'update-available') return 'System';
   if (item.eventType.startsWith('platform-')) return 'System';
   if (item.eventType.startsWith('draft-request-')) return 'Review';
   if (payloadDocumentId(item.payload) != null) return 'Document';
@@ -186,6 +198,11 @@ export function documentDisplayTitle(item: NotificationItem): string {
   if (item.eventType === 'admin-granted' || item.eventType === 'admin-revoked') {
     return 'Platform access';
   }
+  if (item.eventType === 'update-available') {
+    const latest =
+      typeof item.payload.latestVersion === 'string' ? item.payload.latestVersion : null;
+    return latest != null ? `Update ${latest}` : 'Software update';
+  }
 
   const docId = payloadDocumentId(item.payload);
   if (docId == null) return 'Activity';
@@ -199,6 +216,9 @@ export function notificationDocumentHref(
 ): string | null {
   if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-')) {
     return '/admin/migration';
+  }
+  if (eventType === 'update-available') {
+    return '/admin/system';
   }
   const docId = payloadDocumentId(payload);
   if (docId == null) return null;

@@ -41,6 +41,7 @@ import { AdminSchedulerTab } from './pages/admin/AdminSchedulerTab';
 import { AdminBackupTab } from './pages/admin/AdminBackupTab/AdminBackupTab';
 import { AdminMigrationTab } from './pages/admin/AdminMigrationTab/AdminMigrationTab';
 import { AdminBroadcastTab } from './pages/admin/AdminBroadcastTab/index.js';
+import { AdminSystemTab } from './pages/admin/AdminSystemTab/AdminSystemTab.js';
 import { WhatsNewPage } from './pages/whatsNew/WhatsNewPage';
 
 function App() {
@@ -114,6 +115,7 @@ function App() {
             <Route path="backup" element={<AdminBackupTab />} />
             <Route path="migration" element={<AdminMigrationTab />} />
             <Route path="broadcast" element={<AdminBroadcastTab />} />
+            <Route path="system" element={<AdminSystemTab />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>

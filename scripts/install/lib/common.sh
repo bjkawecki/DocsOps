@@ -321,6 +321,7 @@ write_env_file() {
   hostname="${DOCSOPS_HOSTNAME:-}"
   image_prefix="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
   version="${DOCSOPS_VERSION}"
+  update_github_repo="${DOCSOPS_UPDATE_GITHUB_REPO:-${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}}"
 
   install -d -m 700 /etc/docsops
 
@@ -334,6 +335,7 @@ write_env_file() {
 COMPOSE_PROJECT_NAME=docsops
 DOCSOPS_VERSION=${version}
 DOCSOPS_IMAGE_PREFIX=${image_prefix}
+DOCSOPS_UPDATE_GITHUB_REPO=${update_github_repo}
 SESSION_SECRET=${session_secret}
 BACKUP_ENCRYPTION_KEY="${backup_key}"
 ADMIN_EMAIL=${admin_email}

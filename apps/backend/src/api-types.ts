@@ -10,6 +10,11 @@ export type {
 } from './domains/system/schemas/releases.js';
 
 export type {
+  AdminSystemCheckUpdatesResponse,
+  AdminSystemUpdateStatus,
+} from './domains/admin/schemas/systemUpdate.js';
+
+export type {
   Company,
   Department,
   Team,

@@ -18,6 +18,7 @@ describe('resolveNotificationPreferenceCategory', () => {
   it('maps admin broadcast to announcements and backup/export to operations', () => {
     expect(resolveNotificationPreferenceCategory('admin-broadcast')).toBe('announcements');
     expect(resolveNotificationPreferenceCategory('backup-failed')).toBe('operations');
+    expect(resolveNotificationPreferenceCategory('update-available')).toBe('operations');
     expect(resolveNotificationPreferenceCategory('platform-export-succeeded')).toBe('operations');
     expect(resolveNotificationPreferenceCategory('platform-import-failed')).toBe('operations');
   });
@@ -51,6 +52,7 @@ describe('notification event type lists', () => {
     expect(ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES).toContain('admin-broadcast');
     expect(OPERATIONS_NOTIFICATION_EVENT_TYPES).toContain('platform-export-succeeded');
     expect(OPERATIONS_NOTIFICATION_EVENT_TYPES).toContain('platform-import-succeeded');
+    expect(OPERATIONS_NOTIFICATION_EVENT_TYPES).toContain('update-available');
     expect(SYSTEM_NOTIFICATION_EVENT_TYPES).toContain('admin-broadcast');
   });
 

@@ -14,6 +14,7 @@ import restoresRoutes from './restores.routes.js';
 import platformExportsRoutes from './platformExports.routes.js';
 import platformImportsRoutes from './platformImports.routes.js';
 import notificationsRoutes from './notifications.routes.js';
+import systemUpdateRoutes from './systemUpdate.routes.js';
 
 const adminRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   app.register(jobsRoutes);
@@ -23,6 +24,7 @@ const adminRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   app.register(platformImportsRoutes);
   app.register(platformMigrationStatusRoutes);
   app.register(notificationsRoutes);
+  app.register(systemUpdateRoutes);
   if (isAdminImpersonationEnabled()) {
     app.register(impersonationRoutes);
   }

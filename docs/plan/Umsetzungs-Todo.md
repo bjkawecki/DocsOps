@@ -543,14 +543,14 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 **Abgrenzung §24:** Endnutzer lesen Release Notes **aus dem Image** (`/whats-new`, Menü-Badge = ungelesene Notes der **laufenden** Version). §26 = „gibt es ein **deploybares** Update?“ und Betrieb – **nur Admin**.
 
-### Phase 1 – Update-Status & Admin-UI (noch nicht umsetzen; Reihenfolge nach §19/`update.sh`-Grundlage)
+### Phase 1 – Update-Status & Admin-UI
 
-[ ] **Env & Doku:** `DOCSOPS_UPDATE_GITHUB_REPO` (`owner/repo`, optional) in [Env-und-Config](Env-und-Config.md); ohne Env kein externer Check.
-[ ] **API:** `GET /api/v1/admin/system/update-status` – `installedVersion`, `updateCheckEnabled`, `latestVersion`, `updateAvailable`, `releaseUrl`, `checkedAt`, `checkError`; GitHub Releases mit Cache.
-[ ] **API (optional):** `POST /api/v1/admin/system/check-updates` – Refresh; bei `latest > installed` In-App an alle Admins (`update-available`, Kategorie `system`).
-[ ] **Admin-UI:** Tab `**/admin/system`** – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Tab-Badge wenn Update verfügbar.
-[ ] **Notifications:** Formatter + Inbox-Link `/admin/system` für `update-available`.
-[ ] **Tests:\*\* Admin-Route (401/403), Mock GitHub-Response, SemVer-Vergleich.
+[x] **Env & Doku:** `DOCSOPS_UPDATE_GITHUB_REPO` (`owner/repo`, optional) in [Env-und-Config](Env-und-Config.md); ohne Env kein externer Check.
+[x] **API:** `GET /api/v1/admin/system/update-status` – `installedVersion`, `updateCheckEnabled`, `latestVersion`, `updateAvailable`, `releaseUrl`, `checkedAt`, `checkError`; GitHub Releases mit Cache.
+[x] **API (optional):** `POST /api/v1/admin/system/check-updates` – Refresh; bei `latest > installed` In-App an alle Admins (`update-available`, Kategorie `system`).
+[x] **Admin-UI:** Tab **`/admin/system`** – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Tab-Badge wenn Update verfügbar.
+[x] **Notifications:** Formatter + Inbox-Link `/admin/system` für `update-available`.
+[x] **Tests:** Admin-Route (401/403), Mock GitHub-Response, SemVer-Vergleich.
 
 **Später (optional):** Ein-Klick-Update via Updater-Sidecar (`POST /api/v1/admin/updates/apply`, Bundle + `pull` + `up -d`, Wartungsmodus, Health-Check) – Coolify `AUTO_UPDATE` analog.
 

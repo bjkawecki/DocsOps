@@ -25,6 +25,7 @@ export const OPERATIONS_NOTIFICATION_EVENT_TYPES = [
   'platform-export-failed',
   'platform-import-succeeded',
   'platform-import-failed',
+  'update-available',
 ] as const;
 
 /** @deprecated use OPERATIONS_NOTIFICATION_EVENT_TYPES */
@@ -103,6 +104,7 @@ export function resolveNotificationPreferenceCategory(
   eventType: string
 ): NotificationPreferenceCategory {
   if (eventType === 'admin-broadcast') return 'announcements';
+  if (eventType === 'update-available') return 'operations';
   if (eventType.startsWith('backup-')) return 'operations';
   if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-'))
     return 'operations';
