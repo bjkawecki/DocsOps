@@ -32,12 +32,16 @@ copy_file "${ROOT}/docker-compose.yml" "${BUNDLE_ROOT}/docker-compose.yml"
 copy_file "${ROOT}/docker-compose.prod.yml" "${BUNDLE_ROOT}/docker-compose.prod.yml"
 copy_file "${ROOT}/Caddyfile.prod" "${BUNDLE_ROOT}/Caddyfile.prod"
 copy_file "${ROOT}/install.sh" "${BUNDLE_ROOT}/install.sh"
+copy_file "${ROOT}/uninstall.sh" "${BUNDLE_ROOT}/uninstall.sh"
 copy_file "${ROOT}/scripts/install-prod.sh" "${BUNDLE_ROOT}/scripts/install-prod.sh"
+copy_file "${ROOT}/scripts/uninstall-prod.sh" "${BUNDLE_ROOT}/scripts/uninstall-prod.sh"
 copy_file "${ROOT}/scripts/install/lib/common.sh" "${BUNDLE_ROOT}/scripts/install/lib/common.sh"
 copy_file "${ROOT}/scripts/update.sh" "${BUNDLE_ROOT}/scripts/update.sh"
 copy_file "${ROOT}/docker-compose.ci.yml" "${BUNDLE_ROOT}/docker-compose.ci.yml"
 echo "$VERSION" >"${BUNDLE_ROOT}/VERSION"
-chmod +x "${BUNDLE_ROOT}/install.sh" "${BUNDLE_ROOT}/scripts/install-prod.sh" "${BUNDLE_ROOT}/scripts/update.sh"
+chmod +x "${BUNDLE_ROOT}/install.sh" "${BUNDLE_ROOT}/uninstall.sh" \
+  "${BUNDLE_ROOT}/scripts/install-prod.sh" "${BUNDLE_ROOT}/scripts/uninstall-prod.sh" \
+  "${BUNDLE_ROOT}/scripts/update.sh"
 
 ARCHIVE="${OUT_DIR}/docsops-${VERSION}.tar.gz"
 tar -C "$STAGE" -czf "$ARCHIVE" "docsops-${VERSION}"

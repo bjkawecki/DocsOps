@@ -75,6 +75,7 @@ jobs:
         run: |
           DOCSOPS_VERSION="${{ github.ref_name }}" ./scripts/release/build-bundle.sh dist
           cp install.sh dist/install.sh
+          cp uninstall.sh dist/uninstall.sh
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
@@ -83,6 +84,7 @@ jobs:
           path: |
             dist/docsops-${{ github.ref_name }}.tar.gz
             dist/install.sh
+            dist/uninstall.sh
 
   install-test:
     needs: build-and-push
@@ -131,6 +133,7 @@ jobs:
           files: |
             dist/docsops-${{ github.ref_name }}.tar.gz
             dist/install.sh
+            dist/uninstall.sh
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

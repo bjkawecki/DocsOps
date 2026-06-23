@@ -98,6 +98,33 @@ Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.e
 
 **Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
 
+### Deinstallation
+
+DocsOps vollständig entfernen (Container, Volumes, `/opt/docsops`, `/etc/docsops/docsops.env`, systemd):
+
+```bash
+sudo /opt/docsops/scripts/uninstall-prod.sh
+```
+
+Alternativ per curl (lädt bei Bedarf das neueste Release-Bundle nur für das Skript):
+
+```bash
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/uninstall.sh | sudo bash
+```
+
+Das Skript fragt interaktiv nach Bestätigung (`yes`). Optionen:
+
+| Option              | Wirkung                                   |
+| ------------------- | ----------------------------------------- |
+| `--keep-data`       | DB- und MinIO-Volumes behalten            |
+| `--keep-config`     | `/etc/docsops/docsops.env` behalten       |
+| `--keep-deploy-dir` | `/opt/docsops` (Compose/Skripte) behalten |
+| `--purge-images`    | Container-Images von GHCR/lokal entfernen |
+
+Automation: `DOCSOPS_NON_INTERACTIVE=1 DOCSOPS_ASSUME_YES=1 sudo …/uninstall-prod.sh`
+
+Danach Neuinstallation wie oben mit `install.sh`.
+
 ### systemd (optional, Autostart)
 
 Unit-Datei `/etc/systemd/system/docsops.service`:
