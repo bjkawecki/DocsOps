@@ -1,0 +1,159 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  REGISTRY: ghcr.io
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Permission drift check
+        run: pnpm run check:permissions
+
+      - name: Format check
+        run: pnpm run format:check
+
+  build-and-push:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push docsops-app
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          target: app
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-app:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push docsops-worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          target: worker
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-worker:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push docsops-frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/frontend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-frontend:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  bundle:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build deploy bundle
+        run: |
+          DOCSOPS_VERSION="${{ github.ref_name }}" ./scripts/release/build-bundle.sh dist
+          cp install.sh dist/install.sh
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: |
+            dist/docsops-${{ github.ref_name }}.tar.gz
+            dist/install.sh
+
+  install-test:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build deploy bundle for CI
+        run: DOCSOPS_VERSION="${{ github.ref_name }}" ./scripts/release/build-bundle.sh dist
+
+      - name: Extract bundle to /opt/docsops
+        run: |
+          sudo mkdir -p /opt/docsops
+          sudo tar -xzf "dist/docsops-${{ github.ref_name }}.tar.gz" -C /tmp
+          sudo rm -rf /opt/docsops/*
+          sudo cp -a "/tmp/docsops-${{ github.ref_name }}/." /opt/docsops/
+
+      - name: Production install (registry pull)
+        env:
+          DOCSOPS_VERSION: ${{ github.ref_name }}
+          DOCSOPS_NON_INTERACTIVE: '1'
+          DOCSOPS_ASSUME_YES: '1'
+          DOCSOPS_INSTALL_CONFIRMED: '1'
+          DOCSOPS_USE_EXISTING_CONFIG: '0'
+          DOCSOPS_EXTRA_COMPOSE_FILES: docker-compose.ci.yml
+          DOCSOPS_HEALTH_URL: http://127.0.0.1:8080/health
+          ADMIN_EMAIL: ci-admin@example.com
+          ADMIN_PASSWORD: ci-admin-password-12
+        run: sudo -E /opt/docsops/scripts/install-prod.sh
+
+  release:
+    needs: [bundle, install-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download bundle artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/docsops-${{ github.ref_name }}.tar.gz
+            dist/install.sh
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

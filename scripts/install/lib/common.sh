@@ -4,8 +4,8 @@ set -euo pipefail
 
 DOCSOPS_ENV_FILE="${DOCSOPS_ENV_FILE:-/etc/docsops/docsops.env}"
 DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
-DOCSOPS_REPO="${DOCSOPS_REPO:-https://github.com/bjkawecki/docs-ops.git}"
-DOCSOPS_VERSION="${DOCSOPS_VERSION:-main}"
+DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
+DOCSOPS_IMAGE_PREFIX="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
 DOCSOPS_HEALTH_URL="${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}"
 DOCSOPS_COMPOSE_FILES="${DOCSOPS_COMPOSE_FILES:-docker-compose.yml:docker-compose.prod.yml}"
 DOCSOPS_DOCKER_COMPOSE_VERSION="${DOCSOPS_DOCKER_COMPOSE_VERSION:-v2.32.4}"
@@ -29,6 +29,16 @@ install_stage() {
 die() {
   echo "Fehler: $*" >&2
   exit 1
+}
+
+assert_release_version() {
+  local version="${1:-${DOCSOPS_VERSION:-}}"
+  if [[ -z "$version" ]]; then
+    die "DOCSOPS_VERSION fehlt. Production-Install nur mit Release-Tag (z. B. v0.1.0)."
+  fi
+  if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    die "DOCSOPS_VERSION muss ein Release-Tag sein (z. B. v0.1.0), nicht „${version}“. Siehe https://github.com/${DOCSOPS_GITHUB_REPO}/releases"
+  fi
 }
 
 require_root() {
@@ -63,7 +73,7 @@ confirm_or_exit() {
   echo ""
   local prompt="Fortfahren? [y/N] "
   if [[ "${DOCSOPS_BOOTSTRAP_CONFIRM:-}" == "1" ]]; then
-    prompt="Fortfahren? Das Repository (${DOCSOPS_VERSION}) wird nach ${DOCSOPS_INSTALL_DIR} geklont bzw. aktualisiert. [y/N] "
+    prompt="Fortfahren? Release ${DOCSOPS_VERSION} wird nach ${DOCSOPS_INSTALL_DIR} installiert. [y/N] "
   fi
   read_tty -p "$prompt" reply
   case "${reply}" in
@@ -109,10 +119,10 @@ HTTPS oder Zugriff von außen (VPN) sind optional (spätere Phase): Caddy mit TL
 dann in ${DOCSOPS_ENV_FILE} SESSION_COOKIE_SECURE=1 setzen.
 
 Dieses Skript wird als root ausgeführt und kann:
-  - Systempakete installieren (git, curl, openssl, Docker)
-  - Quellcode nach ${DOCSOPS_INSTALL_DIR} klonen
+  - Systempakete installieren (curl, openssl, Docker)
+  - Deploy-Dateien nach ${DOCSOPS_INSTALL_DIR} entpacken
   - /etc/docsops/docsops.env mit Secrets anlegen
-  - Docker-Container bauen und starten (Port 80 frei oder bereits durch DocsOps/Caddy belegt)
+  - Container-Images von der Registry laden und starten (Port 80 frei oder bereits durch DocsOps/Caddy belegt)
 
 Warum root-Skripte aus dem Internet riskant sind
 -------------------------------------------------
@@ -122,14 +132,15 @@ Quellcode vertraust.
 
 Warum es hier vertretbar sein kann
 ----------------------------------
-DocsOps ist Open Source (FOSS). Prüfe das Repository und – für Production –
-bevorzugt einen Release-Tag (DOCSOPS_VERSION=vX.Y.Z) statt main.
+DocsOps ist Open Source (FOSS). Prüfe Release-Notes und Images auf GitHub,
+bevor du curl | bash ausführst.
 
-Alternativ: Repository klonen und sudo ./install.sh aus dem Checkout starten.
+Production-Install nur mit Release-Tag (DOCSOPS_VERSION=vX.Y.Z) –
+kein Branch main, kein lokaler Image-Build auf dem Server.
 
 EOF
   if [[ "${DOCSOPS_BOOTSTRAP_CONFIRM:-}" == "1" ]]; then
-    echo "Nach deiner Bestätigung wird ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR} heruntergeladen."
+    echo "Nach deiner Bestätigung wird Release ${DOCSOPS_VERSION} nach ${DOCSOPS_INSTALL_DIR} installiert."
     echo ""
   fi
 }
@@ -164,15 +175,15 @@ ensure_docker_compose() {
     log "Docker wird installiert …"
     if [[ -f /etc/debian_version ]]; then
       apt-get update
-      apt-get install -y git curl openssl ca-certificates docker.io
+      apt-get install -y curl openssl ca-certificates docker.io
     elif [[ -f /etc/fedora-release ]] || grep -qE '^ID="?(fedora|rhel|centos)"?' /etc/os-release 2>/dev/null; then
       if command -v dnf >/dev/null 2>&1; then
-        dnf install -y git curl openssl docker docker-compose-plugin
+        dnf install -y curl openssl docker docker-compose-plugin
       else
         die "Unsupported RPM-based system (dnf fehlt)."
       fi
     elif [[ -f /etc/arch-release ]]; then
-      pacman -Sy --noconfirm git curl openssl docker docker-compose
+      pacman -Sy --noconfirm curl openssl docker docker-compose
     else
       die "Unbekannte Distribution. Bitte Docker und docker compose manuell installieren."
     fi
@@ -195,20 +206,8 @@ ensure_docker_compose() {
 }
 
 resolve_install_dir() {
-  local checkout_root="${1:-}"
-
-  if [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.prod.yml" ]]; then
-    return 0
-  fi
-
-  if [[ -n "$checkout_root" && -f "${checkout_root}/docker-compose.prod.yml" ]]; then
-    log "DOCSOPS_INSTALL_DIR nicht gesetzt – verwende Checkout: ${checkout_root}"
-    DOCSOPS_INSTALL_DIR="$checkout_root"
-    export DOCSOPS_INSTALL_DIR
-    return 0
-  fi
-
-  return 1
+  [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.prod.yml" ]] || return 1
+  return 0
 }
 
 publish_port_from_health_url() {
@@ -313,12 +312,15 @@ require_port_80_free() {
 }
 
 write_env_file() {
-  local session_secret backup_key admin_email admin_password hostname
+  local session_secret backup_key admin_email admin_password hostname image_prefix version
+  assert_release_version
   session_secret="$(openssl rand -hex 32)"
   backup_key="$(openssl rand -base64 32)"
   admin_email="${ADMIN_EMAIL:-}"
   admin_password="${ADMIN_PASSWORD:-}"
   hostname="${DOCSOPS_HOSTNAME:-}"
+  image_prefix="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
+  version="${DOCSOPS_VERSION}"
 
   install -d -m 700 /etc/docsops
 
@@ -330,6 +332,8 @@ write_env_file() {
   cat >"$DOCSOPS_ENV_FILE" <<EOF
 # DocsOps production config (generated by install-prod.sh)
 COMPOSE_PROJECT_NAME=docsops
+DOCSOPS_VERSION=${version}
+DOCSOPS_IMAGE_PREFIX=${image_prefix}
 SESSION_SECRET=${session_secret}
 BACKUP_ENCRYPTION_KEY="${backup_key}"
 ADMIN_EMAIL=${admin_email}
@@ -398,28 +402,21 @@ abort_stack_failure() {
   exit 1
 }
 
-compose_build_images() {
-  local build_status log_file
+compose_pull_images() {
   compose_stack_setup
-  log_file="$(mktemp)"
-  if compose_stack_cmd build >"$log_file" 2>&1; then
-    rm -f "$log_file"
-    return 0
+  if ! compose_stack_cmd pull; then
+    abort_stack_failure "docker compose pull fehlgeschlagen. Prüfe DOCSOPS_VERSION und Registry-Zugriff (${DOCSOPS_IMAGE_PREFIX})."
   fi
-  build_status=$?
-  echo "" >&2
-  echo "Docker-Build fehlgeschlagen – Auszug aus dem Build-Log:" >&2
-  tail -n 60 "$log_file" >&2
-  rm -f "$log_file"
-  die "Docker-Build fehlgeschlagen (Exit ${build_status})"
 }
 
 compose_up_prod() {
   local wait_timeout up_args
   wait_timeout="${DOCSOPS_COMPOSE_WAIT_TIMEOUT:-300}"
   compose_stack_setup
-  log "Baue Docker-Images (kann mehrere Minuten dauern) …"
-  compose_build_images
+  assert_release_version
+  load_existing_env_optional
+  log "Lade Container-Images von ${DOCSOPS_IMAGE_PREFIX} (${DOCSOPS_VERSION}) …"
+  compose_pull_images
   up_args=(-d)
   if compose_stack_cmd up --help 2>&1 | grep -q -- '--wait'; then
     up_args=(-d --wait --wait-timeout "$wait_timeout")
@@ -430,6 +427,28 @@ compose_up_prod() {
   if ! compose_stack_cmd up "${up_args[@]}"; then
     abort_stack_failure "Der Stack konnte nicht starten (Container unhealthy oder Abhängigkeit fehlgeschlagen)."
   fi
+}
+
+load_existing_env_optional() {
+  [[ -f "$DOCSOPS_ENV_FILE" ]] || return 0
+  # shellcheck disable=SC1090
+  set -a
+  source "$DOCSOPS_ENV_FILE"
+  set +a
+  export DOCSOPS_VERSION="${DOCSOPS_VERSION:-}"
+  export DOCSOPS_IMAGE_PREFIX="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
+}
+
+patch_env_version() {
+  local version="$1" env_file="${DOCSOPS_ENV_FILE}"
+  assert_release_version "$version"
+  [[ -f "$env_file" ]] || die "${env_file} fehlt – zuerst installieren."
+  if grep -q '^DOCSOPS_VERSION=' "$env_file"; then
+    sed -i "s/^DOCSOPS_VERSION=.*/DOCSOPS_VERSION=${version}/" "$env_file"
+  else
+    echo "DOCSOPS_VERSION=${version}" >>"$env_file"
+  fi
+  export DOCSOPS_VERSION="$version"
 }
 
 wait_for_health() {

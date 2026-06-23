@@ -12,7 +12,7 @@ usage() {
   cat <<EOF
 Usage: install-prod.sh [OPTIONS]
 
-Production install (run via install.sh or from repo checkout with sudo).
+Production install (run via release install.sh or from extracted bundle with sudo).
 
 Target environment: intranet Linux server, HTTP on port 80 by default (not public internet).
 
@@ -93,6 +93,9 @@ load_existing_env() {
   set +a
   export ADMIN_EMAIL="${ADMIN_EMAIL:-}"
   export DOCSOPS_HOSTNAME="${DOCSOPS_HOSTNAME:-}"
+  export DOCSOPS_VERSION="${DOCSOPS_VERSION:-}"
+  export DOCSOPS_IMAGE_PREFIX="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
+  assert_release_version
 }
 
 # Interactive step „Konfiguration“: reuse /etc/docsops/docsops.env or write new secrets.
@@ -152,8 +155,8 @@ main() {
   parse_args "$@"
   require_root
 
-  resolve_install_dir "$(cd "${SCRIPT_DIR}/.." && pwd)" \
-    || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR} (DOCSOPS_INSTALL_DIR setzen oder aus Repo-Checkout starten)"
+  resolve_install_dir \
+    || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
 
   local stage_total=5
   if [[ "${DOCSOPS_INSTALL_CONFIRMED:-}" != "1" ]]; then
@@ -177,6 +180,7 @@ main() {
 
   install_stage "Konfiguration"
   resolve_production_env_config "$RECONFIGURE"
+  assert_release_version
 
   install_stage "Docker-Stack bereitstellen"
   compose_up_prod

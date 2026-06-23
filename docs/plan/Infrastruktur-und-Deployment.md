@@ -19,11 +19,11 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 
 - **Ziel:** Einmalige Installation mit einem Skript, ohne manuelles Zusammenpuzzeln.
 - **Umsetzung:**
-  - Ein `install.sh` (Bootstrap, `sudo`) und `scripts/install-prod.sh` im Repo.
-  - Skript prüft/installiert Voraussetzungen (Docker, git, curl, openssl).
-  - Klont Quellcode nach `/opt/docsops` (Release-Tag empfohlen).
-  - **Konfiguration Stufe 2:** Secrets in **`/etc/docsops/docsops.env`** (`chmod 600`), **keine** `.env` im Clone; Install-Skript generiert `SESSION_SECRET` und `BACKUP_ENCRYPTION_KEY`, fragt Admin ab; `BACKUP_ENCRYPTION_KEY` einmal an den Betreiber ausgeben.
-  - Start: `docker compose --env-file /etc/docsops/docsops.env -f docker-compose.yml -f docker-compose.prod.yml up -d`.
+  - Ein `install.sh` (Bootstrap, `sudo`) und `scripts/install-prod.sh` im Release-Bundle.
+  - Skript prüft/installiert Voraussetzungen (Docker, curl, openssl).
+  - Lädt Release-Bundle nach `/opt/docsops` (nur `vX.Y.Z`, kein `main`).
+  - **Konfiguration:** Secrets in **`/etc/docsops/docsops.env`** (`chmod 600`), **keine** `.env` im Deploy-Verzeichnis; Install-Skript generiert `SESSION_SECRET` und `BACKUP_ENCRYPTION_KEY`, setzt `DOCSOPS_VERSION` / `DOCSOPS_IMAGE_PREFIX`, fragt Admin ab; `BACKUP_ENCRYPTION_KEY` einmal an den Betreiber ausgeben.
+  - Start: `docker compose pull` dann `up -d` mit `docker-compose.yml` + `docker-compose.prod.yml` (Images von GHCR).
   - Optional: systemd-Unit mit `EnvironmentFile=/etc/docsops/docsops.env` (Autostart).
   - Dokumentation: [install.md](../install.md), README.
 
@@ -35,7 +35,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 - **Version:** Single Source of Truth = `version` in Root-`package.json` (SemVer); Image-Build setzt `APP_VERSION` daraus; Runtime nur Env. Release = Git-Tag `vX.Y.Z` + GitHub Release. Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §1.
 - **Phasen:**
   - **Phase 1 (empfohlen zuerst):** Admin-UI zeigt installierte vs. verfügbare Version, „Check for updates“, Verweis auf `./scripts/update.sh` auf dem Server; **Backup-Gate** (Hinweis/Pflicht vor Update, vgl. Abschnitt 8).
-  - **Phase 2 (Ein-Klick):** Separater **Updater-Sidecar** – eigener Container/Agent neben dem App-Stack, der nur das Update-Skript ausführt (`git pull`, `compose pull`, `compose up`). Die Haupt-App ruft ihn per API an; **nicht** voller Docker-Socket im App-Container (Sicherheit).
+  - **Phase 2 (Ein-Klick):** Separater **Updater-Sidecar** – eigener Container/Agent neben dem App-Stack, der nur das Update-Skript ausführt (`scripts/update.sh`, `compose pull`, `compose up`). Die Haupt-App ruft ihn per API an; **nicht** voller Docker-Socket im App-Container (Sicherheit).
 - **Wichtig:** Daten in Volumes; Rollback = vorheriges Image-Tag. Vollständige Todos: [Umsetzungs-Todo §26](Umsetzungs-Todo.md).
 
 ---
@@ -107,8 +107,8 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 ## 10. Test des Install-Skripts
 
 - **Problem:** `install.sh` lässt sich auf der lokalen Dev-Maschine nicht realistisch testen (Repo und Dienste sind schon da).
-- **Empfehlung:** **CI (z. B. GitHub Actions)** auf einem frischen Runner: Repo auschecken, Voraussetzungen (Docker) sicherstellen, `install.sh` ausführen (oder die gleichen Schritte: `docker compose up -d`), danach **Health-Check** (z. B. `curl http://localhost:5000/health`). Bei Erfolg ist der Install-Pfad getestet. Optional: VM (Vagrant/Multipass) oder Container als „Mini-Server“ für manuellen Test; Shellcheck für das Skript.
-- **Umsetzung:** CI-Job in `.github/workflows/` (oder vergleichbar), der bei Push/PR den Install-Ablauf durchspielt und die Erreichbarkeit der App prüft.
+- **Empfehlung:** **Release-CI** (`.github/workflows/release.yml`) auf einem frischen Runner: Images nach GHCR pushen, Bundle extrahieren, `install-prod.sh` mit `docker compose pull`, Health-Check auf Port **8080** (`docker-compose.ci.yml`).
+- **Umsetzung:** Install-Test im Release-Workflow nach Tag `v*.*.*`.
 
 ---
 
@@ -131,8 +131,8 @@ DocsOps bleibt **self-hosted-first**. Ein optionales **Managed-Hosting-Angebot**
 
 - [x] Technologie-Stack festlegen (Sprache/Framework, DB, Reverse Proxy) – siehe [Technologie-Stack](Technologie-Stack.md).
 - [ ] Repository-Struktur und `docker-compose.yml` entwerfen (inkl. Dev-Override für Entwicklungsumgebung).
-- [ ] `install.sh` und ggf. `scripts/update.sh` spezifizieren.
-- [ ] CI-Job zum Test des Install-Skripts (frischer Runner, install.sh, Health-Check).
+- [x] `install.sh` und `scripts/update.sh` (Release-Bundle + GHCR pull).
+- [x] CI Install-Test im Release-Workflow (Bundle + pull + Health-Check).
 - [ ] Doku zu VPN (WireGuard o. Ä.) und Reverse Proxy in `docs/` planen.
 - [ ] Betrieb: What's new, Backup, Update, Migration – siehe [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) und [Umsetzungs-Todo §24–§27](Umsetzungs-Todo.md).
 - [ ] Öffentliche Demo & Domains – siehe [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).

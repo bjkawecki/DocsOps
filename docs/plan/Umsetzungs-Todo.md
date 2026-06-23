@@ -326,23 +326,17 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 **Ziel (Intranet-Self-hosted):** Nach `curl | sudo bash` läuft DocsOps im **Prod-Stack** unter **Port 80** (HTTPS optional später). Dev: `docker compose` + Override → Port 5000.
 
-**Status:** **Interim v1** (Git-Clone + lokaler Build) ist umgesetzt. **Ziel v2** (Vorbild [Coolify](https://coolify.io/docs/get-started/installation)): Release-Bundle + `**docker compose pull`\*\* – kein Monorepo auf der VM, kein Build auf schwacher Hardware.
+**Status:** **Production-Install v2** – Release-Bundle + GHCR (`docker compose pull`), kein Monorepo auf der VM, kein lokaler Build.
 
-### Erledigt (Interim v1)
+### Erledigt (Production-Install v2)
 
-Bootstrap (`install.sh`, `scripts/install-prod.sh`), Secrets in `/etc/docsops/docsops.env`, interaktiv + CI-non-interactive, Quiet-Build, Prod-Stack (`docker-compose.prod.yml`, Caddy :80, Frontend-nginx, Migrate-Entrypoint), README/install.md, systemd-Beispiel, CI Install-Test (Build).
+[x] **Release-Pipeline:** Git-Tag `v*` → CI: Images nach **GHCR** (`ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`) + Release-Asset `docsops-vX.Y.Z.tar.gz` (Workflow `.github/workflows/release.yml`).
+[x] **Compose & Env:** `docker-compose.prod.yml` mit `image:` + Tag aus `/etc/docsops/docsops.env` (`DOCSOPS_VERSION`, `DOCSOPS_IMAGE_PREFIX`); `build:` nur Dev (`docker-compose.override.yml`).
+[x] **Install:** Bundle statt `git clone`; Release-URL `curl …/releases/download/vX.Y.Z/install.sh`; `pull` + `up -d`; `main` abgewiesen; Doku README + [install.md](../install.md).
+[x] **Update:** `scripts/update.sh` – Bundle tauschen + `pull` + `up -d` + Rollback-Hinweis in install.md. Admin-UI: **§26** (offen).
+[x] **CI Install-Test:** Release-Workflow – Bundle-Install mit `pull` + Health-Check (Port 8080).
 
-### Offen – Production-Install v2 (Release-Bundle + GHCR)
-
-**Prinzip:** Deploy-Manifest (Compose, Caddy, Skripte) und Container-Images teilen dieselbe SemVer (`vX.Y.Z`).
-
-**Reihenfolge:**
-
-1. [ ] **Release-Pipeline:** Git-Tag `v*` → CI: Images nach **GHCR public** (`ghcr.io/<owner>/docsops-{app,worker,frontend}:vX.Y.Z`) + Release-Asset `docsops-vX.Y.Z.tar.gz`. Erstes Release `**v0.1.0`\*\*.
-2. [ ] **Compose & Env:** `docker-compose.prod.yml` mit `image:` + Tag aus `/etc/docsops/docsops.env` (`DOCSOPS_VERSION`, optional Registry-Override); `build:` nur Dev / Fallback `DOCSOPS_COMPOSE_BUILD=1`.
-3. [ ] **Install:** Bundle statt `git clone` nach `/opt/docsops`; Release-URL (`curl …/releases/download/vX.Y.Z/install.sh`); `pull` + `up -d`; `**main` warnen/blockieren\*\*; Doku README + [install.md](../install.md).
-4. [ ] **Update:** `scripts/update.sh` – Bundle tauschen + `pull` + `up -d` + Rollback-Doku. Admin-Hinweis: **§26**.
-5. [ ] **CI Install-Test:** Pull + Bundle statt lokalem Build.
+**Erstes Release:** Git-Tag `v0.1.0` manuell setzen, wenn Images auf GHCR veröffentlicht werden sollen.
 
 **Später (optional):** HTTPS/443 (Caddy ACME / `tls internal`); private GHCR + PAT; Air-gap (`docker save`/`load`); eigenes CDN; CI Frontend-/E2E-Tests.
 

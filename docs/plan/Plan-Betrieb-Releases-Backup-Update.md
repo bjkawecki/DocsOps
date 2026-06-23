@@ -7,7 +7,7 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 ## 1. Versionierung (gemeinsame Basis)
 
 - **Single Source of Truth:** `version` in der Root-`package.json` (SemVer, z. B. `0.2.0`) – **einzige** manuelle Stelle beim Release.
-- **Deploy:** Beim Image-Build wird `APP_VERSION` **deterministisch aus** Root-`package.json` abgeleitet (`/APP_VERSION` im Image, Entrypoint exportiert). **Kein** separates SemVer-Env (`DOCSOPS_VERSION` ist nur Git-Ref beim Install, nicht App-Version).
+- **Deploy:** Beim Image-Build wird `APP_VERSION` **deterministisch aus** Root-`package.json` abgeleitet (`/APP_VERSION` im Image, Entrypoint exportiert). **`DOCSOPS_VERSION`** in `/etc/docsops/docsops.env` ist der **Image-Tag** für `docker compose pull` (`vX.Y.Z`) – nicht `APP_VERSION`.
 - **Runtime:** Backend liest **nur** `process.env.APP_VERSION`; fehlt der Wert → Fehler (kein Fallback auf andere `package.json`).
 - **Release:** Git-Tag `v0.2.0`, GitHub Release mit **Deploy-Bundle** (`docsops-v0.2.0.tar.gz`: Compose, Caddy, Install-Skripte) und **Container-Images** auf GHCR (`ghcr.io/<owner>/docsops-*:v0.2.0`, public wie Coolify). Production: `pull` + `up -d` – kein Monorepo-Clone, kein lokaler Build. Details: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
 - **Update:** `scripts/update.sh` lädt neues Bundle + Image-Tags, dann `compose pull` + `up -d` (§26).

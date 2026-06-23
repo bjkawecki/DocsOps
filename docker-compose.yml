@@ -1,4 +1,5 @@
-# Compose project name (container/volume prefix). Override via COMPOSE_PROJECT_NAME in .env.
+# Infrastructure services shared by dev (override) and production (prod overlay).
+# Application services: docker-compose.override.yml (dev) or docker-compose.prod.yml (registry images).
 name: ${COMPOSE_PROJECT_NAME:-docsops}
 
 services:
@@ -24,7 +25,6 @@ services:
     restart: unless-stopped
     command: server /data
     environment:
-      # Nicht die MinIO-Defaults nutzen (Warnung vermeiden). Für Prod: .env mit echten Werten.
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-docsops}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-docsopsdev}
     volumes:
@@ -34,55 +34,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  app:
-    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-app
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-      target: app
-    restart: unless-stopped
-    environment:
-      PORT: 8080
-      DATABASE_URL: postgresql://app:app@postgres:5432/docsops
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: 9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
-      SESSION_SECRET: ${SESSION_SECRET:-}
-      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
-      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:8080/ready || exit 1']
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 30s
-
-  docsops-job-worker:
-    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-job-worker
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-      target: worker
-    restart: unless-stopped
-    entrypoint: ['node', 'dist/src/entrypoints/worker.js']
-    environment:
-      DATABASE_URL: postgresql://app:app@postgres:5432/docsops
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: 9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
-      SESSION_SECRET: ${SESSION_SECRET:-}
-      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
-      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
-      PANDOC_ARGS: ${PANDOC_ARGS:---pdf-engine=typst}
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
   postgres_data:

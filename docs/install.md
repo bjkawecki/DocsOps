@@ -2,7 +2,7 @@
 
 Anleitung für **Self-hosted** DocsOps auf einem Linux-Server im Intranet. Entwicklung und „prod-nah“ lokal: [Development-Anleitung](Development-Anleitung.md) (Port 5000, `docker-compose.override.yml`).
 
-Geplanter Ablauf (Umsetzung §19): `sudo ./install.sh` – Details in [Umsetzungs-Todo §19](plan/Umsetzungs-Todo.md#19-deployment--doku).
+**Deployment:** Release-Bundle + Container-Images von **GHCR** (`docker compose pull`). Kein Git-Clone, kein `docker compose build` auf dem Server.
 
 **Deployment-Annahme:** Production = **Intranet-Self-hosted** auf einem Linux-Host. Standard ist **HTTP Port 80** (Caddy reverse proxy, keine TLS-Pflicht). Clients erreichen DocsOps per Server-IP oder internem Hostnamen (z. B. `docsops.intranet`). Öffentliches Internet oder HTTPS sind **nicht** vorausgesetzt; beides kann später ergänzt werden.
 
@@ -10,9 +10,7 @@ Geplanter Ablauf (Umsetzung §19): `sudo ./install.sh` – Details in [Umsetzung
 
 ## Systemanforderungen
 
-Install baut Images auf dem Server (`docker compose build`, Ausgabe unterdrückt – dauert oft **10–20 Minuten**). **Ziel Production:** 8 GB RAM, 40 GB Disk auf `/` (inkl. Docker).
-
-**Später optional:** vorgebaute Images aus einer Registry (z. B. GHCR) per `docker compose pull` statt lokalem Build – sinnvoll für schwache VMs und schnellere Updates; erfordert CI-Publish bei Release-Tags.
+Install lädt vorgebaute Images von der Registry (`docker compose pull`) – typisch **2–5 Minuten** nach Download. **Empfohlen:** 8 GB RAM, 40 GB Disk auf `/` (inkl. Docker).
 
 | Profil      | RAM   | Disk   |                           |
 | ----------- | ----- | ------ | ------------------------- |
@@ -20,7 +18,7 @@ Install baut Images auf dem Server (`docker compose build`, Ausgabe unterdrückt
 | Empfohlen   | 8 GB  | 40 GB  | Intranet-Production       |
 | Komfortabel | 16 GB | 80 GB+ | MinIO/Backups wachsen mit |
 
-Host: Linux, `sudo`, Port **80** frei; git/curl/openssl/Docker bei Bedarf via Skript.
+Host: Linux, `sudo`, Port **80** frei; curl/openssl/Docker bei Bedarf via Skript.
 
 Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on device`. Dann `docker system prune -af` / Disk vergrößern.
 
@@ -28,17 +26,18 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 
 ## Konfiguration: Dev vs. Production
 
-|                        | **Entwicklung**                                   | **Production (Stufe 2)**                                              |
-| ---------------------- | ------------------------------------------------- | --------------------------------------------------------------------- |
-| Code                   | Git-Clone beliebig                                | `/opt/docsops` (Default)                                              |
-| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`** – **nicht** im Clone                   |
-| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → Port **80** (HTTP) |
-| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                 |
-| TLS / HTTPS            | nicht nötig (Dev)                                 | **Standard: aus** – optional später (Caddy TLS)                       |
-| Session-Cookies        | Dev-Stack                                         | **ohne** `Secure` (HTTP); mit HTTPS: `SESSION_COOKIE_SECURE=1`        |
-| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                      |
-| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                         |
-| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                       |
+|                        | **Entwicklung**                                   | **Production**                                                          |
+| ---------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
+| Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode) |
+| Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`          |
+| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                          |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → Port **80** (HTTP)   |
+| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                   |
+| TLS / HTTPS            | nicht nötig (Dev)                                 | **Standard: aus** – optional später (Caddy TLS)                         |
+| Session-Cookies        | Dev-Stack                                         | **ohne** `Secure` (HTTP); mit HTTPS: `SESSION_COOKIE_SECURE=1`          |
+| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                        |
+| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                           |
+| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                         |
 
 ### Production vs. Demo
 
@@ -49,19 +48,15 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Seed                  | nein                                             | ja (CSV bei leerer DB)               |
 | Debug / Impersonation | nein                                             | nein                                 |
 
-In Production brauchst du **keine `.env` im Repository-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
+In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---
 
-## Stufe 2: Trennung Code und Secrets
-
-**Ziel:** Updates (`git pull` in `/opt/docsops`) ohne Secrets im Arbeitsbaum; bootfeste Konfiguration.
-
-### Pfade
+## Pfade
 
 ```text
-/opt/docsops/                    Git-Clone (Compose, Caddyfile, Images bauen)
-/etc/docsops/docsops.env         Secrets + Install-Konfig (root:root, chmod 600)
+/opt/docsops/                    Release-Bundle (Compose, Caddyfile, Install-Skripte)
+/etc/docsops/docsops.env         Secrets + DOCSOPS_VERSION / Image-Prefix (root:root, chmod 600)
 /etc/systemd/system/docsops.service   optional: Autostart nach Reboot
 ```
 
@@ -71,6 +66,8 @@ Das Skript legt die Datei an – **nicht** manuell vorbereiten. Typische Einträ
 
 | Variable                         | Herkunft                              | Admin muss kennen?       |
 | -------------------------------- | ------------------------------------- | ------------------------ |
+| `DOCSOPS_VERSION`                | Release-Tag (z. B. `v0.1.0`)          | ja (für Updates)         |
+| `DOCSOPS_IMAGE_PREFIX`           | Default `ghcr.io/bjkawecki`           | nein                     |
 | `SESSION_SECRET`                 | generiert (`openssl rand -hex 32`)    | nein (intern)            |
 | `BACKUP_ENCRYPTION_KEY`          | generiert (`openssl rand -base64 32`) | **ja** – separat sichern |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | interaktive Abfrage beim Install      | ja (Login)               |
@@ -86,8 +83,20 @@ Nach erfolgreicher Admin-Anlage reicht das Passwort als Hash in der Datenbank; `
 ```bash
 cd /opt/docsops
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+  -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
+
+### Update
+
+```bash
+sudo /opt/docsops/scripts/update.sh v0.2.0
+```
+
+Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.env`, `pull` + `up -d`.
+
+**Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
 
 ### systemd (optional, Autostart)
 
@@ -150,24 +159,28 @@ Das Install-Skript richtet kein VPN und kein zentrales DNS ein (Hinweis in Doku 
 
 **Standard (VM / Intranet-Server):**
 
+Ersetze `v0.1.0` durch das gewünschte [Release](https://github.com/bjkawecki/docs-ops/releases):
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bjkawecki/docs-ops/main/install.sh | sudo bash
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/install.sh | sudo DOCSOPS_VERSION=v0.1.0 bash
 ```
 
-Klont nach `/opt/docsops`, installiert bei Bedarf git/Docker und startet DocsOps auf **Port 80**. Beim **Re-Install** (Stack läuft bereits) erkennt das Skript den DocsOps-Caddy auf Port 80 und fährt mit Build/Update fort. Existiert bereits `/etc/docsops/docsops.env`, fragt **Schritt „Konfiguration“** interaktiv, ob die bestehende Datei beibehalten werden soll (Default: ja). Mit `--reconfigure` oder Antwort **n** werden neue Secrets erzeugt. Bei fremden Webservern auf Port 80 (Apache, nginx, …) vor der Erstinstallation: Dienst stoppen.
+Lädt das Release-Bundle nach `/opt/docsops`, installiert bei Bedarf Docker und startet DocsOps auf **Port 80**. Nur **Release-Tags** (`vX.Y.Z`) – kein Branch `main`. Beim **Re-Install** erkennt das Skript den DocsOps-Caddy auf Port 80 und fährt mit Update fort. Existiert bereits `/etc/docsops/docsops.env`, fragt **Schritt „Konfiguration“** interaktiv, ob die bestehende Datei beibehalten werden soll (Default: ja). Mit `--reconfigure` oder Antwort **n** werden neue Secrets erzeugt. Bei fremden Webservern auf Port 80 (Apache, nginx, …) vor der Erstinstallation: Dienst stoppen.
 
-**Aus lokalem Checkout:**
+**Aus entpacktem Bundle** (z. B. nach manuellem Download von `docsops-vX.Y.Z.tar.gz`):
 
 ```bash
+export DOCSOPS_VERSION=v0.1.0
 sudo ./install.sh
 ```
 
 **Non-interactive** (CI/Automation):
 
 ```bash
+export DOCSOPS_VERSION=v0.1.0
 export DOCSOPS_NON_INTERACTIVE=1 DOCSOPS_ASSUME_YES=1
 export ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='min-6-chars'
-sudo -E ./scripts/install-prod.sh
+sudo -E /opt/docsops/scripts/install-prod.sh
 ```
 
 Mit bestehender `/etc/docsops/docsops.env` wird diese im Non-interactive-Modus standardmäßig wiederverwendet (`DOCSOPS_USE_EXISTING_CONFIG=1`). Neue Secrets: `DOCSOPS_USE_EXISTING_CONFIG=0` oder `--reconfigure`.
@@ -184,10 +197,14 @@ Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilf
 
 Standard-Production läuft auf **HTTP** (Port 80). Session-Cookies dürfen dann **kein** `Secure`-Flag haben – sondern speichert der Browser das Cookie nicht.
 
-- Nach dem Fix: App-Image neu bauen und Stack neu starten.
 - Erst wenn Caddy **HTTPS** terminiert: in `/etc/docsops/docsops.env` `SESSION_COOKIE_SECURE=1` setzen und App neu starten.
 - Im Browser (DevTools → Application → Cookies): nach Login muss `sessionId` für `docsops.intranet` sichtbar sein.
 - Ein 401 auf `/me` **vor** dem Login (Login-Seite) ist normal.
+
+### `docker compose pull` schlägt fehl
+
+- `DOCSOPS_VERSION` in `/etc/docsops/docsops.env` muss ein existierendes Release sein (`vX.Y.Z`).
+- Server braucht ausgehenden HTTPS-Zugriff auf `ghcr.io`.
 
 ---
 

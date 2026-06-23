@@ -124,7 +124,7 @@ Gleicher Stack wie im Abschnitt **Caddy + Backend in der Entwicklung starten**: 
 
 - Root: `pnpm install`, `pnpm run lint`, `pnpm run format`, `pnpm run format:check`
 - Backend: `pnpm --filter backend dev` (oder in `apps/backend`: `pnpm run dev`)
-- Installation/Start: `./install.sh` im Repo-Root
+- Production-Installation: siehe [install.md](install.md) (Release von GitHub, nicht aus dem Dev-Clone).
 
 ## Siehe auch
 

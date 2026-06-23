@@ -2,15 +2,7 @@
 set -euo pipefail
 
 DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
-DOCSOPS_REPO="${DOCSOPS_REPO:-https://github.com/bjkawecki/docs-ops.git}"
-DOCSOPS_VERSION="${DOCSOPS_VERSION:-main}"
-
-# curl | sudo bash: script on stdin → BASH_SOURCE[0] unset; skip local checkout detection.
-SCRIPT_DIR=""
-if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
-  SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
-  SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-fi
+DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
 
 log() {
   echo "==> $*"
@@ -23,64 +15,17 @@ die() {
 
 require_root() {
   if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
-    die "Bitte mit sudo ausführen: sudo bash  (oder: curl … | sudo bash)"
+    die "Bitte mit sudo ausführen: sudo DOCSOPS_VERSION=vX.Y.Z bash"
   fi
 }
 
-# curl | bash: git/curl vor dem Clone; auf der VM oft noch nicht installiert.
-ensure_clone_prerequisites() {
-  if command -v git >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
-    return 0
-  fi
-  log "Installiere git und curl für den Repository-Clone …"
-  if [[ -f /etc/debian_version ]]; then
-    apt-get update
-    apt-get install -y git curl ca-certificates
-  elif [[ -f /etc/fedora-release ]] || grep -qE '^ID="?(fedora|rhel|centos|almalinux|rocky)"?' /etc/os-release 2>/dev/null; then
-    if command -v dnf >/dev/null 2>&1; then
-      dnf install -y git curl
-    else
-      die "dnf fehlt – bitte git und curl manuell installieren."
-    fi
-  elif [[ -f /etc/arch-release ]]; then
-    pacman -Sy --noconfirm git curl
-  else
-    die "Unbekannte Distribution – bitte git und curl installieren."
+assert_release_version() {
+  local version="$1"
+  if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    die "DOCSOPS_VERSION muss ein Release-Tag sein (z. B. v0.1.0), nicht „${version}“. Siehe https://github.com/${DOCSOPS_GITHUB_REPO}/releases"
   fi
 }
 
-run_from_checkout() {
-  local root="$1"
-  shift
-  if [[ -f "${root}/docker-compose.prod.yml" && -f "${root}/scripts/install-prod.sh" ]]; then
-    export DOCSOPS_INSTALL_DIR="$root"
-    exec "${root}/scripts/install-prod.sh" "$@"
-  fi
-}
-
-clone_or_update() {
-  if [[ -d "${DOCSOPS_INSTALL_DIR}/.git" ]]; then
-    log "Bestehendes Repository unter ${DOCSOPS_INSTALL_DIR} – aktualisiere (${DOCSOPS_VERSION})"
-    git -C "$DOCSOPS_INSTALL_DIR" remote set-url origin "$DOCSOPS_REPO"
-    if git -C "$DOCSOPS_INSTALL_DIR" fetch --depth 1 origin "$DOCSOPS_VERSION" \
-      && git -C "$DOCSOPS_INSTALL_DIR" reset --hard FETCH_HEAD \
-      && git -C "$DOCSOPS_INSTALL_DIR" clean -fd; then
-      log "Git-Stand: $(git -C "$DOCSOPS_INSTALL_DIR" rev-parse --short HEAD)"
-      return 0
-    fi
-    log "Inkrementelles Update fehlgeschlagen – erstelle Clone neu …"
-    rm -rf "$DOCSOPS_INSTALL_DIR"
-  elif [[ -e "$DOCSOPS_INSTALL_DIR" ]]; then
-    die "${DOCSOPS_INSTALL_DIR} existiert, ist aber kein Git-Repository. Bitte manuell entfernen oder DOCSOPS_INSTALL_DIR ändern."
-  fi
-
-  log "Klone ${DOCSOPS_REPO} (${DOCSOPS_VERSION}) nach ${DOCSOPS_INSTALL_DIR}"
-  install -d "$(dirname "$DOCSOPS_INSTALL_DIR")"
-  git clone --depth 1 --branch "$DOCSOPS_VERSION" "$DOCSOPS_REPO" "$DOCSOPS_INSTALL_DIR"
-  log "Git-Stand: $(git -C "$DOCSOPS_INSTALL_DIR" rev-parse --short HEAD)"
-}
-
-# Only install-prod.sh flags pass through; optional path sets DOCSOPS_INSTALL_DIR.
 parse_args() {
   INSTALL_PROD_ARGS=()
   while [[ $# -gt 0 ]]; do
@@ -101,75 +46,73 @@ parse_args() {
   done
 }
 
-docsops_raw_url() {
-  local path="$1"
-  local slug="${DOCSOPS_REPO%.git}"
-  slug="${slug#https://github.com/}"
-  echo "https://raw.githubusercontent.com/${slug}/${DOCSOPS_VERSION}/${path}"
-}
-
-source_install_common() {
-  local common_sh="" tmp=""
-  if [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/scripts/install/lib/common.sh" ]]; then
-    common_sh="${SCRIPT_DIR}/scripts/install/lib/common.sh"
-  elif [[ -z "$SCRIPT_DIR" ]] && command -v curl >/dev/null 2>&1; then
-    # curl | bash: immer von GitHub (nicht aus altem Clone vor clone_or_update)
-    tmp="$(mktemp)"
-    if curl -fsSL "$(docsops_raw_url scripts/install/lib/common.sh)" -o "$tmp"; then
-      common_sh="$tmp"
-    else
-      rm -f "$tmp"
-      die "Install-Hilfen konnten nicht geladen werden. curl oder lokaler Clone erforderlich."
-    fi
-  elif [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh" ]]; then
-    common_sh="${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh"
-  elif command -v curl >/dev/null 2>&1; then
-    tmp="$(mktemp)"
-    if curl -fsSL "$(docsops_raw_url scripts/install/lib/common.sh)" -o "$tmp"; then
-      common_sh="$tmp"
-    else
-      rm -f "$tmp"
-      die "Install-Hilfen konnten nicht geladen werden. curl oder lokaler Clone erforderlich."
-    fi
-  else
-    die "curl fehlt – install.sh kann den Disclaimer nicht laden. Bitte curl installieren oder Repository manuell klonen."
+script_dir_from_source() {
+  if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+    local script_path
+    script_path="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+    dirname "$script_path"
   fi
-  # shellcheck source=scripts/install/lib/common.sh
-  source "$common_sh"
-  [[ -n "$tmp" ]] && rm -f "$tmp"
 }
 
-bootstrap_confirm_before_clone() {
-  export DOCSOPS_BOOTSTRAP_CONFIRM=1
-  source_install_common
-  install_stage "Sicherheitshinweis"
-  print_security_notice
-  confirm_or_exit
+run_install_prod_from_dir() {
+  local root="$1"
+  shift
+  [[ -f "${root}/scripts/install-prod.sh" ]] \
+    || die "scripts/install-prod.sh nicht gefunden unter ${root}"
+  export DOCSOPS_INSTALL_DIR="$root"
+  if [[ -z "${DOCSOPS_VERSION:-}" && -f "${root}/VERSION" ]]; then
+    DOCSOPS_VERSION="$(tr -d '[:space:]' <"${root}/VERSION")"
+    export DOCSOPS_VERSION
+  fi
   export DOCSOPS_INSTALL_CONFIRMED=1
-  unset DOCSOPS_BOOTSTRAP_CONFIRM
+  exec "${root}/scripts/install-prod.sh" "$@"
+}
+
+download_release_bundle() {
+  local version="$1" dest_dir="$2"
+  local bundle_url tmpdir extracted_root item
+  assert_release_version "$version"
+  bundle_url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
+  log "Lade Release-Bundle ${version} …"
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  curl -fsSL "$bundle_url" -o "${tmpdir}/bundle.tar.gz"
+  tar -xzf "${tmpdir}/bundle.tar.gz" -C "$tmpdir"
+  extracted_root=""
+  for item in "$tmpdir"/*; do
+    [[ -e "$item" ]] || continue
+    [[ "$(basename "$item")" == "bundle.tar.gz" ]] && continue
+    if [[ -f "${item}/scripts/install-prod.sh" ]]; then
+      extracted_root="$item"
+      break
+    fi
+  done
+  [[ -n "$extracted_root" ]] || die "Ungültiges Release-Bundle (scripts/install-prod.sh fehlt)."
+  install -d "$(dirname "$dest_dir")"
+  if [[ -d "$dest_dir" ]]; then
+    rm -rf "${dest_dir:?}"/*
+  else
+    install -d "$dest_dir"
+  fi
+  cp -a "${extracted_root}/." "$dest_dir/"
+  log "Deploy-Dateien nach ${dest_dir} entpackt"
 }
 
 main() {
   require_root
   parse_args "$@"
 
-  # Lokaler Checkout (sudo ./install.sh im Repo) → Disclaimer in install-prod.sh
-  if [[ -n "$SCRIPT_DIR" ]]; then
-    run_from_checkout "$SCRIPT_DIR" "${INSTALL_PROD_ARGS[@]}"
+  local bundle_root
+  bundle_root="$(script_dir_from_source)"
+  if [[ -n "$bundle_root" && -f "${bundle_root}/scripts/install-prod.sh" && -f "${bundle_root}/docker-compose.prod.yml" ]]; then
+    run_install_prod_from_dir "$bundle_root" "${INSTALL_PROD_ARGS[@]}"
   fi
 
-  # curl | bash: Disclaimer vor Clone/Download
-  export DOCSOPS_INSTALL_STAGE_TOTAL=2
-  INSTALL_STAGE_N=0
-  bootstrap_confirm_before_clone
+  [[ -n "${DOCSOPS_VERSION:-}" ]] \
+    || die "DOCSOPS_VERSION ist Pflicht (z. B. v0.1.0). Beispiel: curl -fsSL https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/v0.1.0/install.sh | sudo DOCSOPS_VERSION=v0.1.0 bash"
 
-  install_stage "Repository aktualisieren"
-  ensure_clone_prerequisites
-  clone_or_update
-  export DOCSOPS_INSTALL_DIR
-  run_from_checkout "$DOCSOPS_INSTALL_DIR" "${INSTALL_PROD_ARGS[@]}"
-
-  die "install-prod.sh nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
+  download_release_bundle "$DOCSOPS_VERSION" "$DOCSOPS_INSTALL_DIR"
+  run_install_prod_from_dir "$DOCSOPS_INSTALL_DIR" "${INSTALL_PROD_ARGS[@]}"
 }
 
 main "$@"
