@@ -168,7 +168,7 @@ export function HomePage() {
       <Stack
         align="center"
         mb={{ base: 'md', md: 'sm' }}
-        gap={{ base: 'md', md: 'sm' }}
+        gap="md"
         pt={{ base: '2rem', md: '0.75rem' }}
         pb={{ base: '1.5rem', md: '0.75rem' }}
       >

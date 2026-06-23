@@ -1,9 +1,9 @@
-import type { TablerIconsProps } from '@tabler/icons-react';
+import type { IconProps } from '@tabler/icons-react';
 import { IconBolt, IconBug, IconCircleCheck } from '@tabler/icons-react';
 import type { ComponentType } from 'react';
 
 export type WhatsNewSectionIconConfig = {
-  Icon: ComponentType<TablerIconsProps>;
+  Icon: ComponentType<IconProps>;
   color: string;
 };
 

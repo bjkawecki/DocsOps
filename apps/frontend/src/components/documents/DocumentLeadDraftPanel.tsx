@@ -66,6 +66,7 @@ export const DocumentLeadDraftPanel = forwardRef<
   return (
     <DocumentLeadDraftPanelView
       {...viewProps}
+      dirty={dirty}
       remotePending={remotePending}
       applyIncoming={applyIncoming}
       handleSave={handleSave}
