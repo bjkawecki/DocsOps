@@ -41,8 +41,8 @@ jobs:
           target: app
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-app:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,ignore-error=true
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Build and push docsops-worker
         uses: docker/build-push-action@v6
@@ -52,8 +52,8 @@ jobs:
           target: worker
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-worker:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,ignore-error=true
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Build and push docsops-frontend
         uses: docker/build-push-action@v6
@@ -62,8 +62,8 @@ jobs:
           file: apps/frontend/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-frontend:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,ignore-error=true
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Build and push docsops-updater
         uses: docker/build-push-action@v6
@@ -72,8 +72,8 @@ jobs:
           file: docker/Dockerfile.updater
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-updater:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,ignore-error=true
+          cache-to: type=gha,mode=max,ignore-error=true
 
   bundle:
     needs: build-and-push
