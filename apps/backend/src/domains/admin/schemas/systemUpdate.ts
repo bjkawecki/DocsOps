@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { adminUpdateRunSchema } from './updates.js';
 
 export const adminSystemUpdateStatusSchema = z.object({
   installedVersion: z.string().min(1),
@@ -14,6 +15,9 @@ export const adminSystemUpdateStatusSchema = z.object({
   releaseUrl: z.url().nullable(),
   checkedAt: z.iso.datetime().nullable(),
   checkError: z.string().nullable(),
+  updaterConfigured: z.boolean(),
+  canApplyUpdate: z.boolean(),
+  activeUpdateRun: adminUpdateRunSchema.nullable(),
 });
 
 export type AdminSystemUpdateStatus = z.infer<typeof adminSystemUpdateStatusSchema>;

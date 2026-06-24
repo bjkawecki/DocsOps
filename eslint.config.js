@@ -12,6 +12,7 @@ module.exports = tseslint.config(
       'build/',
       'coverage/',
       'docs/',
+      'apps/updater/',
       '**/prisma.config.ts',
     ],
   },

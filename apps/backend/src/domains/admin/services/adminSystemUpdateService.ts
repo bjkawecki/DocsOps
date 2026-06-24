@@ -5,6 +5,8 @@ import type { AdminSystemUpdateStatus } from '../schemas/systemUpdate.js';
 import { compareSemver, normalizeReleaseVersion } from '../utils/compareSemver.js';
 import { fetchUpcomingReleaseMarkdown } from './adminUpcomingReleaseNotesService.js';
 import { getSystemSettings } from './adminSystemSettingsService.js';
+import { getActiveUpdateRun } from './adminUpdateRunService.js';
+import { isUpdaterConfigured } from '../../../infrastructure/updater/updaterSidecarClient.js';
 
 export const DEFAULT_UPDATE_GITHUB_REPO = 'bjkawecki/docs-ops';
 
@@ -25,6 +27,31 @@ const EMPTY_UPCOMING_NOTES = {
   upcomingReleaseNotesMarkdown: null,
   upcomingReleaseNotesError: null,
 } as const;
+
+const EMPTY_APPLY_FIELDS = {
+  updaterConfigured: false,
+  canApplyUpdate: false,
+  activeUpdateRun: null,
+} as const;
+
+async function enrichWithApplyFields(
+  prisma: PrismaClient,
+  status: Omit<AdminSystemUpdateStatus, 'updaterConfigured' | 'canApplyUpdate' | 'activeUpdateRun'>
+): Promise<AdminSystemUpdateStatus> {
+  const updaterConfigured = isUpdaterConfigured();
+  const activeUpdateRun = await getActiveUpdateRun(prisma);
+  const canApplyUpdate =
+    updaterConfigured &&
+    status.updateCheckEnabled &&
+    status.updateAvailable &&
+    activeUpdateRun == null;
+  return {
+    ...status,
+    updaterConfigured,
+    canApplyUpdate,
+    activeUpdateRun,
+  };
+}
 
 export function getUpdateCheckGithubRepo(): string {
   const raw = process.env.DOCSOPS_UPDATE_GITHUB_REPO?.trim();
@@ -57,6 +84,7 @@ function buildDisabledStatus(
     checkedAt: null,
     checkError: null,
     ...EMPTY_UPCOMING_NOTES,
+    ...EMPTY_APPLY_FIELDS,
   };
 }
 
@@ -126,18 +154,18 @@ async function buildUpdateStatus(
 
   if (!settings.updateCheckEnabled) {
     updateStatusCache = null;
-    return buildDisabledStatus(installedVersion, githubRepo, false);
+    return enrichWithApplyFields(prisma, buildDisabledStatus(installedVersion, githubRepo, false));
   }
 
   const now = Date.now();
   if (!refresh && updateStatusCache != null && updateStatusCache.expiresAt > now) {
-    return {
+    return enrichWithApplyFields(prisma, {
       ...updateStatusCache.status,
       installedVersion,
       githubRepo,
       updateCheckConfigured: true,
       updateCheckEnabled: true,
-    };
+    });
   }
 
   const checkedAt = new Date().toISOString();
@@ -158,11 +186,12 @@ async function buildUpdateStatus(
       ...EMPTY_UPCOMING_NOTES,
     };
     const status = await attachUpcomingReleaseNotes(baseStatus, githubRepo);
+    const enriched = await enrichWithApplyFields(prisma, status);
     updateStatusCache = {
-      status,
+      status: enriched,
       expiresAt: now + getUpdateCheckCacheTtlSeconds() * 1000,
     };
-    return status;
+    return enriched;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Update check failed';
     const status: AdminSystemUpdateStatus = {
@@ -177,12 +206,14 @@ async function buildUpdateStatus(
       checkedAt,
       checkError: message,
       ...EMPTY_UPCOMING_NOTES,
+      ...EMPTY_APPLY_FIELDS,
     };
+    const enriched = await enrichWithApplyFields(prisma, status);
     updateStatusCache = {
-      status,
+      status: enriched,
       expiresAt: now + getUpdateCheckCacheTtlSeconds() * 1000,
     };
-    return status;
+    return enriched;
   }
 }
 

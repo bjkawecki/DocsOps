@@ -94,6 +94,7 @@ model User {
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   sessions              Session[]
   backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
+  updateRunsTriggered   UpdateRun[] @relation("UpdateRunTriggeredBy")
   restoreRunsTriggered  RestoreRun[] @relation("RestoreRunTriggeredBy")
   backupActionAudits    AdminBackupActionAudit[]
   platformExportRunsTriggered PlatformExportRun[] @relation("PlatformExportRunTriggeredBy")
@@ -446,6 +447,15 @@ enum BackupRunStatus {
 enum BackupRunTriggerSource {
   manual
   schedule
+  pre_update
+}
+
+enum UpdateRunStatus {
+  queued
+  backing_up
+  applying
+  succeeded
+  failed
 }
 
 /// Singleton settings for operational backups (id = "default").
@@ -500,6 +510,26 @@ model BackupRun {
   createdAt         DateTime               @default(now())
 
   restoreRuns       RestoreRun[]
+  updateRuns        UpdateRun[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// One in-app system update execution (auto-backup then sidecar apply).
+model UpdateRun {
+  id                String          @id @default(cuid())
+  status            UpdateRunStatus @default(queued)
+  targetVersion     String
+  targetReleaseTag  String
+  backupRunId       String?
+  backupRun         BackupRun?      @relation(fields: [backupRunId], references: [id], onDelete: SetNull)
+  triggeredByUserId String?
+  triggeredBy       User?           @relation("UpdateRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime        @default(now())
 
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
@@ -512,6 +542,7 @@ model SystemMaintenanceLock {
   backupRunId        String?
   restoreRunId       String?
   platformImportRunId String?
+  updateRunId        String?
   lockedAt           DateTime  @default(now())
 }
 

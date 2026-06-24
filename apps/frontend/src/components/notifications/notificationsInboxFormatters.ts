@@ -22,6 +22,8 @@ export function eventHeadline(eventType: string): string {
     'platform-import-succeeded': 'Platform import completed',
     'platform-import-failed': 'Platform import failed',
     'update-available': 'Software update available',
+    'update-succeeded': 'Software update completed',
+    'update-failed': 'Software update failed',
     'admin-broadcast': 'System message',
     'team-member-added': 'Added to team',
     'team-member-removed': 'Removed from team',
@@ -143,6 +145,15 @@ export function notificationBodyText(
     }
     return `Version ${latest} is available. Open Admin → System for update steps.`;
   }
+  if (eventType === 'update-succeeded') {
+    const target =
+      typeof payload.targetVersion === 'string' ? payload.targetVersion : 'the latest release';
+    return `DocsOps was upgraded to ${target}.`;
+  }
+  if (eventType === 'update-failed') {
+    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    return truncate(msg, 160);
+  }
   if (eventType === 'document-comment-created') {
     const kind = typeof payload.kind === 'string' ? payload.kind : '';
     const previewText =
@@ -180,6 +191,7 @@ export function notificationSourceLabel(item: NotificationItem): string {
   }
   if (item.eventType.startsWith('backup-')) return 'System';
   if (item.eventType === 'update-available') return 'System';
+  if (item.eventType === 'update-succeeded' || item.eventType === 'update-failed') return 'System';
   if (item.eventType.startsWith('platform-')) return 'System';
   if (item.eventType.startsWith('draft-request-')) return 'Review';
   if (payloadDocumentId(item.payload) != null) return 'Document';
@@ -218,6 +230,9 @@ export function notificationDocumentHref(
     return '/admin/migration';
   }
   if (eventType === 'update-available') {
+    return '/admin/system';
+  }
+  if (eventType === 'update-succeeded' || eventType === 'update-failed') {
     return '/admin/system';
   }
   const docId = payloadDocumentId(payload);

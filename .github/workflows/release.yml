@@ -65,6 +65,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push docsops-updater
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.updater
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-updater:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   bundle:
     needs: build-and-push
     runs-on: ubuntu-latest

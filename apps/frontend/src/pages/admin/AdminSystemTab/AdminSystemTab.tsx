@@ -9,6 +9,7 @@ import {
 } from '../../../hooks/useAdminUpdateStatus.js';
 import { AdminSystemOverviewBar } from './AdminSystemOverviewBar.js';
 import { AdminSystemStatusAlerts } from './AdminSystemStatusAlerts.js';
+import { AdminSystemApplyUpdateModal } from './AdminSystemApplyUpdateModal.js';
 import { AdminSystemUpcomingReleasePreview } from './AdminSystemUpcomingReleasePreview.js';
 import { AdminSystemUpdateStepsModal } from './AdminSystemUpdateStepsModal.js';
 import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
@@ -19,6 +20,7 @@ export function AdminSystemTab() {
   const checkMutation = useCheckForUpdates();
   const patchSettingsMutation = usePatchAdminSystemSettings();
   const [stepsOpened, { open: openSteps, close: closeSteps }] = useDisclosure(false);
+  const [applyOpened, { open: openApply, close: closeApply }] = useDisclosure(false);
   const status = statusQuery.data;
   const checksEnabled = settingsQuery.data?.updateCheckEnabled ?? true;
 
@@ -72,6 +74,7 @@ export function AdminSystemTab() {
             onToggleChecks={(enabled) => void handleToggleChecks(enabled)}
             onCheckNow={() => void handleCheck()}
             onViewSteps={openSteps}
+            onApplyUpdate={status.canApplyUpdate ? openApply : undefined}
           />
           <AdminSystemVersionTable status={status} />
           <AdminSystemUpcomingReleasePreview status={status} />
@@ -79,12 +82,16 @@ export function AdminSystemTab() {
       ) : null}
 
       {status ? (
-        <AdminSystemUpdateStepsModal
-          opened={stepsOpened}
-          onClose={closeSteps}
-          latestReleaseTag={status.latestReleaseTag}
-          releaseUrl={status.releaseUrl}
-        />
+        <>
+          <AdminSystemUpdateStepsModal
+            opened={stepsOpened}
+            onClose={closeSteps}
+            latestReleaseTag={status.latestReleaseTag}
+            releaseUrl={status.releaseUrl}
+            updaterConfigured={status.updaterConfigured}
+          />
+          <AdminSystemApplyUpdateModal opened={applyOpened} onClose={closeApply} status={status} />
+        </>
       ) : null}
     </Stack>
   );

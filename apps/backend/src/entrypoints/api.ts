@@ -2,6 +2,7 @@ import { buildApp } from '../app.js';
 import { prisma } from '../infrastructure/db/prisma.js';
 import { runSeedIfNeeded } from '../seed.js';
 import { ensureDefaultBackupDestinationFromEnv } from '../domains/admin/services/adminBackupDestinationBootstrap.js';
+import { reconcileUpdateRunsOnStartup } from '../infrastructure/maintenance/reconcileUpdateRunsOnStartup.js';
 import { startLiveEventListener } from '../infrastructure/liveEvents/liveEventListener.js';
 
 const app = await buildApp();
@@ -24,6 +25,12 @@ try {
     { err },
     'ensureDefaultBackupDestinationFromEnv fehlgeschlagen – Server startet trotzdem'
   );
+}
+
+try {
+  await reconcileUpdateRunsOnStartup(prisma);
+} catch (err) {
+  app.log.error({ err }, 'reconcileUpdateRunsOnStartup failed – Server startet trotzdem');
 }
 
 try {

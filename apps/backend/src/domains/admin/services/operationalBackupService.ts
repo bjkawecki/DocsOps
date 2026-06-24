@@ -29,6 +29,7 @@ import {
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import type { JobPayloadByType } from '../../../infrastructure/jobs/jobTypes.js';
 import { appVersion } from '../../../infrastructure/appVersion.js';
+import { failUpdateRunForBackup } from './adminSystemUpdateApplyService.js';
 
 export type JobLogger = {
   info: (obj: unknown, msg?: string) => void;
@@ -96,6 +97,7 @@ async function failRun(
   });
   logger.error({ backupRunId, error: message }, 'Operational backup failed');
   await notifyAdmins(prisma, 'backup-failed', { backupRunId, errorMessage: message });
+  await failUpdateRunForBackup(prisma, backupRunId, error);
 }
 
 export async function runOperationalBackup(
@@ -124,6 +126,10 @@ export async function runOperationalBackup(
         },
       });
       backupRunId = run.id;
+    }
+
+    if (payload.mode === 'pre_update') {
+      backupRunId = payload.backupRunId;
     }
 
     if (!backupRunId) throw new Error('backupRunId is required');
@@ -215,6 +221,10 @@ export async function runOperationalBackup(
       destinationName: destination?.name ?? null,
       remotePath,
     });
+
+    if (payload.mode === 'pre_update') {
+      await enqueueJob('maintenance.apply-update', { updateRunId: payload.updateRunId });
+    }
 
     logger.info({ backupRunId, sizeBytes: archiveStat.size }, 'Operational backup completed');
   } catch (error) {

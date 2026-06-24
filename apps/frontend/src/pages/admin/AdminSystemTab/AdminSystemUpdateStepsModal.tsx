@@ -18,6 +18,7 @@ type Props = {
   onClose: () => void;
   latestReleaseTag: string | null;
   releaseUrl: string | null;
+  updaterConfigured?: boolean;
 };
 
 export function AdminSystemUpdateStepsModal({
@@ -25,6 +26,7 @@ export function AdminSystemUpdateStepsModal({
   onClose,
   latestReleaseTag,
   releaseUrl,
+  updaterConfigured = false,
 }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [backupConfirmed, setBackupConfirmed] = useState(false);
@@ -46,10 +48,17 @@ export function AdminSystemUpdateStepsModal({
     >
       {step === 1 ? (
         <Stack gap="md">
-          <Text size="sm">
-            Create an operational backup before upgrading production. Updates are applied on the
-            server via SSH — not from this web interface.
-          </Text>
+          {updaterConfigured ? (
+            <Text size="sm">
+              Use <strong>Apply update</strong> on the System tab for a one-click upgrade with
+              automatic backup. These steps are for manual updates via SSH.
+            </Text>
+          ) : (
+            <Text size="sm">
+              Create an operational backup before upgrading production. Updates are applied on the
+              server via SSH — not from this web interface.
+            </Text>
+          )}
           <Text size="sm">
             <Text component={Link} to="/admin/backup" fw={500}>
               Open Backup tab

@@ -9,6 +9,12 @@ function bannerMessage(status: MaintenanceStatus): string {
   if (status.reason === 'restore') {
     return 'Disaster recovery restore in progress – write operations are temporarily blocked. You may need to sign in again when complete.';
   }
+  if (status.reason === 'update') {
+    return 'System update in progress – write operations are temporarily blocked.';
+  }
+  if (status.reason === 'platform-import') {
+    return 'Platform import in progress – write operations are temporarily blocked.';
+  }
   return 'Backup in progress – write operations are temporarily blocked.';
 }
 
@@ -16,6 +22,7 @@ export function AppShellMaintenanceBanner({ status }: Props) {
   if (!status?.active) return null;
 
   const isRestore = status.reason === 'restore';
+  const isUpdate = status.reason === 'update';
 
   return (
     <Box
@@ -28,7 +35,7 @@ export function AppShellMaintenanceBanner({ status }: Props) {
         justifyContent: 'center',
         borderBottom: '1px solid var(--mantine-color-default-border)',
       }}
-      bg={isRestore ? 'orange.9' : 'blue.9'}
+      bg={isRestore ? 'orange.9' : isUpdate ? 'grape.9' : 'blue.9'}
       role="status"
       aria-live="polite"
     >

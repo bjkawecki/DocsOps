@@ -315,9 +315,10 @@ Release Notes im Image enthalten nur Versionen, die beim Build mitgeliefert wurd
 ### Phase 2 (Ein-Klick-Update)
 
 - **Nicht** das Haupt-App-Backend mit vollem Docker-Socket auf dem Host betreiben.
-- Separater **Updater-Sidecar** (eigener Container/Agent): App ruft nur `POST /api/v1/admin/updates/apply` → Sidecar führt `git pull`, `docker compose pull`, `docker compose up -d` aus.
-- Sidecar = „Begleit-Container“ mit begrenzten Rechten (nur Update-Skript, kein vollständiger App-Zugriff).
-- Wartungsmodus + Health-Check nach Update; Rollback-Doku (vorheriges Image-Tag).
+- Separater **Updater-Sidecar** (`docsops-updater`): App ruft `POST /api/v1/admin/updates/apply` → automatisches `maintenance.backup` (`pre_update`) → Job `maintenance.apply-update` → Sidecar führt `scripts/update.sh` aus (Release-Bundle + `compose pull` + `up -d`).
+- Sidecar = Begleit-Container mit Docker-Socket und `/opt/docsops`-Mount; Shared Secret `DOCSOPS_UPDATER_TOKEN`.
+- Wartungsmodus (`reason: update`) während Apply; Startup-Reconciliation + Admin-Notifications (`update-succeeded` / `update-failed`).
+- Rollback: Env-Backup + vorheriges Bundle, `update.sh` mit altem Tag (Runbook).
 
 Siehe auch [Infrastruktur §3](Infrastruktur-und-Deployment.md#3-update-aus-der-app).
 

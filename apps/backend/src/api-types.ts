@@ -16,6 +16,8 @@ export type {
   PatchAdminSystemSettingsBody,
 } from './domains/admin/schemas/systemUpdate.js';
 
+export type { AdminUpdateApplyResponse, AdminUpdateRun } from './domains/admin/schemas/updates.js';
+
 export type {
   Company,
   Department,

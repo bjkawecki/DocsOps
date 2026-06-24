@@ -17,6 +17,7 @@ import { runUserNotificationRetention } from '../../domains/notifications/servic
 import { backfillAllDocumentBlocks } from '../../domains/documents/services/blocks/documentBlocksBackfill.js';
 import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
 import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
+import { runApplySystemUpdate } from '../../domains/admin/services/adminSystemUpdateApplyService.js';
 import { runOperationalRestore } from '../../domains/admin/services/operationalRestoreService.js';
 import { runPlatformExport } from '../../domains/admin/services/platformExportService.js';
 import { runPlatformImport } from '../../domains/admin/services/platformImportService.js';
@@ -197,6 +198,14 @@ async function maintenanceBackup(
   context.logger.info({ payload: normalized }, 'maintenance.backup completed');
 }
 
+async function maintenanceApplyUpdate(
+  payload: JobPayloadByType['maintenance.apply-update'],
+  context: JobContext
+): Promise<void> {
+  await runApplySystemUpdate(context.prisma, payload, context.logger);
+  context.logger.info({ payload }, 'maintenance.apply-update completed');
+}
+
 async function maintenanceRestore(
   payload: JobPayloadByType['maintenance.restore'],
   context: JobContext
@@ -304,6 +313,13 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 0,
     handler: (payload, context) =>
       maintenanceBackup(payload as JobPayloadByType['maintenance.backup'], context),
+  },
+  {
+    name: 'maintenance.apply-update',
+    schema: jobPayloadSchemas['maintenance.apply-update'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      maintenanceApplyUpdate(payload as JobPayloadByType['maintenance.apply-update'], context),
   },
   {
     name: 'maintenance.restore',

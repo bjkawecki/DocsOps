@@ -3,7 +3,7 @@ import { apiFetch } from '../api/client';
 
 export type MaintenanceStatus = {
   active: boolean;
-  reason?: 'backup' | 'restore' | 'platform-import';
+  reason?: 'backup' | 'restore' | 'platform-import' | 'update';
 };
 
 export function maintenanceStatusQueryKey(): readonly ['maintenance', 'status'] {

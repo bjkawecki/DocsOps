@@ -11,6 +11,7 @@ type Props = {
   onToggleChecks: (enabled: boolean) => void;
   onCheckNow: () => void;
   onViewSteps: () => void;
+  onApplyUpdate?: () => void;
 };
 
 function formatCheckedAt(iso: string | null): string | null {
@@ -58,6 +59,7 @@ export function AdminSystemOverviewBar({
   onToggleChecks,
   onCheckNow,
   onViewSteps,
+  onApplyUpdate,
 }: Props) {
   const lastChecked = formatCheckedAt(status.checkedAt);
   const checkDisabled = statusLoading || !checksEnabled || checkLoading;
@@ -96,6 +98,11 @@ export function AdminSystemOverviewBar({
         <Button size="xs" variant="default" onClick={onViewSteps}>
           How to update
         </Button>
+        {status.canApplyUpdate && onApplyUpdate != null ? (
+          <Button size="xs" color="orange" onClick={onApplyUpdate}>
+            Apply update
+          </Button>
+        ) : null}
         <Tooltip
           label={!checksEnabled ? 'Enable automatic checks first' : undefined}
           disabled={checksEnabled}

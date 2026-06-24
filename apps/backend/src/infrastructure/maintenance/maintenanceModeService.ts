@@ -33,8 +33,9 @@ export const IN_PROGRESS_PLATFORM_IMPORT_STATUSES = [
   'importing_suggestions',
   'importing_files',
 ] as const;
+export const IN_PROGRESS_UPDATE_STATUSES = ['queued', 'backing_up', 'applying'] as const;
 
-export type MaintenanceReason = 'backup' | 'restore' | 'platform-import';
+export type MaintenanceReason = 'backup' | 'restore' | 'platform-import' | 'update';
 
 export type MaintenanceLockInfo = {
   active: boolean;
@@ -42,18 +43,25 @@ export type MaintenanceLockInfo = {
   backupRunId?: string | null;
   restoreRunId?: string | null;
   platformImportRunId?: string | null;
+  updateRunId?: string | null;
   lockedAt?: Date;
 };
 
 function lockBusyMessage(reason: string | undefined): string {
   if (reason === 'restore') return 'A restore is already in progress';
   if (reason === 'platform-import') return 'A platform import is already in progress';
+  if (reason === 'update') return 'A system update is already in progress';
   return 'A backup is already in progress';
 }
 
 type MaintenanceConflictDb = Pick<
   PrismaClient,
-  'backupRun' | 'restoreRun' | 'platformExportRun' | 'platformImportRun' | 'systemMaintenanceLock'
+  | 'backupRun'
+  | 'restoreRun'
+  | 'platformExportRun'
+  | 'platformImportRun'
+  | 'updateRun'
+  | 'systemMaintenanceLock'
 >;
 
 async function findConflictingMaintenanceRun(
@@ -64,27 +72,37 @@ async function findConflictingMaintenanceRun(
     restoreRunId?: string;
     platformImportRunId?: string;
     platformExportRunId?: string;
+    updateRunId?: string;
   }
 ): Promise<void> {
-  const [inProgressBackups, inProgressRestores, inProgressExports, inProgressImports] =
-    await Promise.all([
-      prisma.backupRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_BACKUP_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.restoreRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_RESTORE_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.platformExportRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.platformImportRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-    ]);
+  const [
+    inProgressBackups,
+    inProgressRestores,
+    inProgressExports,
+    inProgressImports,
+    inProgressUpdates,
+  ] = await Promise.all([
+    prisma.backupRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_BACKUP_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.restoreRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_RESTORE_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.platformExportRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.platformImportRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.updateRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_UPDATE_STATUSES] } },
+      select: { id: true },
+    }),
+  ]);
 
   for (const backup of inProgressBackups) {
     if (backup.id === args.backupRunId) continue;
@@ -113,11 +131,16 @@ async function findConflictingMaintenanceRun(
       throw new Error('A platform import is already in progress');
     }
   }
+
+  for (const updateRun of inProgressUpdates) {
+    if (updateRun.id === args.updateRunId) continue;
+    throw new Error('A system update is already in progress');
+  }
 }
 
 export type PublicMaintenanceStatus = {
   active: boolean;
-  reason?: 'backup' | 'restore' | 'platform-import';
+  reason?: 'backup' | 'restore' | 'platform-import' | 'update';
 };
 
 export async function getPublicMaintenanceStatus(
@@ -127,28 +150,38 @@ export async function getPublicMaintenanceStatus(
   if (lock.active) {
     if (lock.reason === 'restore') return { active: true, reason: 'restore' };
     if (lock.reason === 'platform-import') return { active: true, reason: 'platform-import' };
+    if (lock.reason === 'update') return { active: true, reason: 'update' };
     return { active: true, reason: 'backup' };
   }
 
-  const [inProgressRestores, inProgressImports, inProgressBackups, inProgressExports] =
-    await Promise.all([
-      prisma.restoreRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_RESTORE_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.platformImportRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.backupRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_BACKUP_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-      prisma.platformExportRun.findMany({
-        where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
-        select: { id: true, pgBossJobId: true },
-      }),
-    ]);
+  const [
+    inProgressRestores,
+    inProgressImports,
+    inProgressBackups,
+    inProgressExports,
+    inProgressUpdates,
+  ] = await Promise.all([
+    prisma.restoreRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_RESTORE_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.platformImportRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_IMPORT_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.backupRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_BACKUP_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.platformExportRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_PLATFORM_EXPORT_STATUSES] } },
+      select: { id: true, pgBossJobId: true },
+    }),
+    prisma.updateRun.findMany({
+      where: { status: { in: [...IN_PROGRESS_UPDATE_STATUSES] } },
+      select: { id: true },
+    }),
+  ]);
 
   for (const restore of inProgressRestores) {
     if (await isRestoreRunActivelyRunning(prisma, restore)) {
@@ -170,6 +203,9 @@ export async function getPublicMaintenanceStatus(
       return { active: true, reason: 'backup' };
     }
   }
+  if (inProgressUpdates.length > 0) {
+    return { active: true, reason: 'update' };
+  }
 
   return { active: false };
 }
@@ -183,6 +219,7 @@ export async function getMaintenanceLock(prisma: PrismaClient): Promise<Maintena
     backupRunId: row.backupRunId,
     restoreRunId: row.restoreRunId,
     platformImportRunId: row.platformImportRunId,
+    updateRunId: row.updateRunId,
     lockedAt: row.lockedAt,
   };
 }
@@ -203,6 +240,7 @@ export async function tryAcquireMaintenanceLock(
     restoreRunId?: string;
     platformImportRunId?: string;
     platformExportRunId?: string;
+    updateRunId?: string;
   }
 ): Promise<void> {
   await prisma.$transaction(async (tx) => {
@@ -222,6 +260,7 @@ export async function tryAcquireMaintenanceLock(
         backupRunId: args.backupRunId ?? null,
         restoreRunId: args.restoreRunId ?? null,
         platformImportRunId: args.platformImportRunId ?? null,
+        updateRunId: args.updateRunId ?? null,
       },
     });
   });
@@ -255,7 +294,9 @@ export async function releaseMaintenanceLockIfOwned(
         ? { backupRunId: args.runId }
         : args.reason === 'restore'
           ? { restoreRunId: args.runId }
-          : { platformImportRunId: args.runId }),
+          : args.reason === 'update'
+            ? { updateRunId: args.runId }
+            : { platformImportRunId: args.runId }),
     },
   });
 }
@@ -271,7 +312,7 @@ export async function releaseBackupMaintenanceLock(prisma: PrismaClient): Promis
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-/** Paths that may mutate during backup/restore/platform migration maintenance. */
+/** Paths that may mutate during backup/restore/platform migration/update maintenance. */
 function isMaintenanceExemptPath(url: string): boolean {
   const path = url.split('?')[0] ?? url;
   if (path === '/api/v1/auth/login' || path === '/api/v1/auth/logout') return true;
@@ -280,6 +321,7 @@ function isMaintenanceExemptPath(url: string): boolean {
   if (path.startsWith('/api/v1/admin/restores')) return true;
   if (path.startsWith('/api/v1/admin/platform-exports')) return true;
   if (path.startsWith('/api/v1/admin/platform-imports')) return true;
+  if (path.startsWith('/api/v1/admin/updates')) return true;
   return false;
 }
 

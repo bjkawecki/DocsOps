@@ -47,7 +47,17 @@ export const jobPayloadSchemas = {
       mode: z.literal('schedule'),
       destinationId: z.cuid().optional(),
     }),
+    z.object({
+      mode: z.literal('pre_update'),
+      backupRunId: z.cuid(),
+      updateRunId: z.cuid(),
+      requestedByUserId: z.cuid(),
+      destinationId: z.cuid().optional(),
+    }),
   ]),
+  'maintenance.apply-update': z.object({
+    updateRunId: z.cuid(),
+  }),
   'maintenance.restore': z.object({
     restoreRunId: z.cuid(),
     source: z.enum(['history', 'upload']),

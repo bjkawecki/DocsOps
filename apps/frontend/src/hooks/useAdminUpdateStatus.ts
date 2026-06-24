@@ -3,6 +3,7 @@ import type {
   AdminSystemCheckUpdatesResponse,
   AdminSystemSettings,
   AdminSystemUpdateStatus,
+  AdminUpdateRun,
   PatchAdminSystemSettingsBody,
 } from 'backend/api-types';
 import { apiFetch } from '../api/client.js';
@@ -48,6 +49,23 @@ async function postCheckForUpdates(): Promise<AdminSystemCheckUpdatesResponse> {
   return res.json() as Promise<AdminSystemCheckUpdatesResponse>;
 }
 
+async function postApplySystemUpdate(): Promise<{ updateRunId: string; status: 'backing_up' }> {
+  const res = await apiFetch('/api/v1/admin/updates/apply', { method: 'POST' });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? 'Could not start update');
+  }
+  return res.json() as Promise<{ updateRunId: string; status: 'backing_up' }>;
+}
+
+async function fetchUpdateRun(id: string): Promise<AdminUpdateRun> {
+  const res = await apiFetch(`/api/v1/admin/updates/${id}`);
+  if (!res.ok) {
+    throw new Error('Could not load update status');
+  }
+  return res.json() as Promise<AdminUpdateRun>;
+}
+
 export function useAdminUpdateStatus(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: adminUpdateStatusQueryKey,
@@ -83,6 +101,30 @@ export function useCheckForUpdates() {
     mutationFn: postCheckForUpdates,
     onSuccess: (data) => {
       queryClient.setQueryData(adminUpdateStatusQueryKey, data.status);
+    },
+  });
+}
+
+export function useApplySystemUpdate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: postApplySystemUpdate,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminUpdateStatusQueryKey });
+    },
+  });
+}
+
+export function usePollUpdateRun(updateRunId: string | null, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['admin', 'updates', updateRunId] as const,
+    queryFn: () => fetchUpdateRun(updateRunId!),
+    enabled: options?.enabled !== false && updateRunId != null,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data == null) return 2000;
+      if (data.status === 'succeeded' || data.status === 'failed') return false;
+      return 2000;
     },
   });
 }
