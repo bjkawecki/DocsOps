@@ -171,10 +171,12 @@ describe('Admin updates apply routes', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json() as {
       updaterConfigured: boolean;
+      updaterMissingEnvVars: string[];
       canApplyUpdate: boolean;
       activeUpdateRun: unknown;
     };
     expect(body.updaterConfigured).toBe(true);
+    expect(body.updaterMissingEnvVars).toEqual([]);
     expect(body.activeUpdateRun).toBeNull();
     expect(typeof body.canApplyUpdate).toBe('boolean');
     expect(getUpdateCheckGithubRepo()).toBe('bjkawecki/docs-ops');

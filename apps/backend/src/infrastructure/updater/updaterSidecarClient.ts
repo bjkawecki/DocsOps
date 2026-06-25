@@ -1,7 +1,16 @@
+export function getUpdaterMissingEnvVars(): string[] {
+  const missing: string[] = [];
+  if (!process.env.DOCSOPS_UPDATER_URL?.trim()) {
+    missing.push('DOCSOPS_UPDATER_URL');
+  }
+  if (!process.env.DOCSOPS_UPDATER_TOKEN?.trim()) {
+    missing.push('DOCSOPS_UPDATER_TOKEN');
+  }
+  return missing;
+}
+
 export function isUpdaterConfigured(): boolean {
-  const url = process.env.DOCSOPS_UPDATER_URL?.trim();
-  const token = process.env.DOCSOPS_UPDATER_TOKEN?.trim();
-  return Boolean(url && token);
+  return getUpdaterMissingEnvVars().length === 0;
 }
 
 export function getUpdateApplyTimeoutSeconds(): number {

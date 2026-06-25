@@ -89,6 +89,7 @@ export function AdminSystemTab() {
             latestReleaseTag={status.latestReleaseTag}
             releaseUrl={status.releaseUrl}
             updaterConfigured={status.updaterConfigured}
+            updaterMissingEnvVars={status.updaterMissingEnvVars}
           />
           <AdminSystemApplyUpdateModal opened={applyOpened} onClose={closeApply} status={status} />
         </>

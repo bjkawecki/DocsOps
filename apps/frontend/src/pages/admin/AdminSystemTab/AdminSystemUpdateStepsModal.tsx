@@ -1,17 +1,38 @@
+import { useEffect, useState } from 'react';
 import {
   ActionIcon,
   Anchor,
   Button,
   Code,
+  Collapse,
   CopyButton,
   Group,
+  List,
   Modal,
+  Paper,
   Stack,
   Text,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconCheck, IconCopy, IconExternalLink } from '@tabler/icons-react';
+import { IconCheck, IconChevronDown, IconCopy, IconExternalLink } from '@tabler/icons-react';
+
+const modalCodeBlockStyle = {
+  whiteSpace: 'pre',
+  maxWidth: '100%',
+  minWidth: 0,
+  overflowX: 'auto',
+} as const;
+
+const UPDATER_ENV_EXAMPLE = `DOCSOPS_UPDATER_URL=http://docsops-updater:8090
+DOCSOPS_UPDATER_TOKEN=<token from step 1>`;
+
+const COMPOSE_UPDATER_UP_COMMAND = `sudo docker compose \\
+  --env-file /etc/docsops/docsops.env \\
+  -f docker-compose.yml \\
+  -f docker-compose.prod.yml \\
+  up -d docsops-updater app docsops-job-worker`;
 
 type Props = {
   opened: boolean;
@@ -19,7 +40,91 @@ type Props = {
   latestReleaseTag: string | null;
   releaseUrl: string | null;
   updaterConfigured?: boolean;
+  updaterMissingEnvVars?: string[];
 };
+
+function OneClickUpdateSetupAlert({
+  missingEnvVars,
+  modalOpened,
+}: {
+  missingEnvVars: string[];
+  modalOpened: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!modalOpened) setExpanded(false);
+  }, [modalOpened]);
+
+  return (
+    <Paper withBorder p="md" radius="md">
+      <UnstyledButton
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        style={{ width: '100%', textAlign: 'left' }}
+      >
+        <Group justify="space-between" wrap="nowrap" gap="xs">
+          <Text size="sm" fw={600} c="red">
+            One-click update not available
+          </Text>
+          <IconChevronDown
+            size={18}
+            aria-hidden
+            style={{
+              flexShrink: 0,
+              color: 'var(--mantine-color-dimmed)',
+              transition: 'transform 0.2s ease',
+              transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+            }}
+          />
+        </Group>
+      </UnstyledButton>
+
+      <Collapse in={expanded}>
+        <Stack gap="sm" pt="sm" style={{ minWidth: 0 }}>
+          <Text size="sm" fw={500}>
+            Missing on this instance:
+          </Text>
+          <List size="sm" spacing="xs">
+            {missingEnvVars.map((name) => (
+              <List.Item key={name}>
+                <Code>{name}</Code> in the server environment file
+              </List.Item>
+            ))}
+            <List.Item>
+              <Code>docsops-updater</Code> service running (Docker Compose)
+            </List.Item>
+          </List>
+          <Text size="sm" fw={500} mt="xs">
+            To enable one-click update on the server:
+          </Text>
+          <List type="ordered" size="sm" spacing="xs">
+            <List.Item>
+              Generate a shared secret: <Code>openssl rand -hex 32</Code>
+            </List.Item>
+            <List.Item>
+              Add to <Code>/etc/docsops/docsops.env</Code> (same values for app, worker, and
+              updater):
+              <Code block mt="xs" w="100%" style={modalCodeBlockStyle}>
+                {UPDATER_ENV_EXAMPLE}
+              </Code>
+            </List.Item>
+            <List.Item>
+              Start or restart the stack, including the updater:
+              <Code block mt="xs" w="100%" style={modalCodeBlockStyle}>
+                {COMPOSE_UPDATER_UP_COMMAND}
+              </Code>
+            </List.Item>
+            <List.Item>
+              Reload this page — the Apply update button should appear on System.
+            </List.Item>
+          </List>
+        </Stack>
+      </Collapse>
+    </Paper>
+  );
+}
 
 export function AdminSystemUpdateStepsModal({
   opened,
@@ -27,6 +132,7 @@ export function AdminSystemUpdateStepsModal({
   latestReleaseTag,
   releaseUrl,
   updaterConfigured = false,
+  updaterMissingEnvVars = [],
 }: Props) {
   const updateTag = latestReleaseTag ?? 'vX.Y.Z';
   const updateCommand = `sudo /opt/docsops/scripts/update.sh ${updateTag}`;
@@ -40,13 +146,17 @@ export function AdminSystemUpdateStepsModal({
             upgrade). Use the steps below only for manual updates on the host.
           </Text>
         ) : (
-          <Text size="sm">
-            Updates run on the server via SSH. Create an operational backup in{' '}
-            <Text component={Link} to="/admin/backup" fw={500}>
-              Admin → Backup
-            </Text>{' '}
-            before upgrading.
-          </Text>
+          <>
+            <OneClickUpdateSetupAlert missingEnvVars={updaterMissingEnvVars} modalOpened={opened} />
+            <Text size="sm">
+              Until one-click update is configured, upgrade on the host via SSH. Create an
+              operational backup in{' '}
+              <Text component={Link} to="/admin/backup" fw={500}>
+                Admin → Backup
+              </Text>{' '}
+              first.
+            </Text>
+          </>
         )}
 
         {updaterConfigured ? (
@@ -59,14 +169,16 @@ export function AdminSystemUpdateStepsModal({
           </Text>
         ) : null}
 
-        <Text size="sm">Run on the host:</Text>
+        <Text size="sm" fw={500}>
+          Manual upgrade on the host
+        </Text>
         {latestReleaseTag == null && (
           <Text size="sm" c="dimmed">
             Replace <Code>vX.Y.Z</Code> with the target release tag from GitHub.
           </Text>
         )}
-        <Group gap="xs" align="flex-start" wrap="nowrap">
-          <Code block style={{ flex: 1 }}>
+        <Group gap="xs" align="flex-start" wrap="nowrap" style={{ minWidth: 0 }}>
+          <Code block w="100%" style={{ flex: 1, ...modalCodeBlockStyle }}>
             {updateCommand}
           </Code>
           <CopyButton value={updateCommand} timeout={2000}>

@@ -6,7 +6,10 @@ import { compareSemver, normalizeReleaseVersion } from '../utils/compareSemver.j
 import { fetchUpcomingReleaseMarkdown } from './adminUpcomingReleaseNotesService.js';
 import { getSystemSettings } from './adminSystemSettingsService.js';
 import { getActiveUpdateRun } from './adminUpdateRunService.js';
-import { isUpdaterConfigured } from '../../../infrastructure/updater/updaterSidecarClient.js';
+import {
+  getUpdaterMissingEnvVars,
+  isUpdaterConfigured,
+} from '../../../infrastructure/updater/updaterSidecarClient.js';
 
 export const DEFAULT_UPDATE_GITHUB_REPO = 'bjkawecki/docs-ops';
 
@@ -30,13 +33,14 @@ const EMPTY_UPCOMING_NOTES = {
 
 const EMPTY_APPLY_FIELDS = {
   updaterConfigured: false,
+  updaterMissingEnvVars: getUpdaterMissingEnvVars(),
   canApplyUpdate: false,
   activeUpdateRun: null,
 } as const;
 
 type UpdateStatusCore = Omit<
   AdminSystemUpdateStatus,
-  'updaterConfigured' | 'canApplyUpdate' | 'activeUpdateRun'
+  'updaterConfigured' | 'updaterMissingEnvVars' | 'canApplyUpdate' | 'activeUpdateRun'
 >;
 
 function stripApplyFields(status: AdminSystemUpdateStatus): UpdateStatusCore {
@@ -62,6 +66,7 @@ async function enrichWithApplyFields(
   status: UpdateStatusCore
 ): Promise<AdminSystemUpdateStatus> {
   const updaterConfigured = isUpdaterConfigured();
+  const updaterMissingEnvVars = getUpdaterMissingEnvVars();
   const activeUpdateRun = await getActiveUpdateRun(prisma);
   const canApplyUpdate =
     updaterConfigured &&
@@ -71,6 +76,7 @@ async function enrichWithApplyFields(
   return {
     ...status,
     updaterConfigured,
+    updaterMissingEnvVars,
     canApplyUpdate,
     activeUpdateRun,
   };
