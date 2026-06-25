@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "pnpm run build && node --test dist/updateRunState.test.js"
   },
   "engines": {
     "node": ">=24"

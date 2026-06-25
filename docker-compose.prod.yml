@@ -19,7 +19,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${DOCSOPS_INSTALL_DIR:-/opt/docsops}:/opt/docsops
-      - /etc/docsops/docsops.env:/etc/docsops/docsops.env:ro
+      - /etc/docsops/docsops.env:/etc/docsops/docsops.env
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 

@@ -104,6 +104,26 @@ Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.e
 
 **Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
 
+**Admin „Apply update“ (Updater-Sidecar):** Der Dienst `docsops-updater` startet das Update in einem **separaten One-Off-Container** (`<COMPOSE_PROJECT_NAME>-update-run`), damit `compose up` den laufenden Sidecar nicht abbricht. Status und Exit-Code liegen in `/opt/docsops/.update-run-state.json` und unter `GET /internal/status` (Bearer `DOCSOPS_UPDATER_TOKEN`).
+
+**Updater Troubleshooting:**
+
+```bash
+# Sidecar läuft?
+docker logs docsops-updater --tail=30
+# Erwartung: docsops-updater listening on 8090 (kein „docker node“-Help)
+
+# Manuell One-Off-Update (wie der Sidecar intern):
+sudo /opt/docsops/scripts/updater-exec-update.sh v0.1.1
+docker ps --filter name=update-run
+docker logs docsops-update-run -f
+
+# Fallback ohne Sidecar (vom Host):
+sudo /opt/docsops/scripts/update.sh v0.1.1
+```
+
+Hängender Update-Run in der Admin-UI: App neu starten (Reconciliation) oder Sidecar-/Update-Container-Logs prüfen.
+
 ### Deinstallation
 
 DocsOps vollständig entfernen (Container, Volumes, `/opt/docsops`, `/etc/docsops/docsops.env`, systemd):

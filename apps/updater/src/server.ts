@@ -1,14 +1,22 @@
-import { spawn } from 'node:child_process';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import {
+  createUpdateRunStateDeps,
+  getUpdateRunStatus,
+  startUpdateRun,
+  UpdateAlreadyRunningError,
+} from './updateRunState.js';
 
 const PORT = Number(process.env.PORT ?? 8090);
 const TOKEN = process.env.DOCSOPS_UPDATER_TOKEN?.trim() ?? '';
 const INSTALL_DIR = process.env.DOCSOPS_INSTALL_DIR?.trim() || '/opt/docsops';
+const ENV_FILE = process.env.DOCSOPS_ENV_FILE?.trim() || '/etc/docsops/docsops.env';
 const HEALTH_URL = process.env.DOCSOPS_HEALTH_URL?.trim() || 'http://host.docker.internal/health';
 
-let running = false;
-let currentVersion: string | null = null;
-let startedAt: string | null = null;
+const stateDeps = createUpdateRunStateDeps({
+  installDir: INSTALL_DIR,
+  envFile: ENV_FILE,
+  healthUrl: HEALTH_URL,
+});
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json' });
@@ -30,26 +38,6 @@ function isAuthorized(req: IncomingMessage): boolean {
   return header === `Bearer ${TOKEN}`;
 }
 
-function spawnUpdate(version: string): void {
-  const script = `${INSTALL_DIR}/scripts/update.sh`;
-  const child = spawn('bash', [script, version], {
-    detached: true,
-    stdio: 'ignore',
-    env: {
-      ...process.env,
-      DOCSOPS_INSTALL_DIR: INSTALL_DIR,
-      DOCSOPS_HEALTH_URL: HEALTH_URL,
-    },
-  });
-  child.unref();
-  running = true;
-  currentVersion = version;
-  startedAt = new Date().toISOString();
-  child.on('exit', () => {
-    running = false;
-  });
-}
-
 const server = createServer(async (req, res) => {
   if (!req.url || !req.method) {
     sendJson(res, 400, { error: 'Bad request' });
@@ -63,21 +51,13 @@ const server = createServer(async (req, res) => {
       sendJson(res, 401, { error: 'Unauthorized' });
       return;
     }
-    sendJson(res, 200, {
-      running,
-      version: currentVersion,
-      startedAt,
-    });
+    sendJson(res, 200, getUpdateRunStatus(stateDeps));
     return;
   }
 
   if (path === '/internal/apply' && req.method === 'POST') {
     if (!isAuthorized(req)) {
       sendJson(res, 401, { error: 'Unauthorized' });
-      return;
-    }
-    if (running) {
-      sendJson(res, 409, { error: 'Update already running' });
       return;
     }
 
@@ -97,9 +77,13 @@ const server = createServer(async (req, res) => {
     }
 
     try {
-      spawnUpdate(version);
-      sendJson(res, 202, { accepted: true, version });
+      const status = startUpdateRun(stateDeps, version);
+      sendJson(res, 202, { accepted: true, version: status.version });
     } catch (err) {
+      if (err instanceof UpdateAlreadyRunningError) {
+        sendJson(res, 409, { error: 'Update already running' });
+        return;
+      }
       const message = err instanceof Error ? err.message : 'Failed to start update';
       sendJson(res, 500, { error: message });
     }

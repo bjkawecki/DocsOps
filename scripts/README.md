@@ -6,6 +6,7 @@
 | [`install-prod.sh`](install-prod.sh)                     | Deps, `/etc/docsops/docsops.env`, `docker compose pull`, prod compose, health wait    |
 | [`uninstall-prod.sh`](uninstall-prod.sh)                 | Stop stack, optional data/config cleanup, systemd removal                             |
 | [`update.sh`](update.sh)                                 | Replace deploy bundle + `pull` + `up -d` (latest release, or pass `vX.Y.Z`)           |
+| [`updater-exec-update.sh`](updater-exec-update.sh)       | Start one-off update container via Docker socket (used by `docsops-updater` sidecar)  |
 | [`release/build-bundle.sh`](release/build-bundle.sh)     | Build `docsops-vX.Y.Z.tar.gz` (CI / release)                                          |
 | [`docker-image-sizes.sh`](docker-image-sizes.sh)         | Build all prod images locally and print sizes (before/after comparisons)              |
 | [`check-permission-drift.sh`](check-permission-drift.sh) | CI: backend permission exports vs frontend usage                                      |

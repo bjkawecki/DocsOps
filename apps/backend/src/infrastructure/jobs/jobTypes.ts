@@ -58,6 +58,9 @@ export const jobPayloadSchemas = {
   'maintenance.apply-update': z.object({
     updateRunId: z.cuid(),
   }),
+  'maintenance.watch-update': z.object({
+    updateRunId: z.cuid(),
+  }),
   'maintenance.restore': z.object({
     restoreRunId: z.cuid(),
     source: z.enum(['history', 'upload']),

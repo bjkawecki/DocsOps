@@ -1,7 +1,11 @@
 import type { PrismaClient } from '../../../generated/prisma/client.js';
 import { resolveAppVersion } from '../appVersion.js';
 import { compareSemver } from '../../domains/admin/utils/compareSemver.js';
-import { getUpdateApplyTimeoutSeconds } from '../updater/updaterSidecarClient.js';
+import {
+  getSidecarUpdateStatus,
+  getUpdateApplyTimeoutSeconds,
+  isUpdaterConfigured,
+} from '../updater/updaterSidecarClient.js';
 import {
   completeUpdateRunSuccess,
   failUpdateRun,
@@ -26,6 +30,26 @@ export async function reconcileUpdateRunsOnStartup(prisma: PrismaClient): Promis
     if (cmp != null && cmp >= 0) {
       await completeUpdateRunSuccess(prisma, run.id);
       continue;
+    }
+
+    if (isUpdaterConfigured()) {
+      try {
+        const sidecarStatus = await getSidecarUpdateStatus();
+        if (
+          !sidecarStatus.running &&
+          sidecarStatus.exitCode != null &&
+          sidecarStatus.exitCode !== 0
+        ) {
+          await failUpdateRun(
+            prisma,
+            run.id,
+            sidecarStatus.error ?? `Update container exited with code ${sidecarStatus.exitCode}`
+          );
+          continue;
+        }
+      } catch {
+        // Sidecar may be unavailable during stack restart; fall through to timeout handling.
+      }
     }
 
     const startedMs = (run.startedAt ?? run.createdAt).getTime();

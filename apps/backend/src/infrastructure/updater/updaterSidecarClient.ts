@@ -1,3 +1,13 @@
+export type SidecarUpdateStatus = {
+  running: boolean;
+  version: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  exitCode: number | null;
+  error: string | null;
+  containerName: string | null;
+};
+
 export function getUpdaterMissingEnvVars(): string[] {
   const missing: string[] = [];
   if (!process.env.DOCSOPS_UPDATER_URL?.trim()) {
@@ -21,12 +31,39 @@ export function getUpdateApplyTimeoutSeconds(): number {
   return n;
 }
 
-export async function applyUpdateViaSidecar(releaseTag: string): Promise<void> {
+function getSidecarAuth(): { baseUrl: string; token: string } {
   const baseUrl = process.env.DOCSOPS_UPDATER_URL?.trim();
   const token = process.env.DOCSOPS_UPDATER_TOKEN?.trim();
   if (!baseUrl || !token) {
     throw new Error('Updater sidecar is not configured');
   }
+  return { baseUrl, token };
+}
+
+export async function getSidecarUpdateStatus(): Promise<SidecarUpdateStatus> {
+  const { baseUrl, token } = getSidecarAuth();
+
+  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/internal/status`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'User-Agent': 'docsops',
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(
+      `Updater sidecar status returned ${res.status}${body ? `: ${body.slice(0, 500)}` : ''}`
+    );
+  }
+
+  return res.json() as Promise<SidecarUpdateStatus>;
+}
+
+export async function applyUpdateViaSidecar(releaseTag: string): Promise<void> {
+  const { baseUrl, token } = getSidecarAuth();
 
   const res = await fetch(`${baseUrl.replace(/\/$/, '')}/internal/apply`, {
     method: 'POST',

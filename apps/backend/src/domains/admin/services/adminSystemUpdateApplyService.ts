@@ -205,6 +205,7 @@ export async function runApplySystemUpdate(
 
   try {
     await applyUpdateViaSidecar(updateRun.targetReleaseTag);
+    await enqueueJob('maintenance.watch-update', { updateRunId: updateRun.id });
     logger.info(
       { updateRunId: updateRun.id, targetReleaseTag: updateRun.targetReleaseTag },
       'System update apply triggered via sidecar'
