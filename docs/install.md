@@ -102,6 +102,8 @@ sudo /opt/docsops/scripts/update.sh v0.2.0
 
 Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.env`, `pull` + `up -d`.
 
+**Lokal testen (ohne GitHub-Release):** Siehe [`scripts/local-prod-update-test.sh`](../scripts/local-prod-update-test.sh) oder manuell mit `DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.1.tar.gz DOCSOPS_SKIP_IMAGE_PULL=1 sudo -E ./scripts/update.sh v0.1.1`.
+
 **Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
 
 **Admin „Apply update“ (Updater-Sidecar):** Der Dienst `docsops-updater` startet das Update in einem **separaten One-Off-Container** (`<COMPOSE_PROJECT_NAME>-update-run`), damit `compose up` den laufenden Sidecar nicht abbricht. Status und Exit-Code liegen in `/opt/docsops/.update-run-state.json` und unter `GET /internal/status` (Bearer `DOCSOPS_UPDATER_TOKEN`).

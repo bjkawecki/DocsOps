@@ -9,6 +9,10 @@ DOCSOPS_IMAGE_PREFIX="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
 DOCSOPS_HEALTH_URL="${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}"
 DOCSOPS_COMPOSE_FILES="${DOCSOPS_COMPOSE_FILES:-docker-compose.yml:docker-compose.prod.yml}"
 DOCSOPS_DOCKER_COMPOSE_VERSION="${DOCSOPS_DOCKER_COMPOSE_VERSION:-v2.32.4}"
+# Local update testing: path to docsops-vX.Y.Z.tar.gz instead of GitHub download.
+DOCSOPS_BUNDLE_PATH="${DOCSOPS_BUNDLE_PATH:-}"
+# Set to 1 to skip `docker compose pull` (use pre-tagged local images).
+DOCSOPS_SKIP_IMAGE_PULL="${DOCSOPS_SKIP_IMAGE_PULL:-}"
 
 log() {
   echo "==> $*"
@@ -64,6 +68,61 @@ resolve_release_version() {
     return 0
   fi
   fetch_latest_github_release_tag
+}
+
+find_bundle_root_in_dir() {
+  local search_dir="$1" item extracted_root=""
+  for item in "$search_dir"/*; do
+    [[ -e "$item" ]] || continue
+    [[ "$(basename "$item")" == "bundle.tar.gz" ]] && continue
+    if [[ -f "${item}/scripts/install-prod.sh" ]]; then
+      extracted_root="$item"
+      break
+    fi
+  done
+  [[ -n "$extracted_root" ]] || die "Ungültiges Release-Bundle (scripts/install-prod.sh fehlt)."
+  printf '%s' "$extracted_root"
+}
+
+copy_bundle_root_to_install_dir() {
+  local extracted_root="$1"
+  rm -rf "${DOCSOPS_INSTALL_DIR:?}"/*
+  cp -a "${extracted_root}/." "$DOCSOPS_INSTALL_DIR/"
+  log "Deploy-Dateien unter ${DOCSOPS_INSTALL_DIR} aktualisiert"
+}
+
+extract_bundle_archive_to_install_dir() {
+  local archive_path="$1" tmpdir extracted_root
+  [[ -f "$archive_path" ]] || die "Bundle nicht gefunden: ${archive_path}"
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  tar -xzf "$archive_path" -C "$tmpdir"
+  extracted_root="$(find_bundle_root_in_dir "$tmpdir")"
+  copy_bundle_root_to_install_dir "$extracted_root"
+}
+
+download_release_bundle_to_install_dir() {
+  local version="$1" bundle_url tmpdir extracted_root
+  assert_release_version "$version"
+  bundle_url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
+  log "Lade Release-Bundle ${version} …"
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' RETURN
+  curl -fsSL "$bundle_url" -o "${tmpdir}/bundle.tar.gz"
+  tar -xzf "${tmpdir}/bundle.tar.gz" -C "$tmpdir"
+  extracted_root="$(find_bundle_root_in_dir "$tmpdir")"
+  copy_bundle_root_to_install_dir "$extracted_root"
+}
+
+install_release_bundle_to_install_dir() {
+  local version="$1"
+  assert_release_version "$version"
+  if [[ -n "${DOCSOPS_BUNDLE_PATH:-}" ]]; then
+    log "Installiere Bundle aus ${DOCSOPS_BUNDLE_PATH} (Version ${version}) …"
+    extract_bundle_archive_to_install_dir "$DOCSOPS_BUNDLE_PATH"
+    return 0
+  fi
+  download_release_bundle_to_install_dir "$version"
 }
 
 require_root() {
@@ -440,6 +499,10 @@ abort_stack_failure() {
 
 compose_pull_images() {
   compose_stack_setup
+  if [[ "${DOCSOPS_SKIP_IMAGE_PULL:-}" == "1" ]]; then
+    log "Überspringe docker compose pull (DOCSOPS_SKIP_IMAGE_PULL=1)."
+    return 0
+  fi
   if ! compose_stack_cmd pull; then
     abort_stack_failure "docker compose pull fehlgeschlagen. Prüfe DOCSOPS_VERSION und Registry-Zugriff (${DOCSOPS_IMAGE_PREFIX})."
   fi
@@ -451,7 +514,11 @@ compose_up_prod() {
   compose_stack_setup
   assert_release_version
   load_existing_env_optional
-  log "Lade Container-Images von ${DOCSOPS_IMAGE_PREFIX} (${DOCSOPS_VERSION}) …"
+  if [[ "${DOCSOPS_SKIP_IMAGE_PULL:-}" == "1" ]]; then
+    log "Starte Container mit lokalen Images (${DOCSOPS_IMAGE_PREFIX}, ${DOCSOPS_VERSION}) …"
+  else
+    log "Lade Container-Images von ${DOCSOPS_IMAGE_PREFIX} (${DOCSOPS_VERSION}) …"
+  fi
   compose_pull_images
   up_args=(-d)
   if compose_stack_cmd up --help 2>&1 | grep -q -- '--wait'; then

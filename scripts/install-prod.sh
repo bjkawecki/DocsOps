@@ -16,7 +16,7 @@ Production install (run via release install.sh or from extracted bundle with sud
 
 Target environment: intranet Linux server, HTTP on port 80 by default (not public internet).
 
-Options:
+  Options:
   --reconfigure       /etc/docsops/docsops.env neu schreiben (Secrets neu!)
   --install-systemd   systemd-Unit docsops.service registrieren
   -h, --help          Diese Hilfe
@@ -26,6 +26,7 @@ Environment:
   DOCSOPS_USE_EXISTING_CONFIG=0  Mit NON_INTERACTIVE: neue Env schreiben (Default: 1 = bestehende nutzen)
   DOCSOPS_ASSUME_YES=1        Disclaimer-Bestätigung überspringen
   DOCSOPS_INSTALL_CONFIRMED=1 Disclaimer bereits in install.sh bestätigt
+  DOCSOPS_SKIP_IMAGE_PULL=1   Kein docker compose pull (lokale Images)
   DOCSOPS_INSTALL_DIR         Default: /opt/docsops
   DOCSOPS_EXTRA_COMPOSE_FILES z. B. docker-compose.ci.yml für CI
   DOCSOPS_HEALTH_URL          Default: http://127.0.0.1/health
