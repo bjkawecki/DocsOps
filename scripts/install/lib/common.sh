@@ -95,10 +95,10 @@ extract_bundle_archive_to_install_dir() {
   local archive_path="$1" tmpdir extracted_root
   [[ -f "$archive_path" ]] || die "Bundle nicht gefunden: ${archive_path}"
   tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
   tar -xzf "$archive_path" -C "$tmpdir"
   extracted_root="$(find_bundle_root_in_dir "$tmpdir")"
   copy_bundle_root_to_install_dir "$extracted_root"
+  rm -rf "$tmpdir"
 }
 
 download_release_bundle_to_install_dir() {
@@ -107,11 +107,11 @@ download_release_bundle_to_install_dir() {
   bundle_url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
   log "Lade Release-Bundle ${version} …"
   tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' RETURN
   curl -fsSL "$bundle_url" -o "${tmpdir}/bundle.tar.gz"
   tar -xzf "${tmpdir}/bundle.tar.gz" -C "$tmpdir"
   extracted_root="$(find_bundle_root_in_dir "$tmpdir")"
   copy_bundle_root_to_install_dir "$extracted_root"
+  rm -rf "$tmpdir"
 }
 
 install_release_bundle_to_install_dir() {
