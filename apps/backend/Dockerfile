@@ -16,13 +16,10 @@ RUN pnpm --filter backend run build
 RUN pnpm deploy --filter backend --prod --legacy /app/deploy
 RUN set -eux; \
   MIGRATE_DIR=/app/migrate-cli; \
-  mkdir -p "${MIGRATE_DIR}/node_modules/@prisma"; \
-  PRISMA_ROOT="$(find node_modules/.pnpm -type d -path '*/node_modules/prisma' | head -1)"; \
-  cp -r "${PRISMA_ROOT}" "${MIGRATE_DIR}/node_modules/prisma"; \
-  for pkg in engines config; do \
-    SRC="$(find node_modules/.pnpm -type d -path "*/node_modules/@prisma/${pkg}" | head -1)"; \
-    if [ -n "${SRC}" ]; then cp -r "${SRC}" "${MIGRATE_DIR}/node_modules/@prisma/${pkg}"; fi; \
-  done
+  mkdir -p "${MIGRATE_DIR}"; \
+  PRISMA_VER="$(node -pe "JSON.parse(require('fs').readFileSync('apps/backend/package.json','utf8')).devDependencies.prisma.replace(/^\\^/,'')")"; \
+  printf '{"private":true,"dependencies":{"prisma":"%s"}}' "${PRISMA_VER}" > "${MIGRATE_DIR}/package.json"; \
+  cd "${MIGRATE_DIR}" && npm install --omit=dev --no-package-lock --no-audit --no-fund
 
 # Shared runtime (Node app + prod dependencies from pnpm deploy)
 FROM node:24-alpine AS runtime-base
