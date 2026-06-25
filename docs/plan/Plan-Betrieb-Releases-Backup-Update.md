@@ -37,7 +37,7 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 **Workflow:**
 
 1. Auf **`dev`** entwickeln und committen.
-2. Test-Release optional nur von **`dev`**: Version bumpen, `content/releases/*`, Tag `vX.Y.Z`, GitHub Release – **`main` bleibt unverändert**, bis der Stand freigegeben ist.
+2. Test-Release optional nur von **`dev`**: Version bumpen, `content/releases/*`, Tag `vX.Y.Z`, GitHub Release – **`main` bleibt auf der stabilen Version** (z. B. `0.1.0` in `package.json`), bis der Stand freigegeben ist.
 3. Freigabe: **`dev` → `main`** mergen (oder cherry-pick), dann Release-Ritual auf **`main`** (falls noch nicht getaggt).
 4. Nach einem Test-Release auf `main` rückgängig machen: `main` auf letzten stabilen Tag zurücksetzen, GitHub-Release/Tag des Tests löschen; Stand mit Test-Version bleibt auf **`dev`**.
 
