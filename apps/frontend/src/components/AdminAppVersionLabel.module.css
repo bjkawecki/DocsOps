@@ -1,0 +1,31 @@
+.link {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--mantine-radius-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background-color 120ms ease;
+}
+
+.link:hover {
+  background-color: light-dark(var(--mantine-color-orange-0), var(--mantine-color-dark-6));
+}
+
+.hint {
+  color: var(--mantine-color-orange-6);
+  transition: color 120ms ease;
+}
+
+.link:hover .hint {
+  color: var(--mantine-color-orange-4);
+}
+
+.hintText {
+  color: inherit;
+}
+
+.link:hover .hintText {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

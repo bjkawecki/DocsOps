@@ -3,6 +3,7 @@ import { IconArrowUp } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { AppVersionLabel } from './AppVersionLabel.js';
 import { useAdminUpdateStatus } from '../hooks/useAdminUpdateStatus.js';
+import classes from './AdminAppVersionLabel.module.css';
 
 type Props = {
   isAdmin: boolean;
@@ -21,24 +22,22 @@ export function AdminAppVersionLabel({ isAdmin, isMiniRail = false, ta, pl, fz, 
     return <AppVersionLabel variant="compact" ta={ta} pl={pl} fz={fz} lh={lh} />;
   }
 
+  const updateHint = (
+    <Group gap={4} wrap="nowrap" component="span" className={classes.hint}>
+      <IconArrowUp size={14} color="currentColor" aria-hidden={!isMiniRail} />
+      {!isMiniRail ? (
+        <Text component="span" size="xs" className={classes.hintText}>
+          update available
+        </Text>
+      ) : null}
+    </Group>
+  );
+
   const versionLabel = (
-    <Link to="/admin/system" style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link to="/admin/system" className={classes.link}>
       <Group gap={isMiniRail ? 4 : 8} wrap="nowrap" justify={isMiniRail ? 'center' : 'flex-start'}>
         <AppVersionLabel variant="compact" ta={ta} pl={pl} fz={fz} lh={lh} />
-        {isMiniRail ? (
-          <IconArrowUp
-            size={14}
-            color="var(--mantine-color-orange-6)"
-            aria-label="Update available"
-          />
-        ) : (
-          <Group gap={4} wrap="nowrap" component="span">
-            <IconArrowUp size={14} color="var(--mantine-color-orange-6)" aria-hidden />
-            <Text component="span" size="xs" c="orange">
-              update available
-            </Text>
-          </Group>
-        )}
+        {isMiniRail ? <span aria-label="Update available">{updateHint}</span> : updateHint}
       </Group>
     </Link>
   );
