@@ -20,7 +20,7 @@ export function AdminSystemStatusAlerts({ status }: Props) {
 
   if (status.updateAvailable) {
     return (
-      <Alert color="orange" variant="light" title="Update available">
+      <Alert color="blue" variant="filled" title="Update available">
         A newer release is available. Review the steps before upgrading production.
       </Alert>
     );

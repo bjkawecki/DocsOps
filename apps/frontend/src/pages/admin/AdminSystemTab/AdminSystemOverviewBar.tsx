@@ -37,11 +37,7 @@ function statusBadge(status: AdminSystemUpdateStatus) {
     );
   }
   if (status.updateAvailable) {
-    return (
-      <Badge color="orange" variant="filled">
-        Update available
-      </Badge>
-    );
+    return null;
   }
   return (
     <Badge color="green" variant="filled">

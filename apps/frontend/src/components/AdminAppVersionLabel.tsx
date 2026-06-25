@@ -1,4 +1,5 @@
-import { Badge, Group, Tooltip } from '@mantine/core';
+import { Group, Text, Tooltip } from '@mantine/core';
+import { IconArrowUp } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { AppVersionLabel } from './AppVersionLabel.js';
 import { useAdminUpdateStatus } from '../hooks/useAdminUpdateStatus.js';
@@ -22,14 +23,21 @@ export function AdminAppVersionLabel({ isAdmin, isMiniRail = false, ta, pl, fz, 
 
   const versionLabel = (
     <Link to="/admin/system" style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Group gap={6} wrap="nowrap" justify={isMiniRail ? 'center' : 'flex-start'}>
+      <Group gap={isMiniRail ? 4 : 8} wrap="nowrap" justify={isMiniRail ? 'center' : 'flex-start'}>
         <AppVersionLabel variant="compact" ta={ta} pl={pl} fz={fz} lh={lh} />
         {isMiniRail ? (
-          <Badge size="xs" color="orange" variant="filled" circle aria-label="Update available" />
+          <IconArrowUp
+            size={14}
+            color="var(--mantine-color-orange-6)"
+            aria-label="Update available"
+          />
         ) : (
-          <Badge size="xs" color="orange" variant="filled">
-            Update
-          </Badge>
+          <Group gap={4} wrap="nowrap" component="span">
+            <IconArrowUp size={14} color="var(--mantine-color-orange-6)" aria-hidden />
+            <Text component="span" size="xs" c="orange">
+              update available
+            </Text>
+          </Group>
         )}
       </Group>
     </Link>

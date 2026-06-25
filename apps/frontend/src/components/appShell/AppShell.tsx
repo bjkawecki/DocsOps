@@ -7,7 +7,9 @@ import { AppShellMainToolbar } from './AppShellMainToolbar.js';
 import { AppShellNavbar } from './AppShellNavbar.js';
 import { AppShellSkipLink } from './AppShellSkipLink.js';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus.js';
+import { useUpdateInProgressOverlay } from '../../hooks/useUpdateInProgressOverlay.js';
 import { LiveEventsProvider } from '../../hooks/LiveEventsProvider.js';
+import { AppShellUpdateInProgressOverlay } from './AppShellUpdateInProgressOverlay.js';
 import { useAppShellSidebarData } from './useAppShellSidebarData.js';
 import { useAppShellLayout } from './useAppShellLayout.js';
 import { MAIN_CONTENT_ID } from './appShellLayoutConstants.js';
@@ -15,8 +17,10 @@ import './AppShell.css';
 
 export function AppShell() {
   const s = useAppShellSidebarData();
+  const isAdmin = s.me?.user?.isAdmin === true;
   const maintenanceQuery = useMaintenanceStatus();
   const maintenanceStatus = maintenanceQuery.data;
+  const updateOverlay = useUpdateInProgressOverlay(isAdmin);
   const sidebarPinned = s.me?.preferences?.sidebarPinned ?? false;
 
   const layout = useAppShellLayout(s.location.pathname, sidebarPinned);
@@ -30,6 +34,11 @@ export function AppShell() {
       <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
         <AppShellSkipLink />
         <AppShellMaintenanceBanner status={maintenanceStatus} />
+        <AppShellUpdateInProgressOverlay
+          visible={updateOverlay.visible}
+          phase={updateOverlay.phase}
+          onDismiss={updateOverlay.dismiss}
+        />
         <MantineAppShell
           navbar={{
             width: layout.navbarWidth,
