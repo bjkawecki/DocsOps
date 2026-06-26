@@ -196,7 +196,7 @@ jobs:
 
       - name: Verify docsops-agent status
         run: |
-          TOKEN="$(grep '^DOCSOPS_AGENT_TOKEN=' "$DOCSOPS_CI_ENV" | cut -d= -f2-)"
+          TOKEN="$(sudo grep '^DOCSOPS_AGENT_TOKEN=' "$DOCSOPS_CI_ENV" | cut -d= -f2-)"
           curl -sf -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8091/v1/status
 
       - name: Cleanup CI install
