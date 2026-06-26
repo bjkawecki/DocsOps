@@ -608,13 +608,27 @@ install_agent_binary() {
 }
 
 install_agent_systemd_unit() {
-  local unit_src="${DOCSOPS_INSTALL_DIR}/systemd/docsops-agent.service"
-  [[ -f "$unit_src" ]] || die "systemd/docsops-agent.service fehlt im Bundle."
-  install -m 644 "$unit_src" /etc/systemd/system/docsops-agent.service
+  [[ -n "${DOCSOPS_ENV_FILE:-}" ]] || die "DOCSOPS_ENV_FILE fehlt für docsops-agent.service."
+  cat >/etc/systemd/system/docsops-agent.service <<EOF
+[Unit]
+Description=DocsOps host update agent
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=${DOCSOPS_ENV_FILE}
+ExecStart=/usr/local/bin/docsops-agent
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
   systemctl daemon-reload
   systemctl enable docsops-agent.service
   systemctl restart docsops-agent.service
-  log "systemd-Unit docsops-agent.service aktiviert"
+  log "systemd-Unit docsops-agent.service aktiviert (EnvironmentFile=${DOCSOPS_ENV_FILE})"
 }
 
 print_finish() {
