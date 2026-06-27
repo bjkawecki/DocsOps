@@ -1,8 +1,10 @@
 import { Alert, Box, Button, Group, MultiSelect, Stack, Text } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
+import { scopeToUrl } from '../../lib/scopeNav';
 
 type GrantsResponse = {
   users: { userId: string; role: 'Read' | 'Write' }[];
@@ -10,22 +12,38 @@ type GrantsResponse = {
   departments: { departmentId: string; role: 'Read' | 'Write' }[];
 };
 
-type CandidateUsersResponse = {
-  items: { id: string; name: string; email: string | null }[];
+type ReadCandidatesResponse = {
+  teams: { id: string; name: string; departmentName: string }[];
+  departments: { id: string; name: string }[];
 };
+
+type DocumentScope =
+  | { type: 'team'; id: string }
+  | { type: 'department'; id: string }
+  | { type: 'company'; id: string }
+  | { type: 'personal' }
+  | null;
 
 type Props = {
   documentId: string;
   canEditAccess: boolean;
+  documentScope: DocumentScope;
 };
 
 function sorted(list: string[]): string[] {
   return [...list].sort((a, b) => a.localeCompare(b));
 }
 
-export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
+function scopeAuthorsHref(scope: DocumentScope): string | null {
+  if (scope == null) return null;
+  if (scope.type === 'personal') return null;
+  return scopeToUrl(scope);
+}
+
+export function DocumentAccessPanel({ documentId, canEditAccess, documentScope }: Props) {
   const queryClient = useQueryClient();
-  const [userWriteIds, setUserWriteIds] = useState<string[]>([]);
+  const [teamReadIds, setTeamReadIds] = useState<string[]>([]);
+  const [departmentReadIds, setDepartmentReadIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const grantsQuery = useQuery({
@@ -38,51 +56,57 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
     enabled: !!documentId,
   });
 
-  const userOptionsQuery = useQuery<CandidateUsersResponse>({
-    queryKey: ['document', documentId, 'access', 'users'],
+  const candidatesQuery = useQuery<ReadCandidatesResponse>({
+    queryKey: ['document', documentId, 'access', 'read-candidates'],
     queryFn: async () => {
-      const res = await apiFetch(`/api/v1/documents/${documentId}/grants/candidate-users`);
-      if (!res.ok) throw new Error('Failed to load users.');
-      return (await res.json()) as CandidateUsersResponse;
+      const res = await apiFetch(`/api/v1/documents/${documentId}/grants/read-candidates`);
+      if (!res.ok) throw new Error('Failed to load read grant candidates.');
+      return (await res.json()) as ReadCandidatesResponse;
     },
     enabled: !!documentId,
   });
 
-  const userOptions = useMemo(
+  const teamOptions = useMemo(
     () =>
-      (userOptionsQuery.data?.items ?? []).map((u) => ({
-        value: u.id,
-        label: u.email ? `${u.name} (${u.email})` : u.name,
+      (candidatesQuery.data?.teams ?? []).map((t) => ({
+        value: t.id,
+        label: `${t.name} (${t.departmentName})`,
       })),
-    [userOptionsQuery.data]
+    [candidatesQuery.data]
   );
-  const candidateUserIdSet = useMemo(
-    () => new Set((userOptionsQuery.data?.items ?? []).map((u) => u.id)),
-    [userOptionsQuery.data]
-  );
-  const filterToCandidates = useCallback(
-    (userIds: string[]) => {
-      if (candidateUserIdSet.size === 0) return userIds;
-      return userIds.filter((id) => candidateUserIdSet.has(id));
-    },
-    [candidateUserIdSet]
+
+  const departmentOptions = useMemo(
+    () =>
+      (candidatesQuery.data?.departments ?? []).map((d) => ({
+        value: d.id,
+        label: d.name,
+      })),
+    [candidatesQuery.data]
   );
 
   useEffect(() => {
     const grants = grantsQuery.data;
     if (!grants) return;
-    const writeIds = grants.users.filter((g) => g.role === 'Write').map((g) => g.userId);
-    setUserWriteIds(sorted(filterToCandidates(writeIds)));
-  }, [grantsQuery.data, filterToCandidates]);
+    setTeamReadIds(sorted(grants.teams.filter((g) => g.role === 'Read').map((g) => g.teamId)));
+    setDepartmentReadIds(
+      sorted(grants.departments.filter((g) => g.role === 'Read').map((g) => g.departmentId))
+    );
+  }, [grantsQuery.data]);
 
   const dirty = useMemo(() => {
     const grants = grantsQuery.data;
     if (!grants) return false;
-    const usersServer = sorted(
-      filterToCandidates(grants.users.filter((g) => g.role === 'Write').map((g) => g.userId))
+    const teamsServer = sorted(grants.teams.filter((g) => g.role === 'Read').map((g) => g.teamId));
+    const deptsServer = sorted(
+      grants.departments.filter((g) => g.role === 'Read').map((g) => g.departmentId)
     );
-    return JSON.stringify(usersServer) !== JSON.stringify(sorted(userWriteIds));
-  }, [grantsQuery.data, userWriteIds, filterToCandidates]);
+    return (
+      JSON.stringify(teamsServer) !== JSON.stringify(sorted(teamReadIds)) ||
+      JSON.stringify(deptsServer) !== JSON.stringify(sorted(departmentReadIds))
+    );
+  }, [grantsQuery.data, teamReadIds, departmentReadIds]);
+
+  const authorsHref = scopeAuthorsHref(documentScope);
 
   const save = async () => {
     if (!canEditAccess) return;
@@ -91,25 +115,17 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
     setSaving(true);
     try {
       const userRead = grants.users.filter((g) => g.role === 'Read').map((g) => g.userId);
-      const teamRead = grants.teams.filter((g) => g.role === 'Read').map((g) => g.teamId);
-      const departmentRead = grants.departments
-        .filter((g) => g.role === 'Read')
-        .map((g) => g.departmentId);
-
       const userPayload = {
-        grants: [
-          ...sorted([...new Set(userRead)]).map((userId) => ({ userId, role: 'Read' as const })),
-          ...sorted([...new Set(userWriteIds)]).map((userId) => ({
-            userId,
-            role: 'Write' as const,
-          })),
-        ],
+        grants: sorted([...new Set(userRead)]).map((userId) => ({ userId, role: 'Read' as const })),
       };
       const teamPayload = {
-        grants: sorted([...new Set(teamRead)]).map((teamId) => ({ teamId, role: 'Read' as const })),
+        grants: sorted([...new Set(teamReadIds)]).map((teamId) => ({
+          teamId,
+          role: 'Read' as const,
+        })),
       };
       const departmentPayload = {
-        grants: sorted([...new Set(departmentRead)]).map((departmentId) => ({
+        grants: sorted([...new Set(departmentReadIds)]).map((departmentId) => ({
           departmentId,
           role: 'Read' as const,
         })),
@@ -133,7 +149,8 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
         }),
       ]);
       if (!ru.ok || !rt.ok || !rd.ok) {
-        throw new Error('Failed to persist access settings.');
+        const body = (await rt.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error ?? 'Failed to persist access settings.');
       }
 
       await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'grants'] });
@@ -175,34 +192,51 @@ export function DocumentAccessPanel({ documentId, canEditAccess }: Props) {
         </Alert>
       )}
 
-      {userOptionsQuery.isError && (
-        <Alert color="yellow" title="User list unavailable">
-          Eligible scope users could not be loaded.
+      <Alert color="blue" variant="light" title="Authors">
+        Document authors are managed at scope level (team or department), not per document.
+        {authorsHref ? (
+          <>
+            {' '}
+            <Text component={Link} to={authorsHref} size="sm" fw={500}>
+              Open scope page
+            </Text>
+          </>
+        ) : null}
+      </Alert>
+
+      {candidatesQuery.isError && (
+        <Alert color="yellow" title="Candidate list unavailable">
+          Cross-scope read candidates could not be loaded.
         </Alert>
       )}
 
-      {canEditAccess &&
-        userOptions.length === 0 &&
-        !userOptionsQuery.isPending &&
-        !userOptionsQuery.isError && (
-          <Alert color="yellow" title="No eligible users found">
-            No scope users with read access are currently available for write assignment.
-          </Alert>
-        )}
+      <Box>
+        <MultiSelect
+          label="Team read access"
+          description="Grant read access to external teams outside this document owner scope."
+          placeholder={canEditAccess ? 'Select teams' : 'Read access is read-only'}
+          data={teamOptions}
+          value={teamReadIds}
+          onChange={setTeamReadIds}
+          searchable
+          clearable
+          disabled={!canEditAccess || candidatesQuery.isPending}
+          nothingFoundMessage="No matching teams"
+        />
+      </Box>
 
       <Box>
         <MultiSelect
-          label="User write access"
-          placeholder={
-            canEditAccess ? 'Select users with write access' : 'Write access is read-only'
-          }
-          data={userOptions}
-          value={userWriteIds}
-          onChange={setUserWriteIds}
+          label="Department read access"
+          description="Grant read access to external departments outside this document owner scope."
+          placeholder={canEditAccess ? 'Select departments' : 'Read access is read-only'}
+          data={departmentOptions}
+          value={departmentReadIds}
+          onChange={setDepartmentReadIds}
           searchable
           clearable
-          disabled={!canEditAccess || userOptionsQuery.isPending || userOptions.length === 0}
-          nothingFoundMessage="No matching users"
+          disabled={!canEditAccess || candidatesQuery.isPending}
+          nothingFoundMessage="No matching departments"
         />
       </Box>
 

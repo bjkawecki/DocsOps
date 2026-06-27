@@ -36,13 +36,14 @@ describe('scope permission matrix', () => {
   let contextTeamId: string;
   let companyLeadId: string;
   let teamMemberId: string;
+  let teamAuthorId: string;
   let outsiderId: string;
   let trashedDocId: string;
 
   beforeAll(async () => {
     app = await buildApp();
     const pw = await hashPassword(PASSWORD);
-    const [company, companyLead, teamMember, outsider] = await Promise.all([
+    const [company, companyLead, teamMember, teamAuthor, outsider] = await Promise.all([
       prisma.company.create({ data: { name: `Matrix Co ${TS}` } }),
       prisma.user.create({
         data: { name: 'Co Lead', email: `co-lead-${TS}@test.de`, passwordHash: pw },
@@ -51,12 +52,16 @@ describe('scope permission matrix', () => {
         data: { name: 'Member', email: `member-${TS}@test.de`, passwordHash: pw },
       }),
       prisma.user.create({
+        data: { name: 'Author', email: `author-${TS}@test.de`, passwordHash: pw },
+      }),
+      prisma.user.create({
         data: { name: 'Outsider', email: `outsider-${TS}@test.de`, passwordHash: pw },
       }),
     ]);
     companyId = company.id;
     companyLeadId = companyLead.id;
     teamMemberId = teamMember.id;
+    teamAuthorId = teamAuthor.id;
     outsiderId = outsider.id;
 
     const department = await prisma.department.create({
@@ -72,6 +77,7 @@ describe('scope permission matrix', () => {
     await Promise.all([
       prisma.companyLead.create({ data: { companyId, userId: companyLeadId } }),
       prisma.teamMember.create({ data: { teamId, userId: teamMemberId } }),
+      prisma.teamAuthor.create({ data: { teamId, userId: teamAuthorId } }),
     ]);
 
     const owner = await prisma.owner.create({ data: { teamId } });
@@ -98,11 +104,12 @@ describe('scope permission matrix', () => {
     await prisma.context.deleteMany({ where: { id: contextTeamId } });
     await prisma.owner.deleteMany({ where: { teamId } });
     await prisma.teamMember.deleteMany({ where: { teamId } });
+    await prisma.teamAuthor.deleteMany({ where: { teamId } });
     await prisma.companyLead.deleteMany({ where: { companyId } });
     await prisma.team.deleteMany({ where: { id: teamId } });
     await prisma.department.deleteMany({ where: { id: departmentId } });
     await prisma.company.deleteMany({ where: { id: companyId } });
-    const userIds = [companyLeadId, teamMemberId, outsiderId];
+    const userIds = [companyLeadId, teamMemberId, teamAuthorId, outsiderId];
     await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
     await app.close();
@@ -170,6 +177,29 @@ describe('scope permission matrix', () => {
     expect(evaluateScopeCapability(coLead!, hierarchy, 'lead')).toBe(true);
     expect(evaluateScopeCapability(member!, hierarchy, 'view')).toBe(true);
     expect(evaluateScopeCapability(member!, hierarchy, 'lead')).toBe(false);
+  });
+
+  it('team author can view team, parent department, and company via API', async () => {
+    expect(await canViewScope(prisma, teamAuthorId, { type: 'team', teamId })).toBe(true);
+    expect(await canViewScope(prisma, teamAuthorId, { type: 'department', departmentId })).toBe(
+      true
+    );
+    expect(await canViewScope(prisma, teamAuthorId, { type: 'company', companyId })).toBe(true);
+
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: `author-${TS}@test.de`, password: PASSWORD },
+    });
+    expect(loginRes.statusCode).toBe(204);
+    const cookie = cookieFrom(loginRes.headers['set-cookie']);
+
+    const deptRes = await app.inject({
+      method: 'GET',
+      url: `/api/v1/departments/${departmentId}`,
+      headers: { cookie },
+    });
+    expect(deptRes.statusCode).toBe(200);
   });
 
   it('evaluateScopePeopleCapability is separate from canViewScope for roster visibility', async () => {

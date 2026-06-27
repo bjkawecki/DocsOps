@@ -1,43 +1,36 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { RefObject } from 'react';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import type { DocumentSuggestionsPanelHandle } from '../../components/documents/DocumentSuggestionsPanel';
 
-export function useDocumentPageKeyboardEffects(args: {
+type Args = {
   mode: 'view' | 'edit';
-  editTab: 'draft' | 'suggestions' | 'metadata' | 'access';
+  editTab: 'draft' | 'metadata' | 'access';
   leadDraftDirty: boolean;
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
-  suggestionsPanelRef: RefObject<DocumentSuggestionsPanelHandle | null>;
   handleSave: () => Promise<void>;
-}) {
-  const { mode, editTab, leadDraftDirty, leadDraftPanelRef, suggestionsPanelRef, handleSave } =
-    args;
-  const handleSaveShortcutRef = useRef<() => Promise<void>>(async () => {});
+};
 
+export function useDocumentPageKeyboardEffects({
+  mode,
+  editTab,
+  leadDraftDirty,
+  leadDraftPanelRef,
+  handleSave,
+}: Args): void {
   useEffect(() => {
-    handleSaveShortcutRef.current = handleSave;
-  }, [handleSave]);
-
-  useEffect(() => {
-    if (mode !== 'edit') return;
     const onKeyDown = (event: KeyboardEvent) => {
-      const withMeta = event.metaKey || event.ctrlKey;
-      if (!withMeta) return;
-      if (event.key.toLowerCase() === 's') {
+      if (mode !== 'edit') return;
+      const mod = event.metaKey || event.ctrlKey;
+      if (mod && event.key === 's') {
         event.preventDefault();
-        if (editTab === 'draft') {
-          if (leadDraftDirty) void leadDraftPanelRef.current?.saveDraft();
-        } else {
-          void handleSaveShortcutRef.current();
+        if (editTab === 'draft' && leadDraftDirty) {
+          void leadDraftPanelRef.current?.saveDraft();
+        } else if (editTab !== 'draft') {
+          void handleSave();
         }
-      }
-      if (event.key === 'Enter' && editTab === 'suggestions') {
-        event.preventDefault();
-        void suggestionsPanelRef.current?.submitFromShortcut();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [editTab, leadDraftDirty, mode, leadDraftPanelRef, suggestionsPanelRef]);
+  }, [editTab, handleSave, leadDraftDirty, leadDraftPanelRef, mode]);
 }

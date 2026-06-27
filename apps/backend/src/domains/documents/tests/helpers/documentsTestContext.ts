@@ -10,6 +10,7 @@ type TestApp = Awaited<ReturnType<typeof buildApp>>;
 type DocumentsTestContext = {
   app: TestApp;
   scopeLeadId: string;
+  scopeAuthorId: string;
   writerId: string;
   readerOnlyId: string;
   companyId: string;
@@ -21,6 +22,7 @@ type DocumentsTestContext = {
   draftDocId: string;
   publishedDocId: string;
   loginAsScopeLead: () => Promise<string>;
+  loginAsScopeAuthor: () => Promise<string>;
   loginAsWriter: () => Promise<string>;
   loginAsReaderOnly: () => Promise<string>;
 };
@@ -46,17 +48,25 @@ async function loginAs(app: TestApp, email: string): Promise<string> {
 async function createDocumentsTestContext(): Promise<DocumentsTestContext> {
   const runId = token('docs');
   const scopeLeadEmail = `scope-lead-${runId}@example.com`;
+  const scopeAuthorEmail = `scope-author-${runId}@example.com`;
   const writerEmail = `writer-${runId}@example.com`;
   const readerOnlyEmail = `reader-only-${runId}@example.com`;
 
   const app = await buildApp();
   const passwordHash = await hashPassword(PASSWORD);
 
-  const [scopeLead, writer, readerOnly] = await Promise.all([
+  const [scopeLead, scopeAuthor, writer, readerOnly] = await Promise.all([
     prisma.user.create({
       data: {
         name: 'Scope Lead',
         email: scopeLeadEmail,
+        passwordHash,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        name: 'Scope Author',
+        email: scopeAuthorEmail,
         passwordHash,
       },
     }),
@@ -85,6 +95,9 @@ async function createDocumentsTestContext(): Promise<DocumentsTestContext> {
   });
   await prisma.departmentLead.create({
     data: { userId: scopeLead.id, departmentId: department.id },
+  });
+  await prisma.departmentAuthor.create({
+    data: { userId: scopeAuthor.id, departmentId: department.id },
   });
   const owner = await prisma.owner.create({ data: { departmentId: department.id } });
   const context = await prisma.context.create({ data: {} });
@@ -141,6 +154,7 @@ async function createDocumentsTestContext(): Promise<DocumentsTestContext> {
   return {
     app,
     scopeLeadId: scopeLead.id,
+    scopeAuthorId: scopeAuthor.id,
     writerId: writer.id,
     readerOnlyId: readerOnly.id,
     companyId: company.id,
@@ -152,6 +166,7 @@ async function createDocumentsTestContext(): Promise<DocumentsTestContext> {
     draftDocId: draftDoc.id,
     publishedDocId: publishedDoc.id,
     loginAsScopeLead: () => loginAs(app, scopeLeadEmail),
+    loginAsScopeAuthor: () => loginAs(app, scopeAuthorEmail),
     loginAsWriter: () => loginAs(app, writerEmail),
     loginAsReaderOnly: () => loginAs(app, readerOnlyEmail),
   };
@@ -165,6 +180,8 @@ async function disposeDocumentsTestContext(
     (id): id is string => id != null
   );
   if (docIds.length > 0) {
+    await prisma.documentDraftChange.deleteMany({ where: { documentId: { in: docIds } } });
+    await prisma.documentDraftCycle.deleteMany({ where: { documentId: { in: docIds } } });
     await prisma.documentComment.deleteMany({
       where: { documentId: { in: docIds } },
     });
@@ -178,13 +195,17 @@ async function disposeDocumentsTestContext(
   await prisma.context.deleteMany({ where: { id: context.contextId } });
   await prisma.owner.deleteMany({ where: { id: context.ownerId } });
   await prisma.departmentLead.deleteMany({ where: { departmentId: context.departmentId } });
+  await prisma.departmentAuthor.deleteMany({ where: { departmentId: context.departmentId } });
   await prisma.team.deleteMany({ where: { id: context.teamId } });
   await prisma.department.deleteMany({ where: { id: context.departmentId } });
   await prisma.company.deleteMany({ where: { id: context.companyId } });
 
-  const userIds = [context.scopeLeadId, context.writerId, context.readerOnlyId].filter(
-    (id): id is string => id != null
-  );
+  const userIds = [
+    context.scopeLeadId,
+    context.scopeAuthorId,
+    context.writerId,
+    context.readerOnlyId,
+  ].filter((id): id is string => id != null);
   if (userIds.length > 0) {
     await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });

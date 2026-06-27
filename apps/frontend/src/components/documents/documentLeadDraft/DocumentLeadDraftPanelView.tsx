@@ -1,7 +1,6 @@
 import { Alert, Badge, Button, Group, Modal, Stack, Text, Textarea, Tooltip } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { LeadDraftTiptapEditor } from '../LeadDraftTiptapEditor.js';
-import { affectedBlockIds, blockLabel } from './leadDraftPanelUtils.js';
 import type { DocumentLeadDraftPanelViewProps } from './useDocumentLeadDraftPanelState.js';
 
 export type { DocumentLeadDraftPanelViewProps };
@@ -14,6 +13,7 @@ export function DocumentLeadDraftPanelView({
   appliedRevision,
   incomingRevision,
   canEdit,
+  canPublish,
   dirty,
   lastSyncedAt,
   draftLooksEmpty,
@@ -23,15 +23,18 @@ export function DocumentLeadDraftPanelView({
   appliedFingerprint,
   setDirty,
   handleSave,
-  pendingSuggestions,
-  runSuggestionAction,
-  documentId,
-  canPublish,
-  currentUserId,
-  isAdmin,
+  otherEditors,
   rawJsonOpened,
   setRawJsonOpened,
+  isAdmin,
 }: DocumentLeadDraftPanelViewProps) {
+  const presenceLabel =
+    otherEditors.length === 1
+      ? `${otherEditors[0]?.name ?? 'Someone'} is editing`
+      : otherEditors.length > 1
+        ? `${otherEditors.map((e) => e.name).join(', ')} are editing`
+        : null;
+
   return (
     <Stack gap="sm">
       {remotePending && (
@@ -56,6 +59,11 @@ export function DocumentLeadDraftPanelView({
           </Stack>
         </Alert>
       )}
+      {presenceLabel && (
+        <Alert color="blue" title="Draft in use">
+          <Text size="sm">{presenceLabel}</Text>
+        </Alert>
+      )}
       <Group gap="md">
         <Group gap={6} align="center">
           <Text size="sm">
@@ -73,6 +81,11 @@ export function DocumentLeadDraftPanelView({
         <Text size="sm" c={canEdit ? 'teal' : 'dimmed'}>
           {canEdit ? 'You can edit this draft.' : 'Read-only access.'}
         </Text>
+        {canEdit && !canPublish && (
+          <Text size="xs" c="dimmed">
+            Only the scope lead can publish.
+          </Text>
+        )}
         {dirty && <Badge color="orange">Unsaved changes</Badge>}
         {lastSyncedAt && (
           <Text size="xs" c="dimmed">
@@ -109,74 +122,6 @@ export function DocumentLeadDraftPanelView({
         onSaveShortcut={() => {
           void handleSave();
         }}
-        inlineSuggestionBar={
-          pendingSuggestions.length > 0 ? (
-            <Group gap="xs" wrap="wrap">
-              {pendingSuggestions.map((s) => {
-                const blocks = affectedBlockIds(s.ops);
-                return (
-                  <Group key={s.id} gap={6} wrap="wrap">
-                    <Badge variant="filled" color="grape">
-                      Suggestion by {s.authorName ?? 'Unknown'}
-                    </Badge>
-                    {blocks.map((id) => (
-                      <Badge key={`${s.id}-${id}`} variant="outline" color="gray">
-                        {blockLabel(appliedDoc, id)}
-                      </Badge>
-                    ))}
-                    {canPublish && (
-                      <>
-                        <Button
-                          size="compact-xs"
-                          color="green"
-                          variant="filled"
-                          onClick={() =>
-                            void runSuggestionAction(
-                              `/api/v1/documents/${documentId}/suggestions/${s.id}/accept`,
-                              'Suggestion accepted.',
-                              'Could not accept suggestion.'
-                            )
-                          }
-                        >
-                          Accept
-                        </Button>
-                        <Button
-                          size="compact-xs"
-                          color="red"
-                          variant="filled"
-                          onClick={() =>
-                            void runSuggestionAction(
-                              `/api/v1/documents/${documentId}/suggestions/${s.id}/reject`,
-                              'Suggestion rejected.',
-                              'Could not reject suggestion.'
-                            )
-                          }
-                        >
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    {!canPublish && currentUserId === s.authorId && (
-                      <Button
-                        size="compact-xs"
-                        variant="filled"
-                        onClick={() =>
-                          void runSuggestionAction(
-                            `/api/v1/documents/${documentId}/suggestions/${s.id}/withdraw`,
-                            'Suggestion withdrawn.',
-                            'Could not withdraw suggestion.'
-                          )
-                        }
-                      >
-                        Withdraw
-                      </Button>
-                    )}
-                  </Group>
-                );
-              })}
-            </Group>
-          ) : null
-        }
       />
       <Group justify="space-between" gap="xs">
         <Group gap="xs">

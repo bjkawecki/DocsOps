@@ -6,6 +6,10 @@ import {
   type BlockDocument,
 } from '../blocks/blockSchema.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
+import {
+  collectAffectedBlockIds,
+  computeDraftOpsFromDocuments,
+} from '../collaboration/documentDraftOps.js';
 
 export type LeadDraftView = {
   draftRevision: number;
@@ -50,17 +54,37 @@ export type PatchLeadDraftInput = {
   expectedRevision: number;
 };
 
+export type PatchLeadDraftContext = {
+  userId: string;
+  /** When true (scope lead), saves are not logged as author draft changes for reviews. */
+  isPublishLead: boolean;
+};
+
 export type PatchLeadDraftResult =
-  | { ok: true; draftRevision: number; blocks: BlockDocument }
+  | { ok: true; draftRevision: number; blocks: BlockDocument; hadContentChange: boolean }
   | { ok: false; error: 'not_found' | 'conflict' | 'validation'; issues?: unknown };
+
+function emptyBlockDocument(): BlockDocument {
+  return { schemaVersion: 0, blocks: [] };
+}
+
+function resolveBeforeBlocks(draftBlocks: unknown, publishedBlocks: unknown): BlockDocument {
+  return (
+    parseBlockDocumentFromDb(draftBlocks) ??
+    parseBlockDocumentFromDb(publishedBlocks) ??
+    emptyBlockDocument()
+  );
+}
 
 /**
  * Atomarer Compare-and-Swap auf `draftRevision` (409 bei Konflikt).
+ * Logs block ops to DocumentDraftChange when a non-lead saves with content changes.
  */
 export async function patchLeadDraft(
   prisma: PrismaClient,
   documentId: string,
-  input: PatchLeadDraftInput
+  input: PatchLeadDraftInput,
+  ctx: PatchLeadDraftContext
 ): Promise<PatchLeadDraftResult> {
   const safe = safeParseBlockDocument(input.blocks);
   if (!safe.success) {
@@ -69,19 +93,17 @@ export async function patchLeadDraft(
   const parsed = normalizeBlockDocumentSchemaVersion(safe.data);
   const json = parsed as unknown as Prisma.InputJsonValue;
 
-  const updated = await prisma.document.updateMany({
-    where: {
-      id: documentId,
-      deletedAt: null,
-      draftRevision: input.expectedRevision,
-    },
-    data: {
-      draftBlocks: json,
-      draftRevision: { increment: 1 },
+  const beforeRow = await prisma.document.findFirst({
+    where: { id: documentId, deletedAt: null, draftRevision: input.expectedRevision },
+    select: {
+      id: true,
+      draftBlocks: true,
+      draftRevision: true,
+      currentPublishedVersion: { select: { blocks: true } },
     },
   });
 
-  if (updated.count === 0) {
+  if (!beforeRow) {
     const row = await prisma.document.findFirst({
       where: { id: documentId, deletedAt: null },
       select: { id: true, draftRevision: true },
@@ -90,10 +112,78 @@ export async function patchLeadDraft(
     return { ok: false, error: 'conflict' };
   }
 
-  const after = await prisma.document.findUnique({
-    where: { id: documentId },
-    select: { draftRevision: true },
-  });
-  const revision = after?.draftRevision ?? input.expectedRevision + 1;
-  return { ok: true, draftRevision: revision, blocks: parsed };
+  const beforeDoc = resolveBeforeBlocks(
+    beforeRow.draftBlocks,
+    beforeRow.currentPublishedVersion?.blocks ?? null
+  );
+  const ops = computeDraftOpsFromDocuments(beforeDoc, parsed);
+  const hadContentChange = ops.length > 0;
+
+  if (!hadContentChange) {
+    return {
+      ok: true,
+      draftRevision: beforeRow.draftRevision,
+      blocks: beforeDoc,
+      hadContentChange: false,
+    };
+  }
+
+  const revisionTo = beforeRow.draftRevision + 1;
+  const affectedBlockIds = collectAffectedBlockIds(ops);
+  const baseBlocksJson =
+    (beforeRow.draftBlocks as Prisma.InputJsonValue | null) ??
+    (beforeRow.currentPublishedVersion?.blocks as Prisma.InputJsonValue | null) ??
+    ({ schemaVersion: 0, blocks: [] } as Prisma.InputJsonValue);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const updated = await tx.document.updateMany({
+        where: {
+          id: documentId,
+          deletedAt: null,
+          draftRevision: input.expectedRevision,
+        },
+        data: {
+          draftBlocks: json,
+          draftRevision: { increment: 1 },
+        },
+      });
+      if (updated.count === 0) {
+        throw new Error('CONFLICT');
+      }
+
+      const existingCycle = await tx.documentDraftCycle.findUnique({
+        where: { documentId },
+        select: { documentId: true },
+      });
+      if (!existingCycle) {
+        await tx.documentDraftCycle.create({
+          data: {
+            documentId,
+            baseBlocks: baseBlocksJson,
+          },
+        });
+      }
+
+      if (!ctx.isPublishLead) {
+        await tx.documentDraftChange.create({
+          data: {
+            documentId,
+            revisionFrom: input.expectedRevision,
+            revisionTo,
+            savedById: ctx.userId,
+            ops: ops as unknown as Prisma.InputJsonValue,
+            affectedBlockIds,
+          },
+        });
+      }
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === 'CONFLICT') {
+      return { ok: false, error: 'conflict' };
+    }
+    throw err;
+  }
+
+  return { ok: true, draftRevision: revisionTo, blocks: parsed, hadContentChange: true };
 }

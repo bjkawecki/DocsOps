@@ -2,6 +2,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import { getEffectiveUserId, type RequestWithUser } from '../../auth/middleware.js';
 import { canRead, canSeeDocumentInTrash } from './canRead.js';
 import { canWrite } from './canWrite.js';
+import { canManageDocumentGrants } from './canManageDocumentGrants.js';
 import { DOCUMENT_FOR_PERMISSION_INCLUDE } from './documentLoad.js';
 
 export const DOCUMENT_ID_PARAM = 'documentId';
@@ -47,6 +48,37 @@ export function requireDocumentAccess(
         : mode === 'write'
           ? await canWrite(prisma, userId, doc)
           : (await canRead(prisma, userId, doc)) || (await canWrite(prisma, userId, doc));
+    if (!allowed) {
+      return reply.status(403).send({ error: 'No access to this document' });
+    }
+  };
+}
+
+/**
+ * PreHandler: may manage document user/team/department grants (scope lead or writer).
+ */
+export function requireDocumentGrantManagement(): (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => Promise<void> {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const documentId = (request.params as Record<string, string | undefined>)?.[DOCUMENT_ID_PARAM];
+    if (typeof documentId !== 'string' || documentId.trim() === '') {
+      return reply.status(400).send({ error: 'documentId fehlt oder ist leer' });
+    }
+    if (!request.user) {
+      return reply.status(401).send({ error: 'Nicht angemeldet' });
+    }
+    const prisma = request.server.prisma;
+    const doc = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: { id: true },
+    });
+    if (!doc) {
+      return reply.status(404).send({ error: 'Dokument nicht gefunden' });
+    }
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const allowed = await canManageDocumentGrants(prisma, userId, documentId);
     if (!allowed) {
       return reply.status(403).send({ error: 'No access to this document' });
     }

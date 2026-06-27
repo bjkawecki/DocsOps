@@ -223,8 +223,11 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
       if (!doc) return reply.status(404).send({ error: 'Document not found' });
       const isTrashed = doc.deletedAt != null;
       if (!isTrashed && doc.publishedAt == null) {
-        const writeAllowedForDraft = await canWrite(prisma, userId, doc);
-        if (!writeAllowedForDraft) {
+        const [writeAllowedForDraft, canPublishDraft] = await Promise.all([
+          canWrite(prisma, userId, doc),
+          canPublishDocument(prisma, userId, documentId),
+        ]);
+        if (!writeAllowedForDraft && !canPublishDraft) {
           return reply
             .status(403)
             .send({ error: 'Draft documents are only visible to users with write access' });

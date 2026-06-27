@@ -78,7 +78,7 @@ export function ProjectSiblingSubnav({ variant, siblings }: ProjectSiblingSubnav
                 to={base}
                 label={sibling.name}
                 active={pathname === base}
-                variant="filled"
+                variant="light"
                 style={navLinkFullWidth}
               />
               {subs.length > 0 && (

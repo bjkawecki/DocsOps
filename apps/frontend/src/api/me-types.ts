@@ -5,7 +5,7 @@ export type MeIdentityTeam = {
   departmentId: string;
   departmentName: string;
   companyId: string;
-  role: 'member' | 'leader';
+  role: 'member' | 'leader' | 'author';
 };
 
 /** Response GET /api/v1/me. When impersonating, the response additionally contains impersonation. */
@@ -21,6 +21,7 @@ export type MeResponse = {
     teams: MeIdentityTeam[];
     departments: { id: string; name: string }[];
     departmentLeads: { id: string; name: string; companyId: string }[];
+    departmentAuthors: { id: string; name: string; companyId: string }[];
     companyLeads: { id: string; name: string }[];
   };
   preferences: {

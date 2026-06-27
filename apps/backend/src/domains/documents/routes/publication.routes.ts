@@ -51,7 +51,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
   app.get<{ Params: { documentId: string } }>(
     '/documents/:documentId/pdf',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
     },
     async (request, reply) => {
       const prisma = request.server.prisma;
@@ -82,7 +82,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
   app.post<{ Params: { documentId: string } }>(
     '/documents/:documentId/export-pdf',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
     },
     async (request, reply) => {
       const userId = getEffectiveUserId(request as RequestWithUser);
@@ -116,7 +116,7 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
   app.get<{ Params: { documentId: string; jobId: string } }>(
     '/documents/:documentId/export-pdf/:jobId',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
     },
     async (request, reply) => {
       const prisma = request.server.prisma;

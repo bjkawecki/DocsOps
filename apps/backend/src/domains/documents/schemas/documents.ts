@@ -52,12 +52,6 @@ export const versionIdParamSchema = z.object({
   versionId: z.cuid(),
 });
 
-/** Params: documentId + suggestionId (Suggestions, EPIC-5). */
-export const suggestionIdParamSchema = z.object({
-  documentId: z.cuid(),
-  suggestionId: z.cuid(),
-});
-
 /** Params: documentId + attachmentId (for attachment routes). */
 export const attachmentIdParamSchema = z.object({
   documentId: z.cuid(),
@@ -88,25 +82,6 @@ export const updateDocumentBodySchema = z.object({
 export const patchLeadDraftBodySchema = z.object({
   expectedRevision: z.number().int().min(0),
   blocks: blockDocumentSchema,
-});
-
-/** Query: GET …/suggestions – optional nach Status filtern. */
-export const listDocumentSuggestionsQuerySchema = z.object({
-  status: z
-    .enum(['pending', 'accepted', 'rejected', 'withdrawn', 'superseded'] as const)
-    .optional(),
-});
-
-/** Body: POST …/suggestions (Autor). */
-export const createDocumentSuggestionBodySchema = z.object({
-  baseDraftRevision: z.number().int().min(0),
-  ops: z.unknown(),
-  publishedVersionId: z.cuid().optional().nullable(),
-});
-
-/** Body: POST accept/reject (Lead, optional Kommentar). */
-export const resolveDocumentSuggestionBodySchema = z.object({
-  comment: z.string().max(5000).trim().optional().nullable(),
 });
 
 /** Grant-Rolle (API: String). */

@@ -15,6 +15,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
 import type { ListUsersRes, SortByField, SortOrder, UserRow } from './adminUsersTypes';
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './adminUsersConstants';
+import { formatUserDepartmentsColumn, formatUserTeamsColumn } from './AdminUserAssignmentsDisplay';
 
 type Props = {
   includeDeactivated: boolean;
@@ -194,12 +195,8 @@ export function AdminUsersList({
                     )}
                   </Table.Td>
                   <Table.Td>{u.role}</Table.Td>
-                  <Table.Td>
-                    {u.teams?.length ? u.teams.map((t) => t.name).join(', ') : '–'}
-                  </Table.Td>
-                  <Table.Td>
-                    {u.departments?.length ? u.departments.map((d) => d.name).join(', ') : '–'}
-                  </Table.Td>
+                  <Table.Td>{formatUserTeamsColumn(u)}</Table.Td>
+                  <Table.Td>{formatUserDepartmentsColumn(u)}</Table.Td>
                   <Table.Td>
                     {u.deletedAt ? (
                       <Badge size="sm" color="gray">

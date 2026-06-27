@@ -77,7 +77,6 @@ export async function exportDomainDataToDirectory(
     documentTags,
     pins,
     comments,
-    suggestions,
     attachments,
   ] = await Promise.all([
     prisma.company.findMany({ orderBy: { id: 'asc' } }),
@@ -102,7 +101,6 @@ export async function exportDomainDataToDirectory(
     prisma.documentTag.findMany(),
     prisma.documentPinnedInScope.findMany({ orderBy: { id: 'asc' } }),
     prisma.documentComment.findMany({ orderBy: { createdAt: 'asc' } }),
-    prisma.documentSuggestion.findMany({ orderBy: { createdAt: 'asc' } }),
     prisma.documentAttachment.findMany({ orderBy: { id: 'asc' } }),
   ]);
 
@@ -291,24 +289,6 @@ export async function exportDomainDataToDirectory(
     }))
   );
 
-  await writeJson(
-    join(args.bundleDir, 'suggestions.json'),
-    suggestions.map((s) => ({
-      exportId: s.id,
-      documentExportId: s.documentId,
-      authorExportId: s.authorId,
-      status: s.status,
-      baseDraftRevision: s.baseDraftRevision,
-      publishedVersionExportId: s.publishedVersionId,
-      ops: s.ops,
-      createdAt: s.createdAt.toISOString(),
-      updatedAt: s.updatedAt.toISOString(),
-      resolvedAt: s.resolvedAt?.toISOString() ?? null,
-      resolvedByExportId: s.resolvedById,
-      comment: s.comment,
-    }))
-  );
-
   const attachmentsMap: AttachmentsMap = { documents: {} };
   let attachmentFileCount = 0;
 
@@ -370,7 +350,6 @@ export async function exportDomainDataToDirectory(
     grants: grantUsers.length + grantTeams.length + grantDepartments.length,
     pins: pins.length,
     comments: comments.length,
-    suggestions: suggestions.length,
     attachmentFiles: attachmentFileCount,
   };
 

@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend format format-check check clean dev build start test up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install lint lint-backend lint-frontend format format-check check clean dev worker build start test up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -22,6 +22,7 @@ help:
 	@echo "  make format-check Prettier nur prüfen (keine Änderungen)"
 	@echo "  make check        Lint + Format-Check (wie CI)"
 	@echo "  make dev          Backend im Dev-Modus starten (tsx watch)"
+	@echo "  make worker       Job-Worker im Dev-Modus starten (PDF export, pg-boss; Typst auf PATH)"
 	@echo "  make build        Backend bauen"
 	@echo "  make start        Backend starten (nach build)"
 	@echo "  make test         Backend-Tests ausführen (Vitest)"
@@ -67,6 +68,9 @@ check: lint format-check
 
 dev:
 	pnpm --filter backend dev
+
+worker:
+	pnpm --filter backend run worker:dev
 
 build:
 	pnpm --filter backend build

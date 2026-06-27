@@ -391,16 +391,24 @@ export function SettingsGeneralTab() {
                   </Text>
                   {identity.teams.length > 0 ||
                   identity.departmentLeads.length > 0 ||
+                  identity.departmentAuthors.length > 0 ||
                   identity.companyLeads?.length > 0 ? (
                     <List size="sm">
                       {identity.teams.map((t) => (
                         <List.Item key={t.teamId}>
                           {t.teamName} ({t.departmentName}) –{' '}
-                          {t.role === 'leader' ? 'Team Lead' : 'Member'}
+                          {t.role === 'leader'
+                            ? 'Team Lead'
+                            : t.role === 'author'
+                              ? 'Team Author'
+                              : 'Member'}
                         </List.Item>
                       ))}
                       {identity.departmentLeads.map((d) => (
                         <List.Item key={d.id}>Department Lead: {d.name}</List.Item>
+                      ))}
+                      {identity.departmentAuthors.map((d) => (
+                        <List.Item key={d.id}>Department Author: {d.name}</List.Item>
                       ))}
                       {identity.companyLeads?.map((c) => (
                         <List.Item key={c.id}>Company Lead: {c.name}</List.Item>

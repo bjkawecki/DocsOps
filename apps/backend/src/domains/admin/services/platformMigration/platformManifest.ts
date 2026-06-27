@@ -15,7 +15,6 @@ export const PLATFORM_EXPORT_JSON_FILES = [
   'tags.json',
   'pins.json',
   'comments.json',
-  'suggestions.json',
   'attachments-map.json',
 ] as const;
 
@@ -35,7 +34,6 @@ export type PlatformExportManifestCounts = {
   grants: number;
   pins: number;
   comments: number;
-  suggestions: number;
   attachmentFiles: number;
 };
 

@@ -28,6 +28,22 @@ export function isTeamMember(user: LoadedUser, teamId: string): boolean {
   return user.teamMemberships.some((m) => m.team.id === teamId);
 }
 
+export function isTeamAuthor(user: LoadedUser, teamId: string): boolean {
+  return user.authorOfTeams.some((row) => row.teamId === teamId);
+}
+
+export function isDepartmentAuthor(user: LoadedUser, departmentId: string): boolean {
+  return user.authorOfDepartments.some((row) => row.departmentId === departmentId);
+}
+
+export function isTeamAuthorInDepartment(user: LoadedUser, departmentId: string): boolean {
+  return user.authorOfTeams.some((row) => row.team.departmentId === departmentId);
+}
+
+export function isTeamAuthorInCompany(user: LoadedUser, companyId: string): boolean {
+  return user.authorOfTeams.some((row) => row.team.department.companyId === companyId);
+}
+
 export function isTeamLeadInDepartment(user: LoadedUser, departmentId: string): boolean {
   return user.leadOfTeams.some((l) => l.team.departmentId === departmentId);
 }

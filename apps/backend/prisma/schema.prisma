@@ -33,6 +33,7 @@ model Department {
   teams                  Team[]
   owners                 Owner[]         @relation("OwnerDepartment")
   departmentLeads        DepartmentLead[]
+  departmentAuthors      DepartmentAuthor[]
   documentGrantDept      DocumentGrantDepartment[]
 }
 
@@ -45,6 +46,7 @@ model Team {
   department   Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   members      TeamMember[]
   teamLeads    TeamLead[]
+  teamAuthors  TeamAuthor[]
   owners       Owner[]         @relation("OwnerTeam")
   documentGrantTeam DocumentGrantTeam[]
 }
@@ -67,6 +69,24 @@ model TeamLead {
   @@id([teamId, userId])
 }
 
+/// Team Author: Nutzer mit Schreibrecht (Suggestions) auf alle Dokumente im Team-Owner-Scope.
+model TeamAuthor {
+  teamId String
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
+}
+
+/// Department Author: Nutzer mit Schreibrecht auf alle Dokumente im Department-Owner-Scope.
+model DepartmentAuthor {
+  departmentId String
+  userId       String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([departmentId, userId])
+}
+
 /// Nutzer: Mitglied in Teams (TeamMember), optional Team Lead (TeamLead). isAdmin: sieht alles, legt Struktur an, fügt User hinzu.
 /// Kann Prozesse/Projekte als Owner besitzen (Owner.ownerUserId); erhält explizite Zugriffsrechte über DocumentGrantUser.
 /// email/externalId für Auth/SSO. passwordHash nur für lokalen Login; SSO-Nutzer (externalId) brauchen keins.
@@ -82,6 +102,8 @@ model User {
   preferences           Json?        // theme: light|dark|auto, sidebarPinned: boolean
   teamMemberships       TeamMember[]
   leadOfTeams           TeamLead[]
+  authorOfTeams         TeamAuthor[]
+  authorOfDepartments   DepartmentAuthor[]
   departmentLeads       DepartmentLead[]
   companyLeads          CompanyLead[]
   ownedContexts         Owner[]      @relation("OwnerUser")
@@ -89,8 +111,7 @@ model User {
   pinnedDocumentScopes  DocumentPinnedInScope[]
   createdDocuments      Document[]         @relation("DocumentCreatedBy")
   documentVersionsCreated  DocumentVersion[]
-  documentSuggestionsAuthored DocumentSuggestion[] @relation("DocumentSuggestionAuthor")
-  documentSuggestionsResolved   DocumentSuggestion[] @relation("DocumentSuggestionResolvedBy")
+  documentDraftChangesSaved DocumentDraftChange[]
   documentAttachmentsUploaded DocumentAttachment[]
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   sessions              Session[]
@@ -244,7 +265,7 @@ model Document {
   title                     String
   /// Gemeinsamer Lead-Draft als Block-JSON (schemaVersion im JSON); null = noch nicht initialisiert.
   draftBlocks               Json?
-  /// Erhöht sich bei jedem erfolgreichen PATCH des Lead-Drafts (Optimistic-Concurrency / Suggestion-Basis).
+  /// Erhöht sich bei jedem erfolgreichen PATCH des Lead-Drafts (Optimistic-Concurrency).
   draftRevision             Int                      @default(0)
   pdfUrl                    String?                  // URL zur PDF-Version (z. B. MinIO/S3 nach Export)
   contextId                 String?                  // null = kontextfreier Draft; Veröffentlichung nur mit Kontext
@@ -267,7 +288,8 @@ model Document {
   versions                  DocumentVersion[]
   attachments               DocumentAttachment[]
   comments                  DocumentComment[]
-  suggestions               DocumentSuggestion[]
+  draftCycle                DocumentDraftCycle?
+  draftChanges              DocumentDraftChange[]
 }
 
 /// Tag: scope-gebunden (ownerId → Owner), für Kategorisierung und Filterung. Eindeutigkeit pro Scope: (ownerId, name).
@@ -347,42 +369,33 @@ model DocumentVersion {
   parentVersion             DocumentVersion?  @relation("VersionChain", fields: [parentVersionId], references: [id], onDelete: SetNull)
   childVersions             DocumentVersion[] @relation("VersionChain")
   currentPublishedForDocument Document?        @relation("CurrentPublishedVersion")
-  suggestionPublishedSnapshots DocumentSuggestion[] @relation("DocumentSuggestionPublishedVersion")
 
   @@index([documentId])
   @@index([documentId, createdAt])
 }
 
-/// Autoren-Vorschlag gegen Lead-Draft (`baseDraftRevision`); Ops als JSON (Edit-System, ADR 001).
-enum DocumentSuggestionStatus {
-  pending
-  accepted
-  rejected
-  withdrawn
-  superseded
+/// Publish-Zyklus: ein Vollsnapshot (typisch Published) + Ops-Log bis Publish (ADR 003).
+model DocumentDraftCycle {
+  documentId String   @id
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  baseBlocks Json
+  startedAt  DateTime @default(now())
 }
 
-model DocumentSuggestion {
-  id                 String                   @id @default(cuid())
-  documentId         String
-  document           Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  authorId           String
-  author             User                     @relation("DocumentSuggestionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  status             DocumentSuggestionStatus
-  baseDraftRevision  Int
-  /// Optional: Published-Version zum Zeitpunkt der Erstellung (Audit, ADR 001).
-  publishedVersionId String?
-  publishedVersion   DocumentVersion?         @relation("DocumentSuggestionPublishedVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
-  ops                Json
-  createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
-  resolvedAt         DateTime?
-  resolvedById       String?
-  resolvedBy         User?                    @relation("DocumentSuggestionResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
-  comment            String?                  @db.Text
+/// Ein Save im Draft-Zyklus: Block-Ops (kein Vollsnapshot pro Save).
+model DocumentDraftChange {
+  id               String   @id @default(cuid())
+  documentId       String
+  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  revisionFrom     Int
+  revisionTo       Int
+  savedById        String
+  savedBy          User     @relation(fields: [savedById], references: [id], onDelete: Cascade)
+  savedAt          DateTime @default(now())
+  ops              Json
+  affectedBlockIds String[]
 
-  @@index([documentId, status])
-  @@index([documentId, authorId])
+  @@index([documentId, savedAt])
 }
 
 // --- Zugriffsrechte (explizit; vgl. Rechteableitung) ---

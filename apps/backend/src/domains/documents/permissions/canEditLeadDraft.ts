@@ -1,31 +1,51 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import { GrantRole } from '../../../../generated/prisma/client.js';
 import { canPublishDocument } from './canPublishDocument.js';
 import { canWrite } from './canWrite.js';
+import {
+  getDocumentOwner,
+  isPersonalContextDocumentOwner,
+  loadPermissionSubjectAndBaseDecision,
+} from './canRead.js';
+import { isScopeAuthorForDocument } from './scopeAuthor.js';
 
 /**
- * Lead darf den gemeinsamen Lead-Draft (Block-JSON) bearbeiten – gleiche Schwelle wie Publish
- * (`canWriteContext` auf dem Dokument-Kontext, vgl. `canPublishDocument`).
+ * Who may PATCH the shared lead draft: scope lead (publish), scope author, or personal owner.
  */
 export async function canEditLeadDraft(
   prisma: PrismaClient,
   userId: string,
   documentId: string
 ): Promise<boolean> {
-  return canPublishDocument(prisma, userId, documentId);
+  if (await canPublishDocument(prisma, userId, documentId)) return true;
+
+  const loaded = await loadPermissionSubjectAndBaseDecision(
+    prisma,
+    userId,
+    documentId,
+    GrantRole.Write,
+    () => new Set<string>()
+  );
+  if (!loaded) return false;
+  if (loaded.baseDecision === true) return false;
+
+  const { doc, user } = loaded.subject;
+  const owner = getDocumentOwner(doc);
+  if (isPersonalContextDocumentOwner(owner, userId)) return true;
+  return isScopeAuthorForDocument(user, doc);
 }
 
 /**
- * Lesen des Lead-Drafts: nur wer schreiben darf (Autor) oder Lead/Publish-Recht hat.
- * Reine Leser (nur Read / Kontext-Lesen) → false (Plan: Lead-Draft nicht für Read-only).
+ * Read lead draft: anyone who can write or edit the draft.
  */
 export async function canReadLeadDraft(
   prisma: PrismaClient,
   userId: string,
   documentId: string
 ): Promise<boolean> {
-  const [write, lead] = await Promise.all([
+  const [write, edit] = await Promise.all([
     canWrite(prisma, userId, documentId),
     canEditLeadDraft(prisma, userId, documentId),
   ]);
-  return write || lead;
+  return write || edit;
 }

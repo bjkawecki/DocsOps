@@ -1,7 +1,6 @@
 import type { PrismaClient, GrantRole } from '../../../../../generated/prisma/client.js';
 import {
   listUserIdsWhoCanReadDocument,
-  listUserIdsWhoCanWriteContext,
   listUserIdsWhoCanWriteDocument,
 } from '../../../notifications/services/notificationRecipients.js';
 import { changedUserIdsFromBeforeAfter } from '../route-support/documentRouteSupport.js';
@@ -17,9 +16,10 @@ const documentContextOwnerSelect = {
   team: {
     select: { departmentId: true, department: { select: { companyId: true } } },
   },
+  department: { select: { companyId: true } },
 } as const;
 
-const listCandidateUsersDocumentSelect = {
+const documentOwnerContextSelect = {
   contextId: true,
   context: {
     select: {
@@ -33,6 +33,59 @@ const listCandidateUsersDocumentSelect = {
     },
   },
 } as const;
+
+type OwnerRow = {
+  ownerUserId: string | null;
+  companyId: string | null;
+  departmentId: string | null;
+  teamId: string | null;
+  team: { departmentId: string; department: { companyId: string } } | null;
+  department: { companyId: string } | null;
+};
+
+export type ResolvedDocumentOwnerScope =
+  | { kind: 'personal'; ownerUserId: string }
+  | { kind: 'team'; teamId: string; departmentId: string; companyId: string }
+  | { kind: 'department'; departmentId: string; companyId: string }
+  | { kind: 'company'; companyId: string }
+  | { kind: 'none' };
+
+export function resolveDocumentOwnerFromContext(
+  doc: {
+    context?: {
+      process?: { owner: OwnerRow } | null;
+      project?: { owner: OwnerRow } | null;
+      subcontext?: { project?: { owner: OwnerRow } | null } | null;
+    } | null;
+  } | null
+): OwnerRow | null {
+  return (
+    doc?.context?.process?.owner ??
+    doc?.context?.project?.owner ??
+    doc?.context?.subcontext?.project?.owner ??
+    null
+  );
+}
+
+/** Most specific owner unit first (do not treat team-owned docs as company-owned). */
+export function resolveDocumentOwnerScope(owner: OwnerRow | null): ResolvedDocumentOwnerScope {
+  if (!owner) return { kind: 'none' };
+  if (owner.ownerUserId != null) return { kind: 'personal', ownerUserId: owner.ownerUserId };
+  if (owner.teamId != null) {
+    const departmentId = owner.departmentId ?? owner.team?.departmentId;
+    const companyId = owner.companyId ?? owner.team?.department?.companyId;
+    if (departmentId == null || companyId == null) return { kind: 'none' };
+    return { kind: 'team', teamId: owner.teamId, departmentId, companyId };
+  }
+  if (owner.departmentId != null) {
+    const companyId =
+      owner.companyId ?? owner.team?.department?.companyId ?? owner.department?.companyId ?? null;
+    if (companyId == null) return { kind: 'none' };
+    return { kind: 'department', departmentId: owner.departmentId, companyId };
+  }
+  if (owner.companyId != null) return { kind: 'company', companyId: owner.companyId };
+  return { kind: 'none' };
+}
 
 async function readWriteUnion(prisma: PrismaClient, documentId: string): Promise<Set<string>> {
   const [readIds, writeIds] = await Promise.all([
@@ -54,18 +107,26 @@ async function grantReplaceChangedUsers(
   return changedUserIdsFromBeforeAfter({ before, afterRead, afterWrite });
 }
 
+function assertReadOnlyUserGrants(grants: Array<{ role: 'Read' | 'Write' }>): void {
+  if (grants.some((g) => g.role === 'Write')) {
+    throw new UnsupportedScopeWriteGrantError(
+      'Document write grants are not supported. Manage authors on the team or department page.'
+    );
+  }
+}
+
 export async function getDocumentGrants(prisma: PrismaClient, documentId: string) {
   const [grantUser, grantTeam, grantDepartment] = await Promise.all([
     prisma.documentGrantUser.findMany({
-      where: { documentId },
+      where: { documentId, role: GrantRole.Read },
       select: { userId: true, role: true },
     }),
     prisma.documentGrantTeam.findMany({
-      where: { documentId },
+      where: { documentId, role: GrantRole.Read },
       select: { teamId: true, role: true },
     }),
     prisma.documentGrantDepartment.findMany({
-      where: { documentId },
+      where: { documentId, role: GrantRole.Read },
       select: { departmentId: true, role: true },
     }),
   ]);
@@ -76,105 +137,53 @@ export async function getDocumentGrants(prisma: PrismaClient, documentId: string
   };
 }
 
-export async function listCandidateUsersForDocumentGrants(
-  prisma: PrismaClient,
-  documentId: string
-) {
+export async function listReadGrantCandidates(prisma: PrismaClient, documentId: string) {
   const doc = await prisma.document.findUnique({
     where: { id: documentId },
-    select: listCandidateUsersDocumentSelect,
+    select: documentOwnerContextSelect,
   });
   if (!doc) return null;
 
-  const owner =
-    doc.context?.process?.owner ??
-    doc.context?.project?.owner ??
-    doc.context?.subcontext?.project?.owner ??
-    null;
-
-  const ownerUserId = owner?.ownerUserId ?? null;
-  const ownerCompanyId = owner?.companyId ?? owner?.team?.department?.companyId ?? null;
-  const ownerDepartmentId = owner?.departmentId ?? owner?.team?.departmentId ?? null;
-  const ownerTeamId = owner?.teamId ?? null;
-
-  const scopeUserIds = new Set<string>();
-  if (ownerUserId != null) scopeUserIds.add(ownerUserId);
-  if (ownerCompanyId != null) {
-    const [members, teamLeads, departmentLeads, companyLeads] = await Promise.all([
-      prisma.teamMember.findMany({
-        where: { team: { department: { companyId: ownerCompanyId } } },
-        select: { userId: true },
-      }),
-      prisma.teamLead.findMany({
-        where: { team: { department: { companyId: ownerCompanyId } } },
-        select: { userId: true },
-      }),
-      prisma.departmentLead.findMany({
-        where: { department: { companyId: ownerCompanyId } },
-        select: { userId: true },
-      }),
-      prisma.companyLead.findMany({
-        where: { companyId: ownerCompanyId },
-        select: { userId: true },
-      }),
-    ]);
-    for (const row of members) scopeUserIds.add(row.userId);
-    for (const row of teamLeads) scopeUserIds.add(row.userId);
-    for (const row of departmentLeads) scopeUserIds.add(row.userId);
-    for (const row of companyLeads) scopeUserIds.add(row.userId);
-  } else if (ownerDepartmentId != null) {
-    const [members, teamLeads, departmentLeads] = await Promise.all([
-      prisma.teamMember.findMany({
-        where: { team: { departmentId: ownerDepartmentId } },
-        select: { userId: true },
-      }),
-      prisma.teamLead.findMany({
-        where: { team: { departmentId: ownerDepartmentId } },
-        select: { userId: true },
-      }),
-      prisma.departmentLead.findMany({
-        where: { departmentId: ownerDepartmentId },
-        select: { userId: true },
-      }),
-    ]);
-    for (const row of members) scopeUserIds.add(row.userId);
-    for (const row of teamLeads) scopeUserIds.add(row.userId);
-    for (const row of departmentLeads) scopeUserIds.add(row.userId);
-  } else if (ownerTeamId != null) {
-    const [members, teamLeads] = await Promise.all([
-      prisma.teamMember.findMany({
-        where: { teamId: ownerTeamId },
-        select: { userId: true },
-      }),
-      prisma.teamLead.findMany({
-        where: { teamId: ownerTeamId },
-        select: { userId: true },
-      }),
-    ]);
-    for (const row of members) scopeUserIds.add(row.userId);
-    for (const row of teamLeads) scopeUserIds.add(row.userId);
+  const ownerScope = resolveDocumentOwnerScope(resolveDocumentOwnerFromContext(doc));
+  if (ownerScope.kind === 'none' || ownerScope.kind === 'personal') {
+    return { teams: [], departments: [] };
   }
 
-  const implicitWriterIds =
-    doc.contextId != null
-      ? await listUserIdsWhoCanWriteContext(prisma, doc.contextId)
-      : (
-          await prisma.user.findMany({
-            where: { isAdmin: true, deletedAt: null },
-            select: { id: true },
-          })
-        ).map((u) => u.id);
-  const implicitWriterSet = new Set(implicitWriterIds);
-  const candidateIds = [...scopeUserIds].filter((id) => !implicitWriterSet.has(id));
-  if (candidateIds.length === 0) return { items: [] };
+  const companyId = ownerScope.companyId;
+  const excludeTeamId = ownerScope.kind === 'team' ? ownerScope.teamId : null;
+  const excludeDepartmentId =
+    ownerScope.kind === 'team'
+      ? ownerScope.departmentId
+      : ownerScope.kind === 'department'
+        ? ownerScope.departmentId
+        : null;
 
-  const users = await prisma.user.findMany({
-    where: { id: { in: candidateIds }, deletedAt: null },
-    select: { id: true, name: true, email: true },
-    orderBy: [{ name: 'asc' }, { email: 'asc' }],
-  });
+  const [teams, departments] = await Promise.all([
+    prisma.team.findMany({
+      where: {
+        department: { companyId },
+        ...(excludeTeamId != null ? { id: { not: excludeTeamId } } : {}),
+      },
+      select: { id: true, name: true, department: { select: { name: true } } },
+      orderBy: [{ name: 'asc' }],
+    }),
+    prisma.department.findMany({
+      where: {
+        companyId,
+        ...(excludeDepartmentId != null ? { id: { not: excludeDepartmentId } } : {}),
+      },
+      select: { id: true, name: true },
+      orderBy: [{ name: 'asc' }],
+    }),
+  ]);
+
   return {
-    items: users.map((u) => ({ id: u.id, name: u.name ?? u.email ?? u.id, email: u.email })),
+    teams: teams.map((t) => ({
+      id: t.id,
+      name: t.name,
+      departmentName: t.department.name,
+    })),
+    departments: departments.map((d) => ({ id: d.id, name: d.name })),
   };
 }
 
@@ -182,6 +191,7 @@ export async function replaceDocumentUserGrants(
   prisma: PrismaClient,
   args: { documentId: string; grants: Array<{ userId: string; role: 'Read' | 'Write' }> }
 ) {
+  assertReadOnlyUserGrants(args.grants);
   const before = await readWriteUnion(prisma, args.documentId);
   await prisma.documentGrantUser.deleteMany({ where: { documentId: args.documentId } });
   if (args.grants.length > 0) {
@@ -210,7 +220,7 @@ export async function replaceDocumentTeamGrants(
 ) {
   if (args.grants.some((g) => g.role === 'Write')) {
     throw new UnsupportedScopeWriteGrantError(
-      'Team write grants are not supported. Assign write access to individual users.'
+      'Team write grants are not supported. Manage authors on the team page.'
     );
   }
   const before = await readWriteUnion(prisma, args.documentId);
@@ -241,7 +251,7 @@ export async function replaceDocumentDepartmentGrants(
 ) {
   if (args.grants.some((g) => g.role === 'Write')) {
     throw new UnsupportedScopeWriteGrantError(
-      'Department write grants are not supported. Assign write access to individual users.'
+      'Department write grants are not supported. Manage authors on the department page.'
     );
   }
   const before = await readWriteUnion(prisma, args.documentId);

@@ -14,6 +14,10 @@ import {
   isTeamLeadInCompany,
   isTeamLeadInDepartment,
   isTeamMember,
+  isTeamAuthor,
+  isTeamAuthorInCompany,
+  isTeamAuthorInDepartment,
+  isDepartmentAuthor,
   loadActiveUser,
   type LoadedUser,
 } from './userAccessPredicates.js';
@@ -50,14 +54,17 @@ export function evaluateScopeCapability(
 
   if (effectiveCapability === 'view') {
     if (teamId) {
-      if (isTeamMember(user, teamId) || isTeamLead(user, teamId)) return true;
+      if (isTeamMember(user, teamId) || isTeamLead(user, teamId) || isTeamAuthor(user, teamId))
+        return true;
       if (departmentId && isDepartmentLead(user, departmentId)) return true;
       if (companyId && isCompanyLead(user, companyId)) return true;
       return false;
     }
     if (departmentId) {
       if (isDepartmentLead(user, departmentId)) return true;
+      if (isDepartmentAuthor(user, departmentId)) return true;
       if (isTeamLeadInDepartment(user, departmentId)) return true;
+      if (isTeamAuthorInDepartment(user, departmentId)) return true;
       if (isMemberInDepartment(user, departmentId)) return true;
       if (companyId && isCompanyLead(user, companyId)) return true;
       return false;
@@ -66,6 +73,7 @@ export function evaluateScopeCapability(
       if (isCompanyLead(user, companyId)) return true;
       if (isDeptLeadInCompany(user, companyId)) return true;
       if (isTeamLeadInCompany(user, companyId)) return true;
+      if (isTeamAuthorInCompany(user, companyId)) return true;
       if (isMemberInCompany(user, companyId)) return true;
       return false;
     }
@@ -104,11 +112,11 @@ export function evaluateScopePeopleCapability(
 
   if (teamId) {
     if (companyId && isCompanyLead(user, companyId)) return true;
-    return isTeamMember(user, teamId) || isTeamLead(user, teamId);
+    return isTeamMember(user, teamId) || isTeamLead(user, teamId) || isTeamAuthor(user, teamId);
   }
   if (departmentId) {
     if (companyId && isCompanyLead(user, companyId)) return true;
-    return isDepartmentLead(user, departmentId);
+    return isDepartmentLead(user, departmentId) || isDepartmentAuthor(user, departmentId);
   }
   if (companyId) {
     return isCompanyLead(user, companyId);
@@ -119,12 +127,22 @@ export function evaluateScopePeopleCapability(
 function enrichHierarchyFromUser(user: LoadedUser, hierarchy: ScopeHierarchy): ScopeHierarchy {
   const enriched = { ...hierarchy };
   if (enriched.teamId && !enriched.departmentId) {
-    const teamRel =
-      user.teamMemberships.find((m) => m.team.id === enriched.teamId) ??
-      user.leadOfTeams.find((l) => l.teamId === enriched.teamId);
-    if (teamRel) {
-      enriched.departmentId = teamRel.team.departmentId;
-      enriched.companyId ??= teamRel.team.department.companyId;
+    const membership = user.teamMemberships.find((m) => m.team.id === enriched.teamId);
+    if (membership) {
+      enriched.departmentId = membership.team.departmentId;
+      enriched.companyId ??= membership.team.department.companyId;
+    } else {
+      const lead = user.leadOfTeams.find((l) => l.teamId === enriched.teamId);
+      if (lead) {
+        enriched.departmentId = lead.team.departmentId;
+        enriched.companyId ??= lead.team.department.companyId;
+      } else {
+        const author = user.authorOfTeams.find((a) => a.teamId === enriched.teamId);
+        if (author) {
+          enriched.departmentId = author.team.departmentId;
+          enriched.companyId ??= author.team.department.companyId;
+        }
+      }
     }
   }
   if (enriched.departmentId && !enriched.companyId) {
@@ -136,6 +154,14 @@ function enrichHierarchyFromUser(user: LoadedUser, hierarchy: ScopeHierarchy): S
         (m) => m.team.departmentId === enriched.departmentId
       );
       if (member) enriched.companyId = member.team.department.companyId;
+      const authorTeam = user.authorOfTeams.find(
+        (a) => a.team.departmentId === enriched.departmentId
+      );
+      if (authorTeam) enriched.companyId = authorTeam.team.department.companyId;
+      const deptAuthor = user.authorOfDepartments.find(
+        (a) => a.departmentId === enriched.departmentId
+      );
+      if (deptAuthor) enriched.companyId = deptAuthor.department.companyId;
     }
   }
   return enriched;

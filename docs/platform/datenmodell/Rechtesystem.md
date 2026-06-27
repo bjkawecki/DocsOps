@@ -94,19 +94,23 @@ Leserechte werden nach oben vererbt.
 
 Schreibrechte sind nicht vererbbar.
 
-**Regel:** Ein Nutzer darf ein Dokument **bearbeiten** (Inhalt ändern; im Zielmodell: **Suggestions** einreichen, nicht den Lead-Draft direkt ändern), wenn er Lead der Owner-Unit ist **oder** explizit Schreibrechte (Writer-Grant) auf diesem Dokument erhalten hat. Keine automatische Schreibvererbung nach oben oder unten. Die **Freigabe einer neuen veröffentlichten Version** (Publish aus dem Lead-Draft) bleibt Scope-Lead vorbehalten (siehe 6b).
+**Regel:** Ein Nutzer darf den **gemeinsamen Lead-Draft** bearbeiten, wenn er **Scope Author** der Owner-Unit ist (TeamAuthor / DepartmentAuthor) oder Owner eines persönlichen Kontexts (`ownerUserId`). Scope Lead darf ebenfalls bearbeiten und **publish**. Keine parallelen Suggestion-Workflows. Publish bleibt Scope-Lead vorbehalten (siehe 6b).
 
-**Erstellen und Löschen** (Dokumente anlegen oder löschen, Kontexte anlegen oder löschen) sind **nur** dem **Scope-Lead** (und Admin, Owner von persönlichem Prozess/Projekt via ownerUserId) vorbehalten. Ein expliziter Writer-Grant berechtigt **nicht** zum Erstellen oder Löschen.
+**Scope Author:** Exklusive Stufe neben Member und Lead (Member **oder** Author **oder** Lead pro Team). Team Lead befördert bestehende Team Members zu Authors auf der Team-Seite; Department Lead analog.
 
-**Beispiel:** Department-Lead kann Team-Dokument lesen, aber nicht bearbeiten (außer über expliziten Grant). Ein Nutzer mit nur Writer-Grant darf das Dokument bearbeiten, aber nicht löschen.
+**Document Grants:** Nur noch **Read** – für Cross-Scope-Zugriff (externe Teams/Departments). Verwaltung durch Scope Lead im Document-Access-Tab.
+
+**Erstellen und Löschen** (Dokumente anlegen oder löschen, Kontexte anlegen oder löschen) sind **nur** dem **Scope-Lead** (und Admin, Owner von persönlichem Prozess/Projekt via ownerUserId) vorbehalten. Scope Authors berechtigen **nicht** zum Anlegen, Löschen oder Publish.
+
+**Beispiel:** Department-Lead liest Team-Dokument (Vererbung), bearbeitet es nicht (kein Team-Author). Ein Team Author im Owner-Team darf den Lead-Draft direkt speichern, aber nicht löschen oder veröffentlichen.
 
 ---
 
 ### 6a. Reader / Writer / Create-Delete
 
-- **Reader:** Expliziter Lese-Grant (GrantRole Read). Berechtigt zum Lesen des Dokuments.
-- **Writer:** Expliziter Schreib-Grant (GrantRole Write). Berechtigt zur **Bearbeitung** im Sinne des Produktmodells (**Suggestions** an veröffentlichte Inhalte; kein direktes Überschreiben der Published-Version); **nicht** zum Anlegen, Löschen oder **Veröffentlichen/Freigeben** neuer Versionen von Dokumenten/Kontexten.
-- **Create/Delete:** Dokumente und Kontexte anlegen oder löschen dürfen nur **Scope-Lead** (Team Lead, Department Lead, Company Lead je nach Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId).
+- **Reader:** Expliziter Lese-Grant (GrantRole Read) für Cross-Scope-Zugriff.
+- **Author (Scope Author):** TeamAuthor / DepartmentAuthor – Lead-Draft bearbeiten auf alle Docs der Owner-Unit; **nicht** Publish/Create/Delete.
+- **Create/Delete/Publish:** Scope Lead, Admin, persönlicher Owner.
 
 ---
 
@@ -114,7 +118,7 @@ Schreibrechte sind nicht vererbbar.
 
 <span id="6b-freigabe-publish"></span>
 
-**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur Scope-Lead** (Team Lead, Department Lead, Company Lead der Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId). Ein **Writer-Grant** berechtigt zum Einreichen von **Suggestions**, **nicht** zur finalen Freigabe. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [Edit-System-Plan](../../plan/Edit-System-Blocks-Suggestions-Lead-Draft.md).
+**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur Scope-Lead** (Team Lead, Department Lead, Company Lead der Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId). Scope Authors speichern im gemeinsamen Draft; die Freigabe erfolgt ausschließlich durch Publish durch den Lead. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [ADR 003](../adr/003-scope-author-direct-draft.md).
 
 ---
 

@@ -6,7 +6,7 @@ const userPresenceSelect = { id: true, name: true, lastActiveAt: true } as const
 export type PersonRow = {
   id: string;
   name: string;
-  roles?: ('member' | 'lead')[];
+  roles?: ('member' | 'author' | 'lead')[];
   isOnline: boolean;
   lastActiveAt: string | null;
 };
@@ -19,7 +19,7 @@ type UserPresenceRow = {
 
 function toPersonRow(
   user: UserPresenceRow,
-  roles?: ('member' | 'lead')[],
+  roles?: ('member' | 'author' | 'lead')[],
   now = new Date()
 ): PersonRow {
   return {
@@ -47,7 +47,7 @@ function uniqueUsersById(users: UserPresenceRow[]): UserPresenceRow[] {
 
 export async function getTeamPeople(prisma: PrismaClient, teamId: string) {
   const now = new Date();
-  const [members, leads] = await Promise.all([
+  const [members, leads, authors] = await Promise.all([
     prisma.teamMember.findMany({
       where: { teamId },
       include: { user: { select: userPresenceSelect } },
@@ -58,12 +58,23 @@ export async function getTeamPeople(prisma: PrismaClient, teamId: string) {
       include: { user: { select: userPresenceSelect } },
       orderBy: { user: { name: 'asc' } },
     }),
+    prisma.teamAuthor.findMany({
+      where: { teamId },
+      include: { user: { select: userPresenceSelect } },
+      orderBy: { user: { name: 'asc' } },
+    }),
   ]);
 
-  const byId = new Map<string, { user: UserPresenceRow; roles: Set<'member' | 'lead'> }>();
+  const byId = new Map<
+    string,
+    { user: UserPresenceRow; roles: Set<'member' | 'author' | 'lead'> }
+  >();
   for (const m of members) {
-    const roles = new Set<'member' | 'lead'>(['member']);
+    const roles = new Set<'member' | 'author' | 'lead'>(['member']);
     byId.set(m.user.id, { user: m.user, roles });
+  }
+  for (const a of authors) {
+    byId.set(a.user.id, { user: a.user, roles: new Set(['author']) });
   }
   for (const l of leads) {
     const existing = byId.get(l.user.id);
@@ -87,8 +98,13 @@ export async function getTeamPeople(prisma: PrismaClient, teamId: string) {
 
 export async function getDepartmentPeople(prisma: PrismaClient, departmentId: string) {
   const now = new Date();
-  const [departmentLeadRows, teams] = await Promise.all([
+  const [departmentLeadRows, departmentAuthorRows, teams] = await Promise.all([
     prisma.departmentLead.findMany({
+      where: { departmentId },
+      include: { user: { select: userPresenceSelect } },
+      orderBy: { user: { name: 'asc' } },
+    }),
+    prisma.departmentAuthor.findMany({
       where: { departmentId },
       include: { user: { select: userPresenceSelect } },
       orderBy: { user: { name: 'asc' } },
@@ -101,6 +117,7 @@ export async function getDepartmentPeople(prisma: PrismaClient, departmentId: st
   ]);
 
   const departmentLeads = departmentLeadRows.map((r) => toPersonRow(r.user, ['lead'], now));
+  const departmentAuthors = departmentAuthorRows.map((r) => toPersonRow(r.user, ['author'], now));
 
   const teamIds = teams.map((t) => t.id);
   const [allMembers, allLeads] =
@@ -159,12 +176,14 @@ export async function getDepartmentPeople(prisma: PrismaClient, departmentId: st
 
   const allPeople = uniqueUsersById([
     ...departmentLeadRows.map((r) => r.user),
+    ...departmentAuthorRows.map((r) => r.user),
     ...allMembers.map((m) => m.user),
     ...allLeads.map((l) => l.user),
   ]);
 
   return {
     departmentLeads,
+    departmentAuthors,
     teams: teamsOut,
     summary: {
       peopleCount: allPeople.length,

@@ -43,3 +43,8 @@ export const departmentIdUserIdParamSchema = z.object({
 export const addAssignmentBodySchema = z.object({
   userId: z.cuid(),
 });
+
+/** Query: teamId required when demoting a department author back to team member. */
+export const demoteDepartmentAuthorQuerySchema = z.object({
+  teamId: z.cuid(),
+});

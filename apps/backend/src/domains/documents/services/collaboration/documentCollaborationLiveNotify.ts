@@ -1,12 +1,13 @@
-import type { PrismaClient } from '../../../../../generated/prisma/client.js';
+import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { notifyDocumentCollaborationChangedManyFireAndForget } from '../../../../infrastructure/liveEvents/documentCollaborationLiveEvents.js';
+import { notifyDraftPresenceChangedManyFireAndForget } from '../../../../infrastructure/liveEvents/draftPresenceLiveEvents.js';
 import {
   excludeUserIds,
   listUserIdsWhoCanReadDocument,
   listUserIdsWhoCanReadLeadDraft,
 } from '../../../notifications/services/notificationRecipients.js';
 
-/** SSE to users who can see lead-draft and suggestions (writers + scope leads). */
+/** SSE to users who can see the lead draft after a save. */
 export function notifyLeadDraftCollaborationChanged(
   prisma: PrismaClient,
   documentId: string,
@@ -18,6 +19,21 @@ export function notifyLeadDraftCollaborationChanged(
       actorUserId
     );
     notifyDocumentCollaborationChangedManyFireAndForget(prisma, userIds, documentId);
+  })();
+}
+
+/** SSE after draft editor presence changes. */
+export function notifyDraftPresenceChanged(
+  prisma: PrismaClient,
+  documentId: string,
+  actorUserId?: string | null
+): void {
+  void (async () => {
+    const userIds = excludeUserIds(
+      await listUserIdsWhoCanReadLeadDraft(prisma, documentId),
+      actorUserId
+    );
+    notifyDraftPresenceChangedManyFireAndForget(prisma, userIds, documentId);
   })();
 }
 

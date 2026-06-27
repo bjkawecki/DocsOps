@@ -71,18 +71,31 @@ describe('assignments routes (scope role exclusivity)', () => {
   });
 
   afterAll(async () => {
-    await prisma.teamLead.deleteMany({ where: { teamId } });
-    await prisma.teamMember.deleteMany({ where: { teamId } });
-    await prisma.team.deleteMany({ where: { id: teamId } });
-    await prisma.department.deleteMany({ where: { id: departmentId } });
-    await prisma.company.deleteMany({ where: { id: companyId } });
-    await prisma.session.deleteMany({
-      where: { userId: { in: [adminId, platformAdminId, plainUserId] } },
-    });
-    await prisma.user.deleteMany({
-      where: { id: { in: [adminId, platformAdminId, plainUserId] } },
-    });
-    await app.close();
+    try {
+      const userIds = [adminId, platformAdminId, plainUserId].filter(Boolean);
+      if (userIds.length > 0) {
+        await prisma.departmentAuthor.deleteMany({ where: { userId: { in: userIds } } });
+        await prisma.teamAuthor.deleteMany({ where: { userId: { in: userIds } } });
+        await prisma.session.deleteMany({ where: { userId: { in: userIds } } });
+        await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+      }
+      if (teamId) {
+        await prisma.teamAuthor.deleteMany({ where: { teamId } });
+        await prisma.teamLead.deleteMany({ where: { teamId } });
+        await prisma.teamMember.deleteMany({ where: { teamId } });
+        await prisma.team.deleteMany({ where: { id: teamId } });
+      }
+      if (departmentId) {
+        await prisma.departmentLead.deleteMany({ where: { departmentId } });
+        await prisma.departmentAuthor.deleteMany({ where: { departmentId } });
+        await prisma.department.deleteMany({ where: { id: departmentId } });
+      }
+      if (companyId) {
+        await prisma.company.deleteMany({ where: { id: companyId } });
+      }
+    } finally {
+      await app?.close();
+    }
   });
 
   async function loginAsAdmin(): Promise<string> {
@@ -128,5 +141,72 @@ describe('assignments routes (scope role exclusivity)', () => {
       payload: { userId: plainUserId },
     });
     expect(res.statusCode).toBe(409);
+  });
+
+  it('POST team author requires membership → promote member to author', async () => {
+    const cookie = await loginAsAdmin();
+    await prisma.teamLead.deleteMany({ where: { teamId, userId: plainUserId } });
+    await prisma.teamAuthor.deleteMany({ where: { teamId, userId: plainUserId } });
+    await prisma.teamMember.deleteMany({ where: { teamId, userId: plainUserId } });
+
+    const noMember = await app.inject({
+      method: 'POST',
+      url: `/api/v1/teams/${teamId}/authors`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { userId: plainUserId },
+    });
+    expect(noMember.statusCode).toBe(409);
+
+    await app.inject({
+      method: 'POST',
+      url: `/api/v1/teams/${teamId}/members`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { userId: plainUserId },
+    });
+
+    const promote = await app.inject({
+      method: 'POST',
+      url: `/api/v1/teams/${teamId}/authors`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { userId: plainUserId },
+    });
+    expect(promote.statusCode).toBe(201);
+
+    const demote = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/teams/${teamId}/authors/${plainUserId}`,
+      headers: { cookie },
+    });
+    expect(demote.statusCode).toBe(204);
+  });
+
+  it('POST department author and demote with teamId query', async () => {
+    const cookie = await loginAsAdmin();
+    await prisma.teamLead.deleteMany({ where: { teamId, userId: plainUserId } });
+    await prisma.teamAuthor.deleteMany({ where: { teamId, userId: plainUserId } });
+    await prisma.departmentAuthor.deleteMany({ where: { departmentId, userId: plainUserId } });
+    await prisma.teamMember.deleteMany({ where: { teamId, userId: plainUserId } });
+
+    await app.inject({
+      method: 'POST',
+      url: `/api/v1/teams/${teamId}/members`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { userId: plainUserId },
+    });
+
+    const promote = await app.inject({
+      method: 'POST',
+      url: `/api/v1/departments/${departmentId}/authors`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { userId: plainUserId },
+    });
+    expect(promote.statusCode).toBe(201);
+
+    const demote = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/departments/${departmentId}/authors/${plainUserId}?teamId=${teamId}`,
+      headers: { cookie },
+    });
+    expect(demote.statusCode).toBe(204);
   });
 });

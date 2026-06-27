@@ -1,6 +1,19 @@
-export type UserRole = 'User' | 'Team Lead' | 'Department Lead' | 'Company Lead' | 'Admin';
+export type UserRole =
+  | 'User'
+  | 'Team Author'
+  | 'Team Lead'
+  | 'Department Author'
+  | 'Department Lead'
+  | 'Company Lead'
+  | 'Admin';
 
-export type UserTeam = { id: string; name: string; departmentName: string; isLead?: boolean };
+export type UserTeam = {
+  id: string;
+  name: string;
+  departmentName: string;
+  isLead?: boolean;
+  isAuthor?: boolean;
+};
 export type UserDepartment = { id: string; name: string };
 
 export type UserRow = {
@@ -13,6 +26,7 @@ export type UserRow = {
   teams: UserTeam[];
   departments: UserDepartment[];
   departmentsAsLead?: UserDepartment[];
+  departmentsAsAuthor?: UserDepartment[];
 };
 
 export type ListUsersRes = {

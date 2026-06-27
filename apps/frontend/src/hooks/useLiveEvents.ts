@@ -21,6 +21,11 @@ type LiveClientEvent =
       v: 1;
       type: 'document.collaboration-changed';
       payload: { documentId: string };
+    }
+  | {
+      v: 1;
+      type: 'document.draft-presence';
+      payload: { documentId: string; editors: Array<{ userId: string; name: string }> };
     };
 
 function invalidateDocumentCollaborationQueries(
@@ -29,8 +34,15 @@ function invalidateDocumentCollaborationQueries(
 ): void {
   void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
   void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-  void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'suggestions'] });
   void queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
+}
+
+function applyDraftPresencePayload(
+  queryClient: ReturnType<typeof useQueryClient>,
+  documentId: string,
+  editors: Array<{ userId: string; name: string }>
+): void {
+  queryClient.setQueryData(['document', documentId, 'draft-presence'], editors);
 }
 
 function getFallbackPollSeconds(): number {
@@ -86,6 +98,27 @@ function parseLiveClientEvent(data: string): LiveClientEvent | null {
         v: 1,
         type: 'document.collaboration-changed',
         payload: { documentId },
+      };
+    }
+    if (event.type === 'document.draft-presence') {
+      const payload = event.payload;
+      if (payload == null || typeof payload !== 'object') return null;
+      const p = payload as Record<string, unknown>;
+      const documentId = p.documentId;
+      if (typeof documentId !== 'string' || documentId.length === 0) return null;
+      const editorsRaw = p.editors;
+      if (!Array.isArray(editorsRaw)) return null;
+      const editors: Array<{ userId: string; name: string }> = [];
+      for (const entry of editorsRaw) {
+        if (entry == null || typeof entry !== 'object') return null;
+        const row = entry as Record<string, unknown>;
+        if (typeof row.userId !== 'string' || typeof row.name !== 'string') return null;
+        editors.push({ userId: row.userId, name: row.name });
+      }
+      return {
+        v: 1,
+        type: 'document.draft-presence',
+        payload: { documentId, editors },
       };
     }
     return null;
@@ -148,6 +181,10 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
       }
       if (event.type === 'document.collaboration-changed') {
         invalidateDocumentCollaborationQueries(queryClient, event.payload.documentId);
+        return;
+      }
+      if (event.type === 'document.draft-presence') {
+        applyDraftPresencePayload(queryClient, event.payload.documentId, event.payload.editors);
         return;
       }
       queryClient.setQueryData(maintenanceStatusQueryKey(), event.payload);

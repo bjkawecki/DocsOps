@@ -2,25 +2,25 @@ import { Badge, Box, Group, Pagination, Stack, Table, Tabs, Text } from '@mantin
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { useMeReviews, type ReviewSuggestionItem } from '../../hooks/useMeReviews';
+import {
+  useMeReviews,
+  type ReviewDraftChangeDocumentItem,
+  type ReviewMyDraftChangeItem,
+} from '../../hooks/useMeReviews';
 import { formatTableDate } from '../../lib/formatDate';
 
 const PAGE_SIZE = 20;
 
-function documentLink(item: ReviewSuggestionItem, editTab: 'draft' | 'suggestions'): string {
-  return `/documents/${item.documentId}?mode=edit&tab=${editTab}`;
+function documentDraftLink(documentId: string): string {
+  return `/documents/${documentId}?mode=edit&tab=draft`;
 }
 
-function ReviewsTable({
+function PendingReviewsTable({
   items,
   emptyLabel,
-  linkTab,
-  showAuthor,
 }: {
-  items: ReviewSuggestionItem[];
+  items: ReviewDraftChangeDocumentItem[];
   emptyLabel: string;
-  linkTab: 'draft' | 'suggestions';
-  showAuthor: boolean;
 }) {
   if (items.length === 0) {
     return (
@@ -35,19 +35,19 @@ function ReviewsTable({
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Document</Table.Th>
-          {showAuthor && <Table.Th>Author</Table.Th>}
+          <Table.Th>Author</Table.Th>
           <Table.Th>Scope</Table.Th>
-          <Table.Th>Status</Table.Th>
-          <Table.Th>Submitted</Table.Th>
+          <Table.Th>Changes</Table.Th>
+          <Table.Th>Last change</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
         {items.map((item) => (
-          <Table.Tr key={item.suggestionId}>
+          <Table.Tr key={item.documentId}>
             <Table.Td>
               <Text
                 component={Link}
-                to={documentLink(item, linkTab)}
+                to={documentDraftLink(item.documentId)}
                 size="sm"
                 fw={500}
                 style={{ textDecoration: 'none', color: 'inherit' }}
@@ -60,21 +60,81 @@ function ReviewsTable({
                 </Text>
               )}
             </Table.Td>
-            {showAuthor && (
-              <Table.Td>
-                <Text size="sm">{item.authorName ?? 'Unknown'}</Text>
-              </Table.Td>
-            )}
+            <Table.Td>
+              <Text size="sm">{item.lastAuthorName ?? 'Unknown'}</Text>
+            </Table.Td>
             <Table.Td>
               <Text size="sm">{item.scopeName}</Text>
             </Table.Td>
             <Table.Td>
               <Badge size="sm" variant="light">
-                {item.status}
+                {item.changeCount}
               </Badge>
             </Table.Td>
             <Table.Td>
-              <Text size="sm">{formatTableDate(item.createdAt)}</Text>
+              <Text size="sm">{formatTableDate(item.lastChangeAt)}</Text>
+            </Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+}
+
+function MyChangesTable({
+  items,
+  emptyLabel,
+}: {
+  items: ReviewMyDraftChangeItem[];
+  emptyLabel: string;
+}) {
+  if (items.length === 0) {
+    return (
+      <Text size="sm" c="dimmed">
+        {emptyLabel}
+      </Text>
+    );
+  }
+
+  return (
+    <Table striped highlightOnHover withTableBorder>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Document</Table.Th>
+          <Table.Th>Scope</Table.Th>
+          <Table.Th>Revision</Table.Th>
+          <Table.Th>Saved</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {items.map((item) => (
+          <Table.Tr key={item.changeId}>
+            <Table.Td>
+              <Text
+                component={Link}
+                to={documentDraftLink(item.documentId)}
+                size="sm"
+                fw={500}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {item.documentTitle}
+              </Text>
+              {item.affectedBlockSummary && (
+                <Text size="xs" c="dimmed">
+                  {item.affectedBlockSummary}
+                </Text>
+              )}
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm">{item.scopeName}</Text>
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm">
+                {item.revisionFrom} → {item.revisionTo}
+              </Text>
+            </Table.Td>
+            <Table.Td>
+              <Text size="sm">{formatTableDate(item.savedAt)}</Text>
             </Table.Td>
           </Table.Tr>
         ))}
@@ -89,11 +149,11 @@ export function ReviewsPage() {
   const { data, isPending, isError } = useMeReviews({ limit: PAGE_SIZE, offset });
 
   const pending = data?.pendingForReview ?? [];
-  const mine = data?.mySuggestions ?? [];
+  const mine = data?.myChanges ?? [];
   const totalPages =
     Math.max(
       Math.ceil((data?.totalPendingForReview ?? 0) / PAGE_SIZE),
-      Math.ceil((data?.totalMySuggestions ?? 0) / PAGE_SIZE),
+      Math.ceil((data?.totalMyChanges ?? 0) / PAGE_SIZE),
       1
     ) || 1;
 
@@ -101,7 +161,7 @@ export function ReviewsPage() {
     <Box>
       <PageHeader
         title="Reviews"
-        description="Pending suggestions for scope leads and your own submitted suggestions."
+        description="Draft changes from scope authors awaiting lead review, and your own saves in the current draft cycle."
       />
       <Stack gap="md">
         {isError && (
@@ -118,8 +178,8 @@ export function ReviewsPage() {
                 : ''}
             </Tabs.Tab>
             <Tabs.Tab value="mine">
-              My suggestions
-              {data != null && data.totalMySuggestions > 0 ? ` (${data.totalMySuggestions})` : ''}
+              My draft changes
+              {data != null && data.totalMyChanges > 0 ? ` (${data.totalMyChanges})` : ''}
             </Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="pending" pt="md">
@@ -128,12 +188,7 @@ export function ReviewsPage() {
                 Loading…
               </Text>
             ) : (
-              <ReviewsTable
-                items={pending}
-                emptyLabel="No pending suggestions in your scopes."
-                linkTab="draft"
-                showAuthor
-              />
+              <PendingReviewsTable items={pending} emptyLabel="No draft changes in your scopes." />
             )}
           </Tabs.Panel>
           <Tabs.Panel value="mine" pt="md">
@@ -142,12 +197,7 @@ export function ReviewsPage() {
                 Loading…
               </Text>
             ) : (
-              <ReviewsTable
-                items={mine}
-                emptyLabel="You have no pending suggestions."
-                linkTab="suggestions"
-                showAuthor={false}
-              />
+              <MyChangesTable items={mine} emptyLabel="You have no draft changes in this cycle." />
             )}
           </Tabs.Panel>
         </Tabs>

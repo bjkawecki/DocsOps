@@ -1,12 +1,17 @@
 import type { FastifyInstance } from 'fastify';
 import { treeifyError } from 'zod';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
-import { requireAuthPreHandler, preHandlerWrap } from '../../auth/middleware.js';
+import {
+  requireAuthPreHandler,
+  preHandlerWrap,
+  type RequestWithUser,
+} from '../../auth/middleware.js';
 import {
   requireDocumentAccess,
   canModerateDocumentComments,
   canReadLeadDraft,
   canEditLeadDraft,
+  canPublishDocument,
 } from '../permissions/index.js';
 import { loadDocument } from '../permissions/canRead.js';
 import type { DocumentForPermission } from '../permissions/documentLoad.js';
@@ -41,8 +46,14 @@ import {
   routePrismaUserDocumentCommentIds,
   routePrismaUserDocumentId,
 } from './collaboration-route-helpers.js';
-import { registerCollaborationSuggestionRoutes } from './collaboration-suggestions.routes.js';
-import { notifyLeadDraftCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
+import {
+  notifyDraftPresenceChanged,
+  notifyLeadDraftCollaborationChanged,
+} from '../services/collaboration/documentCollaborationLiveNotify.js';
+import {
+  listDraftEditorPresence,
+  registerDraftEditorPresence,
+} from '../services/collaboration/draftPresenceRegistry.js';
 
 async function loadDocumentWithCommentModeration(
   prisma: PrismaClient,
@@ -93,7 +104,7 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** PATCH Lead-Draft – nur Scope-Lead (wie Publish); `expectedRevision` + optional konsistentes If-Match. */
+  /** PATCH Lead-Draft – scope lead, scope author, or personal owner; optimistic lock via expectedRevision. */
   app.patch<{ Params: { documentId: string } }>(
     '/documents/:documentId/lead-draft',
     {
@@ -104,7 +115,7 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
 
       const canEdit = await canEditLeadDraft(prisma, userId, documentId);
       if (!canEdit) {
-        return reply.status(403).send({ error: 'Nur der Scope-Lead darf den Lead-Draft ändern.' });
+        return reply.status(403).send({ error: 'You cannot edit this draft.' });
       }
 
       const body = patchLeadDraftBodySchema.parse(request.body);
@@ -122,10 +133,16 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
         }
       }
 
-      const patchResult = await patchLeadDraft(prisma, documentId, {
-        blocks: body.blocks,
-        expectedRevision: body.expectedRevision,
-      });
+      const isPublishLead = await canPublishDocument(prisma, userId, documentId);
+      const patchResult = await patchLeadDraft(
+        prisma,
+        documentId,
+        {
+          blocks: body.blocks,
+          expectedRevision: body.expectedRevision,
+        },
+        { userId, isPublishLead }
+      );
 
       if (!patchResult.ok) {
         if (patchResult.error === 'not_found') {
@@ -144,7 +161,9 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
       }
 
       reply.header('ETag', `"${patchResult.draftRevision}"`);
-      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      if (patchResult.hadContentChange) {
+        notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      }
       return reply.send({
         draftRevision: patchResult.draftRevision,
         blocks: patchResult.blocks,
@@ -153,7 +172,45 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  registerCollaborationSuggestionRoutes(app);
+  /** POST draft presence heartbeat (edit mode). */
+  app.post<{ Params: { documentId: string } }>(
+    '/documents/:documentId/draft/presence',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const canReadLead = await canReadLeadDraft(prisma, userId, documentId);
+      if (!canReadLead) {
+        return reply.status(403).send({ error: 'No access to draft presence.' });
+      }
+      const user = (request as RequestWithUser).user;
+      const name = user.name?.trim() || user.email || 'Unknown';
+      registerDraftEditorPresence(documentId, userId, name);
+      notifyDraftPresenceChanged(prisma, documentId, userId);
+      return reply.status(204).send();
+    }
+  );
+
+  /** GET current draft editors (polling fallback). */
+  app.get<{ Params: { documentId: string } }>(
+    '/documents/:documentId/draft/presence',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const canReadLead = await canReadLeadDraft(prisma, userId, documentId);
+      if (!canReadLead) {
+        return reply.status(403).send({ error: 'No access to draft presence.' });
+      }
+      const editors = listDraftEditorPresence(documentId).map((e) => ({
+        userId: e.userId,
+        name: e.name,
+      }));
+      return reply.send({ documentId, editors });
+    }
+  );
 
   /** GET users who can be @mentioned on this document (canRead). */
   app.get<{ Params: { documentId: string } }>(

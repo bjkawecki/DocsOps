@@ -117,6 +117,27 @@ export async function canManageCompanyLeads(
   return row.user.isAdmin;
 }
 
+/** Team lead (or dept lead/admin) may promote members to team authors. */
+export async function canManageTeamAuthors(
+  prisma: PrismaClient,
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  return canManageTeamMembers(prisma, userId, teamId);
+}
+
+/** Department lead (or admin) may promote members to department authors. */
+export async function canManageDepartmentAuthors(
+  prisma: PrismaClient,
+  userId: string,
+  departmentId: string
+): Promise<boolean> {
+  const row = await loadUserAndDepartment(prisma, userId, departmentId);
+  if (!row) return false;
+  if (row.user.isAdmin) return true;
+  return isDepartmentLead(row.user, departmentId);
+}
+
 /**
  * Returns company IDs the user is allowed to view (for filtering GET /companies).
  * Admin: all companies. Otherwise: companies where user is lead, dept lead, team lead, or member.
@@ -141,5 +162,9 @@ export async function getVisibleCompanyIds(
     if (l.team?.department?.companyId) ids.add(l.team.department.companyId);
   for (const m of user.teamMemberships)
     if (m.team?.department?.companyId) ids.add(m.team.department.companyId);
+  for (const a of user.authorOfTeams)
+    if (a.team?.department?.companyId) ids.add(a.team.department.companyId);
+  for (const a of user.authorOfDepartments)
+    if (a.department?.companyId) ids.add(a.department.companyId);
   return [...ids];
 }

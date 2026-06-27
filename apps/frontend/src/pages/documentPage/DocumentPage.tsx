@@ -42,7 +42,6 @@ export function DocumentPage() {
         editTab={vm.editTab}
         setEditTab={vm.setEditTab}
         leadDraftPanelRef={vm.leadDraftPanelRef}
-        suggestionsPanelRef={vm.suggestionsPanelRef}
         leadDraftLastSynced={vm.leadDraftLastSynced}
         leadDraftDirty={vm.leadDraftDirty}
         hasDraftBlocks={vm.hasDraftBlocks}
@@ -68,8 +67,6 @@ export function DocumentPage() {
         openDelete={vm.openDelete}
         openCreateTag={vm.openCreateTag}
         openManageTags={vm.openManageTags}
-        handleSuggestChangeFromView={vm.handleSuggestChangeFromView}
-        suggestionTargetBlockId={vm.suggestionTargetBlockId}
         collaborationPollInterval={vm.collaborationPollInterval}
       />
       <DocumentPageModals

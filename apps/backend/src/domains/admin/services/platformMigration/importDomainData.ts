@@ -356,6 +356,7 @@ export async function importDomainDataFromDirectory(
   await args.onPhase('importing_grants');
 
   for (const g of grants.users) {
+    if (g.role !== 'Read') continue;
     await prisma.documentGrantUser.create({
       data: {
         documentId: idMap.getOrThrow(g.documentExportId),
@@ -365,6 +366,7 @@ export async function importDomainDataFromDirectory(
     });
   }
   for (const g of grants.teams) {
+    if (g.role !== 'Read') continue;
     await prisma.documentGrantTeam.create({
       data: {
         documentId: idMap.getOrThrow(g.documentExportId),
@@ -374,6 +376,7 @@ export async function importDomainDataFromDirectory(
     });
   }
   for (const g of grants.departments) {
+    if (g.role !== 'Read') continue;
     await prisma.documentGrantDepartment.create({
       data: {
         documentId: idMap.getOrThrow(g.documentExportId),
@@ -459,44 +462,6 @@ export async function importDomainDataFromDirectory(
       },
     });
     idMap.set(c.exportId, created.id);
-  }
-
-  const suggestions = await readJson<
-    Array<{
-      exportId: string;
-      documentExportId: string;
-      authorExportId: string;
-      status: string;
-      baseDraftRevision: number;
-      publishedVersionExportId: string | null;
-      ops: Prisma.InputJsonValue;
-      createdAt: string;
-      updatedAt: string;
-      resolvedAt: string | null;
-      resolvedByExportId: string | null;
-      comment: string | null;
-    }>
-  >(join(args.bundleDir, 'suggestions.json'));
-
-  await args.onPhase('importing_suggestions');
-
-  for (const s of suggestions) {
-    const created = await prisma.documentSuggestion.create({
-      data: {
-        documentId: idMap.getOrThrow(s.documentExportId),
-        authorId: idMap.getOrThrow(s.authorExportId),
-        status: s.status as never,
-        baseDraftRevision: s.baseDraftRevision,
-        publishedVersionId: idMap.get(s.publishedVersionExportId),
-        ops: s.ops,
-        createdAt: new Date(s.createdAt),
-        updatedAt: new Date(s.updatedAt),
-        resolvedAt: s.resolvedAt ? new Date(s.resolvedAt) : null,
-        resolvedById: idMap.get(s.resolvedByExportId),
-        comment: s.comment,
-      },
-    });
-    idMap.set(s.exportId, created.id);
   }
 
   const attachmentsMap = await readJson<AttachmentsMap>(

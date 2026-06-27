@@ -42,6 +42,14 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
         companyLeads: {
           include: { company: true },
         },
+        authorOfTeams: {
+          include: {
+            team: { include: { department: true } },
+          },
+        },
+        authorOfDepartments: {
+          include: { department: true },
+        },
       },
     });
 
@@ -80,6 +88,28 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
         id: leadEntry.team.department.id,
         name: leadEntry.team.department.name,
       });
+      teamIdsInIdentity.add(leadEntry.team.id);
+    }
+
+    for (const authorEntry of user.authorOfTeams) {
+      if (teamIdsInIdentity.has(authorEntry.teamId)) {
+        const existing = teams.find((t) => t.teamId === authorEntry.teamId);
+        if (existing) existing.role = 'author';
+        continue;
+      }
+      teams.push({
+        teamId: authorEntry.team.id,
+        teamName: authorEntry.team.name,
+        departmentId: authorEntry.team.department.id,
+        departmentName: authorEntry.team.department.name,
+        companyId: authorEntry.team.department.companyId,
+        role: 'author',
+      });
+      departmentMap.set(authorEntry.team.department.id, {
+        id: authorEntry.team.department.id,
+        name: authorEntry.team.department.name,
+      });
+      teamIdsInIdentity.add(authorEntry.teamId);
     }
 
     const departmentLeads = user.departmentLeads.map((entry) => ({
@@ -88,6 +118,15 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
       companyId: entry.department.companyId,
     }));
     for (const entry of departmentLeads) {
+      departmentMap.set(entry.id, { id: entry.id, name: entry.name });
+    }
+
+    const departmentAuthors = user.authorOfDepartments.map((entry) => ({
+      id: entry.department.id,
+      name: entry.department.name,
+      companyId: entry.department.companyId,
+    }));
+    for (const entry of departmentAuthors) {
       departmentMap.set(entry.id, { id: entry.id, name: entry.name });
     }
 
@@ -109,6 +148,7 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
         teams,
         departments: Array.from(departmentMap.values()),
         departmentLeads,
+        departmentAuthors,
         companyLeads,
       },
       preferences: userPreferencesFromJson(user.preferences),

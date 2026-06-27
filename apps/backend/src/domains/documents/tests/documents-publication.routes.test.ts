@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { DocumentSuggestionStatus, GrantRole } from '../../../../generated/prisma/client.js';
+import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { Prisma } from '../../../../generated/prisma/client.js';
 import { prisma } from '../../../db.js';
 import { exampleBlockDocumentV0 } from '../services/blocks/blockSchema.js';
@@ -128,7 +128,7 @@ describe('Documents routes / publication', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('Publish mit Lead-Draft-Blocks: Version.blocks aus Draft; pending -> superseded', async () => {
+  it('Publish mit Lead-Draft-Blocks: Version.blocks aus Draft; cycle + changes cleared', async () => {
     let ephemeralId: string | null = null;
     try {
       const document = await prisma.document.create({
@@ -143,15 +143,20 @@ describe('Documents routes / publication', () => {
       await prisma.documentGrantUser.createMany({
         data: [{ documentId: ephemeralId, userId: context.writerId, role: GrantRole.Write }],
       });
-      const suggestion = await prisma.documentSuggestion.create({
+      await prisma.documentDraftCycle.create({
         data: {
           documentId: ephemeralId,
-          authorId: context.writerId,
-          status: DocumentSuggestionStatus.pending,
-          baseDraftRevision: 1,
-          ops: [
-            { op: 'deleteBlock', blockId: '550e8400-e29b-41d4-a716-446655440002' },
-          ] as unknown as Prisma.InputJsonValue,
+          baseBlocks: exampleBlockDocumentV0 as unknown as Prisma.InputJsonValue,
+        },
+      });
+      await prisma.documentDraftChange.create({
+        data: {
+          documentId: ephemeralId,
+          revisionFrom: 0,
+          revisionTo: 1,
+          savedById: context.writerId,
+          ops: [{ op: 'deleteBlock', blockId: '550e8400-e29b-41d4-a716-446655440002' }],
+          affectedBlockIds: ['550e8400-e29b-41d4-a716-446655440002'],
         },
       });
 
@@ -169,11 +174,14 @@ describe('Documents routes / publication', () => {
       });
       expect(JSON.parse(JSON.stringify(versionOne?.blocks))).toEqual(exampleBlockDocumentV0);
 
-      const suggestionRow = await prisma.documentSuggestion.findUnique({
-        where: { id: suggestion.id },
-        select: { status: true },
+      const cycle = await prisma.documentDraftCycle.findUnique({
+        where: { documentId: ephemeralId },
       });
-      expect(suggestionRow?.status).toBe(DocumentSuggestionStatus.superseded);
+      expect(cycle).toBeNull();
+      const changeCount = await prisma.documentDraftChange.count({
+        where: { documentId: ephemeralId },
+      });
+      expect(changeCount).toBe(0);
     } finally {
       if (ephemeralId) {
         await prisma.document.deleteMany({ where: { id: ephemeralId } });

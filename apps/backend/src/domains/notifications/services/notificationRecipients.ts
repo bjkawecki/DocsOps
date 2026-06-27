@@ -2,6 +2,7 @@ import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { DocumentForPermission } from '../../documents/permissions/documentLoad.js';
 import { canRead, getDocumentOwner, loadDocument } from '../../documents/permissions/canRead.js';
+import { canWrite } from '../../documents/permissions/canWrite.js';
 import { canReadLeadDraft } from '../../documents/permissions/canEditLeadDraft.js';
 import {
   contextWithOwnerInclude,
@@ -72,6 +73,29 @@ async function addDepartmentLeadUserIds(
     select: { userId: true },
   });
   for (const r of rows) into.add(r.userId);
+}
+
+async function addScopeAuthorUserIds(
+  prisma: PrismaClient,
+  owner: ReturnType<typeof getDocumentOwner>,
+  into: Set<string>
+): Promise<void> {
+  if (!owner || owner.ownerUserId) return;
+  if (owner.teamId) {
+    const rows = await prisma.teamAuthor.findMany({
+      where: { teamId: owner.teamId },
+      select: { userId: true },
+    });
+    for (const r of rows) into.add(r.userId);
+    return;
+  }
+  if (owner.departmentId) {
+    const rows = await prisma.departmentAuthor.findMany({
+      where: { departmentId: owner.departmentId },
+      select: { userId: true },
+    });
+    for (const r of rows) into.add(r.userId);
+  }
 }
 
 async function addTeamMemberUserIdsForTeams(
@@ -182,6 +206,9 @@ async function collectDocumentCandidateIdsByRole(
     const ownerDeptId = getOwnerDepartmentId(owner);
     if (ownerDeptId) await addDepartmentLeadUserIds(prisma, ownerDeptId, ids);
   }
+  if (role === GrantRole.Write) {
+    await addScopeAuthorUserIds(prisma, owner, ids);
+  }
   await addGrantRecipientsByRole(
     prisma,
     doc,
@@ -226,7 +253,12 @@ export async function listUserIdsWhoCanWriteDocument(
 
   const ids = await collectDocumentCandidateIdsByRole(prisma, doc, GrantRole.Write);
 
-  return filterActiveUserIds(prisma, [...ids]);
+  const active = await filterActiveUserIds(prisma, [...ids]);
+  const verified: string[] = [];
+  for (const uid of active) {
+    if (await canWrite(prisma, uid, documentId)) verified.push(uid);
+  }
+  return verified;
 }
 
 async function filterActiveUserIds(

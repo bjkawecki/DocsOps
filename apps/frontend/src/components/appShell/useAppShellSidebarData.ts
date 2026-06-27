@@ -38,7 +38,10 @@ export function useAppShellSidebarData() {
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
   const departmentId = me?.identity?.departmentLeads?.[0]?.id;
   const userTeamId = me?.identity?.teams?.[0]?.teamId;
-  const userDepartmentId = me?.identity?.teams?.[0]?.departmentId;
+  const userDepartmentId =
+    me?.identity?.teams?.[0]?.departmentId ??
+    me?.identity?.departmentAuthors?.[0]?.id ??
+    me?.identity?.departmentLeads?.[0]?.id;
   const hasReviewRights =
     isAdmin ||
     isCompanyLead ||
@@ -46,7 +49,9 @@ export function useAppShellSidebarData() {
     (me?.identity?.teams?.some((t) => t.role === 'leader') ?? false);
 
   const companyIdFromTeamOrDeptLead =
-    me?.identity?.teams?.[0]?.companyId ?? me?.identity?.departmentLeads?.[0]?.companyId;
+    me?.identity?.teams?.[0]?.companyId ??
+    me?.identity?.departmentLeads?.[0]?.companyId ??
+    me?.identity?.departmentAuthors?.[0]?.companyId;
 
   const { data: firstCompany } = useQuery({
     queryKey: ['companies', 'first'],

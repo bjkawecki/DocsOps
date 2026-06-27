@@ -1,7 +1,7 @@
 export type ScopePersonRow = {
   id: string;
   name: string;
-  roles?: ('member' | 'lead')[];
+  roles?: ('member' | 'author' | 'lead')[];
   isOnline: boolean;
   lastActiveAt: string | null;
 };
@@ -14,6 +14,7 @@ export type TeamPeopleResponse = {
 
 export type DepartmentPeopleResponse = {
   departmentLeads: ScopePersonRow[];
+  departmentAuthors: ScopePersonRow[];
   teams: Array<{
     id: string;
     name: string;

@@ -89,7 +89,6 @@ export const IN_PROGRESS_PLATFORM_IMPORT_STATUSES = [
   'importing_grants',
   'importing_pins',
   'importing_comments',
-  'importing_suggestions',
   'importing_files',
 ] as const;
 

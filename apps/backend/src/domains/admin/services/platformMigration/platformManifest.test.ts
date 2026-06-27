@@ -44,7 +44,6 @@ describe('platformManifest', () => {
         grants: 0,
         pins: 0,
         comments: 0,
-        suggestions: 0,
         attachmentFiles: 0,
       },
     };

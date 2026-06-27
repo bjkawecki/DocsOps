@@ -5,7 +5,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
-import { requireDocumentAccess } from '../permissions/index.js';
+import { requireDocumentAccess, requireDocumentGrantManagement } from '../permissions/index.js';
 import {
   canReadScopeForOwner,
   canCreateTagForOwner,
@@ -14,7 +14,7 @@ import {
 import { getReadableCatalogOwnerIds } from '../../organisation/permissions/catalogPermissions.js';
 import {
   getDocumentGrants,
-  listCandidateUsersForDocumentGrants,
+  listReadGrantCandidates,
   replaceDocumentDepartmentGrants,
   replaceDocumentTeamGrants,
   replaceDocumentUserGrants,
@@ -45,28 +45,34 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** GET Kandidaten für nutzerbasiertes Write-Granting (Scope-User ohne implizite Writer). */
+  /** GET cross-scope read grant candidates (teams and departments outside owner unit). */
   app.get(
-    '/documents/:documentId/grants/candidate-users',
+    '/documents/:documentId/grants/read-candidates',
     { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))] },
     async (request, reply) => {
       const { documentId } = documentIdParamSchema.parse(request.params);
-      const result = await listCandidateUsersForDocumentGrants(request.server.prisma, documentId);
+      const result = await listReadGrantCandidates(request.server.prisma, documentId);
       if (!result) return reply.status(404).send({ error: 'Document not found' });
       return reply.send(result);
     }
   );
 
-  /** PUT User-Grants ersetzen – requireDocumentAccess('write'). */
+  /** PUT User read grants – scope lead only. */
   app.put(
     '/documents/:documentId/grants/users',
-    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))] },
+    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentGrantManagement())] },
     async (request, reply) => {
       const prisma = request.server.prisma;
       const actorUserId = getEffectiveUserId(request as RequestWithUser);
       const { documentId } = documentIdParamSchema.parse(request.params);
       const { grants } = putGrantsUsersBodySchema.parse(request.body);
-      const result = await replaceDocumentUserGrants(prisma, { documentId, grants });
+      let result: Awaited<ReturnType<typeof replaceDocumentUserGrants>>;
+      try {
+        result = await replaceDocumentUserGrants(prisma, { documentId, grants });
+      } catch (error) {
+        if (handleUnsupportedScopeWriteGrant(reply, error)) return;
+        throw error;
+      }
       await notifyDocumentGrantsChanged(request, {
         documentId,
         actorUserId,
@@ -77,10 +83,10 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** PUT Team-Grants ersetzen – requireDocumentAccess('write'). */
+  /** PUT Team read grants – scope lead only. */
   app.put(
     '/documents/:documentId/grants/teams',
-    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))] },
+    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentGrantManagement())] },
     async (request, reply) => {
       const prisma = request.server.prisma;
       const actorUserId = getEffectiveUserId(request as RequestWithUser);
@@ -103,10 +109,10 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** PUT Department-Grants ersetzen – requireDocumentAccess('write'). */
+  /** PUT Department read grants – scope lead only. */
   app.put(
     '/documents/:documentId/grants/departments',
-    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))] },
+    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentGrantManagement())] },
     async (request, reply) => {
       const prisma = request.server.prisma;
       const actorUserId = getEffectiveUserId(request as RequestWithUser);

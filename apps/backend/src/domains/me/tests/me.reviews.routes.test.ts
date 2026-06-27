@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DocumentSuggestionStatus } from '../../../../generated/prisma/client.js';
 import { prisma } from '../../../db.js';
 import {
   createDocumentsTestContext,
@@ -9,20 +8,22 @@ import {
 
 describe('GET /api/v1/me/reviews', () => {
   let ctx: DocumentsTestContext;
-  let suggestionId: string;
+  let changeId: string;
 
   beforeAll(async () => {
     ctx = await createDocumentsTestContext();
-    const doc = await prisma.document.findUniqueOrThrow({
-      where: { id: ctx.publishedDocId },
-      select: { draftRevision: true },
-    });
-    const suggestion = await prisma.documentSuggestion.create({
+    await prisma.documentDraftCycle.create({
       data: {
         documentId: ctx.publishedDocId,
-        authorId: ctx.writerId,
-        status: DocumentSuggestionStatus.pending,
-        baseDraftRevision: doc.draftRevision,
+        baseBlocks: { schemaVersion: 0, blocks: [] },
+      },
+    });
+    const change = await prisma.documentDraftChange.create({
+      data: {
+        documentId: ctx.publishedDocId,
+        revisionFrom: 0,
+        revisionTo: 1,
+        savedById: ctx.scopeAuthorId,
         ops: [
           {
             op: 'replaceBlock',
@@ -34,15 +35,17 @@ describe('GET /api/v1/me/reviews', () => {
             },
           },
         ],
+        affectedBlockIds: ['block-1'],
       },
     });
-    suggestionId = suggestion.id;
+    changeId = change.id;
   });
 
   afterAll(async () => {
-    if (suggestionId) {
-      await prisma.documentSuggestion.deleteMany({ where: { id: suggestionId } });
+    if (changeId) {
+      await prisma.documentDraftChange.deleteMany({ where: { id: changeId } });
     }
+    await prisma.documentDraftCycle.deleteMany({ where: { documentId: ctx.publishedDocId } });
     await disposeDocumentsTestContext(ctx);
   });
 
@@ -51,7 +54,7 @@ describe('GET /api/v1/me/reviews', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('lead sees pending suggestion in pendingForReview', async () => {
+  it('lead sees document with author changes in pendingForReview', async () => {
     const cookie = await ctx.loginAsScopeLead();
     const res = await ctx.app.inject({
       method: 'GET',
@@ -60,16 +63,17 @@ describe('GET /api/v1/me/reviews', () => {
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as {
-      pendingForReview: Array<{ suggestionId: string; documentId: string }>;
+      pendingForReview: Array<{ documentId: string; changeCount: number }>;
       totalPendingForReview: number;
     };
     expect(body.totalPendingForReview).toBeGreaterThanOrEqual(1);
-    expect(body.pendingForReview.some((row) => row.suggestionId === suggestionId)).toBe(true);
-    expect(body.pendingForReview.some((row) => row.documentId === ctx.publishedDocId)).toBe(true);
+    const row = body.pendingForReview.find((r) => r.documentId === ctx.publishedDocId);
+    expect(row).toBeDefined();
+    expect(row?.changeCount).toBeGreaterThanOrEqual(1);
   });
 
-  it('author sees own suggestion in mySuggestions', async () => {
-    const cookie = await ctx.loginAsWriter();
+  it('author sees own change in myChanges', async () => {
+    const cookie = await ctx.loginAsScopeAuthor();
     const res = await ctx.app.inject({
       method: 'GET',
       url: '/api/v1/me/reviews',
@@ -77,12 +81,12 @@ describe('GET /api/v1/me/reviews', () => {
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as {
-      mySuggestions: Array<{ suggestionId: string }>;
-      totalMySuggestions: number;
+      myChanges: Array<{ changeId: string; documentId: string }>;
+      totalMyChanges: number;
       pendingForReview: unknown[];
     };
-    expect(body.totalMySuggestions).toBeGreaterThanOrEqual(1);
-    expect(body.mySuggestions.some((row) => row.suggestionId === suggestionId)).toBe(true);
+    expect(body.totalMyChanges).toBeGreaterThanOrEqual(1);
+    expect(body.myChanges.some((row) => row.changeId === changeId)).toBe(true);
     expect(body.pendingForReview).toEqual([]);
   });
 
@@ -96,9 +100,9 @@ describe('GET /api/v1/me/reviews', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json() as {
       pendingForReview: unknown[];
-      mySuggestions: unknown[];
+      myChanges: unknown[];
     };
     expect(body.pendingForReview).toEqual([]);
-    expect(body.mySuggestions).toEqual([]);
+    expect(body.myChanges).toEqual([]);
   });
 });

@@ -2,7 +2,7 @@
 
 ## Status
 
-**Akzeptiert** (Umsetzungsbasis für Repo; bei Bedarf später durch neues ADR ersetzen).
+**Historisch (Produktmodell)** – Suggestions wurden durch [ADR 003 – Scope-Author Direct Draft](003-scope-author-direct-draft.md) abgelöst. Technische Punkte zu `draftRevision` und Lead-Draft-Speicher bleiben referenzierbar.
 
 ## Kontext
 

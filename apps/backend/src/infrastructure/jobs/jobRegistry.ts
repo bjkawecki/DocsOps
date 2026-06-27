@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { renderMarkdownToPdfBuffer } from '../pdf/typstPdfExport.js';
 import { jobPayloadSchemas, type JobPayloadByType, type JobType } from './jobTypes.js';
 import { initStorage, type StorageService } from '../storage/index.js';
-import { canWrite } from '../../domains/documents/permissions/canWrite.js';
+import { canRead } from '../../domains/documents/permissions/canRead.js';
 import {
   runFullReindex,
   runIncrementalReindex,
@@ -60,7 +60,7 @@ async function exportDocumentToPdf(
   payload: JobPayloadByType['documents.export.pdf'],
   context: JobContext
 ): Promise<void> {
-  const canExport = await canWrite(context.prisma, payload.requestedByUserId, payload.documentId);
+  const canExport = await canRead(context.prisma, payload.requestedByUserId, payload.documentId);
   if (!canExport) {
     throw new Error('Permission denied for PDF export');
   }

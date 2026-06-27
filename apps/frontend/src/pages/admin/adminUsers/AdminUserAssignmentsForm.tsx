@@ -3,7 +3,9 @@ import { notifications } from '@mantine/notifications';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { apiFetch } from '../../../api/client';
-import type { DepartmentWithTeams, UserRow } from './adminUsersTypes';
+import type { DepartmentWithTeams, UserRow, UserTeam } from './adminUsersTypes';
+
+type TeamRole = 'Member' | 'Author' | 'Lead';
 
 type Props = {
   user: UserRow;
@@ -11,6 +13,13 @@ type Props = {
   onSave: () => void;
   onCancel: () => void;
 };
+
+function currentTeamRole(team: UserTeam | undefined): TeamRole {
+  if (!team) return 'Member';
+  if (team.isLead) return 'Lead';
+  if (team.isAuthor) return 'Author';
+  return 'Member';
+}
 
 export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }: Props) {
   const isPlatformAdmin = user.isAdmin || user.role === 'Admin';
@@ -25,12 +34,12 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
   );
   const currentTeam = user.teams?.[0];
   const currentDeptLead = user.departmentsAsLead?.[0];
+  const currentDeptAuthor = user.departmentsAsAuthor?.[0];
 
   const [teamId, setTeamId] = useState(currentTeam?.id ?? '');
-  const [teamRole, setTeamRole] = useState<'Member' | 'Lead'>(
-    currentTeam?.isLead ? 'Lead' : 'Member'
-  );
+  const [teamRole, setTeamRole] = useState<TeamRole>(currentTeamRole(currentTeam));
   const [departmentLeadId, setDepartmentLeadId] = useState(currentDeptLead?.id ?? '');
+  const [departmentAuthorId, setDepartmentAuthorId] = useState(currentDeptAuthor?.id ?? '');
 
   const removeFromTeam = useMutation({
     mutationFn: async (tid: string) => {
@@ -88,6 +97,32 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
   });
 
+  const promoteTeamAuthor = useMutation({
+    mutationFn: async (tid: string) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/authors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? res.statusText);
+      }
+    },
+    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+  });
+
+  const demoteTeamAuthor = useMutation({
+    mutationFn: async (tid: string) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/authors/${user.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? res.statusText);
+      }
+    },
+    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+  });
+
   const addDepartmentLead = useMutation({
     mutationFn: async (departmentId: string) => {
       const res = await apiFetch(`/api/v1/departments/${departmentId}/department-leads`, {
@@ -117,6 +152,41 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
   });
 
+  const promoteDepartmentAuthor = useMutation({
+    mutationFn: async (departmentId: string) => {
+      const res = await apiFetch(`/api/v1/departments/${departmentId}/authors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? res.statusText);
+      }
+    },
+    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+  });
+
+  const demoteDepartmentAuthor = useMutation({
+    mutationFn: async ({
+      departmentId,
+      targetTeamId,
+    }: {
+      departmentId: string;
+      targetTeamId: string;
+    }) => {
+      const res = await apiFetch(
+        `/api/v1/departments/${departmentId}/authors/${user.id}?teamId=${encodeURIComponent(targetTeamId)}`,
+        { method: 'DELETE' }
+      );
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? res.statusText);
+      }
+    },
+    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+  });
+
   const removeFromTeamSilent = async (tid: string) => {
     const res = await apiFetch(`/api/v1/teams/${tid}/members/${user.id}`, {
       method: 'DELETE',
@@ -133,43 +203,64 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     addToTeam.isPending ||
     addTeamLead.isPending ||
     removeTeamLead.isPending ||
+    promoteTeamAuthor.isPending ||
+    demoteTeamAuthor.isPending ||
     addDepartmentLead.isPending ||
-    removeDepartmentLead.isPending;
+    removeDepartmentLead.isPending ||
+    promoteDepartmentAuthor.isPending ||
+    demoteDepartmentAuthor.isPending;
 
-  const clearTeamAssignment = async (tid: string, wasLead: boolean) => {
-    if (wasLead) await removeTeamLead.mutateAsync(tid);
-    if (wasLead) await removeFromTeamSilent(tid);
-    else await removeFromTeam.mutateAsync(tid);
+  const clearTeamAssignment = async (team: UserTeam) => {
+    if (team.isLead) {
+      await removeTeamLead.mutateAsync(team.id);
+      await removeFromTeamSilent(team.id);
+    } else if (team.isAuthor) {
+      await demoteTeamAuthor.mutateAsync(team.id);
+    } else {
+      await removeFromTeam.mutateAsync(team.id);
+    }
+  };
+
+  const clearDepartmentAuthor = async (departmentId: string) => {
+    const dept = departments.find((d) => d.id === departmentId);
+    const fallbackTeamId = dept?.teams?.[0]?.id;
+    if (!fallbackTeamId) {
+      throw new Error('Cannot demote department author without a team in that department.');
+    }
+    await demoteDepartmentAuthor.mutateAsync({ departmentId, targetTeamId: fallbackTeamId });
   };
 
   const handleSave = async () => {
     try {
       for (const t of user.teams ?? []) {
-        if (t.id !== teamId) await clearTeamAssignment(t.id, t.isLead === true);
+        if (t.id !== teamId) await clearTeamAssignment(t);
       }
 
       if (teamId) {
         const existing = user.teams?.find((t) => t.id === teamId);
-        const wantLead = teamRole === 'Lead';
+        const existingRole = currentTeamRole(existing);
 
-        if (wantLead) {
-          if (existing && !existing.isLead) {
-            await removeFromTeam.mutateAsync(teamId);
-          }
-          if (!existing?.isLead) {
-            await addTeamLead.mutateAsync(teamId);
-          }
-        } else {
-          if (existing?.isLead) {
+        if (teamRole === 'Lead') {
+          if (existingRole === 'Member') await removeFromTeam.mutateAsync(teamId);
+          if (existingRole === 'Author') await demoteTeamAuthor.mutateAsync(teamId);
+          if (existingRole !== 'Lead') await addTeamLead.mutateAsync(teamId);
+        } else if (teamRole === 'Author') {
+          if (existingRole === 'Lead') {
             await removeTeamLead.mutateAsync(teamId);
+            await removeFromTeamSilent(teamId);
           }
-          if (!existing || existing.isLead) {
+          if (!existing || existingRole === 'Lead') {
             await addToTeam.mutateAsync(teamId);
           }
+          if (existingRole !== 'Author') await promoteTeamAuthor.mutateAsync(teamId);
+        } else {
+          if (existingRole === 'Lead') await removeTeamLead.mutateAsync(teamId);
+          if (existingRole === 'Author') await demoteTeamAuthor.mutateAsync(teamId);
+          if (!existing || existingRole === 'Lead') await addToTeam.mutateAsync(teamId);
         }
       } else {
         for (const t of user.teams ?? []) {
-          await clearTeamAssignment(t.id, t.isLead === true);
+          await clearTeamAssignment(t);
         }
       }
 
@@ -178,6 +269,16 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       }
       if (departmentLeadId && !user.departmentsAsLead?.some((d) => d.id === departmentLeadId)) {
         await addDepartmentLead.mutateAsync(departmentLeadId);
+      }
+
+      for (const d of user.departmentsAsAuthor ?? []) {
+        if (d.id !== departmentAuthorId) await clearDepartmentAuthor(d.id);
+      }
+      if (
+        departmentAuthorId &&
+        !user.departmentsAsAuthor?.some((d) => d.id === departmentAuthorId)
+      ) {
+        await promoteDepartmentAuthor.mutateAsync(departmentAuthorId);
       }
 
       notifications.show({
@@ -216,13 +317,15 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
 
   const hasChanges =
     teamId !== (currentTeam?.id ?? '') ||
-    (teamId !== '' && teamRole !== (currentTeam?.isLead ? 'Lead' : 'Member')) ||
-    departmentLeadId !== (currentDeptLead?.id ?? '');
+    (teamId !== '' && teamRole !== currentTeamRole(currentTeam)) ||
+    departmentLeadId !== (currentDeptLead?.id ?? '') ||
+    departmentAuthorId !== (currentDeptAuthor?.id ?? '');
 
   return (
     <Stack gap="sm">
       <Text size="xs" c="dimmed">
-        Each user has one organization role. Team lead does not require team membership.
+        Each user has one organization role. Team lead does not require team membership. Authors
+        must be promoted from team membership.
       </Text>
       <Select
         label="Team"
@@ -237,10 +340,11 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         label="Team role"
         data={[
           { value: 'Member', label: 'Member' },
+          { value: 'Author', label: 'Author' },
           { value: 'Lead', label: 'Lead' },
         ]}
         value={teamRole}
-        onChange={(v) => v && setTeamRole(v as 'Member' | 'Lead')}
+        onChange={(v) => v && setTeamRole(v as TeamRole)}
         disabled={!teamId}
         size="sm"
       />
@@ -251,6 +355,16 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         data={departmentOptions}
         value={departmentLeadId || null}
         onChange={(v) => setDepartmentLeadId(v ?? '')}
+        clearable
+        size="sm"
+      />
+      <Select
+        label="Department (author)"
+        placeholder="None"
+        description="Department-wide author role (optional; requires team membership in that department)"
+        data={departmentOptions}
+        value={departmentAuthorId || null}
+        onChange={(v) => setDepartmentAuthorId(v ?? '')}
         clearable
         size="sm"
       />

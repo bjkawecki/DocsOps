@@ -65,6 +65,17 @@ async function seedMasterData(prisma: PrismaClient, csv: SeedCsvData): Promise<S
     });
   }
 
+  for (const row of csv.teamAuthors) {
+    const teamId = teamById.get(row.team_name);
+    const userId = userById.get(row.user_email);
+    if (!teamId || !userId) continue;
+    await prisma.teamAuthor.upsert({
+      where: { teamId_userId: { teamId, userId } },
+      create: { teamId, userId },
+      update: {},
+    });
+  }
+
   for (const row of csv.departmentLeads) {
     const departmentId = departmentById.get(row.department_name);
     const userId = userById.get(row.user_email);

@@ -1,14 +1,14 @@
 # Versionierung als Snapshots
 
-**Verbindlicher Ausblick:** Inhaltliche Änderungen an **veröffentlichten** Dokumenten werden über **Suggestions (Autoren)** und **Lead-Draft + Publish** abgebildet; siehe [Edit-System: Blocks, Suggestions, Lead-Draft (Variante A)](../../plan/Edit-System-Blocks-Suggestions-Lead-Draft.md).  
-Kurzreferenz zur Umsetzungsplanung: [Umsetzungs-Todo §15](../../plan/Umsetzungs-Todo.md#15-versionierung--ausblick).
+**Verbindlicher Ausblick:** Inhaltliche Änderungen an **veröffentlichten** Dokumenten: Scope Authors bearbeiten den **Lead-Draft** direkt; der **Scope Lead** prüft (Reviews-Inbox) und **published** → neuer Snapshot. Siehe [ADR 003](../adr/003-scope-author-direct-draft.md).
 
 ---
 
 ## 1. Kernidee: Versionierung als Snapshots (Full-Version)
 
 - Dokument = logische Einheit; kanonischer Inhalt künftig als **Block-JSON** (nicht mehr ausschließlich ein Markdown-String).
-- **Versionierung für veröffentlichte Dokumente:** Jede **Published**-Ausbaustufe entspricht einem **Snapshot** (vollständiger Inhalt dieser Version). Speichern im Lead-Draft oder Annehmen von Suggestions erzeugt **keine** neue öffentliche Version, bis der Lead **veröffentlicht** (expliziter Schritt).
+- **Versionierung für veröffentlichte Dokumente:** Jede **Published**-Ausbaustufe entspricht einem **Snapshot** (vollständiger Inhalt). Speichern im Lead-Draft erzeugt **keine** neue öffentliche Version, bis der Lead **veröffentlicht**.
+- **Draft-Zyklus (bis Publish):** Ein Vollsnapshot beim Zyklusstart (`DocumentDraftCycle.baseBlocks`) plus **Block-Ops-Log** pro Autoren-Save (`DocumentDraftChange.ops`); kein Vollsnapshot pro Save.
 - **Full-Version:** Jede gespeicherte Version enthält den **vollständigen** Dokumentinhalt (keine Delta-Speicherung als Pflicht). Optional: Policy „nur letzte N Versionen“.
 - **Versionsvergleich:** Zwei Versionen in der UI vergleichen (z. B. rot/grün), indem die beiden Snapshots verglichen werden (z. B. diff-match-patch auf serialisiertem Text/Markdown).
 
@@ -18,9 +18,9 @@ Kurzreferenz zur Umsetzungsplanung: [Umsetzungs-Todo §15](../../plan/Umsetzungs
 
 - **Unveröffentlichtes Dokument** (`publishedAt == null`): nur für Nutzer mit Schreibrecht (bzw. Lead) sichtbar, bis zur Veröffentlichung.
 - **Veröffentlicht:** Leser sehen den **Snapshot** der aktuellen Version.
-- **Autoren** reichen **Suggestions** ein; **Lead** integriert im **Lead-Draft** und löst **Publish** aus → neuer Snapshot, neue Versionsnummer.
+- **Autoren** bearbeiten den **Lead-Draft**; **Lead** prüft und löst **Publish** aus → neuer Snapshot, neue Versionsnummer.
 
-Details zu Rollen, Datenfeldern und API-Oberfläche: [Edit-System-Plan](../../plan/Edit-System-Blocks-Suggestions-Lead-Draft.md).
+Details: [ADR 003](../adr/003-scope-author-direct-draft.md).
 
 ---
 

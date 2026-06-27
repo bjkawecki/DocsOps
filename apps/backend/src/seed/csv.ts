@@ -41,6 +41,7 @@ function loadSeedCsvData(): SeedCsvData {
     users: csvRows('users.csv'),
     teamMembers: csvRows('team_members.csv'),
     teamLeaders: csvRows('team_leaders.csv'),
+    teamAuthors: csvRows('team_authors.csv'),
     departmentLeads: csvRows('department_leads.csv'),
     companyLeads: csvRows('company_leads.csv'),
   };

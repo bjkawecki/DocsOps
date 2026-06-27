@@ -9,9 +9,6 @@ import {
   canPublishDocument,
   canEditLeadDraft,
   canReadLeadDraft,
-  canCreateSuggestion,
-  canReadSuggestions,
-  canResolveSuggestion,
 } from '../permissions/index.js';
 import { hashPassword } from '../../auth/services/password.js';
 import {
@@ -191,17 +188,14 @@ describe('Permissions (canRead, canWrite)', () => {
       prisma.documentGrantUser.create({
         data: { documentId: docProcessId, userId: otherUserId, role: GrantRole.Read },
       }),
-      prisma.documentGrantUser.create({
-        data: { documentId: docProcessId, userId: writerOnlyUserId, role: GrantRole.Write },
-      }),
       prisma.documentGrantTeam.create({
         data: { documentId: docProcessId, teamId, role: GrantRole.Read },
       }),
-      prisma.documentGrantTeam.create({
-        data: { documentId: docProcessId, teamId, role: GrantRole.Write },
-      }),
       prisma.documentGrantDepartment.create({
         data: { documentId: docProcessId, departmentId, role: GrantRole.Read },
+      }),
+      prisma.departmentAuthor.create({
+        data: { departmentId, userId: writerOnlyUserId },
       }),
     ]);
   });
@@ -215,6 +209,7 @@ describe('Permissions (canRead, canWrite)', () => {
       if (docProcessId) {
         await prisma.documentGrantTeam.deleteMany({ where: { documentId: docProcessId } });
         await prisma.documentGrantDepartment.deleteMany({ where: { documentId: docProcessId } });
+        await prisma.departmentAuthor.deleteMany({ where: { departmentId } });
       }
       await prisma.document.deleteMany({
         where: { id: { in: docIds } },
@@ -284,9 +279,10 @@ describe('Permissions (canRead, canWrite)', () => {
     expect(await canRead(prisma, teamMemberId, docProcessId)).toBe(true);
   });
 
-  it('Expliziter Grant Team Write nur für Team Lead → canWrite true (Leader), false (Member)', async () => {
-    expect(await canWrite(prisma, teamLeaderId, docProcessId)).toBe(true);
+  it('Department author → canWrite true; team member without author role → canWrite false', async () => {
+    expect(await canWrite(prisma, writerOnlyUserId, docProcessId)).toBe(true);
     expect(await canWrite(prisma, teamMemberId, docProcessId)).toBe(false);
+    expect(await canWrite(prisma, teamLeaderId, docProcessId)).toBe(false);
   });
 
   it('Expliziter Grant Department Read → canRead true für User in Abteilung', async () => {
@@ -316,7 +312,7 @@ describe('Permissions (canRead, canWrite)', () => {
       expect(await canDeleteDocument(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     });
 
-    it('nur Writer-Grant (kein Lead) → canWrite true, canDeleteDocument false', async () => {
+    it('Department author (kein Lead) → canWrite true, canDeleteDocument false', async () => {
       expect(await canWrite(prisma, writerOnlyUserId, docProcessId)).toBe(true);
       expect(await canDeleteDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
@@ -343,7 +339,7 @@ describe('Permissions (canRead, canWrite)', () => {
     it('Personal process owner → canPublishDocument true for document in personal context', async () => {
       expect(await canPublishDocument(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     });
-    it('nur Writer-Grant (kein Lead) → canPublishDocument false', async () => {
+    it('Department author (kein Lead) → canPublishDocument false', async () => {
       expect(await canPublishDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
     it('Dokument nicht vorhanden → canPublishDocument false', async () => {
@@ -356,13 +352,13 @@ describe('Permissions (canRead, canWrite)', () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
 
-    it('canEditLeadDraft entspricht canPublishDocument', async () => {
-      expect(await canEditLeadDraft(prisma, supervisorId, docProcessId)).toBe(
-        await canPublishDocument(prisma, supervisorId, docProcessId)
-      );
-      expect(await canEditLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(
-        await canPublishDocument(prisma, writerOnlyUserId, docProcessId)
-      );
+    it('scope author without publish → canEditLeadDraft true', async () => {
+      expect(await canEditLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
+      expect(await canPublishDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
+    });
+
+    it('reader without author role → canEditLeadDraft false', async () => {
+      expect(await canEditLeadDraft(prisma, otherUserId, docProcessId)).toBe(false);
     });
 
     it('nur User-Read-Grant (ohne Write/Lead) → canReadLeadDraft false', async () => {
@@ -371,39 +367,16 @@ describe('Permissions (canRead, canWrite)', () => {
       expect(await canReadLeadDraft(prisma, otherUserId, docProcessId)).toBe(false);
     });
 
-    it('Writer-Grant → canReadLeadDraft true', async () => {
+    it('Department author → canReadLeadDraft true', async () => {
       expect(await canReadLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
     });
 
-    it('Team-Lead (Team-Write-Grant gilt nur für Lead) → canReadLeadDraft true', async () => {
-      expect(await canReadLeadDraft(prisma, teamLeaderId, docProcessId)).toBe(true);
+    it('Team lead without scope publish on department-owned doc → canReadLeadDraft false', async () => {
+      expect(await canReadLeadDraft(prisma, teamLeaderId, docProcessId)).toBe(false);
     });
 
     it('Team-Mitglied ohne Write-Grant → canReadLeadDraft false', async () => {
       expect(await canReadLeadDraft(prisma, teamMemberId, docProcessId)).toBe(false);
-    });
-  });
-
-  describe('Document-Suggestions (EPIC-5)', () => {
-    it('canCreateSuggestion entspricht canWrite', async () => {
-      expect(await canCreateSuggestion(prisma, writerOnlyUserId, docProcessId)).toBe(
-        await canWrite(prisma, writerOnlyUserId, docProcessId)
-      );
-      expect(await canCreateSuggestion(prisma, otherUserId, docProcessId)).toBe(false);
-    });
-    it('canReadSuggestions entspricht canReadLeadDraft', async () => {
-      expect(await canReadSuggestions(prisma, writerOnlyUserId, docProcessId)).toBe(
-        await canReadLeadDraft(prisma, writerOnlyUserId, docProcessId)
-      );
-      expect(await canReadSuggestions(prisma, otherUserId, docProcessId)).toBe(
-        await canReadLeadDraft(prisma, otherUserId, docProcessId)
-      );
-    });
-    it('canResolveSuggestion entspricht canEditLeadDraft', async () => {
-      expect(await canResolveSuggestion(prisma, supervisorId, docProcessId)).toBe(
-        await canEditLeadDraft(prisma, supervisorId, docProcessId)
-      );
-      expect(await canResolveSuggestion(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
   });
 

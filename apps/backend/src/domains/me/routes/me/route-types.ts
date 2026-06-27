@@ -61,7 +61,7 @@ type MeIdentityTeam = {
   departmentName: string;
   departmentId: string;
   companyId: string;
-  role: 'member' | 'leader';
+  role: 'member' | 'leader' | 'author';
 };
 
 type MeResponse = {
@@ -76,6 +76,7 @@ type MeResponse = {
     teams: MeIdentityTeam[];
     departments: { id: string; name: string }[];
     departmentLeads: { id: string; name: string; companyId: string }[];
+    departmentAuthors: { id: string; name: string; companyId: string }[];
     companyLeads: { id: string; name: string }[];
   };
   preferences: UserPreferences;

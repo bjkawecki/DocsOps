@@ -18,12 +18,19 @@ export function getNavLinkStyles(): { root: Record<string, unknown> } {
 /** Rolle aus MeResponse ableiten (gleiche Reihenfolge wie Backend: Admin > Company Lead > Department Lead > Team Lead > User). */
 export function getDisplayRole(me: {
   user: { isAdmin: boolean };
-  identity: { companyLeads: unknown[]; departmentLeads: unknown[]; teams: { role: string }[] };
+  identity: {
+    companyLeads: unknown[];
+    departmentLeads: unknown[];
+    departmentAuthors?: unknown[];
+    teams: { role: string }[];
+  };
 }): string {
   if (me.user.isAdmin) return 'Admin';
   if ((me.identity.companyLeads?.length ?? 0) > 0) return 'Company Lead';
   if ((me.identity.departmentLeads?.length ?? 0) > 0) return 'Department Lead';
+  if ((me.identity.departmentAuthors?.length ?? 0) > 0) return 'Department Author';
   if (me.identity.teams?.some((t) => t.role === 'leader')) return 'Team Lead';
+  if (me.identity.teams?.some((t) => t.role === 'author')) return 'Team Author';
   return 'User';
 }
 
@@ -41,5 +48,12 @@ export type AdminUser = {
   email: string | null;
   isAdmin: boolean;
   deletedAt: Date | null;
-  role: 'User' | 'Team Lead' | 'Department Lead' | 'Company Lead' | 'Admin';
+  role:
+    | 'User'
+    | 'Team Author'
+    | 'Team Lead'
+    | 'Department Author'
+    | 'Department Lead'
+    | 'Company Lead'
+    | 'Admin';
 };

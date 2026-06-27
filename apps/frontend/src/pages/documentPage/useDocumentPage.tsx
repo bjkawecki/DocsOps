@@ -10,7 +10,6 @@ import { notifyApiErrorResponse } from '../../lib/notifyApiError';
 import { scopeToUrl } from '../../lib/scopeNav';
 import { useRecentItemsActions } from '../../hooks/useRecentItems';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import type { DocumentSuggestionsPanelHandle } from '../../components/documents/DocumentSuggestionsPanel';
 import {
   invalidateDocumentArchivedTransitionCaches,
   invalidateDocumentIndexCaches,
@@ -21,6 +20,10 @@ import { withHeadingNumbering } from './documentMarkdown';
 import type { DocumentResponse } from './documentPageTypes';
 import { useDocumentPageKeyboardEffects } from './useDocumentPageKeyboardEffects';
 import { useDocumentPageSecondaryQueries } from './useDocumentPageSecondaryQueries';
+import {
+  showPdfExportQueuedNotification,
+  updatePdfExportStatusNotification,
+} from './pdfExportNotification';
 
 export function useDocumentPage() {
   const { documentId } = useParams<{ documentId: string }>();
@@ -56,14 +59,12 @@ export function useDocumentPage() {
   const [isTabVisible, setIsTabVisible] = useState<boolean>(
     () => document.visibilityState === 'visible'
   );
-  const [editTab, setEditTab] = useState<'draft' | 'suggestions' | 'metadata' | 'access'>('draft');
-  const [suggestionTargetBlockId, setSuggestionTargetBlockId] = useState<string | null>(null);
+  const [editTab, setEditTab] = useState<'draft' | 'metadata' | 'access'>('draft');
   const { fallbackPollingActive } = useLiveEventsContext();
   const collaborationPollInterval = fallbackPollingActive ? 15_000 : false;
   const [leadDraftDirty, setLeadDraftDirty] = useState(false);
   const [leadDraftLastSynced, setLeadDraftLastSynced] = useState<string | null>(null);
   const leadDraftPanelRef = useRef<DocumentLeadDraftPanelHandle>(null);
-  const suggestionsPanelRef = useRef<DocumentSuggestionsPanelHandle>(null);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ['document', documentId],
@@ -101,12 +102,7 @@ export function useDocumentPage() {
     const urlMode = searchParams.get('mode');
     const urlTab = searchParams.get('tab');
     if (urlMode === 'edit') setMode('edit');
-    if (
-      urlTab === 'draft' ||
-      urlTab === 'suggestions' ||
-      urlTab === 'metadata' ||
-      urlTab === 'access'
-    ) {
+    if (urlTab === 'draft' || urlTab === 'metadata' || urlTab === 'access') {
       setEditTab(urlTab);
     }
   }, [documentId, searchParams]);
@@ -131,7 +127,9 @@ export function useDocumentPage() {
       }
       if (visible && documentId) {
         void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'suggestions'] });
+        void queryClient.invalidateQueries({
+          queryKey: ['document', documentId, 'draft-presence'],
+        });
       }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -155,41 +153,15 @@ export function useDocumentPage() {
   }, [data, recentActions]);
 
   useEffect(() => {
-    if (!pdfExportStatus || pdfExportStatus.status === lastPdfExportStatus) return;
+    if (!pdfExportStatus || !documentId) return;
+    if (pdfExportStatus.status === lastPdfExportStatus) return;
     setLastPdfExportStatus(pdfExportStatus.status);
 
-    if (pdfExportStatus.status === 'running') {
-      notifications.show({
-        title: 'PDF export started',
-        message: 'Your document export is running in the background.',
-        color: 'blue',
-      });
-      return;
-    }
     if (pdfExportStatus.status === 'succeeded') {
       void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-      notifications.show({
-        title: 'PDF export ready',
-        message: 'The PDF export finished successfully.',
-        color: 'green',
-      });
-      return;
     }
-    if (pdfExportStatus.status === 'failed') {
-      notifications.show({
-        title: 'PDF export failed',
-        message: pdfExportStatus.error ?? 'Export could not be completed.',
-        color: 'red',
-      });
-      return;
-    }
-    if (pdfExportStatus.status === 'cancelled') {
-      notifications.show({
-        title: 'PDF export cancelled',
-        message: 'The PDF export was cancelled.',
-        color: 'yellow',
-      });
-    }
+
+    updatePdfExportStatusNotification(documentId, pdfExportStatus);
   }, [pdfExportStatus, lastPdfExportStatus, queryClient, documentId]);
 
   const headings = useMemo(
@@ -308,12 +280,6 @@ export function useDocumentPage() {
       setSaveLoading(false);
     }
   }, [data, documentId, editDescription, editTagIds, editTitle, queryClient]);
-
-  const handleSuggestChangeFromView = useCallback((blockId: string) => {
-    setSuggestionTargetBlockId(blockId);
-    setEditTab('suggestions');
-    setMode('edit');
-  }, []);
 
   const handleEditClick = () => {
     if (!data) return;
@@ -462,11 +428,7 @@ export function useDocumentPage() {
       const body = (await res.json()) as { jobId: string; status: string };
       setPdfExportJobId(body.jobId);
       setLastPdfExportStatus(null);
-      notifications.show({
-        title: 'PDF export queued',
-        message: 'The export was queued and will run in the background.',
-        color: 'blue',
-      });
+      showPdfExportQueuedNotification(documentId);
     } finally {
       setPdfExportLoading(false);
     }
@@ -487,7 +449,6 @@ export function useDocumentPage() {
     editTab,
     leadDraftDirty,
     leadDraftPanelRef,
-    suggestionsPanelRef,
     handleSave,
   });
 
@@ -526,7 +487,6 @@ export function useDocumentPage() {
     setLeadDraftDirty,
     setLeadDraftLastSynced,
     leadDraftPanelRef,
-    suggestionsPanelRef,
     headings,
     numberedHeadings,
     hasDraftBlocks,
@@ -569,8 +529,6 @@ export function useDocumentPage() {
     handleStartPdfExport,
     handleDeleteTag,
     hasUnsavedChanges,
-    handleSuggestChangeFromView,
-    suggestionTargetBlockId,
     collaborationPollInterval,
   };
 }

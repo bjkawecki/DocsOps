@@ -2,14 +2,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../../../api/client.js';
-import type {
-  BlockDocumentV0,
-  DocumentSuggestionItem,
-  LeadDraftResponse,
-} from '../../../api/document-types.js';
+import type { BlockDocumentV0, LeadDraftResponse } from '../../../api/document-types.js';
 import type { LeadDraftTiptapEditorHandle } from '../LeadDraftTiptapEditor.js';
 import { emptyDoc, POLL_MS } from './leadDraftPanelConstants.js';
 import { isDocumentEffectivelyEmpty } from './leadDraftPanelUtils.js';
+
+const PRESENCE_HEARTBEAT_MS = 20_000;
+
+export type DraftPresenceEditor = {
+  userId: string;
+  name: string;
+};
 
 export type DocumentLeadDraftPanelProps = {
   documentId: string;
@@ -67,21 +70,40 @@ export function useDocumentLeadDraftPanelState({
     refetchInterval: refetchWhenVisible && !dirty ? pollMs : false,
   });
 
-  const suggestionsQuery = useQuery({
-    queryKey: ['document', documentId, 'suggestions'],
-    queryFn: async () => {
-      const res = await apiFetch(`/api/v1/documents/${documentId}/suggestions`);
-      if (res.status === 403) return [] as DocumentSuggestionItem[];
-      if (!res.ok) throw new Error('suggestions');
-      return res.json() as Promise<DocumentSuggestionItem[]>;
-    },
-    enabled: !!documentId,
-    refetchInterval: refetchWhenVisible ? pollMs : false,
-  });
-
   const data = q.data;
   const canEdit = data && !('forbidden' in data) && data.canEdit;
   const incomingRevision = data && !('forbidden' in data) ? data.draftRevision : 0;
+
+  const presenceQuery = useQuery({
+    queryKey: ['document', documentId, 'draft-presence'],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/v1/documents/${documentId}/draft/presence`);
+      if (res.status === 403) return { editors: [] as DraftPresenceEditor[] };
+      if (!res.ok) throw new Error('draft-presence');
+      const body = (await res.json()) as { editors: DraftPresenceEditor[] };
+      return body.editors;
+    },
+    enabled: !!documentId && refetchWhenVisible && !!canEdit,
+    refetchInterval: refetchWhenVisible && canEdit ? pollMs : false,
+  });
+
+  useEffect(() => {
+    if (!documentId || !canEdit || !refetchWhenVisible) return;
+
+    const sendHeartbeat = () => {
+      void apiFetch(`/api/v1/documents/${documentId}/draft/presence`, { method: 'POST' });
+    };
+
+    sendHeartbeat();
+    const timer = window.setInterval(sendHeartbeat, PRESENCE_HEARTBEAT_MS);
+    return () => window.clearInterval(timer);
+  }, [canEdit, documentId, refetchWhenVisible]);
+
+  const otherEditors = useMemo(() => {
+    const editors = presenceQuery.data ?? [];
+    if (!currentUserId) return editors;
+    return editors.filter((e) => e.userId !== currentUserId);
+  }, [currentUserId, presenceQuery.data]);
 
   const serverDoc = useMemo<BlockDocumentV0>(() => {
     if (!data || 'forbidden' in data) return emptyDoc;
@@ -175,7 +197,7 @@ export function useDocumentLeadDraftPanelState({
     notifications.show({ color: 'green', message: 'Draft saved.' });
     await queryClient.invalidateQueries({ queryKey: ['document', documentId] });
     await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-    await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'suggestions'] });
+    await queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
     await q.refetch();
     return true;
   }, [
@@ -190,33 +212,6 @@ export function useDocumentLeadDraftPanelState({
     dirty,
   ]);
 
-  const runSuggestionAction = useCallback(
-    async (url: string, successMessage: string, failMessage: string) => {
-      const res = await apiFetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-      if (!res.ok) {
-        notifications.show({ color: 'red', message: failMessage });
-        return;
-      }
-      notifications.show({ color: 'green', message: successMessage });
-      await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'suggestions'] });
-      await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-      await suggestionsQuery.refetch();
-      await q.refetch();
-    },
-    [documentId, q, queryClient, suggestionsQuery]
-  );
-
-  const pendingSuggestions = useMemo(
-    () =>
-      (suggestionsQuery.data ?? []).filter(
-        (s) => s.status === 'pending' && (canPublish || s.authorId === currentUserId)
-      ),
-    [canPublish, currentUserId, suggestionsQuery.data]
-  );
   const publishedFallbackAvailable = !isDocumentEffectivelyEmpty(fallbackBlocks);
   const draftLooksEmpty = isDocumentEffectivelyEmpty(appliedDoc);
 
@@ -266,13 +261,12 @@ export function useDocumentLeadDraftPanelState({
     setRemotePending,
     applyIncoming,
     handleSave,
-    runSuggestionAction,
     handleResetDraftFromPublished,
     canEdit,
     canPublish,
     currentUserId,
     documentId,
-    pendingSuggestions,
+    otherEditors,
     publishedFallbackAvailable,
     draftLooksEmpty,
     isAdmin,

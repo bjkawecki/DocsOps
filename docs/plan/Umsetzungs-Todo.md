@@ -4,7 +4,7 @@ Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. S
 
 **Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
 
-**Geplante Großumstellung Edit-/Kollaborationsmodell:** [Edit-System: Blocks (JSON), Suggestions, Lead-Draft (Variante A)](Edit-System-Blocks-Suggestions-Lead-Draft.md) – ersetzt Markdown-first-Editing schrittweise; Autoren nur Suggestions, Lead kuratiert Draft und published. **PR-/Epic-Aufteilung:** [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md). **EPIC-9 (Legacy abschalten):** `DOCUMENT_LEGACY_DRAFT_ENABLED` und HTTP 410 für persönlichen Markdown-Entwurf / Draft-Requests; Details im Epic-Abschnitt EPIC-9.
+**Geplante Großumstellung Edit-/Kollaborationsmodell:** [Edit-System: Blocks (JSON), Suggestions, Lead-Draft (Variante A)](Edit-System-Blocks-Suggestions-Lead-Draft.md) – ersetzt Markdown-first-Editing schrittweise. **Umgesetzt (ADR 003):** Scope Authors bearbeiten den Lead-Draft direkt; Draft-Change-Ops + Reviews-Inbox + SSE-Presence; Suggestions entfernt. Siehe [ADR 003](../platform/adr/003-scope-author-direct-draft.md). **PR-/Epic-Aufteilung:** [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md). **EPIC-9 (Legacy abschalten):** `DOCUMENT_LEGACY_DRAFT_ENABLED` und HTTP 410 für persönlichen Markdown-Entwurf / Draft-Requests; Details im Epic-Abschnitt EPIC-9.
 
 ---
 
@@ -276,6 +276,8 @@ Detaillierter Plan (Meilenstein): [Plan-15a-Datenmodell-Rechte-Sichtbarkeit](Pla
 **Ergebnis 15c (Ziel):** Autoren sehen Published und (optional) Lead-Draft-Stand; sie erstellen **Suggestions**; Lead wendet zu, **veröffentlicht** → neuer Snapshot.
 
 **v0.2.0 (umgesetzt):** Reviews-Inbox (`/reviews`), Autor-UX „Suggest change“, Block schema v1 (Inline-Marks), Typst-PDF, SSE statt Dauer-Polling – siehe [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md) Post-EPIC Polish.
+
+**Scope Author + Read-Grants (umgesetzt):** `TeamAuthor` / `DepartmentAuthor` statt Document Write-Grants; Authors-Panel auf Team-/Department-Page; Document Access Tab nur Read-Grants (Cross-Scope) + Hinweis; PDF-Export-Toast persistent bis Download; Typst-Dev-Doku/`make worker`.
 
 ### 15d. Konflikte & „auf neuesten Stand“
 

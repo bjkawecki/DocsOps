@@ -33,6 +33,7 @@ make install
 | **PostgreSQL 18** | ✅ in Docker (`postgres:18-alpine`)              | ✅ in Docker                                |
 | **MinIO**         | ✅ in Docker                                     | ✅ in Docker                                |
 | **Backend**       | ✅ auf dem **Host** (du startest mit `make dev`) | ✅ als Container „app“                      |
+| **Job-Worker**    | ❌ (separat: `make worker`; Typst auf PATH)      | ✅ als Container `docsops-job-worker`       |
 | **Caddy**         | ❌ nicht gestartet                               | ✅ Reverse Proxy                            |
 | **Frontend**      | ❌ (optional auf Host; sonst im Stack)           | ✅ als Service, Caddy routet `/` → Frontend |
 
@@ -43,9 +44,12 @@ Schnell-Dev heißt: **Nur** die Datenbanken (Postgres, MinIO) laufen in Docker. 
    ```bash
    make infra         # startet nur Postgres + MinIO
    make dev          # startet Backend auf dem Host (tsx watch)
+   make worker       # optional: Job-Worker (PDF export, pg-boss) – zweites Terminal
    ```
 
    Backend: **http://localhost:8080/health**
+
+   **PDF-Export (Typst):** Der Export läuft asynchron im Job-Worker, nicht in der API. Im Schnell-Dev `make worker` in einem zweiten Terminal starten und **Typst** installieren (z. B. Arch: `pacman -S typst`). Falls `typst` nicht im PATH liegt: `TYPST_BIN=/pfad/zu/typst` in `.env`. Im Docker-Stack (`make up`) ist Typst im Image `docsops-node-dev`; nach Updates ggf. `docker compose build docsops-job-worker && docker compose up -d docsops-job-worker`.
 
 2. Ohne Makefile:
 
@@ -108,6 +112,7 @@ make format
 | `make format-check` | Prettier nur prüfen                                                                       |
 | `make check`        | Lint + Format-Check                                                                       |
 | `make dev`          | Backend im Dev-Modus (tsx watch)                                                          |
+| `make worker`       | Job-Worker im Dev-Modus (PDF export; Typst auf PATH oder `TYPST_BIN` in `.env`)           |
 | `make build`        | Backend bauen                                                                             |
 | `make start`        | Backend starten (nach build)                                                              |
 | `make up`           | Vollständiger Stack (`docker compose up -d`)                                              |

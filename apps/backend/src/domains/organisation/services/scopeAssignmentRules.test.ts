@@ -75,6 +75,7 @@ describe('scopeAssignmentRules', () => {
     await prisma.teamMember.deleteMany({
       where: { teamId: { in: [teamId, team2Id] } },
     });
+    await prisma.teamAuthor.deleteMany({ where: { teamId: { in: [teamId, team2Id] } } });
     await prisma.teamLead.deleteMany({ where: { teamId: { in: [teamId, team2Id] } } });
     await prisma.departmentLead.deleteMany({ where: { departmentId } });
     await prisma.companyLead.deleteMany({ where: { companyId } });
@@ -122,6 +123,12 @@ describe('scopeAssignmentRules', () => {
     await expect(
       assertCanAssignScopeRole(prisma, { userId: companyLeadId, kind: 'departmentLead' })
     ).rejects.toBeInstanceOf(ScopeAssignmentConflictError);
+  });
+
+  it('team member can be assigned teamAuthor when exclusive', async () => {
+    await expect(
+      assertCanAssignScopeRole(prisma, { userId: teamMemberId, kind: 'teamAuthor', teamId })
+    ).resolves.toBeUndefined();
   });
 
   it('stripIncompatibleOrgAssignments keeps only highest tier', async () => {

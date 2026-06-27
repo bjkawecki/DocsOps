@@ -104,7 +104,14 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
 
     const userIds = users.map((u) => u.id);
-    const [teamLeadRows, departmentLeadRows, companyLeadRows, teamMemberRows] = await Promise.all([
+    const [
+      teamLeadRows,
+      departmentLeadRows,
+      companyLeadRows,
+      teamMemberRows,
+      teamAuthorRows,
+      departmentAuthorRows,
+    ] = await Promise.all([
       request.server.prisma.teamLead.findMany({
         where: { userId: { in: userIds } },
         select: {
@@ -132,6 +139,19 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           },
         },
       }),
+      request.server.prisma.teamAuthor.findMany({
+        where: { userId: { in: userIds } },
+        select: {
+          userId: true,
+          team: {
+            select: { id: true, name: true, department: { select: { id: true, name: true } } },
+          },
+        },
+      }),
+      request.server.prisma.departmentAuthor.findMany({
+        where: { userId: { in: userIds } },
+        select: { userId: true, department: { select: { id: true, name: true } } },
+      }),
     ]);
     const teamLeadSet = new Set(teamLeadRows.map((r) => r.userId));
     const departmentLeadSet = new Set(departmentLeadRows.map((r) => r.userId));
@@ -142,11 +162,20 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     >();
     const departmentsByUser = new Map<string, Array<{ id: string; name: string }>>();
     const departmentsAsLeadByUser = new Map<string, Array<{ id: string; name: string }>>();
+    const departmentsAsAuthorByUser = new Map<string, Array<{ id: string; name: string }>>();
     for (const r of teamMemberRows) {
       addTeamMembershipCatalogRow(r, teamsByUser, departmentsByUser);
     }
     for (const r of teamLeadRows) {
       addTeamMembershipCatalogRow(r, teamsByUser, departmentsByUser);
+    }
+    for (const r of teamAuthorRows) {
+      addTeamMembershipCatalogRow(r, teamsByUser, departmentsByUser);
+      const deptList = departmentsByUser.get(r.userId) ?? [];
+      if (!deptList.some((d) => d.id === r.team.department.id)) {
+        deptList.push({ id: r.team.department.id, name: r.team.department.name });
+      }
+      departmentsByUser.set(r.userId, deptList);
     }
     for (const r of departmentLeadRows) {
       const deptList = departmentsByUser.get(r.userId) ?? [];
@@ -158,6 +187,18 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       leadList.push({ id: r.department.id, name: r.department.name });
       departmentsAsLeadByUser.set(r.userId, leadList);
     }
+    for (const r of departmentAuthorRows) {
+      const deptList = departmentsByUser.get(r.userId) ?? [];
+      if (!deptList.some((d) => d.id === r.department.id)) {
+        deptList.push({ id: r.department.id, name: r.department.name });
+      }
+      departmentsByUser.set(r.userId, deptList);
+      const authorList = departmentsAsAuthorByUser.get(r.userId) ?? [];
+      authorList.push({ id: r.department.id, name: r.department.name });
+      departmentsAsAuthorByUser.set(r.userId, authorList);
+    }
+    const teamAuthorSet = new Set(teamAuthorRows.map((r) => r.userId));
+    const departmentAuthorSet = new Set(departmentAuthorRows.map((r) => r.userId));
     let items = users.map((u) => {
       const role = u.isAdmin
         ? ('Admin' as const)
@@ -167,20 +208,38 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
             ? ('Department Lead' as const)
             : teamLeadSet.has(u.id)
               ? ('Team Lead' as const)
-              : ('User' as const);
+              : departmentAuthorSet.has(u.id)
+                ? ('Department Author' as const)
+                : teamAuthorSet.has(u.id)
+                  ? ('Team Author' as const)
+                  : ('User' as const);
       const teamsRaw = teamsByUser.get(u.id) ?? [];
       const teams = teamsRaw.map((t) => ({
         ...t,
         isLead: teamLeadRows.some((r) => r.userId === u.id && r.teamId === t.id),
+        isAuthor: teamAuthorRows.some((r) => r.userId === u.id && r.team.id === t.id),
       }));
+      for (const r of teamAuthorRows) {
+        if (r.userId !== u.id) continue;
+        if (teams.some((t) => t.id === r.team.id)) continue;
+        teams.push({
+          id: r.team.id,
+          name: r.team.name,
+          departmentName: r.team.department.name,
+          isLead: false,
+          isAuthor: true,
+        });
+      }
       const departments = departmentsByUser.get(u.id) ?? [];
       const departmentsAsLead = departmentsAsLeadByUser.get(u.id) ?? [];
+      const departmentsAsAuthor = departmentsAsAuthorByUser.get(u.id) ?? [];
       return {
         ...u,
         role,
         teams,
         departments,
         departmentsAsLead,
+        departmentsAsAuthor,
       };
     });
 

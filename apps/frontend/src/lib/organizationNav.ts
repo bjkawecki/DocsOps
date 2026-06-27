@@ -7,6 +7,7 @@ export function hasOrganizationMembership(me: MeResponse): boolean {
     identity.teams.length > 0 ||
     identity.departments.length > 0 ||
     identity.departmentLeads.length > 0 ||
+    identity.departmentAuthors.length > 0 ||
     identity.companyLeads.length > 0
   );
 }

@@ -1,8 +1,7 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
-import { DocumentSuggestionStatus } from '../../../../generated/prisma/client.js';
+import { draftOpsArraySchema } from '../../documents/services/collaboration/documentDraftOps.js';
 import { getPublishableContextIds } from '../../organisation/permissions/catalogPermissions.js';
 import { getScopeFromOwner, ownerScopeSelect } from '../routes/me/route-helpers.js';
-import { suggestionOpsArraySchema } from '../../documents/services/collaboration/documentSuggestionOps.js';
 
 const documentSelect = {
   id: true,
@@ -19,94 +18,175 @@ const documentSelect = {
   },
 } as const;
 
-type SuggestionWithDocument = {
+type DocumentWithScope = {
   id: string;
-  documentId: string;
-  authorId: string;
-  status: DocumentSuggestionStatus;
-  baseDraftRevision: number;
-  ops: unknown;
-  createdAt: Date;
-  author: { id: string; name: string | null };
-  document: {
-    id: string;
-    title: string;
-    contextId: string | null;
-    context: {
-      process: { owner: Parameters<typeof getScopeFromOwner>[0] } | null;
-      project: { owner: Parameters<typeof getScopeFromOwner>[0] } | null;
-      subcontext: { project: { owner: Parameters<typeof getScopeFromOwner>[0] } } | null;
-    } | null;
-  };
+  title: string;
+  contextId: string | null;
+  context: {
+    process: { owner: Parameters<typeof getScopeFromOwner>[0] } | null;
+    project: { owner: Parameters<typeof getScopeFromOwner>[0] } | null;
+    subcontext: { project: { owner: Parameters<typeof getScopeFromOwner>[0] } } | null;
+  } | null;
 };
 
 export type MeReviewsQuery = {
   limit: number;
   offset: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'superseded';
 };
 
-export type ReviewSuggestionItem = {
-  suggestionId: string;
+export type ReviewDraftChangeDocumentItem = {
   documentId: string;
   documentTitle: string;
-  status: DocumentSuggestionStatus;
-  authorId: string;
-  authorName: string | null;
-  createdAt: string;
   scopeType: 'team' | 'department' | 'company' | 'personal';
   scopeId: string | null;
   scopeName: string;
-  baseDraftRevision: number;
+  changeCount: number;
+  lastChangeAt: string;
+  lastAuthorId: string;
+  lastAuthorName: string | null;
+  affectedBlockSummary: string | null;
+};
+
+export type ReviewMyDraftChangeItem = {
+  changeId: string;
+  documentId: string;
+  documentTitle: string;
+  scopeType: 'team' | 'department' | 'company' | 'personal';
+  scopeId: string | null;
+  scopeName: string;
+  savedAt: string;
+  revisionFrom: number;
+  revisionTo: number;
   affectedBlockSummary: string | null;
 };
 
 export type MeReviewsResult = {
-  pendingForReview: ReviewSuggestionItem[];
-  mySuggestions: ReviewSuggestionItem[];
+  pendingForReview: ReviewDraftChangeDocumentItem[];
+  myChanges: ReviewMyDraftChangeItem[];
   totalPendingForReview: number;
-  totalMySuggestions: number;
+  totalMyChanges: number;
   limit: number;
   offset: number;
 };
 
-function summarizeSuggestionOps(ops: unknown): string | null {
-  const parsed = suggestionOpsArraySchema.safeParse(ops);
-  if (!parsed.success) return null;
-  const parts = parsed.data.map((op) => {
-    if (op.op === 'replaceBlock') return `replace block`;
-    if (op.op === 'deleteBlock') return `delete block`;
-    return `insert block`;
-  });
-  return parts.length > 0 ? parts.join(', ') : null;
-}
-
-function mapSuggestionRow(row: SuggestionWithDocument): ReviewSuggestionItem {
-  const owner =
-    row.document.context?.process?.owner ??
-    row.document.context?.project?.owner ??
-    row.document.context?.subcontext?.project?.owner ??
-    null;
-  const scope = getScopeFromOwner(owner);
-  return {
-    suggestionId: row.id,
-    documentId: row.documentId,
-    documentTitle: row.document.title,
-    status: row.status,
-    authorId: row.authorId,
-    authorName: row.author.name,
-    createdAt: row.createdAt.toISOString(),
-    scopeType: scope.scopeType,
-    scopeId: scope.scopeId,
-    scopeName: scope.scopeName,
-    baseDraftRevision: row.baseDraftRevision,
-    affectedBlockSummary: summarizeSuggestionOps(row.ops),
-  };
-}
-
 const activeDocumentWhere = {
   deletedAt: null,
   archivedAt: null,
+} as const;
+
+function summarizeOps(ops: unknown, affectedBlockIds: string[]): string | null {
+  const parsed = draftOpsArraySchema.safeParse(ops);
+  if (parsed.success) {
+    const parts = parsed.data.map((op) => {
+      if (op.op === 'replaceBlock') return 'replace block';
+      if (op.op === 'deleteBlock') return 'delete block';
+      return 'insert block';
+    });
+    if (parts.length > 0) return parts.join(', ');
+  }
+  if (affectedBlockIds.length > 0) {
+    return `${affectedBlockIds.length} block(s) changed`;
+  }
+  return null;
+}
+
+function scopeFromDocument(doc: DocumentWithScope) {
+  const owner =
+    doc.context?.process?.owner ??
+    doc.context?.project?.owner ??
+    doc.context?.subcontext?.project?.owner ??
+    null;
+  return getScopeFromOwner(owner);
+}
+
+type ChangeRow = {
+  id: string;
+  documentId: string;
+  revisionFrom: number;
+  revisionTo: number;
+  savedAt: Date;
+  savedById: string;
+  ops: unknown;
+  affectedBlockIds: string[];
+  savedBy: { id: string; name: string | null };
+  document: DocumentWithScope;
+};
+
+function aggregatePendingForReview(
+  rows: ChangeRow[],
+  limit: number,
+  offset: number
+): { items: ReviewDraftChangeDocumentItem[]; total: number } {
+  const byDocument = new Map<
+    string,
+    {
+      document: DocumentWithScope;
+      changeCount: number;
+      lastChange: ChangeRow;
+    }
+  >();
+
+  for (const row of rows) {
+    const existing = byDocument.get(row.documentId);
+    if (!existing) {
+      byDocument.set(row.documentId, {
+        document: row.document,
+        changeCount: 1,
+        lastChange: row,
+      });
+      continue;
+    }
+    existing.changeCount += 1;
+    if (row.savedAt > existing.lastChange.savedAt) {
+      existing.lastChange = row;
+    }
+  }
+
+  const sorted = [...byDocument.values()].sort(
+    (a, b) => b.lastChange.savedAt.getTime() - a.lastChange.savedAt.getTime()
+  );
+  const total = sorted.length;
+  const page = sorted.slice(offset, offset + limit);
+
+  return {
+    total,
+    items: page.map(({ document, changeCount, lastChange }) => {
+      const scope = scopeFromDocument(document);
+      return {
+        documentId: document.id,
+        documentTitle: document.title,
+        scopeType: scope.scopeType,
+        scopeId: scope.scopeId,
+        scopeName: scope.scopeName,
+        changeCount,
+        lastChangeAt: lastChange.savedAt.toISOString(),
+        lastAuthorId: lastChange.savedById,
+        lastAuthorName: lastChange.savedBy.name,
+        affectedBlockSummary: summarizeOps(lastChange.ops, lastChange.affectedBlockIds),
+      };
+    }),
+  };
+}
+
+function mapMyChangeRow(row: ChangeRow): ReviewMyDraftChangeItem {
+  const scope = scopeFromDocument(row.document);
+  return {
+    changeId: row.id,
+    documentId: row.documentId,
+    documentTitle: row.document.title,
+    scopeType: scope.scopeType,
+    scopeId: scope.scopeId,
+    scopeName: scope.scopeName,
+    savedAt: row.savedAt.toISOString(),
+    revisionFrom: row.revisionFrom,
+    revisionTo: row.revisionTo,
+    affectedBlockSummary: summarizeOps(row.ops, row.affectedBlockIds),
+  };
+}
+
+const changeInclude = {
+  savedBy: { select: { id: true, name: true } },
+  document: { select: documentSelect },
 } as const;
 
 export async function listMeReviews(
@@ -122,54 +202,52 @@ export async function listMeReviews(
       ? { ...activeDocumentWhere, contextId: { in: contextIds } }
       : { id: { in: [] as string[] } };
 
-  const [pendingRows, totalPendingForReview, myRows, totalMySuggestions] = await Promise.all([
-    prisma.documentSuggestion.findMany({
+  const cycleDocumentFilter = {
+    ...leadDocumentWhere,
+    draftCycle: { isNot: null },
+  };
+
+  const [pendingChanges, myChanges, totalMyChanges] = await Promise.all([
+    prisma.documentDraftChange.findMany({
+      where: { document: cycleDocumentFilter },
+      include: changeInclude,
+      orderBy: { savedAt: 'desc' },
+    }),
+    prisma.documentDraftChange.findMany({
       where: {
-        status: DocumentSuggestionStatus.pending,
-        document: leadDocumentWhere,
+        savedById: userId,
+        document: {
+          ...activeDocumentWhere,
+          draftCycle: { isNot: null },
+        },
       },
-      include: {
-        author: { select: { id: true, name: true } },
-        document: { select: documentSelect },
-      },
-      orderBy: { createdAt: 'desc' },
+      include: changeInclude,
+      orderBy: { savedAt: 'desc' },
       take: query.limit,
       skip: query.offset,
     }),
-    prisma.documentSuggestion.count({
+    prisma.documentDraftChange.count({
       where: {
-        status: DocumentSuggestionStatus.pending,
-        document: leadDocumentWhere,
-      },
-    }),
-    prisma.documentSuggestion.findMany({
-      where: {
-        authorId: userId,
-        status: query.status as DocumentSuggestionStatus,
-        document: activeDocumentWhere,
-      },
-      include: {
-        author: { select: { id: true, name: true } },
-        document: { select: documentSelect },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: query.limit,
-      skip: query.offset,
-    }),
-    prisma.documentSuggestion.count({
-      where: {
-        authorId: userId,
-        status: query.status as DocumentSuggestionStatus,
-        document: activeDocumentWhere,
+        savedById: userId,
+        document: {
+          ...activeDocumentWhere,
+          draftCycle: { isNot: null },
+        },
       },
     }),
   ]);
 
+  const pending = aggregatePendingForReview(
+    pendingChanges as ChangeRow[],
+    query.limit,
+    query.offset
+  );
+
   return {
-    pendingForReview: pendingRows.map((row) => mapSuggestionRow(row as SuggestionWithDocument)),
-    mySuggestions: myRows.map((row) => mapSuggestionRow(row as SuggestionWithDocument)),
-    totalPendingForReview,
-    totalMySuggestions,
+    pendingForReview: pending.items,
+    myChanges: (myChanges as ChangeRow[]).map(mapMyChangeRow),
+    totalPendingForReview: pending.total,
+    totalMyChanges,
     limit: query.limit,
     offset: query.offset,
   };

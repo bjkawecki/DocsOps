@@ -18,6 +18,18 @@ export type DocumentCollaborationChangedPayload = z.infer<
   typeof documentCollaborationChangedPayloadSchema
 >;
 
+export const documentDraftPresencePayloadSchema = z.object({
+  documentId: z.cuid(),
+  editors: z.array(
+    z.object({
+      userId: z.string().min(1),
+      name: z.string(),
+    })
+  ),
+});
+
+export type DocumentDraftPresencePayload = z.infer<typeof documentDraftPresencePayloadSchema>;
+
 export const liveClientEventSchema = z.discriminatedUnion('type', [
   z.object({
     v: z.literal(LIVE_EVENT_VERSION),
@@ -32,6 +44,11 @@ export const liveClientEventSchema = z.discriminatedUnion('type', [
     v: z.literal(LIVE_EVENT_VERSION),
     type: z.literal('document.collaboration-changed'),
     payload: documentCollaborationChangedPayloadSchema,
+  }),
+  z.object({
+    v: z.literal(LIVE_EVENT_VERSION),
+    type: z.literal('document.draft-presence'),
+    payload: documentDraftPresencePayloadSchema,
   }),
 ]);
 

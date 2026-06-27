@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { exampleBlockDocumentV0 } from '../services/blocks/blockSchema.js';
+import { prisma } from '../../../db.js';
 import {
   createDocumentsTestContext,
   disposeDocumentsTestContext,
@@ -35,17 +36,14 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('Writer GET lead-draft -> 200, canEdit false', async () => {
+  it('Writer with grant but not scope author GET lead-draft -> 403', async () => {
     const cookie = await context.loginAsWriter();
     const res = await context.app.inject({
       method: 'GET',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie },
     });
-    expect(res.statusCode).toBe(200);
-    const body = res.json() as { draftRevision: number; canEdit: boolean };
-    expect(body.canEdit).toBe(false);
-    expect(body.draftRevision).toBe(0);
+    expect(res.statusCode).toBe(403);
   });
 
   it('Scope-Lead GET lead-draft -> 200, canEdit true', async () => {
@@ -74,6 +72,36 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(403);
   });
 
+  it('Scope author GET lead-draft -> 200, canEdit true', async () => {
+    const cookie = await context.loginAsScopeAuthor();
+    const res = await context.app.inject({
+      method: 'GET',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { canEdit: boolean };
+    expect(body.canEdit).toBe(true);
+  });
+
+  it('Scope author PATCH lead-draft -> 200, creates draft change', async () => {
+    const cookie = await context.loginAsScopeAuthor();
+    const res = await context.app.inject({
+      method: 'PATCH',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: JSON.stringify({
+        expectedRevision: 0,
+        blocks: exampleBlockDocumentV0,
+      }),
+    });
+    expect(res.statusCode).toBe(200);
+    const changeCount = await prisma.documentDraftChange.count({
+      where: { documentId: context.publishedDocId },
+    });
+    expect(changeCount).toBeGreaterThanOrEqual(1);
+  });
+
   it('Lead PATCH mit falscher expectedRevision -> 409', async () => {
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
@@ -88,30 +116,35 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(409);
   });
 
-  it('Lead PATCH expectedRevision 0 -> 200, Revision 1', async () => {
+  it('Lead PATCH expectedRevision 1 with content change -> 200, Revision 2', async () => {
+    const modified = structuredClone(exampleBlockDocumentV0);
+    modified.blocks[0] = {
+      ...modified.blocks[0],
+      content: [{ id: 't-lead', type: 'text', meta: { text: 'Lead edit' } }],
+    };
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 0,
-        blocks: exampleBlockDocumentV0,
+        expectedRevision: 1,
+        blocks: modified,
       }),
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { draftRevision: number };
-    expect(body.draftRevision).toBe(1);
+    expect(body.draftRevision).toBe(2);
   });
 
-  it('Lead PATCH expectedRevision 0 erneut -> 409', async () => {
+  it('Lead PATCH stale expectedRevision 1 -> 409', async () => {
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 0,
+        expectedRevision: 1,
         blocks: exampleBlockDocumentV0,
       }),
     });
@@ -136,19 +169,24 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('PATCH mit expectedRevision 1 -> 200, Revision 2', async () => {
+  it('PATCH mit expectedRevision 2 and content change -> 200, Revision 3', async () => {
+    const modified = structuredClone(exampleBlockDocumentV0);
+    modified.blocks[0] = {
+      ...modified.blocks[0],
+      content: [{ id: 't-lead-2', type: 'text', meta: { text: 'Lead edit 2' } }],
+    };
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 1,
-        blocks: exampleBlockDocumentV0,
+        expectedRevision: 2,
+        blocks: modified,
       }),
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { draftRevision: number };
-    expect(body.draftRevision).toBe(2);
+    expect(body.draftRevision).toBe(3);
   });
 });

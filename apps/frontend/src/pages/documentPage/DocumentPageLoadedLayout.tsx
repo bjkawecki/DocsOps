@@ -36,10 +36,6 @@ import {
 } from '../../components/documents/DocumentBlocksPreview';
 import { DocumentLeadDraftPanel } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import {
-  DocumentSuggestionsPanel,
-  type DocumentSuggestionsPanelHandle,
-} from '../../components/documents/DocumentSuggestionsPanel';
 import { DocumentAccessPanel } from '../../components/documents/DocumentAccessPanel';
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
@@ -59,10 +55,9 @@ export type DocumentPageLoadedLayoutProps = {
   metadataItems: ReactNode[];
   saveLoading: boolean;
   publishLoading: boolean;
-  editTab: 'draft' | 'suggestions' | 'metadata' | 'access';
-  setEditTab: (v: 'draft' | 'suggestions' | 'metadata' | 'access') => void;
+  editTab: 'draft' | 'metadata' | 'access';
+  setEditTab: (v: 'draft' | 'metadata' | 'access') => void;
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
-  suggestionsPanelRef: RefObject<DocumentSuggestionsPanelHandle | null>;
   leadDraftLastSynced: string | null;
   leadDraftDirty: boolean;
   hasDraftBlocks: boolean;
@@ -88,8 +83,6 @@ export type DocumentPageLoadedLayoutProps = {
   openDelete: () => void;
   openCreateTag: () => void;
   openManageTags: () => void;
-  handleSuggestChangeFromView: (blockId: string) => void;
-  suggestionTargetBlockId: string | null;
   collaborationPollInterval: number | false;
 };
 
@@ -109,7 +102,6 @@ export function DocumentPageLoadedLayout({
   editTab,
   setEditTab,
   leadDraftPanelRef,
-  suggestionsPanelRef,
   leadDraftLastSynced,
   leadDraftDirty,
   hasDraftBlocks,
@@ -135,12 +127,12 @@ export function DocumentPageLoadedLayout({
   openDelete,
   openCreateTag,
   openManageTags,
-  handleSuggestChangeFromView,
-  suggestionTargetBlockId,
   collaborationPollInterval,
 }: DocumentPageLoadedLayoutProps) {
   const docTitle = mode === 'edit' ? editTitle || 'Untitled' : data.title;
   const hasNoContext = data.contextId == null;
+  const canEnterEditMode = data.canWrite || !!data.canPublish;
+  const canManageAccess = !!data.canPublish;
   const publishedPlainFromBlocks =
     data.publishedBlocks != null ? blockDocumentToPlainPreview(data.publishedBlocks).trim() : '';
 
@@ -193,7 +185,7 @@ export function DocumentPageLoadedLayout({
                   )}
                 </>
               )}
-              {data.canWrite && mode === 'view' && (
+              {canEnterEditMode && mode === 'view' && (
                 <ActionIcon
                   variant="filled"
                   size="36"
@@ -362,14 +354,7 @@ export function DocumentPageLoadedLayout({
                     >
                       {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
                         publishedPlainFromBlocks ? (
-                          <DocumentBlocksPreview
-                            title="Content"
-                            doc={data.publishedBlocks}
-                            canSuggest={
-                              !!data.canWrite && !data.canPublish && data.publishedAt != null
-                            }
-                            onSuggestChange={handleSuggestChangeFromView}
-                          />
+                          <DocumentBlocksPreview title="Content" doc={data.publishedBlocks} />
                         ) : (
                           <Text size="sm" c="dimmed">
                             Published blocks do not contain extractable text for this preview.
@@ -391,9 +376,8 @@ export function DocumentPageLoadedLayout({
                     >
                       <Tabs.List>
                         <Tabs.Tab value="draft">Draft</Tabs.Tab>
-                        <Tabs.Tab value="suggestions">Suggestions</Tabs.Tab>
                         <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
-                        {data.canWrite && <Tabs.Tab value="access">Access</Tabs.Tab>}
+                        {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
                       </Tabs.List>
                       <Tabs.Panel value="draft" pt="md">
                         {!hasDraftBlocks && !hasPublishedBlocks && (
@@ -414,18 +398,6 @@ export function DocumentPageLoadedLayout({
                           fallbackBlocks={data.publishedBlocks ?? null}
                           onDirtyChange={setLeadDraftDirty}
                           onLastSyncedChange={setLeadDraftLastSynced}
-                          refetchInterval={collaborationPollInterval}
-                        />
-                      </Tabs.Panel>
-                      <Tabs.Panel value="suggestions" pt="md">
-                        <DocumentSuggestionsPanel
-                          ref={suggestionsPanelRef}
-                          documentId={documentId}
-                          currentUserId={me?.user?.id}
-                          canPublish={!!data.canPublish}
-                          leadDraftBlocks={data.blocks ?? data.publishedBlocks ?? null}
-                          refetchWhenVisible={isTabVisible}
-                          initialSelectedBlockId={suggestionTargetBlockId}
                           refetchInterval={collaborationPollInterval}
                         />
                       </Tabs.Panel>
@@ -464,11 +436,20 @@ export function DocumentPageLoadedLayout({
                           </Group>
                         </Stack>
                       </Tabs.Panel>
-                      {data.canWrite && (
+                      {canManageAccess && (
                         <Tabs.Panel value="access" pt="md">
                           <DocumentAccessPanel
                             documentId={documentId}
-                            canEditAccess={!!data.canWrite}
+                            canEditAccess={canManageAccess}
+                            documentScope={
+                              data.scope?.type === 'team' ||
+                              data.scope?.type === 'department' ||
+                              data.scope?.type === 'company'
+                                ? { type: data.scope.type, id: data.scope.id }
+                                : data.scope?.type === 'personal'
+                                  ? { type: 'personal' }
+                                  : null
+                            }
                           />
                         </Tabs.Panel>
                       )}

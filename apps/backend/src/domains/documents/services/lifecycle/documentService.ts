@@ -1,5 +1,4 @@
 import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
-import { DocumentSuggestionStatus } from '../../../../../generated/prisma/client.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import { normalizeBlockDocumentSchemaVersion } from '../blocks/blockSchema.js';
 
@@ -120,10 +119,8 @@ export async function publishDocument(
         draftRevision: 0,
       },
     });
-    await tx.documentSuggestion.updateMany({
-      where: { documentId, status: DocumentSuggestionStatus.pending },
-      data: { status: DocumentSuggestionStatus.superseded },
-    });
+    await tx.documentDraftChange.deleteMany({ where: { documentId } });
+    await tx.documentDraftCycle.deleteMany({ where: { documentId } });
   });
 
   const updated = await prisma.document.findUnique({

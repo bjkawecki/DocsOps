@@ -72,6 +72,7 @@ export function DepartmentContextPage() {
     companyId != null &&
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
+  const canManageAuthors = !!(isAdmin || isDepartmentLead);
   const canManage = !!(isAdmin || isDepartmentLead || isCompanyLead);
 
   const { data: canViewPeopleData } = useCanViewScopePeople(
@@ -207,7 +208,11 @@ export function DepartmentContextPage() {
           departmentId ? (
             <Group gap="xs">
               {showPeopleMenu ? (
-                <ScopePeopleMenu scope="department" scopeId={departmentId} />
+                <ScopePeopleMenu
+                  scope="department"
+                  scopeId={departmentId}
+                  canManageAuthors={canManageAuthors}
+                />
               ) : null}
               {canManage ? (
                 <CreateContextMenu

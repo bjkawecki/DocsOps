@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const scopePersonRowSchema = z.object({
   id: z.string(),
   name: z.string(),
-  roles: z.array(z.enum(['member', 'lead'])).optional(),
+  roles: z.array(z.enum(['member', 'author', 'lead'])).optional(),
   isOnline: z.boolean(),
   lastActiveAt: z.string().nullable(),
 });
@@ -16,6 +16,7 @@ export const teamPeopleResponseSchema = z.object({
 
 export const departmentPeopleResponseSchema = z.object({
   departmentLeads: z.array(scopePersonRowSchema),
+  departmentAuthors: z.array(scopePersonRowSchema),
   teams: z.array(
     z.object({
       id: z.string(),

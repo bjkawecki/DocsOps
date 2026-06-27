@@ -20,6 +20,11 @@ export type UserForPermission = {
     teamId: string;
     team: { departmentId: string; department: { companyId: string } };
   }[];
+  authorOfTeams: {
+    teamId: string;
+    team: { departmentId: string; department: { companyId: string } };
+  }[];
+  authorOfDepartments: { departmentId: string; department: { companyId: string } }[];
   departmentLeads: { departmentId: string; department: { companyId: string } }[];
   companyLeads: { companyId: string }[];
 };
@@ -44,6 +49,7 @@ export function getUserReadableTeamIds(user: UserForPermission): Set<string> {
   return new Set([
     ...user.teamMemberships.map((m) => m.team.id),
     ...user.leadOfTeams.map((l) => l.teamId),
+    ...user.authorOfTeams.map((a) => a.teamId),
   ]);
 }
 
@@ -55,6 +61,9 @@ export function getUserDepartmentIds(user: UserForPermission): Set<string> {
   return new Set([
     ...user.teamMemberships.map((m) => m.team.departmentId),
     ...user.leadOfTeams.map((l) => l.team.departmentId),
+    ...user.authorOfTeams.map((a) => a.team.departmentId),
+    ...user.authorOfDepartments.map((a) => a.departmentId),
+    ...user.departmentLeads.map((d) => d.departmentId),
   ]);
 }
 
@@ -133,6 +142,14 @@ export async function loadUser(
         include: {
           team: { select: { departmentId: true, department: { select: { companyId: true } } } },
         },
+      },
+      authorOfTeams: {
+        include: {
+          team: { select: { departmentId: true, department: { select: { companyId: true } } } },
+        },
+      },
+      authorOfDepartments: {
+        select: { departmentId: true, department: { select: { companyId: true } } },
       },
       departmentLeads: {
         select: { departmentId: true, department: { select: { companyId: true } } },

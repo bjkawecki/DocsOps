@@ -10,7 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { RecentItemsCard, SectionCard } from '../../components/contexts';
 import type { DraftDocumentItem } from '../../hooks/useMeDrafts';
-import type { ReviewSuggestionItem } from '../../hooks/useMeReviews';
+import type { ReviewDraftChangeDocumentItem } from '../../hooks/useMeReviews';
 import type { RecentItem } from '../../hooks/useRecentItems';
 import {
   CARD_TITLE_ICON_SIZE,
@@ -37,7 +37,7 @@ export type HomeDashboardSectionGridProps = {
   draftsTotal: number | undefined;
   /** When true, "Pending review" title includes count from reviews API. */
   reviewsDataLoaded: boolean;
-  pendingReviews: ReviewSuggestionItem[];
+  pendingReviews: ReviewDraftChangeDocumentItem[];
   reviewsPending: boolean;
   reviewsTotal: number | undefined;
   hasReviewRights: boolean;
@@ -264,7 +264,7 @@ export function HomeDashboardSectionGrid({
                   const title = item.documentTitle || item.documentId;
                   return [
                     <Badge
-                      key={`${item.suggestionId}-b`}
+                      key={`${item.documentId}-b`}
                       size="sm"
                       variant="filled"
                       style={{ flexShrink: 0 }}
@@ -272,7 +272,7 @@ export function HomeDashboardSectionGrid({
                       Pending review
                     </Badge>,
                     <Link
-                      key={`${item.suggestionId}-t`}
+                      key={`${item.documentId}-t`}
                       to={`/documents/${item.documentId}?mode=edit&tab=draft`}
                       style={{
                         fontSize: 'var(--mantine-font-size-sm)',
@@ -285,7 +285,7 @@ export function HomeDashboardSectionGrid({
                       {title}
                     </Link>,
                     <HomeScopeSuffix
-                      key={`${item.suggestionId}-s`}
+                      key={`${item.documentId}-s`}
                       scopeType={item.scopeType}
                       scopeName={item.scopeName}
                     />,

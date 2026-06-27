@@ -7,6 +7,7 @@ type SeedCsvData = {
   users: SeedRow[];
   teamMembers: SeedRow[];
   teamLeaders: SeedRow[];
+  teamAuthors: SeedRow[];
   departmentLeads: SeedRow[];
   companyLeads: SeedRow[];
 };

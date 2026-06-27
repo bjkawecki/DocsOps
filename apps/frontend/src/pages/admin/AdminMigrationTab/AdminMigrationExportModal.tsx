@@ -109,8 +109,8 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
         <Stack gap="sm">
           <Text size="sm">
             Creates a <code>docsops-platform-export-*.tar.zst</code> archive with organization,
-            users, contexts, documents, grants, tags, pins, comments, suggestions, and file
-            attachments. Sessions, notifications, and backup metadata are not included.
+            users, contexts, documents, grants, tags, pins, comments, and file attachments.
+            Sessions, notifications, and backup metadata are not included.
           </Text>
           <Alert color="red" variant="filled" title="Not disaster recovery">
             For disaster recovery on the same server, use operational backup on the{' '}

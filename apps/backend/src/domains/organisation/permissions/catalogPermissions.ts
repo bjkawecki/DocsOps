@@ -24,6 +24,8 @@ function getCompanyIds(user: LoadedUser): string[] {
     ...user.departmentLeads.map((d) => d.department.companyId),
     ...user.teamMemberships.map((m) => m.team.department.companyId),
     ...user.leadOfTeams.map((l) => l.team.department.companyId),
+    ...user.authorOfTeams.map((a) => a.team.department.companyId),
+    ...user.authorOfDepartments.map((d) => d.department.companyId),
   ]);
 }
 
@@ -255,18 +257,8 @@ export async function getWritableCatalogScope(
   const companyIds = getCompanyIds(user);
   const departmentIdsFromLeads = user.departmentLeads.map((d) => d.departmentId);
   const teamIdsFromLeads = user.leadOfTeams.map((l) => l.teamId);
-  const departmentIdsFromTeams = uniqueStrings([
-    ...user.teamMemberships.map((m) => m.team.departmentId),
-    ...user.leadOfTeams.map((l) => l.team.departmentId),
-  ]);
-  const uniqueDepartmentIdsForGrants = uniqueStrings([
-    ...departmentIdsFromLeads,
-    ...departmentIdsFromTeams,
-  ]);
-  const teamIdsForGrants = [
-    ...user.teamMemberships.map((m) => m.team.id),
-    ...user.leadOfTeams.map((l) => l.teamId),
-  ];
+  const teamIdsFromAuthors = user.authorOfTeams.map((a) => a.teamId);
+  const departmentIdsFromAuthors = user.authorOfDepartments.map((d) => d.departmentId);
 
   if (user.isAdmin) {
     const [contextIds, contextFreeDrafts] = await Promise.all([
@@ -282,30 +274,16 @@ export async function getWritableCatalogScope(
         select: { id: true },
       }),
     ]);
-    const documentIdsFromGrants = await getDocumentIdsWithGrantsByRole(prisma, {
-      role: GrantRole.Write,
-      userId,
-      teamIds: teamIdsForGrants,
-      departmentIds: uniqueDepartmentIdsForGrants,
-    });
     const documentIdsFromCreator = contextFreeDrafts.map((d) => d.id);
-    return { contextIds, documentIdsFromGrants, documentIdsFromCreator };
+    return { contextIds, documentIdsFromGrants: [], documentIdsFromCreator };
   }
 
   const ownerOrConditions = buildOwnerOrConditions(
     companyIds,
-    departmentIdsFromLeads,
-    teamIdsFromLeads
+    uniqueStrings([...departmentIdsFromLeads, ...departmentIdsFromAuthors]),
+    uniqueStrings([...teamIdsFromLeads, ...teamIdsFromAuthors])
   );
-  const [contextIds, documentIdsFromGrants] = await Promise.all([
-    loadScopedContextIds(prisma, userId, ownerOrConditions),
-    getDocumentIdsWithGrantsByRole(prisma, {
-      role: GrantRole.Write,
-      userId,
-      teamIds: teamIdsForGrants,
-      departmentIds: uniqueDepartmentIdsForGrants,
-    }),
-  ]);
+  const [contextIds] = await Promise.all([loadScopedContextIds(prisma, userId, ownerOrConditions)]);
 
   const contextFreeDrafts = await prisma.document.findMany({
     where: {
@@ -319,7 +297,7 @@ export async function getWritableCatalogScope(
   });
   const documentIdsFromCreator = contextFreeDrafts.map((d) => d.id);
 
-  return { contextIds, documentIdsFromGrants, documentIdsFromCreator };
+  return { contextIds, documentIdsFromGrants: [], documentIdsFromCreator };
 }
 
 /**

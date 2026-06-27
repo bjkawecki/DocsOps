@@ -76,6 +76,7 @@ export function TeamContextPage() {
     companyId != null &&
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
+  const canManageAuthors = !!(isAdmin || isTeamLead || isDepartmentLead);
   const canManage = !!(isAdmin || isTeamLead || isDepartmentLead || isCompanyLead);
 
   const { data: canViewPeopleData } = useCanViewScopePeople(
@@ -209,7 +210,13 @@ export function TeamContextPage() {
         actions={
           teamId ? (
             <Group gap="xs">
-              {showPeopleMenu ? <ScopePeopleMenu scope="team" scopeId={teamId} /> : null}
+              {showPeopleMenu ? (
+                <ScopePeopleMenu
+                  scope="team"
+                  scopeId={teamId}
+                  canManageAuthors={canManageAuthors}
+                />
+              ) : null}
               {canManage ? (
                 <CreateContextMenu
                   onCreateProcess={() => {

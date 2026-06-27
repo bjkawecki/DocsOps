@@ -36,36 +36,8 @@ export type LeadDraftResponse = {
   canEdit: boolean;
 };
 
-/** GET/POST /api/v1/documents/:id/suggestions */
-export type DocumentSuggestionItem = {
-  id: string;
+/** GET /api/v1/documents/:id/draft/presence */
+export type DraftPresenceResponse = {
   documentId: string;
-  authorId: string;
-  authorName: string | null;
-  status: string;
-  baseDraftRevision: number;
-  publishedVersionId: string | null;
-  ops: unknown;
-  createdAt: string;
-  updatedAt: string;
-  resolvedAt: string | null;
-  resolvedById: string | null;
-  resolvedByName: string | null;
-  comment: string | null;
+  editors: Array<{ userId: string; name: string }>;
 };
-
-export type SuggestionOpDeleteBlock = { op: 'deleteBlock'; blockId: string };
-export type SuggestionOpReplaceBlock = {
-  op: 'replaceBlock';
-  blockId: string;
-  block: BlockNodeV0;
-};
-export type SuggestionOpInsertAfter = {
-  op: 'insertAfter';
-  afterBlockId: string;
-  blocks: BlockNodeV0[];
-};
-export type SuggestionOp =
-  | SuggestionOpDeleteBlock
-  | SuggestionOpReplaceBlock
-  | SuggestionOpInsertAfter;
