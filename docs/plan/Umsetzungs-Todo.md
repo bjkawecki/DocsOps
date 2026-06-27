@@ -566,7 +566,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Updater-Sidecar:** Image `docsops-updater`; interne API `POST /internal/apply`; Docker-Socket + `/opt/docsops`; Env `DOCSOPS_UPDATER_URL` / `DOCSOPS_UPDATER_TOKEN` (Install generiert Token).
 [x] **Auto-Backup:** `POST /admin/updates/apply` → `maintenance.backup` (`pre_update`) → bei Erfolg `maintenance.apply-update`.
 [x] **UpdateRun** + Wartungsmodus `reason: update`; Startup-Reconciliation; Notifications `update-succeeded` / `update-failed`.
-[x] **Admin-UI:** „Apply update“ wenn `canApplyUpdate`; Fortschritt `backing_up` → `applying`; SSH-Fallback im Modal wenn Sidecar fehlt.
+[x] **Admin-UI:** „Apply update“ wenn `canApplyUpdate`; Fortschritt `backing_up` → `applying`; Stepper, Status-Seite (`/update-status.html`), SSH-Fallback im Modal wenn Sidecar fehlt.
 [x] **Tests:** Apply-Route, Reconciliation; Doku Env-und-Config.
 
 ### Phase 3 – Host-Agent (Go)
@@ -575,7 +575,7 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 [x] **Agent MVP (3a):** `apps/agent`, API `/v1/status|apply|preflight`, State Machine, Install/systemd, Backend `hostAgentClient`.
 [x] **Sidecar entfernen (3b):** `docsops-updater` aus Compose, Doku.
-[x] **UX & Härtung (3c):** `UpdateRun.agentPhase`, Apply-Modal mit Fortschritt, Doku.
+[x] **UX & Härtung (3c):** `UpdateRun.agentPhase`, Apply-Modal mit Stepper, Status-Seite `/update-status.html`, globaler Update-Banner, Doku.
 
 ---
 

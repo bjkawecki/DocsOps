@@ -27,21 +27,19 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 5. Git-Tag `vX.Y.Z`, GitHub Release (Bundle + Images, vgl. **§19**).
 6. Stack/Images bauen bzw. pullen (`APP_VERSION` kommt aus Schritt 1 automatisch im Image).
 
-### Git-Branches (`main` / `dev`)
+### Git-Branch (`main`)
 
-| Branch     | Rolle                                                                                                                                                                      |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`main`** | Release-stabil. Enthält nur Versionen, die als echtes GitHub-Release (`vX.Y.Z`) ausgeliefert werden. `GET …/releases/latest` und Produktions-Updates beziehen sich darauf. |
-| **`dev`**  | Tägliche Entwicklung, Feature-Commits, Test-Releases (z. B. Update-Pfad lokal prüfen).                                                                                     |
+Entwicklung, Releases und Tags laufen auf **`main`**. `GET …/releases/latest` und Produktions-Updates beziehen sich auf GitHub-Releases (`vX.Y.Z`) von **`main`**.
 
 **Workflow:**
 
-1. Auf **`dev`** entwickeln und committen.
-2. Test-Release optional nur von **`dev`**: Version bumpen, `content/releases/*`, Tag `vX.Y.Z`, GitHub Release – **`main` bleibt auf der stabilen Version** (z. B. `0.1.0` in `package.json`), bis der Stand freigegeben ist.
-3. Freigabe: **`dev` → `main`** mergen (oder cherry-pick), dann Release-Ritual auf **`main`** (falls noch nicht getaggt).
-4. Nach einem Test-Release auf `main` rückgängig machen: `main` auf letzten stabilen Tag zurücksetzen, GitHub-Release/Tag des Tests löschen; Stand mit Test-Version bleibt auf **`dev`**.
+1. Auf **`main`** entwickeln und committen.
+2. Release vorbereiten: `package.json` / `APP_VERSION` bumpen, `content/releases/*`, `pnpm run lint` + Tests.
+3. Git-Tag `vX.Y.Z` auf **`main`**, GitHub Release (Bundle + Images, vgl. **§19**).
 
 **Hinweis:** CI/Release-Workflow baut Images aus dem getaggten Commit; Tags nur als `vX.Y.Z` (SemVer), kein `main`-Deploy (vgl. [Env-und-Config](Env-und-Config.md)).
+
+**Historie:** Bis einschließlich Update-UX-Tests existierte ein separater Branch **`dev`** mit Test-Release **`v0.1.1`** (entfernt). Stand abgeschlossener Update-Flow liegt auf **`main`**.
 
 ---
 

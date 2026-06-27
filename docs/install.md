@@ -102,11 +102,13 @@ sudo /opt/docsops/scripts/update.sh v0.2.0
 
 Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.env`, `pull` + `up -d`.
 
-**Lokal testen (ohne GitHub-Release):** Siehe [`scripts/local-prod-update-test.sh`](../scripts/local-prod-update-test.sh) oder manuell mit `DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.1.tar.gz DOCSOPS_SKIP_IMAGE_PULL=1 sudo -E ./scripts/update.sh v0.1.1`.
+**Lokal testen (ohne GitHub-Release):** Siehe [`scripts/local-prod-update-test.sh`](../scripts/local-prod-update-test.sh) oder manuell mit `DOCSOPS_BUNDLE_PATH=/pfad/docsops-vX.Y.Z.tar.gz DOCSOPS_SKIP_IMAGE_PULL=1 sudo -E ./scripts/update.sh vX.Y.Z`.
 
 **Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
 
 **Admin „Apply update“ (Host-Agent):** `docsops-agent` läuft als **systemd-Dienst auf dem Host** (nicht im Compose-Stack). Die App ruft `POST /v1/apply` über `DOCSOPS_AGENT_URL` an (Standard: `http://host.docker.internal:8091`). Status: `GET /v1/status` mit Bearer `DOCSOPS_AGENT_TOKEN`.
+
+**Update-UX (Admin-UI):** Modal mit Stepper und Fortschritt; bei Container-Neustart optional **Update status page** in neuem Tab (`/update-status.html?target=vX.Y.Z&from=vA.B.C` – pollt `/health` und `/api/v1/system/version`, leitet nach erfolgreichem Versions-Match zu `/` weiter). Globaler Banner nur während laufendem Update (`preparing` / `restarting`); kein separates Success-Banner mit Auto-Reload.
 
 **Agent Troubleshooting:**
 
@@ -117,7 +119,7 @@ curl -sf -H "Authorization: Bearer $(grep '^DOCSOPS_AGENT_TOKEN=' /etc/docsops/d
   http://127.0.0.1:8091/v1/status
 
 # Manuell vom Host (wie update.sh intern):
-sudo /opt/docsops/scripts/update.sh v0.1.1
+sudo /opt/docsops/scripts/update.sh v0.2.0
 
 # Agent-Logs (JSON-Lines):
 sudo tail -100 /var/lib/docsops/agent.log
