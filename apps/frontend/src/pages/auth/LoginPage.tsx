@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, TextInput, PasswordInput, Button, Stack, Text, Paper, Alert } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -26,8 +26,6 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginTagline] = useState(randomLoginTagline);
-  const emailInputRef = useRef<HTMLInputElement>(null);
-  const errorAlertRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -56,13 +54,6 @@ export function LoginPage() {
       : null;
   const loginError = login.isError ? getLoginErrorDisplay(login.error) : redirectError;
   const maintenanceQuery = useMaintenanceStatus();
-
-  useEffect(() => {
-    if (login.isError || redirectError) {
-      const focusTarget = errorAlertRef.current ?? emailInputRef.current;
-      focusTarget?.focus();
-    }
-  }, [login.isError, redirectError]);
 
   return (
     <Box
@@ -116,7 +107,6 @@ export function LoginPage() {
           >
             <Stack gap="md">
               <TextInput
-                ref={emailInputRef}
                 id="login-email"
                 label="Email"
                 type="email"
@@ -138,13 +128,11 @@ export function LoginPage() {
               />
               {loginError && (
                 <Alert
-                  ref={errorAlertRef}
                   id={LOGIN_ERROR_ID}
                   role="alert"
                   color="red"
                   variant="filled"
                   title={loginError.title}
-                  tabIndex={-1}
                 >
                   {loginError.message}
                   {loginError.hint ? (
