@@ -4,37 +4,20 @@ import { useLiveEventsContext } from './liveEventsContext';
 
 const REVIEWS_POLL_MS = 15_000;
 
-export type ReviewDraftChangeDocumentItem = {
+export type ReviewPendingSuggestionsItem = {
   documentId: string;
   documentTitle: string;
   scopeType: 'team' | 'department' | 'company' | 'personal';
   scopeId: string | null;
   scopeName: string;
-  changeCount: number;
-  lastChangeAt: string;
-  lastAuthorId: string;
-  lastAuthorName: string | null;
-  affectedBlockSummary: string | null;
-};
-
-export type ReviewMyDraftChangeItem = {
-  changeId: string;
-  documentId: string;
-  documentTitle: string;
-  scopeType: 'team' | 'department' | 'company' | 'personal';
-  scopeId: string | null;
-  scopeName: string;
-  savedAt: string;
-  revisionFrom: number;
-  revisionTo: number;
-  affectedBlockSummary: string | null;
+  pendingSuggestionCount: number;
+  lastSuggestionAt: string | null;
+  authorIds: string[];
 };
 
 export type MeReviewsResponse = {
-  pendingForReview: ReviewDraftChangeDocumentItem[];
-  myChanges: ReviewMyDraftChangeItem[];
+  pendingForReview: ReviewPendingSuggestionsItem[];
   totalPendingForReview: number;
-  totalMyChanges: number;
   limit: number;
   offset: number;
 };

@@ -84,6 +84,14 @@ export const patchLeadDraftBodySchema = z.object({
   blocks: blockDocumentSchema,
 });
 
+export const draftSuggestionRevisionBodySchema = z.object({
+  expectedRevision: z.number().int().min(0),
+});
+
+export const patchDraftSuggestionBodySchema = draftSuggestionRevisionBodySchema.extend({
+  text: z.string(),
+});
+
 /** Grant-Rolle (API: String). */
 export const grantRoleSchema = z.enum(['Read', 'Write']);
 

@@ -1,6 +1,10 @@
 import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import { normalizeBlockDocumentSchemaVersion } from '../blocks/blockSchema.js';
+import {
+  countPendingSuggestions,
+  stripSuggestionsForPublished,
+} from '../collaboration/draftInlineSuggestions.js';
 
 /** Metadata-only update payload. No lifecycle fields (publishedAt, archivedAt, deletedAt). */
 export type UpdateDocumentMetadataData = {
@@ -79,12 +83,21 @@ export async function publishDocument(
     );
   }
   const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
-  const versionBlocksJson = normalized as unknown as Prisma.InputJsonValue;
+  const pendingCount = countPendingSuggestions(normalized);
+  if (pendingCount > 0) {
+    throw new DocumentNotPublishableError(
+      'Cannot publish while pending inline suggestions remain – resolve all suggestions first.'
+    );
+  }
+  const materialized = normalizeBlockDocumentSchemaVersion(
+    stripSuggestionsForPublished(normalized)
+  );
+  const versionBlocksJson = materialized as unknown as Prisma.InputJsonValue;
   const isRepublish = doc.publishedAt != null;
 
   if (isRepublish) {
     const publishedParsed = parseBlockDocumentFromDb(doc.currentPublishedVersion?.blocks ?? null);
-    if (publishedParsed && JSON.stringify(publishedParsed) === JSON.stringify(normalized)) {
+    if (publishedParsed && JSON.stringify(publishedParsed) === JSON.stringify(materialized)) {
       throw new DocumentNotPublishableError(
         'Draft matches the current published version – nothing to publish.'
       );
@@ -105,7 +118,7 @@ export async function publishDocument(
       data: {
         documentId,
         blocks: versionBlocksJson,
-        blocksSchemaVersion: normalized.schemaVersion,
+        blocksSchemaVersion: materialized.schemaVersion,
         versionNumber,
         createdById: userId,
       },
@@ -119,8 +132,6 @@ export async function publishDocument(
         draftRevision: 0,
       },
     });
-    await tx.documentDraftChange.deleteMany({ where: { documentId } });
-    await tx.documentDraftCycle.deleteMany({ where: { documentId } });
   });
 
   const updated = await prisma.document.findUnique({

@@ -10,7 +10,7 @@ import {
 import { Link } from 'react-router-dom';
 import { RecentItemsCard, SectionCard } from '../../components/contexts';
 import type { DraftDocumentItem } from '../../hooks/useMeDrafts';
-import type { ReviewDraftChangeDocumentItem } from '../../hooks/useMeReviews';
+import type { ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import type { RecentItem } from '../../hooks/useRecentItems';
 import {
   CARD_TITLE_ICON_SIZE,
@@ -37,7 +37,7 @@ export type HomeDashboardSectionGridProps = {
   draftsTotal: number | undefined;
   /** When true, "Pending review" title includes count from reviews API. */
   reviewsDataLoaded: boolean;
-  pendingReviews: ReviewDraftChangeDocumentItem[];
+  pendingReviews: ReviewPendingSuggestionsItem[];
   reviewsPending: boolean;
   reviewsTotal: number | undefined;
   hasReviewRights: boolean;

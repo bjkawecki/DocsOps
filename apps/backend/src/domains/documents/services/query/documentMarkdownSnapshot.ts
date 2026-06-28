@@ -1,5 +1,6 @@
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import { blockDocumentV0ToMarkdown } from '../blocks/blocksToMarkdown.js';
+import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
 
 /**
  * Markdown-Snapshot für API-`content`, Kommentar-Anker und PDF-Export (EPIC-9b: kein DB-Feld mehr).
@@ -15,5 +16,5 @@ export function documentMarkdownFromRow(row: {
     if (pub) return blockDocumentV0ToMarkdown(pub);
   }
   const draft = parseBlockDocumentFromDb(row.draftBlocks);
-  return draft ? blockDocumentV0ToMarkdown(draft) : '';
+  return draft ? blockDocumentV0ToMarkdown(stripSuggestionsForPublished(draft)) : '';
 }

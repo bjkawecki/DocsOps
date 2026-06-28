@@ -63,13 +63,15 @@ export type DocumentPageLoadedLayoutProps = {
   hasDraftBlocks: boolean;
   hasPublishedBlocks: boolean;
   showPublishButton: boolean;
-  me: { user?: { id?: string; isAdmin?: boolean } } | undefined;
+  me: { user?: { id?: string; name?: string; isAdmin?: boolean } } | undefined;
   isTabVisible: boolean;
   tagOptions: { value: string; label: string }[];
   headings: { level: number; text: string; id: string }[];
   numberedHeadings: { level: number; text: string; id: string; numbering: string }[];
   setLeadDraftDirty: (dirty: boolean) => void;
   setLeadDraftLastSynced: (iso: string | null) => void;
+  setLeadDraftPendingSuggestions: (count: number) => void;
+  leadDraftPendingSuggestions: number;
   pdfExportLoading: boolean;
   pdfExportStatus: PdfExportJobStatusResponse | undefined;
   handleCancelEdit: () => void;
@@ -114,6 +116,8 @@ export function DocumentPageLoadedLayout({
   numberedHeadings,
   setLeadDraftDirty,
   setLeadDraftLastSynced,
+  setLeadDraftPendingSuggestions,
+  leadDraftPendingSuggestions,
   pdfExportLoading,
   pdfExportStatus,
   handleCancelEdit,
@@ -207,6 +211,14 @@ export function DocumentPageLoadedLayout({
                   {data.publishedAt ? 'Publish changes' : 'Publish'}
                 </Button>
               )}
+              {mode === 'edit' &&
+                data.canPublish &&
+                !showPublishButton &&
+                leadDraftPendingSuggestions > 0 && (
+                  <Text size="xs" c="dimmed">
+                    Resolve {leadDraftPendingSuggestions} pending suggestion(s) before publishing.
+                  </Text>
+                )}
               <Menu shadow="md" position="bottom-end">
                 <Menu.Target>
                   <ActionIcon variant="default" size="36" aria-label="More actions">
@@ -394,10 +406,12 @@ export function DocumentPageLoadedLayout({
                           refetchWhenVisible={isTabVisible}
                           canPublish={!!data.canPublish}
                           currentUserId={me?.user?.id}
+                          currentUserName={me?.user?.name}
                           isAdmin={me?.user?.isAdmin === true}
                           fallbackBlocks={data.publishedBlocks ?? null}
                           onDirtyChange={setLeadDraftDirty}
                           onLastSyncedChange={setLeadDraftLastSynced}
+                          onPendingSuggestionCountChange={setLeadDraftPendingSuggestions}
                           refetchInterval={collaborationPollInterval}
                         />
                       </Tabs.Panel>

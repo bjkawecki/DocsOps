@@ -19,10 +19,12 @@ export type DocumentLeadDraftPanelProps = {
   refetchWhenVisible: boolean;
   canPublish: boolean;
   currentUserId?: string;
+  currentUserName?: string;
   isAdmin?: boolean;
   fallbackBlocks?: BlockDocumentV0 | null;
   onDirtyChange?: (dirty: boolean) => void;
   onLastSyncedChange?: (iso: string | null) => void;
+  onPendingSuggestionCountChange?: (count: number) => void;
   refetchInterval?: number | false;
 };
 
@@ -31,10 +33,12 @@ export function useDocumentLeadDraftPanelState({
   refetchWhenVisible,
   canPublish,
   currentUserId,
+  currentUserName,
   isAdmin = false,
   fallbackBlocks = null,
   onDirtyChange,
   onLastSyncedChange,
+  onPendingSuggestionCountChange,
   refetchInterval: refetchIntervalProp,
 }: DocumentLeadDraftPanelProps) {
   const pollMs = refetchIntervalProp === false ? false : (refetchIntervalProp ?? POLL_MS);
@@ -73,12 +77,18 @@ export function useDocumentLeadDraftPanelState({
   const data = q.data;
   const canEdit = data && !('forbidden' in data) && data.canEdit;
   const incomingRevision = data && !('forbidden' in data) ? data.draftRevision : 0;
+  const pendingSuggestionCount =
+    data && !('forbidden' in data) ? (data.pendingSuggestionCount ?? 0) : 0;
+
+  useEffect(() => {
+    onPendingSuggestionCountChange?.(pendingSuggestionCount);
+  }, [onPendingSuggestionCountChange, pendingSuggestionCount]);
 
   const presenceQuery = useQuery({
     queryKey: ['document', documentId, 'draft-presence'],
-    queryFn: async () => {
+    queryFn: async (): Promise<DraftPresenceEditor[]> => {
       const res = await apiFetch(`/api/v1/documents/${documentId}/draft/presence`);
-      if (res.status === 403) return { editors: [] as DraftPresenceEditor[] };
+      if (res.status === 403) return [];
       if (!res.ok) throw new Error('draft-presence');
       const body = (await res.json()) as { editors: DraftPresenceEditor[] };
       return body.editors;
@@ -99,7 +109,7 @@ export function useDocumentLeadDraftPanelState({
     return () => window.clearInterval(timer);
   }, [canEdit, documentId, refetchWhenVisible]);
 
-  const otherEditors = useMemo(() => {
+  const otherEditors = useMemo((): DraftPresenceEditor[] => {
     const editors = presenceQuery.data ?? [];
     if (!currentUserId) return editors;
     return editors.filter((e) => e.userId !== currentUserId);
@@ -152,11 +162,11 @@ export function useDocumentLeadDraftPanelState({
     if (!dirty) return true;
     const parsed = editorRef.current?.getBlockDocument() ?? appliedDoc;
     const expectedRevision = appliedRevision ?? incomingRevision;
-    if (parsed.schemaVersion !== 0 || !Array.isArray(parsed.blocks)) {
+    if (!Array.isArray(parsed.blocks)) {
       notifications.show({
         color: 'red',
         title: 'Invalid draft',
-        message: 'Expected schemaVersion: 0 and blocks array.',
+        message: 'Expected a blocks array.',
       });
       return false;
     }
@@ -169,12 +179,30 @@ export function useDocumentLeadDraftPanelState({
       }),
     });
     if (res.status === 409) {
+      const err = (await res.json().catch(() => ({}))) as { code?: string; error?: string };
       notifications.show({
         color: 'yellow',
         title: 'Conflict detected',
-        message: 'Draft changed on server while you were editing.',
+        message:
+          err.code === 'SUGGESTION_DELETE_OVERLAP'
+            ? 'Overlapping delete suggestions are not allowed.'
+            : 'Draft changed on server while you were editing.',
       });
       await q.refetch();
+      return false;
+    }
+    if (res.status === 400) {
+      const err = (await res.json().catch(() => ({}))) as { code?: string; error?: string };
+      notifications.show({
+        color: 'red',
+        title: 'Save rejected',
+        message:
+          err.code === 'AUTHOR_DRAFT_PATCH_INVALID'
+            ? 'Authors may only change suggestion-marked content.'
+            : typeof err.error === 'string'
+              ? err.error
+              : 'Invalid draft patch.',
+      });
       return false;
     }
     if (!res.ok) {
@@ -190,6 +218,7 @@ export function useDocumentLeadDraftPanelState({
     const body = (await res.json().catch(() => null)) as {
       draftRevision: number;
       blocks: BlockDocumentV0;
+      pendingSuggestionCount?: number;
     } | null;
     const nextRevision = body?.draftRevision ?? expectedRevision + 1;
     const nextDoc = body?.blocks ?? parsed;
@@ -265,11 +294,14 @@ export function useDocumentLeadDraftPanelState({
     canEdit,
     canPublish,
     currentUserId,
+    currentUserName,
     documentId,
     otherEditors,
     publishedFallbackAvailable,
     draftLooksEmpty,
     isAdmin,
+    pendingSuggestionCount,
+    editorMode: canPublish ? ('lead' as const) : ('author' as const),
   };
   return state;
 }

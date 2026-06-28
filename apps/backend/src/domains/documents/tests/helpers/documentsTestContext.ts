@@ -180,8 +180,6 @@ async function disposeDocumentsTestContext(
     (id): id is string => id != null
   );
   if (docIds.length > 0) {
-    await prisma.documentDraftChange.deleteMany({ where: { documentId: { in: docIds } } });
-    await prisma.documentDraftCycle.deleteMany({ where: { documentId: { in: docIds } } });
     await prisma.documentComment.deleteMany({
       where: { documentId: { in: docIds } },
     });

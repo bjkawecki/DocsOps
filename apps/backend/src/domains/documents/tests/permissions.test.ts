@@ -266,6 +266,31 @@ describe('Permissions (canRead, canWrite)', () => {
     expect(await canRead(prisma, supervisorId, docProcessId)).toBe(true);
   });
 
+  it('Team Lead → canRead true for unpublished document in team-owned context', async () => {
+    const teamOwner = await prisma.owner.create({
+      data: { teamId, departmentId, companyId },
+    });
+    const ctx = await prisma.context.create({ data: {} });
+    await prisma.process.create({
+      data: { name: `Team Process ${TS}`, contextId: ctx.id, ownerId: teamOwner.id },
+    });
+    const doc = await prisma.document.create({
+      data: {
+        title: `Team Doc ${TS}`,
+        draftBlocks: emptyBlockDocumentJson(),
+        contextId: ctx.id,
+      },
+    });
+    try {
+      expect(await canRead(prisma, teamLeaderId, doc.id)).toBe(true);
+    } finally {
+      await prisma.document.deleteMany({ where: { id: doc.id } });
+      await prisma.process.deleteMany({ where: { contextId: ctx.id } });
+      await prisma.context.deleteMany({ where: { id: ctx.id } });
+      await prisma.owner.deleteMany({ where: { id: teamOwner.id } });
+    }
+  });
+
   it('Personal process owner (ownerUserId) → canRead/canWrite true', async () => {
     expect(await canRead(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     expect(await canWrite(prisma, personalOwnerUserId, docPersonalId)).toBe(true);

@@ -1,4 +1,5 @@
 import type { BlockDocument, BlockNode } from './blockSchema.js';
+import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
 
 function textFromMeta(node: BlockNode): string {
   const t = node.meta?.text;
@@ -31,7 +32,8 @@ function innerText(node: BlockNode): string {
  * Spiegelbild zu {@link markdownToBlockDocumentV0}; für Export/Pandoc-Pipeline.
  */
 export function blockDocumentV0ToMarkdown(doc: BlockDocument): string {
-  return doc.blocks
+  const materialized = stripSuggestionsForPublished(doc);
+  return materialized.blocks
     .map(blockNodeToMarkdown)
     .filter((s) => s.length > 0)
     .join('\n\n');

@@ -94,7 +94,7 @@ Leserechte werden nach oben vererbt.
 
 Schreibrechte sind nicht vererbbar.
 
-**Regel:** Ein Nutzer darf den **gemeinsamen Lead-Draft** bearbeiten, wenn er **Scope Author** der Owner-Unit ist (TeamAuthor / DepartmentAuthor) oder Owner eines persönlichen Kontexts (`ownerUserId`). Scope Lead darf ebenfalls bearbeiten und **publish**. Keine parallelen Suggestion-Workflows. Publish bleibt Scope-Lead vorbehalten (siehe 6b).
+**Regel:** Ein Scope Author darf im **gemeinsamen Lead-Draft** arbeiten, indem er **Inline-Vorschläge** (Track Changes) erstellt — nicht durch direktes Überschreiben des Lead-Kanons. Scope Lead schreibt direkt in den Kanon, löst Vorschläge auf (Accept/Decline) und **published**. Siehe [ADR 004](../adr/004-inline-draft-suggestions.md).
 
 **Scope Author:** Exklusive Stufe neben Member und Lead (Member **oder** Author **oder** Lead pro Team). Team Lead befördert bestehende Team Members zu Authors auf der Team-Seite; Department Lead analog.
 
@@ -102,14 +102,14 @@ Schreibrechte sind nicht vererbbar.
 
 **Erstellen und Löschen** (Dokumente anlegen oder löschen, Kontexte anlegen oder löschen) sind **nur** dem **Scope-Lead** (und Admin, Owner von persönlichem Prozess/Projekt via ownerUserId) vorbehalten. Scope Authors berechtigen **nicht** zum Anlegen, Löschen oder Publish.
 
-**Beispiel:** Department-Lead liest Team-Dokument (Vererbung), bearbeitet es nicht (kein Team-Author). Ein Team Author im Owner-Team darf den Lead-Draft direkt speichern, aber nicht löschen oder veröffentlichen.
+**Beispiel:** Department-Lead liest Team-Dokument (Vererbung), bearbeitet es nicht (kein Team-Author). Ein Team Author im Owner-Team kann Inline-Vorschläge im Draft anlegen; der Lead entscheidet Accept/Decline und published.
 
 ---
 
 ### 6a. Reader / Writer / Create-Delete
 
 - **Reader:** Expliziter Lese-Grant (GrantRole Read) für Cross-Scope-Zugriff.
-- **Author (Scope Author):** TeamAuthor / DepartmentAuthor – Lead-Draft bearbeiten auf alle Docs der Owner-Unit; **nicht** Publish/Create/Delete.
+- **Author (Scope Author):** TeamAuthor / DepartmentAuthor — Inline-Vorschläge im Lead-Draft (Insert/Delete-Marks); Accept/Decline nur Lead; **nicht** Publish/Create/Delete.
 - **Create/Delete/Publish:** Scope Lead, Admin, persönlicher Owner.
 
 ---
@@ -118,7 +118,7 @@ Schreibrechte sind nicht vererbbar.
 
 <span id="6b-freigabe-publish"></span>
 
-**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur Scope-Lead** (Team Lead, Department Lead, Company Lead der Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId). Scope Authors speichern im gemeinsamen Draft; die Freigabe erfolgt ausschließlich durch Publish durch den Lead. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [ADR 003](../adr/003-scope-author-direct-draft.md).
+**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur Scope-Lead** (Team Lead, Department Lead, Company Lead der Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId). Publish nur wenn **keine pending Inline-Vorschläge** (`pendingSuggestionCount === 0`). Scope Authors erzeugen Inline-Vorschläge; die Freigabe erfolgt ausschließlich durch Publish durch den Lead. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [ADR 004](../adr/004-inline-draft-suggestions.md).
 
 ---
 

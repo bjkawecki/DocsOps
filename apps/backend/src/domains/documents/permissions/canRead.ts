@@ -259,6 +259,12 @@ export async function canRead(
     return true;
   }
 
+  // 5b. Team Lead (team-owned contexts; unpublished drafts included)
+  const ownerTeamId = owner?.teamId ?? null;
+  if (ownerTeamId !== null && evaluateScopeCapability(user, { teamId: ownerTeamId }, 'lead')) {
+    return true;
+  }
+
   // 6. Explicit grants (Team Lead sieht Team-Grants wie Mitglieder)
   if (
     hasDocumentGrantRole(

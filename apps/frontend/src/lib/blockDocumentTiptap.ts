@@ -1,8 +1,21 @@
 import type { JSONContent } from '@tiptap/core';
 import type { BlockDocument, BlockNodeV0 } from '../api/document-types';
 import { randomId } from './randomId.js';
+import {
+  isEffectivelyEmptyInlineBlock,
+  mergeAdjacentSuggestionLeaves,
+  pruneEmptyTextLeaves,
+} from './blockDocumentTiptapExportHelpers.js';
 
 type InlineMark = 'bold' | 'italic' | 'code';
+
+type BlockSuggestion = {
+  id: string;
+  kind: 'insert' | 'delete';
+  authorId: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+  createdAt: string;
+};
 
 function newId(): string {
   return randomId();
@@ -14,12 +27,40 @@ function readMarks(meta: Record<string, unknown> | undefined): InlineMark[] {
   return raw.filter((m): m is InlineMark => m === 'bold' || m === 'italic' || m === 'code');
 }
 
-function textLeaf(text: string, marks?: InlineMark[]): BlockNodeV0 {
+function readSuggestion(meta: Record<string, unknown> | undefined): BlockSuggestion | null {
+  const raw = meta?.suggestion;
+  if (!raw || typeof raw !== 'object') return null;
+  const s = raw as Record<string, unknown>;
+  if (
+    typeof s.id !== 'string' ||
+    (s.kind !== 'insert' && s.kind !== 'delete') ||
+    typeof s.authorId !== 'string' ||
+    typeof s.createdAt !== 'string' ||
+    (s.status !== 'pending' &&
+      s.status !== 'accepted' &&
+      s.status !== 'rejected' &&
+      s.status !== 'withdrawn')
+  ) {
+    return null;
+  }
+  return {
+    id: s.id,
+    kind: s.kind,
+    authorId: s.authorId,
+    status: s.status,
+    createdAt: s.createdAt,
+  };
+}
+
+function textLeaf(text: string, marks?: InlineMark[], suggestion?: BlockSuggestion): BlockNodeV0 {
+  const meta: Record<string, unknown> = { text };
+  if (marks?.length) meta.marks = marks;
+  if (suggestion) meta.suggestion = suggestion;
   return {
     id: newId(),
     type: 'text',
     attrs: {},
-    meta: marks?.length ? { text, marks } : { text },
+    meta,
   };
 }
 
@@ -53,19 +94,50 @@ function pmInlineToTextLeaves(content: JSONContent[] | undefined): BlockNodeV0[]
   for (const c of content ?? []) {
     if (c.type === 'text' && typeof c.text === 'string') {
       const marks: InlineMark[] = [];
+      let suggestion: BlockSuggestion | undefined;
       for (const mark of c.marks ?? []) {
         if (mark.type === 'bold') marks.push('bold');
         if (mark.type === 'italic') marks.push('italic');
         if (mark.type === 'code') marks.push('code');
+        if (mark.type === 'suggestionInsert' || mark.type === 'suggestionDelete') {
+          const attrs = mark.attrs as Record<string, unknown> | undefined;
+          if (
+            typeof attrs?.suggestionId === 'string' &&
+            typeof attrs?.authorId === 'string' &&
+            typeof attrs?.createdAt === 'string'
+          ) {
+            suggestion = {
+              id: attrs.suggestionId,
+              kind: mark.type === 'suggestionInsert' ? 'insert' : 'delete',
+              authorId: attrs.authorId,
+              status: 'pending',
+              createdAt: attrs.createdAt,
+            };
+          }
+        }
       }
-      leaves.push(textLeaf(c.text, marks));
+      leaves.push(textLeaf(c.text, marks.length ? marks : undefined, suggestion));
     } else if (c.type === 'hardBreak') {
       leaves.push(textLeaf('\n'));
     } else if (c.content?.length) {
       leaves.push(...pmInlineToTextLeaves(c.content));
     }
   }
-  return leaves.length > 0 ? leaves : [textLeaf('')];
+  return mergeAdjacentSuggestionLeaves(leaves.length > 0 ? leaves : [textLeaf('')]);
+}
+
+function suggestionToPmMark(suggestion: BlockSuggestion): {
+  type: string;
+  attrs: Record<string, unknown>;
+} {
+  return {
+    type: suggestion.kind === 'insert' ? 'suggestionInsert' : 'suggestionDelete',
+    attrs: {
+      suggestionId: suggestion.id,
+      authorId: suggestion.authorId,
+      createdAt: suggestion.createdAt,
+    },
+  };
 }
 
 function blockInlineContentToTiptap(content: BlockNodeV0[] | undefined): JSONContent[] {
@@ -75,7 +147,11 @@ function blockInlineContentToTiptap(content: BlockNodeV0[] | undefined): JSONCon
     const text = innerTextFromBlockNode(leaf);
     if (!text) continue;
     const marks = readMarks(leaf.meta);
-    const pmMarks = marks.map((m) => ({ type: m }));
+    const suggestion = readSuggestion(leaf.meta);
+    const pmMarks: JSONContent['marks'] = marks.map((m) => ({ type: m }));
+    if (suggestion?.status === 'pending') {
+      pmMarks.push(suggestionToPmMark(suggestion));
+    }
     out.push({ type: 'text', text, ...(pmMarks.length ? { marks: pmMarks } : {}) });
   }
   return out;
@@ -204,11 +280,20 @@ function tiptapListItemToOur(node: JSONContent): BlockNodeV0 {
 }
 
 function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
-  if (doc.schemaVersion === 1) return true;
   const walk = (node: BlockNodeV0): boolean => {
     if (node.type === 'text') {
       const marks = node.meta?.marks;
       return Array.isArray(marks) && marks.length > 0;
+    }
+    return (node.content ?? []).some(walk);
+  };
+  return doc.blocks.some(walk);
+}
+
+function blockDocumentUsesSuggestions(doc: BlockDocument): boolean {
+  const walk = (node: BlockNodeV0): boolean => {
+    if (node.type === 'text') {
+      return readSuggestion(node.meta) != null;
     }
     return (node.content ?? []).some(walk);
   };
@@ -296,7 +381,10 @@ export function tiptapJsonToBlockDocument(json: JSONContent): BlockDocument {
   const blocks: BlockNodeV0[] = [];
   for (const node of json.content) {
     const b = tiptapTopLevelToOur(node);
-    if (b) blocks.push(b);
+    if (!b) continue;
+    const pruned = pruneEmptyTextLeaves(b);
+    if (isEffectivelyEmptyInlineBlock(pruned)) continue;
+    blocks.push(pruned);
   }
   if (blocks.length === 0) {
     return {
@@ -305,7 +393,7 @@ export function tiptapJsonToBlockDocument(json: JSONContent): BlockDocument {
     };
   }
   const deduped = ensureUniqueBlockIdsInDocument({ schemaVersion: 0, blocks });
-  return blockDocumentUsesInlineMarks(deduped)
+  return blockDocumentUsesInlineMarks(deduped) || blockDocumentUsesSuggestions(deduped)
     ? { schemaVersion: 1, blocks: deduped.blocks }
     : deduped;
 }

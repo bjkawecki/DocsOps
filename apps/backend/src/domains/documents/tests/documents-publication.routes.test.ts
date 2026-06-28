@@ -128,7 +128,84 @@ describe('Documents routes / publication', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('Publish mit Lead-Draft-Blocks: Version.blocks aus Draft; cycle + changes cleared', async () => {
+  it('POST /documents/:documentId/publish mit pending suggestions -> 400', async () => {
+    const cookie = await context.loginAsScopeLead();
+    const draftWithSuggestion = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p-pending-pub',
+          type: 'paragraph',
+          content: [
+            {
+              id: 'leaf-pending',
+              type: 'text',
+              attrs: {},
+              meta: {
+                text: 'pending insert',
+                suggestion: {
+                  id: 'pub-block-sugg',
+                  kind: 'insert',
+                  authorId: context.scopeAuthorId,
+                  status: 'pending',
+                  createdAt: '2026-06-16T12:00:00.000Z',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    await prisma.document.update({
+      where: { id: context.publishedDocId },
+      data: {
+        draftBlocks: draftWithSuggestion as unknown as Prisma.InputJsonValue,
+        draftRevision: 0,
+      },
+    });
+    const res = await context.app.inject({
+      method: 'POST',
+      url: `/api/v1/documents/${context.publishedDocId}/publish`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('Publish nach accept aller suggestions: Version.blocks ohne meta.suggestion', async () => {
+    const cookie = await context.loginAsScopeLead();
+    const cleanDoc = structuredClone(exampleBlockDocumentV0);
+    await prisma.document.update({
+      where: { id: context.publishedDocId },
+      data: {
+        draftBlocks: cleanDoc as unknown as Prisma.InputJsonValue,
+        draftRevision: 0,
+      },
+    });
+    const patchRes = await context.app.inject({
+      method: 'PATCH',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: JSON.stringify({ expectedRevision: 0, blocks: cleanDoc }),
+    });
+    expect(patchRes.statusCode).toBe(200);
+
+    const publishRes = await context.app.inject({
+      method: 'POST',
+      url: `/api/v1/documents/${context.publishedDocId}/publish`,
+      headers: { cookie },
+    });
+    expect(publishRes.statusCode).toBe(200);
+
+    const version = await prisma.documentVersion.findFirst({
+      where: { documentId: context.publishedDocId },
+      orderBy: { versionNumber: 'desc' },
+      select: { blocks: true },
+    });
+    const json = JSON.stringify(version?.blocks ?? {});
+    expect(json).not.toContain('"suggestion"');
+  });
+
+  it('Publish mit Lead-Draft-Blocks: Version.blocks aus Draft', async () => {
     let ephemeralId: string | null = null;
     try {
       const document = await prisma.document.create({
@@ -142,22 +219,6 @@ describe('Documents routes / publication', () => {
       ephemeralId = document.id;
       await prisma.documentGrantUser.createMany({
         data: [{ documentId: ephemeralId, userId: context.writerId, role: GrantRole.Write }],
-      });
-      await prisma.documentDraftCycle.create({
-        data: {
-          documentId: ephemeralId,
-          baseBlocks: exampleBlockDocumentV0 as unknown as Prisma.InputJsonValue,
-        },
-      });
-      await prisma.documentDraftChange.create({
-        data: {
-          documentId: ephemeralId,
-          revisionFrom: 0,
-          revisionTo: 1,
-          savedById: context.writerId,
-          ops: [{ op: 'deleteBlock', blockId: '550e8400-e29b-41d4-a716-446655440002' }],
-          affectedBlockIds: ['550e8400-e29b-41d4-a716-446655440002'],
-        },
       });
 
       const cookie = await context.loginAsScopeLead();
@@ -173,15 +234,6 @@ describe('Documents routes / publication', () => {
         select: { blocks: true },
       });
       expect(JSON.parse(JSON.stringify(versionOne?.blocks))).toEqual(exampleBlockDocumentV0);
-
-      const cycle = await prisma.documentDraftCycle.findUnique({
-        where: { documentId: ephemeralId },
-      });
-      expect(cycle).toBeNull();
-      const changeCount = await prisma.documentDraftChange.count({
-        where: { documentId: ephemeralId },
-      });
-      expect(changeCount).toBe(0);
     } finally {
       if (ephemeralId) {
         await prisma.document.deleteMany({ where: { id: ephemeralId } });

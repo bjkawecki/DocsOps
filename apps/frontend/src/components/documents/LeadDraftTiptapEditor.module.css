@@ -36,3 +36,42 @@
   font-size: var(--mantine-font-size-xs);
   background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
 }
+
+.editorShell :global(.ProseMirror .suggestion-insert) {
+  background: light-dark(rgba(34, 139, 34, 0.18), rgba(72, 187, 72, 0.22));
+  color: light-dark(var(--mantine-color-green-9), var(--mantine-color-green-2));
+  border-bottom: 2px solid var(--mantine-color-green-6);
+}
+
+.editorShell :global(.ProseMirror .suggestion-delete) {
+  background: light-dark(rgba(220, 53, 69, 0.15), rgba(255, 107, 107, 0.2));
+  color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-2));
+  text-decoration: line-through;
+  border-bottom: 2px solid var(--mantine-color-red-6);
+}
+
+.editorShell :global(.ProseMirror .suggestion-insert),
+.editorShell :global(.ProseMirror .suggestion-delete) {
+  position: relative;
+}
+
+.editorShell :global(.ProseMirror .suggestion-initials-badge) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  padding: 0 5px;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-1));
+  background: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border: 1px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  pointer-events: auto;
+  cursor: default;
+  user-select: none;
+}

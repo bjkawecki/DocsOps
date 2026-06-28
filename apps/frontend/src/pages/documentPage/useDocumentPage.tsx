@@ -63,6 +63,7 @@ export function useDocumentPage() {
   const { fallbackPollingActive } = useLiveEventsContext();
   const collaborationPollInterval = fallbackPollingActive ? 15_000 : false;
   const [leadDraftDirty, setLeadDraftDirty] = useState(false);
+  const [leadDraftPendingSuggestions, setLeadDraftPendingSuggestions] = useState(0);
   const [leadDraftLastSynced, setLeadDraftLastSynced] = useState<string | null>(null);
   const leadDraftPanelRef = useRef<DocumentLeadDraftPanelHandle>(null);
 
@@ -179,9 +180,16 @@ export function useDocumentPage() {
 
   const showPublishButton = useMemo(() => {
     if (!data?.canPublish) return false;
+    if (leadDraftPendingSuggestions > 0) return false;
     if (!data.publishedAt) return true;
     return !leadDraftDirty && draftDiffersFromPublished;
-  }, [data?.canPublish, data?.publishedAt, leadDraftDirty, draftDiffersFromPublished]);
+  }, [
+    data?.canPublish,
+    data?.publishedAt,
+    leadDraftDirty,
+    leadDraftPendingSuggestions,
+    draftDiffersFromPublished,
+  ]);
 
   const handleDeleteConfirm = async () => {
     if (!documentId) return;
@@ -486,6 +494,8 @@ export function useDocumentPage() {
     leadDraftLastSynced,
     setLeadDraftDirty,
     setLeadDraftLastSynced,
+    setLeadDraftPendingSuggestions,
+    leadDraftPendingSuggestions,
     leadDraftPanelRef,
     headings,
     numberedHeadings,

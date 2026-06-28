@@ -34,6 +34,7 @@ export type LeadDraftResponse = {
   draftRevision: number;
   blocks: BlockDocument | null;
   canEdit: boolean;
+  pendingSuggestionCount: number;
 };
 
 /** GET /api/v1/documents/:id/draft/presence */

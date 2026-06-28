@@ -54,6 +54,8 @@ export function DocumentPage() {
         numberedHeadings={vm.numberedHeadings}
         setLeadDraftDirty={vm.setLeadDraftDirty}
         setLeadDraftLastSynced={vm.setLeadDraftLastSynced}
+        setLeadDraftPendingSuggestions={vm.setLeadDraftPendingSuggestions}
+        leadDraftPendingSuggestions={vm.leadDraftPendingSuggestions}
         pdfExportLoading={vm.pdfExportLoading}
         pdfExportStatus={vm.pdfExportStatus}
         handleCancelEdit={vm.handleCancelEdit}

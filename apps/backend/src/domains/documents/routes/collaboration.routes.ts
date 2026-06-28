@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify';
+
+/* eslint-disable max-lines -- draft collaboration routes bundle lead-draft, suggestions, presence */
 import { treeifyError } from 'zod';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import {
@@ -12,6 +14,7 @@ import {
   canReadLeadDraft,
   canEditLeadDraft,
   canPublishDocument,
+  canResolveDraftSuggestion,
 } from '../permissions/index.js';
 import { loadDocument } from '../permissions/canRead.js';
 import type { DocumentForPermission } from '../permissions/documentLoad.js';
@@ -31,7 +34,15 @@ import {
   serializeCommentTree,
 } from '../services/route-support/documentCommentRouteSupport.js';
 import {
+  acceptDraftSuggestion,
+  declineDraftSuggestion,
+  patchDraftSuggestionText,
+  withdrawDraftSuggestion,
+} from '../services/collaboration/draftSuggestionService.js';
+import {
   patchLeadDraftBodySchema,
+  draftSuggestionRevisionBodySchema,
+  patchDraftSuggestionBodySchema,
   paginationQuerySchema,
   createDocumentCommentBodySchema,
   patchDocumentCommentBodySchema,
@@ -100,6 +111,7 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
         draftRevision: result.view.draftRevision,
         blocks: result.view.blocks,
         canEdit: result.view.canEdit,
+        pendingSuggestionCount: result.view.pendingSuggestionCount,
       });
     }
   );
@@ -154,6 +166,18 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
             details: patchResult.issues,
           });
         }
+        if (patchResult.error === 'author_patch_invalid') {
+          return reply.status(400).send({
+            error: 'Author may only change suggestion-marked content.',
+            code: 'AUTHOR_DRAFT_PATCH_INVALID',
+          });
+        }
+        if (patchResult.error === 'suggestion_delete_overlap') {
+          return reply.status(409).send({
+            error: 'Overlapping pending delete suggestions are not allowed.',
+            code: 'SUGGESTION_DELETE_OVERLAP',
+          });
+        }
         return reply.status(409).send({
           error: 'Lead-Draft wurde zwischenzeitlich geändert.',
           code: 'DRAFT_REVISION_CONFLICT',
@@ -168,6 +192,184 @@ export const registerCollaborationRoutes = (app: FastifyInstance): void => {
         draftRevision: patchResult.draftRevision,
         blocks: patchResult.blocks,
         canEdit: true,
+        pendingSuggestionCount: patchResult.pendingSuggestionCount,
+      });
+    }
+  );
+
+  app.post<{ Params: { documentId: string; suggestionId: string } }>(
+    '/documents/:documentId/draft/suggestions/:suggestionId/accept',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const { suggestionId } = request.params;
+      const body = draftSuggestionRevisionBodySchema.parse(request.body);
+      const isLead = await canResolveDraftSuggestion(prisma, userId, documentId);
+      if (!isLead) {
+        return reply.status(403).send({ error: 'Only the scope lead can accept suggestions.' });
+      }
+      const result = await acceptDraftSuggestion(
+        prisma,
+        documentId,
+        suggestionId,
+        body.expectedRevision,
+        userId,
+        isLead
+      );
+      if (!result.ok) {
+        if (result.error === 'not_found')
+          return reply.status(404).send({ error: 'Document not found' });
+        if (result.error === 'suggestion_not_found') {
+          return reply.status(404).send({ error: 'Suggestion not found' });
+        }
+        if (result.error === 'conflict') {
+          return reply.status(409).send({
+            error: 'Lead-Draft was changed concurrently.',
+            code: 'DRAFT_REVISION_CONFLICT',
+          });
+        }
+        return reply.status(409).send({ error: result.error });
+      }
+      reply.header('ETag', `"${result.draftRevision}"`);
+      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      return reply.send({
+        draftRevision: result.draftRevision,
+        blocks: result.blocks,
+        pendingSuggestionCount: result.pendingSuggestionCount,
+      });
+    }
+  );
+
+  app.post<{ Params: { documentId: string; suggestionId: string } }>(
+    '/documents/:documentId/draft/suggestions/:suggestionId/decline',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const { suggestionId } = request.params;
+      const body = draftSuggestionRevisionBodySchema.parse(request.body);
+      const isLead = await canResolveDraftSuggestion(prisma, userId, documentId);
+      if (!isLead) {
+        return reply.status(403).send({ error: 'Only the scope lead can decline suggestions.' });
+      }
+      const result = await declineDraftSuggestion(
+        prisma,
+        documentId,
+        suggestionId,
+        body.expectedRevision,
+        userId,
+        isLead
+      );
+      if (!result.ok) {
+        if (result.error === 'not_found')
+          return reply.status(404).send({ error: 'Document not found' });
+        if (result.error === 'suggestion_not_found') {
+          return reply.status(404).send({ error: 'Suggestion not found' });
+        }
+        if (result.error === 'conflict') {
+          return reply.status(409).send({
+            error: 'Lead-Draft was changed concurrently.',
+            code: 'DRAFT_REVISION_CONFLICT',
+          });
+        }
+        return reply.status(409).send({ error: result.error });
+      }
+      reply.header('ETag', `"${result.draftRevision}"`);
+      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      return reply.send({
+        draftRevision: result.draftRevision,
+        blocks: result.blocks,
+        pendingSuggestionCount: result.pendingSuggestionCount,
+      });
+    }
+  );
+
+  app.patch<{ Params: { documentId: string; suggestionId: string } }>(
+    '/documents/:documentId/draft/suggestions/:suggestionId',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const { suggestionId } = request.params;
+      const body = patchDraftSuggestionBodySchema.parse(request.body);
+      const result = await patchDraftSuggestionText(
+        prisma,
+        documentId,
+        suggestionId,
+        body.expectedRevision,
+        userId,
+        body.text
+      );
+      if (!result.ok) {
+        if (result.error === 'not_found')
+          return reply.status(404).send({ error: 'Document not found' });
+        if (result.error === 'suggestion_not_found') {
+          return reply.status(404).send({ error: 'Suggestion not found' });
+        }
+        if (result.error === 'forbidden') {
+          return reply.status(403).send({ error: 'You cannot edit this suggestion.' });
+        }
+        if (result.error === 'conflict') {
+          return reply.status(409).send({
+            error: 'Lead-Draft was changed concurrently.',
+            code: 'DRAFT_REVISION_CONFLICT',
+          });
+        }
+        return reply.status(409).send({ error: result.error });
+      }
+      reply.header('ETag', `"${result.draftRevision}"`);
+      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      return reply.send({
+        draftRevision: result.draftRevision,
+        blocks: result.blocks,
+        pendingSuggestionCount: result.pendingSuggestionCount,
+      });
+    }
+  );
+
+  app.delete<{ Params: { documentId: string; suggestionId: string } }>(
+    '/documents/:documentId/draft/suggestions/:suggestionId',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
+    },
+    async (request, reply) => {
+      const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
+      const { suggestionId } = request.params;
+      const body = draftSuggestionRevisionBodySchema.parse(request.body);
+      const result = await withdrawDraftSuggestion(
+        prisma,
+        documentId,
+        suggestionId,
+        body.expectedRevision,
+        userId
+      );
+      if (!result.ok) {
+        if (result.error === 'not_found')
+          return reply.status(404).send({ error: 'Document not found' });
+        if (result.error === 'suggestion_not_found') {
+          return reply.status(404).send({ error: 'Suggestion not found' });
+        }
+        if (result.error === 'forbidden') {
+          return reply.status(403).send({ error: 'You cannot withdraw this suggestion.' });
+        }
+        if (result.error === 'conflict') {
+          return reply.status(409).send({
+            error: 'Lead-Draft was changed concurrently.',
+            code: 'DRAFT_REVISION_CONFLICT',
+          });
+        }
+        return reply.status(409).send({ error: result.error });
+      }
+      reply.header('ETag', `"${result.draftRevision}"`);
+      notifyLeadDraftCollaborationChanged(prisma, documentId, userId);
+      return reply.send({
+        draftRevision: result.draftRevision,
+        blocks: result.blocks,
+        pendingSuggestionCount: result.pendingSuggestionCount,
       });
     }
   );

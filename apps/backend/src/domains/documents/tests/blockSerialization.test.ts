@@ -59,4 +59,51 @@ describe('block serialization (EPIC-2)', () => {
     expect(md).toContain('**bold**');
     expect(md).toContain(' text');
   });
+
+  it('strips pending suggestions from markdown export', () => {
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            { id: 't1', type: 'text', meta: { text: 'Keep' } },
+            {
+              id: 't2',
+              type: 'text',
+              meta: {
+                text: 'NEW',
+                suggestion: {
+                  id: 's1',
+                  kind: 'insert',
+                  authorId: 'author-a',
+                  status: 'pending',
+                  createdAt: '2026-06-16T10:00:00.000Z',
+                },
+              },
+            },
+            {
+              id: 't3',
+              type: 'text',
+              meta: {
+                text: 'DROP',
+                suggestion: {
+                  id: 's2',
+                  kind: 'delete',
+                  authorId: 'author-a',
+                  status: 'pending',
+                  createdAt: '2026-06-16T10:00:00.000Z',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const md = blockDocumentV0ToMarkdown(doc);
+    expect(md).toContain('Keep');
+    expect(md).not.toContain('NEW');
+    expect(md).not.toContain('DROP');
+  });
 });

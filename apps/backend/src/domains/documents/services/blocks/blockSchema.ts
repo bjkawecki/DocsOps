@@ -29,12 +29,26 @@ export const blockDocumentSchemaV0 = z.object({
 
 export const blockTextMarkSchema = z.enum(['bold', 'italic', 'code']);
 
-export const blockTextMetaSchema = z
-  .object({
-    text: z.string(),
-    marks: z.array(blockTextMarkSchema).optional(),
-  })
-  .passthrough();
+export const blockSuggestionKindSchema = z.enum(['insert', 'delete']);
+
+export const blockSuggestionStatusSchema = z.enum(['pending', 'accepted', 'rejected', 'withdrawn']);
+
+/** Inline draft suggestion on a text leaf (ADR 004). Only `pending` is persisted in draftBlocks. */
+export const blockSuggestionMetaSchema = z.object({
+  id: z.string().min(1),
+  kind: blockSuggestionKindSchema,
+  authorId: z.string().min(1),
+  status: blockSuggestionStatusSchema,
+  createdAt: z.string().min(1),
+});
+
+export type BlockSuggestionMeta = z.infer<typeof blockSuggestionMetaSchema>;
+
+export const blockTextMetaSchema = z.object({
+  text: z.string(),
+  marks: z.array(blockTextMarkSchema).optional(),
+  suggestion: blockSuggestionMetaSchema.optional(),
+});
 
 /** Block document v1: same tree as v0; text nodes may carry inline `marks` in meta (ADR 002). */
 export const blockDocumentSchemaV1 = z.object({
@@ -68,9 +82,8 @@ export function parseBlockDocument(input: unknown): BlockDocument {
   return blockDocumentSchema.parse(input);
 }
 
-/** True when document uses v1 or any text node carries marks. */
+/** True when any text node carries inline formatting marks. */
 export function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
-  if (doc.schemaVersion === 1) return true;
   const walk = (node: BlockNode): boolean => {
     if (node.type === 'text') {
       const marks = node.meta?.marks;
@@ -81,8 +94,20 @@ export function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
   return doc.blocks.some(walk);
 }
 
+/** True when any text node carries a draft inline suggestion (ADR 004). */
+export function blockDocumentUsesSuggestions(doc: BlockDocument): boolean {
+  const walk = (node: BlockNode): boolean => {
+    if (node.type === 'text') {
+      const raw = node.meta?.suggestion;
+      return raw != null && typeof raw === 'object';
+    }
+    return (node.content ?? []).some(walk);
+  };
+  return doc.blocks.some(walk);
+}
+
 export function normalizeBlockDocumentSchemaVersion(doc: BlockDocument): BlockDocument {
-  return blockDocumentUsesInlineMarks(doc)
+  return blockDocumentUsesInlineMarks(doc) || blockDocumentUsesSuggestions(doc)
     ? { schemaVersion: 1, blocks: doc.blocks }
     : { schemaVersion: 0, blocks: doc.blocks };
 }

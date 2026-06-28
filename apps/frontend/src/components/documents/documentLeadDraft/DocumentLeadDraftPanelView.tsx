@@ -1,6 +1,8 @@
 import { Alert, Badge, Button, Group, Modal, Stack, Text, Textarea, Tooltip } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { useMemo } from 'react';
 import { LeadDraftTiptapEditor } from '../LeadDraftTiptapEditor.js';
+import { DraftSuggestionActions } from './DraftSuggestionActions.js';
 import type { DocumentLeadDraftPanelViewProps } from './useDocumentLeadDraftPanelState.js';
 
 export type { DocumentLeadDraftPanelViewProps };
@@ -27,7 +29,23 @@ export function DocumentLeadDraftPanelView({
   rawJsonOpened,
   setRawJsonOpened,
   isAdmin,
+  pendingSuggestionCount,
+  editorMode,
+  currentUserId,
+  currentUserName,
+  documentId,
 }: DocumentLeadDraftPanelViewProps) {
+  const authorNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const editor of otherEditors) {
+      map[editor.userId] = editor.name;
+    }
+    if (currentUserId && currentUserName) {
+      map[currentUserId] = currentUserName;
+    }
+    return map;
+  }, [currentUserId, currentUserName, otherEditors]);
+
   const presenceLabel =
     otherEditors.length === 1
       ? `${otherEditors[0]?.name ?? 'Someone'} is editing`
@@ -87,6 +105,9 @@ export function DocumentLeadDraftPanelView({
           </Text>
         )}
         {dirty && <Badge color="orange">Unsaved changes</Badge>}
+        {pendingSuggestionCount > 0 && (
+          <Badge color="yellow">{pendingSuggestionCount} pending suggestion(s)</Badge>
+        )}
         {lastSyncedAt && (
           <Text size="xs" c="dimmed">
             Last synced: {new Date(lastSyncedAt).toLocaleTimeString()}
@@ -112,15 +133,36 @@ export function DocumentLeadDraftPanelView({
         </Alert>
       )}
 
+      <DraftSuggestionActions
+        documentId={documentId}
+        draftRevision={appliedRevision ?? incomingRevision}
+        blocks={appliedDoc}
+        canPublish={!!canPublish}
+        currentUserId={currentUserId}
+        onApplied={(revision, doc) => applyIncoming(revision, doc)}
+      />
+
       <LeadDraftTiptapEditor
         ref={editorRef}
         sourceDocument={appliedDoc}
         contentFingerprint={appliedFingerprint}
         baselineFingerprint={appliedFingerprint}
         editable={!!canEdit}
+        editorMode={editorMode}
+        authorId={currentUserId}
         onDirtyChange={setDirty}
         onSaveShortcut={() => {
           void handleSave();
+        }}
+        suggestionInteractions={{
+          documentId,
+          draftRevision: appliedRevision ?? incomingRevision,
+          persistedDocument: appliedDoc,
+          canPublish: !!canPublish,
+          currentUserId,
+          authorNameById,
+          onApplied: (revision, doc) => applyIncoming(revision, doc),
+          onLocalChange: () => setDirty(true),
         }}
       />
       <Group justify="space-between" gap="xs">

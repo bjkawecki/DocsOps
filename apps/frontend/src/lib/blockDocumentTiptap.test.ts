@@ -94,7 +94,9 @@ describe('tiptapJsonToBlockDocument', () => {
     });
     expect(doc.schemaVersion).toBe(1);
     const textNodes = doc.blocks[0]?.content ?? [];
-    expect(textNodes.some((n) => n.meta?.marks?.includes('bold'))).toBe(true);
+    expect(
+      textNodes.some((n) => Array.isArray(n.meta?.marks) && n.meta.marks.includes('bold'))
+    ).toBe(true);
   });
 
   it('roundtrips marks through tiptap json', () => {
@@ -115,5 +117,41 @@ describe('tiptapJsonToBlockDocument', () => {
     const back = tiptapJsonToBlockDocument(json);
     expect(back.schemaVersion).toBe(1);
     expect(back.blocks[0]?.content?.[0]?.meta?.marks).toEqual(['bold']);
+  });
+
+  it('omits empty paragraphs without suggestions from export', () => {
+    const doc = tiptapJsonToBlockDocument({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: { blockId: 'p1' },
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+        { type: 'paragraph', attrs: { blockId: 'p-empty' }, content: [] },
+        {
+          type: 'paragraph',
+          attrs: { blockId: 'p2' },
+          content: [
+            {
+              type: 'text',
+              text: 'New',
+              marks: [
+                {
+                  type: 'suggestionInsert',
+                  attrs: {
+                    suggestionId: 's1',
+                    authorId: 'a1',
+                    createdAt: '2026-06-16T10:00:00.000Z',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(doc.blocks.map((b) => b.id)).toEqual(['p1', 'p2']);
+    expect(doc.blocks).toHaveLength(2);
   });
 });

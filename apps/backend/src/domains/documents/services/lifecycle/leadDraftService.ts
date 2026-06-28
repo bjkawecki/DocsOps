@@ -7,14 +7,19 @@ import {
 } from '../blocks/blockSchema.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import {
-  collectAffectedBlockIds,
-  computeDraftOpsFromDocuments,
-} from '../collaboration/documentDraftOps.js';
+  assertNoOverlappingPendingDeletes,
+  AuthorDraftPatchInvalidError,
+  countPendingSuggestions,
+  SuggestionDeleteOverlapError,
+  validateAuthorDraftPatch,
+  withdrawPendingDeletesAffectedByLeadEdit,
+} from '../collaboration/draftInlineSuggestions.js';
 
 export type LeadDraftView = {
   draftRevision: number;
   blocks: BlockDocument | null;
   canEdit: boolean;
+  pendingSuggestionCount: number;
 };
 
 export type GetLeadDraftResult =
@@ -39,12 +44,14 @@ export async function getLeadDraftForUser(
   const draftBlocks =
     parseBlockDocumentFromDb(doc.draftBlocks) ??
     parseBlockDocumentFromDb(doc.currentPublishedVersion?.blocks ?? null);
+  const pendingSuggestionCount = draftBlocks ? countPendingSuggestions(draftBlocks) : 0;
   return {
     ok: true,
     view: {
       draftRevision: doc.draftRevision,
       blocks: draftBlocks,
       canEdit: opts.canEdit,
+      pendingSuggestionCount,
     },
   };
 }
@@ -56,13 +63,28 @@ export type PatchLeadDraftInput = {
 
 export type PatchLeadDraftContext = {
   userId: string;
-  /** When true (scope lead), saves are not logged as author draft changes for reviews. */
+  /** When true (scope lead), saves apply lead canon edits and withdraw conflicting delete suggestions. */
   isPublishLead: boolean;
 };
 
 export type PatchLeadDraftResult =
-  | { ok: true; draftRevision: number; blocks: BlockDocument; hadContentChange: boolean }
-  | { ok: false; error: 'not_found' | 'conflict' | 'validation'; issues?: unknown };
+  | {
+      ok: true;
+      draftRevision: number;
+      blocks: BlockDocument;
+      hadContentChange: boolean;
+      pendingSuggestionCount: number;
+    }
+  | {
+      ok: false;
+      error:
+        | 'not_found'
+        | 'conflict'
+        | 'validation'
+        | 'author_patch_invalid'
+        | 'suggestion_delete_overlap';
+      issues?: unknown;
+    };
 
 function emptyBlockDocument(): BlockDocument {
   return { schemaVersion: 0, blocks: [] };
@@ -76,9 +98,13 @@ function resolveBeforeBlocks(draftBlocks: unknown, publishedBlocks: unknown): Bl
   );
 }
 
+function documentsEqual(a: BlockDocument, b: BlockDocument): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 /**
  * Atomarer Compare-and-Swap auf `draftRevision` (409 bei Konflikt).
- * Logs block ops to DocumentDraftChange when a non-lead saves with content changes.
+ * Lead: full canon edit; Author: suggestion-marked changes only (ADR 004).
  */
 export async function patchLeadDraft(
   prisma: PrismaClient,
@@ -90,8 +116,7 @@ export async function patchLeadDraft(
   if (!safe.success) {
     return { ok: false, error: 'validation', issues: treeifyError(safe.error) };
   }
-  const parsed = normalizeBlockDocumentSchemaVersion(safe.data);
-  const json = parsed as unknown as Prisma.InputJsonValue;
+  let parsed = normalizeBlockDocumentSchemaVersion(safe.data);
 
   const beforeRow = await prisma.document.findFirst({
     where: { id: documentId, deletedAt: null, draftRevision: input.expectedRevision },
@@ -116,24 +141,45 @@ export async function patchLeadDraft(
     beforeRow.draftBlocks,
     beforeRow.currentPublishedVersion?.blocks ?? null
   );
-  const ops = computeDraftOpsFromDocuments(beforeDoc, parsed);
-  const hadContentChange = ops.length > 0;
 
+  if (ctx.isPublishLead) {
+    parsed = withdrawPendingDeletesAffectedByLeadEdit(beforeDoc, parsed);
+  } else {
+    try {
+      validateAuthorDraftPatch(beforeDoc, parsed, ctx.userId);
+    } catch (err) {
+      if (err instanceof AuthorDraftPatchInvalidError) {
+        return { ok: false, error: 'author_patch_invalid' };
+      }
+      if (err instanceof SuggestionDeleteOverlapError) {
+        return { ok: false, error: 'suggestion_delete_overlap' };
+      }
+      throw err;
+    }
+  }
+
+  try {
+    assertNoOverlappingPendingDeletes(parsed);
+  } catch (err) {
+    if (err instanceof SuggestionDeleteOverlapError) {
+      return { ok: false, error: 'suggestion_delete_overlap' };
+    }
+    throw err;
+  }
+
+  const hadContentChange = !documentsEqual(beforeDoc, parsed);
   if (!hadContentChange) {
     return {
       ok: true,
       draftRevision: beforeRow.draftRevision,
       blocks: beforeDoc,
       hadContentChange: false,
+      pendingSuggestionCount: countPendingSuggestions(beforeDoc),
     };
   }
 
+  const json = parsed as unknown as Prisma.InputJsonValue;
   const revisionTo = beforeRow.draftRevision + 1;
-  const affectedBlockIds = collectAffectedBlockIds(ops);
-  const baseBlocksJson =
-    (beforeRow.draftBlocks as Prisma.InputJsonValue | null) ??
-    (beforeRow.currentPublishedVersion?.blocks as Prisma.InputJsonValue | null) ??
-    ({ schemaVersion: 0, blocks: [] } as Prisma.InputJsonValue);
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -151,32 +197,6 @@ export async function patchLeadDraft(
       if (updated.count === 0) {
         throw new Error('CONFLICT');
       }
-
-      const existingCycle = await tx.documentDraftCycle.findUnique({
-        where: { documentId },
-        select: { documentId: true },
-      });
-      if (!existingCycle) {
-        await tx.documentDraftCycle.create({
-          data: {
-            documentId,
-            baseBlocks: baseBlocksJson,
-          },
-        });
-      }
-
-      if (!ctx.isPublishLead) {
-        await tx.documentDraftChange.create({
-          data: {
-            documentId,
-            revisionFrom: input.expectedRevision,
-            revisionTo,
-            savedById: ctx.userId,
-            ops: ops as unknown as Prisma.InputJsonValue,
-            affectedBlockIds,
-          },
-        });
-      }
     });
   } catch (err) {
     if (err instanceof Error && err.message === 'CONFLICT') {
@@ -185,5 +205,11 @@ export async function patchLeadDraft(
     throw err;
   }
 
-  return { ok: true, draftRevision: revisionTo, blocks: parsed, hadContentChange: true };
+  return {
+    ok: true,
+    draftRevision: revisionTo,
+    blocks: parsed,
+    hadContentChange: true,
+    pendingSuggestionCount: countPendingSuggestions(parsed),
+  };
 }

@@ -111,7 +111,6 @@ model User {
   pinnedDocumentScopes  DocumentPinnedInScope[]
   createdDocuments      Document[]         @relation("DocumentCreatedBy")
   documentVersionsCreated  DocumentVersion[]
-  documentDraftChangesSaved DocumentDraftChange[]
   documentAttachmentsUploaded DocumentAttachment[]
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   sessions              Session[]
@@ -288,8 +287,6 @@ model Document {
   versions                  DocumentVersion[]
   attachments               DocumentAttachment[]
   comments                  DocumentComment[]
-  draftCycle                DocumentDraftCycle?
-  draftChanges              DocumentDraftChange[]
 }
 
 /// Tag: scope-gebunden (ownerId → Owner), für Kategorisierung und Filterung. Eindeutigkeit pro Scope: (ownerId, name).
@@ -372,30 +369,6 @@ model DocumentVersion {
 
   @@index([documentId])
   @@index([documentId, createdAt])
-}
-
-/// Publish-Zyklus: ein Vollsnapshot (typisch Published) + Ops-Log bis Publish (ADR 003).
-model DocumentDraftCycle {
-  documentId String   @id
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  baseBlocks Json
-  startedAt  DateTime @default(now())
-}
-
-/// Ein Save im Draft-Zyklus: Block-Ops (kein Vollsnapshot pro Save).
-model DocumentDraftChange {
-  id               String   @id @default(cuid())
-  documentId       String
-  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  revisionFrom     Int
-  revisionTo       Int
-  savedById        String
-  savedBy          User     @relation(fields: [savedById], references: [id], onDelete: Cascade)
-  savedAt          DateTime @default(now())
-  ops              Json
-  affectedBlockIds String[]
-
-  @@index([documentId, savedAt])
 }
 
 // --- Zugriffsrechte (explizit; vgl. Rechteableitung) ---

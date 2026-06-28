@@ -2,7 +2,9 @@
 
 ## Status
 
-**Akzeptiert** – ersetzt das Suggestion-Modell aus ADR 001 für Organisations-Dokumente.
+**Historisch** – ersetzt durch [ADR 004 – Inline Draft Suggestions](004-inline-draft-suggestions.md).
+
+ADR 003 (Direct Author PATCH + `DocumentDraftChange`-Ops-Log) wurde durch Inline Track Changes abgelöst. Der Code aus ADR 003 ist bei Umsetzung von ADR 004 vollständig zu entfernen (siehe ADR 004 § Legacy-Entfernung).
 
 ## Kontext
 
