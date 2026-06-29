@@ -10,6 +10,8 @@ import {
   requireDocumentAccess,
   canDeleteDocument,
   canPublishDocument,
+  canWrite,
+  canModerateDocumentComments,
   DOCUMENT_FOR_PERMISSION_INCLUDE,
 } from '../permissions/index.js';
 import { canSeeDocumentInTrash } from '../permissions/canRead.js';
@@ -22,7 +24,6 @@ import {
   DocumentDeletedError,
   DocumentNotInTrashError,
 } from '../services/lifecycle/documentService.js';
-import { documentMarkdownFromRow } from '../services/query/documentMarkdownSnapshot.js';
 import { blockDocumentV0ToMarkdown } from '../services/blocks/blocksToMarkdown.js';
 import { parseBlockDocumentFromDb } from '../services/blocks/documentBlocksBackfill.js';
 import { documentIdParamSchema, versionIdParamSchema } from '../schemas/documents.js';
@@ -35,6 +36,7 @@ import {
 import { notifyDocumentPublishedCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
 import {
   buildPdfDownloadFilename,
+  buildDocumentDetailResponse,
   enqueueIncrementalReindexForDocumentSafe,
   enqueueNotificationEvent,
 } from '../services/route-support/documentRouteSupport.js';
@@ -192,22 +194,16 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
         const result = await publishDocument(prisma, documentId, userId);
         const doc = await prisma.document.findUnique({
           where: { id: documentId },
-          select: {
-            id: true,
-            title: true,
-            draftBlocks: true,
-            publishedAt: true,
-            pdfUrl: true,
-            contextId: true,
-            createdAt: true,
-            updatedAt: true,
-            currentPublishedVersionId: true,
-            currentPublishedVersion: { select: { blocks: true } },
-            description: true,
-            archivedAt: true,
-            createdById: true,
-            createdBy: { select: { name: true } },
+          include: {
+            ...DOCUMENT_FOR_PERMISSION_INCLUDE,
             documentTags: { include: { tag: { select: { id: true, name: true } } } },
+            createdBy: { select: { name: true } },
+            currentPublishedVersion: {
+              select: { versionNumber: true, blocks: true, blocksSchemaVersion: true },
+            },
+            grantUser: { include: { user: { select: { name: true } } } },
+            grantTeam: { include: { team: { select: { name: true } } } },
+            grantDepartment: { include: { department: { select: { name: true } } } },
           },
         });
         if (!doc) {
@@ -239,16 +235,26 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
             'Failed to enqueue notification job after document publish'
           );
         }
-        notifyDocumentPublishedCollaborationChanged(prisma, documentId, userId);
-        return reply.send({
-          ...doc,
-          content: documentMarkdownFromRow({
-            publishedAt: doc.publishedAt,
-            draftBlocks: doc.draftBlocks,
-            currentPublishedVersion: doc.currentPublishedVersion,
-          }),
-          createdByName: doc.createdBy?.name ?? null,
-        });
+        notifyDocumentPublishedCollaborationChanged(
+          prisma,
+          documentId,
+          doc.currentPublishedVersion?.versionNumber ?? 1
+        );
+        const [writeAllowed, deleteAllowed, canPublish, canModerateComments] = await Promise.all([
+          canWrite(prisma, userId, doc),
+          canDeleteDocument(prisma, userId, documentId),
+          canPublishDocument(prisma, userId, documentId),
+          canModerateDocumentComments(prisma, userId, doc),
+        ]);
+        return reply.send(
+          buildDocumentDetailResponse({
+            doc,
+            writeAllowed,
+            deleteAllowed,
+            canPublish,
+            canModerateComments,
+          })
+        );
       } catch (err) {
         if (err instanceof DocumentNotFoundError) {
           return reply.status(404).send({ error: 'Document not found' });

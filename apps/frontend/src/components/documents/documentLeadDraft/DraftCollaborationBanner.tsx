@@ -1,8 +1,8 @@
 import { Alert, Button, Group, Stack, Text } from '@mantine/core';
 
 type Props = {
+  canPublish: boolean;
   remotePending: { revision: number; doc: unknown } | null;
-  isRevisionStale: boolean;
   dirty: boolean;
   knownServerRevision: number;
   appliedRevision: number | null;
@@ -12,8 +12,8 @@ type Props = {
 };
 
 export function DraftCollaborationBanner({
+  canPublish,
   remotePending,
-  isRevisionStale,
   dirty,
   knownServerRevision,
   appliedRevision,
@@ -21,11 +21,11 @@ export function DraftCollaborationBanner({
   onLoadLatest,
   onKeepMine,
 }: Props) {
-  const show = remotePending ?? (isRevisionStale && dirty);
+  const show = Boolean(remotePending) && (canPublish ? dirty : true);
   if (!show) return null;
 
   return (
-    <Alert color="yellow" title="Remote update available">
+    <Alert color="blue" variant="filled" title="Remote update available">
       <Stack gap="xs">
         <Text size="sm">
           {remotePending
@@ -33,11 +33,16 @@ export function DraftCollaborationBanner({
             : `Draft revision ${knownServerRevision} is available on the server (you have ${appliedRevision ?? incomingRevision}). Reload to see the latest content.`}
         </Text>
         <Group gap="xs">
-          <Button size="compact-sm" variant="filled" onClick={() => void onLoadLatest()}>
+          <Button
+            size="compact-sm"
+            variant="white"
+            color="blue"
+            onClick={() => void onLoadLatest()}
+          >
             Load latest
           </Button>
           {remotePending && (
-            <Button size="compact-sm" variant="default" onClick={onKeepMine}>
+            <Button size="compact-sm" variant="light" color="blue" onClick={onKeepMine}>
               Keep mine
             </Button>
           )}

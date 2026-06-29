@@ -6,18 +6,21 @@ import {
   fetchLeadDraft,
   leadDraftQueryKey,
 } from '../components/documents/documentLeadDraft/leadDraftQuery.js';
+import { fetchDocument } from '../pages/documentPage/fetchDocument.js';
 import { maintenanceStatusQueryKey, type MaintenanceStatus } from './useMaintenanceStatus';
 import { adminUpdateStatusQueryKey } from './useAdminUpdateStatus';
 import { appVersionQueryKey } from './useAppVersion';
-import { LiveEventsContext } from './liveEventsContext';
+import { LiveEventsContext, type LiveEventsStatus } from './liveEventsContext';
 
 const INITIAL_RECONNECT_MS = 1_000;
 const MAX_RECONNECT_MS = 30_000;
-const MAX_RECONNECT_ATTEMPTS = 8;
+const DISCONNECTED_AFTER_ATTEMPTS = 3;
 
-type DocumentCollaborationHint = {
+export type DocumentCollaborationHint = {
   draftRevision?: number;
   pendingSuggestionCount?: number;
+  publishedVersionNumber?: number;
+  reason?: 'draft' | 'published';
 };
 
 type LiveClientEvent =
@@ -38,24 +41,41 @@ type LiveClientEvent =
       payload: { documentId: string; editors: Array<{ userId: string; name: string }> };
     };
 
-export type { DocumentCollaborationHint };
-
 async function handleDocumentCollaborationChanged(
   queryClient: ReturnType<typeof useQueryClient>,
   documentId: string,
   hint?: DocumentCollaborationHint
 ): Promise<void> {
-  if (hint?.draftRevision != null || hint?.pendingSuggestionCount != null) {
-    queryClient.setQueryData(collaborationHintQueryKey(documentId), hint);
+  if (hint && Object.keys(hint).length > 0) {
+    queryClient.setQueryData(
+      collaborationHintQueryKey(documentId),
+      (prev: DocumentCollaborationHint | null | undefined) => ({
+        ...(prev ?? {}),
+        ...hint,
+      })
+    );
+    if (hint.reason === 'published' && hint.publishedVersionNumber != null) {
+      queryClient.setQueryData(
+        ['document', documentId],
+        (prev: { currentPublishedVersionNumber?: number | null } | undefined) => {
+          if (!prev) return prev;
+          return { ...prev, currentPublishedVersionNumber: hint.publishedVersionNumber };
+        }
+      );
+    }
   }
-  await queryClient.fetchQuery({
-    queryKey: leadDraftQueryKey(documentId),
-    queryFn: () => fetchLeadDraft(documentId),
-  });
-  void queryClient.refetchQueries({
-    queryKey: ['document', documentId],
-    type: 'all',
-  });
+
+  await Promise.all([
+    queryClient.fetchQuery({
+      queryKey: ['document', documentId],
+      queryFn: () => fetchDocument(documentId),
+    }),
+    queryClient.fetchQuery({
+      queryKey: leadDraftQueryKey(documentId),
+      queryFn: () => fetchLeadDraft(documentId),
+    }),
+  ]);
+
   void queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
 }
 
@@ -65,14 +85,6 @@ function applyDraftPresencePayload(
   editors: Array<{ userId: string; name: string }>
 ): void {
   queryClient.setQueryData(['document', documentId, 'draft-presence'], editors);
-}
-
-function getFallbackPollSeconds(): number {
-  const raw = import.meta.env.VITE_LIVE_EVENTS_FALLBACK_POLL_SECONDS;
-  if (raw == null || raw === '') return 0;
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n) || n < 0) return 0;
-  return n;
 }
 
 function parseLiveClientEvent(data: string): LiveClientEvent | null {
@@ -114,24 +126,33 @@ function parseLiveClientEvent(data: string): LiveClientEvent | null {
     if (event.type === 'document.collaboration-changed') {
       const payload = event.payload;
       if (payload == null || typeof payload !== 'object') return null;
-      const documentId = (payload as Record<string, unknown>).documentId;
+      const p = payload as Record<string, unknown>;
+      const documentId = p.documentId;
       if (typeof documentId !== 'string' || documentId.length === 0) return null;
-      const draftRevision = (payload as Record<string, unknown>).draftRevision;
-      const pendingSuggestionCount = (payload as Record<string, unknown>).pendingSuggestionCount;
       const hint: DocumentCollaborationHint = {};
       if (
-        typeof draftRevision === 'number' &&
-        Number.isInteger(draftRevision) &&
-        draftRevision >= 0
+        typeof p.draftRevision === 'number' &&
+        Number.isInteger(p.draftRevision) &&
+        p.draftRevision >= 0
       ) {
-        hint.draftRevision = draftRevision;
+        hint.draftRevision = p.draftRevision;
       }
       if (
-        typeof pendingSuggestionCount === 'number' &&
-        Number.isInteger(pendingSuggestionCount) &&
-        pendingSuggestionCount >= 0
+        typeof p.pendingSuggestionCount === 'number' &&
+        Number.isInteger(p.pendingSuggestionCount) &&
+        p.pendingSuggestionCount >= 0
       ) {
-        hint.pendingSuggestionCount = pendingSuggestionCount;
+        hint.pendingSuggestionCount = p.pendingSuggestionCount;
+      }
+      if (
+        typeof p.publishedVersionNumber === 'number' &&
+        Number.isInteger(p.publishedVersionNumber) &&
+        p.publishedVersionNumber > 0
+      ) {
+        hint.publishedVersionNumber = p.publishedVersionNumber;
+      }
+      if (p.reason === 'draft' || p.reason === 'published') {
+        hint.reason = p.reason;
       }
       return {
         v: 1,
@@ -182,13 +203,19 @@ function catchUpQueries(queryClient: ReturnType<typeof useQueryClient>): void {
   invalidatePostMaintenanceQueries(queryClient);
 }
 
+export type UseLiveEventsResult = {
+  status: LiveEventsStatus;
+  retryConnect: () => void;
+};
+
 /**
  * Holds the authenticated SSE stream for live UI signals (§23a).
  * Disconnects when the tab is hidden; reconnects with exponential backoff.
  */
-export function useLiveEvents(): { fallbackPollingActive: boolean } {
+export function useLiveEvents(): UseLiveEventsResult {
   const queryClient = useQueryClient();
-  const [fallbackPollingActive, setFallbackPollingActive] = useState(false);
+  const [status, setStatus] = useState<LiveEventsStatus>('connected');
+  const hasConnectedOnceRef = useRef(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
@@ -244,10 +271,10 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
     if (!visibleRef.current) return;
 
     reconnectAttemptRef.current += 1;
-    const fallbackSeconds = getFallbackPollSeconds();
-    if (fallbackSeconds > 0 && reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
-      setFallbackPollingActive(true);
-      return;
+    if (reconnectAttemptRef.current >= DISCONNECTED_AFTER_ATTEMPTS) {
+      setStatus('disconnected');
+    } else if (hasConnectedOnceRef.current) {
+      setStatus('reconnecting');
     }
 
     clearReconnectTimer();
@@ -265,14 +292,18 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
 
     closeEventSource();
     clearReconnectTimer();
+    if (hasConnectedOnceRef.current) {
+      setStatus('reconnecting');
+    }
 
     const es = new EventSource(buildEventsUrl(), { withCredentials: true });
     eventSourceRef.current = es;
 
     es.onopen = () => {
+      hasConnectedOnceRef.current = true;
       reconnectAttemptRef.current = 0;
       reconnectDelayRef.current = INITIAL_RECONNECT_MS;
-      setFallbackPollingActive(false);
+      setStatus('connected');
     };
 
     es.onmessage = (message: MessageEvent<string>) => {
@@ -292,6 +323,15 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
 
   connectRef.current = connect;
 
+  const retryConnect = useCallback(() => {
+    reconnectAttemptRef.current = 0;
+    reconnectDelayRef.current = INITIAL_RECONNECT_MS;
+    if (hasConnectedOnceRef.current) {
+      setStatus('reconnecting');
+    }
+    connect();
+  }, [connect]);
+
   useEffect(() => {
     const onVisibilityChange = () => {
       const visible = document.visibilityState === 'visible';
@@ -305,7 +345,6 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
 
       reconnectAttemptRef.current = 0;
       reconnectDelayRef.current = INITIAL_RECONNECT_MS;
-      setFallbackPollingActive(false);
       catchUpQueries(queryClient);
       connect();
     };
@@ -322,7 +361,7 @@ export function useLiveEvents(): { fallbackPollingActive: boolean } {
     };
   }, [clearReconnectTimer, closeEventSource, connect, queryClient]);
 
-  return { fallbackPollingActive };
+  return { status, retryConnect };
 }
 
 export { LiveEventsContext };

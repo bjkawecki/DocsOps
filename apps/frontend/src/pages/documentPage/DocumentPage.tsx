@@ -18,11 +18,7 @@ export function DocumentPage() {
   }
 
   const data = vm.data;
-  const metadataItems = buildDocumentMetadataItems({
-    data,
-    mode: vm.mode,
-    hasUnsavedChanges: vm.hasUnsavedChanges,
-  });
+  const metadataItems = buildDocumentMetadataItems({ data });
 
   return (
     <>
@@ -69,7 +65,12 @@ export function DocumentPage() {
         openDelete={vm.openDelete}
         openCreateTag={vm.openCreateTag}
         openManageTags={vm.openManageTags}
-        collaborationPollInterval={vm.collaborationPollInterval}
+        publishedVersionIsStale={vm.publishedVersionIsStale}
+        ackPublishedVersion={vm.ackPublishedVersion}
+        latestPublishedVersion={vm.latestPublishedVersion}
+        onReloadPublishedContent={() => {
+          void vm.handleReloadPublishedContent();
+        }}
       />
       <DocumentPageModals
         deleteOpened={vm.deleteOpened}

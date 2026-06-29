@@ -1,4 +1,4 @@
-import { Badge, Box, Group, Text } from '@mantine/core';
+import { Box, Group, Text } from '@mantine/core';
 import type { LeadDraftEditorMode } from '../LeadDraftTiptapEditor.js';
 import { DraftEditingHelpPopover } from './DraftEditingHelpPopover.js';
 import { formatOtherEditorsLabel } from './formatOtherEditorsLabel.js';
@@ -55,12 +55,21 @@ export function DraftSyncMetaBar({
             </>
           )}
         </Group>
-        {dirty && <Badge color="orange">Unsaved changes</Badge>}
-        {isRevisionStale && !dirty && (
-          <Badge color="orange" variant="light">
+        {dirty ? (
+          <>
+            <Text size="sm" c="dimmed" aria-hidden>
+              ·
+            </Text>
+            <Text size="xs" c="dimmed" component="span">
+              Unsaved changes
+            </Text>
+          </>
+        ) : null}
+        {isRevisionStale && !dirty ? (
+          <Text size="xs" c="dimmed" component="span">
             Server revision {knownServerRevision}
-          </Badge>
-        )}
+          </Text>
+        ) : null}
       </Group>
       <DraftEditingHelpPopover editorMode={editorMode} canEdit={!!canEdit} />
     </Group>

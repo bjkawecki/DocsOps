@@ -1,8 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../api/client';
-import { useLiveEventsContext } from './liveEventsContext';
-
-const REVIEWS_POLL_MS = 15_000;
 
 export type ReviewPendingSuggestionsItem = {
   documentId: string;
@@ -51,17 +48,10 @@ export function useMeReviews(
 ) {
   const limit = params?.limit ?? 20;
   const offset = params?.offset ?? 0;
-  const { fallbackPollingActive } = useLiveEventsContext();
-  const pollInterval =
-    options?.refetchInterval !== undefined
-      ? options.refetchInterval
-      : fallbackPollingActive
-        ? REVIEWS_POLL_MS
-        : false;
   return useQuery({
     queryKey: meReviewsQueryKey({ limit, offset }),
     queryFn: () => fetchMeReviews({ limit, offset }),
     enabled: options?.enabled !== false,
-    refetchInterval: pollInterval,
+    refetchInterval: options?.refetchInterval ?? false,
   });
 }

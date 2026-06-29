@@ -34,6 +34,7 @@ import {
   DocumentBlocksPreview,
   blockDocumentToPlainPreview,
 } from '../../components/documents/DocumentBlocksPreview';
+import { DocumentPublishedVersionAlert } from '../../components/documents/documentLeadDraft/DocumentPublishedVersionAlert.js';
 import { DocumentLeadDraftPanel } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import { DocumentAccessPanel } from '../../components/documents/DocumentAccessPanel';
@@ -85,7 +86,10 @@ export type DocumentPageLoadedLayoutProps = {
   openDelete: () => void;
   openCreateTag: () => void;
   openManageTags: () => void;
-  collaborationPollInterval: number | false;
+  publishedVersionIsStale: boolean;
+  ackPublishedVersion: number | null;
+  latestPublishedVersion: number;
+  onReloadPublishedContent: () => void;
 };
 
 export function DocumentPageLoadedLayout({
@@ -131,7 +135,10 @@ export function DocumentPageLoadedLayout({
   openDelete,
   openCreateTag,
   openManageTags,
-  collaborationPollInterval,
+  publishedVersionIsStale,
+  ackPublishedVersion,
+  latestPublishedVersion,
+  onReloadPublishedContent,
 }: DocumentPageLoadedLayoutProps) {
   const docTitle = mode === 'edit' ? editTitle || 'Untitled' : data.title;
   const hasNoContext = data.contextId == null;
@@ -156,13 +163,7 @@ export function DocumentPageLoadedLayout({
             )
           }
           description={mode === 'view' && data.description ? data.description : undefined}
-          metadata={
-            metadataItems.length > 0 ? (
-              <Group gap="sm" wrap="wrap" align="center">
-                {metadataItems}
-              </Group>
-            ) : undefined
-          }
+          metadata={metadataItems.length > 0 ? metadataItems : undefined}
           actions={
             <Group gap="xs">
               {mode === 'edit' && (
@@ -355,6 +356,14 @@ export function DocumentPageLoadedLayout({
               style={{ minHeight: 0 }}
             >
               <Stack gap="lg" style={{ flex: 1, minWidth: 0 }}>
+                {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
+                  <DocumentPublishedVersionAlert
+                    show
+                    currentVersion={latestPublishedVersion}
+                    acknowledgedVersion={ackPublishedVersion}
+                    onReload={onReloadPublishedContent}
+                  />
+                )}
                 {mode === 'view' ? (
                   <Card withBorder padding="lg" style={{ maxWidth: '75ch' }}>
                     <Box
@@ -392,7 +401,7 @@ export function DocumentPageLoadedLayout({
                         {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
                       </Tabs.List>
                       <Tabs.Panel value="draft" pt="md">
-                        {!hasDraftBlocks && !hasPublishedBlocks && (
+                        {!hasDraftBlocks && !hasPublishedBlocks && leadDraftLastSynced != null && (
                           <Alert color="yellow" mb="md" title="Draft content is empty">
                             <Text size="sm">
                               No block content is currently available for this document. Save the
@@ -405,6 +414,10 @@ export function DocumentPageLoadedLayout({
                           documentId={documentId}
                           refetchWhenVisible={isTabVisible}
                           canPublish={!!data.canPublish}
+                          publishedVersionIsStale={publishedVersionIsStale}
+                          currentPublishedVersionNumber={latestPublishedVersion}
+                          ackPublishedVersion={ackPublishedVersion}
+                          onReloadPublishedContent={onReloadPublishedContent}
                           currentUserId={me?.user?.id}
                           currentUserName={me?.user?.name}
                           isAdmin={me?.user?.isAdmin === true}
@@ -412,7 +425,6 @@ export function DocumentPageLoadedLayout({
                           onDirtyChange={setLeadDraftDirty}
                           onLastSyncedChange={setLeadDraftLastSynced}
                           onPendingSuggestionCountChange={setLeadDraftPendingSuggestions}
-                          refetchInterval={collaborationPollInterval}
                         />
                       </Tabs.Panel>
                       <Tabs.Panel value="metadata" pt="md">

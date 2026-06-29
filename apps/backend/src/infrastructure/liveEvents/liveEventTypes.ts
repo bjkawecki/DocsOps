@@ -14,6 +14,8 @@ export const documentCollaborationChangedPayloadSchema = z.object({
   documentId: z.cuid(),
   draftRevision: z.number().int().nonnegative().optional(),
   pendingSuggestionCount: z.number().int().nonnegative().optional(),
+  publishedVersionNumber: z.number().int().positive().optional(),
+  reason: z.enum(['draft', 'published']).optional(),
 });
 
 export type DocumentCollaborationChangedPayload = z.infer<

@@ -90,6 +90,35 @@ describe('draftInlineSuggestions', () => {
     expect(next!.blocks[0]?.content?.[0]?.meta?.text).toBe('Hi');
   });
 
+  it('accept insert preserves inline code mark', () => {
+    const doc: BlockDocument = {
+      schemaVersion: 1,
+      blocks: [
+        para('p1', [
+          {
+            id: 'leaf-s1',
+            type: 'text' as const,
+            attrs: {},
+            meta: {
+              text: 'fn',
+              marks: ['code'],
+              suggestion: {
+                id: 's1',
+                kind: 'insert' as const,
+                authorId: 'a',
+                status: 'pending' as const,
+                createdAt: '2026-06-16T10:00:00.000Z',
+              },
+            },
+          },
+        ]),
+      ],
+    };
+    const next = acceptSuggestionInDocument(doc, 's1');
+    expect(next!.blocks[0]?.content?.[0]?.meta?.marks).toEqual(['code']);
+    expect(next!.blocks[0]?.content?.[0]?.meta?.suggestion).toBeUndefined();
+  });
+
   it('accept delete removes text leaf', () => {
     const doc: BlockDocument = {
       schemaVersion: 1,

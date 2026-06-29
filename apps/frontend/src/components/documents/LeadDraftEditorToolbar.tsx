@@ -1,17 +1,21 @@
 import { Button, Group, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
-import { authorSelectionTouchesCanon } from '../../tiptap/authorFormatGuards.js';
+import {
+  authorSelectionAllowsInlineFormat,
+  toggleAuthorInlineMark,
+} from '../../tiptap/authorFormatGuards.js';
 
 type Props = {
   editor: Editor;
   authorMode: boolean;
+  authorId?: string;
 };
 
 const AUTHOR_INLINE_DISABLED =
   'Inline formatting applies only to your suggested text, not existing content.';
 
-export function LeadDraftEditorToolbar({ editor, authorMode }: Props) {
-  const inlineDisabled = authorMode && authorSelectionTouchesCanon(editor);
+export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Props) {
+  const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
 
   const inlineButton = (label: string, active: boolean, onClick: () => void, disabled: boolean) => {
     const button = (
@@ -77,7 +81,11 @@ export function LeadDraftEditorToolbar({ editor, authorMode }: Props) {
         'Bold',
         editor.isActive('bold'),
         () => {
-          editor.chain().focus().toggleBold().run();
+          if (authorMode) {
+            toggleAuthorInlineMark(editor, 'bold');
+          } else {
+            editor.chain().focus().toggleBold().run();
+          }
         },
         inlineDisabled
       )}
@@ -85,7 +93,11 @@ export function LeadDraftEditorToolbar({ editor, authorMode }: Props) {
         'Italic',
         editor.isActive('italic'),
         () => {
-          editor.chain().focus().toggleItalic().run();
+          if (authorMode) {
+            toggleAuthorInlineMark(editor, 'italic');
+          } else {
+            editor.chain().focus().toggleItalic().run();
+          }
         },
         inlineDisabled
       )}
@@ -93,7 +105,11 @@ export function LeadDraftEditorToolbar({ editor, authorMode }: Props) {
         'Inline code',
         editor.isActive('code'),
         () => {
-          editor.chain().focus().toggleCode().run();
+          if (authorMode) {
+            toggleAuthorInlineMark(editor, 'code');
+          } else {
+            editor.chain().focus().toggleCode().run();
+          }
         },
         inlineDisabled
       )}

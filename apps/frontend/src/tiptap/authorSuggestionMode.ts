@@ -3,7 +3,10 @@ import type { Mark as ProseMirrorMark } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import type { EditorState } from '@tiptap/pm/state';
 import type { Transaction } from '@tiptap/pm/state';
+import type { EditorView } from '@tiptap/pm/view';
 import { randomId } from '../lib/randomId.js';
+
+const AUTHOR_FORMAT_MARK_NAMES = ['bold', 'italic', 'code'] as const;
 
 export type AuthorSuggestionModeOptions = {
   authorId: string;
@@ -51,6 +54,18 @@ function createDeleteMark(schema: EditorState['schema'], authorId: string) {
     suggestionId: randomId(),
     authorId,
     createdAt: new Date().toISOString(),
+  });
+}
+
+function activeFormatMarks(
+  schema: EditorState['schema'],
+  marks: readonly ProseMirrorMark[] | null | undefined
+): ProseMirrorMark[] {
+  if (!marks?.length) return [];
+  return AUTHOR_FORMAT_MARK_NAMES.flatMap((name) => {
+    const markType = schema.marks[name];
+    if (!markType || !markType.isInSet(marks)) return [];
+    return [markType.create()];
   });
 }
 
@@ -175,6 +190,49 @@ function buildAuthorDeleteSelectionTransaction(
   return tr;
 }
 
+/** True when bold/italic/code may be applied without touching unmarked canon text. */
+export function authorCanApplyInlineFormat(state: EditorState, authorId: string): boolean {
+  const { from, to, empty } = state.selection;
+  if (empty) {
+    if (resolveExistingInsertMark(state, from, authorId)) return true;
+    return !isCanonText(state.doc.resolve(from).marks());
+  }
+  const segments = segmentsInRange(state, from, to, authorId);
+  if (segments.length === 0) return false;
+  return segments.every((segment) => segment.kind === 'ownInsert');
+}
+
+function dispatchAuthorTextInsert(
+  view: EditorView,
+  authorId: string,
+  text: string,
+  from?: number,
+  to?: number
+): boolean {
+  const { state } = view;
+  const insertFrom = from ?? state.selection.from;
+  const insertTo = to ?? state.selection.to;
+  const existingInsert = resolveExistingInsertMark(state, insertFrom, authorId);
+  const marksBefore = state.doc.resolve(insertFrom).marks();
+
+  if (!existingInsert && !isCanonText(marksBefore)) return false;
+
+  const mark = createInsertMark(state.schema, authorId, existingInsert);
+  if (!mark) return false;
+
+  const cursorMarks = state.storedMarks ?? state.doc.resolve(insertFrom).marks();
+  const formatMarks = activeFormatMarks(state.schema, cursorMarks);
+  const marksToApply = [mark, ...formatMarks];
+
+  let tr = state.tr.insertText(text, insertFrom, insertTo);
+  for (const applied of marksToApply) {
+    tr = tr.addMark(insertFrom, insertFrom + text.length, applied);
+  }
+  tr = tr.setStoredMarks(marksToApply);
+  view.dispatch(tr);
+  return true;
+}
+
 export const AuthorSuggestionModeExtension = Extension.create<AuthorSuggestionModeOptions>({
   name: 'authorSuggestionMode',
 
@@ -198,20 +256,17 @@ export const AuthorSuggestionModeExtension = Extension.create<AuthorSuggestionMo
           handleTextInput(view, from, to, text) {
             const { authorId, enabled } = readOptions();
             if (!enabled || !authorId) return false;
+            return dispatchAuthorTextInsert(view, authorId, text, from, to);
+          },
+          handlePaste(view, event) {
+            const { authorId, enabled } = readOptions();
+            if (!enabled || !authorId) return false;
 
-            const { state } = view;
-            const existingInsert = resolveExistingInsertMark(state, from, authorId);
-            const marksBefore = state.doc.resolve(from).marks();
+            const text = event.clipboardData?.getData('text/plain');
+            if (!text) return false;
 
-            if (!existingInsert && !isCanonText(marksBefore)) return false;
-
-            const mark = createInsertMark(state.schema, authorId, existingInsert);
-            if (!mark) return false;
-
-            let tr = state.tr.insertText(text, from, to);
-            tr = tr.addMark(from, from + text.length, mark);
-            tr = tr.setStoredMarks([mark]);
-            view.dispatch(tr);
+            if (!dispatchAuthorTextInsert(view, authorId, text)) return false;
+            event.preventDefault();
             return true;
           },
           handleKeyDown(view, event) {
@@ -223,6 +278,17 @@ export const AuthorSuggestionModeExtension = Extension.create<AuthorSuggestionMo
 
             const isCut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'x';
             const isDeleteKey = event.key === 'Backspace' || event.key === 'Delete';
+
+            if ((event.ctrlKey || event.metaKey) && !event.altKey) {
+              const key = event.key.toLowerCase();
+              if (key === 'b' || key === 'i' || key === 'e') {
+                if (!authorCanApplyInlineFormat(state, authorId)) {
+                  event.preventDefault();
+                  return true;
+                }
+                return false;
+              }
+            }
 
             if (!isDeleteKey && !isCut) return false;
 

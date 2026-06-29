@@ -6,7 +6,7 @@ import type { BlockDocumentV0 } from '../../../api/document-types.js';
 import type { DocumentCollaborationHint } from '../../../hooks/useLiveEvents.js';
 import { countPendingSuggestions } from '../../../lib/draftSuggestionUtils.js';
 import type { LeadDraftTiptapEditorHandle } from '../LeadDraftTiptapEditor.js';
-import { emptyDoc, POLL_MS, PRESENCE_POLL_MS } from './leadDraftPanelConstants.js';
+import { emptyDoc } from './leadDraftPanelConstants.js';
 import { isDocumentEffectivelyEmpty } from './leadDraftPanelUtils.js';
 import { collaborationHintQueryKey, fetchLeadDraft, leadDraftQueryKey } from './leadDraftQuery.js';
 
@@ -29,6 +29,10 @@ export type DocumentLeadDraftPanelProps = {
   onLastSyncedChange?: (iso: string | null) => void;
   onPendingSuggestionCountChange?: (count: number) => void;
   refetchInterval?: number | false;
+  publishedVersionIsStale?: boolean;
+  currentPublishedVersionNumber?: number | null;
+  ackPublishedVersion?: number | null;
+  onReloadPublishedContent?: () => void;
 };
 
 export function useDocumentLeadDraftPanelState({
@@ -43,8 +47,12 @@ export function useDocumentLeadDraftPanelState({
   onLastSyncedChange,
   onPendingSuggestionCountChange,
   refetchInterval: refetchIntervalProp,
+  publishedVersionIsStale = false,
+  currentPublishedVersionNumber = null,
+  ackPublishedVersion = null,
+  onReloadPublishedContent,
 }: DocumentLeadDraftPanelProps) {
-  const pollMs = refetchIntervalProp === false ? false : (refetchIntervalProp ?? POLL_MS);
+  void refetchIntervalProp;
   const queryClient = useQueryClient();
   const editorRef = useRef<LeadDraftTiptapEditorHandle>(null);
   const [dirty, setDirty] = useState(false);
@@ -68,7 +76,7 @@ export function useDocumentLeadDraftPanelState({
     queryKey: leadDraftQueryKey(documentId),
     queryFn: () => fetchLeadDraft(documentId),
     enabled: !!documentId,
-    refetchInterval: refetchWhenVisible && !dirty ? pollMs : false,
+    refetchInterval: false,
   });
 
   const data = q.data;
@@ -92,8 +100,6 @@ export function useDocumentLeadDraftPanelState({
 
   const isRevisionStale = appliedRevision != null && knownServerRevision > appliedRevision;
 
-  const presencePollMs = typeof pollMs === 'number' ? pollMs : PRESENCE_POLL_MS;
-
   const presenceQuery = useQuery({
     queryKey: ['document', documentId, 'draft-presence'],
     queryFn: async (): Promise<DraftPresenceEditor[]> => {
@@ -107,7 +113,7 @@ export function useDocumentLeadDraftPanelState({
     staleTime: 30_000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    refetchInterval: refetchWhenVisible && currentUserId ? presencePollMs : false,
+    refetchInterval: false,
   });
 
   useEffect(() => {
@@ -158,10 +164,23 @@ export function useDocumentLeadDraftPanelState({
       applyIncoming(incomingRevision, serverDoc);
       return;
     }
-    const changed =
-      incomingRevision !== appliedRevision || serverFingerprint !== appliedFingerprint;
-    if (!changed) return;
-    if (dirty) {
+
+    // React Query placeholder while refetching — do not treat as remote rollback.
+    if (incomingRevision === 0 && appliedRevision > 0) return;
+
+    const revisionAhead = incomingRevision > appliedRevision;
+    const contentDiff = serverFingerprint !== appliedFingerprint;
+    if (!revisionAhead && !contentDiff) return;
+
+    // Same revision, content drift (e.g. own save round-trip): sync quietly.
+    if (!revisionAhead && contentDiff && !dirty) {
+      applyIncoming(incomingRevision, serverDoc);
+      return;
+    }
+
+    if (!revisionAhead) return;
+
+    if (dirty || !canPublish) {
       setRemotePending({ revision: incomingRevision, doc: serverDoc });
       return;
     }
@@ -170,27 +189,14 @@ export function useDocumentLeadDraftPanelState({
     appliedFingerprint,
     appliedRevision,
     applyIncoming,
+    canPublish,
     data,
     dirty,
     incomingRevision,
     serverDoc,
     serverFingerprint,
+    knownServerRevision,
   ]);
-
-  useEffect(() => {
-    if (!isRevisionStale) return;
-    void (async () => {
-      const fresh = await q.refetch();
-      const data = fresh.data;
-      if (!data || 'forbidden' in data) return;
-      if (appliedRevision == null) return;
-      if (data.draftRevision <= appliedRevision) return;
-      const freshDoc = data.blocks ?? emptyDoc;
-      if (dirty) {
-        setRemotePending({ revision: data.draftRevision, doc: freshDoc });
-      }
-    })();
-  }, [appliedRevision, collaborationHint?.draftRevision, dirty, isRevisionStale, q]);
 
   const handleSave = useCallback(async () => {
     if (!data || 'forbidden' in data) return false;
@@ -267,10 +273,14 @@ export function useDocumentLeadDraftPanelState({
     const nextDoc = body?.blocks ?? parsed;
     applyIncoming(nextRevision, nextDoc);
     notifications.show({ color: 'green', message: 'Draft saved.' });
-    await queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-    await queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-    await queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
-    await q.refetch();
+    queryClient.setQueryData(leadDraftQueryKey(documentId), {
+      draftRevision: nextRevision,
+      blocks: nextDoc,
+      canEdit: true,
+      pendingSuggestionCount: body?.pendingSuggestionCount ?? pendingSuggestionCount,
+    });
+    void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+    void queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
     return true;
   }, [
     appliedDoc,
@@ -281,7 +291,7 @@ export function useDocumentLeadDraftPanelState({
     data,
     documentId,
     incomingRevision,
-    q,
+    pendingSuggestionCount,
     queryClient,
     dirty,
   ]);
@@ -361,6 +371,10 @@ export function useDocumentLeadDraftPanelState({
     knownServerRevision,
     isRevisionStale,
     editorMode: canPublish ? ('lead' as const) : ('author' as const),
+    publishedVersionIsStale,
+    currentPublishedVersionNumber,
+    ackPublishedVersion,
+    onReloadPublishedContent,
   };
   return state;
 }

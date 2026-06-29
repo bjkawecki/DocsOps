@@ -119,6 +119,40 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[0]?.content?.[0]?.meta?.marks).toEqual(['bold']);
   });
 
+  it('roundtrips code mark on pending insert suggestion', () => {
+    const source: BlockDocument = {
+      schemaVersion: 1,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: {
+                text: 'fn',
+                marks: ['code'],
+                suggestion: {
+                  id: 's1',
+                  kind: 'insert',
+                  authorId: 'author-a',
+                  status: 'pending',
+                  createdAt: '2026-06-16T10:00:00.000Z',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    const back = tiptapJsonToBlockDocument(json);
+    const leaf = back.blocks[0]?.content?.[0];
+    expect(leaf?.meta?.marks).toEqual(['code']);
+    expect(leaf?.meta?.suggestion).toMatchObject({ id: 's1', kind: 'insert' });
+  });
+
   it('roundtrips canon with pending insert suggestion without changing block ids', () => {
     const source: BlockDocument = {
       schemaVersion: 1,

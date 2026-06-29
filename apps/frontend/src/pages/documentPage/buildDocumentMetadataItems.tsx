@@ -2,12 +2,8 @@ import { Badge, Group, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DocumentResponse } from './documentPageTypes';
 
-export function buildDocumentMetadataItems(params: {
-  data: DocumentResponse;
-  mode: 'view' | 'edit';
-  hasUnsavedChanges: boolean;
-}): ReactNode[] {
-  const { data, mode, hasUnsavedChanges } = params;
+export function buildDocumentMetadataItems(params: { data: DocumentResponse }): ReactNode[] {
+  const { data } = params;
   const writerNames = [
     ...(data.writers?.users?.map((u) => u.name) ?? []),
     ...(data.writers?.teams?.map((t) => t.name) ?? []),
@@ -67,13 +63,6 @@ export function buildDocumentMetadataItems(params: {
         </Badge>
       );
     });
-  }
-  if (mode === 'edit' && hasUnsavedChanges) {
-    metadataItems.push(
-      <Badge key="unsaved" size="sm" variant="filled" color="orange">
-        Unsaved changes
-      </Badge>
-    );
   }
   return metadataItems;
 }

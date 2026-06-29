@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { AppShell as MantineAppShell, Box } from '@mantine/core';
+import { useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import type { MeResponse } from '../../api/me-types';
@@ -13,9 +14,14 @@ import { AppShellSkipLink } from './AppShellSkipLink.js';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus.js';
 import { useUpdateInProgressOverlay } from '../../hooks/useUpdateInProgressOverlay.js';
 import { LiveEventsProvider } from '../../hooks/LiveEventsProvider.js';
+import { AppShellLiveEventsBannerSlot } from './AppShellLiveEventsBannerSlot.js';
 import { AppShellUpdateBanner } from './AppShellUpdateBanner.js';
 import { useAppShellSidebarData } from './useAppShellSidebarData.js';
 import { useAppShellLayout } from './useAppShellLayout.js';
+import {
+  readSidebarCollapsedPreference,
+  writeSidebarCollapsedPreference,
+} from '../../lib/sidebarCollapsedPreference.js';
 import { MAIN_CONTENT_ID } from './appShellLayoutConstants.js';
 import './AppShell.css';
 
@@ -26,8 +32,15 @@ export function AppShell() {
   const maintenanceStatus = maintenanceQuery.data;
   const updateOverlay = useUpdateInProgressOverlay(isAdmin);
   const sidebarPinned = s.me?.preferences?.sidebarPinned ?? false;
-  const sidebarCollapsed = s.me?.preferences?.sidebarCollapsed ?? false;
+  const serverSidebarCollapsed = s.me?.preferences?.sidebarCollapsed;
+  const sidebarCollapsed = serverSidebarCollapsed ?? readSidebarCollapsedPreference() ?? false;
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (serverSidebarCollapsed !== undefined) {
+      writeSidebarCollapsedPreference(serverSidebarCollapsed);
+    }
+  }, [serverSidebarCollapsed]);
 
   const patchSidebarCollapsed = useMutation({
     mutationFn: async (collapsed: boolean) => {
@@ -62,6 +75,7 @@ export function AppShell() {
     sidebarPinned,
     sidebarCollapsed,
     (collapsed) => {
+      writeSidebarCollapsedPreference(collapsed);
       patchSidebarCollapsed.mutate(collapsed);
     }
   );
@@ -83,6 +97,7 @@ export function AppShell() {
           }}
         />
         <AppShellMaintenanceBanner status={maintenanceStatus} hidden={updateOverlay.visible} />
+        <AppShellLiveEventsBannerSlot />
         <MantineAppShell
           navbar={{
             width: layout.navbarWidth,

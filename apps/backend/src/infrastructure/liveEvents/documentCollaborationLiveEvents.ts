@@ -5,6 +5,8 @@ import { notifyLiveEvent } from './liveEventNotify.js';
 export type DocumentCollaborationChangedMeta = {
   draftRevision?: number;
   pendingSuggestionCount?: number;
+  publishedVersionNumber?: number;
+  reason?: 'draft' | 'published';
 };
 
 export async function notifyDocumentCollaborationChanged(
@@ -27,6 +29,10 @@ export async function notifyDocumentCollaborationChanged(
         ...(meta?.pendingSuggestionCount != null
           ? { pendingSuggestionCount: meta.pendingSuggestionCount }
           : {}),
+        ...(meta?.publishedVersionNumber != null
+          ? { publishedVersionNumber: meta.publishedVersionNumber }
+          : {}),
+        ...(meta?.reason != null ? { reason: meta.reason } : {}),
       },
     },
   });

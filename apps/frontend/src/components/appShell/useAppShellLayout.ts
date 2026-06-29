@@ -1,5 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDisclosure, useFocusReturn, useMediaQuery } from '@mantine/hooks';
+import {
+  readSidebarCollapsedPreference,
+  writeSidebarCollapsedPreference,
+} from '../../lib/sidebarCollapsedPreference.js';
 import {
   DESKTOP_MIN_WIDTH,
   SIDEBAR_WIDTH_EXPANDED,
@@ -14,8 +18,10 @@ export function useAppShellLayout(
 ) {
   const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
   const [mobileOpened, { close: closeMobile, toggle: toggleMobile }] = useDisclosure(false);
+  const initialCollapsed = sidebarCollapsed || readSidebarCollapsedPreference() === true;
   const [desktopCollapsed, { close: expandDesktop, open: collapseDesktop }] =
-    useDisclosure(sidebarCollapsed);
+    useDisclosure(initialCollapsed);
+  const userToggledRef = useRef(false);
 
   useFocusReturn({ opened: mobileOpened, shouldReturnFocus: true });
 
@@ -30,6 +36,7 @@ export function useAppShellLayout(
   }, [sidebarPinned, expandDesktop]);
 
   useEffect(() => {
+    if (userToggledRef.current) return;
     if (sidebarCollapsed) {
       collapseDesktop();
     } else {
@@ -39,11 +46,13 @@ export function useAppShellLayout(
 
   const toggleDesktopCollapsed = () => {
     const next = !desktopCollapsed;
+    userToggledRef.current = true;
     if (next) {
       collapseDesktop();
     } else {
       expandDesktop();
     }
+    writeSidebarCollapsedPreference(next);
     onSidebarCollapsedChange(next);
   };
 

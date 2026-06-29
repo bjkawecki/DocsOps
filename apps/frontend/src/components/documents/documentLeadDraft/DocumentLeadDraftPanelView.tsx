@@ -53,8 +53,8 @@ export function DocumentLeadDraftPanelView({
   return (
     <Stack gap="sm">
       <DraftCollaborationBanner
+        canPublish={!!canPublish}
         remotePending={remotePending}
-        isRevisionStale={isRevisionStale}
         dirty={dirty}
         knownServerRevision={knownServerRevision}
         appliedRevision={appliedRevision}

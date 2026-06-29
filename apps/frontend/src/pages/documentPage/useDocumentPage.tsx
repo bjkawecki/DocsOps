@@ -5,11 +5,12 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
-import { useLiveEventsContext } from '../../hooks/liveEventsContext';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
 import { scopeToUrl } from '../../lib/scopeNav';
 import { useRecentItemsActions } from '../../hooks/useRecentItems';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
+import { collaborationHintQueryKey } from '../../components/documents/documentLeadDraft/leadDraftQuery.js';
+import type { DocumentCollaborationHint } from '../../hooks/useLiveEvents.js';
 import {
   invalidateDocumentArchivedTransitionCaches,
   invalidateDocumentIndexCaches,
@@ -20,6 +21,7 @@ import { withHeadingNumbering } from './documentMarkdown';
 import type { DocumentResponse } from './documentPageTypes';
 import { useDocumentPageKeyboardEffects } from './useDocumentPageKeyboardEffects';
 import { useDocumentPageSecondaryQueries } from './useDocumentPageSecondaryQueries';
+import { fetchDocument } from './fetchDocument';
 import {
   showPdfExportQueuedNotification,
   updatePdfExportStatusNotification,
@@ -28,7 +30,7 @@ import {
 export function useDocumentPage() {
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const recentActions = useRecentItemsActions();
@@ -60,8 +62,7 @@ export function useDocumentPage() {
     () => document.visibilityState === 'visible'
   );
   const [editTab, setEditTab] = useState<'draft' | 'metadata' | 'access'>('draft');
-  const { fallbackPollingActive } = useLiveEventsContext();
-  const collaborationPollInterval = fallbackPollingActive ? 15_000 : false;
+  const [ackPublishedVersion, setAckPublishedVersion] = useState<number | null>(null);
   const [leadDraftDirty, setLeadDraftDirty] = useState(false);
   const [leadDraftPendingSuggestions, setLeadDraftPendingSuggestions] = useState(0);
   const [leadDraftLastSynced, setLeadDraftLastSynced] = useState<string | null>(null);
@@ -69,15 +70,17 @@ export function useDocumentPage() {
 
   const { data, isPending, isError } = useQuery({
     queryKey: ['document', documentId],
-    queryFn: async () => {
-      const res = await apiFetch(`/api/v1/documents/${documentId}`);
-      if (res.status === 404) throw new Error('not-found');
-      if (res.status === 403) throw new Error('forbidden');
-      if (!res.ok) throw new Error('Failed to load document');
-      return res.json() as Promise<DocumentResponse>;
-    },
+    queryFn: () => fetchDocument(documentId!),
     enabled: !!documentId,
-    refetchInterval: isTabVisible ? collaborationPollInterval : false,
+    refetchInterval: false,
+  });
+
+  const { data: collaborationHint } = useQuery<DocumentCollaborationHint | null>({
+    queryKey: collaborationHintQueryKey(documentId ?? ''),
+    queryFn: (): DocumentCollaborationHint | null => null,
+    enabled: !!documentId,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
   });
 
   const contextOwnerId = data?.contextOwnerId ?? null;
@@ -98,6 +101,70 @@ export function useDocumentPage() {
       setEditTagIds(data.documentTags.map((dt) => dt.tag.id));
     }
   }, [data]);
+
+  useEffect(() => {
+    if (data?.currentPublishedVersionNumber == null) return;
+    if (mode === 'edit') {
+      if (data.canPublish) {
+        setAckPublishedVersion(data.currentPublishedVersionNumber);
+      } else {
+        setAckPublishedVersion((prev) => prev ?? data.currentPublishedVersionNumber);
+      }
+      return;
+    }
+    setAckPublishedVersion((prev) => prev ?? data.currentPublishedVersionNumber);
+  }, [mode, data?.currentPublishedVersionNumber, data?.canPublish]);
+
+  const latestPublishedVersion = Math.max(
+    data?.currentPublishedVersionNumber ?? 0,
+    collaborationHint?.publishedVersionNumber ?? 0
+  );
+
+  const publishedVersionIsStale =
+    !data?.canPublish &&
+    ackPublishedVersion != null &&
+    latestPublishedVersion > ackPublishedVersion;
+
+  const handleReloadPublishedContent = useCallback(async () => {
+    if (!documentId) return;
+    const fresh = await queryClient.fetchQuery({
+      queryKey: ['document', documentId],
+      queryFn: () => fetchDocument(documentId),
+    });
+    if (fresh.currentPublishedVersionNumber != null) {
+      setAckPublishedVersion(fresh.currentPublishedVersionNumber);
+    }
+    if (documentId) {
+      queryClient.removeQueries({ queryKey: collaborationHintQueryKey(documentId) });
+    }
+  }, [documentId, queryClient]);
+
+  const clearEditUrlParams = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('mode');
+        next.delete('tab');
+        return next;
+      },
+      { replace: true }
+    );
+  }, [setSearchParams]);
+
+  const syncEditUrlParams = useCallback(
+    (tab: 'draft' | 'metadata' | 'access') => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('mode', 'edit');
+          next.set('tab', tab);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
   useEffect(() => {
     const urlMode = searchParams.get('mode');
@@ -279,6 +346,7 @@ export function useDocumentPage() {
         invalidateDocumentIndexCaches(queryClient, documentId, data.contextId);
         setMode('view');
         setEditInitialSnapshot(null);
+        clearEditUrlParams();
         notifications.show({
           title: 'Saved',
           message: 'Document metadata updated.',
@@ -290,7 +358,7 @@ export function useDocumentPage() {
     } finally {
       setSaveLoading(false);
     }
-  }, [data, documentId, editDescription, editTagIds, editTitle, queryClient]);
+  }, [clearEditUrlParams, data, documentId, editDescription, editTagIds, editTitle, queryClient]);
 
   const handleEditClick = () => {
     if (!data) return;
@@ -302,6 +370,7 @@ export function useDocumentPage() {
       tagIds: data.documentTags.map((dt) => dt.tag.id),
     });
     setMode('edit');
+    syncEditUrlParams('draft');
   };
 
   const handleCancelEdit = () => {
@@ -318,6 +387,7 @@ export function useDocumentPage() {
     setMode('view');
     setEditInitialSnapshot(null);
     setLeadDraftDirty(false);
+    clearEditUrlParams();
   };
 
   const handlePublish = async () => {
@@ -328,9 +398,14 @@ export function useDocumentPage() {
         method: 'POST',
       });
       if (res.ok) {
+        const published = (await res.json()) as DocumentResponse;
+        queryClient.setQueryData(['document', documentId], published);
+        const publishedVersion = published.currentPublishedVersionNumber;
+        if (publishedVersion != null) {
+          setAckPublishedVersion(publishedVersion);
+        }
         invalidateDocumentIndexCaches(queryClient, documentId, data?.contextId);
         invalidateMeDraftsAndPersonalDocuments(queryClient);
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
         void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
         const isRepublish = Boolean(data?.publishedAt);
         notifications.show({
@@ -542,6 +617,9 @@ export function useDocumentPage() {
     handleStartPdfExport,
     handleDeleteTag,
     hasUnsavedChanges,
-    collaborationPollInterval,
+    publishedVersionIsStale,
+    ackPublishedVersion,
+    latestPublishedVersion,
+    handleReloadPublishedContent,
   };
 }

@@ -1,5 +1,6 @@
 import { Badge, Box, Group, Text } from '@mantine/core';
 import { EditorContent, useEditor } from '@tiptap/react';
+import { SuggestionFriendlyCode } from '../../tiptap/suggestionFriendlyCode.js';
 import StarterKit from '@tiptap/starter-kit';
 import {
   forwardRef,
@@ -146,7 +147,9 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
           blockquote: false,
           horizontalRule: false,
           strike: false,
+          code: false,
         }),
+        SuggestionFriendlyCode,
         BlockIdExtension,
         SuggestionInsertMark,
         SuggestionDeleteMark,
@@ -279,7 +282,9 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
             </Badge>
           </Group>
         )}
-        {editable && <LeadDraftEditorToolbar editor={editor} authorMode={authorMode} />}
+        {editable && (
+          <LeadDraftEditorToolbar editor={editor} authorMode={authorMode} authorId={authorId} />
+        )}
         <Box className={classes.editorShell}>
           <EditorContent editor={editor} />
         </Box>

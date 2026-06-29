@@ -1,12 +1,15 @@
 import { createContext, useContext } from 'react';
 
+export type LiveEventsStatus = 'connected' | 'reconnecting' | 'disconnected';
+
 export type LiveEventsContextValue = {
-  /** True when SSE failed persistently and unread fallback polling should run. */
-  fallbackPollingActive: boolean;
+  status: LiveEventsStatus;
+  retryConnect: () => void;
 };
 
 const defaultValue: LiveEventsContextValue = {
-  fallbackPollingActive: false,
+  status: 'reconnecting',
+  retryConnect: () => {},
 };
 
 export const LiveEventsContext = createContext<LiveEventsContextValue>(defaultValue);

@@ -3,9 +3,9 @@ import { LiveEventsContext } from './liveEventsContext';
 import { useLiveEvents } from './useLiveEvents';
 
 export function LiveEventsProvider({ children }: { children: ReactNode }) {
-  const { fallbackPollingActive } = useLiveEvents();
+  const { status, retryConnect } = useLiveEvents();
   return (
-    <LiveEventsContext.Provider value={{ fallbackPollingActive }}>
+    <LiveEventsContext.Provider value={{ status, retryConnect }}>
       {children}
     </LiveEventsContext.Provider>
   );

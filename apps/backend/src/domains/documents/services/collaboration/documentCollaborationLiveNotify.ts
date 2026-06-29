@@ -19,7 +19,10 @@ export function notifyLeadDraftCollaborationChanged(
 ): void {
   void (async () => {
     const userIds = await listUserIdsWhoCanReadLeadDraft(prisma, documentId);
-    notifyDocumentCollaborationChangedManyFireAndForget(prisma, userIds, documentId, meta);
+    notifyDocumentCollaborationChangedManyFireAndForget(prisma, userIds, documentId, {
+      ...meta,
+      reason: 'draft',
+    });
   })();
 }
 
@@ -38,17 +41,17 @@ export function notifyDraftPresenceChanged(
   })();
 }
 
-/** SSE to all readers after publish (published view refresh). */
+/** SSE to all readers (and actor tabs) after publish (published view refresh). */
 export function notifyDocumentPublishedCollaborationChanged(
   prisma: PrismaClient,
   documentId: string,
-  actorUserId?: string | null
+  publishedVersionNumber: number
 ): void {
   void (async () => {
-    const userIds = excludeUserIds(
-      await listUserIdsWhoCanReadDocument(prisma, documentId),
-      actorUserId
-    );
-    notifyDocumentCollaborationChangedManyFireAndForget(prisma, userIds, documentId);
+    const userIds = await listUserIdsWhoCanReadDocument(prisma, documentId);
+    notifyDocumentCollaborationChangedManyFireAndForget(prisma, userIds, documentId, {
+      reason: 'published',
+      publishedVersionNumber,
+    });
   })();
 }

@@ -6,6 +6,7 @@ import {
   getBlockDocumentHeadingData,
   nodeText,
 } from '../../pages/documentPage/blockDocumentHeadings';
+import { renderInlineBlockContent } from './documentBlockPreviewInline.js';
 
 function walkNode(node: BlockNodeV0): string {
   if (node.type === 'text') {
@@ -32,21 +33,46 @@ function headingOrder(attrs: Record<string, unknown> | undefined): 1 | 2 | 3 | 4
 function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): ReactNode {
   switch (node.type) {
     case 'heading': {
-      const label = nodeText(node).trim();
-      const display = label.length > 0 ? label : '(Untitled)';
       const anchorId = anchorMap.get(node.id);
       const order = headingOrder(node.attrs);
+      const inline = renderInlineBlockContent(node.content);
+      const fallback = nodeText(node).trim();
+      if (!inline && !fallback) {
+        return (
+          <Title order={order} id={anchorId}>
+            (Untitled)
+          </Title>
+        );
+      }
       return (
         <Title order={order} id={anchorId}>
-          {display}
+          {inline ?? fallback}
         </Title>
       );
     }
     case 'paragraph': {
+      const inline = renderInlineBlockContent(node.content);
+      if (inline) {
+        return (
+          <Text
+            size="sm"
+            c="var(--mantine-color-text)"
+            component="p"
+            style={{ whiteSpace: 'pre-wrap' }}
+          >
+            {inline}
+          </Text>
+        );
+      }
       const t = walkNode(node);
       if (!t.trim()) return null;
       return (
-        <Text size="sm" c="var(--mantine-color-text)" style={{ whiteSpace: 'pre-wrap' }}>
+        <Text
+          size="sm"
+          c="var(--mantine-color-text)"
+          component="p"
+          style={{ whiteSpace: 'pre-wrap' }}
+        >
           {t}
         </Text>
       );
@@ -82,6 +108,14 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       );
     }
     case 'text': {
+      const inline = renderInlineBlockContent([node]);
+      if (inline) {
+        return (
+          <Text size="sm" component="span" style={{ whiteSpace: 'pre-wrap' }}>
+            {inline}
+          </Text>
+        );
+      }
       const t = node.meta?.text;
       return typeof t === 'string' && t.length > 0 ? (
         <Text size="sm" component="span" style={{ whiteSpace: 'pre-wrap' }}>
