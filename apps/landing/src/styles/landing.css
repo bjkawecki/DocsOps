@@ -1,0 +1,707 @@
+.landing-section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.landing-section-title {
+  text-align: center;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  margin-bottom: 2.5rem;
+}
+
+.landing-section-header {
+  text-align: center;
+  align-items: center;
+}
+
+.landing-surface-card {
+  box-shadow:
+    0 10px 36px color-mix(in srgb, var(--mantine-color-blue-4) 32%, transparent),
+    0 4px 14px color-mix(in srgb, var(--mantine-color-blue-4) 22%, transparent);
+}
+
+.landing-hero {
+  text-align: center;
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+.landing-hero-headline {
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 820px;
+  margin-inline: auto;
+  color: var(--mantine-color-white);
+}
+
+.landing-hero-headline-lead {
+  display: block;
+}
+
+.landing-hero-headline-second {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.2em;
+  margin-top: 0.15em;
+  max-width: 100%;
+}
+
+.landing-hero-qualifier {
+  position: relative;
+  display: inline-grid;
+  vertical-align: bottom;
+  height: 1.15em;
+}
+
+.landing-hero-qualifier-sizer {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  pointer-events: none;
+  display: grid;
+  white-space: nowrap;
+}
+
+.landing-hero-qualifier-sizer-word {
+  grid-area: 1 / 1;
+}
+
+.landing-hero-qualifier-viewport {
+  grid-area: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  height: 1.15em;
+  text-align: left;
+}
+
+.landing-hero-qualifier-word {
+  display: block;
+  height: 1.15em;
+  line-height: 1.15em;
+  color: var(--mantine-color-blue-4);
+  white-space: nowrap;
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 520ms ease;
+}
+
+.landing-hero-qualifier-word--layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.landing-hero-qualifier-word--settled {
+  position: relative;
+  transform: none;
+}
+
+.landing-hero-qualifier-word--in {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.landing-hero-qualifier-word--in-active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.landing-hero-qualifier-word--out-active {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.landing-hero-headline-tail {
+  margin-inline-start: 0;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-qualifier-word {
+    transition: none;
+  }
+}
+
+.landing-hero-dot {
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-hero-subline-wrap {
+  max-width: 720px;
+  width: 100%;
+}
+
+.landing-hero-subline {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.landing-hero-cta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+@media (max-width: 36em) {
+  .landing-hero-cta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-hero-cta-button {
+  min-height: 72px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background: var(--mantine-color-dark-7) !important;
+  border: 1px solid var(--mantine-color-dark-4) !important;
+}
+
+.landing-hero-cta-button:hover {
+  background: var(--mantine-color-dark-6) !important;
+}
+
+.landing-roles-diagram {
+  max-width: 760px;
+  margin-inline: auto;
+  padding-top: 0.5rem;
+}
+
+.landing-roles-diagram-scope {
+  border-color: var(--mantine-color-dark-4) !important;
+}
+
+.landing-roles-diagram-card {
+  border-color: var(--mantine-color-dark-4) !important;
+}
+
+.landing-diagram-desktop,
+.landing-roles-diagram-desktop,
+.landing-hierarchy-diagram-desktop,
+.landing-scope-diagram-desktop {
+  width: 100%;
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  overflow: visible;
+}
+
+.landing-diagram-stage,
+.landing-roles-diagram-stage,
+.landing-hierarchy-diagram-stage,
+.landing-scope-diagram-stage {
+  position: relative;
+  width: 960px;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.landing-diagram-detail-panel,
+.landing-roles-detail-panel {
+  position: absolute;
+  left: calc(100% + 2rem);
+  top: 2rem;
+  width: 320px;
+  min-height: 5rem;
+  background: var(--mantine-color-dark-9);
+  padding: 0;
+  z-index: 2;
+}
+
+@media (max-width: 90em) {
+  .landing-diagram-desktop,
+  .landing-roles-diagram-desktop,
+  .landing-hierarchy-diagram-desktop,
+  .landing-scope-diagram-desktop {
+    max-width: 960px;
+  }
+
+  .landing-diagram-detail-panel,
+  .landing-roles-detail-panel {
+    position: sticky;
+    top: 5.5rem;
+    left: auto;
+    width: 100%;
+    max-width: 640px;
+    margin: 1.5rem auto 0;
+  }
+}
+
+.landing-roles-flow-wrap {
+  width: 100%;
+  height: 520px;
+  padding-top: 0.25rem;
+  margin-inline: auto;
+}
+
+.landing-roles-flow-wrap--edit {
+  height: 460px;
+  border: 1px dashed var(--mantine-color-blue-5);
+  border-radius: var(--mantine-radius-md);
+}
+
+.landing-roles-flow-edit-bar {
+  max-width: 800px;
+  margin-inline: auto;
+  margin-bottom: 0.75rem;
+  border-color: var(--mantine-color-blue-5) !important;
+}
+
+.landing-roles-flow-wrap .react-flow__node {
+  overflow: visible;
+}
+
+.landing-roles-flow-node {
+  position: relative;
+  overflow: visible !important;
+  border-color: var(--mantine-color-dark-5) !important;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit)
+  .landing-roles-flow-node:hover:not(.landing-roles-flow-node--selected) {
+  border-color: var(--mantine-color-blue-4) !important;
+}
+
+.landing-roles-flow-node--selected {
+  border-color: var(--mantine-color-blue-4) !important;
+  box-shadow: 0 0 0 1px var(--mantine-color-blue-4);
+}
+
+.landing-roles-flow-scope-frame.landing-roles-flow-node--selected,
+.landing-roles-flow-document-frame.landing-roles-flow-node--selected {
+  border-color: var(--mantine-color-blue-4);
+  box-shadow: 0 0 0 1px var(--mantine-color-blue-4);
+}
+
+.landing-roles-flow-wrap .react-flow__node.selectable:focus,
+.landing-roles-flow-wrap .react-flow__node.selectable:focus-visible {
+  outline: none;
+}
+
+.landing-roles-flow-doc-state-node {
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit) .landing-roles-flow-scope-frame,
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit) .landing-roles-flow-document-frame {
+  pointer-events: auto;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit)
+  .landing-roles-flow-scope-frame:hover:not(.landing-roles-flow-node--selected) {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit)
+  .landing-roles-flow-document-frame:hover:not(.landing-roles-flow-node--selected) {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-roles-flow-handle {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  border: 2px solid var(--mantine-color-blue-4);
+  background: var(--mantine-color-dark-7);
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit) .landing-roles-flow-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.landing-roles-flow-wrap .react-flow {
+  background: transparent;
+}
+
+.landing-roles-flow-wrap .react-flow__edge-text {
+  fill: #f1f3f5;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.landing-roles-flow-wrap .react-flow__edge-textbg {
+  fill: #25262b;
+  fill-opacity: 0.95;
+  stroke: var(--mantine-color-dark-4);
+  stroke-width: 1;
+}
+
+.landing-roles-flow-scope-frame {
+  border: 1px solid var(--mantine-color-dark-4);
+  background: var(--mantine-color-dark-7);
+  padding: 1rem 1.1rem;
+}
+
+.landing-roles-flow-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--mantine-radius-md);
+  pointer-events: none;
+}
+
+.landing-roles-flow-document-frame {
+  border: 1px solid var(--mantine-color-dark-5);
+  background: var(--mantine-color-dark-8);
+  padding: 1rem 1.1rem;
+}
+
+.landing-roles-diagram-mobile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 480px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.landing-flow-diagram {
+  padding-top: 0.5rem;
+}
+
+.landing-flow-step {
+  border-color: var(--mantine-color-dark-5) !important;
+}
+
+.landing-flow-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 2rem;
+  margin-block: 0.25rem;
+}
+
+.landing-flow-arrow-line {
+  width: 2px;
+  flex: 1;
+  background: var(--mantine-color-dark-4);
+}
+
+.landing-flow-arrow-head {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--mantine-color-blue-4);
+}
+
+.landing-feature-item {
+  padding: 0.25rem 0;
+}
+
+.landing-feature-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.landing-feature-icon {
+  color: var(--mantine-color-blue-4);
+  flex-shrink: 0;
+}
+
+.landing-comparison-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.landing-comparison-table thead th {
+  background: var(--mantine-color-dark-7);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--mantine-color-dark-5);
+}
+
+.landing-comparison-table tbody td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--mantine-color-dark-6);
+  vertical-align: middle;
+}
+
+.landing-comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.landing-comparison-feature {
+  font-weight: 500;
+}
+
+.landing-comparison-detail {
+  font-size: 0.8rem;
+  color: var(--mantine-color-dimmed);
+  margin-top: 0.15rem;
+}
+
+.landing-faq .mantine-Accordion-control {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.landing-faq .mantine-Accordion-label {
+  font-weight: 600;
+}
+
+/* Scope diagram */
+
+.landing-scope-diagram-stage {
+  width: 900px;
+}
+
+.landing-scope-diagram-card {
+  border-color: var(--mantine-color-dark-4) !important;
+  pointer-events: none;
+}
+
+.landing-scope-diagram-card .landing-scope-flow-wrap {
+  pointer-events: auto;
+}
+
+.landing-scope-flow-wrap {
+  width: 100%;
+  height: 340px;
+}
+
+.landing-scope-flow-wrap .react-flow {
+  background: transparent;
+}
+
+.landing-scope-flow-wrap .react-flow__node {
+  overflow: visible;
+}
+
+.landing-scope-flow-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 10.75rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--mantine-color-dark-5);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-dark-8);
+  color: var(--mantine-color-gray-0);
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.landing-scope-flow-node:hover:not(.landing-scope-node--selected):not(.landing-scope-node--dimmed) {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-scope-flow-node--user {
+  border-style: dashed;
+}
+
+.landing-scope-flow-node--user:hover:not(.landing-scope-node--selected):not(
+    .landing-scope-node--dimmed
+  ) {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-scope-flow-handle {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
+  background: transparent;
+}
+
+.landing-scope-tree-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-scope-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.landing-scope-split {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.landing-scope-branches {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  width: 100%;
+}
+
+.landing-scope-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-scope-teams {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.landing-scope-user-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.landing-scope-heading {
+  width: 100%;
+  text-align: left;
+}
+
+.landing-scope-node-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.landing-scope-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 10rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--mantine-color-dark-5);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-dark-8);
+  color: var(--mantine-color-gray-0);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease;
+}
+
+.landing-scope-node:hover:not(.landing-scope-node--selected):not(.landing-scope-node--dimmed) {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-scope-node--path {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.landing-scope-node--selected {
+  border-color: var(--mantine-color-blue-4);
+  box-shadow: 0 0 0 1px var(--mantine-color-blue-4);
+}
+
+.landing-scope-node--dimmed {
+  opacity: 0.32;
+}
+
+.landing-scope-node--dimmed:hover {
+  border-color: var(--mantine-color-dark-5);
+}
+
+.landing-scope-node--alternate {
+  border-style: dashed;
+}
+
+.landing-scope-node-label {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.landing-scope-node-subtitle {
+  line-height: 1.2;
+}
+
+.landing-scope-connector {
+  width: 2px;
+  height: 1.75rem;
+  background: var(--mantine-color-dark-4);
+  flex-shrink: 0;
+}
+
+.landing-scope-connector--dashed {
+  width: 2px;
+  height: 1.75rem;
+  background: none;
+  border-left: 2px dashed var(--mantine-color-dark-4);
+}
+
+.landing-scope-mobile-card {
+  border-color: var(--mantine-color-dark-4) !important;
+}
+
+.landing-scope-mobile-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 56em) {
+  .landing-scope-branches {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .landing-scope-teams {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+}
+
+/* Context type cards */
+
+.landing-context-type-card {
+  border-color: var(--mantine-color-dark-4) !important;
+}
+
+/* Example section */
+
+.landing-example-steps {
+  padding-top: 0.25rem;
+}
+
+.landing-example-step--bordered {
+  border-top: 1px solid var(--mantine-color-dark-5);
+  padding-top: 1.75rem;
+}
+
+.landing-example-step-question {
+  color: var(--mantine-color-gray-1);
+  line-height: 1.35;
+}

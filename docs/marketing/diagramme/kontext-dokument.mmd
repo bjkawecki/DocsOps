@@ -1,0 +1,21 @@
+%% Kontext und Dokumente (Landing Section 2)
+%% Jeder Geltungsbereich kann Kontexte haben; Dokument in genau einem Kontext
+%% Referenz: Landing-Sections-Plan.md §4
+
+flowchart TB
+  subgraph scope["Geltungsbereich · Firma / Abteilung / Team / Nutzer"]
+    GELTUNG[Geltungsbereich]
+  end
+
+  subgraph contexts["Kontexte – beliebig viele pro Geltungsbereich"]
+    direction LR
+    PROC[Prozess · dauerhaft]
+    PROJ[Projekt · zeitlich begrenzt]
+  end
+
+  DOC[Dokument]
+
+  GELTUNG --> PROC
+  GELTUNG --> PROJ
+  PROC --> DOC
+  PROJ --> DOC

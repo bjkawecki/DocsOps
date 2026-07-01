@@ -1,0 +1,24 @@
+%% Beispiel Barrierefreiheit (Referenz – nicht auf der Landing eingebunden)
+%% Landing: nummerierte Fragen/Antworten in ExampleSection (#einordnen)
+
+flowchart TD
+  START([Neues Dokument:<br/>Thema Barrierefreiheit])
+
+  Q1{Befrifft es ein konkretes<br/>Produkt oder Vorhaben?}
+  START --> Q1
+
+  Q1 -->|Nein| Q2{Beschreibt es einen<br/>dauerhaften Ablauf<br/>oder Standard?}
+  Q1 -->|Ja| Q3{Dokumentiert es den<br/>aktuellen Ist-Stand<br/>– nicht den Ablauf?}
+
+  Q2 -->|Ja| PROC["Prozess anlegen:<br/>Barrierefreiheit in der Entwicklung"]
+  Q2 -->|Nein| CLARIFY[Einordnung mit Leitung klären]
+
+  Q3 -->|Nein| PROC
+  Q3 -->|Ja| Q4{Welcher Geltungsbereich<br/>ist betroffen?}
+
+  Q4 --> ABT["Abteilung IT"]
+  ABT --> Q5{Projekt oder<br/>Prozess?}
+
+  Q5 -->|Prozess| PROC
+  Q5 -->|Projekt| PROJ["Kontext: Projekt Software X"]
+  PROJ --> DOC["Dokument:<br/>Stand Barrierefreiheit"]

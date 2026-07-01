@@ -354,7 +354,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 ### Demo & öffentliche Präsenz (getrennt von Self-hosted)
 
 [ ] **Demo online** – eigene Instanz, `DEMO_MODE`, Reset: [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md)
-[ ] **Landing + i18n** – statische DE-Landing (`docsops.de`); App EN/DE optional; Release Notes **§24**
+[ ] **Landing + i18n** – statische DE-Landing (`docsops.de`); drei Sections Scope/Kontext/Rechte laut [Landing-Sections-Plan.md](../marketing/Landing-Sections-Plan.md) (Phase A Docs [x], Code B–F offen); App EN/DE optional; Release Notes **§24**
 
 **Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 

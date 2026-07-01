@@ -1,0 +1,22 @@
+%% Organisation und Zuordnung (Landing Section 1)
+%% Nutzer = persönlicher Scope (gestrichelt), parallel zur Firma, ohne Kante
+%% Referenz: Landing-Sections-Plan.md §3
+
+flowchart TB
+  NUTZER[Nutzer]
+  FIRMA[Firma]
+
+  ABT_A[Abteilung A]
+  ABT_B[Abteilung B]
+
+  TEAM_A1[Team A1]
+  TEAM_A2[Team A2]
+  TEAM_B1[Team B1]
+  TEAM_B2[Team B2]
+
+  FIRMA --> ABT_A
+  FIRMA --> ABT_B
+  ABT_A --> TEAM_A1
+  ABT_A --> TEAM_A2
+  ABT_B --> TEAM_B1
+  ABT_B --> TEAM_B2

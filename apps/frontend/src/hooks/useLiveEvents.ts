@@ -15,6 +15,12 @@ import { LiveEventsContext, type LiveEventsStatus } from './liveEventsContext';
 const INITIAL_RECONNECT_MS = 1_000;
 const MAX_RECONNECT_MS = 30_000;
 const DISCONNECTED_AFTER_ATTEMPTS = 3;
+const SILENT_RECONNECT_BANNER_MS = 1_500;
+
+type ConnectOptions = {
+  /** Tab focus resume: reconnect without an immediate banner flash. */
+  silent?: boolean;
+};
 
 export type DocumentCollaborationHint = {
   draftRevision?: number;
@@ -210,7 +216,8 @@ export type UseLiveEventsResult = {
 
 /**
  * Holds the authenticated SSE stream for live UI signals (§23a).
- * Disconnects when the tab is hidden; reconnects with exponential backoff.
+ * Disconnects when the tab is hidden; reconnects silently on focus, with banner only
+ * after delay or on error-driven backoff.
  */
 export function useLiveEvents(): UseLiveEventsResult {
   const queryClient = useQueryClient();
@@ -220,6 +227,7 @@ export function useLiveEvents(): UseLiveEventsResult {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_MS);
+  const silentBannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const visibleRef = useRef(
     typeof document !== 'undefined' ? document.visibilityState === 'visible' : true
   );
@@ -228,6 +236,13 @@ export function useLiveEvents(): UseLiveEventsResult {
     if (reconnectTimerRef.current != null) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
+    }
+  }, []);
+
+  const clearSilentBannerTimer = useCallback(() => {
+    if (silentBannerTimerRef.current != null) {
+      clearTimeout(silentBannerTimerRef.current);
+      silentBannerTimerRef.current = null;
     }
   }, []);
 
@@ -287,39 +302,58 @@ export function useLiveEvents(): UseLiveEventsResult {
     reconnectDelayRef.current = Math.min(delay * 2, MAX_RECONNECT_MS);
   }, [clearReconnectTimer]);
 
-  const connect = useCallback(() => {
-    if (!visibleRef.current) return;
+  const connect = useCallback(
+    (options?: ConnectOptions) => {
+      if (!visibleRef.current) return;
 
-    closeEventSource();
-    clearReconnectTimer();
-    if (hasConnectedOnceRef.current) {
-      setStatus('reconnecting');
-    }
-
-    const es = new EventSource(buildEventsUrl(), { withCredentials: true });
-    eventSourceRef.current = es;
-
-    es.onopen = () => {
-      hasConnectedOnceRef.current = true;
-      reconnectAttemptRef.current = 0;
-      reconnectDelayRef.current = INITIAL_RECONNECT_MS;
-      setStatus('connected');
-    };
-
-    es.onmessage = (message: MessageEvent<string>) => {
-      const event = parseLiveClientEvent(message.data);
-      if (event) handleLiveEvent(event);
-    };
-
-    es.addEventListener('ping', () => {
-      // keep-alive only
-    });
-
-    es.onerror = () => {
       closeEventSource();
-      scheduleReconnect();
-    };
-  }, [clearReconnectTimer, closeEventSource, handleLiveEvent, scheduleReconnect]);
+      clearReconnectTimer();
+      clearSilentBannerTimer();
+
+      if (hasConnectedOnceRef.current && !options?.silent) {
+        setStatus('reconnecting');
+      } else if (hasConnectedOnceRef.current && options?.silent) {
+        silentBannerTimerRef.current = setTimeout(() => {
+          silentBannerTimerRef.current = null;
+          if (!visibleRef.current) return;
+          setStatus('reconnecting');
+        }, SILENT_RECONNECT_BANNER_MS);
+      }
+
+      const es = new EventSource(buildEventsUrl(), { withCredentials: true });
+      eventSourceRef.current = es;
+
+      es.onopen = () => {
+        clearSilentBannerTimer();
+        hasConnectedOnceRef.current = true;
+        reconnectAttemptRef.current = 0;
+        reconnectDelayRef.current = INITIAL_RECONNECT_MS;
+        setStatus('connected');
+      };
+
+      es.onmessage = (message: MessageEvent<string>) => {
+        const event = parseLiveClientEvent(message.data);
+        if (event) handleLiveEvent(event);
+      };
+
+      es.addEventListener('ping', () => {
+        // keep-alive only
+      });
+
+      es.onerror = () => {
+        clearSilentBannerTimer();
+        closeEventSource();
+        scheduleReconnect();
+      };
+    },
+    [
+      clearReconnectTimer,
+      clearSilentBannerTimer,
+      closeEventSource,
+      handleLiveEvent,
+      scheduleReconnect,
+    ]
+  );
 
   connectRef.current = connect;
 
@@ -339,6 +373,7 @@ export function useLiveEvents(): UseLiveEventsResult {
 
       if (!visible) {
         clearReconnectTimer();
+        clearSilentBannerTimer();
         closeEventSource();
         return;
       }
@@ -346,7 +381,7 @@ export function useLiveEvents(): UseLiveEventsResult {
       reconnectAttemptRef.current = 0;
       reconnectDelayRef.current = INITIAL_RECONNECT_MS;
       catchUpQueries(queryClient);
-      connect();
+      connect({ silent: true });
     };
 
     if (visibleRef.current) {
@@ -357,9 +392,10 @@ export function useLiveEvents(): UseLiveEventsResult {
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearReconnectTimer();
+      clearSilentBannerTimer();
       closeEventSource();
     };
-  }, [clearReconnectTimer, closeEventSource, connect, queryClient]);
+  }, [clearReconnectTimer, clearSilentBannerTimer, closeEventSource, connect, queryClient]);
 
   return { status, retryConnect };
 }

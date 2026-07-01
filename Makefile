@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend format format-check check clean dev worker build start test up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-preview up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -18,6 +18,7 @@ help:
 	@echo "  make lint         ESLint gesamt (Backend + Frontend)"
 	@echo "  make lint-backend ESLint nur für Backend"
 	@echo "  make lint-frontend ESLint nur für Frontend"
+	@echo "  make lint-landing  ESLint nur für Landing Page"
 	@echo "  make format       Prettier ausführen (Dateien anpassen)"
 	@echo "  make format-check Prettier nur prüfen (keine Änderungen)"
 	@echo "  make check        Lint + Format-Check (wie CI)"
@@ -26,6 +27,9 @@ help:
 	@echo "  make build        Backend bauen"
 	@echo "  make start        Backend starten (nach build)"
 	@echo "  make test         Backend-Tests ausführen (Vitest)"
+	@echo "  make landing-dev     Landing Page Dev-Server (http://localhost:5174)"
+	@echo "  make landing-build   Landing Page produktions-Build (apps/landing/dist)"
+	@echo "  make landing-preview Landing Page Build lokal ansehen (nach landing-build)"
 	@echo "  make up           Stack starten (docker compose up -d)"
 	@echo "  make up-fg        Stack starten im Vordergrund (docker compose up)"
 	@echo "  make down         Stack stoppen"
@@ -57,6 +61,9 @@ lint-backend:
 lint-frontend:
 	pnpm exec eslint apps/frontend
 
+lint-landing:
+	pnpm exec eslint apps/landing
+
 format:
 	pnpm run format
 
@@ -80,6 +87,15 @@ start:
 
 test:
 	pnpm --filter backend test
+
+landing-dev:
+	pnpm --filter landing dev
+
+landing-build:
+	pnpm --filter landing build
+
+landing-preview:
+	pnpm --filter landing preview
 
 up:
 	docker compose up -d
@@ -144,5 +160,6 @@ deadcode-all-strict:
 clean:
 	rm -rf node_modules
 	rm -rf apps/backend/dist apps/backend/node_modules
+	rm -rf apps/landing/dist apps/landing/node_modules
 	rm -rf dist build coverage .turbo
 	@echo "Bereinigt."
