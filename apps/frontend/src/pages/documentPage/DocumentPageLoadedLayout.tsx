@@ -150,7 +150,7 @@ export function DocumentPageLoadedLayout({
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Stack gap="lg" mb="xl" mt="md">
-        <DocumentDocBreadcrumbs documentId={documentId} doc={data} historyMode="link" />
+        <DocumentDocBreadcrumbs documentId={documentId} doc={data} />
         <PageHeader
           title={docTitle}
           titleOrder={1}
@@ -227,15 +227,13 @@ export function DocumentPageLoadedLayout({
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  {data.canWrite && (
-                    <Menu.Item
-                      component={Link}
-                      to={`/documents/${documentId}/versions`}
-                      leftSection={<IconHistory size={14} />}
-                    >
-                      History
-                    </Menu.Item>
-                  )}
+                  <Menu.Item
+                    component={Link}
+                    to={`/documents/${documentId}/versions`}
+                    leftSection={<IconHistory size={14} />}
+                  >
+                    History
+                  </Menu.Item>
                   <Menu.Item
                     leftSection={<IconDownload size={14} />}
                     disabled={pdfExportLoading}

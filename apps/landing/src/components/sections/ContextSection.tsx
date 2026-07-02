@@ -1,7 +1,12 @@
-import { Box, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Badge, Box, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { contextCopy } from '../../content/siteCopy';
 
 const CONTEXT_TYPES = ['process', 'project'] as const;
+
+const CONTEXT_BADGE_COLOR: Record<(typeof CONTEXT_TYPES)[number], string> = {
+  process: 'blue',
+  project: 'grape',
+};
 
 export function ContextSection() {
   return (
@@ -23,7 +28,14 @@ export function ContextSection() {
           </Text>
         </Stack>
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" maw={720} mx="auto" w="100%">
+        <SimpleGrid
+          cols={{ base: 1, sm: 2 }}
+          spacing="lg"
+          maw={900}
+          mx="auto"
+          w="100%"
+          className="landing-context-type-grid"
+        >
           {CONTEXT_TYPES.map((typeId) => {
             const type = contextCopy.types[typeId];
             return (
@@ -31,16 +43,23 @@ export function ContextSection() {
                 key={typeId}
                 className="landing-context-type-card landing-surface-card"
                 p="xl"
+                h="100%"
                 withBorder
                 bg="dark.7"
               >
-                <Text size="lg" fw={600} mb={4}>
+                <Text size="lg" fw={600} mb="sm">
                   {type.title}
                 </Text>
-                <Text size="sm" c="gray.4" mb="md">
+                <Badge
+                  variant="light"
+                  color={CONTEXT_BADGE_COLOR[typeId]}
+                  size="sm"
+                  mb="md"
+                  className="landing-context-type-badge"
+                >
                   {type.subtitle}
-                </Text>
-                <Text size="md" c="gray.2" lh={1.65}>
+                </Badge>
+                <Text size="md" c="gray.2" lh={1.65} className="landing-context-type-description">
                   {type.description}
                 </Text>
               </Paper>

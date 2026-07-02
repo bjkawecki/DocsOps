@@ -20,9 +20,6 @@ export function ScopeSection() {
           <Text c="gray.4" ta="center" lh={1.65} size="md">
             {scopeCopy.intro}
           </Text>
-          <Text c="gray.4" ta="center" lh={1.65} size="md">
-            {scopeCopy.userScopeNote}
-          </Text>
         </Stack>
 
         <ScopeDiagram />

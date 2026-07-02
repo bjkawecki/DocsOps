@@ -58,7 +58,6 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | 
 }
 
 const MOBILE_NODES: ScopeNodeId[] = [
-  'userPersonal',
   'company',
   'departmentA',
   'teamA1',
@@ -66,6 +65,7 @@ const MOBILE_NODES: ScopeNodeId[] = [
   'departmentB',
   'teamB1',
   'teamB2',
+  'userPersonal',
 ];
 
 function MobileScopeList() {

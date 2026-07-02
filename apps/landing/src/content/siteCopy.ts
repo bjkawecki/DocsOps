@@ -3,8 +3,11 @@ export const heroCopy = {
   headlineQualities: ['Strukturiert', 'Transparent', 'Verbindlich'] as const,
   headlineTail: 'dokumentiert',
   headlineAccessible: 'Ihr Betriebswissen. Strukturiert, transparent, verbindlich dokumentiert.',
-  subline:
-    'Organisationen brauchen für ihre Dokumentation Verantwortliche, Zuständigkeiten und verbindliche Fassungen. Während viele Tools gleichzeitiges Schreiben optimieren, optimiert DocsOps den offiziellen Wissensstand Ihrer Organisation.',
+  subline: 'Mit DocsOps pflegen Sie den internen Wissensstand und die Abläufe Ihrer Organisation.',
+  trustLine: 'Open Source · MIT · Self-hosted',
+  scrollHint: 'So funktioniert DocsOps',
+  showroomAlt:
+    'Team-Dashboard in DocsOps mit Prozessen, Projekten und Dokumenten im Geltungsbereich',
   primaryCta: 'Live-Demo',
   secondaryCta: 'Self-hosted installieren',
 } as const;
@@ -28,12 +31,10 @@ export type ScopeNodeId =
 export type ScopeLevelId = 'company' | 'department' | 'team' | 'user';
 
 export const scopeCopy = {
-  title: 'Organisation und Zuordnung',
+  title: 'Organisation als Ebenenmodell',
   intro:
-    'In DocsOps sind Nutzer einer Struktur zugeordnet, die ihrer Organisation nachgebildet ist. Der Geltungsbereich (Scope) bestimmt, wo sie arbeiten und welche Inhalte sie sehen – direkt in der Firma, nur in einer Abteilung oder in einem Team.',
-  userScopeNote:
-    'Eine Nutzer-Zuordnung ist nicht zwingend bis zum Team nötig: Nutzer können nur der Firma oder nur einer Abteilung zugeordnet sein. Zusätzlich gibt es einen persönlichen Nutzer-Scope außerhalb der Organisationshierarchie – für private Dokumente und persönliche Kontexte.',
-  diagramClickHint: 'Klicke auf Firma, Abteilung, Team oder Nutzer, um Details zu sehen.',
+    'Mit DocsOps bilden Sie die Struktur Ihrer Firma nach. Jeder Nutzer gehört einem Bereich an – genau wie in Ihrem Unternehmen. Daraus ergeben sich automatisch die passenden Zugänge, Sichtbarkeiten und Grenzen. So findet jeder genau die Inhalte, die für seinen Arbeitsbereich relevant sind.',
+  diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   scopeLabel: 'Organisation',
   nodes: {
     company: { label: 'Firma' },
@@ -56,9 +57,9 @@ export const scopeCopy = {
 } as const;
 
 export const contextCopy = {
-  title: 'Kontext und Dokumente',
+  title: 'Dokumente leben in Kontexten',
   intro:
-    'Nach der Zuordnung zur Organisation legen Sie in jedem Geltungsbereich Kontexte an – darin entstehen die Dokumente. Jeder Geltungsbereich kann beliebig viele Kontexte haben; jedes Dokument gehört genau einem Kontext an.',
+    'Nach der Zuordnung zur Organisation legen Sie in jedem Geltungsbereich Kontexte an – darin entstehen die Dokumente. Jeder Geltungsbereich kann beliebig viele Kontexte haben; jedes Dokument gehört genau einem Kontext an, entweder einem Prozess oder einem Projekt.',
   types: {
     process: {
       title: 'Prozess',
@@ -103,14 +104,14 @@ export const exampleCopy = {
 } as const;
 
 export const rolesPublicationCopy = {
-  title: 'Rollen und Veröffentlichung',
+  title: 'Zugriff erfolgt über Rollen',
   intro:
     'In DocsOps steuern Rollen innerhalb der Organisationshierarchie, wer Dokumente bearbeitet, einbringt und freigibt – bis zur veröffentlichten Version. Zusätzlich legen Sie pro Dokument explizit fest, wer lesen und schreiben darf.',
-  diagramClickHint: 'Klicke auf die Knoten, um mehr zu erfahren.',
+  diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   nodeDescriptions: {
     scope: 'Organisationseinheit, in der Rollen und Dokumente gelten – von der Firma bis zum Team.',
     document: 'Ein Dokument besteht aus einem Entwurf und einer veröffentlichten Version.',
-    lead: 'Verantwortlich für Qualität und Freigabe. Kann Entwürfe erstellen, bearbeiten, Vorschläge von Autoren annehmen oder verwerfen und als verbindliche Version veröffentlichen.',
+    lead: 'Verantwortlich für Qualität und Freigabe. Kann Entwürfe erstellen, bearbeiten, Vorschläge von Autoren annehmen oder verwerfen und als verbiFndliche Version veröffentlichen.',
     author: 'Formuliert und überarbeitet inhaltliche Vorschläge im Entwurf.',
     member: 'Liest die veröffentlichte Version und kann kommentieren.',
     entwurf: 'Arbeitsfassung: hier werden Änderungen vorbereitet und zusammengeführt.',

@@ -185,7 +185,7 @@ export function DocumentVersionsPage() {
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Stack gap="lg" mb="xl" mt="md">
-        <DocumentDocBreadcrumbs documentId={documentId} doc={doc} historyMode="current" />
+        <DocumentDocBreadcrumbs documentId={documentId} doc={doc} linkDocumentTitle />
         <PageHeader
           title={doc.title}
           titleOrder={1}

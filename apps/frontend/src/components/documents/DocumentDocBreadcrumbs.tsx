@@ -24,14 +24,14 @@ export type DocumentForDocBreadcrumbs = {
   contextProjectName?: string | null;
   subcontextId?: string | null;
   subcontextName?: string | null;
+  title?: string;
 };
-
-export type DocumentDocBreadcrumbsHistoryMode = 'link' | 'current';
 
 export type DocumentDocBreadcrumbsProps = {
   documentId: string;
   doc: DocumentForDocBreadcrumbs;
-  historyMode: DocumentDocBreadcrumbsHistoryMode;
+  /** Auf der Versionsseite: letzter Crumb verlinkt zurück zum Dokument. */
+  linkDocumentTitle?: boolean;
 };
 
 function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
@@ -63,20 +63,20 @@ function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
 }
 
 /**
- * Breadcrumb-Zeile wie auf der Dokumentenseite: Scope → Kontext → History.
- * `historyMode="link"`: History verlinkt auf `/documents/:id/versions`.
- * `historyMode="current"`: History als aktuelle Seite (Text).
+ * Breadcrumb-Zeile: Scope → Kontext (→ Dokumenttitel auf der Versionsseite).
+ * Versionsverlauf liegt im Dokument-Menü, nicht in der Breadcrumb-Kette.
  */
 export function DocumentDocBreadcrumbs({
   documentId,
   doc,
-  historyMode,
+  linkDocumentTitle = false,
 }: DocumentDocBreadcrumbsProps) {
   const scope = (doc.scope ?? null) as RecentScope | null;
   const hasNoContext = doc.contextId == null;
   const contextMeta = buildContextMeta(doc);
   const scopeWithName = doc.scope as RecentScope & { name?: string | null };
   const scopeName = scopeWithName?.name ?? (scope ? scopeToLabel(scope) : 'Overview');
+  const documentTitle = doc.title?.trim() || 'Document';
   const ScopeIcon =
     scope?.type === 'company'
       ? IconBuildingSkyscraper
@@ -109,16 +109,11 @@ export function DocumentDocBreadcrumbs({
           No context
         </Text>
       )}
-      {documentId &&
-        (historyMode === 'link' ? (
-          <Anchor component={Link} to={`/documents/${documentId}/versions`} c="dimmed" size="sm">
-            History
-          </Anchor>
-        ) : (
-          <Text size="sm" c="dimmed">
-            History
-          </Text>
-        ))}
+      {linkDocumentTitle && documentId && (
+        <Anchor component={Link} to={`/documents/${documentId}`} c="dimmed" size="sm">
+          {documentTitle}
+        </Anchor>
+      )}
     </Breadcrumbs>
   );
 }
