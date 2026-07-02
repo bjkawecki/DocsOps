@@ -1,4 +1,4 @@
-/* Link color follows theme primary (index 4, e.g. Cornflower #5e82ff). Unvisited = primary-4, visited = primary-3 (lighter). */
+/* Link color follows theme primary (index 4, e.g. sky #6babff). Unvisited = primary-4, visited = primary-3 (lighter). */
 :root {
   --mantine-color-anchor: var(--mantine-primary-color-4);
 }

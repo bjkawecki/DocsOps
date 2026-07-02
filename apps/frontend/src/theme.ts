@@ -38,7 +38,7 @@ export const PRIMARY_COLOR_PRESETS: readonly PrimaryColorPreset[] = [
 
 /** Human-readable labels for each preset (precise color names). Single-line for dropdown. */
 export const PRIMARY_COLOR_PRESET_LABELS: Record<PrimaryColorPreset, string> = {
-  blue: 'Cornflower (default)',
+  blue: 'Sky (default)',
   green: 'Emerald',
   violet: 'Violet',
   teal: 'Teal',
@@ -50,18 +50,18 @@ export const PRIMARY_COLOR_PRESET_LABELS: Record<PrimaryColorPreset, string> = {
   fuchsia: 'Fuchsia',
 };
 
-/** Cornflower-blue; 400 (#5e82ff) at index 4 as primary accent. */
+/** Sky-leaning blue; primary accent at index 4 (#6babff), aligned with landing. */
 const blueScale = [
-  '#eef2ff',
-  '#dae2ff',
-  '#bdccff',
-  '#90acff',
-  '#5e82ff',
-  '#3554fc',
-  '#1f32f1',
-  '#171ede',
-  '#191bb4',
-  '#1a1e8e',
+  '#eef6ff',
+  '#dcf0ff',
+  '#bfe0ff',
+  '#93c8ff',
+  '#6babff',
+  '#4690f7',
+  '#2b77eb',
+  '#1f62d4',
+  '#1f52ad',
+  '#1e468a',
 ] as const;
 
 /** Emerald-style green; accent at index 6. */
@@ -229,7 +229,7 @@ export function createAppTheme(
   return createTheme({
     primaryColor,
     ...(scale !== 1 ? { scale } : {}),
-    primaryShade: 4 /* Cornflower primary = #5e82ff at index 4 */,
+    primaryShade: 4 /* Sky primary = #6babff at index 4 */,
     colors: {
       blue: [...PRIMARY_COLOR_PALETTES.blue],
       green: [...PRIMARY_COLOR_PALETTES.green],

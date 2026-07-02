@@ -29,7 +29,7 @@ export function DocopsLogo({ width = 40, height = 40, style, className }: Docops
       : resolvedScheme === 'dark'
         ? theme.primaryShade.dark
         : theme.primaryShade.light;
-  const primary = theme.colors[theme.primaryColor]?.[shade] ?? theme.colors.blue?.[4] ?? '#5e82ff';
+  const primary = theme.colors[theme.primaryColor]?.[shade] ?? theme.colors.blue?.[4] ?? '#6babff';
   const secondary = LOGO_SECONDARY[resolvedScheme];
 
   return (
