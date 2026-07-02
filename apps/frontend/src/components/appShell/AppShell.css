@@ -94,12 +94,89 @@
   background: var(--mantine-color-default-hover);
 }
 
-.app-shell-sidebar-collapse-toggle {
-  width: var(--app-shell-mini-item-size);
-  height: var(--app-shell-mini-item-size);
+.app-shell-navbar-brand-section--mini {
+  margin-bottom: var(--mantine-spacing-xs);
 }
 
-.app-shell-sidebar-collapse-toggle svg {
+.app-shell-sidebar-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  width: 100%;
+}
+
+.app-shell-sidebar-brand--mini {
+  width: var(--app-shell-mini-item-size);
+  height: var(--app-shell-mini-item-size);
+  margin-inline: auto;
+  justify-content: center;
+}
+
+.app-shell-sidebar-brand-home--mini {
+  width: 100%;
+  height: 100%;
+}
+
+.app-shell-sidebar-brand--mini .app-shell-sidebar-brand-home--mini {
+  display: inline-flex;
+}
+
+.app-shell-sidebar-brand--mini .app-shell-sidebar-brand-expand {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border: none;
+  background: var(--mantine-color-dark-6);
+}
+
+.app-shell-sidebar-brand--mini:hover .app-shell-sidebar-brand-home--mini {
+  display: none;
+}
+
+.app-shell-sidebar-brand--mini:hover .app-shell-sidebar-brand-expand {
+  display: flex;
+}
+
+.app-shell-sidebar-brand-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+  line-height: 0;
+}
+
+.app-shell-sidebar-brand-home--expanded {
+  flex: 1;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  line-height: normal;
+}
+
+.app-shell-sidebar-brand-expand svg {
+  width: var(--app-shell-mini-icon-size);
+  height: var(--app-shell-mini-icon-size);
+}
+
+.app-shell-sidebar-brand-collapse {
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.app-shell-sidebar-brand:hover .app-shell-sidebar-brand-collapse,
+.app-shell-sidebar-brand:focus-within .app-shell-sidebar-brand-collapse {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app-shell-sidebar-brand-collapse svg {
   width: var(--app-shell-mini-icon-size);
   height: var(--app-shell-mini-icon-size);
 }

@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { AppShell as MantineAppShell, Stack, Box, Text, Divider, Group } from '@mantine/core';
+import { AppShell as MantineAppShell, Stack, Box, Text, Divider } from '@mantine/core';
 import {
   IconLayoutDashboard,
   IconListSearch,
@@ -8,11 +7,10 @@ import {
   IconClipboardCheck,
   IconBell,
 } from '@tabler/icons-react';
-import { DocopsLogo } from './DocopsLogo';
 import { AppShellAccountMenu } from './AppShellAccountMenu.js';
 import { AppShellRoleBasedNav } from './AppShellRoleBasedNav.js';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
-import { AppShellSidebarCollapseToggle } from './AppShellSidebarCollapseToggle.js';
+import { AppShellSidebarBrand } from './AppShellSidebarBrand.js';
 import { isActive } from './appShellNavUtils.js';
 import { MAIN_NAV_ID, SIDEBAR_MINI_GAP } from './appShellLayoutConstants.js';
 import type { useAppShellSidebarData } from './useAppShellSidebarData.js';
@@ -43,53 +41,16 @@ export function AppShellNavbar({
     >
       <Stack justify="space-between" style={{ height: '100%' }}>
         <Box data-sidebar-nav>
-          <MantineAppShell.Section>
-            <Group
-              justify={isMiniRail ? 'center' : 'space-between'}
-              align="center"
-              wrap="nowrap"
-              gap="xs"
-              mb={isMiniRail ? 'xs' : 0}
-            >
-              <Link
-                to="/"
-                onClick={onNavigate}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: isMiniRail ? 'center' : 'flex-start',
-                  gap: 8,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  flex: isMiniRail ? undefined : 1,
-                  minWidth: 0,
-                }}
-                aria-label="DocsOps home"
-              >
-                <DocopsLogo width={isMiniRail ? 36 : 40} height={isMiniRail ? 36 : 40} />
-                {!isMiniRail ? (
-                  <Text component="span">
-                    <Text
-                      component="span"
-                      c={s.resolvedColorScheme === 'dark' ? 'white' : 'dimmed'}
-                      style={{ fontWeight: 500, fontSize: '1.5rem', letterSpacing: '-0.05em' }}
-                    >
-                      Docs
-                    </Text>
-                    <Text
-                      component="span"
-                      c="var(--mantine-primary-color-filled)"
-                      style={{ fontWeight: 500, fontSize: '1.5rem', letterSpacing: '-0.05em' }}
-                    >
-                      Ops
-                    </Text>
-                  </Text>
-                ) : null}
-              </Link>
-              {showDesktopToggle ? (
-                <AppShellSidebarCollapseToggle isMiniRail={isMiniRail} onToggle={onToggleDesktop} />
-              ) : null}
-            </Group>
+          <MantineAppShell.Section
+            className={isMiniRail ? 'app-shell-navbar-brand-section--mini' : undefined}
+          >
+            <AppShellSidebarBrand
+              isMiniRail={isMiniRail}
+              showToggle={showDesktopToggle}
+              resolvedColorScheme={s.resolvedColorScheme}
+              onToggle={onToggleDesktop}
+              onNavigate={onNavigate}
+            />
             <Divider my="sm" />
           </MantineAppShell.Section>
           <MantineAppShell.Section mt={isMiniRail ? 'sm' : 'xl'}>
