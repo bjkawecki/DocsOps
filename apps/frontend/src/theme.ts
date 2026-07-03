@@ -50,14 +50,14 @@ export const PRIMARY_COLOR_PRESET_LABELS: Record<PrimaryColorPreset, string> = {
   fuchsia: 'Fuchsia',
 };
 
-/** Sky-leaning blue; primary accent at index 4 (#6babff), aligned with landing. */
+/** Sky-leaning blue; primary accent at index 4 (#4690f7), aligned with landing. */
 const blueScale = [
   '#eef6ff',
   '#dcf0ff',
   '#bfe0ff',
   '#93c8ff',
-  '#6babff',
   '#4690f7',
+  '#2b77eb',
   '#2b77eb',
   '#1f62d4',
   '#1f52ad',
@@ -229,7 +229,7 @@ export function createAppTheme(
   return createTheme({
     primaryColor,
     ...(scale !== 1 ? { scale } : {}),
-    primaryShade: 4 /* Sky primary = #6babff at index 4 */,
+    primaryShade: 4 /* Sky primary = #4690f7 at index 4 */,
     colors: {
       blue: [...PRIMARY_COLOR_PALETTES.blue],
       green: [...PRIMARY_COLOR_PALETTES.green],
