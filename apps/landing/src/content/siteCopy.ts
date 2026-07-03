@@ -57,21 +57,29 @@ export const scopeCopy = {
 } as const;
 
 export const contextCopy = {
-  title: 'Dokumente leben in Kontexten',
+  title: 'Informationen brauchen Kontext',
   intro:
-    'Nach der Zuordnung zur Organisation legen Sie in jedem Geltungsbereich Kontexte an – darin entstehen die Dokumente. Jeder Geltungsbereich kann beliebig viele Kontexte haben; jedes Dokument gehört genau einem Kontext an, entweder einem Prozess oder einem Projekt.',
+    'Selten steht ein Dokument für sich allein – ein Kontext bündelt zusammengehörige Inhalte innerhalb eines Bereichs. In DocsOps müssen Sie daher beim Anlegen eines Dokuments einen Prozess oder ein Projekt auswählen. So trennen Sie dauerhafte dokumentierte Abläufe vom Wissensstand zu einem bestimmten Thema.',
+  orLabel: 'oder',
   types: {
     process: {
       title: 'Prozess',
-      subtitle: 'Dauerhaft',
       description:
-        'Dauerhafter Kontext für wiederkehrende Abläufe und Standards – z. B. Onboarding, Incident-Response oder Qualitätssicherung. Bleibt bestehen, bis er bewusst archiviert wird.',
+        'Sie dokumentieren, wie etwas gemacht wird – Abläufe, Standards und wiederkehrende Regeln.',
+      examples: [
+        'Onboarding-Leitfaden',
+        'Störungsablauf und Eskalation',
+        'Freigabeprozess für Releases',
+      ],
     },
     project: {
       title: 'Projekt',
-      subtitle: 'Zeitlich begrenzt',
-      description:
-        'Zeitlich begrenzter Kontext für Vorhaben mit Anfang und Ende – z. B. Software-Rollout oder Audit. Dokumente gehören genau einem Projekt-Kontext an.',
+      description: 'Sie bündeln den Ist-Stand zu einem Thema, Produkt oder Vorhaben.',
+      examples: [
+        'Dokumentation eines Repository',
+        'Infrastruktur-Übersicht',
+        'CI/CD-Pipeline und Deployment',
+      ],
     },
   },
 } as const;

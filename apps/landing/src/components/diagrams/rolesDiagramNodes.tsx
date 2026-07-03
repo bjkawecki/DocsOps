@@ -11,7 +11,7 @@ export function ScopeFrameNode({ data }: NodeProps) {
   const { title, hint, selected } = data as ScopeFrameNodeData;
   return (
     <Box
-      className={`landing-roles-flow-frame landing-roles-flow-scope-frame landing-surface-card${selected ? ' landing-roles-flow-node--selected' : ''}`}
+      className={`landing-roles-flow-frame landing-roles-flow-scope-frame landing-surface-card landing-surface-card--interactive${selected ? ' landing-roles-flow-node--selected' : ''}`}
       style={{ width: '100%', height: '100%' }}
     >
       <Text size="md" tt="uppercase" fw={700} c="gray.2" lts={0.6}>
@@ -33,7 +33,7 @@ export function DocumentFrameNode({ data }: NodeProps) {
   const { title, selected } = data as DocumentFrameNodeData;
   return (
     <Box
-      className={`landing-roles-flow-frame landing-roles-flow-document-frame landing-surface-card${selected ? ' landing-roles-flow-node--selected' : ''}`}
+      className={`landing-roles-flow-frame landing-roles-flow-document-frame${selected ? ' landing-roles-flow-node--selected' : ''}`}
       style={{ width: '100%', height: '100%' }}
     >
       <Text size="md" tt="uppercase" fw={700} c="gray.2" lts={0.6}>
