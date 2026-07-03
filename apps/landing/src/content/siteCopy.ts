@@ -31,9 +31,13 @@ export type ScopeNodeId =
 export type ScopeLevelId = 'company' | 'department' | 'team' | 'user';
 
 export const scopeCopy = {
-  title: 'Organisation als Ebenenmodell',
+  title: {
+    before: 'Organisation als ',
+    accent: 'Ebenenmodell',
+  },
   intro:
     'Mit DocsOps bilden Sie die Struktur Ihrer Firma nach. Jeder Nutzer gehört einem Bereich an – genau wie in Ihrem Unternehmen. Daraus ergeben sich automatisch die passenden Zugänge, Sichtbarkeiten und Grenzen. So findet jeder genau die Inhalte, die für seinen Arbeitsbereich relevant sind.',
+  introHighlights: ['Bereich'],
   diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   scopeLabel: 'Organisation',
   nodes: {
@@ -57,9 +61,13 @@ export const scopeCopy = {
 } as const;
 
 export const contextCopy = {
-  title: 'Informationen brauchen Kontext',
+  title: {
+    before: 'Informationen brauchen ',
+    accent: 'Kontext',
+  },
   intro:
-    'Selten steht ein Dokument für sich allein – ein Kontext bündelt zusammengehörige Inhalte innerhalb eines Bereichs. In DocsOps müssen Sie daher beim Anlegen eines Dokuments einen Prozess oder ein Projekt auswählen. So trennen Sie dauerhafte dokumentierte Abläufe vom Wissensstand zu einem bestimmten Thema.',
+    'Selten steht eine Information für sich allein – ein Kontext bündelt zusammengehörige Inhalte innerhalb eines Bereichs. Beim Anlegen eines Dokuments wählen Sie in DocsOps Prozess oder Projekt; eine weitere Kategorie gibt es nicht. So trennen Sie dauerhafte Abläufe von Wissen zu einem Thema oder Vorhaben.',
+  introHighlights: ['Bereich', 'Prozess', 'Projekt'],
   orLabel: 'oder',
   types: {
     process: {
@@ -85,8 +93,11 @@ export const contextCopy = {
 } as const;
 
 export const exampleCopy = {
-  title: 'Beispiel: Dokument einordnen',
+  title: {
+    before: 'Beispiel: ein Dokument einordnen',
+  },
   intro: 'So finden Sie Geltungsbereich und Kontext, bevor Sie ein Dokument anlegen.',
+  introHighlights: ['Geltungsbereich', 'Kontext'],
   steps: [
     {
       question: 'Was soll dokumentiert werden?',
@@ -112,9 +123,14 @@ export const exampleCopy = {
 } as const;
 
 export const rolesPublicationCopy = {
-  title: 'Zugriff erfolgt über Rollen',
+  title: {
+    before: '',
+    accent: 'Rollenbasierte',
+    after: ' Zusammenarbeit',
+  },
   intro:
-    'In DocsOps steuern Rollen innerhalb der Organisationshierarchie, wer Dokumente bearbeitet, einbringt und freigibt – bis zur veröffentlichten Version. Zusätzlich legen Sie pro Dokument explizit fest, wer lesen und schreiben darf.',
+    'Gute Texte sind Teamwork, doch nicht jede Änderung gehört sofort in die verbindliche Fassung. In DocsOps steuern Rollen, wer im Entwurf mitarbeitet und wer veröffentlicht. So entsteht eine verbindliche, veröffentlichte Fassung, zu der Leser in Kommentaren Feedback geben können.',
+  introHighlights: ['Rollen', 'Teamwork', 'Kommentaren'],
   diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   nodeDescriptions: {
     scope: 'Organisationseinheit, in der Rollen und Dokumente gelten – von der Firma bis zum Team.',

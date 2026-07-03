@@ -32,11 +32,22 @@ const TARGET_HANDLES = {
 /** Approximate rendered width of state/role nodes (px) for centering in frames. */
 const STATE_NODE_WIDTH = 164;
 
+/** Approximate rendered height of role nodes (px) for vertical alignment. */
+const ROLE_NODE_APPROX_HEIGHT = 56;
+
 const LAYOUT = {
-  scope: { width: 940, height: 500 },
-  documentFrame: { x: 500, y: 64, width: 400, height: 380 },
-  roles: { x: 80, leadY: 88, authorY: 248, memberY: 408 },
+  scope: { width: 940, height: 560 },
+  documentFrame: { x: 536, width: 328, height: 380 },
+  roles: { x: 80, leadY: 118, authorY: 278, memberY: 438 },
 } as const;
+
+function roleNodeCenterY(roleY: number): number {
+  return roleY + ROLE_NODE_APPROX_HEIGHT / 2;
+}
+
+function documentFrameY(): number {
+  return roleNodeCenterY(LAYOUT.roles.authorY) - LAYOUT.documentFrame.height / 2;
+}
 
 function centeredStateX(frameX: number, frameWidth: number): number {
   return frameX + (frameWidth - STATE_NODE_WIDTH) / 2;
@@ -44,9 +55,10 @@ function centeredStateX(frameX: number, frameWidth: number): number {
 
 export function buildRolesDiagramGraph(): { nodes: Node[]; edges: Edge[] } {
   const { roles, document, edges, transition, scope } = rolesPublicationCopy;
+  const docFrameY = documentFrameY();
   const stateX = centeredStateX(LAYOUT.documentFrame.x, LAYOUT.documentFrame.width);
-  const entwurfY = LAYOUT.documentFrame.y + 96;
-  const versionY = LAYOUT.documentFrame.y + 288;
+  const entwurfY = docFrameY + 96;
+  const versionY = docFrameY + 288;
 
   const nodes: Node[] = [
     {
@@ -63,7 +75,7 @@ export function buildRolesDiagramGraph(): { nodes: Node[]; edges: Edge[] } {
     {
       id: 'document-frame',
       type: 'documentFrame',
-      position: { x: LAYOUT.documentFrame.x, y: LAYOUT.documentFrame.y },
+      position: { x: LAYOUT.documentFrame.x, y: docFrameY },
       data: { title: document.title },
       style: { width: LAYOUT.documentFrame.width, height: LAYOUT.documentFrame.height },
       zIndex: -1,

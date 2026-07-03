@@ -1,6 +1,6 @@
 :root {
-  --landing-section-gap-top: 4rem;
-  --landing-section-gap-bottom: 5rem;
+  --landing-section-gap-top: 5rem;
+  --landing-section-gap-bottom: 6rem;
 }
 
 .landing-section {
@@ -9,10 +9,24 @@
 }
 
 .landing-section-title {
+  display: inline-block;
   text-align: center;
   font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
   margin-bottom: 2.5rem;
+}
+
+.landing-section-title-accent {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--mantine-color-blue-4);
+  text-decoration-thickness: 0.14em;
+  text-underline-offset: 0.14em;
+}
+
+.landing-section-intro-term {
+  color: var(--mantine-color-blue-4);
+  font-weight: 600;
 }
 
 .landing-section-header {
@@ -21,14 +35,15 @@
 }
 
 .landing-surface-card {
+  --landing-surface-glow-color: var(--mantine-color-blue-6);
   --landing-surface-glow-a: 0 6px 24px
-    color-mix(in srgb, var(--mantine-color-blue-4) 16%, transparent);
+    color-mix(in srgb, var(--landing-surface-glow-color) 32%, transparent);
   --landing-surface-glow-b: 0 2px 8px
-    color-mix(in srgb, var(--mantine-color-blue-4) 10%, transparent);
+    color-mix(in srgb, var(--landing-surface-glow-color) 22%, transparent);
   --landing-surface-glow-hover-a: 0 8px 28px
-    color-mix(in srgb, var(--mantine-color-blue-4) 20%, transparent);
+    color-mix(in srgb, var(--landing-surface-glow-color) 38%, transparent);
   --landing-surface-glow-hover-b: 0 3px 10px
-    color-mix(in srgb, var(--mantine-color-blue-4) 12%, transparent);
+    color-mix(in srgb, var(--landing-surface-glow-color) 26%, transparent);
   box-shadow: var(--landing-surface-glow-a), var(--landing-surface-glow-b);
 }
 
@@ -314,13 +329,13 @@
 
 .landing-roles-flow-wrap {
   width: 100%;
-  height: 520px;
+  height: 560px;
   padding-top: 0.25rem;
   margin-inline: auto;
 }
 
 .landing-roles-flow-wrap--edit {
-  height: 460px;
+  height: 500px;
   border: 1px dashed var(--mantine-color-blue-5);
   border-radius: var(--mantine-radius-md);
 }
@@ -377,6 +392,17 @@
 .landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit) .landing-roles-flow-document-frame {
   pointer-events: auto;
   cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit)
+  .landing-roles-flow-scope-frame.landing-surface-card:hover:not(
+    .landing-roles-flow-node--selected
+  ) {
+  border-color: var(--mantine-color-blue-4);
+  box-shadow: var(--landing-surface-glow-hover-a), var(--landing-surface-glow-hover-b);
 }
 
 .landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit)
@@ -418,7 +444,14 @@
 .landing-roles-flow-scope-frame {
   border: 1px solid var(--mantine-color-dark-4);
   background: var(--mantine-color-dark-7);
-  padding: 1rem 1.1rem;
+  padding: 1.5rem 1.75rem;
+  box-sizing: border-box;
+}
+
+.landing-roles-flow-scope-frame-hint {
+  display: block;
+  max-width: 22rem;
+  line-height: 1.5;
 }
 
 .landing-roles-flow-frame {

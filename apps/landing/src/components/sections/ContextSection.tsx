@@ -1,5 +1,6 @@
 import { Box, Paper, Stack, Text, Title } from '@mantine/core';
 import { contextCopy } from '../../content/siteCopy';
+import { LandingSectionHeader } from './LandingSectionHeader';
 
 type ContextTypeId = keyof typeof contextCopy.types;
 
@@ -51,21 +52,11 @@ export function ContextSection() {
   return (
     <Box id="kontext" className="landing-section">
       <Stack gap="xl">
-        <Stack
-          gap="sm"
-          maw={720}
-          mx="auto"
-          w="100%"
-          align="center"
-          className="landing-section-header"
-        >
-          <Title order={2} className="landing-section-title" mb={0} ta="center">
-            {contextCopy.title}
-          </Title>
-          <Text c="gray.3" ta="center" lh={1.65} size="md">
-            {contextCopy.intro}
-          </Text>
-        </Stack>
+        <LandingSectionHeader
+          title={contextCopy.title}
+          intro={contextCopy.intro}
+          introHighlights={contextCopy.introHighlights}
+        />
 
         <Box className="landing-context-choice" maw={900} mx="auto" w="100%">
           <ContextTypeCard typeId="process" />

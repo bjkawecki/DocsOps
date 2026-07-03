@@ -11,13 +11,13 @@ export function ScopeFrameNode({ data }: NodeProps) {
   const { title, hint, selected } = data as ScopeFrameNodeData;
   return (
     <Box
-      className={`landing-roles-flow-frame landing-roles-flow-scope-frame landing-surface-card landing-surface-card--interactive${selected ? ' landing-roles-flow-node--selected' : ''}`}
+      className={`landing-roles-flow-frame landing-roles-flow-scope-frame landing-surface-card${selected ? ' landing-roles-flow-node--selected' : ''}`}
       style={{ width: '100%', height: '100%' }}
     >
       <Text size="md" tt="uppercase" fw={700} c="gray.2" lts={0.6}>
         {title}
       </Text>
-      <Text size="md" c="gray.3" mt={8}>
+      <Text size="md" c="gray.3" mt={8} mb={4} className="landing-roles-flow-scope-frame-hint">
         {hint}
       </Text>
     </Box>
