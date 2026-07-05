@@ -61,18 +61,58 @@
 }
 
 .landing-hero {
-  text-align: center;
   padding-top: 3.5rem;
   padding-bottom: var(--landing-section-gap-bottom);
 }
 
-.landing-hero-inner {
-  gap: 3rem;
+.landing-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
 }
 
-@media (min-width: 48em) {
-  .landing-hero-inner {
-    gap: 4rem;
+.landing-hero-copy {
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.landing-hero-visual {
+  width: 100%;
+}
+
+.landing-hero-scroll-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 62em) {
+  .landing-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    grid-template-rows: auto auto;
+    column-gap: 3rem;
+    row-gap: 1.75rem;
+    align-items: center;
+  }
+
+  .landing-hero-copy {
+    grid-column: 1;
+    grid-row: 1;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .landing-hero-visual {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .landing-hero-scroll-wrap {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
   }
 }
 
@@ -87,6 +127,14 @@
   color: var(--mantine-color-white);
 }
 
+@media (min-width: 62em) {
+  .landing-hero-headline {
+    max-width: none;
+    margin-inline: 0;
+    font-size: clamp(2.125rem, 3.2vw, 3.25rem);
+  }
+}
+
 .landing-hero-headline-lead {
   display: block;
 }
@@ -99,6 +147,12 @@
   gap: 0.2em;
   margin-top: 0.15em;
   max-width: 100%;
+}
+
+@media (min-width: 62em) {
+  .landing-hero-headline-second {
+    justify-content: flex-start;
+  }
 }
 
 .landing-hero-qualifier {
@@ -193,12 +247,26 @@
   color: var(--mantine-color-gray-1);
 }
 
+@media (min-width: 62em) {
+  .landing-hero-subline {
+    text-align: left;
+    font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+  }
+}
+
 .landing-hero-cta-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   max-width: 560px;
   margin-inline: auto;
+}
+
+@media (min-width: 62em) {
+  .landing-hero-cta-grid {
+    max-width: none;
+    margin-inline: 0;
+  }
 }
 
 @media (max-width: 36em) {
@@ -221,14 +289,29 @@
 
 .landing-hero-trust {
   margin: 0;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  color: var(--mantine-color-gray-4);
+  justify-content: center;
+}
+
+@media (min-width: 62em) {
+  .landing-hero-trust {
+    justify-content: flex-start;
+  }
+}
+
+.landing-hero-trust-pill {
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  padding-inline: 0.85rem;
+  height: 1.75rem;
+  border: none;
+  background: var(--mantine-color-blue-4);
+  color: var(--mantine-color-white);
 }
 
 .landing-hero-preview {
   max-width: 1120px;
-  margin-top: 0.75rem;
   margin-inline: auto;
   border: 1px solid var(--mantine-color-dark-5);
   border-radius: var(--mantine-radius-md);
@@ -236,11 +319,28 @@
   background: var(--mantine-color-dark-8);
 }
 
+@media (min-width: 62em) {
+  .landing-hero-preview {
+    max-width: none;
+    margin-inline: 0;
+    max-height: min(520px, 72vh);
+    aspect-ratio: 16 / 10;
+  }
+}
+
 .landing-hero-preview-image {
   display: block;
   width: 100%;
   height: auto;
   vertical-align: middle;
+}
+
+@media (min-width: 62em) {
+  .landing-hero-preview-image {
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
 }
 
 .landing-hero-scroll {
@@ -950,6 +1050,20 @@ a.landing-nav-link:hover {
   border-top: 1px solid var(--mantine-color-dark-5);
 }
 
+.landing-footer-brand-column {
+  align-items: flex-start;
+}
+
+.landing-footer-brand {
+  display: inline-block;
+  color: inherit;
+  transition: opacity 140ms ease;
+}
+
+.landing-footer-brand:hover {
+  opacity: 0.88;
+}
+
 .landing-footer-heading {
   color: var(--mantine-color-gray-1);
   margin-bottom: 0.25rem;
@@ -1033,4 +1147,23 @@ a.landing-nav-link:hover {
 .landing-changelog-list {
   max-width: 720px;
   margin-inline: auto;
+}
+
+.landing-external-button .landing-external-button-icon {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  margin-left: 0;
+  transition:
+    opacity 160ms ease,
+    width 160ms ease,
+    margin-left 160ms ease;
+}
+
+.landing-external-button:hover .landing-external-button-icon,
+.landing-external-button:focus-visible .landing-external-button-icon {
+  opacity: 1;
+  width: 1.125rem;
+  margin-left: 0.25rem;
 }

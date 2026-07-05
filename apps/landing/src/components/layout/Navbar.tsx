@@ -11,7 +11,6 @@ import {
   Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconExternalLink, IconPlayerPlay } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { getDemoUrl, resolveProjectNavHref } from '../../config/env';
 import { modellNavLinks, navbarCopy, projectNavLinks } from '../../content/siteCopy';
@@ -84,14 +83,7 @@ export function Navbar() {
               })}
             </Group>
 
-            <LandingExternalButton
-              href={demoUrl}
-              showIcon={false}
-              leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
-              rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
-            >
-              {navbarCopy.demoCta}
-            </LandingExternalButton>
+            <LandingExternalButton href={demoUrl}>{navbarCopy.demoCta}</LandingExternalButton>
           </Group>
         </Container>
       </Box>
@@ -136,14 +128,7 @@ export function Navbar() {
               </LandingNavLink>
             );
           })}
-          <LandingExternalButton
-            href={demoUrl}
-            showIcon={false}
-            leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
-            rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
-            fullWidth
-            mt="sm"
-          >
+          <LandingExternalButton href={demoUrl} fullWidth mt="sm">
             {navbarCopy.demoCta}
           </LandingExternalButton>
         </Stack>

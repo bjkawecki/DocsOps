@@ -1,7 +1,8 @@
-import { Button, Group, Modal, Radio, Stack, Text, TextInput } from '@mantine/core';
+import { Button, Group, Modal, Radio, Select, Stack, Text, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
+import { useNewContextScopeDisplayLabel } from './useNewContextScopeDisplayLabel';
 
 export type NewContextScope =
   | { type: 'company'; companyId: string }
@@ -14,11 +15,22 @@ export interface NewContextModalProps {
   onClose: () => void;
   scope: NewContextScope;
   onSuccess?: () => void;
-  /** Preselect type when opening (e.g. from Create menu). */
+  /** Preselect type when opening (e.g. from Create menu). Skips type picker. */
   initialType?: 'process' | 'project';
 }
 
 const NAME_MAX_LENGTH = 255;
+
+const TYPE_LABELS: Record<'process' | 'project', { title: string; description: string }> = {
+  process: {
+    title: 'New process',
+    description: 'Recurring workflows and processes',
+  },
+  project: {
+    title: 'New project',
+    description: 'Time-limited initiatives',
+  },
+};
 
 export function NewContextModal({
   opened,
@@ -33,8 +45,14 @@ export function NewContextModal({
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const typeLocked = initialType != null;
+  const scopeDisplay = useNewContextScopeDisplayLabel(scope, opened);
+
   useEffect(() => {
-    if (opened) setSelectedType(initialType ?? null);
+    if (opened) {
+      setSelectedType(initialType ?? null);
+      setName('');
+    }
   }, [opened, initialType]);
 
   const reset = () => {
@@ -102,27 +120,51 @@ export function NewContextModal({
     }
   };
 
+  const modalTitle =
+    typeLocked && initialType != null ? TYPE_LABELS[initialType].title : 'New context';
+
   return (
-    <Modal opened={opened} onClose={handleClose} title="New context" size="sm">
+    <Modal opened={opened} onClose={handleClose} title={modalTitle} size="sm">
       <Stack gap="md">
-        <div>
-          <Text size="sm" fw={500} mb="xs">
-            Type (required)
+        <Select
+          label="Scope"
+          data={
+            scopeDisplay.label !== ''
+              ? [{ value: scopeDisplay.label, label: scopeDisplay.label }]
+              : []
+          }
+          value={scopeDisplay.label !== '' ? scopeDisplay.label : null}
+          placeholder={scopeDisplay.isPending ? 'Loading…' : undefined}
+          readOnly
+          searchable={false}
+          allowDeselect={false}
+          comboboxProps={{ withinPortal: true }}
+        />
+
+        {typeLocked && initialType != null ? (
+          <Text size="sm" c="dimmed">
+            {TYPE_LABELS[initialType].description}
           </Text>
-          <Radio.Group
-            value={selectedType ?? ''}
-            onChange={(v) => setSelectedType(v === 'process' || v === 'project' ? v : null)}
-          >
-            <Stack gap="xs">
-              <Radio
-                value="process"
-                label="Process"
-                description="Recurring workflows and processes"
-              />
-              <Radio value="project" label="Project" description="Time-limited initiatives" />
-            </Stack>
-          </Radio.Group>
-        </div>
+        ) : (
+          <div>
+            <Text size="sm" fw={500} mb="xs">
+              Type (required)
+            </Text>
+            <Radio.Group
+              value={selectedType ?? ''}
+              onChange={(v) => setSelectedType(v === 'process' || v === 'project' ? v : null)}
+            >
+              <Stack gap="xs">
+                <Radio
+                  value="process"
+                  label="Process"
+                  description="Recurring workflows and processes"
+                />
+                <Radio value="project" label="Project" description="Time-limited initiatives" />
+              </Stack>
+            </Radio.Group>
+          </div>
+        )}
 
         {selectedType != null && (
           <TextInput
@@ -132,6 +174,7 @@ export function NewContextModal({
             onChange={(e) => setName(e.currentTarget.value)}
             maxLength={NAME_MAX_LENGTH}
             required
+            autoFocus
           />
         )}
 

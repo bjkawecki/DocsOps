@@ -1,5 +1,5 @@
 import { Anchor, Box, Button, Group, Stack, Text, Title } from '@mantine/core';
-import { IconExternalLink, IconPlayerPlay, IconServer } from '@tabler/icons-react';
+import { IconServer } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { LandingExternalButton } from '../LandingExternalLink';
 import { getDemoUrl } from '../../config/env';
@@ -18,13 +18,7 @@ export function FinalCtaSection() {
           {finalCtaCopy.body}
         </Text>
         <Group justify="center" gap="md" w="100%">
-          <LandingExternalButton
-            href={demoUrl}
-            showIcon={false}
-            leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
-            rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
-            className="landing-hero-cta-button"
-          >
+          <LandingExternalButton href={demoUrl} className="landing-hero-cta-button">
             {finalCtaCopy.primaryCta}
           </LandingExternalButton>
           <Button

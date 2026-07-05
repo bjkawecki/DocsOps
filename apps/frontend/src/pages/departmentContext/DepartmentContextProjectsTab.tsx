@@ -7,7 +7,7 @@ type Props = {
   projects: ProjectItem[];
 };
 
-const EMPTY_PROJECTS = 'No projects yet. Use "Create" to add one.';
+const EMPTY_PROJECTS = 'No projects yet. Choose Project from the toolbar menu.';
 
 export function DepartmentContextProjectsTab({ projectsPending, projects }: Props) {
   return (

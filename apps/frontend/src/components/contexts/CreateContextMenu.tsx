@@ -1,46 +1,49 @@
 import { Button, Menu } from '@mantine/core';
-import { IconBriefcase, IconFileText, IconPlus, IconRoute } from '@tabler/icons-react';
+import { IconBriefcase, IconChevronDown, IconPlus, IconRoute } from '@tabler/icons-react';
 
 export interface CreateContextMenuProps {
-  /** Called when the user chooses "Process". */
-  onCreateProcess: () => void;
-  /** Called when the user chooses "Project". */
-  onCreateProject: () => void;
-  /** Called when the user chooses "Draft" (new document draft, to be published later). */
+  /** Opens the new draft document flow. */
   onCreateDraft: () => void;
-  /** Button label. Default: "Create". */
-  label?: string;
+  /** Opens the new process dialog with type preselected. */
+  onCreateProcess: () => void;
+  /** Opens the new project dialog with type preselected. */
+  onCreateProject: () => void;
 }
 
 /**
- * Reusable "Create" dropdown with Process, Project and Draft actions.
+ * Split create control: primary "Draft" action plus menu for Process and Project.
  * Used on Personal, Company, Department and Team context pages.
- * Drafts are unpublished documents; they become documents after publishing.
  */
 export function CreateContextMenu({
+  onCreateDraft,
   onCreateProcess,
   onCreateProject,
-  onCreateDraft,
-  label = 'Create',
 }: CreateContextMenuProps) {
   return (
-    <Menu position="bottom-end" shadow="md">
-      <Menu.Target>
-        <Button variant="filled" size="sm" leftSection={<IconPlus size={16} />}>
-          {label}
-        </Button>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Item leftSection={<IconRoute size={16} />} onClick={onCreateProcess}>
-          Process
-        </Menu.Item>
-        <Menu.Item leftSection={<IconBriefcase size={16} />} onClick={onCreateProject}>
-          Project
-        </Menu.Item>
-        <Menu.Item leftSection={<IconFileText size={16} />} onClick={onCreateDraft}>
-          Draft
-        </Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
+    <Button.Group>
+      <Button
+        variant="filled"
+        size="sm"
+        leftSection={<IconPlus size={16} />}
+        onClick={onCreateDraft}
+      >
+        Draft
+      </Button>
+      <Menu position="bottom-end" shadow="md" withinPortal>
+        <Menu.Target>
+          <Button variant="filled" size="sm" px="xs" aria-label="Create process or project">
+            <IconChevronDown size={16} />
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item leftSection={<IconRoute size={16} />} onClick={onCreateProcess}>
+            Process
+          </Menu.Item>
+          <Menu.Item leftSection={<IconBriefcase size={16} />} onClick={onCreateProject}>
+            Project
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </Button.Group>
   );
 }

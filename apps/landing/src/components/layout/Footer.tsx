@@ -30,16 +30,17 @@ export function Footer() {
     <Box component="footer" className="landing-footer">
       <Container size="lg">
         <Stack gap="xl">
-          <Group justify="center" gap="sm">
-            <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
-            <Text fw={700} fz="lg">
-              DocsOps
-            </Text>
-          </Group>
-
           <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="xl">
-            <Stack gap="xs">
-              <Text fw={600} className="landing-footer-heading">
+            <Stack gap="xs" className="landing-footer-brand-column">
+              <Anchor component={Link} to="/" underline="never" className="landing-footer-brand">
+                <Group gap="sm" wrap="nowrap">
+                  <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
+                  <Text fw={700} fz="lg" c="white">
+                    DocsOps
+                  </Text>
+                </Group>
+              </Anchor>
+              <Text fw={600} className="landing-footer-heading" mt="sm">
                 {footerCopy.productTitle}
               </Text>
               <FooterLink href="/philosophie">{footerCopy.links.philosophie}</FooterLink>

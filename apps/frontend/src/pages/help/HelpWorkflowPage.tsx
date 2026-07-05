@@ -10,7 +10,7 @@ export function HelpWorkflowPage() {
       </Text>
       <List type="ordered" size="md" spacing="sm">
         <List.Item>
-          <strong>Create</strong> – Start a draft in a context you can write to. The draft is yours
+          <strong>Draft</strong> – Start a draft in a context you can write to. The draft is yours
           or your team&apos;s working copy until it is published or shared as your process defines.
         </List.Item>
         <List.Item>

@@ -7,7 +7,7 @@ export type TeamProjectsPanelProps = {
   projects: ProjectItem[];
 };
 
-const EMPTY_PROJECTS = 'No projects yet. Use "Create" to add one.';
+const EMPTY_PROJECTS = 'No projects yet. Choose Project from the toolbar menu.';
 
 export function TeamProjectsPanel({ projectsPending, projects }: TeamProjectsPanelProps) {
   return (

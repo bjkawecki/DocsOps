@@ -1,5 +1,4 @@
-import { Anchor, Badge, Card, Group, Stack, Text, Title } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core';
 import { vergleichHubItems } from '../content/comparison';
 import { vergleichHubCopy } from '../content/siteCopy';
 
@@ -11,9 +10,6 @@ export function VergleichHubPage() {
         <Text c="dimmed" size="lg">
           {vergleichHubCopy.intro}
         </Text>
-        <Anchor component={Link} to="/" underline="always">
-          {vergleichHubCopy.backLink}
-        </Anchor>
       </Stack>
 
       <Stack gap="md">

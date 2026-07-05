@@ -227,7 +227,7 @@ export function PersonalPage() {
       ) : processes.length === 0 ? (
         <Card withBorder padding="md">
           <Text size="sm" c="dimmed">
-            No processes yet. Use "Create" to add one.
+            No processes yet. Choose Process from the toolbar menu.
           </Text>
         </Card>
       ) : (
@@ -256,7 +256,7 @@ export function PersonalPage() {
       ) : projects.length === 0 ? (
         <Card withBorder padding="md">
           <Text size="sm" c="dimmed">
-            No projects yet. Use "Create" to add one.
+            No projects yet. Choose Project from the toolbar menu.
           </Text>
         </Card>
       ) : (

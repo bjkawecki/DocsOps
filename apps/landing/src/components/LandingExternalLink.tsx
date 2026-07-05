@@ -46,18 +46,29 @@ export function LandingExternalButton({
   href,
   children,
   showIcon = true,
-  leftSection,
+  className,
+  rightSection,
   ...buttonProps
 }: LandingExternalButtonProps) {
+  const mergedClassName = ['landing-external-button', className].filter(Boolean).join(' ');
+
   return (
     <Button
       component="a"
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      leftSection={
-        leftSection ??
-        (showIcon ? <IconExternalLink size={16} stroke={1.75} aria-hidden /> : undefined)
+      className={mergedClassName}
+      rightSection={
+        rightSection ??
+        (showIcon ? (
+          <IconExternalLink
+            size={18}
+            stroke={1.75}
+            aria-hidden
+            className="landing-external-button-icon"
+          />
+        ) : undefined)
       }
       {...buttonProps}
     >

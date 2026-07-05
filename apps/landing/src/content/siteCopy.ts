@@ -4,7 +4,7 @@ export const heroCopy = {
   headlineTail: 'dokumentiert',
   headlineAccessible: 'Ihr Betriebswissen. Strukturiert, transparent, verbindlich dokumentiert.',
   subline: 'Mit DocsOps pflegen Sie den internen Wissensstand und die Abläufe Ihrer Organisation.',
-  trustLine: 'Open Source · MIT · Self-hosted',
+  trustPills: ['Open Source', 'Self-hosted'] as const,
   scrollHint: 'So funktioniert DocsOps',
   showroomAlt:
     'Team-Dashboard in DocsOps mit Prozessen, Projekten und Dokumenten im Geltungsbereich',
@@ -245,14 +245,11 @@ export const installCopy = {
   installHint:
     'Lädt das neueste Release-Bundle nach /opt/docsops und startet DocsOps auf Port 80. Nur Release-Tags (vX.Y.Z), kein Branch main.',
   fullDocsLabel: 'Vollständige Installationsdoku',
-  ctaDemo: 'Live-Demo',
-  backLink: 'Zur Startseite',
 } as const;
 
 export const changelogCopy = {
   title: 'Changelog',
   metaDescription: 'Versionshistorie und Änderungen an DocsOps.',
-  backLink: 'Zur Startseite',
 } as const;
 
 export const sponsorCopy = {
@@ -261,16 +258,12 @@ export const sponsorCopy = {
     'Unterstützen Sie die Entwicklung von DocsOps – Open Source, self-hosted Dokumentationsplattform.',
   intro:
     'DocsOps ist Open Source (MIT) und wird ohne Abo-Modell betrieben. Freiwillige Unterstützung hilft bei Infrastruktur, Pflege und Weiterentwicklung.',
-  linksTitle: 'Unterstützung',
-  linksHint: 'Externe Dienste – Sie verlassen docsops.de.',
-  backLink: 'Zur Startseite',
 } as const;
 
 export const vergleichHubCopy = {
   title: 'Vergleiche',
   intro:
     'Ausführliche Head-to-head-Vergleiche zu einzelnen Tools folgen schrittweise. Die Startseiten-Tabelle ist vorübergehend zurückgestellt.',
-  backLink: 'Zur Startseite',
   comingSoon: 'Demnächst',
 } as const;
 

@@ -7,7 +7,7 @@ type Props = {
   processes: ProcessItem[];
 };
 
-const EMPTY_PROCESSES = 'No processes yet. Use "Create" to add one.';
+const EMPTY_PROCESSES = 'No processes yet. Choose Process from the toolbar menu.';
 
 export function DepartmentContextProcessesTab({ processesPending, processes }: Props) {
   return (

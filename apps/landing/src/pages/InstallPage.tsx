@@ -1,16 +1,13 @@
-import { Button, Code, Group, List, Paper, Stack, Text } from '@mantine/core';
-import { IconExternalLink, IconPlayerPlay } from '@tabler/icons-react';
-import { Link } from 'react-router-dom';
-import { LandingExternalButton, LandingExternalLink } from '../components/LandingExternalLink';
+import { Code, List, Paper, Stack, Text } from '@mantine/core';
+import { LandingExternalLink } from '../components/LandingExternalLink';
 import { LandingHead } from '../components/LandingHead';
 import { LandingPageLayout, LandingPageSection } from '../components/LandingPageLayout';
-import { getDemoUrl, getInstallDocsUrl, getInstallScriptUrl } from '../config/env';
+import { getInstallDocsUrl, getInstallScriptUrl } from '../config/env';
 import { installCopy } from '../content/siteCopy';
 
 const installCommand = (scriptUrl: string) => `curl -fsSL ${scriptUrl} | sudo bash`;
 
 export function InstallPage() {
-  const demoUrl = getDemoUrl();
   const installDocsUrl = getInstallDocsUrl();
   const installScriptUrl = getInstallScriptUrl();
   const command = installCommand(installScriptUrl);
@@ -59,25 +56,11 @@ export function InstallPage() {
             </Stack>
           </LandingPageSection>
 
-          <Stack align="center" gap="xs">
+          <Stack align="center" mt="md">
             <LandingExternalLink href={installDocsUrl} className="landing-footer-link">
               {installCopy.fullDocsLabel}
             </LandingExternalLink>
           </Stack>
-
-          <Group justify="center" gap="md" mt="md">
-            <LandingExternalButton
-              href={demoUrl}
-              showIcon={false}
-              leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
-              rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
-            >
-              {installCopy.ctaDemo}
-            </LandingExternalButton>
-            <Button component={Link} to="/" variant="default">
-              {installCopy.backLink}
-            </Button>
-          </Group>
         </Stack>
       </LandingPageLayout>
     </>

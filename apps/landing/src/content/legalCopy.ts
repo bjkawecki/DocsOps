@@ -4,7 +4,6 @@ export type LegalSection = {
 };
 
 export const legalCopy = {
-  backLink: 'Zur Startseite',
   impressum: {
     pageTitle: 'Impressum',
     metaDescription: 'Impressum der DocsOps Marketing-Website.',

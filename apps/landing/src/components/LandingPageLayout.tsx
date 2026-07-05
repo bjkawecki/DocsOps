@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 type LandingPageLayoutProps = {
   title: string;
   intro?: string;
-  children: ReactNode;
+  children?: ReactNode;
   narrow?: boolean;
 };
 
@@ -27,7 +27,7 @@ export function LandingPageLayout({
             </Text>
           ) : null}
         </Stack>
-        <Box w="100%">{children}</Box>
+        {children ? <Box w="100%">{children}</Box> : null}
       </Stack>
     </Box>
   );

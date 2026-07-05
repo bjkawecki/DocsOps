@@ -1,16 +1,10 @@
-import { Button, Group, Paper, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core';
-import { IconExternalLink, IconPlayerPlay, IconServer } from '@tabler/icons-react';
-import { Link } from 'react-router-dom';
-import { LandingExternalButton } from '../components/LandingExternalLink';
+import { Paper, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core';
 import { LandingHead } from '../components/LandingHead';
 import { LandingPageLayout, LandingPageSection } from '../components/LandingPageLayout';
-import { getDemoUrl } from '../config/env';
 import { philosophiePrinciples } from '../content/features';
 import { philosophieCopy } from '../content/siteCopy';
 
 export function PhilosophiePage() {
-  const demoUrl = getDemoUrl();
-
   return (
     <>
       <LandingHead
@@ -81,25 +75,6 @@ export function PhilosophiePage() {
               </Stack>
             </Paper>
           </SimpleGrid>
-
-          <Group justify="center" gap="md">
-            <LandingExternalButton
-              href={demoUrl}
-              showIcon={false}
-              leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
-              rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
-            >
-              {philosophieCopy.ctaDemo}
-            </LandingExternalButton>
-            <Button
-              component={Link}
-              to="/install"
-              variant="default"
-              leftSection={<IconServer size={18} />}
-            >
-              {philosophieCopy.ctaInstall}
-            </Button>
-          </Group>
         </Stack>
       </LandingPageLayout>
     </>
