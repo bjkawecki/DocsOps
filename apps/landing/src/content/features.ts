@@ -51,7 +51,7 @@ export const features: FeatureItem[] = [
   },
 ];
 
-export const warumPrinciples = [
+export const philosophiePrinciples = [
   {
     title: 'Firmenstruktur abbilden',
     description: 'Company → Department → Team als festes Modell.',

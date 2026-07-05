@@ -1,64 +1,153 @@
-import { Anchor, Box, Button, Container, Group, Image, Menu } from '@mantine/core';
+import {
+  Anchor,
+  Box,
+  Burger,
+  Container,
+  Drawer,
+  Group,
+  Image,
+  Menu,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconExternalLink, IconPlayerPlay } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import { getDemoUrl, getGithubRepoUrl } from '../../config/env';
-import { modellNavLinks, navbarCopy } from '../../content/siteCopy';
+import { getDemoUrl, resolveProjectNavHref } from '../../config/env';
+import { modellNavLinks, navbarCopy, projectNavLinks } from '../../content/siteCopy';
+import { LandingExternalButton, LandingExternalLink } from '../LandingExternalLink';
+import { LandingNavAnchor, LandingNavLink } from '../LandingNavLink';
+
+const navbarProjectLinks = projectNavLinks;
 
 export function Navbar() {
   const demoUrl = getDemoUrl();
-  const githubUrl = getGithubRepoUrl();
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
 
   return (
-    <Box
-      component="header"
-      py="md"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        borderBottom: '1px solid var(--mantine-color-dark-5)',
-        backgroundColor: 'rgba(16, 16, 16, 0.92)',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      <Container size="lg">
-        <Group justify="space-between" wrap="nowrap">
-          <Anchor component={Link} to="/" underline="never" c="white">
+    <>
+      <Box component="header" className="landing-navbar">
+        <Container size="lg">
+          <Group justify="space-between" wrap="nowrap">
             <Group gap="sm" wrap="nowrap">
-              <Image src="/docops-dark.svg" alt="" w={28} h={28} fit="contain" />
-              <Box component="span" fw={700} fz="lg">
-                DocsOps
-              </Box>
+              <Burger
+                opened={drawerOpened}
+                onClick={toggleDrawer}
+                hiddenFrom="sm"
+                aria-label="Menü"
+              />
+              <Anchor component={Link} to="/" underline="never" c="white" onClick={closeDrawer}>
+                <Group gap="sm" wrap="nowrap">
+                  <Image src="/docops-dark.svg" alt="" w={36} h={36} fit="contain" />
+                  <Box component="span" fw={700} fz="xl">
+                    DocsOps
+                  </Box>
+                </Group>
+              </Anchor>
             </Group>
-          </Anchor>
 
-          <Group gap="lg" visibleFrom="sm">
-            <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
-              <Menu.Target>
-                <Anchor href="/#scope" c="dimmed" underline="never">
-                  {navbarCopy.modell}
-                </Anchor>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {modellNavLinks.map((link) => (
-                  <Menu.Item key={link.href} component="a" href={link.href}>
+            <Group gap="lg" visibleFrom="sm" wrap="nowrap">
+              <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
+                <Menu.Target>
+                  <Anchor href="/#scope" className="landing-nav-link" underline="never">
+                    {navbarCopy.modell}
+                  </Anchor>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {modellNavLinks.map((link) => (
+                    <Menu.Item key={link.href} component="a" href={link.href}>
+                      {link.label}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+              <LandingNavLink to="/philosophie">{navbarCopy.philosophie}</LandingNavLink>
+              {navbarProjectLinks.map((link) => {
+                const resolved = resolveProjectNavHref(link.href);
+                if (resolved.external) {
+                  return (
+                    <LandingExternalLink
+                      key={link.label}
+                      href={resolved.url}
+                      className="landing-nav-link landing-nav-link--external"
+                      underline="never"
+                    >
+                      {link.label}
+                    </LandingExternalLink>
+                  );
+                }
+                return (
+                  <LandingNavLink key={link.label} to={resolved.url}>
                     {link.label}
-                  </Menu.Item>
-                ))}
-              </Menu.Dropdown>
-            </Menu>
-            <Anchor component={Link} to="/warum" c="dimmed" underline="never">
-              {navbarCopy.warum}
-            </Anchor>
-            <Anchor href={githubUrl} target="_blank" rel="noreferrer" c="dimmed" underline="never">
-              {navbarCopy.github}
-            </Anchor>
-          </Group>
+                  </LandingNavLink>
+                );
+              })}
+            </Group>
 
-          <Button component="a" href={demoUrl} target="_blank" rel="noreferrer">
+            <LandingExternalButton
+              href={demoUrl}
+              showIcon={false}
+              leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
+              rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
+            >
+              {navbarCopy.demoCta}
+            </LandingExternalButton>
+          </Group>
+        </Container>
+      </Box>
+
+      <Drawer
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        title="Navigation"
+        hiddenFrom="sm"
+        size="xs"
+      >
+        <Stack gap="md">
+          <Text fw={600} size="sm" c="gray.5" tt="uppercase">
+            {navbarCopy.modell}
+          </Text>
+          {modellNavLinks.map((link) => (
+            <LandingNavAnchor key={link.href} href={link.href} onClick={closeDrawer}>
+              {link.label}
+            </LandingNavAnchor>
+          ))}
+          <LandingNavLink to="/philosophie" onClick={closeDrawer}>
+            {navbarCopy.philosophie}
+          </LandingNavLink>
+          {navbarProjectLinks.map((link) => {
+            const resolved = resolveProjectNavHref(link.href);
+            if (resolved.external) {
+              return (
+                <LandingExternalLink
+                  key={link.label}
+                  href={resolved.url}
+                  className="landing-nav-link landing-nav-link--external"
+                  underline="never"
+                  onClick={closeDrawer}
+                >
+                  {link.label}
+                </LandingExternalLink>
+              );
+            }
+            return (
+              <LandingNavLink key={link.label} to={resolved.url} onClick={closeDrawer}>
+                {link.label}
+              </LandingNavLink>
+            );
+          })}
+          <LandingExternalButton
+            href={demoUrl}
+            showIcon={false}
+            leftSection={<IconPlayerPlay size={18} color="var(--mantine-color-blue-4)" />}
+            rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
+            fullWidth
+            mt="sm"
+          >
             {navbarCopy.demoCta}
-          </Button>
-        </Group>
-      </Container>
-    </Box>
+          </LandingExternalButton>
+        </Stack>
+      </Drawer>
+    </>
   );
 }

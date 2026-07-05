@@ -1,68 +1,115 @@
-import { Anchor, Box, Container, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Container, Group, Image, SimpleGrid, Stack, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { getDemoUrl, getGithubRepoUrl, getInstallDocsUrl } from '../../config/env';
-import { footerCopy, modellNavLinks } from '../../content/siteCopy';
+import { LandingExternalLink } from '../LandingExternalLink';
+import { getAppVersion, getDemoUrl, resolveProjectNavHref } from '../../config/env';
+import { footerCopy, modellNavLinks, projectNavLinks } from '../../content/siteCopy';
+
+function FooterLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Anchor component={Link} to={href} className="landing-footer-link" underline="never">
+      {children}
+    </Anchor>
+  );
+}
+
+function FooterAnchor({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Anchor href={href} className="landing-footer-link" underline="never">
+      {children}
+    </Anchor>
+  );
+}
 
 export function Footer() {
   const demoUrl = getDemoUrl();
-  const githubUrl = getGithubRepoUrl();
-  const installUrl = getInstallDocsUrl();
+  const appVersion = getAppVersion();
   const year = new Date().getFullYear();
 
   return (
-    <Box
-      component="footer"
-      py="xl"
-      mt="xl"
-      style={{ borderTop: '1px solid var(--mantine-color-dark-5)' }}
-    >
+    <Box component="footer" className="landing-footer">
       <Container size="lg">
-        <SimpleGrid cols={{ base: 1, sm: 4 }} spacing="xl">
-          <Stack gap="xs">
-            <Text fw={600}>{footerCopy.productTitle}</Text>
-            <Anchor component={Link} to="/warum" c="dimmed" underline="never">
-              {footerCopy.links.warum}
-            </Anchor>
-            <Anchor href={demoUrl} target="_blank" rel="noreferrer" c="dimmed" underline="never">
-              {footerCopy.links.demo}
-            </Anchor>
-          </Stack>
+        <Stack gap="xl">
+          <Group justify="center" gap="sm">
+            <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
+            <Text fw={700} fz="lg">
+              DocsOps
+            </Text>
+          </Group>
 
-          <Stack gap="xs">
-            <Text fw={600}>{footerCopy.modellTitle}</Text>
-            {modellNavLinks.map((link) => (
-              <Anchor key={link.href} href={link.href} c="dimmed" underline="never">
-                {link.label}
-              </Anchor>
-            ))}
-          </Stack>
+          <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="xl">
+            <Stack gap="xs">
+              <Text fw={600} className="landing-footer-heading">
+                {footerCopy.productTitle}
+              </Text>
+              <FooterLink href="/philosophie">{footerCopy.links.philosophie}</FooterLink>
+              <FooterLink href="/install">{footerCopy.links.installation}</FooterLink>
+              <LandingExternalLink href={demoUrl} className="landing-footer-link" underline="never">
+                {footerCopy.links.demo}
+              </LandingExternalLink>
+            </Stack>
 
-          <Stack gap="xs">
-            <Text fw={600}>{footerCopy.projectTitle}</Text>
-            <Anchor href={githubUrl} target="_blank" rel="noreferrer" c="dimmed" underline="never">
-              {footerCopy.links.github}
-            </Anchor>
-            <Anchor href={installUrl} target="_blank" rel="noreferrer" c="dimmed" underline="never">
-              {footerCopy.links.install}
-            </Anchor>
-          </Stack>
+            <Stack gap="xs">
+              <Text fw={600} className="landing-footer-heading">
+                {footerCopy.modellTitle}
+              </Text>
+              {modellNavLinks.map((link) => (
+                <FooterAnchor key={link.href} href={link.href}>
+                  {link.label}
+                </FooterAnchor>
+              ))}
+            </Stack>
 
-          <Stack gap="xs">
-            <Text fw={600}>{footerCopy.legalTitle}</Text>
-            <Anchor component={Link} to="/impressum" c="dimmed" underline="never">
-              {footerCopy.links.impressum}
-            </Anchor>
-            <Anchor component={Link} to="/datenschutz" c="dimmed" underline="never">
-              {footerCopy.links.datenschutz}
-            </Anchor>
-          </Stack>
-        </SimpleGrid>
+            <Stack gap="xs">
+              <Text fw={600} className="landing-footer-heading">
+                {footerCopy.projectTitle}
+              </Text>
+              {projectNavLinks.map((link) => {
+                const resolved = resolveProjectNavHref(link.href);
+                if (resolved.external) {
+                  return (
+                    <LandingExternalLink
+                      key={link.label}
+                      href={resolved.url}
+                      className="landing-footer-link"
+                      underline="never"
+                    >
+                      {link.label}
+                    </LandingExternalLink>
+                  );
+                }
+                return (
+                  <FooterLink key={link.label} href={resolved.url}>
+                    {link.label}
+                  </FooterLink>
+                );
+              })}
+            </Stack>
 
-        <Group justify="center" mt="xl">
-          <Text size="sm" c="dimmed">
-            {footerCopy.meta(year)}
-          </Text>
-        </Group>
+            <Stack gap="xs">
+              <Text fw={600} className="landing-footer-heading">
+                {footerCopy.legalTitle}
+              </Text>
+              <FooterLink href="/impressum">{footerCopy.links.impressum}</FooterLink>
+              <FooterLink href="/datenschutz">{footerCopy.links.datenschutz}</FooterLink>
+            </Stack>
+          </SimpleGrid>
+
+          <Group justify="center" gap="md" className="landing-footer-meta">
+            <Text size="sm" c="gray.5">
+              {footerCopy.meta(year)}
+            </Text>
+            <Anchor
+              component={Link}
+              to="/changelog"
+              size="sm"
+              className="landing-footer-link"
+              underline="never"
+            >
+              v{appVersion}
+            </Anchor>
+          </Group>
+        </Stack>
       </Container>
     </Box>
   );

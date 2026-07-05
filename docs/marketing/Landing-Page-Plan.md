@@ -10,97 +10,91 @@
 ## 1. Ziel
 
 - Erklären, **wofür** DocsOps gedacht ist (offizieller Wissensstand, Hierarchie, Veröffentlichung).
-- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md).
+- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophie`.
 - **Vertrauen:** Self-hosted, Open Source (MIT), Impressum/Datenschutz.
-- **Konvertieren:** Live-Demo, Self-hosted-Install.
+- **Konvertieren:** Story verstehen → Philosophie (optional) → Live-Demo oder `/install`.
 
-**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht.
+**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, Vergleichstabelle auf der Startseite.
 
 ---
 
 ## 2. Technik
 
-| Aspekt | Stand                                                    |
-| ------ | -------------------------------------------------------- |
-| Stack  | `apps/landing` – Vite + React + Mantine 8                |
-| Theme  | Fest dark, Cornflower-Blue-Akzent                        |
-| Build  | `make landing-build` → `apps/landing/dist`               |
-| Env    | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL` (`.env.example`) |
+| Aspekt  | Stand                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------- |
+| Stack   | `apps/landing` – Vite + React + Mantine 8                                                                     |
+| Theme   | Fest dark, Cornflower-Blue-Akzent                                                                             |
+| Build   | `make landing-build` → `apps/landing/dist`                                                                    |
+| Env     | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL`, `VITE_SITE_URL`, optional `VITE_SPONSOR_GITHUB_URL` (`.env.example`) |
+| Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
 
 **Lokal:** `make landing-dev` → http://localhost:5174 · Demo-CTA default `http://localhost:5000`
 
-### Lokal: zwei Hostnames (optional, vor Go-live)
-
-Siehe [Positionierung](./Positionierung-und-Landing.md); Details unverändert: `/etc/hosts` `docsops.local` / `demo.docsops.local`, `Caddyfile.local` – noch nicht im Repo.
-
 ---
 
-## 3. Seitenaufbau (aktuell & geplant)
+## 3. Seitenaufbau
 
 **Leitplan Sections:** [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
 
-### Startseite – **jetzt**
+### Startseite `/`
 
-1. Navbar
-2. Hero
+1. Navbar (Desktop + Mobile Drawer)
+2. Hero (Demo extern · Installation → `/install`)
 3. **Scope** (`#scope`)
 4. **Kontext** (`#kontext`)
-5. **Rechte** (`#rechte`)
+5. **Rollen** (`#rollen`) – Titel: Rollenbasierte Zusammenarbeit
 6. **Beispiel** (`#einordnen`)
-7. Footer
+7. **Philosophie-Teaser** → `/philosophie`
+8. **Abschluss-CTA** (Demo · Installation · Link Philosophie)
+9. Footer (Version-Badge → `/changelog`)
 
-**Zurückgestellt:** Feature-Grid, Vergleichstabelle, FAQ.
-
-### Startseite – **Ziel** (Modell-Sections umgesetzt)
-
-1. Hero
-2. **Scope** (`#scope`) – Leitfrage: Wo gehört ein Nutzer hin – und was sieht er?
-3. **Kontext** (`#kontext`) – Wo wird Wissen abgelegt?
-4. **Rechte** (`#rechte`) – Wie entsteht die verbindliche Fassung?
-5. **Beispiel** (`#einordnen`) – Barrierefreiheit / Software X
-6. Footer
+**Zurückgestellt auf `/`:** Feature-Grid, Vergleichstabelle, FAQ.
 
 ### Routen
 
-| Route                        | Inhalt                                                             |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `/`                          | Startseite                                                         |
-| `/warum`                     | Warum DocsOps (Redirect `/ansatz` → `/warum`)                      |
-| `/vergleich`                 | Hub Head-to-head (**Demnächst**, nicht in Navbar bis Tabelle reif) |
-| `/impressum`, `/datenschutz` | Platzhalter                                                        |
+| Route                        | Inhalt                                                               |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `/`                          | Startseite                                                           |
+| `/philosophie`               | Philosophie (Abgrenzung indirekt, keine Vergleichs-CTA)              |
+| `/warum`, `/ansatz`          | Redirect → `/philosophie`                                            |
+| `/install`                   | Marketing-Install (curl, Voraussetzungen, Link zu `docs/install.md`) |
+| `/changelog`                 | Root-`CHANGELOG.md` (Build-Import)                                   |
+| `/sponsor`                   | Sponsor us. (externe Links per Env)                                  |
+| `/vergleich`                 | Hub (**ohne Navbar/Footer-Link**, Demnächst)                         |
+| `/impressum`, `/datenschutz` | Strukturierte Platzhalter (`legalCopy.ts`) – vor Go-live ausfüllen   |
 
 ---
 
 ## 4. Navbar & Footer
 
-- Logo + **DocsOps** → `/`
-- **Modell** (Hover-Menü) → `#scope`, `#kontext`, `#rechte`, `#einordnen`
-- **Warum DocsOps** → `/warum`
-- **GitHub** (extern)
-- **Live-Demo** (Primary CTA)
-- Footer: Warum, Modell (vier Anker), Demo, GitHub, Install-Doku, Impressum, Datenschutz
+**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** · **Projekt** ▾ · **Live-Demo**
 
-**Design:** Modell-Section-Header zentriert (max. 720px). Hellgraue Cards (`dark.7`) mit dezentem Primary-Schatten (`blue-4`, Klasse `.landing-surface-card`).
+- So funktioniert’s: `#scope`, `#kontext`, `#rollen`, `#einordnen`
+- Projekt: GitHub ↗, Changelog, Sponsor us., Install-Doku ↗
 
-Kein Newsletter v1.
+**Navbar (Mobile):** Burger/Drawer mit gleichen Links + Demo-CTA.
+
+**Footer:** Produkt · So funktioniert’s · Projekt · Rechtliches · `vX.Y.Z` → Changelog
+
+Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ---
 
-## 5. Vergleich & FAQ (zurückgestellt)
+## 5. Vergleich & FAQ
 
-- Tabellendaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md)
-- Strategie Head-to-head: intern [Vergleich-DocsOps-Docmost.md](../platform/Vergleich-DocsOps-Docmost.md)
-- **Wieder aufnehmen**, wenn Labels aus [Positionierung §5](./Positionierung-und-Landing.md) übernommen sind.
+- Kein `/vergleich` in Navigation; Abgrenzung indirekt auf `/philosophie`.
+- Tabellendaten bleiben in [vergleich/](./vergleich/) für spätere Head-to-head-Seiten.
+- FAQ-Komponente existiert, Startseiten-Einbindung weiter zurückgestellt.
 
 ---
 
 ## 6. Demo & Landing
 
-| Thema          | Landing                      | Demo                                          |
-| -------------- | ---------------------------- | --------------------------------------------- |
-| Storytelling   | Hierarchie, Rollen, Beispiel | Seed-Dokumente (IT / Software X / A11y-Stand) |
-| Erster Kontakt | Hero + CTA                   | Login / Enter demo                            |
-| Rechtliches    | Impressum, Datenschutz       | Demo-Banner (später)                          |
+| Thema          | Landing                              | Demo                                          |
+| -------------- | ------------------------------------ | --------------------------------------------- |
+| Storytelling   | Hierarchie, Rollen, Beispiel, Teaser | Seed-Dokumente (IT / Software X / A11y-Stand) |
+| Erster Kontakt | Hero → Modell → CTA                  | Login / Enter demo                            |
+| Rechtliches    | Impressum, Datenschutz (Platzhalter) | Demo-Banner (später)                          |
 
 ---
 
@@ -108,29 +102,22 @@ Kein Newsletter v1.
 
 ### Inhalt
 
-- [x] Hero, Rollen-Diagramm auf Startseite
-- [x] Scope (2-Zweig, Member-Highlight) – Phase B
-- [x] Kontext-Section – Phase C
-- [x] Rechte-Umbenennung – Phase D
-- [x] Beispiel Barrierefreiheit – Phase E
-- [ ] `/warum` an [Positionierung](./Positionierung-und-Landing.md) anpassen
-- [ ] Vergleichstabelle & FAQ reaktivieren
-- [ ] Impressum/Datenschutz (Texte)
+- [x] Modell-Sections, Beispiel, Philosophie-Teaser, Abschluss-CTA
+- [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
+- [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
+- [ ] Vergleichstabelle & FAQ reaktivieren (optional)
 - [ ] Demo-Seed-Story
 
 ### Technik
 
-- [x] `apps/landing` (Vite + Mantine 8)
-- [x] Navbar, Footer, Hero
+- [x] Mobile Navbar, OG-Tags, Hero LCP-Attribute, Version-Badge
 - [ ] `Caddyfile.local` + Hosts-Doku
-- [ ] VPS + DNS
+- [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 
 ---
 
 ## 8. Referenzen
 
-- [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) – **Umsetzungsplan Scope · Kontext · Rechte**
-- [Positionierung-und-Landing.md](./Positionierung-und-Landing.md) – **inhaltliche Quelle**
-- [antwort.md](./antwort.md) – Diskussionsnotiz
-- [Plan-Demo-Oeffentlich.md](../plan/Plan-Demo-Oeffentlich.md)
-- [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md)
+- [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
+- [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)
+- [install.md](../install.md) – vollständige Installationsdoku (extern verlinkt)

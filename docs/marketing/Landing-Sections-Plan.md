@@ -143,7 +143,7 @@ Section 1 = **„was siehst du?“** – nicht `canWrite` / Veröffentlichen (Se
 
 - Bestehendes Rollen-Diagramm (`RolesDocumentDiagram`).
 - Section-Titel **Rechte**; Subtitle = Leitfrage.
-- Anker: `#rechte` (Migration von `#rollen-veroeffentlichung`).
+- Anker: `#rollen` (Section-Titel: Rollenbasierte Zusammenarbeit).
 - Mermaid: [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd).
 
 ---
@@ -165,11 +165,11 @@ Abteilung IT
 1. Hero
 2. **Scope** (`#scope`)
 3. **Kontext** (`#kontext`)
-4. **Rechte** (`#rechte`)
+4. **Rollen** (`#rollen`)
 5. _(optional)_ Beispiel (`#einordnen`)
 6. Footer
 
-Navbar/Footer: Modell-Menü mit Ankern `#scope`, `#kontext`, `#rechte`, `#einordnen`.
+Navbar/Footer: **So funktioniert’s**-Menü mit Ankern `#scope`, `#kontext`, `#rollen`, `#einordnen`.
 
 ---
 

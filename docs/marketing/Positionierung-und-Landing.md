@@ -133,7 +133,7 @@ Abteilung IT
 1. Hero
 2. **Scope** (`#scope`)
 3. **Kontext** (`#kontext`)
-4. **Rechte** (`#rechte`)
+4. **Rollen** (`#rollen`)
 5. **Beispiel** (`#einordnen`)
 6. Footer
 
@@ -186,7 +186,7 @@ Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 - [x] Landing: Rechte-Diagramm (`RolesDocumentDiagram`, Umbenennung → Phase D)
 - [x] Scope: 2-Zweig-Baum, Member-Sichtbarkeits-Highlight, User gestrichelt (Phase B)
 - [x] Kontext-Section (Phase C)
-- [x] Rechte: Titel/Anker `#rechte` (Phase D)
+- [x] Rollen: Anker `#rollen`, Titel Rollenbasierte Zusammenarbeit
 - [x] Beispiel IT / Software X / A11y (Phase E)
 - [ ] `/warum` an Positionierung anpassen
 - [ ] Vergleichstabelle & FAQ wieder einbinden

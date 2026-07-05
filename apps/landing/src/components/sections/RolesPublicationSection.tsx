@@ -5,7 +5,7 @@ import { LandingSectionHeader } from './LandingSectionHeader';
 
 export function RolesPublicationSection() {
   return (
-    <Box id="rechte" className="landing-section">
+    <Box id="rollen" className="landing-section">
       <Stack gap="xl">
         <LandingSectionHeader
           title={rolesPublicationCopy.title}

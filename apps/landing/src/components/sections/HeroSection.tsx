@@ -1,13 +1,14 @@
 import { Anchor, Box, Button, Stack, Text } from '@mantine/core';
-import { IconBrandGithub, IconChevronDown, IconPlayerPlay } from '@tabler/icons-react';
-import { getDemoUrl, getInstallDocsUrl } from '../../config/env';
+import { IconChevronDown, IconExternalLink, IconPlayerPlay, IconServer } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
+import { LandingExternalButton } from '../LandingExternalLink';
+import { getDemoUrl } from '../../config/env';
 import { heroCopy } from '../../content/siteCopy';
 import showroomImage from '../../assets/images/showroom.png';
 import { HeroHeadline } from './HeroHeadline';
 
 export function HeroSection() {
   const demoUrl = getDemoUrl();
-  const installUrl = getInstallDocsUrl();
 
   return (
     <Box className="landing-hero">
@@ -22,24 +23,21 @@ export function HeroSection() {
 
         <Stack gap="md" align="center" w="100%">
           <Box className="landing-hero-cta-grid" w="100%">
-            <Button
-              component="a"
+            <LandingExternalButton
               href={demoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="landing-hero-cta-button"
+              showIcon={false}
               leftSection={<IconPlayerPlay size={20} color="var(--mantine-color-blue-4)" />}
+              rightSection={<IconExternalLink size={14} stroke={1.75} aria-hidden />}
+              className="landing-hero-cta-button"
               fullWidth
             >
               {heroCopy.primaryCta}
-            </Button>
+            </LandingExternalButton>
             <Button
-              component="a"
-              href={installUrl}
-              target="_blank"
-              rel="noreferrer"
+              component={Link}
+              to="/install"
               className="landing-hero-cta-button"
-              leftSection={<IconBrandGithub size={20} color="var(--mantine-color-blue-4)" />}
+              leftSection={<IconServer size={20} color="var(--mantine-color-blue-4)" />}
               fullWidth
             >
               {heroCopy.secondaryCta}
@@ -56,6 +54,11 @@ export function HeroSection() {
             src={showroomImage}
             alt={heroCopy.showroomAlt}
             className="landing-hero-preview-image"
+            width={2894}
+            height={1556}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         </Box>
 
