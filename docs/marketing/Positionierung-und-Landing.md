@@ -1,6 +1,6 @@
 # Positionierung & Landing – Erkenntnisstand
 
-**Stand:** März 2026  
+**Stand:** Juli 2026  
 **Quellen:** Diskussionen zu Hero, `antwort.md`, Produktmodell in `docs/platform/`
 
 Dieses Dokument ist die **aktuelle inhaltliche Leitlinie** für Marketing und Landing. Technik und Routen: [Landing-Page-Plan.md](./Landing-Page-Plan.md).
@@ -9,15 +9,17 @@ Dieses Dokument ist die **aktuelle inhaltliche Leitlinie** für Marketing und La
 
 ## 1. Kern-These
 
-DocsOps **trennt Zusammenarbeit von Veröffentlichung**.
+DocsOps **trennt Zusammenarbeit von Veröffentlichung** – auf Basis einer **Organisationshierarchie im Produkt** (Firma → Abteilung → Team).
 
-- Viele können **mitarbeiten** (Entwurf, Vorschläge).
+- **Autoren** arbeiten in Entwürfen und reichen Vorschläge ein; die **Leitung** des Geltungsbereichs veröffentlicht.
 - **Nicht** alles ist sofort offiziell.
-- Leser sehen einen **veröffentlichten, versionierten Stand** – nicht live mitgeschriebene Seiten.
+- **Mitglieder** und berechtigte Leser sehen einen **veröffentlichten, versionierten Stand** – nicht den laufenden Entwurf.
 
 **Roter Faden:** Es gibt einen **offiziellen Stand** – für Prozesswissen („wie wir arbeiten“) und Projektwissen („woran wir arbeiten“ / konkreter Ist-Stand).
 
-**Abgrenzung (bewusst anderer Weg):** DocsOps ist **stark hierarchiegeprägt** – nicht weil „enterprise“, sondern weil interne Dokumentation in Organisationen **Verantwortliche, Zuständigkeiten und verbindliche Fassungen** braucht. Andere Tools (Notion, Docmost, …) optimieren oft **gleichzeitiges Schreiben**; DocsOps optimiert den **offiziellen Wissensstand**.
+**Abgrenzung (bewusst anderer Weg):** DocsOps ist **stark hierarchiegeprägt** – nicht weil „enterprise“, sondern weil interne Dokumentation in Organisationen **Verantwortliche, Zuständigkeiten und verbindliche Fassungen** braucht. Viele Plattformen setzen auf **flexible Wiki-Flächen und frei gestaltbare Strukturen**; DocsOps modelliert **Organisation, Verantwortung und Veröffentlichung im Produkt** (Firma → Abteilung → Team, Prozess/Projekt, Rechte je Dokument).
+
+**Nicht als Leit-Narrativ:** Einzelne Features wie Live-Co-Editing – das ist höchstens ein Symptom, nicht der Kernunterschied.
 
 Self-hosted und Open Source (MIT) sind **Vertrauensmerkmale**, keine inhaltliche Differenzierung unter OSS-Tools.
 
@@ -48,7 +50,7 @@ Beide teilen: **veröffentlichte Fassung** für Leser, Änderungen im Entwurf / 
 
 ### 3.1 Abgrenzung (kurz, optional vor den Sections)
 
-2–3 Sätze: anderer Weg, hierarchiegeprägt, **warum** (Verantwortliche, verbindlicher Stand) – nicht Feature-Liste gegen Confluence. Aktuell im Hero verankert.
+2–3 Sätze: hierarchiegeprägt, **warum** (Verantwortliche, verbindlicher Stand) – nicht Feature-Liste gegen Confluence und **nicht** auf Live-Co-Editing als Leitkontrast reduzieren. Aktuell im Hero-Subline und auf `/philosophie` vertieft.
 
 ### 3.2 Section 1 – Scope
 
@@ -145,13 +147,36 @@ Abteilung IT
 
 ## 4. Hero (aktuell umgesetzt)
 
-- **H1:** Ihre Dokumentation. Ihr Server. (DocsOps nur in Navbar/Logo)
-- **Subtitle:** Verantwortliche, Zuständigkeiten, verbindliche Fassungen; Kontrast zu gleichzeitigem Schreiben – DocsOps optimiert den offiziellen Wissensstand.
-- **Kein:** Philosophy-Zeile, Anker-Links Features/Vergleich/FAQ, MIT-Badges im Hero.
+- **H1:** „Ihr Betriebswissen.“ + rotierende Qualitätswörter (Strukturiert / Transparent / Verbindlich) + „dokumentiert.“
+- **Subline:** Pflege des internen Wissensstands und der Abläufe – positiv, ohne Feature-Liste.
+- **Layout:** vertikal gestapelt (Copy → CTAs → volle Screenshot-Breite). Kein Zwei-Spalten-Hero – breites Dashboard-Bild bleibt sonst unleserlich.
+- **Trust:** dezente Zeile „Open Source · Self-hosted“; Scroll-Hinweis unter dem Bild zu `#scope`.
+- **Kein:** Philosophy-Zeile im Hero, Anker-Links zu Vergleich/FAQ.
 
 ---
 
-## 5. Sprache & Tabellen (Vergleich – später)
+## 5. Philosophie-Seite (`/philosophie`)
+
+**Ziel:** Den **Ansatz und die Idee** erklären – **nicht** das Produktmodell wiederholen (das leistet die Startseite mit Scope · Kontext · Rollen). Positiv beginnen, keine Defizit-Formulierungen („bewusst schlank“, „kein Wiki“).
+
+**Aufbau (Coolify-inspiriert, zentriert, schmal ~720px):**
+
+| Block                 | Inhalt                                                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hero**              | „Unser Ansatz.“ + Tagline (Mission / Idee in einem Satz)                                                                                              |
+| **Erzählung**         | Zwei Absätze: **Warum** offizieller Wissensstand, Trennung Mitwirkung/Veröffentlichung, Verantwortung – Verweis auf Startseite für **Wie** im Produkt |
+| **Was das bedeutet.** | Grundsätze (Checkliste), keine Feature-Liste (kein Firma/Abteilung/Team erneut)                                                                       |
+| **Kurz gesagt.**      | Zielgruppen-Passung als Listen in zwei Karten – Bedarf und Haltung, nicht Produktmechanik                                                             |
+
+**Copy-Leitlinie „Kurz gesagt“:**
+
+- **Für:** wer steuerbaren, verbindlichen Wissensstand braucht (Listen mit Häkchen, hervorgehobene Karte).
+- **Nicht für:** wer offene Notiz-/Wiki-Freedom ohne offiziellen Stand sucht (grau, zurückgenommen).
+- **Nicht:** Wiederholung von Scope, Kontext, Rollen, Hierarchie-Begriffen – das gehört auf `/`.
+
+---
+
+## 6. Sprache & Tabellen (Vergleich – später)
 
 Vage Tabellenzeilen vermeiden. Stattdessen verständliche Labels:
 
@@ -167,17 +192,17 @@ Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/starts
 
 ---
 
-## 6. KI-Kurzbeschreibung (2–3 Sätze)
+## 7. KI-Kurzbeschreibung (2–3 Sätze)
 
 **DocsOps** ist eine self-hosted, Open-Source-Dokumentationsplattform (MIT) für interne Unternehmensdokumentation: Org-Modell Company → Department → Team, Dokumente in Prozess- oder Projekt-Kontexten, Zugriff je Dokument.
 
-Zusammenarbeit über Entwürfe, Inline-Vorschläge und Veröffentlichung durch Scope-Leads; Leser sehen versionierte veröffentlichte Snapshots – kein paralleles Live-Editing.
+Zusammenarbeit über Entwürfe und Vorschläge durch Autoren; Veröffentlichung durch die Leitung des Geltungsbereichs. Leser sehen versionierte, freigegebene Snapshots – eingebettet in Firma → Abteilung → Team und Prozess-/Projektkontexte.
 
-Zielgruppe: Organisationen mit Bedarf an Struktur, klaren Verantwortlichen und steuerbarem offiziellem Stand – nicht für maximale Wiki-Flexibilität.
+Zielgruppe: Organisationen mit fester Hierarchie, benannten Leitungen und Bedarf an freigegebenem Wissensstand – nicht für Teams, die vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell suchen.
 
 ---
 
-## 7. Nächste Schritte (Landing-Implementierung)
+## 8. Nächste Schritte (Landing-Implementierung)
 
 Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 
@@ -188,13 +213,13 @@ Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 - [x] Kontext-Section (Phase C)
 - [x] Rollen: Anker `#rollen`, Titel Rollenbasierte Zusammenarbeit
 - [x] Beispiel IT / Software X / A11y (Phase E)
-- [ ] `/warum` an Positionierung anpassen
+- [x] Philosophie-Seite `/philosophie` (Ansatz, Was das bedeutet, Kurz gesagt)
 - [ ] Vergleichstabelle & FAQ wieder einbinden
 - [ ] Demo-Seed: Beispiel IT / Software X / Stand Barrierefreiheit
 
 ---
 
-## 8. Referenzen
+## 9. Referenzen
 
 - [antwort.md](./antwort.md) – Roh-Notiz Positionierungsdiskussion
 - [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md)

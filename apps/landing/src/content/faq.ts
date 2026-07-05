@@ -7,7 +7,7 @@ export const faqItems: FaqItem[] = [
   {
     question: 'Für wen ist DocsOps gedacht?',
     answer:
-      'Für Organisationen mit klarer Firmenstruktur, die interne Dokumentation steuern wollen – mit festen Verantwortlichen und ohne freies Wiki-Chaos. Weniger geeignet, wenn ihr paralleles Live-Editing wie in Notion braucht.',
+      'Für Organisationen mit Firma-, Abteilungs- und Teamstruktur, Leitungen pro Geltungsbereich und freigegebenem Wissensstand für Leser. Weniger geeignet, wenn ihr vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell braucht.',
   },
   {
     question: 'Was unterscheidet DocsOps von Confluence oder Docmost?',
@@ -22,7 +22,7 @@ export const faqItems: FaqItem[] = [
   {
     question: 'Wie funktioniert die Zusammenarbeit?',
     answer:
-      'Schreibberechtigte arbeiten in Entwürfen oder reichen Vorschläge ein. Team-, Abteilungs- oder Firmen-Leads veröffentlichen die Version, die Leser sehen – kein gleichzeitiges Überschreiben im selben Dokument.',
+      'Autoren arbeiten in Entwürfen und reichen Vorschläge ein. Die Leitung des Geltungsbereichs – Team, Abteilung oder Firma – veröffentlicht die Fassung, die Leser sehen.',
   },
   {
     question: 'Gibt es eine Live-Demo?',

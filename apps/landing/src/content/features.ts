@@ -35,7 +35,7 @@ export const features: FeatureItem[] = [
   {
     title: 'Entwürfe & Vorschläge',
     description:
-      'Änderungen im Entwurf oder als Vorschlag – ohne paralleles Live-Editing im selben Text.',
+      'Änderungen im Entwurf oder als Vorschlag – Verantwortliche führen zur veröffentlichten Fassung zusammen.',
     icon: IconGitPullRequest,
   },
   {

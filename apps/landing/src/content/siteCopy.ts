@@ -183,37 +183,69 @@ export const faqCopy = {
 } as const;
 
 export const philosophieCopy = {
-  title: 'Philosophie',
+  pageHeadline: 'Unser Ansatz',
   metaDescription:
-    'Warum DocsOps bewusst anders ist: Hierarchie, Veröffentlichung und verbindlicher Wissensstand statt freier Wiki-Fläche.',
-  intro:
-    'DocsOps ist bewusst schlank: klare Leitplanken für interne Dokumentation in Organisationen – statt unbegrenzter Baukasten-Fläche.',
-  problemTitle: 'Das Problem',
-  problemItems: [
-    'Viele Tools bieten viel – aber oft keine Firmenhierarchie im Produkt.',
-    'Unklar, wer für die verbindliche Fassung verantwortlich ist.',
-    'Unübersichtlichkeit durch Features und frei benannte Bereiche.',
+    'Warum DocsOps Zusammenarbeit und Veröffentlichung trennt – und wofür der Ansatz gedacht ist.',
+  tagline:
+    'Interne Dokumentation ist Betriebswissen: gepflegt, verantwortet und für Leser verlässlich – nicht nur ein gemeinsamer Speicher.',
+  narrative: [
+    'Organisationen brauchen einen offiziellen Wissensstand. Nicht jede Notiz ist sofort gültig; nicht jeder Entwurf ist schon der Stand der Firma. DocsOps trennt deshalb Mitwirkung von Veröffentlichung: Beiträge entstehen im Arbeitsmodus, Leser erhalten eine geprüfte, versionierte Fassung.',
+    'Viele Tools optimieren flexible Ablage und offene Zusammenarbeit. DocsOps optimiert Verlässlichkeit und Verantwortung: Wer darf mitwirken, wer gibt frei, welcher Stand gilt – das ist keine Nebenfrage, sondern Teil des Ansatzes. Wie das im Produkt umgesetzt ist, sehen Sie auf der Startseite.',
   ],
-  thesisTitle: 'Unsere These',
-  thesis:
-    'Dokumentation in Organisationen braucht vorgegebene Struktur und klare Verantwortliche – keine leere Fläche, in der jeder seine eigene Ordnung erfindet.',
-  abgrenzungTitle: 'Abgrenzung',
-  abgrenzung:
-    'DocsOps ist kein Wiki mit freier Seitenstruktur. Wir setzen auf vorgegebene Hierarchie und kontrollierte Veröffentlichung – nicht auf paralleles Live-Editing in derselben Fassung. Wer maximale Flexibilität ohne Leitplanken sucht, findet eher in offenen Kollaborations-Tools.',
-  principlesTitle: 'Prinzipien',
-  forWhomTitle: 'Für wen?',
-  forWhom:
-    'Teams mit Org-Struktur und Steuerungsbedarf: klare Verantwortliche, kontrollierte Veröffentlichung, übersichtliche Dokumentation.',
-  notForWhomTitle: 'Nicht für wen?',
-  notForWhom:
-    'Teams, die maximale Flexibilität und paralleles Live-Editing ohne Freigabe wollen – DocsOps optimiert den offiziellen Wissensstand, nicht gleichzeitiges Mitschreiben.',
-  ctaDemo: 'Live-Demo',
-  ctaInstall: 'Installation',
+  meansTitle: 'Was das bedeutet',
+  meansSubtitle: 'Grundsätze hinter dem Modell – nicht die Bedienung.',
+  meansItems: [
+    {
+      title: 'Verbindlicher Stand.',
+      description:
+        'Leser sollen sich auf Dokumentation verlassen können – nicht auf den jeweils aktuellen Bearbeitungsstand.',
+    },
+    {
+      title: 'Verantwortung statt Selbstorganisation.',
+      description:
+        'Es gibt einen offiziellen Wissensstand; Freigabe ist ein bewusster Schritt, nicht ein Nebenprodukt des Speicherns.',
+    },
+    {
+      title: 'Struktur folgt der Organisation.',
+      description:
+        'Wissen gehört in den Kontext der Firma – nicht in beliebige Ordner, die jede Abteilung neu erfindet.',
+    },
+    {
+      title: 'Mitwirkung ohne Sofort-Verbindlichkeit.',
+      description:
+        'Beiträge und Vorschläge sind erwünscht; Veröffentlichung markiert, was ab jetzt gilt.',
+    },
+    {
+      title: 'Dauerhaftes und Vorhaben-Wissen.',
+      description:
+        'Prozesswissen und Projektstand sind verschiedene Dinge – beides braucht klare, haltbare Fassungen.',
+    },
+    {
+      title: 'Self-hosted und Open Source.',
+      description: 'Betriebswissen bleibt unter Ihrer Kontrolle – technisch und organisatorisch.',
+    },
+  ],
+  summaryTitle: 'Kurz gesagt',
+  fitsForTitle: 'DocsOps eignet sich für',
+  fitsFor: [
+    'Organisationen, die internen Wissensstand steuern und absichern wollen',
+    'Unternehmen mit klaren Verantwortlichen für verbindliche Fassungen',
+    'Teams, die Mitwirkung wollen, ohne jeden Entwurf sofort offiziell zu machen',
+    'Betriebe, die Wissen als organisatorisches Gut pflegen – nicht als private Notizen',
+    'Umgebungen mit Qualitäts- oder Compliance-Anforderungen an Dokumentation',
+  ],
+  doesNotFitForTitle: 'DocsOps eignet sich nicht für',
+  doesNotFitFor: [
+    'Reine Brainstorming- oder Notizflächen ohne offiziellen Stand',
+    'Teams, die Struktur und Freigabe vollständig den Nutzenden überlassen wollen',
+    'Szenarien ohne Bedarf an nachvollziehbarem, freigegebenem Wissensstand',
+    'Projekte, die vor allem maximale Gestaltungsfreiheit ohne Leitplanken suchen',
+  ],
 } as const;
 
 export const philosophyTeaserCopy = {
   title: 'Warum so viele Regeln?',
-  body: 'Scope, Kontext und Rollen wirken auf den ersten Blick komplex – sie sichern aber einen verbindlichen Wissensstand statt einer unübersichtlichen Wiki-Fläche.',
+  body: 'Scope, Kontext und Rollen auf der Startseite zeigen, wie DocsOps arbeitet – hier geht es um den Ansatz dahinter: verbindlicher Wissensstand statt ungebremster Wiki-Fläche.',
   cta: 'Zur Philosophie',
 } as const;
 

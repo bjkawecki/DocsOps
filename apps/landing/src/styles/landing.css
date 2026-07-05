@@ -1010,6 +1010,114 @@ a.landing-nav-link:hover {
   border-color: var(--mantine-color-dark-5);
 }
 
+.landing-philosophy-page {
+  max-width: 960px;
+  padding-block: 1rem 2rem;
+}
+
+.landing-philosophy-headline {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.landing-philosophy-accent {
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-philosophy-tagline {
+  font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--mantine-color-gray-3);
+}
+
+.landing-philosophy-body {
+  font-size: 1rem;
+  color: var(--mantine-color-gray-1);
+}
+
+.landing-philosophy-section-title {
+  font-size: clamp(1.75rem, 4vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+
+.landing-philosophy-section-subtitle {
+  font-size: 0.9375rem;
+  color: var(--mantine-color-gray-4);
+}
+
+.landing-philosophy-check {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-philosophy-means-label {
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-philosophy-summary {
+  width: 100%;
+  max-width: 960px;
+}
+
+.landing-philosophy-summary-card {
+  height: 100%;
+  min-width: 0;
+  border-color: var(--mantine-color-dark-5) !important;
+}
+
+.landing-philosophy-summary-card--muted {
+  --landing-surface-glow-color: var(--mantine-color-dark-4);
+}
+
+.landing-philosophy-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-philosophy-summary-list-item {
+  list-style: none;
+}
+
+.landing-philosophy-summary-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.landing-philosophy-summary-icon--fits {
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-philosophy-summary-icon--muted {
+  color: var(--mantine-color-gray-5);
+}
+
+.landing-philosophy-summary-column-title {
+  font-size: clamp(1.25rem, 2.6vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--mantine-color-gray-1);
+}
+
+.landing-philosophy-summary-column-title--muted {
+  font-weight: 500;
+  color: var(--mantine-color-gray-4);
+}
+
+.landing-philosophy-body--muted {
+  color: var(--mantine-color-gray-4);
+  font-size: 0.9375rem;
+}
+
 .landing-install-code-inner {
   white-space: pre-wrap;
   word-break: break-word;
