@@ -178,25 +178,47 @@ export function HomePage() {
         pt={{ base: '2rem', md: '0.75rem' }}
         pb={{ base: '1.5rem', md: '0.75rem' }}
       >
-        <Group gap="lg" justify="center">
-          <DocopsLogo width={112} height={112} />
-          <Box component="span">
-            <Text
-              component="span"
-              c={resolvedColorScheme === 'dark' ? 'white' : 'dimmed'}
-              style={{ fontSize: '2.7rem', fontWeight: 600 }}
-            >
-              Docs
+        <Stack align="center" gap="xs">
+          <Group gap="lg" justify="center">
+            <DocopsLogo width={112} height={112} />
+            <Box component="span">
+              <Text
+                component="span"
+                c={resolvedColorScheme === 'dark' ? 'white' : 'dimmed'}
+                style={{ fontSize: '2.7rem', fontWeight: 600 }}
+              >
+                Docs
+              </Text>
+              <Text
+                component="span"
+                c="var(--mantine-primary-color-filled)"
+                style={{ fontSize: '2.7rem', fontWeight: 600 }}
+              >
+                Ops
+              </Text>
+            </Box>
+          </Group>
+          <Text
+            component="p"
+            size="md"
+            ta="center"
+            maw={540}
+            lh={1.55}
+            m={0}
+            fw={500}
+            c={resolvedColorScheme === 'dark' ? 'gray.4' : 'gray.7'}
+            style={{ letterSpacing: '0.02em' }}
+          >
+            The{' '}
+            <Text span inherit c="var(--mantine-primary-color-filled)" fw={700}>
+              knowledge
+            </Text>{' '}
+            our organisation{' '}
+            <Text span inherit fw={600}>
+              runs on.
             </Text>
-            <Text
-              component="span"
-              c="var(--mantine-primary-color-filled)"
-              style={{ fontSize: '2.7rem', fontWeight: 600 }}
-            >
-              Ops
-            </Text>
-          </Box>
-        </Group>
+          </Text>
+        </Stack>
       </Stack>
 
       <Stack align="center" gap="md" mb={{ base: 'md', md: 'sm' }}>

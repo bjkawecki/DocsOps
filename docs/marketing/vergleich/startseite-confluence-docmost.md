@@ -33,7 +33,7 @@ Legende: **✓** ja / im Kernmodell · **✗** nein / nicht im Kernmodell · **�
 | **Entwürfe & veröffentlichte Versionen**                                | ✓       | ◐          | ✗        |
 | **Struktur & Leitplanken eingebaut**                                    | ✓       | ✗          | ✗        |
 
-Link unter der Tabelle: _Ausführliche Vergleiche_ → `/vergleich` (u. a. Notion, Outline)
+Link unter der Tabelle: _Ausführliche Vergleiche_ → `/vergleich` (u. a. Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl; siehe [weitere-docs-plattformen.md](./weitere-docs-plattformen.md))
 
 ---
 

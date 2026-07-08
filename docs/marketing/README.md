@@ -16,10 +16,11 @@ Planung und Inhalte für Landing Page, Demo und öffentliche Kommunikation (§19
 
 ## Vergleich (vorbereitet, Landing zurückgestellt)
 
-| Dokument                                                                                   | Inhalt                             |
-| ------------------------------------------------------------------------------------------ | ---------------------------------- |
-| [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) | Tabellendaten Confluence + Docmost |
-| [Vergleich-DocsOps-Docmost.md](../platform/Vergleich-DocsOps-Docmost.md)                   | Ausführlicher interner Vergleich   |
+| Dokument                                                                                   | Inhalt                                               |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) | Tabellendaten Confluence + Docmost (Landing-Kern)    |
+| [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md)           | Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl |
+| [Vergleich-DocsOps-Docmost.md](../platform/Vergleich-DocsOps-Docmost.md)                   | Ausführlicher interner Vergleich                     |
 
 ## Sonstiges
 

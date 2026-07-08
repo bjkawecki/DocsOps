@@ -188,7 +188,7 @@ Vage Tabellenzeilen vermeiden. Stattdessen verständliche Labels:
 | Entwürfe & veröffentlichte Versionen | Versionierung              |
 | Hierarchisches Kollaborationsmodell  | Vorschläge & Lead-Freigabe |
 
-Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) – **vorbereitet, nicht auf Landing**.
+Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) (Landing-Kern: Confluence, Docmost) – **vorbereitet, nicht auf Landing**. Erweitert: [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md) (Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl).
 
 ---
 
@@ -199,6 +199,22 @@ Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/starts
 Zusammenarbeit über Entwürfe und Vorschläge durch Autoren; Veröffentlichung durch die Leitung des Geltungsbereichs. Leser sehen versionierte, freigegebene Snapshots – eingebettet in Firma → Abteilung → Team und Prozess-/Projektkontexte.
 
 Zielgruppe: Organisationen mit fester Hierarchie, benannten Leitungen und Bedarf an freigegebenem Wissensstand – nicht für Teams, die vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell suchen.
+
+### Governance – englische Taglines (Produkt & Marketing)
+
+Referenzsatz (Langform):
+
+> DocsOps treats governance as a first-class concern: who can publish, what readers see, and how changes become official – built into the product, not bolted on.
+
+Kürzere Varianten (Hero, Login, Help, App-Home):
+
+| Variante | Text                                                       |
+| -------- | ---------------------------------------------------------- |
+| A        | **Governed internal knowledge – built in, not bolted on.** |
+| B        | **Documentation with governance built in.**                |
+| C        | **Who publishes, what readers see – by design.**           |
+
+Hinweis: „Governance“ hier = kontrollierter Wissensstand (Publish, Grants, Versionen), nicht GRC/Compliance-Suite. Kombination mit „authoritative“ / „official“ erwägen, wenn „governance“ zu bürokratisch wirkt.
 
 ---
 

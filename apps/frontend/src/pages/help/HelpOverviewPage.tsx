@@ -11,6 +11,14 @@ export function HelpOverviewPage() {
         processes or projects, and move work through review and publication when your organisation
         uses that workflow.
       </Text>
+      <Text size="md" c="dimmed" fs="italic">
+        DocsOps treats governance as a first-class concern: who can publish, what readers see, and
+        how changes become official – built into the product, not bolted on.
+      </Text>
+      <Text size="sm" c="dimmed">
+        Taglines: Governed internal knowledge – built in, not bolted on. · Documentation with
+        governance built in. · Who publishes, what readers see – by design.
+      </Text>
       <Text size="md" fw={600}>
         Jump to a topic:
       </Text>

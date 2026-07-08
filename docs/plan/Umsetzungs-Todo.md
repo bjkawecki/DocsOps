@@ -2,7 +2,7 @@
 
 Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. Siehe [Technologie-Stack](Technologie-Stack.md), [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md) und [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md).
 
-**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
+**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Phase 2 (Tech-Docs & Templates):** Abschnitt 28. **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
 
 **Geplante Großumstellung Edit-/Kollaborationsmodell:** [Edit-System: Blocks (JSON), Suggestions, Lead-Draft (Variante A)](Edit-System-Blocks-Suggestions-Lead-Draft.md) – ersetzt Markdown-first-Editing schrittweise. **Umgesetzt (ADR 003, historisch):** Direct Author PATCH + Draft-Change-Ops — wird durch **[ADR 004 Inline Draft Suggestions](../platform/adr/004-inline-draft-suggestions.md)** ersetzt (Track Changes im `draftBlocks`, Accept/Decline, Publish nur bei `pendingSuggestionCount === 0`; Legacy ADR 003 vollständig entfernen). **PR-/Epic-Aufteilung:** [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md). **EPIC-9 (Legacy abschalten):** `DOCUMENT_LEGACY_DRAFT_ENABLED` und HTTP 410 für persönlichen Markdown-Entwurf / Draft-Requests; Details im Epic-Abschnitt EPIC-9.
 
@@ -613,3 +613,48 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [ ] **Selektiver Export:** eine Company / Tenant (Managed Hosting).
 [ ] **Merge-Import:** Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht v1-Default.
 [ ] **CLI:** optionales Offline-Import-Skript für air-gapped Restore.
+
+---
+
+## 28. Interne Tech-Docs & Dokument-Templates (Phase 2)
+
+**Ziel:** Runbooks, Architektur und vergleichbare **interne Tech-Docs** autoren- und lesefreundlicher unterstützen – ohne zum öffentlichen Developer-Portal (Mintlify/Fern) zu werden. Governance und Org-Modell bleiben Differenzierung; Lücke ist vor allem **Autoren- und Leser-Erlebnis** (Editor, Darstellung, Vorlagen).
+
+**Abgrenzung:** Kein OpenAPI-Playground, keine SDK-Generierung, kein Fokus auf öffentliche Product-Sites. Git-Sync/Docs-as-Code nur evaluieren, wenn explizit gewünscht.
+
+### 28a. Leser-Ansicht (Ist & Ausbau)
+
+**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Listen, Code); **Table of Contents** (sticky, nummeriert); `maxWidth: 75ch`; Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
+
+**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Tabellen im Block-Renderer; eingeschränkter Editor (H1–H3, Listen, Code – kein Rich-Embed); Lesetypografie noch `size="sm"` in der Preview.
+
+[ ] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in Leser- und ggf. Editor-Ansicht.
+[ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
+[ ] **Leser-Typografie:** Eigene `.document-content`-Styles (Zeilenlänge, Heading-Scale, Code/Listen-Abstände); optional „Reader mode“ (weniger Chrome).
+[ ] **Tabellen:** Block-Typ `table` in Preview/Editor (falls im Block-Schema vorgesehen oder ergänzen).
+[ ] **Interne Links:** Querverweise zwischen Dokumenten (`[[title]]` oder Dokument-Picker); Backlinks optional später.
+
+### 28b. Dokument-Templates (neue Drafts)
+
+**Idee:** Beim Anlegen eines **neuen Drafts** (oder „New document“) optional **Template** wählen – vorbelegter Block-Inhalt + optional vorgeschlagener Titel/Tags. Kein separates `/templates`-Wiki; Templates sind **Starter-Inhalte**, keine eigenen Entitäten in v1.
+
+**Vorgeschlagene Templates (Startliste):**
+
+| Template                               | Typischer Kontext       | Zweck                                                                           |
+| -------------------------------------- | ----------------------- | ------------------------------------------------------------------------------- |
+| **Runbook**                            | Prozess / Projekt (Ops) | Incident, Wiederherstellung, Schritt-für-Schritt                                |
+| **SOP / Procedure**                    | Prozess                 | Verbindlicher Ablauf, Rollen, Checkpoints                                       |
+| **ADR** (Architecture Decision Record) | Projekt                 | Architekturentscheidung dokumentieren (Kontext, Optionen, Entscheidung, Folgen) |
+| **Architecture overview**              | Projekt                 | Systemkontext, Komponenten, Schnittstellen                                      |
+| **Meeting notes**                      | Projekt / Unterkontext  | Protokoll, Entscheidungen, Action Items                                         |
+| **Policy / Guideline**                 | Prozess                 | Regelwerk, Geltungsbereich, Verantwortliche                                     |
+| **Checklist**                          | Prozess / Projekt       | Abhakbare Schritte (Release, Onboarding, Audit)                                 |
+| **Post-mortem**                        | Projekt                 | Incident-Nachbereitung, Lessons learned                                         |
+
+[ ] **Konzept:** Template-Definition (JSON/Blocks pro Template-ID); UI: Auswahl im New-Document-Flow (Modal oder zweiter Schritt); nur für Nutzer mit `canWrite` im Kontext.
+[ ] **Backend:** Optional `GET /api/v1/document-templates` (statische Liste v1) oder Config; POST `/documents` akzeptiert `templateId` → initialer `draftBlocks`-Inhalt.
+[ ] **Frontend:** Template-Picker im New-Document-Modal; Vorschau-Kurzbeschreibung pro Template.
+[ ] **Inhalt:** Mindestens Runbook, SOP, ADR, Architecture overview als erste vier Templates pflegen (engl. UI-Labels).
+[ ] **Doku:** Help-Artikel „Choosing a template“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md) / interne Tech-Docs-Nachverfolgung.
+
+**Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die erste Planung.
