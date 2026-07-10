@@ -1,5 +1,5 @@
-import { Alert, Button, Group, Text } from '@mantine/core';
 import type { LiveEventsStatus } from '../../hooks/liveEventsContext.js';
+import { AppShellStatusBannerBar } from './AppShellStatusBannerBar.js';
 
 type Props = {
   status: LiveEventsStatus;
@@ -10,24 +10,14 @@ export function AppShellLiveEventsBanner({ status, onRetry }: Props) {
   if (status === 'connected') return null;
 
   if (status === 'reconnecting') {
-    return (
-      <Alert color="yellow" variant="filled" py="xs">
-        <Text size="sm">Reconnecting to live updates…</Text>
-      </Alert>
-    );
+    return <AppShellStatusBannerBar bg="yellow.7" message="Reconnecting to live updates…" loader />;
   }
 
   return (
-    <Alert color="red" variant="filled" title="Live updates unavailable">
-      <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Text size="sm">
-          The connection to the server was lost. Document and notification updates may be outdated
-          until the connection is restored.
-        </Text>
-        <Button size="compact-sm" variant="white" color="red" onClick={onRetry}>
-          Retry now
-        </Button>
-      </Group>
-    </Alert>
+    <AppShellStatusBannerBar
+      bg="red.8"
+      message="The connection to the server was lost. Document and notification updates may be outdated until the connection is restored."
+      action={{ label: 'Retry now', onClick: onRetry, color: 'red' }}
+    />
   );
 }

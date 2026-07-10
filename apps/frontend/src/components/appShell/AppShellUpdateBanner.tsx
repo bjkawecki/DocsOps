@@ -1,5 +1,5 @@
-import { Box, Button, Flex, Loader, Text } from '@mantine/core';
 import type { UpdateOverlayPhase } from '../../hooks/useUpdateInProgressOverlay.js';
+import { AppShellStatusBannerBar } from './AppShellStatusBannerBar.js';
 
 type Props = {
   visible: boolean;
@@ -26,28 +26,13 @@ export function AppShellUpdateBanner({ visible, phase, onReload }: Props) {
   const showReloadButton = phase === 'reload';
 
   return (
-    <Box
-      px="md"
-      py={8}
-      style={{
-        flexShrink: 0,
-        borderBottom: '1px solid var(--mantine-color-default-border)',
-      }}
+    <AppShellStatusBannerBar
       bg="grape.9"
-      role="status"
-      aria-live="polite"
-    >
-      <Flex align="center" gap="sm" wrap="wrap" justify="center" maw={960} mx="auto">
-        {showLoader ? <Loader color="white" size="xs" type="oval" /> : null}
-        <Text size="sm" c="white" ta="center" lineClamp={3}>
-          {bannerText(phase)}
-        </Text>
-        {showReloadButton ? (
-          <Button size="xs" variant="white" color="grape" onClick={onReload} ml="auto">
-            Reload page
-          </Button>
-        ) : null}
-      </Flex>
-    </Box>
+      message={bannerText(phase)}
+      loader={showLoader}
+      action={
+        showReloadButton ? { label: 'Reload page', onClick: onReload, color: 'grape' } : undefined
+      }
+    />
   );
 }
