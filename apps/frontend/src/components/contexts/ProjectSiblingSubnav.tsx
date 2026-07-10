@@ -101,7 +101,7 @@ export function ProjectSiblingSubnav({ variant, siblings }: ProjectSiblingSubnav
                           to={subTo}
                           label={sub.name}
                           active={pathname === subTo}
-                          variant="filled"
+                          variant="light"
                           style={navLinkFullWidth}
                         />
                       );

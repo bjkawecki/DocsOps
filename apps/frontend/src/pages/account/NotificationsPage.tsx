@@ -113,7 +113,7 @@ export function NotificationsPage() {
                     description={item.description}
                     active={category === item.value}
                     aria-current={category === item.value ? 'page' : undefined}
-                    variant="filled"
+                    variant="light"
                     style={navLinkFullWidth}
                   />
                 ))}

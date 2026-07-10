@@ -636,25 +636,31 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 ### 28b. Dokument-Templates (neue Drafts)
 
-**Idee:** Beim Anlegen eines **neuen Drafts** (oder „New document“) optional **Template** wählen – vorbelegter Block-Inhalt + optional vorgeschlagener Titel/Tags. Kein separates `/templates`-Wiki; Templates sind **Starter-Inhalte**, keine eigenen Entitäten in v1.
+**Idee:** Beim Anlegen eines **neuen Drafts** (oder „New document“) optional **Template** wählen – vorbelegter Block-Inhalt + optional vorgeschlagener Titel/Tags. Kein separates `/templates`-Wiki; Templates sind **Starter-Inhalte**. **Built-in** (Plattform) plus **Custom** (von Scope Leads und Admins erstellbar).
 
-**Vorgeschlagene Templates (Startliste):**
+**Vorgeschlagene Templates (Startliste):** Detaillierte Gliederungen (Titel, Beschreibung, Unterkapitel mit Leitfragen): [Dokument-Templates.md](Dokument-Templates.md).
 
-| Template                               | Typischer Kontext       | Zweck                                                                           |
-| -------------------------------------- | ----------------------- | ------------------------------------------------------------------------------- |
-| **Runbook**                            | Prozess / Projekt (Ops) | Incident, Wiederherstellung, Schritt-für-Schritt                                |
-| **SOP / Procedure**                    | Prozess                 | Verbindlicher Ablauf, Rollen, Checkpoints                                       |
-| **ADR** (Architecture Decision Record) | Projekt                 | Architekturentscheidung dokumentieren (Kontext, Optionen, Entscheidung, Folgen) |
-| **Architecture overview**              | Projekt                 | Systemkontext, Komponenten, Schnittstellen                                      |
-| **Meeting notes**                      | Projekt / Unterkontext  | Protokoll, Entscheidungen, Action Items                                         |
-| **Policy / Guideline**                 | Prozess                 | Regelwerk, Geltungsbereich, Verantwortliche                                     |
-| **Checklist**                          | Prozess / Projekt       | Abhakbare Schritte (Release, Onboarding, Audit)                                 |
-| **Post-mortem**                        | Projekt                 | Incident-Nachbereitung, Lessons learned                                         |
+| Template                     | Kontext | DE (Orientierung)       | Zweck                                            |
+| ---------------------------- | ------- | ----------------------- | ------------------------------------------------ |
+| **Policy**                   | Prozess | Richtlinie              | Verbindliche Regeln, Geltung, Verantwortung      |
+| **Standard**                 | Prozess | Standard                | Messbare Mindestanforderung                      |
+| **Baseline**                 | Prozess | Baseline                | Mindest-Konfiguration / Ausgangszustand          |
+| **Guideline**                | Prozess | Leitlinie               | Empfohlene Praxis, flexibler als Policy/Standard |
+| **Procedure**                | Prozess | Verfahren, SOP          | Schrittfolge für wiederkehrende Aufgaben         |
+| **Runbook**                  | Prozess | Runbook                 | Incident, Wiederherstellung, zeitkritisch        |
+| **Playbook**                 | Prozess | Playbook                | Wiederkehrender operativer Workflow              |
+| **Checklist**                | Prozess | Checkliste              | Abhakbare Schritte                               |
+| **Repository documentation** | Projekt | Repository-Doku         | Repo-Überblick, Setup, Konventionen              |
+| **ADR**                      | Projekt | Architekturentscheidung | Entscheidung dokumentieren                       |
+| **Architecture overview**    | Projekt | Architekturübersicht    | Systemkontext, Komponenten                       |
+| **Meeting notes**            | Projekt | Protokoll               | Besprechung, Action Items                        |
+| **Post-mortem**              | Projekt | Post-Mortem             | Incident-Nachbereitung                           |
 
-[ ] **Konzept:** Template-Definition (JSON/Blocks pro Template-ID); UI: Auswahl im New-Document-Flow (Modal oder zweiter Schritt); nur für Nutzer mit `canWrite` im Kontext.
-[ ] **Backend:** Optional `GET /api/v1/document-templates` (statische Liste v1) oder Config; POST `/documents` akzeptiert `templateId` → initialer `draftBlocks`-Inhalt.
-[ ] **Frontend:** Template-Picker im New-Document-Modal; Vorschau-Kurzbeschreibung pro Template.
-[ ] **Inhalt:** Mindestens Runbook, SOP, ADR, Architecture overview als erste vier Templates pflegen (engl. UI-Labels).
-[ ] **Doku:** Help-Artikel „Choosing a template“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md) / interne Tech-Docs-Nachverfolgung.
+[ ] **Konzept:** Template-Definition (JSON/Blocks pro `templateId`); Built-in (statisch/Config) vs. Custom (persistiert, scope- oder plattformgebunden); UI-Auswahl im New-Document-Flow; Nutzung bei `canWrite` im Kontext.
+[ ] **Berechtigung Custom-Templates:** Scope Leads dürfen Templates für ihren Geltungsbereich anlegen/bearbeiten/löschen; Admins zusätzlich plattformweit – Prüfung über `isScopeLead` / `isAdmin` (Permissions-Layer), nicht in Routes inline.
+[ ] **Backend:** `GET /api/v1/document-templates` (Built-in + sichtbare Custom für Scope); CRUD für Custom (`POST/PATCH/DELETE …/document-templates`) nur Lead/Admin; `POST /documents` mit `templateId` → initialer `draftBlocks`-Inhalt.
+[ ] **Frontend:** Template-Picker im New-Document-Modal; Vorschau-Kurzbeschreibung; Verwaltungs-UI „Document templates“ für Leads/Admins (Scope- oder Admin-Bereich).
+[ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) (Policy, Standard, Baseline, Guideline, Procedure, Runbook, Playbook, Repository documentation); DE↔EN-Mapping für Picker-Tooltips.
+[ ] **Doku:** Help-Artikel „Choosing a template“ und „Creating document templates (leads)“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
 
 **Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die erste Planung.
