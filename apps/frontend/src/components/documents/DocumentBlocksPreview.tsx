@@ -1,6 +1,6 @@
 import { Box, Code, List, Stack, Text, Title } from '@mantine/core';
 import { Fragment, type ReactNode } from 'react';
-import type { BlockDocumentV0, BlockNodeV0 } from '../../api/document-types';
+import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
 import {
   getBlockDocumentHeadingData,
@@ -136,7 +136,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
 }
 
 /** Fließtext aus Block-Baum (Lesevorschau ohne Markdown). */
-export function blockDocumentToPlainPreview(doc: BlockDocumentV0): string {
+export function blockDocumentToPlainPreview(doc: BlockDocument): string {
   return doc.blocks
     .map(walkNode)
     .filter((s) => s.length > 0)
@@ -145,7 +145,7 @@ export function blockDocumentToPlainPreview(doc: BlockDocumentV0): string {
 
 type Props = {
   title: string;
-  doc: BlockDocumentV0 | null;
+  doc: BlockDocument | null;
 };
 
 /** Lesevorschau aus Blocks – Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */

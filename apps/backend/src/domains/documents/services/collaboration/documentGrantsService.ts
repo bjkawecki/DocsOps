@@ -1,4 +1,4 @@
-import type { PrismaClient, GrantRole } from '../../../../../generated/prisma/client.js';
+import { GrantRole, type PrismaClient } from '../../../../../generated/prisma/client.js';
 import {
   listUserIdsWhoCanReadDocument,
   listUserIdsWhoCanWriteDocument,

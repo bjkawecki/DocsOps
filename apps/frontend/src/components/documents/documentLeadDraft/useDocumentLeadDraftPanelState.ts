@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../../../api/client.js';
-import type { BlockDocumentV0 } from '../../../api/document-types.js';
+import type { BlockDocument } from '../../../api/document-types.js';
 import type { DocumentCollaborationHint } from '../../../hooks/useLiveEvents.js';
 import { countPendingSuggestions } from '../../../lib/draftSuggestionUtils.js';
 import type { LeadDraftTiptapEditorHandle } from '../LeadDraftTiptapEditor.js';
@@ -24,7 +24,7 @@ export type DocumentLeadDraftPanelProps = {
   currentUserId?: string;
   currentUserName?: string;
   isAdmin?: boolean;
-  fallbackBlocks?: BlockDocumentV0 | null;
+  fallbackBlocks?: BlockDocument | null;
   onDirtyChange?: (dirty: boolean) => void;
   onLastSyncedChange?: (iso: string | null) => void;
   onPendingSuggestionCountChange?: (count: number) => void;
@@ -59,10 +59,10 @@ export function useDocumentLeadDraftPanelState({
   const [rawJsonOpened, setRawJsonOpened] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [appliedRevision, setAppliedRevision] = useState<number | null>(null);
-  const [appliedDoc, setAppliedDoc] = useState<BlockDocumentV0>(fallbackBlocks ?? emptyDoc);
+  const [appliedDoc, setAppliedDoc] = useState<BlockDocument>(fallbackBlocks ?? emptyDoc);
   const [remotePending, setRemotePending] = useState<{
     revision: number;
-    doc: BlockDocumentV0;
+    doc: BlockDocument;
   } | null>(null);
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export function useDocumentLeadDraftPanelState({
     return editors.filter((e) => e.userId !== currentUserId);
   }, [currentUserId, presenceQuery.data]);
 
-  const serverDoc = useMemo<BlockDocumentV0>(() => {
+  const serverDoc = useMemo<BlockDocument>(() => {
     if (!data || 'forbidden' in data) return emptyDoc;
     return data.blocks ?? fallbackBlocks ?? emptyDoc;
   }, [data, fallbackBlocks]);
@@ -146,7 +146,7 @@ export function useDocumentLeadDraftPanelState({
   const appliedFingerprint = useMemo(() => JSON.stringify(appliedDoc), [appliedDoc]);
 
   const applyIncoming = useCallback(
-    (revision: number, doc: BlockDocumentV0) => {
+    (revision: number, doc: BlockDocument) => {
       setAppliedRevision(revision);
       setAppliedDoc(doc);
       setDirty(false);
@@ -266,7 +266,7 @@ export function useDocumentLeadDraftPanelState({
     }
     const body = (await res.json().catch(() => null)) as {
       draftRevision: number;
-      blocks: BlockDocumentV0;
+      blocks: BlockDocument;
       pendingSuggestionCount?: number;
     } | null;
     const nextRevision = body?.draftRevision ?? expectedRevision + 1;

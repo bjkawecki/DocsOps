@@ -1,4 +1,4 @@
-import type { BlockDocumentV0 } from '../../../api/document-types.js';
+import type { BlockDocument } from '../../../api/document-types.js';
 import { innerTextFromBlockNode } from '../../../lib/blockDocumentTiptap.js';
 
 export function affectedBlockIds(ops: unknown): string[] {
@@ -15,7 +15,7 @@ export function affectedBlockIds(ops: unknown): string[] {
   return [...new Set(ids)];
 }
 
-export function blockLabel(doc: BlockDocumentV0, blockId: string): string {
+export function blockLabel(doc: BlockDocument, blockId: string): string {
   const b = doc.blocks.find((x) => x.id === blockId);
   if (!b) return blockId;
   const text = innerTextFromBlockNode(b).trim();
@@ -37,7 +37,7 @@ function nodeHasVisibleText(node: unknown): boolean {
   return false;
 }
 
-export function isDocumentEffectivelyEmpty(doc: BlockDocumentV0 | null | undefined): boolean {
+export function isDocumentEffectivelyEmpty(doc: BlockDocument | null | undefined): boolean {
   if (!doc || !Array.isArray(doc.blocks) || doc.blocks.length === 0) return true;
   return !doc.blocks.some((block) => nodeHasVisibleText(block));
 }

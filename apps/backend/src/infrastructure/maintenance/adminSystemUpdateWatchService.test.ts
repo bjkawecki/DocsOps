@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { PrismaClient } from '../../../generated/prisma/client.js';
 import { runWatchSystemUpdate } from '../../domains/admin/services/adminSystemUpdateWatchService.js';
 import * as hostAgentClient from '../agent/hostAgentClient.js';
 import * as applyService from '../../domains/admin/services/adminSystemUpdateApplyService.js';
@@ -44,16 +44,17 @@ describe('runWatchSystemUpdate', () => {
     createdAt: new Date(),
   };
 
+  const findUniqueMock = vi.fn().mockResolvedValue(updateRun);
   const prisma = {
     updateRun: {
-      findUnique: vi.fn().mockResolvedValue(updateRun),
+      findUnique: findUniqueMock,
       update: vi.fn(),
     },
   } as unknown as PrismaClient;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma.updateRun.findUnique).mockResolvedValue(updateRun as never);
+    findUniqueMock.mockResolvedValue(updateRun as never);
     vi.mocked(appVersion.resolveAppVersion).mockReturnValue('0.1.0');
   });
 

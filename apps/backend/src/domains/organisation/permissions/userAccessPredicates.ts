@@ -1,10 +1,10 @@
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
 import { loadUser } from '../../documents/permissions/canRead.js';
 
 export type LoadedUser = NonNullable<Awaited<ReturnType<typeof loadUser>>>;
 
 export async function loadActiveUser(
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   userId: string
 ): Promise<LoadedUser | null> {
   const user = await loadUser(prisma, userId);

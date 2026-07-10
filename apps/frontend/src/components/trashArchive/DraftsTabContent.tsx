@@ -175,21 +175,24 @@ export function DraftsTabContent({
             <Table.Tr>
               <SortableTableTh
                 label="Title"
-                active={sortBy === 'title'}
-                order={sortOrder as 'asc' | 'desc'}
-                onSort={() => setSort('title')}
+                column="title"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('title')}
               />
               <SortableTableTh
                 label="Scope"
-                active={sortBy === 'scopeName'}
-                order={sortOrder as 'asc' | 'desc'}
-                onSort={() => setSort('scopeName')}
+                column="scopeName"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('scopeName')}
               />
               <SortableTableTh
                 label="Updated"
-                active={sortBy === 'updatedAt'}
-                order={sortOrder as 'asc' | 'desc'}
-                onSort={() => setSort('updatedAt')}
+                column="updatedAt"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('updatedAt')}
               />
             </Table.Tr>
           </Table.Thead>

@@ -5,5 +5,4 @@ if command -v fnm >/dev/null 2>&1; then
 fi
 
 pnpm exec lint-staged
-pnpm run lint
-pnpm run format:check
+pnpm run verify

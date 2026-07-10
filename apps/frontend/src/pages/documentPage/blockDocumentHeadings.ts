@@ -1,4 +1,4 @@
-import type { BlockDocumentV0, BlockNodeV0 } from '../../api/document-types';
+import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 
 /** Gleiche Regel wie Backend `blockHeadingSlugs.ts` (Kommentar-Anker-Validierung). */
 export function slugify(text: string): string {
@@ -58,7 +58,7 @@ export type BlockDocumentHeadingData = {
  * {@link apps/backend/src/domains/documents/services/blocks/blockHeadingSlugs.ts}.
  */
 export function getBlockDocumentHeadingData(
-  doc: BlockDocumentV0 | null | undefined
+  doc: BlockDocument | null | undefined
 ): BlockDocumentHeadingData {
   if (!doc?.blocks?.length) {
     return { headings: [], anchorIdByBlockNodeId: new Map() };

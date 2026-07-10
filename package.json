@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "check:permissions": "bash scripts/check-permission-drift.sh",
+    "verify": "pnpm run lint && pnpm run check:permissions && pnpm run format:check && pnpm --filter backend run build && pnpm --filter frontend run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"

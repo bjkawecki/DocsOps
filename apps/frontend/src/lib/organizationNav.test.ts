@@ -9,6 +9,7 @@ function me(partial: Partial<MeResponse['identity']>): MeResponse {
       teams: [],
       departments: [],
       departmentLeads: [],
+      departmentAuthors: [],
       companyLeads: [],
       ...partial,
     },

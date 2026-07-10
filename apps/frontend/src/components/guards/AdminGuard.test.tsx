@@ -43,7 +43,13 @@ const adminMe: MeResponse = {
     isAdmin: true,
     hasLocalLogin: true,
   },
-  identity: { teams: [], departments: [], departmentLeads: [], companyLeads: [] },
+  identity: {
+    teams: [],
+    departments: [],
+    departmentLeads: [],
+    departmentAuthors: [],
+    companyLeads: [],
+  },
   preferences: {},
 };
 

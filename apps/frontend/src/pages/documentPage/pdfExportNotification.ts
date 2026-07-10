@@ -1,4 +1,3 @@
-import { Anchor } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { createElement } from 'react';
 import type { PdfExportJobStatusResponse } from './documentPageTypes';
@@ -65,7 +64,7 @@ export function updatePdfExportStatusNotification(
               'span',
               null,
               'Your PDF is ready. ',
-              createElement(Anchor, { href: downloadUrl, size: 'sm', fw: 500 }, 'Download PDF')
+              createElement('a', { href: downloadUrl, style: { fontWeight: 500 } }, 'Download PDF')
             )
           : 'Your PDF export finished successfully.',
       color: 'green',

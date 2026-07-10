@@ -22,7 +22,7 @@ function renderTextLeaf(leaf: BlockNodeV0): ReactNode {
   let node: ReactNode = text;
   if (marks.includes('code')) {
     node = (
-      <Code key={`${leaf.id}-code`} span>
+      <Code key={`${leaf.id}-code`} style={{ display: 'inline' }}>
         {node}
       </Code>
     );

@@ -276,7 +276,6 @@ export function HomePage() {
         draftDocuments={draftDocuments}
         draftsPending={draftsPending}
         draftsTotal={draftsData?.total}
-        draftsDataLoaded={draftsData !== undefined}
         pendingReviews={pendingReviews}
         reviewsPending={reviewsPending}
         reviewsDataLoaded={reviewsData !== undefined}

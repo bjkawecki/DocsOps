@@ -122,7 +122,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       hoverLeaveCallbackRef.current = scheduleHoverClose;
     }, [cancelHoverClose, scheduleHoverClose]);
 
-    const onHoverChange = useCallback((target: SuggestionHoverTarget) => {
+    const onHoverChange = useCallback((target: SuggestionHoverTarget | null) => {
       hoverCallbackRef.current(target);
     }, []);
 

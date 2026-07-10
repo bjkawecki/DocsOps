@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
 import { loadActiveUser, type LoadedUser } from '../permissions/userAccessPredicates.js';
 
 export type ScopeAssignmentKind =
@@ -78,7 +78,7 @@ function teamAssignmentConflictMessage(kind: ScopeAssignmentKind): string {
  * Enforces exclusive scope roles (admin OR one org role). Throws ScopeAssignmentConflictError on violation.
  */
 export async function assertCanAssignScopeRole(
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   args: { userId: string; kind: ScopeAssignmentKind; teamId?: string; departmentId?: string }
 ): Promise<void> {
   const user = await loadActiveUser(prisma, args.userId);
