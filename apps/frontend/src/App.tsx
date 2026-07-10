@@ -18,24 +18,42 @@ import { ProjectContextPage } from './pages/project/ProjectContextPage';
 import { ProjectWorkspaceOutlet } from './pages/project/ProjectWorkspaceOutlet';
 import { SubcontextDetailPage } from './pages/context/SubcontextDetailPage';
 import { SubcontextRedirectPage } from './pages/context/SubcontextRedirectPage';
-import { DocumentVersionsPage } from './pages/document/DocumentVersionsPage';
 import { SettingsPage } from './pages/account/SettingsPage';
 import { NotificationsPage } from './pages/account/NotificationsPage';
-import { HelpLayout } from './pages/help/HelpLayout';
-import { HelpOverviewPage } from './pages/help/HelpOverviewPage';
-import { HelpOrganisationPage } from './pages/help/HelpOrganisationPage';
-import { HelpPermissionsPage } from './pages/help/HelpPermissionsPage';
-import { HelpWorkflowPage } from './pages/help/HelpWorkflowPage';
-import { HelpCollaborationPage } from './pages/help/HelpCollaborationPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';
 import { AuthGuard } from './components/guards/AuthGuard';
 import { AdminGuard } from './components/guards/AdminGuard';
 import { ThemeFromPreferences } from './components/system/ThemeFromPreferences';
 import { ErrorBoundary } from './components/system/ErrorBoundary';
-import { WhatsNewPage } from './pages/whatsNew/WhatsNewPage';
 
 const DocumentPage = lazy(() =>
   import('./pages/document/DocumentPage').then((m) => ({ default: m.DocumentPage }))
+);
+const DocumentVersionsPage = lazy(() =>
+  import('./pages/document/DocumentVersionsPage').then((m) => ({
+    default: m.DocumentVersionsPage,
+  }))
+);
+const HelpLayout = lazy(() =>
+  import('./pages/help/HelpLayout').then((m) => ({ default: m.HelpLayout }))
+);
+const HelpOverviewPage = lazy(() =>
+  import('./pages/help/HelpOverviewPage').then((m) => ({ default: m.HelpOverviewPage }))
+);
+const HelpOrganisationPage = lazy(() =>
+  import('./pages/help/HelpOrganisationPage').then((m) => ({ default: m.HelpOrganisationPage }))
+);
+const HelpPermissionsPage = lazy(() =>
+  import('./pages/help/HelpPermissionsPage').then((m) => ({ default: m.HelpPermissionsPage }))
+);
+const HelpWorkflowPage = lazy(() =>
+  import('./pages/help/HelpWorkflowPage').then((m) => ({ default: m.HelpWorkflowPage }))
+);
+const HelpCollaborationPage = lazy(() =>
+  import('./pages/help/HelpCollaborationPage').then((m) => ({ default: m.HelpCollaborationPage }))
+);
+const WhatsNewPage = lazy(() =>
+  import('./pages/whatsNew/WhatsNewPage').then((m) => ({ default: m.WhatsNewPage }))
 );
 const AdminPage = lazy(() =>
   import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage }))
