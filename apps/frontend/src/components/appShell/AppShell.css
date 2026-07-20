@@ -33,6 +33,19 @@
   border-top: none;
 }
 
+/* Breadcrumb chrome: stable height with or without People/Create actions. */
+.app-shell-breadcrumb-row {
+  --app-shell-breadcrumb-row-height: 36px;
+  min-height: var(--app-shell-breadcrumb-row-height);
+}
+
+.app-shell-breadcrumb-actions {
+  min-height: var(--app-shell-breadcrumb-row-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 @media (min-width: 48em) {
   .app-shell-top-bar {
     padding-inline: var(--mantine-spacing-lg);

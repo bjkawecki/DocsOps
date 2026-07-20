@@ -1,9 +1,8 @@
 import { Box, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { IconUsersGroup } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
 import {
   ArchiveTabContent,
@@ -24,6 +23,7 @@ import { TeamProcessesPanel } from './TeamProcessesPanel';
 import { TeamProjectsPanel } from './TeamProjectsPanel';
 import { useScopedCatalogDocumentsUrlState } from '../contextScope/useScopedCatalogDocumentsUrlState';
 import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
+import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type {
   DeleteTarget,
   EditTarget,
@@ -112,6 +112,31 @@ export function TeamContextPage() {
   });
 
   const teamScope = teamId != null ? { type: 'team' as const, id: teamId } : null;
+  const chromeActions = useMemo(() => {
+    if (!teamId) return null;
+    if (!showPeopleMenu && !canManage) return null;
+    return (
+      <Group gap="xs">
+        {showPeopleMenu ? (
+          <ScopePeopleMenu scope="team" scopeId={teamId} canManageAuthors={canManageAuthors} />
+        ) : null}
+        {canManage ? (
+          <CreateContextMenu
+            onCreateProcess={() => {
+              setContextInitialType('process');
+              openContextModal();
+            }}
+            onCreateProject={() => {
+              setContextInitialType('project');
+              openContextModal();
+            }}
+            onCreateDraft={openDocumentModal}
+          />
+        ) : null}
+      </Group>
+    );
+  }, [teamId, showPeopleMenu, canManage, canManageAuthors, openContextModal, openDocumentModal]);
+  useRegisterScopePageChrome(teamScope, team?.name, chromeActions);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -211,34 +236,7 @@ export function TeamContextPage() {
     <Box>
       <PageWithTabs
         title={team.name}
-        titleIcon={<IconUsersGroup size={28} style={{ flexShrink: 0 }} aria-hidden />}
-        description="Contexts and content for the team."
-        actions={
-          teamId ? (
-            <Group gap="xs">
-              {showPeopleMenu ? (
-                <ScopePeopleMenu
-                  scope="team"
-                  scopeId={teamId}
-                  canManageAuthors={canManageAuthors}
-                />
-              ) : null}
-              {canManage ? (
-                <CreateContextMenu
-                  onCreateProcess={() => {
-                    setContextInitialType('process');
-                    openContextModal();
-                  }}
-                  onCreateProject={() => {
-                    setContextInitialType('project');
-                    openContextModal();
-                  }}
-                  onCreateDraft={openDocumentModal}
-                />
-              ) : null}
-            </Group>
-          ) : null
-        }
+        hideTitle
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

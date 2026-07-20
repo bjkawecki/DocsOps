@@ -1,7 +1,7 @@
 import { Box, Button, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useMemo } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   ArchiveTabContent,
@@ -16,7 +16,6 @@ import { useCanWriteInScope } from '../../hooks/useCanWriteInScope';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
 import { ScopePeopleMenu } from '../../components/scopePeople';
-import { IconBuildingSkyscraper } from '@tabler/icons-react';
 import type {
   DeleteTarget,
   EditTarget,
@@ -31,6 +30,7 @@ import { CompanyPageProjectsTab } from './CompanyPageProjectsTab';
 import { useScopedCatalogDocumentsUrlState } from '../contextScope/useScopedCatalogDocumentsUrlState';
 import { ContextScopePageModals } from '../contextScope/ContextScopePageModals';
 import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
+import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 
 type CompanyRes = { id: string; name: string };
 
@@ -191,6 +191,29 @@ export function CompanyPage() {
   const companyScope = effectiveCompanyId
     ? { type: 'company' as const, id: effectiveCompanyId }
     : null;
+  const chromeActions = useMemo(() => {
+    if (!effectiveCompanyId) return null;
+    if (!showPeopleMenu && !canManage) return null;
+    return (
+      <Group gap="xs">
+        {showPeopleMenu ? <ScopePeopleMenu scope="company" scopeId={effectiveCompanyId} /> : null}
+        {canManage ? (
+          <CreateContextMenu
+            onCreateProcess={() => {
+              setContextInitialType('process');
+              openContextModal();
+            }}
+            onCreateProject={() => {
+              setContextInitialType('project');
+              openContextModal();
+            }}
+            onCreateDraft={openDocumentModal}
+          />
+        ) : null}
+      </Group>
+    );
+  }, [effectiveCompanyId, showPeopleMenu, canManage, openContextModal, openDocumentModal]);
+  useRegisterScopePageChrome(companyScope, company?.name, chromeActions);
 
   const processes = processesData ?? [];
   const projects = projectsData ?? [];
@@ -229,30 +252,7 @@ export function CompanyPage() {
     <Box>
       <PageWithTabs
         title={company?.name ?? 'Company'}
-        titleIcon={<IconBuildingSkyscraper size={28} style={{ flexShrink: 0 }} aria-hidden />}
-        description="Contexts and content for the company."
-        actions={
-          effectiveCompanyId ? (
-            <Group gap="xs">
-              {showPeopleMenu ? (
-                <ScopePeopleMenu scope="company" scopeId={effectiveCompanyId} />
-              ) : null}
-              {canManage ? (
-                <CreateContextMenu
-                  onCreateProcess={() => {
-                    setContextInitialType('process');
-                    openContextModal();
-                  }}
-                  onCreateProject={() => {
-                    setContextInitialType('project');
-                    openContextModal();
-                  }}
-                  onCreateDraft={openDocumentModal}
-                />
-              ) : null}
-            </Group>
-          ) : null
-        }
+        hideTitle
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

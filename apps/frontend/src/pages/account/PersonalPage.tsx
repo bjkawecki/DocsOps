@@ -1,7 +1,7 @@
 import { Box, Card, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useMe, meQueryKey } from '../../hooks/useMe';
@@ -16,6 +16,7 @@ import { ContextGrid, CreateContextMenu, ScopeCard } from '../../components/cont
 import { IconBriefcase, IconFileText, IconRoute } from '@tabler/icons-react';
 import { ContextScopePageModals } from '../contextScope/ContextScopePageModals';
 import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
+import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 
 type ProcessItem = {
   id: string;
@@ -63,6 +64,23 @@ export function PersonalPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const personalScope = PERSONAL_SCOPE;
+  const chromeActions = useMemo(
+    () => (
+      <CreateContextMenu
+        onCreateProcess={() => {
+          setContextInitialType('process');
+          openContextModal();
+        }}
+        onCreateProject={() => {
+          setContextInitialType('project');
+          openContextModal();
+        }}
+        onCreateDraft={openDocumentModal}
+      />
+    ),
+    [openContextModal, openDocumentModal]
+  );
+  useRegisterScopePageChrome(personalScope, undefined, chromeActions);
 
   const queryParams = 'limit=50&offset=0&ownerUserId=me';
 
@@ -308,20 +326,7 @@ export function PersonalPage() {
     <Box>
       <PageWithTabs
         title="Personal"
-        description="Your personal processes, projects and documents."
-        actions={
-          <CreateContextMenu
-            onCreateProcess={() => {
-              setContextInitialType('process');
-              openContextModal();
-            }}
-            onCreateProject={() => {
-              setContextInitialType('project');
-              openContextModal();
-            }}
-            onCreateDraft={openDocumentModal}
-          />
-        }
+        hideTitle
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

@@ -124,7 +124,9 @@ export function useAppShellSidebarData() {
       }
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: meQueryKey });
+      void queryClient.cancelQueries({ queryKey: meQueryKey }).then(() => {
+        void queryClient.invalidateQueries({ queryKey: meQueryKey });
+      });
       void navigate('/', { replace: true });
       notifications.show({
         title: 'Ansicht gewechselt',
@@ -143,7 +145,9 @@ export function useAppShellSidebarData() {
       if (!res.ok) throw new Error('Failed to end impersonation');
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: meQueryKey });
+      void queryClient.cancelQueries({ queryKey: meQueryKey }).then(() => {
+        void queryClient.invalidateQueries({ queryKey: meQueryKey });
+      });
       void navigate('/', { replace: true });
       notifications.show({
         title: 'Impersonation beendet',

@@ -6,6 +6,7 @@ import { apiFetch } from '../../api/client';
 import { DraftsCard, DraftsTabContent } from '../../components/trashArchive';
 import { ViewMoreButton } from '../../components/contexts/cardShared';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
+import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 
 type DocItem = {
   id: string;
@@ -19,6 +20,7 @@ const SHARED_SCOPE = { type: 'shared' as const };
 
 export function SharedPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  useRegisterScopePageChrome(SHARED_SCOPE);
   const { data: sharedDocsRes, isPending: docsPending } = useQuery({
     queryKey: ['me', 'shared-documents'],
     queryFn: async () => {
@@ -108,7 +110,7 @@ export function SharedPage() {
     <Box>
       <PageWithTabs
         title="Shared"
-        description="Contexts and documents shared with you."
+        hideTitle
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

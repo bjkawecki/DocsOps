@@ -215,12 +215,15 @@ export function ViewMoreLink({ to }: { to: string }) {
 export function ContentCardWrapper({
   children,
   className,
+  fullHeight = true,
 }: {
   children: React.ReactNode;
   className?: string;
+  /** When false, height follows content (e.g. sibling nav). Default true for grid cards. */
+  fullHeight?: boolean;
 }) {
   return (
-    <Card {...contentCardProps} className={className}>
+    <Card withBorder padding="sm" h={fullHeight ? '100%' : undefined} className={className}>
       {children}
     </Card>
   );

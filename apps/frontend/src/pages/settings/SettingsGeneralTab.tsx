@@ -49,11 +49,14 @@ export function SettingsGeneralTab() {
     }
   }, [data]);
 
-  // Sync Mantine scheme to stored preference when preferences load (fixes selector vs layout mismatch)
+  // Sync Mantine scheme when preference is known (do not force 'auto' while me is loading)
   useEffect(() => {
-    const preferred = data?.preferences?.theme ?? 'auto';
+    const preferred = data?.preferences?.theme;
+    if (preferred === undefined) return;
     setColorScheme(preferred);
-  }, [data?.preferences?.theme, setColorScheme]);
+    // setColorScheme from useMantineColorScheme is unstable; sync only on theme change
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [data?.preferences?.theme]);
 
   const patchMe = useMutation({
     mutationFn: async (body: { name: string }) => {

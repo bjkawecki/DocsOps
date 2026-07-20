@@ -1,13 +1,11 @@
 import {
   Box,
   Button,
-  Card,
   Group,
   Stack,
   Text,
   TextInput,
   Modal,
-  Title,
   Flex,
   Container,
   Paper,
@@ -16,26 +14,26 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
-import { ownerToScopeForBreadcrumb, scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
+import { ownerToScopeForBreadcrumb, scopeToLabel } from '../../lib/scopeNav';
+import { scopeToKey } from '../../hooks/useRecentItems';
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
-import {
-  IconBuildingSkyscraper,
-  IconSitemap,
-  IconUsersGroup,
-  IconUser,
-  IconSubtask,
-} from '@tabler/icons-react';
+import { IconSubtask } from '@tabler/icons-react';
 import { ContextDocumentsTable } from '../../components/contexts/ContextDocumentsTable';
 import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
 import { ProjectSiblingSubnav } from '../../components/contexts/ProjectSiblingSubnav';
+import { ContentCardWrapper } from '../../components/contexts/cardShared';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { SectionLabel } from '../../components/ui/SectionLabel';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
 import {
   useSetAppShellBreadcrumbs,
-  type AppShellBreadcrumbItem,
+  useSetAppShellBreadcrumbActions,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { buildContextBreadcrumbs } from '../../components/appShell/scopeBreadcrumbs.js';
+import { useOrgScopePeopleChromeActions } from '../../components/scopePeople/useOrgScopePeopleChromeActions.js';
 
 type SubcontextResponse = {
   id: string;
@@ -268,29 +266,31 @@ export function SubcontextDetailPage() {
 
   const owner = data?.project.owner;
   const scope = owner ? ownerToScopeForBreadcrumb(owner) : null;
-  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=projects` : '/?tab=projects';
+  const scopeKey = scope == null ? null : scopeToKey(scope);
   const scopeName = owner?.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
+  const projectId = data?.project.id;
+  const projectName = data?.project.name;
+  const subcontextName = data?.name;
 
-  const breadcrumbItems = useMemo((): AppShellBreadcrumbItem[] | null => {
-    if (!data || !subcontextId || !projectIdParam) return null;
-    const icon =
-      scope?.type === 'company' ? (
-        <IconBuildingSkyscraper size={14} />
-      ) : scope?.type === 'department' ? (
-        <IconSitemap size={14} />
-      ) : scope?.type === 'team' ? (
-        <IconUsersGroup size={14} />
-      ) : (
-        <IconUser size={14} />
-      );
-    return [
-      { key: 'scope', label: scopeName, to: scopeUrlWithTab, icon },
-      { key: 'project', label: data.project.name, to: `/projects/${data.project.id}` },
-      { key: 'subcontext', label: data.name },
-    ];
-  }, [data, scope?.type, scopeName, scopeUrlWithTab, subcontextId, projectIdParam]);
+  const breadcrumbItems = useMemo(
+    () =>
+      subcontextName != null && projectId != null && projectName != null
+        ? buildContextBreadcrumbs({
+            scope,
+            scopeLabel: scopeName,
+            contextType: 'project',
+            contextName: projectName,
+            project: { id: projectId, name: projectName },
+            subcontextName,
+          })
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scope via scopeKey
+    [subcontextName, projectId, projectName, scopeKey, scopeName]
+  );
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
+  const peopleChromeActions = useOrgScopePeopleChromeActions(scope);
+  useSetAppShellBreadcrumbActions(peopleChromeActions);
 
   if (!subcontextId || !projectIdParam) return null;
 
@@ -313,12 +313,11 @@ export function SubcontextDetailPage() {
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <Stack gap="lg" mb="xl" mt="md">
-        <Flex justify="space-between" align="flex-start" wrap="wrap" gap="lg">
-          <Group gap="sm" align="center">
-            <IconSubtask size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
-            <Title order={1}>{data.name}</Title>
-          </Group>
+      <PageHeader
+        title={data.name}
+        titleOrder={2}
+        titleIcon={<IconSubtask size={22} stroke={1.5} color="var(--mantine-color-dimmed)" />}
+        actions={
           <Group gap="xs">
             {data.canWriteContext && (
               <Button variant="filled" size="sm" onClick={openNewDoc}>
@@ -336,26 +335,26 @@ export function SubcontextDetailPage() {
               </>
             )}
           </Group>
-        </Flex>
-      </Stack>
+        }
+      />
 
-      <Paper withBorder={false} p="lg" radius="md">
+      <Paper withBorder={false} p={0} radius="md">
         <Flex
           direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'xl', lg: 48 }}
+          gap={{ base: 'md', lg: 'lg' }}
           align="flex-start"
         >
           <ProjectSiblingSubnav variant="project" siblings={siblings} />
-          <Card withBorder padding="md" style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <Stack gap="xl">
-              <Box data-context-docs-table>
-                <Text tt="uppercase" fz="xs" fw={600} c="dimmed" mb="sm">
-                  Documents
-                </Text>
-                <ContextDocumentsTable documents={documents} />
-              </Box>
-            </Stack>
-          </Card>
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <ContentCardWrapper fullHeight={false}>
+              <Stack gap="xl">
+                <Box data-context-docs-table>
+                  <SectionLabel mb="sm">Documents</SectionLabel>
+                  <ContextDocumentsTable documents={documents} />
+                </Box>
+              </Stack>
+            </ContentCardWrapper>
+          </Box>
         </Flex>
       </Paper>
 

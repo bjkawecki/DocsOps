@@ -31,6 +31,10 @@ export interface PageWithTabsProps {
   recentScope?: RecentScope | null;
   /** Optional "View more" link for the recent column (e.g. /catalog). */
   recentViewMoreHref?: string;
+  /**
+   * Scope dashboards: hide title/icon because shell breadcrumbs already show the scope name.
+   */
+  hideTitle?: boolean;
 }
 
 const defaultTabs: TabItem[] = [{ value: 'overview', label: 'Overview' }];
@@ -46,6 +50,7 @@ export function PageWithTabs({
   onTabChange,
   recentScope,
   recentViewMoreHref,
+  hideTitle = false,
 }: PageWithTabsProps) {
   const tabList = tabs.length > 0 ? tabs : defaultTabs;
   const childArray = Array.isArray(children) ? children : [children];
@@ -99,10 +104,19 @@ export function PageWithTabs({
   });
 
   const showRecentColumn = recentScope != null;
+  const showHeader = !hideTitle || description != null || actions != null;
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <PageHeader title={title} titleIcon={titleIcon} description={description} actions={actions} />
+      {showHeader ? (
+        <PageHeader
+          title={title}
+          titleIcon={hideTitle ? undefined : titleIcon}
+          description={description}
+          actions={actions}
+          hideTitle={hideTitle}
+        />
+      ) : null}
       <Tabs
         {...(isControlled
           ? { value: activeTab, onChange: (v) => onTabChange(v ?? defaultVal) }

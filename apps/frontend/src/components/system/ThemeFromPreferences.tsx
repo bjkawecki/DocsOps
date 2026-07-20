@@ -1,9 +1,9 @@
-import { type ReactNode, useEffect, useMemo } from 'react';
-import { MantineProvider, useMantineColorScheme } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '../../api/client';
-import { createAppTheme, type PrimaryColorPreset, type TextSizePreference } from '../../theme';
+import { type ReactNode, useEffect, useMemo, useRef } from 'react';
+import { MantineThemeProvider, useMantineColorScheme } from '@mantine/core';
+import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
+import { useMe } from '../../hooks/useMe';
 import { RecentItemsProvider } from '../../hooks/useRecentItems';
+import { createAppTheme, type PrimaryColorPreset, type TextSizePreference } from '../../theme';
 
 export type UserPreferences = {
   theme?: 'light' | 'dark' | 'auto';
@@ -37,39 +37,48 @@ export type UserPreferences = {
   };
 };
 
-/** Syncs Mantine color scheme to the stored preference when preferences load or theme changes. */
+/**
+ * Syncs the root Mantine color scheme when the stored preference changes.
+ * Must not nest a second MantineProvider (fights outer localStorage manager).
+ * Must not depend on colorScheme/setColorScheme identity (feedback loop).
+ */
 function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark' | 'auto' }) {
   const { setColorScheme } = useMantineColorScheme();
+  const lastAppliedRef = useRef<'light' | 'dark' | 'auto' | null>(null);
+
   useEffect(() => {
+    if (lastAppliedRef.current === preferredScheme) return;
+    lastAppliedRef.current = preferredScheme;
     setColorScheme(preferredScheme);
-  }, [preferredScheme, setColorScheme]);
+    try {
+      window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, preferredScheme);
+    } catch {
+      // ignore localStorage errors (e.g. private mode)
+    }
+    // colorScheme/setColorScheme intentionally omitted: unstable identity caused light↔auto loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when preference changes
+  }, [preferredScheme]);
+
   return null;
 }
 
+/**
+ * Applies user theme overrides (primary color, text size, color scheme) from GET /me.
+ * AuthGuard already waits for me; never unmount children on preference refetch.
+ */
 export function ThemeFromPreferences({ children }: { children: ReactNode }) {
-  const { data: preferences, isPending } = useQuery({
-    queryKey: ['me', 'preferences'],
-    queryFn: async (): Promise<UserPreferences> => {
-      const res = await apiFetch('/api/v1/me/preferences');
-      if (!res.ok) throw new Error('Failed to load preferences');
-      return (await res.json()) as UserPreferences;
-    },
-  });
+  const { data: me } = useMe();
+  const preferences = me?.preferences;
 
   const primaryColor: PrimaryColorPreset = preferences?.primaryColor ?? 'blue';
   const textSize: TextSizePreference = preferences?.textSize ?? 'default';
   const theme = useMemo(() => createAppTheme(primaryColor, textSize), [primaryColor, textSize]);
-
-  if (isPending || preferences === undefined) {
-    return null;
-  }
-
-  const colorScheme = preferences.theme ?? 'auto';
+  const preferredScheme = preferences?.theme ?? 'auto';
 
   return (
-    <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
-      <SyncColorScheme preferredScheme={colorScheme} />
+    <MantineThemeProvider theme={theme}>
+      <SyncColorScheme preferredScheme={preferredScheme} />
       <RecentItemsProvider>{children}</RecentItemsProvider>
-    </MantineProvider>
+    </MantineThemeProvider>
   );
 }

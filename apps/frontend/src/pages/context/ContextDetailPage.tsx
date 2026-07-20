@@ -4,13 +4,11 @@ import {
   Stack,
   Text,
   TextInput,
-  Title,
   Flex,
   Container,
   Menu,
   ActionIcon,
   Box,
-  Card,
   Paper,
 } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,8 +17,11 @@ import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
-import { ownerToScopeForBreadcrumb, scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
+import { ownerToScopeForBreadcrumb, scopeToLabel } from '../../lib/scopeNav';
+import { scopeToKey } from '../../hooks/useRecentItems';
 import { ContentLink } from '../../components/ui/ContentLink';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { SectionLabel } from '../../components/ui/SectionLabel';
 import { ContextDocumentsTable } from '../../components/contexts/ContextDocumentsTable';
 import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
 import { ProjectSiblingSubnav } from '../../components/contexts/ProjectSiblingSubnav';
@@ -35,18 +36,17 @@ import {
   IconPencil,
   IconArchive,
   IconTrash,
-  IconBuildingSkyscraper,
-  IconSitemap,
-  IconUsersGroup,
-  IconUser,
   IconRoute,
   IconBriefcase,
 } from '@tabler/icons-react';
 import {
   useSetAppShellBreadcrumbs,
-  type AppShellBreadcrumbItem,
+  useSetAppShellBreadcrumbActions,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { buildContextBreadcrumbs } from '../../components/appShell/scopeBreadcrumbs.js';
+import { useOrgScopePeopleChromeActions } from '../../components/scopePeople/useOrgScopePeopleChromeActions.js';
+import { ContentCardWrapper } from '../../components/contexts/cardShared';
 
 type ContextType = 'process' | 'project';
 
@@ -305,35 +305,28 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
     }
   };
 
-  const typeLabel = type === 'process' ? 'Processes' : 'Projects';
-  const typeTab = type === 'process' ? 'processes' : 'projects';
   const scope = data ? ownerToScopeForBreadcrumb(data.owner) : null;
-  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=${typeTab}` : `/?tab=${typeTab}`;
+  const scopeKey = scope == null ? null : scopeToKey(scope);
   const scopeName = data?.owner.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
-  const breadcrumbItems = useMemo((): AppShellBreadcrumbItem[] | null => {
-    if (!data) return null;
-    const icon =
-      scope?.type === 'company' ? (
-        <IconBuildingSkyscraper size={14} />
-      ) : scope?.type === 'department' ? (
-        <IconSitemap size={14} />
-      ) : scope?.type === 'team' ? (
-        <IconUsersGroup size={14} />
-      ) : (
-        <IconUser size={14} />
-      );
-    return [
-      {
-        key: 'scope',
-        label: scopeName,
-        to: scopeUrlWithTab,
-        icon,
-      },
-      { key: 'type', label: typeLabel },
-    ];
-  }, [data, scope?.type, scopeName, scopeUrlWithTab, typeLabel]);
+  const contextName = data?.name;
+  const breadcrumbItems = useMemo(
+    () =>
+      contextName != null
+        ? buildContextBreadcrumbs({
+            scope,
+            scopeLabel: scopeName,
+            contextType: type,
+            contextName,
+          })
+        : null,
+    // scope identity via scopeKey (ownerToScopeForBreadcrumb returns a new object each render)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scope rebuilt when scopeKey changes
+    [contextName, scopeKey, scopeName, type]
+  );
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
+  const peopleChromeActions = useOrgScopePeopleChromeActions(scope);
+  useSetAppShellBreadcrumbActions(peopleChromeActions);
 
   if (isPending)
     return (
@@ -350,16 +343,17 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <Stack gap="lg" mb="xl" mt="md">
-        <Flex justify="space-between" align="flex-start" wrap="wrap" gap="lg">
-          <Group gap="sm" align="center">
-            {type === 'process' ? (
-              <IconRoute size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
-            ) : (
-              <IconBriefcase size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
-            )}
-            <Title order={1}>{data.name}</Title>
-          </Group>
+      <PageHeader
+        title={data.name}
+        titleOrder={2}
+        titleIcon={
+          type === 'process' ? (
+            <IconRoute size={22} stroke={1.5} color="var(--mantine-color-dimmed)" />
+          ) : (
+            <IconBriefcase size={22} stroke={1.5} color="var(--mantine-color-dimmed)" />
+          )
+        }
+        actions={
           <Group gap="xs">
             {data.canWriteContext && (
               <Button variant="filled" size="sm" onClick={openNewDoc}>
@@ -402,13 +396,13 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
               </>
             )}
           </Group>
-        </Flex>
-      </Stack>
+        }
+      />
 
-      <Paper withBorder={false} p="lg" radius="md">
+      <Paper withBorder={false} p={0} radius="md">
         <Flex
           direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'xl', lg: 48 }}
+          gap={{ base: 'md', lg: 'lg' }}
           align="flex-start"
         >
           <ProjectSiblingSubnav
@@ -416,48 +410,46 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
             siblings={siblings}
           />
 
-          <Card withBorder padding="md" style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <Stack gap="xl">
-              <Box data-context-docs-table>
-                <Text tt="uppercase" fz="xs" fw={600} c="dimmed" mb="sm">
-                  Documents
-                </Text>
-                <ContextDocumentsTable documents={documents} />
-              </Box>
-
-              {type === 'project' && (
-                <Box>
-                  <Group justify="space-between" wrap="nowrap" mb="sm">
-                    <Text tt="uppercase" fz="xs" fw={600} c="dimmed">
-                      Subcontexts
-                    </Text>
-                    {data.canWriteContext && (
-                      <Button variant="filled" size="xs" onClick={openNewSubcontext}>
-                        Create subcontext
-                      </Button>
-                    )}
-                  </Group>
-                  {((data as ProjectResponse).subcontexts?.length ?? 0) === 0 ? (
-                    <Text size="sm" c="dimmed">
-                      No subcontexts yet.
-                    </Text>
-                  ) : (
-                    <Stack gap={4}>
-                      {((data as ProjectResponse).subcontexts ?? []).map((sub) => (
-                        <ContentLink
-                          key={sub.id}
-                          to={`/projects/${id}/subcontexts/${sub.id}`}
-                          style={{ fontSize: 'var(--mantine-font-size-sm)' }}
-                        >
-                          {sub.name}
-                        </ContentLink>
-                      ))}
-                    </Stack>
-                  )}
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <ContentCardWrapper fullHeight={false}>
+              <Stack gap="xl">
+                <Box data-context-docs-table>
+                  <SectionLabel mb="sm">Documents</SectionLabel>
+                  <ContextDocumentsTable documents={documents} />
                 </Box>
-              )}
-            </Stack>
-          </Card>
+
+                {type === 'project' && (
+                  <Box>
+                    <Group justify="space-between" wrap="nowrap" mb="sm">
+                      <SectionLabel>Subcontexts</SectionLabel>
+                      {data.canWriteContext && (
+                        <Button variant="filled" size="xs" onClick={openNewSubcontext}>
+                          Create subcontext
+                        </Button>
+                      )}
+                    </Group>
+                    {((data as ProjectResponse).subcontexts?.length ?? 0) === 0 ? (
+                      <Text size="sm" c="dimmed">
+                        No subcontexts yet.
+                      </Text>
+                    ) : (
+                      <Stack gap={4}>
+                        {((data as ProjectResponse).subcontexts ?? []).map((sub) => (
+                          <ContentLink
+                            key={sub.id}
+                            to={`/projects/${id}/subcontexts/${sub.id}`}
+                            style={{ fontSize: 'var(--mantine-font-size-sm)' }}
+                          >
+                            {sub.name}
+                          </ContentLink>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                )}
+              </Stack>
+            </ContentCardWrapper>
+          </Box>
         </Flex>
       </Paper>
 

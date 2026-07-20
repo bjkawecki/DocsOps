@@ -1,7 +1,7 @@
 import { Box, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
   ArchiveTabContent,
@@ -16,7 +16,6 @@ import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
 import { ScopePeopleMenu } from '../../components/scopePeople';
-import { IconSitemap } from '@tabler/icons-react';
 import type {
   DeleteTarget,
   EditTarget,
@@ -31,6 +30,7 @@ import { DepartmentContextProjectsTab } from '../departmentContext/DepartmentCon
 import { useScopedCatalogDocumentsUrlState } from '../contextScope/useScopedCatalogDocumentsUrlState';
 import { ContextScopePageModals } from '../contextScope/ContextScopePageModals';
 import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
+import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 
 type DepartmentRes = { id: string; name: string; companyId?: string; company?: { id: string } };
 
@@ -109,6 +109,42 @@ export function DepartmentContextPage() {
 
   const departmentScope =
     departmentId != null ? { type: 'department' as const, id: departmentId } : null;
+  const chromeActions = useMemo(() => {
+    if (!departmentId) return null;
+    if (!showPeopleMenu && !canManage) return null;
+    return (
+      <Group gap="xs">
+        {showPeopleMenu ? (
+          <ScopePeopleMenu
+            scope="department"
+            scopeId={departmentId}
+            canManageAuthors={canManageAuthors}
+          />
+        ) : null}
+        {canManage ? (
+          <CreateContextMenu
+            onCreateProcess={() => {
+              setContextInitialType('process');
+              openContextModal();
+            }}
+            onCreateProject={() => {
+              setContextInitialType('project');
+              openContextModal();
+            }}
+            onCreateDraft={openDocumentModal}
+          />
+        ) : null}
+      </Group>
+    );
+  }, [
+    departmentId,
+    showPeopleMenu,
+    canManage,
+    canManageAuthors,
+    openContextModal,
+    openDocumentModal,
+  ]);
+  useRegisterScopePageChrome(departmentScope, department?.name, chromeActions);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -208,34 +244,7 @@ export function DepartmentContextPage() {
     <Box>
       <PageWithTabs
         title={department.name}
-        titleIcon={<IconSitemap size={28} style={{ flexShrink: 0 }} aria-hidden />}
-        description="Contexts and content for the department."
-        actions={
-          departmentId ? (
-            <Group gap="xs">
-              {showPeopleMenu ? (
-                <ScopePeopleMenu
-                  scope="department"
-                  scopeId={departmentId}
-                  canManageAuthors={canManageAuthors}
-                />
-              ) : null}
-              {canManage ? (
-                <CreateContextMenu
-                  onCreateProcess={() => {
-                    setContextInitialType('process');
-                    openContextModal();
-                  }}
-                  onCreateProject={() => {
-                    setContextInitialType('project');
-                    openContextModal();
-                  }}
-                  onCreateDraft={openDocumentModal}
-                />
-              ) : null}
-            </Group>
-          ) : null
-        }
+        hideTitle
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}

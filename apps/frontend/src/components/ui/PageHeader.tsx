@@ -15,6 +15,11 @@ interface PageHeaderProps {
   breadcrumbs?: ReactNode;
   /** If true, no bottom margin (use when parent already provides spacing, e.g. DocumentPage). */
   noBottomMargin?: boolean;
+  /**
+   * When true, omit title/icon (shell breadcrumbs already show location).
+   * Still renders actions + description.
+   */
+  hideTitle?: boolean;
 }
 
 export function PageHeader({
@@ -26,33 +31,42 @@ export function PageHeader({
   actions,
   breadcrumbs,
   noBottomMargin = false,
+  hideTitle = false,
 }: PageHeaderProps) {
+  const showTitleRow = !hideTitle || actions != null;
+
   return (
     <Stack gap="sm" mb={noBottomMargin ? 0 : 'md'}>
       {breadcrumbs != null && breadcrumbs}
-      <Group justify="space-between" align="flex-start" gap="sm">
-        {titleIcon != null ? (
-          <Group gap="xs" wrap="nowrap">
-            {titleIcon}
-            <Title
-              order={titleOrder}
-              fw={600}
-              style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
-            >
-              {title}
-            </Title>
-          </Group>
-        ) : (
-          <Title
-            order={titleOrder}
-            fw={600}
-            style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
-          >
-            {title}
-          </Title>
-        )}
-        {actions}
-      </Group>
+      {showTitleRow && (
+        <Group justify="space-between" align="flex-start" gap="sm">
+          {!hideTitle ? (
+            titleIcon != null ? (
+              <Group gap="xs" wrap="nowrap">
+                {titleIcon}
+                <Title
+                  order={titleOrder}
+                  fw={600}
+                  style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
+                >
+                  {title}
+                </Title>
+              </Group>
+            ) : (
+              <Title
+                order={titleOrder}
+                fw={600}
+                style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
+              >
+                {title}
+              </Title>
+            )
+          ) : (
+            <span />
+          )}
+          {actions}
+        </Group>
+      )}
       {description != null && (
         <Text size="sm" c="dimmed">
           {description}

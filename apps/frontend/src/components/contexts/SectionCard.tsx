@@ -1,5 +1,6 @@
-import { Box, Group, Stack, Text } from '@mantine/core';
+import { Box, Group, Stack } from '@mantine/core';
 import type { ReactNode } from 'react';
+import { SectionLabel } from '../ui/SectionLabel';
 import { ContentCardWrapper, ViewMoreButton } from './cardShared';
 
 export interface SectionCardProps {
@@ -25,9 +26,7 @@ export function SectionCard({ title, titleIcon, children, viewMoreHref }: Sectio
           <Stack gap="sm">
             <Group gap="xs" wrap="nowrap">
               {titleIcon}
-              <Text fw={600} size="md">
-                {title}
-              </Text>
+              <SectionLabel>{title}</SectionLabel>
             </Group>
             {children}
           </Stack>

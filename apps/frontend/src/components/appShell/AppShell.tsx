@@ -145,7 +145,7 @@ function AppShellFrame({
                   resolvedColorScheme={s.resolvedColorScheme}
                   stopImpersonateMutation={s.stopImpersonateMutation}
                 />
-                <Outlet />
+                <Outlet key={s.location.pathname} />
               </Box>
             </MantineAppShell.Main>
           </MantineAppShell>
