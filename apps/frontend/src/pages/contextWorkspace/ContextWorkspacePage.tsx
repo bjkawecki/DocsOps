@@ -131,7 +131,7 @@ export function ContextWorkspacePage() {
     setContextSelected(true);
   }, [contextId]);
 
-  const handleContextNavClick = (navContextId: string, event: MouseEvent<HTMLAnchorElement>) => {
+  const handleContextNavClick = (navContextId: string, event: MouseEvent<HTMLElement>) => {
     if (!contextId) return;
     if (navContextId === contextId) {
       event.preventDefault();

@@ -43,7 +43,7 @@ type ScopeContextSidebarProps = {
    * Click on a process/project/subcontext row.
    * Same id while selected → deselect; same id while cleared → reselect; other id → navigate (Link).
    */
-  onContextNavClick: (contextId: string, event: MouseEvent<HTMLAnchorElement>) => void;
+  onContextNavClick: (contextId: string, event: MouseEvent<HTMLElement>) => void;
   /** Lead/admin only: Trash + Archive as peer rows (not under Projects). */
   trashArchive?: SidebarTrashArchiveLinks | null;
 };
@@ -131,7 +131,7 @@ function ProjectNavItem({
 }: {
   project: SidebarProjectItem;
   activeContextId: string | null;
-  onContextNavClick: (contextId: string, event: MouseEvent<HTMLAnchorElement>) => void;
+  onContextNavClick: (contextId: string, event: MouseEvent<HTMLElement>) => void;
 }) {
   const to = contextUrl(project.contextId);
   const subs = project.subcontexts ?? [];
