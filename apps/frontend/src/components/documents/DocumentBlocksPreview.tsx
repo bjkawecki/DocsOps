@@ -144,7 +144,8 @@ export function blockDocumentToPlainPreview(doc: BlockDocument): string {
 }
 
 type Props = {
-  title: string;
+  /** Optional section label above the preview; omit on the document page. */
+  title?: string;
   doc: BlockDocument | null;
 };
 
@@ -157,9 +158,11 @@ export function DocumentBlocksPreview({ title, doc }: Props) {
   const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(normalizedDoc);
   return (
     <Box mb="md" className="document-content">
-      <Text size="xs" tt="uppercase" fw={600} c="dimmed" mb="xs">
-        {title}
-      </Text>
+      {title ? (
+        <Text size="xs" tt="uppercase" fw={600} c="dimmed" mb="xs">
+          {title}
+        </Text>
+      ) : null}
       <Stack gap="md">
         {normalizedDoc.blocks.map((block) => {
           const el = renderNode(block, anchorIdByBlockNodeId);

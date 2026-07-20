@@ -22,6 +22,7 @@ export type DocumentForDocBreadcrumbs = {
   /** API-`scope` (wird intern als RecentScope interpretiert). */
   scope: unknown;
   contextId: string | null;
+  contextType?: 'process' | 'project' | 'subcontext';
   contextProcessId?: string | null;
   contextName?: string;
   contextProjectId?: string | null;
@@ -34,31 +35,35 @@ export type DocumentForDocBreadcrumbs = {
 export type DocumentDocBreadcrumbsProps = {
   documentId: string;
   doc: DocumentForDocBreadcrumbs;
-  /** Auf der Versionsseite: letzter Crumb verlinkt zurück zum Dokument. */
+  /** Auf der Versionsseite: Dokument-Crumb verlinkt zurück zum Dokument. */
   linkDocumentTitle?: boolean;
 };
 
 function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
   if (doc.contextId == null) return null;
   const to = contextUrl(doc.contextId);
-  if (doc.contextProcessId != null) {
+  if (doc.contextProcessId != null || doc.contextType === 'process') {
     return { name: doc.contextName ?? 'Process', to, icon: <IconRoute size={14} /> };
   }
-  if (doc.subcontextId != null) {
+  if (doc.subcontextId != null || doc.contextType === 'subcontext') {
     return {
       name: doc.subcontextName ?? doc.contextName ?? 'Subcontext',
       to,
       icon: <IconSubtask size={14} />,
     };
   }
-  if (doc.contextProjectId != null) {
+  if (doc.contextProjectId != null || doc.contextType === 'project') {
     return {
       name: doc.contextProjectName ?? doc.contextName ?? 'Project',
       to,
       icon: <IconBriefcase size={14} />,
     };
   }
-  return null;
+  return {
+    name: doc.contextName ?? 'Context',
+    to,
+    icon: <IconRoute size={14} />,
+  };
 }
 
 export function buildDocumentBreadcrumbItems(
@@ -101,18 +106,16 @@ export function buildDocumentBreadcrumbItems(
   if (hasNoContext) {
     items.push({ key: 'no-context', label: 'No context' });
   }
-  if (linkDocumentTitle && documentId) {
-    items.push({
-      key: 'document',
-      label: documentTitle,
-      to: `/documents/${documentId}`,
-    });
-  }
+  items.push({
+    key: 'document',
+    label: documentTitle,
+    ...(linkDocumentTitle && documentId ? { to: `/documents/${documentId}` } : {}),
+  });
   return items;
 }
 
 /**
- * Registers document breadcrumbs in the AppShell row (Scope → Kontext → optional title).
+ * Registers document breadcrumbs in the AppShell row (Scope → Context → Document).
  * Renders nothing inline.
  */
 export function DocumentDocBreadcrumbs({
@@ -122,7 +125,22 @@ export function DocumentDocBreadcrumbs({
 }: DocumentDocBreadcrumbsProps) {
   const items = useMemo(
     () => buildDocumentBreadcrumbItems(documentId, doc, linkDocumentTitle),
-    [documentId, doc, linkDocumentTitle]
+    // Title/context fields drive the trail; avoid depending on whole `doc` identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by breadcrumb fields
+    [
+      documentId,
+      linkDocumentTitle,
+      doc.title,
+      doc.contextId,
+      doc.contextType,
+      doc.contextName,
+      doc.contextProcessId,
+      doc.contextProjectId,
+      doc.contextProjectName,
+      doc.subcontextId,
+      doc.subcontextName,
+      doc.scope,
+    ]
   );
   useSetAppShellBreadcrumbs(items);
   const scope = (doc.scope ?? null) as RecentScope | null;

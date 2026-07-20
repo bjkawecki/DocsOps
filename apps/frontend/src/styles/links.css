@@ -58,27 +58,53 @@ a:not(.mantine-Button-root):visited,
   color: var(--mantine-primary-color-4);
 }
 
-/* Context detail: process/project sibling list – neutral text; primary only when active.
- * Must beat `.mantine-Card-root a { text-decoration: underline }` (sibling nav sits inside Card). */
+/* Context workspace sibling nav – strong idle contrast, soft primary active fill. */
 [data-context-sibling-nav] a,
 [data-context-sibling-nav] a:visited,
-[data-context-sibling-nav] .mantine-NavLink-root,
 [data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root),
-[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root):visited,
-[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root):hover {
+[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root):visited {
+  text-decoration: none;
+}
+[data-context-sibling-nav] .mantine-NavLink-root,
+[data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root {
+  color: var(--mantine-color-text);
+  text-decoration: none;
+  min-height: 32px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+[data-context-sibling-nav] .mantine-NavLink-root .mantine-NavLink-label,
+[data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root .mantine-NavLink-label {
+  font-weight: 400;
+  font-size: var(--mantine-font-size-sm);
   color: inherit;
+}
+[data-context-sibling-nav] .mantine-NavLink-root:hover,
+[data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root:hover,
+[data-context-sibling-nav] .context-sidebar-peer-header:hover {
+  background-color: var(--mantine-color-default-hover);
   text-decoration: none;
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active],
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active] {
-  /* Readable on primary filled background (avoid primary-on-primary). */
-  color: var(--mantine-color-white);
+  color: var(--mantine-primary-color-filled);
+  background-color: var(--mantine-primary-color-light);
+}
+[data-context-sibling-nav] .mantine-NavLink-root[data-active]:hover,
+[data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active]:hover {
+  color: var(--mantine-primary-color-filled);
+  background-color: var(--mantine-primary-color-light-hover, var(--mantine-primary-color-light));
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active] .mantine-NavLink-section,
 [data-context-sibling-nav]
   .mantine-Card-root
   a.mantine-NavLink-root[data-active]
-  .mantine-NavLink-section {
+  .mantine-NavLink-section,
+[data-context-sibling-nav] .mantine-NavLink-root[data-active] .mantine-NavLink-label,
+[data-context-sibling-nav]
+  .mantine-Card-root
+  a.mantine-NavLink-root[data-active]
+  .mantine-NavLink-label {
   color: inherit;
 }
 /* Left column: do not shrink below 280px on large screens. */

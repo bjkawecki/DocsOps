@@ -187,9 +187,24 @@ export function AppShellTopBar({
             aria-expanded={mobileOpened}
             aria-controls={MAIN_NAV_ID}
           />
-          {peopleControl}
         </Group>
         <Group gap={4} wrap="nowrap" justify="flex-end" style={{ marginLeft: 'auto' }}>
+          {peopleControl != null && (
+            <>
+              <Box className="app-shell-top-bar-people">{peopleControl}</Box>
+              <Box
+                className="app-shell-top-bar-people-sep"
+                aria-hidden
+                style={{
+                  width: 1,
+                  alignSelf: 'stretch',
+                  minHeight: 20,
+                  marginInline: 8,
+                  backgroundColor: 'var(--mantine-color-default-border)',
+                }}
+              />
+            </>
+          )}
           {utilIcon(
             '/notifications',
             'Notifications',

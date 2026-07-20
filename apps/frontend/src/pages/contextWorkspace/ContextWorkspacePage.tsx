@@ -15,7 +15,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IconArchive, IconDotsVertical, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
@@ -39,7 +39,10 @@ import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextD
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
-import { buildContextBreadcrumbs } from '../../components/appShell/scopeBreadcrumbs.js';
+import {
+  buildContextBreadcrumbs,
+  scopeBreadcrumbItem,
+} from '../../components/appShell/scopeBreadcrumbs.js';
 import {
   ScopeContextSidebar,
   type SidebarContextItem,
@@ -91,8 +94,7 @@ type SiblingEntityItem = {
   id: string;
   name: string;
   contextId: string;
-  documentCount?: number;
-  subcontexts?: { id: string; name: string; contextId: string; documentCount?: number }[];
+  subcontexts?: { id: string; name: string; contextId: string }[];
 };
 
 /** Base API path for the entity behind a Context (process/project/subcontext mutations). */
@@ -122,6 +124,20 @@ export function ContextWorkspacePage() {
     useDisclosure(false);
   const [newSubcontextName, setNewSubcontextName] = useState('');
   const [newSubcontextLoading, setNewSubcontextLoading] = useState(false);
+  /** False when the user cleared the sidebar selection (re-click active item). */
+  const [contextSelected, setContextSelected] = useState(true);
+
+  useEffect(() => {
+    setContextSelected(true);
+  }, [contextId]);
+
+  const handleContextNavClick = (navContextId: string, event: MouseEvent<HTMLAnchorElement>) => {
+    if (!contextId) return;
+    if (navContextId === contextId) {
+      event.preventDefault();
+      setContextSelected((selected) => !selected);
+    }
+  };
 
   const { data, isPending, isError } = useQuery({
     queryKey: ['context', contextId],
@@ -131,6 +147,8 @@ export function ContextWorkspacePage() {
       return res.json() as Promise<ContextResponse>;
     },
     enabled: !!contextId,
+    // Keep previous context while the next loads so the sidebar does not unmount/reset.
+    placeholderData: (previousData) => previousData,
   });
 
   const { data: documentsData } = useQuery({
@@ -191,16 +209,13 @@ export function ContextWorkspacePage() {
   const sidebarProcesses: SidebarContextItem[] = (processesData?.items ?? []).map((p) => ({
     contextId: p.contextId,
     name: p.name,
-    documentCount: p.documentCount ?? 0,
   }));
   const sidebarProjects: SidebarProjectItem[] = (projectsData?.items ?? []).map((p) => ({
     contextId: p.contextId,
     name: p.name,
-    documentCount: p.documentCount ?? 0,
     subcontexts: (p.subcontexts ?? []).map((s) => ({
       contextId: s.contextId,
       name: s.name,
-      documentCount: s.documentCount ?? 0,
     })),
   }));
 
@@ -215,7 +230,7 @@ export function ContextWorkspacePage() {
   }));
 
   useEffect(() => {
-    if (!data || !recentActions) return;
+    if (!data || data.id !== contextId || !recentActions) return;
     if (data.contextType !== 'process' && data.contextType !== 'project') return;
     const itemScope = ownerToScopeForBreadcrumb(data.owner);
     if (itemScope) {
@@ -223,6 +238,7 @@ export function ContextWorkspacePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- owner identity via FK fields below
   }, [
+    contextId,
     data?.id,
     data?.name,
     data?.contextType,
@@ -234,11 +250,12 @@ export function ContextWorkspacePage() {
   ]);
 
   useEffect(() => {
-    if (!data) return;
+    if (!data || data.id !== contextId) return;
     const itemScope = ownerToScopeForBreadcrumb(data.owner);
     if (itemScope) writeLastScopeContextId(scopeToKey(itemScope), data.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- owner identity via FK fields below
   }, [
+    contextId,
     data?.id,
     data?.owner.companyId,
     data?.owner.departmentId,
@@ -246,8 +263,14 @@ export function ContextWorkspacePage() {
     data?.owner.ownerUserId,
   ]);
 
+  const contextReady = data != null && data.id === contextId;
+  const showContextDetail = contextReady && contextSelected;
+
   const breadcrumbItems = useMemo(() => {
-    if (!data) return null;
+    if (!scope) return null;
+    if (!showContextDetail || !data) {
+      return [scopeBreadcrumbItem(scope, scopeName)];
+    }
     if (data.contextType === 'subcontext' && data.parentProject) {
       return buildContextBreadcrumbs({
         scope,
@@ -264,7 +287,7 @@ export function ContextWorkspacePage() {
       contextName: data.name,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- scope identity via scopeKey
-  }, [data, scopeKey, scopeName]);
+  }, [showContextDetail, data, scope, scopeKey, scopeName]);
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
 
@@ -359,7 +382,7 @@ export function ContextWorkspacePage() {
   };
 
   const breadcrumbActions = useMemo(() => {
-    if (!data?.canWriteContext) return null;
+    if (!showContextDetail || !data?.canWriteContext) return null;
     return (
       <Group gap="xs">
         <Button variant="filled" size="sm" onClick={openNewDoc}>
@@ -395,11 +418,20 @@ export function ContextWorkspacePage() {
     );
     // Handlers close over current data; re-sync when write/type/id change.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- syncKey drives shell update
-  }, [data?.canWriteContext, data?.contextType, contextId, openNewDoc, openDelete]);
+  }, [
+    showContextDetail,
+    data?.canWriteContext,
+    data?.contextType,
+    contextId,
+    openNewDoc,
+    openDelete,
+  ]);
 
   useSetAppShellBreadcrumbActions(
     breadcrumbActions,
-    data?.canWriteContext ? `ctx-actions:${contextId}:${data.contextType}` : 'none'
+    showContextDetail && data?.canWriteContext
+      ? `ctx-actions:${contextId}:${data.contextType}`
+      : 'none'
   );
 
   const handleCreateDocument = async () => {
@@ -457,18 +489,21 @@ export function ContextWorkspacePage() {
 
   if (!contextId) return null;
 
-  if (isPending)
+  // First load only – keep the shell mounted while switching contexts (placeholderData).
+  if (!data && isPending) {
     return (
       <Text size="sm" c="dimmed">
         Loading…
       </Text>
     );
-  if (isError || !data)
+  }
+  if (!data || (isError && !contextReady)) {
     return (
       <Text size="sm" c="red">
         Context not found.
       </Text>
     );
+  }
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
@@ -482,49 +517,62 @@ export function ContextWorkspacePage() {
             processes={sidebarProcesses}
             projects={sidebarProjects}
             drafts={sidebarDrafts}
-            activeContextId={contextId}
+            activeContextId={contextSelected ? contextId : null}
+            onContextNavClick={handleContextNavClick}
             trashArchive={trashArchive}
           />
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <ContentCardWrapper fullHeight={false}>
-              <Stack gap="xl">
-                <Box data-context-docs-table>
-                  <SectionLabel mb="sm">Documents</SectionLabel>
-                  <ContextDocumentsTable documents={documents} />
-                </Box>
-
-                {data.contextType === 'project' && (
-                  <Box>
-                    <Group justify="space-between" wrap="nowrap" mb="sm">
-                      <SectionLabel>Subcontexts</SectionLabel>
-                      {data.canWriteContext && (
-                        <Button variant="filled" size="xs" onClick={openNewSubcontext}>
-                          Create subcontext
-                        </Button>
-                      )}
-                    </Group>
-                    {(data.subcontexts?.length ?? 0) === 0 ? (
-                      <Text size="sm" c="dimmed">
-                        No subcontexts yet.
-                      </Text>
-                    ) : (
-                      <Stack gap={4}>
-                        {(data.subcontexts ?? []).map((sub) => (
-                          <ContentLink
-                            key={sub.id}
-                            to={contextUrl(sub.contextId)}
-                            style={{ fontSize: 'var(--mantine-font-size-sm)' }}
-                          >
-                            {sub.name}
-                          </ContentLink>
-                        ))}
-                      </Stack>
-                    )}
+            {!contextReady ? (
+              <Text size="sm" c="dimmed">
+                Loading…
+              </Text>
+            ) : !contextSelected ? (
+              <ContentCardWrapper fullHeight={false}>
+                <Text size="sm" c="dimmed">
+                  Select a process or project to view documents.
+                </Text>
+              </ContentCardWrapper>
+            ) : (
+              <ContentCardWrapper fullHeight={false}>
+                <Stack gap="xl">
+                  <Box data-context-docs-table>
+                    <SectionLabel mb="sm">Documents</SectionLabel>
+                    <ContextDocumentsTable documents={documents} />
                   </Box>
-                )}
-              </Stack>
-            </ContentCardWrapper>
+
+                  {data.contextType === 'project' && (
+                    <Box>
+                      <Group justify="space-between" wrap="nowrap" mb="sm">
+                        <SectionLabel>Subcontexts</SectionLabel>
+                        {data.canWriteContext && (
+                          <Button variant="filled" size="xs" onClick={openNewSubcontext}>
+                            Create subcontext
+                          </Button>
+                        )}
+                      </Group>
+                      {(data.subcontexts?.length ?? 0) === 0 ? (
+                        <Text size="sm" c="dimmed">
+                          No subcontexts yet.
+                        </Text>
+                      ) : (
+                        <Stack gap={4}>
+                          {(data.subcontexts ?? []).map((sub) => (
+                            <ContentLink
+                              key={sub.id}
+                              to={contextUrl(sub.contextId)}
+                              style={{ fontSize: 'var(--mantine-font-size-sm)' }}
+                            >
+                              {sub.name}
+                            </ContentLink>
+                          ))}
+                        </Stack>
+                      )}
+                    </Box>
+                  )}
+                </Stack>
+              </ContentCardWrapper>
+            )}
           </Box>
         </Flex>
       </Paper>

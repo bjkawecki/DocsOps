@@ -14,7 +14,7 @@ export function AppShellBreadcrumbBar() {
   if (!hasItems && actions == null) return null;
 
   return (
-    <Box mb="sm" className="app-shell-breadcrumb-bar">
+    <Box mb="lg" className="app-shell-breadcrumb-bar">
       <Group
         className="app-shell-breadcrumb-row"
         justify="space-between"

@@ -8,7 +8,6 @@ import {
   Flex,
   Group,
   Menu,
-  NavLink,
   Paper,
   Stack,
   Tabs,
@@ -16,8 +15,9 @@ import {
   TextInput,
   MultiSelect,
 } from '@mantine/core';
-import { Link } from 'react-router-dom';
-import type { ReactNode, RefObject } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import type { RefObject } from 'react';
+import { useMemo } from 'react';
 import {
   IconArchive,
   IconArchiveOff,
@@ -27,7 +27,6 @@ import {
   IconCloudUpload,
   IconHistory,
   IconDotsVertical,
-  IconFileText,
   IconDownload,
 } from '@tabler/icons-react';
 import {
@@ -40,8 +39,27 @@ import type { DocumentLeadDraftPanelHandle } from '../../components/documents/Do
 import { DocumentAccessPanel } from '../../components/documents/DocumentAccessPanel';
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
-import { PageHeader } from '../../components/ui/PageHeader';
-import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
+import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import type { RecentScope } from '../../hooks/useRecentItems.js';
+import { ContextSwitcherSelect } from '../contextWorkspace/ContextSwitcherSelect.js';
+import { contextUrl } from '../contextWorkspace/contextPaths.js';
+import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import type {
+  DocumentResponse,
+  DocumentScope,
+  PdfExportJobStatusResponse,
+} from './documentPageTypes';
+import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
+import { DocumentTocNav } from './DocumentTocNav.js';
+
+function documentScopeToRecentScope(scope: DocumentScope | null): RecentScope | null {
+  if (scope == null) return null;
+  if (scope.type === 'personal') return { type: 'personal' };
+  if (scope.type === 'company' || scope.type === 'department' || scope.type === 'team') {
+    return { type: scope.type, id: scope.id };
+  }
+  return null;
+}
 
 export type DocumentPageLoadedLayoutProps = {
   documentId: string;
@@ -53,7 +71,6 @@ export type DocumentPageLoadedLayoutProps = {
   setEditDescription: (v: string) => void;
   editTagIds: string[];
   setEditTagIds: (v: string[]) => void;
-  metadataItems: ReactNode[];
   saveLoading: boolean;
   publishLoading: boolean;
   editTab: 'draft' | 'metadata' | 'access';
@@ -102,7 +119,6 @@ export function DocumentPageLoadedLayout({
   setEditDescription,
   editTagIds,
   setEditTagIds,
-  metadataItems,
   saveLoading,
   publishLoading,
   editTab,
@@ -140,209 +156,194 @@ export function DocumentPageLoadedLayout({
   latestPublishedVersion,
   onReloadPublishedContent,
 }: DocumentPageLoadedLayoutProps) {
+  const navigate = useNavigate();
   const docTitle = mode === 'edit' ? editTitle || 'Untitled' : data.title;
   const hasNoContext = data.contextId == null;
   const canEnterEditMode = data.canWrite || !!data.canPublish;
   const canManageAccess = !!data.canPublish;
   const publishedPlainFromBlocks =
     data.publishedBlocks != null ? blockDocumentToPlainPreview(data.publishedBlocks).trim() : '';
+  const ownerScope = useMemo(
+    () => documentScopeToRecentScope(data.scope),
+    // Scope identity is type + id; ignore optional display name churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by scope fields
+    [data.scope?.type, data.scope && 'id' in data.scope ? data.scope.id : undefined]
+  );
+  const breadcrumbDoc = useMemo(() => ({ ...data, title: docTitle }), [data, docTitle]);
+
+  const breadcrumbActions = useMemo(() => {
+    return (
+      <Group gap="xs">
+        {mode === 'edit' && (
+          <>
+            <Button variant="default" size="sm" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              loading={saveLoading}
+              disabled={editTab === 'draft' && !leadDraftDirty}
+              onClick={() =>
+                void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave())
+              }
+            >
+              {editTab === 'draft' ? 'Save draft' : 'Save'}
+            </Button>
+            {editTab === 'draft' && leadDraftLastSynced && (
+              <Text size="xs" c="dimmed">
+                Last synced {new Date(leadDraftLastSynced).toLocaleTimeString()}
+              </Text>
+            )}
+          </>
+        )}
+        {canEnterEditMode && mode === 'view' && (
+          <ActionIcon
+            variant="filled"
+            size="36"
+            aria-label="Edit document"
+            onClick={handleEditClick}
+          >
+            <IconPencil size={18} />
+          </ActionIcon>
+        )}
+        {mode === 'edit' && showPublishButton && (
+          <Button
+            variant="filled"
+            size="sm"
+            color="green"
+            leftSection={<IconCloudUpload size={14} />}
+            loading={publishLoading}
+            onClick={() => void handlePublish()}
+          >
+            {data.publishedAt ? 'Publish changes' : 'Publish'}
+          </Button>
+        )}
+        {mode === 'edit' &&
+          data.canPublish &&
+          !showPublishButton &&
+          leadDraftPendingSuggestions > 0 && (
+            <Text size="xs" c="dimmed">
+              Resolve {leadDraftPendingSuggestions} pending suggestion(s) before publishing.
+            </Text>
+          )}
+        <Menu shadow="md" position="bottom-end">
+          <Menu.Target>
+            <ActionIcon variant="default" size="36" aria-label="More actions">
+              <IconDotsVertical size={18} />
+            </ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item
+              component={Link}
+              to={`/documents/${documentId}/versions`}
+              leftSection={<IconHistory size={14} />}
+            >
+              History
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<IconDownload size={14} />}
+              disabled={pdfExportLoading}
+              onClick={() => void handleStartPdfExport()}
+            >
+              {pdfExportLoading ? 'Queuing PDF export...' : 'Export PDF (async)'}
+            </Menu.Item>
+            {pdfExportStatus?.status === 'succeeded' && pdfExportStatus.downloadUrl && (
+              <Menu.Item
+                component="a"
+                href={pdfExportStatus.downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                leftSection={<IconDownload size={14} />}
+              >
+                Download exported PDF
+              </Menu.Item>
+            )}
+            {hasNoContext && data.canWrite && (
+              <Menu.Item leftSection={<IconTarget size={14} />} onClick={openAssignContext}>
+                Assign to context
+              </Menu.Item>
+            )}
+            {data.canWrite && !data.archivedAt && (
+              <Menu.Item
+                leftSection={<IconArchive size={14} />}
+                onClick={() => void handleArchive()}
+              >
+                Archive
+              </Menu.Item>
+            )}
+            {data.canWrite && data.archivedAt && (
+              <Menu.Item
+                leftSection={<IconArchiveOff size={14} />}
+                onClick={() => void handleUnarchive()}
+              >
+                Unarchive
+              </Menu.Item>
+            )}
+            {data.canDelete && <Menu.Divider />}
+            {data.canDelete && (
+              <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={openDelete}>
+                Move to trash
+              </Menu.Item>
+            )}
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- syncKey drives shell update
+  }, [
+    mode,
+    saveLoading,
+    editTab,
+    leadDraftDirty,
+    leadDraftLastSynced,
+    canEnterEditMode,
+    showPublishButton,
+    publishLoading,
+    leadDraftPendingSuggestions,
+    documentId,
+    pdfExportLoading,
+    pdfExportStatus?.status,
+    pdfExportStatus?.downloadUrl,
+    hasNoContext,
+    data.canWrite,
+    data.canPublish,
+    data.archivedAt,
+    data.canDelete,
+    data.publishedAt,
+  ]);
+
+  useSetAppShellBreadcrumbActions(
+    breadcrumbActions,
+    `doc-actions:${documentId}:${mode}:${editTab}:${leadDraftDirty}:${showPublishButton}:${pdfExportLoading}`
+  );
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <Stack gap="lg" mb="xl" mt="md">
-        <DocumentDocBreadcrumbs documentId={documentId} doc={data} />
-        <PageHeader
-          title={docTitle}
-          titleOrder={1}
-          noBottomMargin
-          titleIcon={
-            data?.publishedAt ? (
-              <IconFileText size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
-            ) : (
-              <IconPencil size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
-            )
-          }
-          description={mode === 'view' && data.description ? data.description : undefined}
-          metadata={metadataItems.length > 0 ? metadataItems : undefined}
-          actions={
-            <Group gap="xs">
-              {mode === 'edit' && (
-                <>
-                  <Button variant="default" size="sm" onClick={handleCancelEdit}>
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    loading={saveLoading}
-                    disabled={editTab === 'draft' && !leadDraftDirty}
-                    onClick={() =>
-                      void (editTab === 'draft'
-                        ? leadDraftPanelRef.current?.saveDraft()
-                        : handleSave())
-                    }
-                  >
-                    {editTab === 'draft' ? 'Save draft' : 'Save'}
-                  </Button>
-                  {editTab === 'draft' && leadDraftLastSynced && (
-                    <Text size="xs" c="dimmed">
-                      Last synced {new Date(leadDraftLastSynced).toLocaleTimeString()}
-                    </Text>
-                  )}
-                </>
-              )}
-              {canEnterEditMode && mode === 'view' && (
-                <ActionIcon
-                  variant="filled"
-                  size="36"
-                  aria-label="Edit document"
-                  onClick={handleEditClick}
-                >
-                  <IconPencil size={18} />
-                </ActionIcon>
-              )}
-              {mode === 'edit' && showPublishButton && (
-                <Button
-                  variant="filled"
-                  size="sm"
-                  color="green"
-                  leftSection={<IconCloudUpload size={14} />}
-                  loading={publishLoading}
-                  onClick={() => void handlePublish()}
-                >
-                  {data.publishedAt ? 'Publish changes' : 'Publish'}
-                </Button>
-              )}
-              {mode === 'edit' &&
-                data.canPublish &&
-                !showPublishButton &&
-                leadDraftPendingSuggestions > 0 && (
-                  <Text size="xs" c="dimmed">
-                    Resolve {leadDraftPendingSuggestions} pending suggestion(s) before publishing.
-                  </Text>
-                )}
-              <Menu shadow="md" position="bottom-end">
-                <Menu.Target>
-                  <ActionIcon variant="default" size="36" aria-label="More actions">
-                    <IconDotsVertical size={18} />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    component={Link}
-                    to={`/documents/${documentId}/versions`}
-                    leftSection={<IconHistory size={14} />}
-                  >
-                    History
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={<IconDownload size={14} />}
-                    disabled={pdfExportLoading}
-                    onClick={() => void handleStartPdfExport()}
-                  >
-                    {pdfExportLoading ? 'Queuing PDF export...' : 'Export PDF (async)'}
-                  </Menu.Item>
-                  {pdfExportStatus?.status === 'succeeded' && pdfExportStatus.downloadUrl && (
-                    <Menu.Item
-                      component="a"
-                      href={pdfExportStatus.downloadUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      leftSection={<IconDownload size={14} />}
-                    >
-                      Download exported PDF
-                    </Menu.Item>
-                  )}
-                  {hasNoContext && data.canWrite && (
-                    <Menu.Item leftSection={<IconTarget size={14} />} onClick={openAssignContext}>
-                      Assign to context
-                    </Menu.Item>
-                  )}
-                  {data.canWrite && !data.archivedAt && (
-                    <Menu.Item
-                      leftSection={<IconArchive size={14} />}
-                      onClick={() => void handleArchive()}
-                    >
-                      Archive
-                    </Menu.Item>
-                  )}
-                  {data.canWrite && data.archivedAt && (
-                    <Menu.Item
-                      leftSection={<IconArchiveOff size={14} />}
-                      onClick={() => void handleUnarchive()}
-                    >
-                      Unarchive
-                    </Menu.Item>
-                  )}
-                  {data.canDelete && <Menu.Divider />}
-                  {data.canDelete && (
-                    <Menu.Item
-                      color="red"
-                      leftSection={<IconTrash size={14} />}
-                      onClick={openDelete}
-                    >
-                      Move to trash
-                    </Menu.Item>
-                  )}
-                </Menu.Dropdown>
-              </Menu>
-            </Group>
-          }
-        />
-      </Stack>
+      <DocumentDocBreadcrumbs documentId={documentId} doc={breadcrumbDoc} />
 
-      <Paper withBorder={false} p="lg" radius="md">
+      <Paper withBorder={false} p={0} radius="md">
         <Flex
           direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'xl', lg: 48 }}
+          gap={{ base: 'md', lg: 'lg' }}
           align="flex-start"
         >
-          {mode === 'view' && headings.length > 0 && (
-            <Box
-              w={{ base: '100%', lg: 280 }}
-              style={{
-                flexShrink: 0,
-                position: 'sticky',
-                top: 'var(--mantine-spacing-xl)',
-                border: '1px solid var(--mantine-color-default-border)',
-                borderRadius: 'var(--mantine-radius-md)',
-                padding: 'var(--mantine-spacing-sm)',
-              }}
-            >
-              <Text
-                tt="uppercase"
-                fz="xs"
-                fw={600}
-                c="dimmed"
-                mb="sm"
-                style={{ paddingLeft: 'var(--mantine-spacing-xs)', letterSpacing: 1 }}
-              >
-                Table of Contents
-              </Text>
-              <Stack component="nav" gap={2}>
-                {numberedHeadings.map((h) => (
-                  <NavLink
-                    key={h.id}
-                    href={`#${h.id}`}
-                    label={`${h.numbering} ${h.text}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    style={{
-                      paddingLeft: `calc(var(--mantine-spacing-xs) + ${(h.level - 1) * 10}px)`,
-                      paddingTop: 'var(--mantine-spacing-xs)',
-                      paddingBottom: 'var(--mantine-spacing-xs)',
-                      paddingRight: 'var(--mantine-spacing-xs)',
-                      fontSize: h.level >= 4 ? 'var(--mantine-font-size-xs)' : undefined,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  />
-                ))}
-              </Stack>
-            </Box>
-          )}
+          <ContextWorkspaceLeftColumn sticky>
+            <Stack gap="md" w="100%">
+              {data.contextId != null && ownerScope != null && (
+                <ContextSwitcherSelect
+                  owner={ownerScope}
+                  value={data.contextId}
+                  onChange={(nextId) => {
+                    void navigate(contextUrl(nextId));
+                  }}
+                />
+              )}
+              <DocumentSidebarMeta data={data} />
+              {numberedHeadings.length > 0 && (
+                <DocumentTocNav numberedHeadings={numberedHeadings} />
+              )}
+            </Stack>
+          </ContextWorkspaceLeftColumn>
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Flex
@@ -354,26 +355,37 @@ export function DocumentPageLoadedLayout({
               style={{ minHeight: 0 }}
             >
               <Stack gap="lg" style={{ flex: 1, minWidth: 0 }}>
+                {mode === 'view' && data.description ? (
+                  <Text size="sm" c="dimmed" maw="90ch" w="100%">
+                    {data.description}
+                  </Text>
+                ) : null}
                 {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
-                  <DocumentPublishedVersionAlert
-                    show
-                    currentVersion={latestPublishedVersion}
-                    acknowledgedVersion={ackPublishedVersion}
-                    onReload={onReloadPublishedContent}
-                  />
+                  <Box maw="90ch" w="100%">
+                    <DocumentPublishedVersionAlert
+                      show
+                      currentVersion={latestPublishedVersion}
+                      acknowledgedVersion={ackPublishedVersion}
+                      onReload={onReloadPublishedContent}
+                    />
+                  </Box>
                 )}
                 {mode === 'view' ? (
-                  <Card withBorder padding="lg" style={{ maxWidth: '75ch' }}>
-                    <Box
-                      style={{
-                        paddingBottom: 'var(--mantine-spacing-xl)',
-                        maxWidth: '100%',
-                        marginLeft: 0,
-                      }}
-                    >
+                  <Card
+                    withBorder
+                    maw="90ch"
+                    w="100%"
+                    padding={0}
+                    styles={{
+                      root: {
+                        padding: '2rem 2.5rem',
+                      },
+                    }}
+                  >
+                    <Box style={{ maxWidth: '100%' }}>
                       {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
                         publishedPlainFromBlocks ? (
-                          <DocumentBlocksPreview title="Content" doc={data.publishedBlocks} />
+                          <DocumentBlocksPreview doc={data.publishedBlocks} />
                         ) : (
                           <Text size="sm" c="dimmed">
                             Published blocks do not contain extractable text for this preview.
@@ -388,7 +400,17 @@ export function DocumentPageLoadedLayout({
                     </Box>
                   </Card>
                 ) : (
-                  <Card withBorder padding="lg">
+                  <Card
+                    withBorder
+                    maw="90ch"
+                    w="100%"
+                    padding={0}
+                    styles={{
+                      root: {
+                        padding: '2rem 2.5rem',
+                      },
+                    }}
+                  >
                     <Tabs
                       value={editTab}
                       onChange={(v) => setEditTab((v as typeof editTab) ?? 'draft')}

@@ -3,7 +3,6 @@ import { DocumentPageErrorView } from './DocumentPageErrorView';
 import { DocumentPageLoadedLayout } from './DocumentPageLoadedLayout';
 import { DocumentPageModals } from './DocumentPageModals';
 import { DocumentPagePendingView } from './DocumentPagePendingView';
-import { buildDocumentMetadataItems } from './buildDocumentMetadataItems';
 import { useDocumentPage } from './useDocumentPage';
 
 export function DocumentPage() {
@@ -18,7 +17,6 @@ export function DocumentPage() {
   }
 
   const data = vm.data;
-  const metadataItems = buildDocumentMetadataItems({ data });
 
   return (
     <>
@@ -32,7 +30,6 @@ export function DocumentPage() {
         setEditDescription={vm.setEditDescription}
         editTagIds={vm.editTagIds}
         setEditTagIds={vm.setEditTagIds}
-        metadataItems={metadataItems}
         saveLoading={vm.saveLoading}
         publishLoading={vm.publishLoading}
         editTab={vm.editTab}

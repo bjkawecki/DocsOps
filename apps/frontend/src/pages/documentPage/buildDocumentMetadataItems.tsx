@@ -1,68 +1,41 @@
-import { Badge, Group, Text } from '@mantine/core';
-import type { ReactNode } from 'react';
+import { Stack, Text } from '@mantine/core';
 import type { DocumentResponse } from './documentPageTypes';
 
-export function buildDocumentMetadataItems(params: { data: DocumentResponse }): ReactNode[] {
-  const { data } = params;
-  const writerNames = [
-    ...(data.writers?.users?.map((u) => u.name) ?? []),
-    ...(data.writers?.teams?.map((t) => t.name) ?? []),
-    ...(data.writers?.departments?.map((d) => d.name) ?? []),
-  ].filter(Boolean);
+/**
+ * Version/draft + tags for the document left column (under context, above TOC).
+ * Two plain text lines – no badge chrome.
+ */
+export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
+  const versionNumber = data.currentPublishedVersionNumber;
+  const tagNames = data.documentTags.map((dt) => dt.tag.name).filter(Boolean);
+  const dateLabel = data.publishedAt
+    ? new Date(data.publishedAt).toLocaleDateString(undefined)
+    : null;
 
-  const metadataItems: ReactNode[] = [];
+  let statusLine: string | null = null;
   if (data.publishedAt) {
-    const versionSuffix =
-      data.currentPublishedVersionNumber != null ? ` · v${data.currentPublishedVersionNumber}` : '';
-    metadataItems.push(
-      <Group key="status" gap="xs" align="center">
-        <Badge size="sm" variant="filled" color="green">
-          Published{versionSuffix}
-        </Badge>
-        <Text size="sm" c="dimmed" span>
-          {new Date(data.publishedAt).toLocaleDateString(undefined)}
-        </Text>
-      </Group>
-    );
+    const versionPart = versionNumber != null ? `Version ${versionNumber}` : null;
+    if (versionPart != null && dateLabel != null) {
+      statusLine = `${versionPart}, ${dateLabel}`;
+    } else {
+      statusLine = versionPart ?? dateLabel;
+    }
   } else {
-    metadataItems.push(
-      <Badge key="status" size="sm" variant="filled" color="yellow">
-        Draft
-      </Badge>
-    );
+    statusLine = 'Draft';
   }
-  if (data.createdByName) {
-    metadataItems.push(
-      <Group key="author" gap="xs" align="center">
-        <Text size="sm" c="dimmed" span>
-          Created by:{' '}
+
+  return (
+    <Stack gap={4} w="100%">
+      {statusLine != null ? (
+        <Text size="sm" c="dimmed">
+          {statusLine}
         </Text>
-        <Badge size="sm" variant="filled">
-          {data.createdByName}
-        </Badge>
-      </Group>
-    );
-  }
-  if (writerNames.length > 0) {
-    metadataItems.push(
-      <Group key="writers" gap="xs" align="center">
-        <Text size="sm" c="dimmed" span>
-          Writers:{' '}
+      ) : null}
+      {tagNames.length > 0 ? (
+        <Text size="sm" c="dimmed" aria-label="Tags">
+          Tags: {tagNames.join(', ')}
         </Text>
-        <Badge size="sm" variant="filled">
-          {writerNames.join(', ')}
-        </Badge>
-      </Group>
-    );
-  }
-  if (data.documentTags.length > 0) {
-    data.documentTags.forEach((dt) => {
-      metadataItems.push(
-        <Badge key={`tag-${dt.tag.id}`} size="sm" variant="light" color="gray">
-          {dt.tag.name}
-        </Badge>
-      );
-    });
-  }
-  return metadataItems;
+      ) : null}
+    </Stack>
+  );
 }

@@ -56,3 +56,25 @@ export function writeLastScopeContextId(scopeKey: string, contextId: string): vo
     // ignore
   }
 }
+
+const SIDEBAR_SECTION_PREFIX = 'docsops:context-sidebar:open:';
+
+/** Persist Processes/Projects/project-sub expand across context navigations (session). */
+export function readSidebarSectionOpen(sectionId: string, fallback: boolean): boolean {
+  try {
+    const v = window.sessionStorage.getItem(`${SIDEBAR_SECTION_PREFIX}${sectionId}`);
+    if (v === '1') return true;
+    if (v === '0') return false;
+  } catch {
+    // ignore
+  }
+  return fallback;
+}
+
+export function writeSidebarSectionOpen(sectionId: string, open: boolean): void {
+  try {
+    window.sessionStorage.setItem(`${SIDEBAR_SECTION_PREFIX}${sectionId}`, open ? '1' : '0');
+  } catch {
+    // ignore
+  }
+}

@@ -7,16 +7,16 @@ import {
   IconRoute,
   IconTrash,
 } from '@tabler/icons-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
-import { contextUrl } from './contextPaths.js';
+import { contextUrl, readSidebarSectionOpen, writeSidebarSectionOpen } from './contextPaths.js';
+import { ContextWorkspaceLeftColumn } from './contextWorkspaceChrome.js';
 
 export type SidebarContextItem = {
   /** Context.id for SPA navigation */
   contextId: string;
   name: string;
-  documentCount: number;
 };
 
 export type SidebarProjectItem = SidebarContextItem & {
@@ -37,7 +37,13 @@ type ScopeContextSidebarProps = {
   processes: SidebarContextItem[];
   projects: SidebarProjectItem[];
   drafts?: SidebarDraftItem[];
-  activeContextId: string;
+  /** Currently selected context, or `null` when the user cleared the selection. */
+  activeContextId: string | null;
+  /**
+   * Click on a process/project/subcontext row.
+   * Same id while selected → deselect; same id while cleared → reselect; other id → navigate (Link).
+   */
+  onContextNavClick: (contextId: string, event: MouseEvent<HTMLAnchorElement>) => void;
   /** Lead/admin only: Trash + Archive as peer rows (not under Projects). */
   trashArchive?: SidebarTrashArchiveLinks | null;
 };
@@ -49,47 +55,56 @@ const navLinkFullWidth = {
   width: '100%',
 } as const;
 
+/** Nested under Processes/Projects – align with org-nav staircase. */
+const nestedListStyle: React.CSSProperties = {
+  borderLeft: '1px solid var(--mantine-color-default-border)',
+  marginLeft: 14,
+  paddingLeft: 8,
+  marginTop: 4,
+};
+
 const peerHeaderButtonStyle: React.CSSProperties = {
   width: '100%',
-  minHeight: 'var(--mantine-nav-link-height, 28px)',
+  minHeight: 32,
   display: 'flex',
   alignItems: 'center',
-  gap: 6,
-  padding: '2px 6px',
+  gap: 8,
+  padding: '6px 8px',
   borderRadius: 'var(--mantine-radius-sm)',
 };
 
-function DocumentCountBadge({ count }: { count: number }) {
-  if (count <= 0) return null;
-  return (
-    <Text size="xs" c="var(--mantine-primary-color-filled)" component="span">
-      {count}
-    </Text>
-  );
-}
-
-/** Org-nav-style peer section: icon + label (no small caps) + chevron. */
+/** Org-nav-style peer section: icon + label (no small caps) + chevron. Open state persists in sessionStorage. */
 function PeerCollapsibleSection({
+  sectionId,
   label,
   icon,
   defaultOpen = true,
   children,
 }: {
+  sectionId: string;
   label: string;
   icon?: ReactNode;
   defaultOpen?: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(() => readSidebarSectionOpen(sectionId, defaultOpen));
+  const toggle = () => {
+    setOpen((o) => {
+      const next = !o;
+      writeSidebarSectionOpen(sectionId, next);
+      return next;
+    });
+  };
   return (
     <Box>
       <UnstyledButton
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         style={peerHeaderButtonStyle}
         aria-expanded={open}
+        className="context-sidebar-peer-header"
       >
         {icon}
-        <Text size="xs" c="dimmed" fw={600} truncate style={{ flex: 1, textAlign: 'left' }}>
+        <Text size="sm" c="dimmed" fw={600} truncate style={{ flex: 1, textAlign: 'left' }}>
           {label}
         </Text>
         {open ? (
@@ -99,9 +114,11 @@ function PeerCollapsibleSection({
         )}
       </UnstyledButton>
       <Collapse in={open}>
-        <Stack gap={4} align="stretch" w="100%" mt={4} pl={4}>
-          {children}
-        </Stack>
+        <Box style={nestedListStyle}>
+          <Stack gap={6} align="stretch" w="100%">
+            {children}
+          </Stack>
+        </Box>
       </Collapse>
     </Box>
   );
@@ -110,19 +127,24 @@ function PeerCollapsibleSection({
 function ProjectNavItem({
   project,
   activeContextId,
-  pathname,
+  onContextNavClick,
 }: {
   project: SidebarProjectItem;
-  activeContextId: string;
-  pathname: string;
+  activeContextId: string | null;
+  onContextNavClick: (contextId: string, event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const to = contextUrl(project.contextId);
   const subs = project.subcontexts ?? [];
   const hasSubs = subs.length > 0;
-  const childActive = subs.some(
-    (s) => pathname === contextUrl(s.contextId) || activeContextId === s.contextId
-  );
-  const [expanded, setExpanded] = useState(childActive || pathname === to);
+  const childActive = subs.some((s) => activeContextId === s.contextId);
+  const sectionId = `project:${project.contextId}`;
+  const [expanded, setExpanded] = useState(() => readSidebarSectionOpen(sectionId, childActive));
+
+  useEffect(() => {
+    if (!childActive) return;
+    setExpanded(true);
+    writeSidebarSectionOpen(sectionId, true);
+  }, [childActive, sectionId]);
 
   if (!hasSubs) {
     return (
@@ -130,33 +152,43 @@ function ProjectNavItem({
         component={Link}
         to={to}
         label={project.name}
-        active={pathname === to || activeContextId === project.contextId}
-        variant="light"
+        active={activeContextId === project.contextId}
+        variant="subtle"
         style={navLinkFullWidth}
-        rightSection={<DocumentCountBadge count={project.documentCount} />}
+        onClick={(e) => onContextNavClick(project.contextId, e)}
       />
     );
   }
 
+  const toggleSubs = () => {
+    setExpanded((e) => {
+      const next = !e;
+      writeSidebarSectionOpen(sectionId, next);
+      return next;
+    });
+  };
+
   return (
-    <Stack gap={4} align="stretch" w="100%">
+    <Stack gap={6} align="stretch" w="100%">
       <Box style={{ display: 'flex', alignItems: 'stretch', gap: 0, width: '100%' }}>
         <NavLink
           component={Link}
           to={to}
           label={project.name}
-          active={pathname === to || activeContextId === project.contextId}
-          variant="light"
+          active={activeContextId === project.contextId}
+          variant="subtle"
           style={{ ...navLinkFullWidth, flex: 1, minWidth: 0 }}
+          onClick={(e) => onContextNavClick(project.contextId, e)}
         />
         <UnstyledButton
-          onClick={() => setExpanded((e) => !e)}
+          onClick={toggleSubs}
           aria-expanded={expanded}
           aria-label={expanded ? 'Collapse subcontexts' : 'Expand subcontexts'}
+          className="context-sidebar-peer-header"
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '0 6px',
+            padding: '0 8px',
             flexShrink: 0,
             borderRadius: 'var(--mantine-radius-sm)',
           }}
@@ -167,11 +199,12 @@ function ProjectNavItem({
       <Collapse in={expanded}>
         <Box
           style={{
-            paddingLeft: 'var(--mantine-spacing-sm)',
-            borderLeft: '2px solid var(--mantine-color-default-border)',
+            borderLeft: '1px solid var(--mantine-color-default-border)',
+            marginLeft: 10,
+            paddingLeft: 8,
           }}
         >
-          <Stack gap={4} align="stretch" w="100%">
+          <Stack gap={6} align="stretch" w="100%">
             {subs.map((sub) => {
               const subTo = contextUrl(sub.contextId);
               return (
@@ -180,10 +213,10 @@ function ProjectNavItem({
                   component={Link}
                   to={subTo}
                   label={sub.name}
-                  active={pathname === subTo || activeContextId === sub.contextId}
-                  variant="light"
+                  active={activeContextId === sub.contextId}
+                  variant="subtle"
                   style={navLinkFullWidth}
-                  rightSection={<DocumentCountBadge count={sub.documentCount} />}
+                  onClick={(e) => onContextNavClick(sub.contextId, e)}
                 />
               );
             })}
@@ -199,15 +232,17 @@ export function ScopeContextSidebar({
   projects,
   drafts,
   activeContextId,
+  onContextNavClick,
   trashArchive = null,
 }: ScopeContextSidebarProps) {
   const { pathname } = useLocation();
 
   return (
-    <Box w={{ base: '100%', lg: 280 }} style={{ flexShrink: 0 }} data-context-sibling-nav>
+    <ContextWorkspaceLeftColumn data-context-sibling-nav>
       <ContentCardWrapper fullHeight={false}>
-        <Stack gap="sm" component="nav" align="stretch" w="100%">
+        <Stack gap="md" component="nav" align="stretch" w="100%">
           <PeerCollapsibleSection
+            sectionId="processes"
             label="Processes"
             icon={<IconRoute size={ICON_SIZE} stroke={1.5} />}
             defaultOpen
@@ -225,10 +260,10 @@ export function ScopeContextSidebar({
                     component={Link}
                     to={to}
                     label={p.name}
-                    active={pathname === to || activeContextId === p.contextId}
-                    variant="light"
+                    active={activeContextId === p.contextId}
+                    variant="subtle"
                     style={navLinkFullWidth}
-                    rightSection={<DocumentCountBadge count={p.documentCount} />}
+                    onClick={(e) => onContextNavClick(p.contextId, e)}
                   />
                 );
               })
@@ -236,6 +271,7 @@ export function ScopeContextSidebar({
           </PeerCollapsibleSection>
 
           <PeerCollapsibleSection
+            sectionId="projects"
             label="Projects"
             icon={<IconBriefcase size={ICON_SIZE} stroke={1.5} />}
             defaultOpen
@@ -250,21 +286,21 @@ export function ScopeContextSidebar({
                   key={project.contextId}
                   project={project}
                   activeContextId={activeContextId}
-                  pathname={pathname}
+                  onContextNavClick={onContextNavClick}
                 />
               ))
             )}
           </PeerCollapsibleSection>
 
           {trashArchive != null && (
-            <Stack gap={4} align="stretch" w="100%">
+            <Stack gap={6} align="stretch" w="100%">
               <NavLink
                 component={Link}
                 to={trashArchive.trashTo}
                 label="Trash"
                 leftSection={<IconTrash size={ICON_SIZE} stroke={1.5} />}
                 active={pathname === trashArchive.trashTo}
-                variant="light"
+                variant="subtle"
                 style={navLinkFullWidth}
               />
               <NavLink
@@ -273,21 +309,21 @@ export function ScopeContextSidebar({
                 label="Archive"
                 leftSection={<IconArchive size={ICON_SIZE} stroke={1.5} />}
                 active={pathname === trashArchive.archiveTo}
-                variant="light"
+                variant="subtle"
                 style={navLinkFullWidth}
               />
             </Stack>
           )}
 
           {drafts != null && drafts.length > 0 && (
-            <PeerCollapsibleSection label="Drafts" defaultOpen={false}>
+            <PeerCollapsibleSection sectionId="drafts" label="Drafts" defaultOpen={false}>
               {drafts.map((d) => (
                 <NavLink
                   key={d.id}
                   component={Link}
                   to={`/documents/${d.id}`}
                   label={d.title}
-                  variant="light"
+                  variant="subtle"
                   style={navLinkFullWidth}
                 />
               ))}
@@ -295,6 +331,6 @@ export function ScopeContextSidebar({
           )}
         </Stack>
       </ContentCardWrapper>
-    </Box>
+    </ContextWorkspaceLeftColumn>
   );
 }
