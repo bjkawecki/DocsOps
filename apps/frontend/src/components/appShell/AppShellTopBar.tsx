@@ -34,6 +34,7 @@ import { COLOR_SCHEME_STORAGE_KEY } from '../../constants.js';
 import { meQueryKey } from '../../hooks/useMe.js';
 import { useWhatsNewBadge } from '../../hooks/useWhatsNewBadge.js';
 import type { UserPreferences } from '../system/ThemeFromPreferences.js';
+import { useIdentityScopePeopleControl } from '../scopePeople/useIdentityScopePeopleControl.js';
 import { isActive } from './appShellNavUtils.js';
 import { MAIN_NAV_ID } from './appShellLayoutConstants.js';
 
@@ -76,6 +77,7 @@ export function AppShellTopBar({
   const { setColorScheme } = useMantineColorScheme();
   const queryClient = useQueryClient();
   const theme = me?.preferences?.theme ?? 'auto';
+  const peopleControl = useIdentityScopePeopleControl();
 
   const patchTheme = useMutation({
     mutationFn: async (nextTheme: 'light' | 'dark' | 'auto') => {
@@ -185,6 +187,7 @@ export function AppShellTopBar({
             aria-expanded={mobileOpened}
             aria-controls={MAIN_NAV_ID}
           />
+          {peopleControl}
         </Group>
         <Group gap={4} wrap="nowrap" justify="flex-end" style={{ marginLeft: 'auto' }}>
           {utilIcon(

@@ -12,11 +12,9 @@ import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
 import {
   useSetAppShellBreadcrumbs,
-  useSetAppShellBreadcrumbActions,
   type AppShellBreadcrumbItem,
 } from '../appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../appShell/AppShellNavScopeContext.js';
-import { useOrgScopePeopleChromeActions } from '../scopePeople/useOrgScopePeopleChromeActions.js';
 
 /** Felder aus dem Document-GET, die für Scope-/Kontext-Breadcrumbs nötig sind. */
 export type DocumentForDocBreadcrumbs = {
@@ -133,7 +131,5 @@ export function DocumentDocBreadcrumbs({
   useSetAppShellBreadcrumbs(items);
   const scope = (doc.scope ?? null) as RecentScope | null;
   useSetAppShellNavScope(scope);
-  const peopleChromeActions = useOrgScopePeopleChromeActions(scope);
-  useSetAppShellBreadcrumbActions(peopleChromeActions);
   return null;
 }

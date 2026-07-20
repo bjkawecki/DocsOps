@@ -39,13 +39,9 @@ import {
   IconRoute,
   IconBriefcase,
 } from '@tabler/icons-react';
-import {
-  useSetAppShellBreadcrumbs,
-  useSetAppShellBreadcrumbActions,
-} from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { buildContextBreadcrumbs } from '../../components/appShell/scopeBreadcrumbs.js';
-import { useOrgScopePeopleChromeActions } from '../../components/scopePeople/useOrgScopePeopleChromeActions.js';
 import { ContentCardWrapper } from '../../components/contexts/cardShared';
 
 type ContextType = 'process' | 'project';
@@ -325,8 +321,6 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
   );
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
-  const peopleChromeActions = useOrgScopePeopleChromeActions(scope);
-  useSetAppShellBreadcrumbActions(peopleChromeActions);
 
   if (isPending)
     return (

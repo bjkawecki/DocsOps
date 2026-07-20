@@ -1,5 +1,3 @@
 export { ScopePeopleMenu, type ScopePeopleScope } from './ScopePeopleMenu';
-export {
-  recentScopeToPeopleParams,
-  useOrgScopePeopleChromeActions,
-} from './useOrgScopePeopleChromeActions.js';
+export { resolveIdentityPeopleScope, peopleScopeId } from './resolveIdentityPeopleScope.js';
+export { useIdentityScopePeopleControl } from './useIdentityScopePeopleControl.js';

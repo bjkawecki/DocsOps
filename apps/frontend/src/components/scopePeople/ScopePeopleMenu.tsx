@@ -327,7 +327,7 @@ export function ScopePeopleMenu({
   );
 
   return (
-    <Popover opened={opened} onChange={setOpened} position="bottom-end" withArrow shadow="md">
+    <Popover opened={opened} onChange={setOpened} position="bottom-start" withArrow shadow="md">
       <Popover.Target>
         <Button
           variant="default"

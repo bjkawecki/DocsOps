@@ -1,4 +1,4 @@
-import { Box, Button, Group, Text } from '@mantine/core';
+import { Box, Button, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, Fragment, useMemo } from 'react';
@@ -10,12 +10,10 @@ import {
 } from '../../components/trashArchive';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
-import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { canShowDraftsTab, canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
 import { useCanWriteInScope } from '../../hooks/useCanWriteInScope';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
-import { ScopePeopleMenu } from '../../components/scopePeople';
 import type {
   DeleteTarget,
   EditTarget,
@@ -75,11 +73,6 @@ export function CompanyPage() {
   });
 
   const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0 || isAdmin;
-
-  const { data: canViewPeopleData } = useCanViewScopePeople(
-    effectiveCompanyId != null ? { scope: 'company', companyId: effectiveCompanyId } : null
-  );
-  const showPeopleMenu = canViewPeopleData?.canViewPeople === true;
 
   const { data: processesData, isPending: processesPending } = useQuery({
     queryKey: ['processes', effectiveCompanyId ?? ''],
@@ -192,27 +185,21 @@ export function CompanyPage() {
     ? { type: 'company' as const, id: effectiveCompanyId }
     : null;
   const chromeActions = useMemo(() => {
-    if (!effectiveCompanyId) return null;
-    if (!showPeopleMenu && !canManage) return null;
+    if (!effectiveCompanyId || !canManage) return null;
     return (
-      <Group gap="xs">
-        {showPeopleMenu ? <ScopePeopleMenu scope="company" scopeId={effectiveCompanyId} /> : null}
-        {canManage ? (
-          <CreateContextMenu
-            onCreateProcess={() => {
-              setContextInitialType('process');
-              openContextModal();
-            }}
-            onCreateProject={() => {
-              setContextInitialType('project');
-              openContextModal();
-            }}
-            onCreateDraft={openDocumentModal}
-          />
-        ) : null}
-      </Group>
+      <CreateContextMenu
+        onCreateProcess={() => {
+          setContextInitialType('process');
+          openContextModal();
+        }}
+        onCreateProject={() => {
+          setContextInitialType('project');
+          openContextModal();
+        }}
+        onCreateDraft={openDocumentModal}
+      />
     );
-  }, [effectiveCompanyId, showPeopleMenu, canManage, openContextModal, openDocumentModal]);
+  }, [effectiveCompanyId, canManage, openContextModal, openDocumentModal]);
   useRegisterScopePageChrome(companyScope, company?.name, chromeActions);
 
   const processes = processesData ?? [];

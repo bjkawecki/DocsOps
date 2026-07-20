@@ -1,4 +1,4 @@
-import { Box, Group, Text } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Fragment, useMemo, useState } from 'react';
@@ -11,8 +11,6 @@ import {
 } from '../../components/trashArchive';
 import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { CreateContextMenu } from '../../components/contexts';
-import { ScopePeopleMenu } from '../../components/scopePeople';
-import { useCanViewScopePeople } from '../../hooks/useCanViewScopePeople';
 import { useMe } from '../../hooks/useMe';
 import { canShowDraftsTab, canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
 import { useCanWriteInScope } from '../../hooks/useCanWriteInScope';
@@ -77,13 +75,7 @@ export function TeamContextPage() {
     companyId != null &&
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
-  const canManageAuthors = !!(isAdmin || isTeamLead || isDepartmentLead);
   const canManage = !!(isAdmin || isTeamLead || isDepartmentLead || isCompanyLead);
-
-  const { data: canViewPeopleData } = useCanViewScopePeople(
-    teamId ? { scope: 'team', teamId } : null
-  );
-  const showPeopleMenu = canViewPeopleData?.canViewPeople === true;
 
   const { data: processesData, isPending: processesPending } = useQuery({
     queryKey: ['processes', 'team', teamId ?? ''],
@@ -113,29 +105,21 @@ export function TeamContextPage() {
 
   const teamScope = teamId != null ? { type: 'team' as const, id: teamId } : null;
   const chromeActions = useMemo(() => {
-    if (!teamId) return null;
-    if (!showPeopleMenu && !canManage) return null;
+    if (!teamId || !canManage) return null;
     return (
-      <Group gap="xs">
-        {showPeopleMenu ? (
-          <ScopePeopleMenu scope="team" scopeId={teamId} canManageAuthors={canManageAuthors} />
-        ) : null}
-        {canManage ? (
-          <CreateContextMenu
-            onCreateProcess={() => {
-              setContextInitialType('process');
-              openContextModal();
-            }}
-            onCreateProject={() => {
-              setContextInitialType('project');
-              openContextModal();
-            }}
-            onCreateDraft={openDocumentModal}
-          />
-        ) : null}
-      </Group>
+      <CreateContextMenu
+        onCreateProcess={() => {
+          setContextInitialType('process');
+          openContextModal();
+        }}
+        onCreateProject={() => {
+          setContextInitialType('project');
+          openContextModal();
+        }}
+        onCreateDraft={openDocumentModal}
+      />
     );
-  }, [teamId, showPeopleMenu, canManage, canManageAuthors, openContextModal, openDocumentModal]);
+  }, [teamId, canManage, openContextModal, openDocumentModal]);
   useRegisterScopePageChrome(teamScope, team?.name, chromeActions);
 
   const [searchParams, setSearchParams] = useSearchParams();

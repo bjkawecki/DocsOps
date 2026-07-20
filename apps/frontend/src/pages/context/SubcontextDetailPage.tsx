@@ -27,13 +27,9 @@ import { ContentCardWrapper } from '../../components/contexts/cardShared';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { SectionLabel } from '../../components/ui/SectionLabel';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
-import {
-  useSetAppShellBreadcrumbs,
-  useSetAppShellBreadcrumbActions,
-} from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { buildContextBreadcrumbs } from '../../components/appShell/scopeBreadcrumbs.js';
-import { useOrgScopePeopleChromeActions } from '../../components/scopePeople/useOrgScopePeopleChromeActions.js';
 
 type SubcontextResponse = {
   id: string;
@@ -289,8 +285,6 @@ export function SubcontextDetailPage() {
   );
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
-  const peopleChromeActions = useOrgScopePeopleChromeActions(scope);
-  useSetAppShellBreadcrumbActions(peopleChromeActions);
 
   if (!subcontextId || !projectIdParam) return null;
 
