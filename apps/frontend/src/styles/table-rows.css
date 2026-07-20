@@ -5,3 +5,28 @@
 [data-clickable-table-row]:hover {
   background-color: var(--mantine-color-default-hover);
 }
+
+/* Meter-inspired dense list tables (Catalog, Trash/Drafts, Admin lists). */
+.dense-list-table {
+  font-size: var(--mantine-font-size-sm);
+}
+
+.dense-list-table thead th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.dense-list-table tbody td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.catalog-table-hover.dense-list-table thead th,
+.admin-table-hover.dense-list-table thead th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+}

@@ -1,9 +1,7 @@
-import { Anchor, Breadcrumbs, Group, Text } from '@mantine/core';
-import { Link } from 'react-router-dom';
+import { useMemo, type ReactNode } from 'react';
 import {
   IconBriefcase,
   IconBuildingSkyscraper,
-  IconChevronRight,
   IconRoute,
   IconSitemap,
   IconSubtask,
@@ -12,6 +10,10 @@ import {
 } from '@tabler/icons-react';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
+import {
+  useSetAppShellBreadcrumbs,
+  type AppShellBreadcrumbItem,
+} from '../appShell/AppShellBreadcrumbsContext.js';
 
 /** Felder aus dem Document-GET, die für Scope-/Kontext-Breadcrumbs nötig sind. */
 export type DocumentForDocBreadcrumbs = {
@@ -39,7 +41,7 @@ function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
     return {
       name: doc.contextName ?? 'Process',
       to: `/processes/${doc.contextProcessId}`,
-      icon: IconRoute,
+      icon: <IconRoute size={14} />,
     };
   }
   if (doc.subcontextId != null) {
@@ -49,28 +51,24 @@ function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
         doc.contextProjectId != null
           ? `/projects/${doc.contextProjectId}/subcontexts/${doc.subcontextId}`
           : `/subcontexts/${doc.subcontextId}`,
-      icon: IconSubtask,
+      icon: <IconSubtask size={14} />,
     };
   }
   if (doc.contextProjectId != null) {
     return {
       name: doc.contextProjectName ?? doc.contextName ?? 'Project',
       to: `/projects/${doc.contextProjectId}`,
-      icon: IconBriefcase,
+      icon: <IconBriefcase size={14} />,
     };
   }
   return null;
 }
 
-/**
- * Breadcrumb-Zeile: Scope → Kontext (→ Dokumenttitel auf der Versionsseite).
- * Versionsverlauf liegt im Dokument-Menü, nicht in der Breadcrumb-Kette.
- */
-export function DocumentDocBreadcrumbs({
-  documentId,
-  doc,
-  linkDocumentTitle = false,
-}: DocumentDocBreadcrumbsProps) {
+export function buildDocumentBreadcrumbItems(
+  documentId: string,
+  doc: DocumentForDocBreadcrumbs,
+  linkDocumentTitle = false
+): AppShellBreadcrumbItem[] {
   const scope = (doc.scope ?? null) as RecentScope | null;
   const hasNoContext = doc.contextId == null;
   const contextMeta = buildContextMeta(doc);
@@ -86,34 +84,49 @@ export function DocumentDocBreadcrumbs({
           ? IconUsersGroup
           : IconUser;
 
-  return (
-    <Breadcrumbs separator={<IconChevronRight size={14} color="var(--mantine-color-dimmed)" />}>
-      {scope && (
-        <Anchor component={Link} to={scopeToUrl(scope)} c="dimmed" size="sm">
-          <Group gap={4} align="center" wrap="nowrap">
-            <ScopeIcon size={14} />
-            <span>{scopeName}</span>
-          </Group>
-        </Anchor>
-      )}
-      {contextMeta && (
-        <Anchor component={Link} to={contextMeta.to} c="dimmed" size="sm">
-          <Group gap={4} align="center" wrap="nowrap">
-            <contextMeta.icon size={14} />
-            <span>{contextMeta.name}</span>
-          </Group>
-        </Anchor>
-      )}
-      {hasNoContext && (
-        <Text size="sm" c="dimmed">
-          No context
-        </Text>
-      )}
-      {linkDocumentTitle && documentId && (
-        <Anchor component={Link} to={`/documents/${documentId}`} c="dimmed" size="sm">
-          {documentTitle}
-        </Anchor>
-      )}
-    </Breadcrumbs>
+  const items: AppShellBreadcrumbItem[] = [];
+  if (scope) {
+    items.push({
+      key: 'scope',
+      label: scopeName,
+      to: scopeToUrl(scope),
+      icon: <ScopeIcon size={14} />,
+    });
+  }
+  if (contextMeta) {
+    items.push({
+      key: 'context',
+      label: contextMeta.name,
+      to: contextMeta.to,
+      icon: contextMeta.icon as ReactNode,
+    });
+  }
+  if (hasNoContext) {
+    items.push({ key: 'no-context', label: 'No context' });
+  }
+  if (linkDocumentTitle && documentId) {
+    items.push({
+      key: 'document',
+      label: documentTitle,
+      to: `/documents/${documentId}`,
+    });
+  }
+  return items;
+}
+
+/**
+ * Registers document breadcrumbs in the AppShell row (Scope → Kontext → optional title).
+ * Renders nothing inline.
+ */
+export function DocumentDocBreadcrumbs({
+  documentId,
+  doc,
+  linkDocumentTitle = false,
+}: DocumentDocBreadcrumbsProps) {
+  const items = useMemo(
+    () => buildDocumentBreadcrumbItems(documentId, doc, linkDocumentTitle),
+    [documentId, doc, linkDocumentTitle]
   );
+  useSetAppShellBreadcrumbs(items);
+  return null;
 }

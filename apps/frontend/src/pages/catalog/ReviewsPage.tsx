@@ -27,7 +27,7 @@ function PendingReviewsTable({
   }
 
   return (
-    <Table striped highlightOnHover withTableBorder>
+    <Table striped highlightOnHover withTableBorder className="dense-list-table">
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Document</Table.Th>

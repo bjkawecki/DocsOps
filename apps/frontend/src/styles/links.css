@@ -3,7 +3,8 @@
   --mantine-color-anchor: var(--mantine-primary-color-4);
 }
 
-a,
+/* Exclude Button-as-Link so filled variants keep Mantine contrast (--button-color). */
+a:not(.mantine-Button-root),
 .mantine-Anchor-root {
   color: var(--mantine-primary-color-4);
 }
@@ -23,23 +24,26 @@ a,
   text-decoration: underline;
 }
 
-a:visited,
+a:not(.mantine-Button-root):visited,
 .mantine-Anchor-root:visited {
   color: var(--mantine-primary-color-3);
 }
 
-/* Buttons (when used as links, e.g. "View more") do not show visited state */
-a.mantine-Button-root:visited,
-.mantine-Button-root:visited {
+/*
+ * Card "View more" (subtle/light Link-Buttons): keep primary label color, no visited fade.
+ * Filled Link-Buttons elsewhere must not get this rule (contrast text from Mantine).
+ */
+.mantine-Card-root a.mantine-Button-root[data-variant='subtle'],
+.mantine-Card-root a.mantine-Button-root[data-variant='subtle']:visited,
+.mantine-Card-root a.mantine-Button-root[data-variant='light'],
+.mantine-Card-root a.mantine-Button-root[data-variant='light']:visited,
+.mantine-Card-root a.mantine-Button-root[data-variant='transparent'],
+.mantine-Card-root a.mantine-Button-root[data-variant='transparent']:visited {
   color: var(--mantine-primary-color-4);
 }
-
-/* "View more" in cards: always primary color on all tabs (Overview, Processes, Projects). */
-.mantine-Card-root a.mantine-Button-root,
-.mantine-Card-root a.mantine-Button-root:visited {
-  color: var(--mantine-primary-color-4);
-}
-.mantine-Card-root a.mantine-Button-root:hover {
+.mantine-Card-root a.mantine-Button-root[data-variant='subtle']:hover,
+.mantine-Card-root a.mantine-Button-root[data-variant='light']:hover,
+.mantine-Card-root a.mantine-Button-root[data-variant='transparent']:hover {
   color: var(--mantine-primary-color-3);
 }
 
@@ -79,13 +83,20 @@ a.mantine-Button-root:visited,
   text-decoration: none;
 }
 
-/* Sidebar: links keep default text color (no primary color). */
+/* Sidebar: links keep default text color (no primary color), except active. */
 [data-sidebar-nav] a,
 [data-sidebar-nav] a:visited,
 [data-sidebar-nav] .mantine-Anchor-root,
-[data-sidebar-nav] .mantine-Anchor-root:visited,
+[data-sidebar-nav] .mantine-Anchor-root:visited {
+  color: inherit;
+}
+
 [data-sidebar-nav] .mantine-NavLink-root {
   color: inherit;
+}
+
+[data-sidebar-nav] .mantine-NavLink-root[data-active] {
+  color: var(--mantine-primary-color-filled);
 }
 
 /* User menu dropdown: link items neutral (Log out is not a link, keeps its color). */

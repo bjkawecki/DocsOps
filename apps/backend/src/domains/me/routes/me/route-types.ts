@@ -14,6 +14,8 @@ type RecentPreferencesItem = {
   name?: string;
 };
 
+export type { RecentPreferencesItem };
+
 type UserPreferences = {
   theme?: 'light' | 'dark' | 'auto';
   sidebarPinned?: boolean;

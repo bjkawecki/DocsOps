@@ -1,36 +1,27 @@
 import { ActionIcon, Box, Group, Stack, Text, TextInput } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState, type SubmitEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { DocopsLogo } from '../../components/appShell/DocopsLogo';
+import { useAppDocumentSearch } from '../../components/search/DocumentSearchContext';
+import { SearchIcon } from '../../components/search/SearchIcon';
 import { useMe } from '../../hooks/useMe';
 import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { useMeReviews } from '../../hooks/useMeReviews';
 import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
 import { getAggregatedRecentItems } from '../../hooks/useRecentItems';
-import {
-  DASHBOARD_CARD_LIMIT,
-  DASHBOARD_SEARCH_DEBOUNCE_MS,
-  DASHBOARD_SEARCH_MIN_CHARS,
-  DASHBOARD_SEARCH_MODAL_LIMIT,
-} from './homePageConstants';
-import type { CatalogResponse, DashboardSearchResponse, PinnedResponse } from './homePageTypes';
-import { HomeDashboardSearchModal } from './HomeDashboardSearchModal';
+import { DASHBOARD_CARD_LIMIT } from './homePageConstants';
+import type { CatalogResponse, PinnedResponse } from './homePageTypes';
 import { HomeDashboardSectionGrid } from './HomeDashboardSectionGrid';
-import { HomeSearchIcon } from './HomeSearchIcon';
 
 export function HomePage() {
   const navigate = useNavigate();
   const resolvedColorScheme = useResolvedColorScheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [modalSearch, setModalSearch] = useState('');
-  const [debouncedModalSearch, setDebouncedModalSearch] = useState('');
-  const [isTabVisible, setIsTabVisible] = useState(() => document.visibilityState === 'visible');
   const heroSearchInputRef = useRef<HTMLInputElement>(null);
-  const modalSearchInputRef = useRef<HTMLInputElement>(null);
+  const { openSearch } = useAppDocumentSearch();
   const { data: me } = useMe();
   const recentItems = getAggregatedRecentItems(
     me?.preferences?.recentItemsByScope,
@@ -89,84 +80,14 @@ export function HomePage() {
   );
   const pendingReviews = reviewsData?.pendingForReview ?? [];
 
-  useEffect(() => {
-    const onVisibility = () => setIsTabVisible(document.visibilityState === 'visible');
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
-
-  useEffect(() => {
-    if (!searchModalOpen) return;
-    const trimmed = modalSearch.trim();
-    const id = window.setTimeout(
-      () => setDebouncedModalSearch(trimmed),
-      DASHBOARD_SEARCH_DEBOUNCE_MS
-    );
-    return () => window.clearTimeout(id);
-  }, [modalSearch, searchModalOpen]);
-
-  useEffect(() => {
-    if (!searchModalOpen) return;
-    const raf = window.requestAnimationFrame(() => modalSearchInputRef.current?.focus());
-    return () => window.cancelAnimationFrame(raf);
-  }, [searchModalOpen]);
-
-  const dashboardSearchEnabled =
-    searchModalOpen && isTabVisible && debouncedModalSearch.length >= DASHBOARD_SEARCH_MIN_CHARS;
-
-  const {
-    data: dashboardSearchData,
-    isFetching: dashboardSearchFetching,
-    isError: dashboardSearchError,
-  } = useQuery({
-    queryKey: ['dashboard-search', debouncedModalSearch],
-    queryFn: async (): Promise<DashboardSearchResponse> => {
-      const params = new URLSearchParams({
-        q: debouncedModalSearch,
-        limit: String(DASHBOARD_SEARCH_MODAL_LIMIT),
-        offset: '0',
-      });
-      const res = await apiFetch(`/api/v1/search/documents?${params}`);
-      if (!res.ok) throw new Error('Failed to search documents');
-      return (await res.json()) as DashboardSearchResponse;
-    },
-    enabled: dashboardSearchEnabled,
-    placeholderData: (previousData) => previousData,
-  });
-
-  const trimmedModalSearch = modalSearch.trim();
-  const trimmedDebouncedSearch = debouncedModalSearch.trim();
-  const searchInputReadyForQuery =
-    searchModalOpen && isTabVisible && trimmedModalSearch.length >= DASHBOARD_SEARCH_MIN_CHARS;
-  const searchDebouncePending =
-    searchInputReadyForQuery && trimmedModalSearch !== trimmedDebouncedSearch;
-  const showSearchSpinner =
-    searchInputReadyForQuery && (searchDebouncePending || dashboardSearchFetching);
-
-  const closeSearchModal = () => {
-    setSearchModalOpen(false);
-    window.requestAnimationFrame(() => heroSearchInputRef.current?.focus());
-  };
-
   const handleSearchSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const search = searchQuery.trim();
-    if (!search) {
+    const q = searchQuery.trim();
+    if (!q) {
       void navigate('/catalog');
       return;
     }
-    setModalSearch(search);
-    setDebouncedModalSearch(search);
-    setSearchModalOpen(true);
-  };
-
-  const goToCatalogFromModal = () => {
-    const q = modalSearch.trim();
-    closeSearchModal();
-    void navigate({
-      pathname: '/catalog',
-      search: q ? `?search=${encodeURIComponent(q)}&sortBy=relevance` : '?sortBy=relevance',
-    });
+    openSearch(q);
   };
 
   return (
@@ -229,7 +150,7 @@ export function HomePage() {
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
             placeholder="Search documents…"
             size="md"
-            leftSection={<HomeSearchIcon />}
+            leftSection={<SearchIcon />}
             rightSection={
               searchQuery.length > 0 ? (
                 <ActionIcon
@@ -248,22 +169,6 @@ export function HomePage() {
           />
         </Box>
       </Stack>
-
-      <HomeDashboardSearchModal
-        opened={searchModalOpen}
-        onClose={closeSearchModal}
-        modalSearch={modalSearch}
-        setModalSearch={setModalSearch}
-        modalSearchInputRef={modalSearchInputRef}
-        debouncedModalSearch={debouncedModalSearch}
-        searchInputReadyForQuery={searchInputReadyForQuery}
-        showSearchSpinner={showSearchSpinner}
-        searchDebouncePending={searchDebouncePending}
-        dashboardSearchEnabled={dashboardSearchEnabled}
-        dashboardSearchError={dashboardSearchError}
-        dashboardSearchData={dashboardSearchData}
-        goToCatalogFromModal={goToCatalogFromModal}
-      />
 
       <HomeDashboardSectionGrid
         pinnedItems={pinnedItems}

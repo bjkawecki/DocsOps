@@ -120,7 +120,7 @@ export function AdminUsersList({
       )}
       {data && !isPending && (
         <>
-          <Table withTableBorder withColumnBorders className="admin-table-hover">
+          <Table withTableBorder className="admin-table-hover dense-list-table">
             <Table.Thead>
               <Table.Tr>
                 <AdminUsersSortableTh

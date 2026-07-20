@@ -1,5 +1,4 @@
 import {
-  Anchor,
   Button,
   Group,
   Stack,
@@ -8,7 +7,6 @@ import {
   Title,
   Flex,
   Container,
-  Breadcrumbs,
   Menu,
   ActionIcon,
   Box,
@@ -16,7 +14,7 @@ import {
   Paper,
 } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
@@ -29,11 +27,10 @@ import { ProjectSiblingSubnav } from '../../components/contexts/ProjectSiblingSu
 import { EditContextNameModal } from '../../components/contexts/EditContextNameModal';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
 import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
-  IconChevronRight,
   IconDotsVertical,
   IconPencil,
   IconArchive,
@@ -45,6 +42,10 @@ import {
   IconRoute,
   IconBriefcase,
 } from '@tabler/icons-react';
+import {
+  useSetAppShellBreadcrumbs,
+  type AppShellBreadcrumbItem,
+} from '../../components/appShell/AppShellBreadcrumbsContext.js';
 
 type ContextType = 'process' | 'project';
 
@@ -183,11 +184,10 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
   const siblings = siblingsData?.items ?? [];
 
   useEffect(() => {
-    if (data && recentActions) {
-      const scope = ownerToScope(data.owner);
-      if (scope) recentActions.addRecent({ type, id: data.id, name: data.name }, scope);
-    }
-  }, [data, type, id, recentActions]);
+    if (!data?.id || !recentActions) return;
+    const scope = ownerToScope(data.owner);
+    if (scope) recentActions.addRecent({ type, id: data.id, name: data.name }, scope);
+  }, [data?.id, data?.name, data?.owner, type, recentActions]);
 
   const invalidateAndClose = () => {
     void queryClient.invalidateQueries({ queryKey });
@@ -304,6 +304,35 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
     }
   };
 
+  const typeLabel = type === 'process' ? 'Processes' : 'Projects';
+  const typeTab = type === 'process' ? 'processes' : 'projects';
+  const scope = data ? ownerToScopeForBreadcrumb(data.owner) : null;
+  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=${typeTab}` : `/?tab=${typeTab}`;
+  const scopeName = data?.owner.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
+  const breadcrumbItems = useMemo((): AppShellBreadcrumbItem[] | null => {
+    if (!data) return null;
+    const icon =
+      scope?.type === 'company' ? (
+        <IconBuildingSkyscraper size={14} />
+      ) : scope?.type === 'department' ? (
+        <IconSitemap size={14} />
+      ) : scope?.type === 'team' ? (
+        <IconUsersGroup size={14} />
+      ) : (
+        <IconUser size={14} />
+      );
+    return [
+      {
+        key: 'scope',
+        label: scopeName,
+        to: scopeUrlWithTab,
+        icon,
+      },
+      { key: 'type', label: typeLabel },
+    ];
+  }, [data, scope?.type, scopeName, scopeUrlWithTab, typeLabel]);
+  useSetAppShellBreadcrumbs(breadcrumbItems);
+
   if (isPending)
     return (
       <Text size="sm" c="dimmed">
@@ -317,35 +346,9 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
       </Text>
     );
 
-  const typeLabel = type === 'process' ? 'Processes' : 'Projects';
-  const typeTab = type === 'process' ? 'processes' : 'projects';
-  const scope = ownerToScopeForBreadcrumb(data.owner);
-
-  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=${typeTab}` : `/?tab=${typeTab}`;
-  const scopeName = data.owner.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
-  const ScopeIcon =
-    scope?.type === 'company'
-      ? IconBuildingSkyscraper
-      : scope?.type === 'department'
-        ? IconSitemap
-        : scope?.type === 'team'
-          ? IconUsersGroup
-          : IconUser;
-
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Stack gap="lg" mb="xl" mt="md">
-        <Breadcrumbs separator={<IconChevronRight size={14} color="var(--mantine-color-dimmed)" />}>
-          <Anchor component={Link} to={scopeUrlWithTab} c="dimmed" size="sm">
-            <Group gap={4} align="center" wrap="nowrap">
-              <ScopeIcon size={14} />
-              <span>{scopeName}</span>
-            </Group>
-          </Anchor>
-          <Text size="sm" c="dimmed">
-            {typeLabel}
-          </Text>
-        </Breadcrumbs>
         <Flex justify="space-between" align="flex-start" wrap="wrap" gap="lg">
           <Group gap="sm" align="center">
             {type === 'process' ? (

@@ -59,7 +59,9 @@ export function SettingsPage() {
           tab: {
             textTransform: 'uppercase',
             fontWeight: 500,
-            fontSize: 'var(--mantine-font-size-sm)',
+            fontSize: 'var(--mantine-font-size-xs)',
+            paddingTop: 6,
+            paddingBottom: 6,
           },
         }}
       >
@@ -70,19 +72,19 @@ export function SettingsPage() {
           <Tabs.Tab value="storage">Storage</Tabs.Tab>
           <Tabs.Tab value="notifications">Notifications</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel value="general" pt="md">
+        <Tabs.Panel value="general" pt="sm">
           <SettingsGeneralTab />
         </Tabs.Panel>
-        <Tabs.Panel value="account" pt="md">
+        <Tabs.Panel value="account" pt="sm">
           <SettingsAccountTab />
         </Tabs.Panel>
-        <Tabs.Panel value="security" pt="md">
+        <Tabs.Panel value="security" pt="sm">
           <SettingsSecurityTab />
         </Tabs.Panel>
-        <Tabs.Panel value="storage" pt="md">
+        <Tabs.Panel value="storage" pt="sm">
           <SettingsStorageTab />
         </Tabs.Panel>
-        <Tabs.Panel value="notifications" pt="md">
+        <Tabs.Panel value="notifications" pt="sm">
           <SettingsNotificationsTab />
         </Tabs.Panel>
       </Tabs>

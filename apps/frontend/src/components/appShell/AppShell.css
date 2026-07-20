@@ -1,8 +1,74 @@
 .app-shell-navbar {
-  --app-shell-mini-item-size: 40px;
-  --app-shell-mini-icon-size: 22px;
-  --app-shell-mini-gap: 8px;
+  --app-shell-mini-item-size: 32px;
+  --app-shell-mini-icon-size: 18px;
+  --app-shell-mini-gap: 6px;
+  --app-shell-chrome-height: 44px;
+  --mantine-nav-link-height: 28px;
   transition: width 200ms ease;
+}
+
+/*
+ * Kill residual AppShell.Main / style-prop top borders (Mantine `__m__-*` classes).
+ * Top chrome uses `.app-shell-top-bar` / `.app-shell-navbar-chrome` instead.
+ */
+.app-shell-main,
+.app-shell-main.mantine-AppShell-main {
+  --app-shell-chrome-height: 44px;
+  border: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+.app-shell-top-bar {
+  --app-shell-chrome-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--app-shell-chrome-height);
+  min-height: var(--app-shell-chrome-height);
+  margin: 0;
+  padding: 0 var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  border-top: none;
+}
+
+@media (min-width: 48em) {
+  .app-shell-top-bar {
+    padding-inline: var(--mantine-spacing-lg);
+  }
+}
+
+@media (min-width: 88em) {
+  .app-shell-top-bar {
+    padding-inline: var(--mantine-spacing-xl);
+  }
+}
+
+/* Brand row: same height + bottom border as main top bar → continuous chrome line */
+.app-shell-navbar-chrome {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--app-shell-chrome-height);
+  min-height: var(--app-shell-chrome-height);
+  padding-inline: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.app-shell-navbar-chrome--mini {
+  padding-inline: var(--mantine-spacing-xs);
+  justify-content: center;
+}
+
+.app-shell-navbar-body,
+.app-shell-navbar-footer {
+  padding: var(--mantine-spacing-sm);
+}
+
+.app-shell-navbar-body--mini,
+.app-shell-navbar-footer--mini {
+  padding: var(--mantine-spacing-xs);
 }
 
 .app-shell-mini-nav-stack {
@@ -73,6 +139,14 @@
   height: var(--app-shell-mini-icon-size);
 }
 
+.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root[data-active] {
+  background: light-dark(
+    color-mix(in srgb, var(--mantine-primary-color-filled) 14%, transparent),
+    color-mix(in srgb, var(--mantine-primary-color-filled) 24%, transparent)
+  );
+  color: var(--mantine-primary-color-filled);
+}
+
 .app-shell-sidebar-mini-trigger {
   width: var(--app-shell-mini-item-size);
   height: var(--app-shell-mini-item-size);
@@ -94,10 +168,6 @@
   background: var(--mantine-color-default-hover);
 }
 
-.app-shell-navbar-brand-section--mini {
-  margin-bottom: var(--mantine-spacing-xs);
-}
-
 .app-shell-sidebar-brand {
   position: relative;
   display: flex;
@@ -109,36 +179,22 @@
 }
 
 .app-shell-sidebar-brand--mini {
-  width: var(--app-shell-mini-item-size);
-  height: var(--app-shell-mini-item-size);
-  margin-inline: auto;
-  justify-content: center;
+  width: 100%;
+  height: auto;
+  margin-inline: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--app-shell-mini-gap);
 }
 
 .app-shell-sidebar-brand-home--mini {
-  width: 100%;
-  height: 100%;
-}
-
-.app-shell-sidebar-brand--mini .app-shell-sidebar-brand-home--mini {
+  width: var(--app-shell-mini-item-size);
+  height: var(--app-shell-mini-item-size);
   display: inline-flex;
-}
-
-.app-shell-sidebar-brand--mini .app-shell-sidebar-brand-expand {
-  display: none;
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  border: none;
-  background: var(--mantine-color-dark-6);
-}
-
-.app-shell-sidebar-brand--mini:hover .app-shell-sidebar-brand-home--mini {
-  display: none;
-}
-
-.app-shell-sidebar-brand--mini:hover .app-shell-sidebar-brand-expand {
-  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-sm);
 }
 
 .app-shell-sidebar-brand-home {
@@ -153,30 +209,111 @@
 .app-shell-sidebar-brand-home--expanded {
   flex: 1;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   line-height: normal;
 }
 
-.app-shell-sidebar-brand-expand svg {
-  width: var(--app-shell-mini-icon-size);
-  height: var(--app-shell-mini-icon-size);
+.app-shell-account-brand-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: inherit;
 }
 
-.app-shell-sidebar-brand-collapse {
+.app-shell-account-brand-trigger:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.app-shell-sidebar-collapse-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 6px;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-dimmed);
+  cursor: pointer;
+}
+
+.app-shell-sidebar-collapse-control:hover {
+  background: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
+}
+
+.app-shell-sidebar-collapse-control--mini {
+  width: var(--app-shell-mini-item-size);
+  height: var(--app-shell-mini-item-size);
+  min-height: var(--app-shell-mini-item-size);
+  padding: 0;
+  margin-inline: auto;
+  justify-content: center;
+}
+
+.app-shell-navbar-tool-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+  padding-block: 8px;
+}
+
+.app-shell-navbar-tool-row--mini {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-shell-mini-gap);
+  padding-block: 6px;
+}
+
+.app-shell-navbar-search-trigger {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  background: transparent;
+  color: var(--mantine-color-dimmed);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+}
+
+.app-shell-navbar-search-trigger:hover {
+  background: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
+}
+
+.app-shell-navbar-search-trigger--mini {
+  flex: none;
+  width: var(--app-shell-mini-item-size);
+  height: var(--app-shell-mini-item-size);
+  padding: 0;
+  justify-content: center;
+  border: none;
+}
+
+.app-shell-navbar-search-kbd {
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--mantine-color-default-border);
+  color: var(--mantine-color-dimmed);
   flex-shrink: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 150ms ease;
 }
 
-.app-shell-sidebar-brand:hover .app-shell-sidebar-brand-collapse,
-.app-shell-sidebar-brand:focus-within .app-shell-sidebar-brand-collapse {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.app-shell-sidebar-brand-collapse svg {
-  width: var(--app-shell-mini-icon-size);
-  height: var(--app-shell-mini-icon-size);
+.app-shell-sidebar-nav-link--active-accent.mantine-NavLink-root[data-active],
+.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root[data-active] {
+  box-shadow: inset 2px 0 0 var(--mantine-primary-color-filled);
 }

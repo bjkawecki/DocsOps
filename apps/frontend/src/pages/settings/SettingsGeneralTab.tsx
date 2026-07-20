@@ -270,8 +270,8 @@ export function SettingsGeneralTab() {
                       Pin sidebar
                     </Text>
                     <Text size="xs" c="dimmed">
-                      Keep the sidebar expanded on desktop. On mobile, navigation always opens from
-                      the menu button.
+                      Start with the sidebar expanded on desktop. You can still collapse it anytime.
+                      On mobile, navigation always opens from the menu button.
                     </Text>
                   </Stack>
                   <Switch

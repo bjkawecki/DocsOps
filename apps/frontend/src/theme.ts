@@ -226,10 +226,31 @@ export function createAppTheme(
   textSize: TextSizePreference = 'default'
 ) {
   const scale = textSizeToScale(textSize);
+  const uiFont =
+    '"Inter Variable", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
   return createTheme({
     primaryColor,
     ...(scale !== 1 ? { scale } : {}),
     primaryShade: 4 /* Sky primary = #4690f7 at index 4 */,
+    defaultRadius: 'sm',
+    /** Inter: free neo-grotesque close to Meter’s Suisse Int’l (commercial). */
+    fontFamily: uiFont,
+    headings: { fontFamily: uiFont },
+    /** Slightly denser than Mantine defaults (Meter-inspired shell). */
+    fontSizes: {
+      xs: '0.75rem',
+      sm: '0.8125rem',
+      md: '0.875rem',
+      lg: '1rem',
+      xl: '1.125rem',
+    },
+    spacing: {
+      xs: '0.5rem',
+      sm: '0.625rem',
+      md: '0.875rem',
+      lg: '1.125rem',
+      xl: '1.375rem',
+    },
     colors: {
       blue: [...PRIMARY_COLOR_PALETTES.blue],
       green: [...PRIMARY_COLOR_PALETTES.green],
@@ -248,6 +269,29 @@ export function createAppTheme(
       },
       Tabs: {
         defaultProps: { color: primaryColor },
+        styles: {
+          tab: {
+            fontWeight: 500,
+            fontSize: 'var(--mantine-font-size-xs)',
+          },
+        },
+      },
+      NavLink: {
+        defaultProps: {
+          px: 6,
+          py: 2,
+        },
+        styles: {
+          root: {
+            minHeight: 28,
+            fontSize: 'var(--mantine-font-size-sm)',
+            borderRadius: 'var(--mantine-radius-sm)',
+          },
+          label: {
+            fontSize: 'var(--mantine-font-size-sm)',
+            fontWeight: 500,
+          },
+        },
       },
     },
   });

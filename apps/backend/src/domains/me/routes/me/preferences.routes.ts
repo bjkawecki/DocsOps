@@ -4,10 +4,9 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../../auth/middleware.js';
-import type { RequestUser } from '../../../auth/types.js';
 import { patchPreferencesBodySchema } from '../../schemas/me.js';
 import type { UserPreferences } from './route-types.js';
-import { userPreferencesFromJson } from './route-helpers.js';
+import { userPreferencesFromJson, dedupeRecentPreferencesItems } from './route-helpers.js';
 
 function registerMePreferencesRoutes(app: FastifyInstance): void {
   app.get('/me/preferences', { preHandler: requireAuthPreHandler }, async (request, reply) => {
@@ -20,7 +19,7 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
   });
 
   app.patch('/me/preferences', { preHandler: requireAuthPreHandler }, async (request, reply) => {
-    const userId = (request as { user: RequestUser }).user.id;
+    const userId = getEffectiveUserId(request as RequestWithUser);
     const body = patchPreferencesBodySchema.parse(request.body);
 
     const current = await request.server.prisma.user.findUniqueOrThrow({
@@ -32,16 +31,7 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
     if (body.recentItemsByScope !== undefined) {
       recentItemsByScope = { ...recentItemsByScope };
       for (const [scopeKey, list] of Object.entries(body.recentItemsByScope)) {
-        const seen = new Set<string>();
-        const deduped = list
-          .filter((item) => {
-            const key = `${item.type}:${item.id}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          })
-          .slice(0, 8);
-        recentItemsByScope[scopeKey] = deduped;
+        recentItemsByScope[scopeKey] = dedupeRecentPreferencesItems(list);
       }
     }
     const merged: UserPreferences = {

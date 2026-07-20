@@ -1,22 +1,5 @@
 import type { DraftScopeType } from '../../hooks/useMeDrafts';
 
-export type DashboardSearchItem = {
-  id: string;
-  title: string;
-  contextName: string | null;
-  contextType: 'process' | 'project' | 'subcontext' | null;
-  snippet: string | null;
-  updatedAt: string;
-  rank: number;
-};
-
-export type DashboardSearchResponse = {
-  items: DashboardSearchItem[];
-  total: number;
-  limit: number;
-  offset: number;
-};
-
 export type PinnedItem = {
   id: string;
   scopeType: 'team' | 'department' | 'company';

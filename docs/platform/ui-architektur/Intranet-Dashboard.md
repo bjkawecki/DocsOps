@@ -30,11 +30,12 @@ Aktuelle Routen und Seiten der DocsOps-App. Details zu Layout und Sidebar: [Umse
 
 ---
 
-## 3. Navigation (Sidebar)
+## 3. Navigation (Sidebar + Top-Bar)
 
-- **Oben:** Logo, dann Home, Catalog, Team/Department/Company (rollenabhängig), Personal, Shared.
-- **Unten:** Account-Dropdown mit Admin (nur bei isAdmin), Settings, Log out.
-- Rollenabhängige Darstellung: Team-Member sieht sein Team; Department-Lead sieht Department + Teams; Company-Lead/Admin sieht aufklappbare Departments mit Teams.
+- **Sidebar:** Logo, Search (Ctrl/⌘K), dann Dashboard, Catalog, Team/Department/Company (rollenabhängig), Personal, Shared, Reviews; unten Collapse.
+- **Top-Bar (Main):** Notifications, Settings, Help, Account-Avatar (Dropdown: Profil-Info, Theme, What’s new, Admin, Logout).
+- **Breadcrumbs:** Shell-Zeile unter der Top-Bar auf Document-/Context-/Subcontext-Seiten.
+- Rollenabhängige Org-Nav: Team-Member sieht sein Team; Department-Lead sieht Department + Teams; Company-Lead/Admin sieht Departments mit Teams.
 
 ---
 

@@ -1,12 +1,11 @@
 import { IconBriefcase, IconNotes, IconRoute, IconSubtask } from '@tabler/icons-react';
-import { SEARCH_HIT_CONTEXT_ICON } from './homePageConstants';
-import type { DashboardSearchItem } from './homePageTypes';
+import { SEARCH_HIT_CONTEXT_ICON, type DocumentSearchItem } from './documentSearchTypes.js';
 
 type Props = {
-  contextType: DashboardSearchItem['contextType'];
+  contextType: DocumentSearchItem['contextType'];
 };
 
-export function HomeDashboardSearchContextIcon({ contextType }: Props) {
+export function DocumentSearchContextIcon({ contextType }: Props) {
   const IconComp =
     contextType === 'process'
       ? IconRoute

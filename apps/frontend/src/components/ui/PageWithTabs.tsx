@@ -50,7 +50,7 @@ export function PageWithTabs({
   const tabList = tabs.length > 0 ? tabs : defaultTabs;
   const childArray = Array.isArray(children) ? children : [children];
   const panels = tabList.map((tab, i) => (
-    <Tabs.Panel key={tab.value} value={tab.value} pt="md">
+    <Tabs.Panel key={tab.value} value={tab.value} pt="sm">
       {childArray[i] ?? null}
     </Tabs.Panel>
   ));
@@ -114,7 +114,9 @@ export function PageWithTabs({
           tab: {
             textTransform: 'uppercase',
             fontWeight: 500,
-            fontSize: 'var(--mantine-font-size-sm)',
+            fontSize: 'var(--mantine-font-size-xs)',
+            paddingTop: 6,
+            paddingBottom: 6,
           },
         }}
       >

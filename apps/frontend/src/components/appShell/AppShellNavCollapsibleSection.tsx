@@ -9,25 +9,25 @@ const parentBoxStyle: React.CSSProperties = {
   display: 'flex',
   flex: 1,
   minWidth: 0,
-  minHeight: 'var(--mantine-nav-link-height, 44px)',
+  minHeight: 'var(--mantine-nav-link-height, 28px)',
 };
 
 const nestedBoxStyle: React.CSSProperties = {
-  borderLeft: '2px solid var(--mantine-color-gray-7)',
-  marginLeft: 20,
-  paddingLeft: 8,
-  marginTop: 4,
-  marginBottom: 4,
+  borderLeft: '1px solid var(--mantine-color-default-border)',
+  marginLeft: 14,
+  paddingLeft: 4,
+  marginTop: 1,
+  marginBottom: 1,
 };
 
 const headerButtonStyle: React.CSSProperties = {
   flex: 1,
   minWidth: 0,
-  minHeight: 'var(--mantine-nav-link-height, 44px)',
+  minHeight: 'var(--mantine-nav-link-height, 28px)',
   display: 'flex',
   alignItems: 'center',
-  gap: 10,
-  padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)',
+  gap: 6,
+  padding: '2px 6px',
 };
 
 export type AppShellNavMenuItem = {
@@ -121,14 +121,14 @@ export function AppShellNavCollapsibleSection({
           aria-controls={panelId}
         >
           {icon}
-          <Text size="sm" truncate style={{ flex: 1, textAlign: 'left' }}>
+          <Text size="xs" c="dimmed" fw={600} truncate style={{ flex: 1, textAlign: 'left' }}>
             {label}
           </Text>
           {middleSection}
           {expanded ? (
-            <IconChevronDown size={16} style={{ flexShrink: 0 }} aria-hidden="true" />
+            <IconChevronDown size={14} style={{ flexShrink: 0 }} aria-hidden="true" />
           ) : (
-            <IconChevronRight size={16} style={{ flexShrink: 0 }} aria-hidden="true" />
+            <IconChevronRight size={14} style={{ flexShrink: 0 }} aria-hidden="true" />
           )}
         </UnstyledButton>
       </Box>

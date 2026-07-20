@@ -202,7 +202,7 @@ export function ScopeCard({
 /** Gemeinsame Card-Props für ContextCard und SectionCard (einheitliches Design). */
 export const contentCardProps = {
   withBorder: true as const,
-  padding: 'md' as const,
+  padding: 'sm' as const,
   h: '100%' as const,
 };
 

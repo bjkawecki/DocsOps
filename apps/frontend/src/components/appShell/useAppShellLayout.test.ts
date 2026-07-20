@@ -13,7 +13,7 @@ vi.mock('@mantine/hooks', async () => {
 });
 
 describe('useAppShellLayout', () => {
-  it('uses mini rail when desktop collapsed and sidebar is not pinned', () => {
+  it('uses mini rail when desktop collapsed; pin does not block collapse', () => {
     const onSidebarCollapsedChange = vi.fn();
     const { result, rerender } = renderHook(
       ({ pinned, collapsed, pathname }) =>
@@ -22,20 +22,31 @@ describe('useAppShellLayout', () => {
     );
 
     expect(result.current.isMiniRail).toBe(false);
-    expect(result.current.navbarWidth).toBe(260);
+    expect(result.current.navbarWidth).toBe(240);
+    expect(result.current.showDesktopToggle).toBe(true);
 
     act(() => {
       result.current.toggleDesktopCollapsed();
     });
 
     expect(result.current.isMiniRail).toBe(true);
-    expect(result.current.navbarWidth).toBe(64);
+    expect(result.current.navbarWidth).toBe(56);
     expect(onSidebarCollapsedChange).toHaveBeenCalledWith(true);
 
     rerender({ pinned: true, collapsed: true, pathname: '/' });
 
+    expect(result.current.isMiniRail).toBe(true);
+    expect(result.current.navbarWidth).toBe(56);
+    expect(result.current.showDesktopToggle).toBe(true);
+  });
+
+  it('starts expanded when sidebar is pinned', () => {
+    const onSidebarCollapsedChange = vi.fn();
+    const { result } = renderHook(() =>
+      useAppShellLayout('/', true, true, onSidebarCollapsedChange)
+    );
     expect(result.current.isMiniRail).toBe(false);
-    expect(result.current.navbarWidth).toBe(260);
+    expect(result.current.navbarWidth).toBe(240);
   });
 
   it('closes mobile nav when pathname changes', () => {
@@ -56,11 +67,11 @@ describe('useAppShellLayout', () => {
     expect(result.current.mobileOpened).toBe(false);
   });
 
-  it('hides desktop toggle when sidebar is pinned', () => {
+  it('shows desktop toggle when sidebar is pinned', () => {
     const onSidebarCollapsedChange = vi.fn();
     const { result } = renderHook(() =>
       useAppShellLayout('/', true, false, onSidebarCollapsedChange)
     );
-    expect(result.current.showDesktopToggle).toBe(false);
+    expect(result.current.showDesktopToggle).toBe(true);
   });
 });

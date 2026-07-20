@@ -28,16 +28,28 @@ export function PageHeader({
   noBottomMargin = false,
 }: PageHeaderProps) {
   return (
-    <Stack gap="lg" mb={noBottomMargin ? 0 : 'xl'}>
+    <Stack gap="sm" mb={noBottomMargin ? 0 : 'md'}>
       {breadcrumbs != null && breadcrumbs}
-      <Group justify="space-between" align="flex-start">
+      <Group justify="space-between" align="flex-start" gap="sm">
         {titleIcon != null ? (
           <Group gap="xs" wrap="nowrap">
             {titleIcon}
-            <Title order={titleOrder}>{title}</Title>
+            <Title
+              order={titleOrder}
+              fw={600}
+              style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
+            >
+              {title}
+            </Title>
           </Group>
         ) : (
-          <Title order={titleOrder}>{title}</Title>
+          <Title
+            order={titleOrder}
+            fw={600}
+            style={{ fontSize: titleOrder === 1 ? '1.5rem' : '1.25rem' }}
+          >
+            {title}
+          </Title>
         )}
         {actions}
       </Group>

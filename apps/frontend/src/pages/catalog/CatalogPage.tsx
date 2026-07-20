@@ -341,7 +341,7 @@ export function CatalogPage() {
         </Box>
 
         <Box className="docsops-search-snippet-mark" style={{ overflowX: 'auto' }}>
-          <Table withTableBorder withColumnBorders className="catalog-table-hover">
+          <Table withTableBorder className="catalog-table-hover dense-list-table">
             <Table.Thead>
               <Table.Tr>
                 <ThSort column="title" label="Name" sticky />

@@ -5,9 +5,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import type { MeResponse } from '../../api/me-types';
 import { meQueryKey } from '../../hooks/useMe';
+import { DocumentSearchModal } from '../search/DocumentSearchModal.js';
+import { DocumentSearchProvider } from '../search/DocumentSearchContext.js';
+import { useDocumentSearch } from '../search/useDocumentSearch.js';
+import { AppShellBreadcrumbBar } from './AppShellBreadcrumbBar.js';
+import { AppShellBreadcrumbsProvider } from './AppShellBreadcrumbsContext.js';
 import { AppShellDebugMenuSlot } from './AppShellDebugMenuSlot.js';
 import { AppShellImpersonationBannerSlot } from './AppShellImpersonationBannerSlot.js';
-import { AppShellMainToolbar } from './AppShellMainToolbar.js';
+import { AppShellTopBar } from './AppShellTopBar.js';
 import { AppShellNavbar } from './AppShellNavbar.js';
 import { AppShellSkipLink } from './AppShellSkipLink.js';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus.js';
@@ -31,6 +36,7 @@ import './AppShell.css';
 type AppShellFrameProps = {
   s: ReturnType<typeof useAppShellSidebarData>;
   layout: ReturnType<typeof useAppShellLayout>;
+  search: ReturnType<typeof useDocumentSearch>;
   maintenanceStatus: ReturnType<typeof useMaintenanceStatus>['data'];
   updateOverlay: ReturnType<typeof useUpdateInProgressOverlay>;
   onNavigate: () => void;
@@ -39,6 +45,7 @@ type AppShellFrameProps = {
 function AppShellFrame({
   s,
   layout,
+  search,
   maintenanceStatus,
   updateOverlay,
   onNavigate,
@@ -52,66 +59,96 @@ function AppShellFrame({
   const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
 
   return (
-    <MantineAppShell
-      navbar={{
-        width: layout.navbarWidth,
-        breakpoint: 'sm',
-        collapsed: { mobile: layout.mobileNavbarCollapsed, desktop: false },
-      }}
-      padding={0}
-      header={{ height: headerHeight }}
-      style={{ flex: 1, minHeight: 0 }}
-    >
-      <MantineAppShell.Header>
-        <AppShellHeaderBanners
-          updateVisible={updateOverlay.visible}
-          updatePhase={updateOverlay.phase}
-          onUpdateReload={() => {
-            updateOverlay.dismiss();
-            window.location.reload();
+    <DocumentSearchProvider value={{ openSearch: search.openSearch }}>
+      <AppShellBreadcrumbsProvider>
+        <MantineAppShell
+          navbar={{
+            width: layout.navbarWidth,
+            breakpoint: 'sm',
+            collapsed: { mobile: layout.mobileNavbarCollapsed, desktop: false },
           }}
-          maintenanceStatus={maintenanceStatus}
-        />
-      </MantineAppShell.Header>
-
-      <AppShellDebugMenuSlot
-        show={s.showDebugMenu}
-        adminUsersLoading={s.adminUsersLoading}
-        adminUsersError={s.adminUsersError}
-        adminUsers={s.adminUsersRes?.items}
-        impersonateMutation={s.impersonateMutation}
-        resetPlatformMutation={s.resetPlatformMutation}
-        reseedPlatformMutation={s.reseedPlatformMutation}
-      />
-
-      <AppShellNavbar
-        s={s}
-        isMiniRail={layout.isMiniRail}
-        showDesktopToggle={layout.showDesktopToggle}
-        onToggleDesktop={layout.toggleDesktopCollapsed}
-        onNavigate={onNavigate}
-      />
-
-      <MantineAppShell.Main id={MAIN_CONTENT_ID} component="main">
-        <Box
-          pt={{ base: 'md', md: 'sm' }}
-          pb={{ base: 'md', md: 'lg', xl: 'xl' }}
-          px={{ base: 'md', md: 'lg', xl: 'xl' }}
-          style={{ minHeight: '100%' }}
+          padding={0}
+          header={{ height: headerHeight }}
+          style={{ flex: 1, minHeight: 0 }}
         >
-          <AppShellMainToolbar
-            mobileOpened={layout.mobileOpened}
-            onToggleMobile={layout.toggleMobile}
+          {headerHeight > 0 ? (
+            <MantineAppShell.Header withBorder={false}>
+              <AppShellHeaderBanners
+                updateVisible={updateOverlay.visible}
+                updatePhase={updateOverlay.phase}
+                onUpdateReload={() => {
+                  updateOverlay.dismiss();
+                  window.location.reload();
+                }}
+                maintenanceStatus={maintenanceStatus}
+              />
+            </MantineAppShell.Header>
+          ) : null}
+
+          <AppShellDebugMenuSlot
+            show={s.showDebugMenu}
+            adminUsersLoading={s.adminUsersLoading}
+            adminUsersError={s.adminUsersError}
+            adminUsers={s.adminUsersRes?.items}
+            impersonateMutation={s.impersonateMutation}
+            resetPlatformMutation={s.resetPlatformMutation}
+            reseedPlatformMutation={s.reseedPlatformMutation}
           />
-          <AppShellImpersonationBannerSlot
-            me={s.me}
-            resolvedColorScheme={s.resolvedColorScheme}
-            stopImpersonateMutation={s.stopImpersonateMutation}
+
+          <AppShellNavbar
+            s={s}
+            isMiniRail={layout.isMiniRail}
+            showDesktopToggle={layout.showDesktopToggle}
+            onToggleDesktop={layout.toggleDesktopCollapsed}
+            onNavigate={onNavigate}
+            onOpenSearch={() => search.openSearch()}
           />
-          <Outlet />
-        </Box>
-      </MantineAppShell.Main>
-    </MantineAppShell>
+
+          <DocumentSearchModal
+            opened={search.searchModalOpen}
+            onClose={search.closeSearchModal}
+            modalSearch={search.modalSearch}
+            setModalSearch={search.setModalSearch}
+            modalSearchInputRef={search.modalSearchInputRef}
+            debouncedModalSearch={search.debouncedModalSearch}
+            searchInputReadyForQuery={search.searchInputReadyForQuery}
+            showSearchSpinner={search.showSearchSpinner}
+            searchDebouncePending={search.searchDebouncePending}
+            searchEnabled={search.searchEnabled}
+            searchError={search.searchError}
+            searchData={search.searchData}
+            goToCatalogFromModal={search.goToCatalogFromModal}
+          />
+
+          <MantineAppShell.Main id={MAIN_CONTENT_ID} component="main" className="app-shell-main">
+            <AppShellTopBar
+              mobileOpened={layout.mobileOpened}
+              onToggleMobile={layout.toggleMobile}
+              pathname={s.location.pathname}
+              unreadNotificationsCount={s.unreadNotificationsCount}
+              me={s.me}
+              accountMenuOpen={s.accountMenuOpen}
+              setAccountMenuOpen={s.setAccountMenuOpen}
+              logout={s.logout}
+            />
+            <Box
+              pt={{ base: 'md', md: 'sm' }}
+              pb={{ base: 'md', md: 'lg', xl: 'xl' }}
+              px={{ base: 'md', md: 'lg', xl: 'xl' }}
+              style={{ minHeight: '100%' }}
+            >
+              <AppShellBreadcrumbBar />
+              <AppShellImpersonationBannerSlot
+                me={s.me}
+                resolvedColorScheme={s.resolvedColorScheme}
+                stopImpersonateMutation={s.stopImpersonateMutation}
+              />
+              <Outlet />
+            </Box>
+          </MantineAppShell.Main>
+        </MantineAppShell>
+      </AppShellBreadcrumbsProvider>
+    </DocumentSearchProvider>
   );
 }
 
@@ -170,6 +207,8 @@ export function AppShell() {
     }
   );
 
+  const search = useDocumentSearch({ bindGlobalHotkey: true });
+
   const handleNavigate = () => {
     layout.closeMobile();
   };
@@ -181,6 +220,7 @@ export function AppShell() {
         <AppShellFrame
           s={s}
           layout={layout}
+          search={search}
           maintenanceStatus={maintenanceStatus}
           updateOverlay={updateOverlay}
           onNavigate={handleNavigate}

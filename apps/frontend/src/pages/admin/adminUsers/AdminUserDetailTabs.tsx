@@ -301,7 +301,7 @@ export function AdminUserDetailTabs({
               </Text>
             ) : (
               <>
-                <Table withTableBorder withColumnBorders className="admin-table-hover">
+                <Table withTableBorder className="admin-table-hover dense-list-table">
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th>Title</Table.Th>

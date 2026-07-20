@@ -9,6 +9,7 @@ import type {
   MeDraftsQuery,
   MeNotificationDbRow,
   OwnerScopeRow,
+  RecentPreferencesItem,
   UserPreferences,
 } from './route-types.js';
 import {
@@ -144,9 +145,45 @@ function getScopeFromOwner(owner: OwnerScopeRow | null): {
   return { scopeType: 'personal', scopeId: null, scopeName: name };
 }
 
+function dedupeRecentPreferencesItems(
+  list: RecentPreferencesItem[] | undefined
+): RecentPreferencesItem[] {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set<string>();
+  const out: RecentPreferencesItem[] = [];
+  for (const item of list) {
+    if (item == null || typeof item !== 'object') continue;
+    if (typeof item.id !== 'string' || item.id === '') continue;
+    if (item.type !== 'process' && item.type !== 'project' && item.type !== 'document') continue;
+    const key = `${item.type}:${item.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ type: item.type, id: item.id, ...(item.name != null ? { name: item.name } : {}) });
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+function sanitizeRecentItemsByScope(
+  raw: UserPreferences['recentItemsByScope']
+): UserPreferences['recentItemsByScope'] {
+  if (raw == null || typeof raw !== 'object') return undefined;
+  const next: NonNullable<UserPreferences['recentItemsByScope']> = {};
+  for (const [scopeKey, list] of Object.entries(raw)) {
+    next[scopeKey] = dedupeRecentPreferencesItems(list);
+  }
+  return next;
+}
+
 function userPreferencesFromJson(preferences: unknown): UserPreferences {
   if (preferences != null && typeof preferences === 'object') {
-    return preferences as UserPreferences;
+    const prefs = preferences as UserPreferences;
+    return {
+      ...prefs,
+      ...(prefs.recentItemsByScope !== undefined && {
+        recentItemsByScope: sanitizeRecentItemsByScope(prefs.recentItemsByScope),
+      }),
+    };
   }
   return {};
 }
@@ -302,6 +339,7 @@ export {
   ownerScopeSelect,
   getScopeFromOwner,
   userPreferencesFromJson,
+  dedupeRecentPreferencesItems,
   getDraftsScope,
   getWritableScope,
   getPersonalContextIds,

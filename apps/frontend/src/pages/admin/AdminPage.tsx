@@ -23,14 +23,25 @@ export function AdminPage() {
 
   return (
     <>
-      <Title order={2} mb={4}>
+      <Title order={2} fw={600} mb={4} style={{ fontSize: '1.25rem' }}>
         Admin
       </Title>
-      <Text size="sm" c="dimmed" mb="md">
+      <Text size="sm" c="dimmed" mb="sm">
         Manage users, teams, departments, and company.
       </Text>
-      <Tabs value={activeTab}>
-        <Tabs.List mb="md">
+      <Tabs
+        value={activeTab}
+        styles={{
+          tab: {
+            textTransform: 'uppercase',
+            fontWeight: 500,
+            fontSize: 'var(--mantine-font-size-xs)',
+            paddingTop: 6,
+            paddingBottom: 6,
+          },
+        }}
+      >
+        <Tabs.List mb="sm">
           {adminTabs.map((t) => (
             <Tabs.Tab key={t.to} value={t.to} renderRoot={(props) => <Link to={t.to} {...props} />}>
               {t.label}

@@ -5,12 +5,13 @@ import {
   IconUser,
   IconShare,
   IconClipboardCheck,
-  IconBell,
 } from '@tabler/icons-react';
-import { AppShellAccountMenu } from './AppShellAccountMenu.js';
 import { AppShellRoleBasedNav } from './AppShellRoleBasedNav.js';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
 import { AppShellSidebarBrand } from './AppShellSidebarBrand.js';
+import { AppShellNavbarToolRow } from './AppShellNavbarToolRow.js';
+import { AppShellSidebarCollapseControl } from './AppShellSidebarCollapseControl.js';
+import { AdminAppVersionLabel } from '../AdminAppVersionLabel.js';
 import { isActive } from './appShellNavUtils.js';
 import { MAIN_NAV_ID, SIDEBAR_MINI_GAP } from './appShellLayoutConstants.js';
 import type { useAppShellSidebarData } from './useAppShellSidebarData.js';
@@ -23,6 +24,7 @@ type Props = {
   showDesktopToggle: boolean;
   onToggleDesktop: () => void;
   onNavigate: () => void;
+  onOpenSearch: () => void;
 };
 
 export function AppShellNavbar({
@@ -31,31 +33,33 @@ export function AppShellNavbar({
   showDesktopToggle,
   onToggleDesktop,
   onNavigate,
+  onOpenSearch,
 }: Props) {
   return (
     <MantineAppShell.Navbar
       id={MAIN_NAV_ID}
       aria-label="Main navigation"
-      p={isMiniRail ? 'xs' : 'md'}
-      className="app-shell-navbar"
+      p={0}
+      className={`app-shell-navbar${isMiniRail ? ' app-shell-navbar--mini' : ''}`}
     >
-      <Stack justify="space-between" style={{ height: '100%' }}>
-        <Box data-sidebar-nav>
+      <Stack justify="space-between" style={{ height: '100%' }} gap={0}>
+        <Box data-sidebar-nav style={{ minHeight: 0, overflow: 'auto' }}>
           <MantineAppShell.Section
-            className={isMiniRail ? 'app-shell-navbar-brand-section--mini' : undefined}
+            className={`app-shell-navbar-chrome${isMiniRail ? ' app-shell-navbar-chrome--mini' : ''}`}
           >
             <AppShellSidebarBrand
               isMiniRail={isMiniRail}
-              showToggle={showDesktopToggle}
               resolvedColorScheme={s.resolvedColorScheme}
-              onToggle={onToggleDesktop}
               onNavigate={onNavigate}
             />
-            <Divider my="sm" />
           </MantineAppShell.Section>
-          <MantineAppShell.Section mt={isMiniRail ? 'sm' : 'xl'}>
+          <MantineAppShell.Section
+            className={`app-shell-navbar-body${isMiniRail ? ' app-shell-navbar-body--mini' : ''}`}
+          >
+            <AppShellNavbarToolRow isMiniRail={isMiniRail} onOpenSearch={onOpenSearch} />
+            <Divider my={isMiniRail ? 'sm' : 10} />
             <Stack
-              gap={isMiniRail ? SIDEBAR_MINI_GAP : 4}
+              gap={isMiniRail ? SIDEBAR_MINI_GAP : 2}
               className={isMiniRail ? 'app-shell-mini-nav-stack' : undefined}
             >
               <AppShellSidebarNavLink
@@ -80,7 +84,7 @@ export function AppShellNavbar({
               {s.showOrganizationNav ? (
                 <>
                   {!isMiniRail ? (
-                    <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
+                    <Text size="xs" fw={600} c="dimmed" mt={14} mb={2}>
                       Organization
                     </Text>
                   ) : null}
@@ -111,7 +115,7 @@ export function AppShellNavbar({
                 </>
               ) : null}
               {!isMiniRail ? (
-                <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
+                <Text size="xs" fw={600} c="dimmed" mt={14} mb={2}>
                   Personal
                 </Text>
               ) : null}
@@ -123,18 +127,6 @@ export function AppShellNavbar({
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 badgeCount={s.personalCount}
-                onNavigate={onNavigate}
-              />
-              <AppShellSidebarNavLink
-                to="/notifications"
-                label="Notifications"
-                title="Unread in-app notifications (all categories)"
-                ariaLabel="Notifications: unread in-app activity across all types"
-                active={isActive('/notifications', s.location.pathname)}
-                leftSection={<IconBell size={18} />}
-                navLinkStyles={s.navLinkStyles}
-                isMiniRail={isMiniRail}
-                badgeCount={s.unreadNotificationsCount}
                 onNavigate={onNavigate}
               />
               {s.hasReviewRights ? (
@@ -164,14 +156,28 @@ export function AppShellNavbar({
             </Stack>
           </MantineAppShell.Section>
         </Box>
-        <MantineAppShell.Section>
-          <AppShellAccountMenu
-            me={s.me}
-            accountMenuOpen={s.accountMenuOpen}
-            setAccountMenuOpen={s.setAccountMenuOpen}
-            logout={s.logout}
-            isMiniRail={isMiniRail}
-          />
+        <MantineAppShell.Section
+          className={`app-shell-navbar-footer${isMiniRail ? ' app-shell-navbar-footer--mini' : ''}`}
+        >
+          <Stack gap={4} align={isMiniRail ? 'center' : 'stretch'}>
+            <AdminAppVersionLabel
+              isAdmin={s.me?.user?.isAdmin === true}
+              isMiniRail={isMiniRail}
+              ta={isMiniRail ? 'center' : 'left'}
+              pl={isMiniRail ? 0 : 'xs'}
+              fz={10}
+              lh={1.2}
+            />
+            {showDesktopToggle ? (
+              <>
+                <Divider my={isMiniRail ? 4 : 6} />
+                <AppShellSidebarCollapseControl
+                  isMiniRail={isMiniRail}
+                  onToggle={onToggleDesktop}
+                />
+              </>
+            ) : null}
+          </Stack>
         </MantineAppShell.Section>
       </Stack>
     </MantineAppShell.Navbar>

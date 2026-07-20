@@ -18,7 +18,10 @@ export function useAppShellLayout(
 ) {
   const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
   const [mobileOpened, { close: closeMobile, toggle: toggleMobile }] = useDisclosure(false);
-  const initialCollapsed = sidebarCollapsed || readSidebarCollapsedPreference() === true;
+  /** Pin only sets the start state (expanded); user may still collapse afterward. */
+  const initialCollapsed = sidebarPinned
+    ? false
+    : sidebarCollapsed || readSidebarCollapsedPreference() === true;
   const [desktopCollapsed, { close: expandDesktop, open: collapseDesktop }] =
     useDisclosure(initialCollapsed);
   const userToggledRef = useRef(false);
@@ -30,6 +33,7 @@ export function useAppShellLayout(
   }, [pathname, closeMobile]);
 
   useEffect(() => {
+    if (userToggledRef.current) return;
     if (sidebarPinned) {
       expandDesktop();
     }
@@ -37,12 +41,13 @@ export function useAppShellLayout(
 
   useEffect(() => {
     if (userToggledRef.current) return;
+    if (sidebarPinned) return;
     if (sidebarCollapsed) {
       collapseDesktop();
     } else {
       expandDesktop();
     }
-  }, [sidebarCollapsed, collapseDesktop, expandDesktop]);
+  }, [sidebarCollapsed, sidebarPinned, collapseDesktop, expandDesktop]);
 
   const toggleDesktopCollapsed = () => {
     const next = !desktopCollapsed;
@@ -56,7 +61,7 @@ export function useAppShellLayout(
     onSidebarCollapsedChange(next);
   };
 
-  const isMiniRail = isDesktop && desktopCollapsed && !sidebarPinned;
+  const isMiniRail = isDesktop && desktopCollapsed;
   const navbarWidth = isMiniRail ? SIDEBAR_WIDTH_MINI : SIDEBAR_WIDTH_EXPANDED;
 
   return {
@@ -68,6 +73,6 @@ export function useAppShellLayout(
     isMiniRail,
     navbarWidth,
     mobileNavbarCollapsed: !mobileOpened,
-    showDesktopToggle: !sidebarPinned && isDesktop,
+    showDesktopToggle: isDesktop,
   };
 }

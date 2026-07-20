@@ -95,7 +95,7 @@ export function ScopedContextDocumentsList({
               style={{ width: 90 }}
             />
           </Group>
-          <Table withTableBorder withColumnBorders>
+          <Table withTableBorder className="dense-list-table">
             <Table.Thead>
               <Table.Tr>
                 <SortableTableTh

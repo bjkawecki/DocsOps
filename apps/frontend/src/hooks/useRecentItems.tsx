@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useRef } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiFetch } from '../api/client';
+import type { MeResponse } from '../api/me-types';
 import { useMe, meQueryKey } from './useMe';
 
 const MAX_ITEMS = 8;
@@ -37,18 +38,30 @@ const RecentItemsContext = createContext<RecentItemsContextValue | null>(null);
 
 /**
  * Normalises API entries to RecentItem (name optional from backend).
+ * Deduplicates by type+id (keeps first = most recent).
  */
 function fromPreferences(
   raw: { type: string; id: string; name?: string }[] | undefined
 ): RecentItem[] {
   if (!Array.isArray(raw)) return [];
-  return raw.filter(
-    (x): x is RecentItem =>
-      x != null &&
-      typeof x === 'object' &&
-      (x.type === 'process' || x.type === 'project' || x.type === 'document') &&
-      typeof x.id === 'string'
-  );
+  const seen = new Set<string>();
+  const out: RecentItem[] = [];
+  for (const x of raw) {
+    if (
+      x == null ||
+      typeof x !== 'object' ||
+      (x.type !== 'process' && x.type !== 'project' && x.type !== 'document') ||
+      typeof x.id !== 'string' ||
+      x.id === ''
+    ) {
+      continue;
+    }
+    const key = `${x.type}:${x.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ type: x.type, id: x.id, name: x.name });
+  }
+  return out;
 }
 
 /**
@@ -93,23 +106,52 @@ export function RecentItemsProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error('Failed to save recent items');
       return (await res.json()) as { recentItemsByScope?: Record<string, RecentItem[]> };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.recentItemsByScope) {
+        preferencesRef.current = data.recentItemsByScope;
+      }
       void queryClient.invalidateQueries({ queryKey: meQueryKey });
     },
   });
 
   const preferencesRef = useRef(me?.preferences?.recentItemsByScope);
-  preferencesRef.current = me?.preferences?.recentItemsByScope;
+
+  useEffect(() => {
+    if (!patchPreferences.isPending) {
+      preferencesRef.current = me?.preferences?.recentItemsByScope;
+    }
+  }, [me?.preferences?.recentItemsByScope, patchPreferences.isPending]);
 
   const addRecent = useCallback(
     (item: RecentItem, scope: RecentScope) => {
       const scopeKey = scopeToKey(scope);
       const current = fromPreferences(preferencesRef.current?.[scopeKey]);
+      const alreadyFirst =
+        current[0]?.type === item.type &&
+        current[0]?.id === item.id &&
+        (item.name === undefined || current[0]?.name === item.name);
+      if (alreadyFirst) return;
+
       const filtered = current.filter((x) => !(x.type === item.type && x.id === item.id));
       const next = [{ ...item }, ...filtered].slice(0, MAX_ITEMS);
+      const nextByScope = {
+        ...(preferencesRef.current ?? {}),
+        [scopeKey]: next,
+      };
+      preferencesRef.current = nextByScope;
+      queryClient.setQueryData<MeResponse>(meQueryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          preferences: {
+            ...old.preferences,
+            recentItemsByScope: nextByScope,
+          },
+        };
+      });
       patchPreferences.mutate({ scopeKey, list: next });
     },
-    [patchPreferences]
+    [patchPreferences, queryClient]
   );
 
   const contextValueRef = useRef<RecentItemsContextValue>({

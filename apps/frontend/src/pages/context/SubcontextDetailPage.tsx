@@ -1,5 +1,4 @@
 import {
-  Anchor,
   Box,
   Button,
   Card,
@@ -11,19 +10,17 @@ import {
   Title,
   Flex,
   Container,
-  Breadcrumbs,
   Paper,
 } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
 import { ownerToScopeForBreadcrumb, scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
 import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import {
-  IconChevronRight,
   IconBuildingSkyscraper,
   IconSitemap,
   IconUsersGroup,
@@ -34,6 +31,10 @@ import { ContextDocumentsTable } from '../../components/contexts/ContextDocument
 import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
 import { ProjectSiblingSubnav } from '../../components/contexts/ProjectSiblingSubnav';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
+import {
+  useSetAppShellBreadcrumbs,
+  type AppShellBreadcrumbItem,
+} from '../../components/appShell/AppShellBreadcrumbsContext.js';
 
 type SubcontextResponse = {
   id: string;
@@ -172,15 +173,14 @@ export function SubcontextDetailPage() {
   const tagOptions = (tagsData ?? []).map((t) => ({ value: t.id, label: t.name }));
 
   useEffect(() => {
-    if (data && recentActions) {
-      const scope = projectOwnerToScope(data.project);
-      if (scope)
-        recentActions.addRecent(
-          { type: 'project', id: data.project.id, name: data.project.name },
-          scope
-        );
-    }
-  }, [data, recentActions]);
+    if (!data?.project?.id || !recentActions) return;
+    const scope = projectOwnerToScope(data.project);
+    if (scope)
+      recentActions.addRecent(
+        { type: 'project', id: data.project.id, name: data.project.name },
+        scope
+      );
+  }, [data?.project, recentActions]);
 
   const handleEditClick = () => {
     if (data) {
@@ -265,6 +265,31 @@ export function SubcontextDetailPage() {
     });
   };
 
+  const owner = data?.project.owner;
+  const scope = owner ? ownerToScopeForBreadcrumb(owner) : null;
+  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=projects` : '/?tab=projects';
+  const scopeName = owner?.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
+
+  const breadcrumbItems = useMemo((): AppShellBreadcrumbItem[] | null => {
+    if (!data || !subcontextId || !projectIdParam) return null;
+    const icon =
+      scope?.type === 'company' ? (
+        <IconBuildingSkyscraper size={14} />
+      ) : scope?.type === 'department' ? (
+        <IconSitemap size={14} />
+      ) : scope?.type === 'team' ? (
+        <IconUsersGroup size={14} />
+      ) : (
+        <IconUser size={14} />
+      );
+    return [
+      { key: 'scope', label: scopeName, to: scopeUrlWithTab, icon },
+      { key: 'project', label: data.project.name, to: `/projects/${data.project.id}` },
+      { key: 'subcontext', label: data.name },
+    ];
+  }, [data, scope?.type, scopeName, scopeUrlWithTab, subcontextId, projectIdParam]);
+  useSetAppShellBreadcrumbs(breadcrumbItems);
+
   if (!subcontextId || !projectIdParam) return null;
 
   if (isPending)
@@ -284,36 +309,9 @@ export function SubcontextDetailPage() {
     return <Navigate to={`/projects/${data.project.id}/subcontexts/${subcontextId}`} replace />;
   }
 
-  const owner = data.project.owner;
-  const scope = owner ? ownerToScopeForBreadcrumb(owner) : null;
-  const scopeUrlWithTab = scope ? `${scopeToUrl(scope)}?tab=projects` : '/?tab=projects';
-  const scopeName = owner?.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
-  const ScopeIcon =
-    scope?.type === 'company'
-      ? IconBuildingSkyscraper
-      : scope?.type === 'department'
-        ? IconSitemap
-        : scope?.type === 'team'
-          ? IconUsersGroup
-          : IconUser;
-
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Stack gap="lg" mb="xl" mt="md">
-        <Breadcrumbs separator={<IconChevronRight size={14} color="var(--mantine-color-dimmed)" />}>
-          <Anchor component={Link} to={scopeUrlWithTab} c="dimmed" size="sm">
-            <Group gap={4} align="center" wrap="nowrap">
-              <ScopeIcon size={14} />
-              <span>{scopeName}</span>
-            </Group>
-          </Anchor>
-          <Anchor component={Link} to={`/projects/${data.project.id}`} c="dimmed" size="sm">
-            {data.project.name}
-          </Anchor>
-          <Text size="sm" c="dimmed">
-            {data.name}
-          </Text>
-        </Breadcrumbs>
         <Flex justify="space-between" align="flex-start" wrap="wrap" gap="lg">
           <Group gap="sm" align="center">
             <IconSubtask size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />

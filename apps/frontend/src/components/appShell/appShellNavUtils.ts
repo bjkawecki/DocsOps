@@ -8,9 +8,17 @@ export function getNavLinkStyles(): { root: Record<string, unknown> } {
   return {
     root: {
       borderRadius: 'var(--mantine-radius-sm)',
-      padding: '6px 12px',
-      fontWeight: 400,
-      fontSize: 'var(--mantine-font-size-md)',
+      padding: '2px 6px',
+      minHeight: 28,
+      fontWeight: 500,
+      fontSize: 'var(--mantine-font-size-sm)',
+      '&[data-active]': {
+        backgroundColor:
+          'light-dark(color-mix(in srgb, var(--mantine-primary-color-filled) 14%, transparent), color-mix(in srgb, var(--mantine-primary-color-filled) 24%, transparent))',
+        color: 'var(--mantine-primary-color-filled)',
+        fontWeight: 600,
+        boxShadow: 'inset 2px 0 0 var(--mantine-primary-color-filled)',
+      },
     },
   };
 }

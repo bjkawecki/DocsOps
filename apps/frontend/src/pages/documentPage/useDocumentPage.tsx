@@ -210,18 +210,17 @@ export function useDocumentPage() {
   }, [documentId, pdfExportJobId, queryClient]);
 
   useEffect(() => {
-    if (data && recentActions && data.scope) {
-      const scope =
-        data.scope.type === 'personal'
-          ? { type: 'personal' as const }
-          : data.scope.type === 'company'
-            ? { type: 'company' as const, id: data.scope.id }
-            : data.scope.type === 'department'
-              ? { type: 'department' as const, id: data.scope.id }
-              : { type: 'team' as const, id: data.scope.id };
-      recentActions.addRecent({ type: 'document', id: data.id, name: data.title }, scope);
-    }
-  }, [data, recentActions]);
+    if (!data?.id || !recentActions || !data.scope) return;
+    const scope =
+      data.scope.type === 'personal'
+        ? { type: 'personal' as const }
+        : data.scope.type === 'company'
+          ? { type: 'company' as const, id: data.scope.id }
+          : data.scope.type === 'department'
+            ? { type: 'department' as const, id: data.scope.id }
+            : { type: 'team' as const, id: data.scope.id };
+    recentActions.addRecent({ type: 'document', id: data.id, name: data.title }, scope);
+  }, [data?.id, data?.title, data?.scope, recentActions]);
 
   useEffect(() => {
     if (!pdfExportStatus || !documentId) return;

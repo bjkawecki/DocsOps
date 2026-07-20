@@ -2,6 +2,12 @@
   background-color: var(--mantine-color-default-hover);
 }
 
+.admin-table-hover.dense-list-table tbody td,
+.admin-table-hover.dense-list-table thead th {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
 /* Backup history: shrink Size + action columns; destination column takes the rest. */
 .admin-backup-history-table th:nth-last-child(2),
 .admin-backup-history-table td:nth-last-child(2),

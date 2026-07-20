@@ -377,6 +377,39 @@ describe('Me routes (GET/PATCH /me, GET/PATCH /me/preferences)', () => {
     expect(prefs?.recentItemsByScope?.[scopeKey]).toHaveLength(2);
   });
 
+  it('PATCH /api/v1/me/preferences → recentItemsByScope dedupliziert type+id', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
+    });
+    const cookie = getCookieHeader(loginRes);
+
+    const scopeKey = 'team:clh3test000008l008eazy0099';
+    const docId = 'clh3test000008l008eazy0098';
+    const items = [
+      { type: 'document' as const, id: docId, name: 'Team Wiki' },
+      { type: 'document' as const, id: docId, name: 'Team Wiki' },
+      { type: 'document' as const, id: docId, name: 'Team Wiki' },
+    ];
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/me/preferences',
+      headers: { cookie },
+      payload: { recentItemsByScope: { [scopeKey]: items } },
+    });
+    expect(res.statusCode).toBe(200);
+    type RecentItem = { type: string; id: string; name: string };
+    const body = res.json() as { recentItemsByScope?: Record<string, RecentItem[]> };
+    expect(body.recentItemsByScope?.[scopeKey]).toHaveLength(1);
+    expect(body.recentItemsByScope?.[scopeKey]?.[0]).toEqual({
+      type: 'document',
+      id: docId,
+      name: 'Team Wiki',
+    });
+  });
+
   it('PATCH /api/v1/me/preferences → lastSeenReleaseVersion gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
