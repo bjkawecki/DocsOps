@@ -153,6 +153,7 @@ export async function getTrashOrArchiveItems(
       items.push({
         type: 'process',
         id: p.id,
+        contextId: p.contextId,
         displayTitle: p.name,
         contextName: '-',
         ...(isTrash
@@ -166,6 +167,7 @@ export async function getTrashOrArchiveItems(
       items.push({
         type: 'project',
         id: p.id,
+        contextId: p.contextId,
         displayTitle: p.name,
         contextName: '-',
         ...(isTrash

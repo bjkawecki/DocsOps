@@ -58,14 +58,28 @@ a:not(.mantine-Button-root):visited,
   color: var(--mantine-primary-color-4);
 }
 
-/* Context detail: process/project sibling list – neutral text; primary only when active. */
+/* Context detail: process/project sibling list – neutral text; primary only when active.
+ * Must beat `.mantine-Card-root a { text-decoration: underline }` (sibling nav sits inside Card). */
 [data-context-sibling-nav] a,
 [data-context-sibling-nav] a:visited,
-[data-context-sibling-nav] .mantine-NavLink-root {
+[data-context-sibling-nav] .mantine-NavLink-root,
+[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root),
+[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root):visited,
+[data-context-sibling-nav] .mantine-Card-root a:not(.mantine-Button-root):hover {
   color: inherit;
+  text-decoration: none;
 }
-[data-context-sibling-nav] .mantine-NavLink-root[data-active] {
-  color: var(--mantine-primary-color-filled);
+[data-context-sibling-nav] .mantine-NavLink-root[data-active],
+[data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active] {
+  /* Readable on primary filled background (avoid primary-on-primary). */
+  color: var(--mantine-color-white);
+}
+[data-context-sibling-nav] .mantine-NavLink-root[data-active] .mantine-NavLink-section,
+[data-context-sibling-nav]
+  .mantine-Card-root
+  a.mantine-NavLink-root[data-active]
+  .mantine-NavLink-section {
+  color: inherit;
 }
 /* Left column: do not shrink below 280px on large screens. */
 @media (min-width: 62em) {

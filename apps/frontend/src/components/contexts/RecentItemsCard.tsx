@@ -2,6 +2,7 @@ import { Group, Stack, Text } from '@mantine/core';
 import { IconBriefcase, IconFileText, IconRoute } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import type { RecentItem, RecentItemType } from '../../hooks/useRecentItems';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import { ContentLink } from '../ui/ContentLink';
 import { SectionCard } from './SectionCard';
 
@@ -39,12 +40,7 @@ export function RecentItemsCard({ items, titleIcon, viewMoreHref }: RecentItemsC
       ) : (
         <Stack gap={4} align="flex-start">
           {items.map((item) => {
-            const href =
-              item.type === 'document'
-                ? `/documents/${item.id}`
-                : item.type === 'process'
-                  ? `/processes/${item.id}`
-                  : `/projects/${item.id}`;
+            const href = item.type === 'document' ? `/documents/${item.id}` : contextUrl(item.id);
             return (
               <Group key={`${item.type}-${item.id}`} gap="xs" wrap="nowrap">
                 <RecentItemIcon type={item.type} />

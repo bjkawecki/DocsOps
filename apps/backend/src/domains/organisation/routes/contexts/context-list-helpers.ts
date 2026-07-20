@@ -10,6 +10,21 @@ export const contextDocumentsPreviewInclude = {
   },
 } as const;
 
+/** Non-deleted document count on a Context (for sidebar badges). */
+export const contextDocumentCountSelect = {
+  _count: {
+    select: {
+      documents: { where: { deletedAt: null } },
+    },
+  },
+} as const;
+
+/** Preview docs + document count under `context`. */
+export const contextListDocumentsInclude = {
+  ...contextDocumentsPreviewInclude,
+  ...contextDocumentCountSelect,
+} as const;
+
 export async function filterEntitiesWithContextIdByReadAccess<T extends { contextId: string }>(
   prisma: Parameters<typeof canReadContext>[0],
   userId: string,

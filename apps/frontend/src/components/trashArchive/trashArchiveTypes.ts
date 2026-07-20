@@ -1,6 +1,8 @@
 export type TrashArchiveItem = {
   type: 'document' | 'process' | 'project';
   id: string;
+  /** Context row id for process/project SPA links (`/contexts/:contextId`). */
+  contextId?: string;
   displayTitle: string;
   contextName: string;
   deletedAt?: string;

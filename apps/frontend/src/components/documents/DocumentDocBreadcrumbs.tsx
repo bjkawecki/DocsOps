@@ -10,6 +10,7 @@ import {
 } from '@tabler/icons-react';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
 import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
@@ -38,27 +39,22 @@ export type DocumentDocBreadcrumbsProps = {
 };
 
 function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
+  if (doc.contextId == null) return null;
+  const to = contextUrl(doc.contextId);
   if (doc.contextProcessId != null) {
-    return {
-      name: doc.contextName ?? 'Process',
-      to: `/processes/${doc.contextProcessId}`,
-      icon: <IconRoute size={14} />,
-    };
+    return { name: doc.contextName ?? 'Process', to, icon: <IconRoute size={14} /> };
   }
   if (doc.subcontextId != null) {
     return {
       name: doc.subcontextName ?? doc.contextName ?? 'Subcontext',
-      to:
-        doc.contextProjectId != null
-          ? `/projects/${doc.contextProjectId}/subcontexts/${doc.subcontextId}`
-          : `/subcontexts/${doc.subcontextId}`,
+      to,
       icon: <IconSubtask size={14} />,
     };
   }
   if (doc.contextProjectId != null) {
     return {
       name: doc.contextProjectName ?? doc.contextName ?? 'Project',
-      to: `/projects/${doc.contextProjectId}`,
+      to,
       icon: <IconBriefcase size={14} />,
     };
   }

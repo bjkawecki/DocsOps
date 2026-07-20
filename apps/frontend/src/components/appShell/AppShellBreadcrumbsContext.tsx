@@ -74,16 +74,17 @@ export function useSetAppShellBreadcrumbs(items: AppShellBreadcrumbItem[] | null
 
 /**
  * Register actions for the breadcrumb chrome row (e.g. People, Create).
- * Pass a memoized node to avoid redundant context updates.
+ * `syncKey` must be stable for a given actions payload (e.g. scopeKey + flags).
+ * Do not depend on React element identity – that causes maximum-update-depth loops.
  */
-export function useSetAppShellBreadcrumbActions(actions: ReactNode | null) {
+export function useSetAppShellBreadcrumbActions(actions: ReactNode | null, syncKey = '') {
   const { setActions } = useBreadcrumbsContext();
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
 
   useEffect(() => {
     setActions(actionsRef.current);
-  }, [actions, setActions]);
+  }, [syncKey, setActions]);
 
   useEffect(() => {
     return () => setActions(null);

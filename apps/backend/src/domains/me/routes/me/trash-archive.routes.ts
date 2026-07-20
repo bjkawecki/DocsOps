@@ -48,11 +48,11 @@ async function appendPersonalTrashItems(
     }),
     prisma.process.findMany({
       where: { deletedAt: { not: null }, owner: { ownerUserId: userId } },
-      select: { id: true, name: true, deletedAt: true },
+      select: { id: true, name: true, contextId: true, deletedAt: true },
     }),
     prisma.project.findMany({
       where: { deletedAt: { not: null }, owner: { ownerUserId: userId } },
-      select: { id: true, name: true, deletedAt: true },
+      select: { id: true, name: true, contextId: true, deletedAt: true },
     }),
   ]);
 
@@ -69,6 +69,7 @@ async function appendPersonalTrashItems(
     target.push({
       type: 'process',
       id: process.id,
+      contextId: process.contextId,
       displayTitle: process.name,
       contextName: '-',
       deletedAt: process.deletedAt?.toISOString() ?? '',
@@ -78,6 +79,7 @@ async function appendPersonalTrashItems(
     target.push({
       type: 'project',
       id: project.id,
+      contextId: project.contextId,
       displayTitle: project.name,
       contextName: '-',
       deletedAt: project.deletedAt?.toISOString() ?? '',
@@ -98,11 +100,11 @@ async function appendPersonalArchiveItems(
     }),
     prisma.process.findMany({
       where: { archivedAt: { not: null }, deletedAt: null, owner: { ownerUserId: userId } },
-      select: { id: true, name: true, archivedAt: true },
+      select: { id: true, name: true, contextId: true, archivedAt: true },
     }),
     prisma.project.findMany({
       where: { archivedAt: { not: null }, deletedAt: null, owner: { ownerUserId: userId } },
-      select: { id: true, name: true, archivedAt: true },
+      select: { id: true, name: true, contextId: true, archivedAt: true },
     }),
   ]);
 
@@ -119,6 +121,7 @@ async function appendPersonalArchiveItems(
     target.push({
       type: 'process',
       id: process.id,
+      contextId: process.contextId,
       displayTitle: process.name,
       contextName: '-',
       archivedAt: process.archivedAt?.toISOString() ?? '',
@@ -128,6 +131,7 @@ async function appendPersonalArchiveItems(
     target.push({
       type: 'project',
       id: project.id,
+      contextId: project.contextId,
       displayTitle: project.name,
       contextName: '-',
       archivedAt: project.archivedAt?.toISOString() ?? '',

@@ -3,6 +3,7 @@ import { useMantineTheme } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ContentLink } from '../ui/ContentLink';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 
 /** One "View more" control: always the same Link-Button. Dashboard: real link (to). Scope tabs: to="#" + onClick with preventDefault. Same look and hover everywhere. */
 export function ViewMoreButton({ to, onClick }: { to?: string; onClick?: () => void }) {
@@ -111,9 +112,7 @@ export interface ScopeCardProps {
   /** Context mode: document list (overview-style card). */
   documents?: { id: string; title: string }[];
   /** Context mode: subcontexts line (e.g. "Subcontexts: A, B"). */
-  subcontexts?: { id: string; name: string }[];
-  /** When set with subcontexts, links go to `/projects/:projectId/subcontexts/:id`. */
-  projectId?: string;
+  subcontexts?: { id: string; name: string; contextId: string }[];
   /** Context mode: custom body when no documents/subcontexts (e.g. metadata). */
   metadata?: ReactNode;
 }
@@ -128,7 +127,6 @@ export function ScopeCard({
   href,
   documents,
   subcontexts,
-  projectId,
   metadata,
 }: ScopeCardProps) {
   const displayTitle = titleCount !== undefined ? `${title} (${titleCount})` : title;
@@ -174,11 +172,7 @@ export function ScopeCard({
               {subcontexts.map((s) => (
                 <ContentLink
                   key={s.id}
-                  to={
-                    projectId != null
-                      ? `/projects/${projectId}/subcontexts/${s.id}`
-                      : `/subcontexts/${s.id}`
-                  }
+                  to={contextUrl(s.contextId)}
                   style={{ fontSize: 'var(--mantine-font-size-xs)' }}
                 >
                   {s.name}

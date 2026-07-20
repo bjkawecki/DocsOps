@@ -1,49 +1,13 @@
-import { Box, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Fragment, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
-import {
-  ArchiveTabContent,
-  DraftsTabContent,
-  TrashTabContent,
-} from '../../components/trashArchive';
-import { PageWithTabs } from '../../components/ui/PageWithTabs';
-import { CreateContextMenu } from '../../components/contexts';
 import { useMe } from '../../hooks/useMe';
-import { canShowDraftsTab, canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
-import { useCanWriteInScope } from '../../hooks/useCanWriteInScope';
-import { TeamContextPageModals } from './TeamContextPageModals';
-import { TeamDocumentsPanel } from './TeamDocumentsPanel';
-import { TeamOverviewPanel } from './TeamOverviewPanel';
-import { TeamProcessesPanel } from './TeamProcessesPanel';
-import { TeamProjectsPanel } from './TeamProjectsPanel';
-import { useScopedCatalogDocumentsUrlState } from '../contextScope/useScopedCatalogDocumentsUrlState';
-import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
-import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
-import type {
-  DeleteTarget,
-  EditTarget,
-  ProcessItem,
-  ProjectItem,
-  TeamDocItem,
-  TeamRes,
-} from './teamContextPageTypes';
+import { ScopeWorkspaceEntry } from '../contextWorkspace/ScopeWorkspaceEntry.js';
+import type { TeamRes } from './teamContextPageTypes';
 
 export function TeamContextPage() {
   const { teamId } = useParams<{ teamId: string }>();
-  const queryClient = useQueryClient();
-  const [contextModalOpened, { open: openContextModal, close: closeContextModal }] =
-    useDisclosure(false);
-  const [documentModalOpened, { open: openDocumentModal, close: closeDocumentModal }] =
-    useDisclosure(false);
-  const [contextInitialType, setContextInitialType] = useState<'process' | 'project' | undefined>(
-    undefined
-  );
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const { data: me, isPending: mePending } = useMe();
 
   const {
@@ -77,239 +41,26 @@ export function TeamContextPage() {
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
   const canManage = !!(isAdmin || isTeamLead || isDepartmentLead || isCompanyLead);
 
-  const { data: processesData, isPending: processesPending } = useQuery({
-    queryKey: ['processes', 'team', teamId ?? ''],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: '50', offset: '0' });
-      if (teamId) params.set('teamId', teamId);
-      const res = await apiFetch(`/api/v1/processes?${params}`);
-      if (!res.ok) throw new Error('Failed to load processes');
-      const data = (await res.json()) as { items: ProcessItem[] };
-      return data.items;
-    },
-    enabled: !!teamId,
-  });
-
-  const { data: projectsData, isPending: projectsPending } = useQuery({
-    queryKey: ['projects', 'team', teamId ?? ''],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: '50', offset: '0' });
-      if (teamId) params.set('teamId', teamId);
-      const res = await apiFetch(`/api/v1/projects?${params}`);
-      if (!res.ok) throw new Error('Failed to load projects');
-      const data = (await res.json()) as { items: ProjectItem[] };
-      return data.items;
-    },
-    enabled: !!teamId,
-  });
-
-  const teamScope = teamId != null ? { type: 'team' as const, id: teamId } : null;
-  const chromeActions = useMemo(() => {
-    if (!teamId || !canManage) return null;
-    return (
-      <CreateContextMenu
-        onCreateProcess={() => {
-          setContextInitialType('process');
-          openContextModal();
-        }}
-        onCreateProject={() => {
-          setContextInitialType('project');
-          openContextModal();
-        }}
-        onCreateDraft={openDocumentModal}
-      />
-    );
-  }, [teamId, canManage, openContextModal, openDocumentModal]);
-  useRegisterScopePageChrome(teamScope, team?.name, chromeActions);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const {
-    docsSortBy,
-    docsSortOrder,
-    docsPage,
-    docsLimit,
-    docsOffset,
-    docsSearch,
-    docsContextType,
-    setDocsFilter,
-    setDocsSort,
-    setDocsPage,
-    setDocsLimit,
-  } = useScopedCatalogDocumentsUrlState(searchParams, setSearchParams);
-
-  const teamDocumentsParams = [
-    teamId ?? '',
-    String(docsLimit),
-    String(docsOffset),
-    docsSortBy,
-    docsSortOrder,
-    docsSearch,
-    docsContextType,
-  ];
-  const { data: teamDocsRes, isPending: docsPending } = useQuery({
-    queryKey: ['catalog-documents', 'team', teamDocumentsParams],
-    queryFn: async () => {
-      if (!teamId) throw new Error('Missing teamId');
-      const params = new URLSearchParams({
-        teamId,
-        limit: String(docsLimit),
-        offset: String(docsOffset),
-        sortBy: docsSortBy,
-        sortOrder: docsSortOrder,
-      });
-      if (docsSearch.trim()) params.set('search', docsSearch.trim());
-      if (docsContextType === 'process' || docsContextType === 'project')
-        params.set('contextType', docsContextType);
-      const res = await apiFetch(`/api/v1/documents?${params}`);
-      if (!res.ok) throw new Error('Failed to load documents');
-      return (await res.json()) as { items: TeamDocItem[]; total: number };
-    },
-    enabled: !!teamId,
-  });
-
-  const docsTotal = teamDocsRes?.total ?? 0;
-  const docsTotalPages = Math.ceil(docsTotal / docsLimit) || 1;
-  const teamDocs = teamDocsRes?.items ?? [];
-
-  const { data: canWriteInScopeData } = useCanWriteInScope(
-    teamId ? { scope: 'team', teamId } : null
-  );
-  const canShowTrashArchive = canShowTrashArchiveTabs(me, canManage);
-  const canShowDrafts = canShowDraftsTab(me, canManage, canWriteInScopeData?.canWrite === true);
-  const {
-    invalidateContexts,
-    handleEditSuccess,
-    handleDeleteConfirm,
-    tabs,
-    activeTab,
-    setActiveTab,
-  } = useScopedContextPageChrome({
-    queryClient,
-    searchParams,
-    setSearchParams,
-    canShowDrafts,
-    canShowTrashArchive,
-    tabPolicy: 'scoped-with-guard',
-    scope: { kind: 'team', teamId: teamId ?? '' },
-    deleteTarget,
-    setEditTarget,
-    setDeleteTarget,
-    setDeleteLoading,
-  });
-
-  const processes = processesData ?? [];
-  const projects = projectsData ?? [];
-  const processesPreview = processes.slice(0, 5);
-  const projectsPreview = projects.slice(0, 5);
-
-  if (!teamId) return null;
-  if (teamPending || mePending)
+  if (mePending || teamPending) {
     return (
       <Text size="sm" c="dimmed">
         Loading…
       </Text>
     );
-  if (teamError || !team)
+  }
+  if (!teamId || teamError || !team) {
     return (
       <Text size="sm" c="red">
         Team not found.
       </Text>
     );
+  }
 
   return (
-    <Box>
-      <PageWithTabs
-        title={team.name}
-        hideTitle
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        recentScope={teamScope}
-        recentViewMoreHref="/catalog"
-      >
-        {[
-          <Fragment key="overview">
-            <TeamOverviewPanel
-              processesPreview={processesPreview}
-              projectsPreview={projectsPreview}
-              processesCount={processes.length}
-              projectsCount={projects.length}
-              docsTotal={docsTotal}
-              teamDocs={teamDocs}
-              canShowDrafts={canShowDrafts}
-              teamId={teamId}
-              onGoToTab={setActiveTab}
-            />
-          </Fragment>,
-          <Fragment key="processes">
-            <TeamProcessesPanel processesPending={processesPending} processes={processes} />
-          </Fragment>,
-          <Fragment key="projects">
-            <TeamProjectsPanel projectsPending={projectsPending} projects={projects} />
-          </Fragment>,
-          <Fragment key="documents">
-            <TeamDocumentsPanel
-              docsPending={docsPending}
-              docsSearch={docsSearch}
-              docsContextType={docsContextType}
-              docsSortBy={docsSortBy}
-              docsSortOrder={docsSortOrder}
-              docsPage={docsPage}
-              docsLimit={docsLimit}
-              docsTotal={docsTotal}
-              docsTotalPages={docsTotalPages}
-              teamDocs={teamDocs}
-              teamId={teamId}
-              setDocsFilter={setDocsFilter}
-              setDocsSort={setDocsSort}
-              setDocsPage={setDocsPage}
-              setDocsLimit={setDocsLimit}
-            />
-          </Fragment>,
-          ...(canShowDrafts || canShowTrashArchive
-            ? [
-                ...(canShowDrafts
-                  ? [
-                      <Fragment key="drafts">
-                        <DraftsTabContent scopeParams={{ teamId }} enabled={!!teamId} />
-                      </Fragment>,
-                    ]
-                  : []),
-                ...(canShowTrashArchive
-                  ? [
-                      <Fragment key="trash">
-                        <TrashTabContent scope="team" teamId={teamId ?? undefined} />
-                      </Fragment>,
-                      <Fragment key="archive">
-                        <ArchiveTabContent scope="team" teamId={teamId ?? undefined} />
-                      </Fragment>,
-                    ]
-                  : []),
-              ]
-            : []),
-        ]}
-      </PageWithTabs>
-
-      {teamId != null && (
-        <TeamContextPageModals
-          teamId={teamId}
-          contextModalOpened={contextModalOpened}
-          closeContextModal={closeContextModal}
-          documentModalOpened={documentModalOpened}
-          closeDocumentModal={closeDocumentModal}
-          contextInitialType={contextInitialType}
-          onInvalidateContexts={invalidateContexts}
-          editTarget={editTarget}
-          onCloseEdit={() => setEditTarget(null)}
-          onEditSuccess={handleEditSuccess}
-          deleteTarget={deleteTarget}
-          onCloseDelete={() => setDeleteTarget(null)}
-          deleteLoading={deleteLoading}
-          onDeleteConfirm={() => {
-            void handleDeleteConfirm();
-          }}
-        />
-      )}
-    </Box>
+    <ScopeWorkspaceEntry
+      scope={{ type: 'team', id: teamId }}
+      scopeLabel={team.name}
+      canManage={canManage}
+    />
   );
 }

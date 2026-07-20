@@ -250,6 +250,8 @@ export const markAllNotificationsReadBodySchema = z.object({
 export type MeTrashArchiveItem = {
   type: 'document' | 'process' | 'project';
   id: string;
+  /** Context row id for process/project SPA links. */
+  contextId?: string;
   displayTitle: string;
   contextName: string;
   deletedAt?: string;

@@ -24,7 +24,7 @@ import {
   ownerOptsFromProcessProjectCreateBody,
 } from './context-create-route-helpers.js';
 import {
-  contextDocumentsPreviewInclude,
+  contextListDocumentsInclude,
   filterEntitiesWithContextIdByReadAccess,
 } from './context-list-helpers.js';
 import { findOrCreateOwner } from '../../services/contexts/owner.service.js';
@@ -92,10 +92,25 @@ function registerProjectRoutes(app: FastifyInstance): void {
         where,
         include: {
           context: {
-            include: contextDocumentsPreviewInclude,
+            include: contextListDocumentsInclude,
           },
           owner: true,
-          subcontexts: { select: { id: true, name: true } },
+          subcontexts: {
+            select: {
+              id: true,
+              name: true,
+              contextId: true,
+              context: {
+                select: {
+                  _count: {
+                    select: {
+                      documents: { where: { deletedAt: null } },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         take: query.limit,
         skip: query.offset,
@@ -110,7 +125,13 @@ function registerProjectRoutes(app: FastifyInstance): void {
       contextId: project.contextId,
       owner: project.owner,
       documents: project.context.documents,
-      subcontexts: project.subcontexts,
+      documentCount: project.context._count.documents,
+      subcontexts: project.subcontexts.map((sub) => ({
+        id: sub.id,
+        name: sub.name,
+        contextId: sub.contextId,
+        documentCount: sub.context._count.documents,
+      })),
     }));
     return reply.send({ items, total, limit: query.limit, offset: query.offset });
   });

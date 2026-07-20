@@ -13,11 +13,13 @@ import { PersonalPage } from './pages/account/PersonalPage';
 import { SharedPage } from './pages/account/SharedPage';
 import { ReviewsPage } from './pages/catalog/ReviewsPage';
 import { TeamContextPage } from './pages/TeamContextPage';
-import { ProcessContextPage } from './pages/process/ProcessContextPage';
-import { ProjectContextPage } from './pages/project/ProjectContextPage';
-import { ProjectWorkspaceOutlet } from './pages/project/ProjectWorkspaceOutlet';
-import { SubcontextDetailPage } from './pages/context/SubcontextDetailPage';
-import { SubcontextRedirectPage } from './pages/context/SubcontextRedirectPage';
+import { ContextWorkspacePage } from './pages/contextWorkspace/ContextWorkspacePage';
+import {
+  CompanyTrashArchivePage,
+  DepartmentTrashArchivePage,
+  PersonalTrashArchivePage,
+  TeamTrashArchivePage,
+} from './pages/contextWorkspace/ScopeTrashArchivePage';
 import { SettingsPage } from './pages/account/SettingsPage';
 import { NotificationsPage } from './pages/account/NotificationsPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';
@@ -121,10 +123,24 @@ function App() {
             <Route path="catalog" element={<CatalogPage />} />
             <Route path="team" element={<TeamRedirectPage />} />
             <Route path="team/:teamId" element={<TeamContextPage />} />
+            <Route path="team/:teamId/trash" element={<TeamTrashArchivePage kind="trash" />} />
+            <Route path="team/:teamId/archive" element={<TeamTrashArchivePage kind="archive" />} />
             <Route path="department" element={<DepartmentRedirectPage />} />
             <Route path="department/:departmentId" element={<DepartmentContextPage />} />
+            <Route
+              path="department/:departmentId/trash"
+              element={<DepartmentTrashArchivePage kind="trash" />}
+            />
+            <Route
+              path="department/:departmentId/archive"
+              element={<DepartmentTrashArchivePage kind="archive" />}
+            />
             <Route path="company" element={<CompanyPage />} />
+            <Route path="company/trash" element={<CompanyTrashArchivePage kind="trash" />} />
+            <Route path="company/archive" element={<CompanyTrashArchivePage kind="archive" />} />
             <Route path="personal" element={<PersonalPage />} />
+            <Route path="personal/trash" element={<PersonalTrashArchivePage kind="trash" />} />
+            <Route path="personal/archive" element={<PersonalTrashArchivePage kind="archive" />} />
             <Route path="shared" element={<SharedPage />} />
             <Route path="reviews" element={<ReviewsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
@@ -140,18 +156,7 @@ function App() {
             </Route>
             <Route path="teams" element={<Navigate to="/team" replace />} />
             <Route path="repositories" element={<Navigate to="/catalog" replace />} />
-            <Route path="processes">
-              <Route index element={<Navigate to="/catalog" replace />} />
-              <Route path=":processId" element={<ProcessContextPage />} />
-            </Route>
-            <Route path="projects">
-              <Route index element={<Navigate to="/catalog" replace />} />
-              <Route path=":projectId" element={<ProjectWorkspaceOutlet />}>
-                <Route index element={<ProjectContextPage />} />
-                <Route path="subcontexts/:subcontextId" element={<SubcontextDetailPage />} />
-              </Route>
-            </Route>
-            <Route path="subcontexts/:subcontextId" element={<SubcontextRedirectPage />} />
+            <Route path="contexts/:contextId" element={<ContextWorkspacePage />} />
             <Route path="documents/:documentId" element={<DocumentPage />} />
             <Route path="documents/:documentId/versions" element={<DocumentVersionsPage />} />
             <Route path="templates" element={<Navigate to="/" replace />} />

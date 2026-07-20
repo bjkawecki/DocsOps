@@ -1,5 +1,7 @@
 import type { RecentScope } from '../hooks/useRecentItems';
 
+import type { MeResponse } from '../api/me-types';
+
 /** Owner-Shape für Breadcrumb-Scope (Kontext-/Subkontext-Seiten). */
 export type BreadcrumbOwner = {
   companyId?: string | null;
@@ -37,4 +39,30 @@ export function scopeToLabel(scope: RecentScope): string {
   if (scope.type === 'department') return 'Department';
   if (scope.type === 'team') return 'Team';
   return 'Context';
+}
+
+/** Whether the user may manage a scope (create, trash/archive tabs). Mirrors scope page canManage rules. */
+export function deriveOwnerScopeCanManage(
+  me: MeResponse | undefined,
+  owner: BreadcrumbOwner | null | undefined
+): boolean {
+  if (!me || !owner) return false;
+  if (me.user?.isAdmin) return true;
+  if (owner.ownerUserId) return true;
+  if (owner.companyId != null && me.identity?.companyLeads?.some((c) => c.id === owner.companyId)) {
+    return true;
+  }
+  if (
+    owner.departmentId != null &&
+    me.identity?.departmentLeads?.some((d) => d.id === owner.departmentId)
+  ) {
+    return true;
+  }
+  if (
+    owner.teamId != null &&
+    me.identity?.teams?.some((t) => t.teamId === owner.teamId && t.role === 'leader')
+  ) {
+    return true;
+  }
+  return false;
 }

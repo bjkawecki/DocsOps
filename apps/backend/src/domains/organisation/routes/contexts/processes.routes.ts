@@ -24,7 +24,7 @@ import {
   ownerOptsFromProcessProjectCreateBody,
 } from './context-create-route-helpers.js';
 import {
-  contextDocumentsPreviewInclude,
+  contextListDocumentsInclude,
   filterEntitiesWithContextIdByReadAccess,
 } from './context-list-helpers.js';
 import { findOrCreateOwner } from '../../services/contexts/owner.service.js';
@@ -85,7 +85,7 @@ function registerProcessRoutes(app: FastifyInstance): void {
         where,
         include: {
           context: {
-            include: contextDocumentsPreviewInclude,
+            include: contextListDocumentsInclude,
           },
           owner: true,
         },
@@ -102,6 +102,7 @@ function registerProcessRoutes(app: FastifyInstance): void {
       contextId: process.contextId,
       owner: process.owner,
       documents: process.context.documents,
+      documentCount: process.context._count.documents,
     }));
     return reply.send({ items, total, limit: query.limit, offset: query.offset });
   });

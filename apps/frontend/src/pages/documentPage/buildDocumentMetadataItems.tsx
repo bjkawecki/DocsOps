@@ -58,7 +58,7 @@ export function buildDocumentMetadataItems(params: { data: DocumentResponse }): 
   if (data.documentTags.length > 0) {
     data.documentTags.forEach((dt) => {
       metadataItems.push(
-        <Badge key={`tag-${dt.tag.id}`} size="sm" variant="filled" color="gray">
+        <Badge key={`tag-${dt.tag.id}`} size="sm" variant="light" color="gray">
           {dt.tag.name}
         </Badge>
       );

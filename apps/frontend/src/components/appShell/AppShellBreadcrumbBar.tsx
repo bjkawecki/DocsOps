@@ -45,13 +45,26 @@ export function AppShellBreadcrumbBar() {
               }
               if (item.to && isLast) {
                 return (
-                  <Anchor key={item.key} component={Link} to={item.to} c="dimmed" size="sm">
+                  <Anchor
+                    key={item.key}
+                    component={Link}
+                    to={item.to}
+                    c="var(--mantine-color-text)"
+                    size="sm"
+                    fw={600}
+                  >
                     {content}
                   </Anchor>
                 );
               }
               return (
-                <Text key={item.key} size="sm" c="dimmed" component="span">
+                <Text
+                  key={item.key}
+                  size="sm"
+                  c="var(--mantine-color-text)"
+                  fw={600}
+                  component="span"
+                >
                   {content}
                 </Text>
               );

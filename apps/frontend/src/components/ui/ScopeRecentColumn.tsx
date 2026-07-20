@@ -10,6 +10,7 @@ import { ContentLink } from './ContentLink';
 import { RecentItemIcon } from '../contexts/RecentItemsCard';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { useRecentItems } from '../../hooks/useRecentItems';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 
 const TOGGLE_STRIP_WIDTH = 32;
 const WIDTH_OPEN = 300;
@@ -126,9 +127,7 @@ export function ScopeRecentColumn({ open, onToggle, scope }: ScopeRecentColumnPr
                           const href =
                             item.type === 'document'
                               ? `/documents/${item.id}`
-                              : item.type === 'process'
-                                ? `/processes/${item.id}`
-                                : `/projects/${item.id}`;
+                              : contextUrl(item.id);
                           return (
                             <Group key={`${item.type}-${item.id}`} gap="xs" wrap="nowrap">
                               <RecentItemIcon type={item.type} size={14} />

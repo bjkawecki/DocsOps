@@ -1,70 +1,39 @@
-import { Box, Button, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, Fragment, useMemo } from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
-import {
-  ArchiveTabContent,
-  DraftsTabContent,
-  TrashTabContent,
-} from '../../components/trashArchive';
+import { Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
-import { canShowDraftsTab, canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
-import { useCanWriteInScope } from '../../hooks/useCanWriteInScope';
-import { PageWithTabs } from '../../components/ui/PageWithTabs';
-import { CreateContextMenu } from '../../components/contexts';
-import type {
-  DeleteTarget,
-  EditTarget,
-  ProcessItem,
-  ProjectItem,
-  ScopedCatalogDocItem,
-} from '../contextScope/contextScopeSharedTypes';
-import { CompanyPageDocumentsTab } from './CompanyPageDocumentsTab';
-import { CompanyPageOverviewTab } from './CompanyPageOverviewTab';
-import { CompanyPageProcessesTab } from './CompanyPageProcessesTab';
-import { CompanyPageProjectsTab } from './CompanyPageProjectsTab';
-import { useScopedCatalogDocumentsUrlState } from '../contextScope/useScopedCatalogDocumentsUrlState';
-import { ContextScopePageModals } from '../contextScope/ContextScopePageModals';
-import { useScopedContextPageChrome } from '../contextScope/useScopedContextPageChrome';
-import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
+import { ScopeWorkspaceEntry } from '../contextWorkspace/ScopeWorkspaceEntry.js';
 
 type CompanyRes = { id: string; name: string };
 
+/**
+ * Company scope landing → default context workspace or empty create state.
+ */
 export function CompanyPage() {
-  const queryClient = useQueryClient();
-  const [contextModalOpened, { open: openContextModal, close: closeContextModal }] =
-    useDisclosure(false);
-  const [documentModalOpened, { open: openDocumentModal, close: closeDocumentModal }] =
-    useDisclosure(false);
-  const [contextInitialType, setContextInitialType] = useState<'process' | 'project' | undefined>(
-    undefined
-  );
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const { data: me, isPending: mePending } = useMe();
-  const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
   const isAdmin = me?.user?.isAdmin === true;
+  const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
+  const companyIdFromTeam =
+    me?.identity?.teams?.[0]?.companyId ??
+    me?.identity?.departmentLeads?.[0]?.companyId ??
+    me?.identity?.departmentAuthors?.[0]?.companyId;
 
-  const { data: firstCompany, isPending: firstCompanyPending } = useQuery({
+  const { data: firstCompany } = useQuery({
     queryKey: ['companies', 'first'],
-    queryFn: async (): Promise<CompanyRes | null> => {
+    queryFn: async () => {
       const res = await apiFetch('/api/v1/companies?limit=1');
       if (!res.ok) throw new Error('Failed to load companies');
-      const data = (await res.json()) as { items: CompanyRes[] };
+      const data = (await res.json()) as { items: { id: string }[] };
       return data.items[0] ?? null;
     },
-    enabled: !companyIdFromLead,
+    enabled: isAdmin && !companyIdFromLead && !companyIdFromTeam,
   });
 
-  const effectiveCompanyId = companyIdFromLead ?? firstCompany?.id;
+  const effectiveCompanyId = companyIdFromLead ?? companyIdFromTeam ?? firstCompany?.id;
 
   const { data: company } = useQuery({
-    queryKey: ['company', effectiveCompanyId ?? ''],
-    queryFn: async (): Promise<CompanyRes> => {
-      if (!effectiveCompanyId) throw new Error('Missing company id');
+    queryKey: ['companies', effectiveCompanyId],
+    queryFn: async () => {
       const res = await apiFetch(`/api/v1/companies/${effectiveCompanyId}`);
       if (!res.ok) throw new Error('Failed to load company');
       return (await res.json()) as CompanyRes;
@@ -74,275 +43,27 @@ export function CompanyPage() {
 
   const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0 || isAdmin;
 
-  const { data: processesData, isPending: processesPending } = useQuery({
-    queryKey: ['processes', effectiveCompanyId ?? ''],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: '50', offset: '0' });
-      if (effectiveCompanyId) params.set('companyId', effectiveCompanyId);
-      const res = await apiFetch(`/api/v1/processes?${params}`);
-      if (!res.ok) throw new Error('Failed to load processes');
-      const data = (await res.json()) as { items: ProcessItem[] };
-      return data.items;
-    },
-    enabled: effectiveCompanyId != null,
-  });
-
-  const { data: projectsData, isPending: projectsPending } = useQuery({
-    queryKey: ['projects', effectiveCompanyId ?? ''],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: '50', offset: '0' });
-      if (effectiveCompanyId) params.set('companyId', effectiveCompanyId);
-      const res = await apiFetch(`/api/v1/projects?${params}`);
-      if (!res.ok) throw new Error('Failed to load projects');
-      const data = (await res.json()) as { items: ProjectItem[] };
-      return data.items;
-    },
-    enabled: effectiveCompanyId != null,
-  });
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const {
-    docsSortBy,
-    docsSortOrder,
-    docsPage,
-    docsLimit,
-    docsOffset,
-    docsSearch,
-    docsContextType,
-    setDocsFilter,
-    setDocsSort,
-    setDocsPage,
-    setDocsLimit,
-  } = useScopedCatalogDocumentsUrlState(searchParams, setSearchParams, {
-    docsPageParamMode: 'omitFirstPage',
-  });
-
-  const companyDocumentsParams = [
-    `companyId=${effectiveCompanyId ?? ''}`,
-    `limit=${docsLimit}`,
-    `offset=${docsOffset}`,
-    `sortBy=${docsSortBy}`,
-    `sortOrder=${docsSortOrder}`,
-    docsSearch && `search=${encodeURIComponent(docsSearch)}`,
-    docsContextType &&
-      ['process', 'project'].includes(docsContextType) &&
-      `contextType=${docsContextType}`,
-  ]
-    .filter(Boolean)
-    .join('&');
-  const { data: companyDocsRes, isPending: docsPending } = useQuery({
-    queryKey: ['catalog-documents', companyDocumentsParams],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        companyId: effectiveCompanyId!,
-        limit: String(docsLimit),
-        offset: String(docsOffset),
-        sortBy: docsSortBy,
-        sortOrder: docsSortOrder,
-      });
-      if (docsSearch.trim()) params.set('search', docsSearch.trim());
-      if (docsContextType === 'process' || docsContextType === 'project')
-        params.set('contextType', docsContextType);
-      const res = await apiFetch(`/api/v1/documents?${params}`);
-      if (!res.ok) throw new Error('Failed to load documents');
-      return (await res.json()) as { items: ScopedCatalogDocItem[]; total: number };
-    },
-    enabled: effectiveCompanyId != null,
-  });
-
-  const docsTotal = companyDocsRes?.total ?? 0;
-  const docsTotalPages = Math.ceil(docsTotal / docsLimit) || 1;
-
-  const { data: canWriteInScopeData } = useCanWriteInScope(
-    effectiveCompanyId != null ? { scope: 'company', companyId: effectiveCompanyId } : null
-  );
-  const canShowTrashArchive = effectiveCompanyId != null && canShowTrashArchiveTabs(me, canManage);
-  const canShowDrafts =
-    effectiveCompanyId != null &&
-    canShowDraftsTab(me, canManage, canWriteInScopeData?.canWrite === true);
-  const {
-    invalidateContexts,
-    handleEditSuccess,
-    handleDeleteConfirm,
-    tabs,
-    activeTab,
-    setActiveTab,
-  } = useScopedContextPageChrome({
-    queryClient,
-    searchParams,
-    setSearchParams,
-    canShowDrafts,
-    canShowTrashArchive,
-    tabPolicy: 'scoped-with-guard',
-    scope: { kind: 'company', companyId: effectiveCompanyId ?? '' },
-    deleteTarget,
-    setEditTarget,
-    setDeleteTarget,
-    setDeleteLoading,
-  });
-
-  const companyScope = effectiveCompanyId
-    ? { type: 'company' as const, id: effectiveCompanyId }
-    : null;
-  const chromeActions = useMemo(() => {
-    if (!effectiveCompanyId || !canManage) return null;
-    return (
-      <CreateContextMenu
-        onCreateProcess={() => {
-          setContextInitialType('process');
-          openContextModal();
-        }}
-        onCreateProject={() => {
-          setContextInitialType('project');
-          openContextModal();
-        }}
-        onCreateDraft={openDocumentModal}
-      />
-    );
-  }, [effectiveCompanyId, canManage, openContextModal, openDocumentModal]);
-  useRegisterScopePageChrome(companyScope, company?.name, chromeActions);
-
-  const processes = processesData ?? [];
-  const projects = projectsData ?? [];
-  const processesPreview = processes.slice(0, 5);
-  const projectsPreview = projects.slice(0, 5);
-  const companyDocs = companyDocsRes?.items ?? [];
-  const docsPreview = companyDocs.slice(0, 5);
-
-  if (mePending || (!companyIdFromLead && firstCompanyPending))
+  if (mePending) {
     return (
       <Text size="sm" c="dimmed">
         Loading…
       </Text>
     );
+  }
 
-  if (effectiveCompanyId == null) {
-    if (isAdmin) {
-      return (
-        <Box maw={480}>
-          <Text fw={600} mb="xs">
-            No company yet
-          </Text>
-          <Text size="sm" c="dimmed" mb="md">
-            Create your organization in Admin before using company contexts.
-          </Text>
-          <Button component={Link} to="/admin/company">
-            Set up company
-          </Button>
-        </Box>
-      );
-    }
-    return <Navigate to="/" replace />;
+  if (!effectiveCompanyId) {
+    return (
+      <Text size="sm" c="dimmed">
+        No company available.
+      </Text>
+    );
   }
 
   return (
-    <Box>
-      <PageWithTabs
-        title={company?.name ?? 'Company'}
-        hideTitle
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        recentScope={companyScope}
-        recentViewMoreHref="/catalog"
-      >
-        {[
-          <Fragment key="overview">
-            <CompanyPageOverviewTab
-              effectiveCompanyId={effectiveCompanyId}
-              processes={processes}
-              projects={projects}
-              processesPreview={processesPreview}
-              projectsPreview={projectsPreview}
-              docsTotal={docsTotal}
-              docsPending={docsPending}
-              docsPreview={docsPreview}
-              setActiveTab={setActiveTab}
-              canShowDrafts={canShowDrafts}
-            />
-          </Fragment>,
-          <Fragment key="processes">
-            <CompanyPageProcessesTab
-              effectiveCompanyId={effectiveCompanyId}
-              processesPending={processesPending}
-              processes={processes}
-            />
-          </Fragment>,
-          <Fragment key="projects">
-            <CompanyPageProjectsTab
-              effectiveCompanyId={effectiveCompanyId}
-              projectsPending={projectsPending}
-              projects={projects}
-            />
-          </Fragment>,
-          <Fragment key="documents">
-            <CompanyPageDocumentsTab
-              effectiveCompanyId={effectiveCompanyId}
-              docsPending={docsPending}
-              docsSearch={docsSearch}
-              setDocsFilter={setDocsFilter}
-              docsContextType={docsContextType}
-              docsTotal={docsTotal}
-              docsLimit={docsLimit}
-              setDocsLimit={setDocsLimit}
-              companyDocs={companyDocs}
-              docsSortBy={docsSortBy}
-              docsSortOrder={docsSortOrder}
-              setDocsSort={setDocsSort}
-              docsPage={docsPage}
-              docsTotalPages={docsTotalPages}
-              setDocsPage={setDocsPage}
-            />
-          </Fragment>,
-          ...(canShowDrafts || canShowTrashArchive
-            ? [
-                ...(canShowDrafts
-                  ? [
-                      <Fragment key="drafts">
-                        <DraftsTabContent
-                          scopeParams={
-                            effectiveCompanyId != null ? { companyId: effectiveCompanyId } : {}
-                          }
-                          enabled={effectiveCompanyId != null}
-                        />
-                      </Fragment>,
-                    ]
-                  : []),
-                ...(canShowTrashArchive
-                  ? [
-                      <Fragment key="trash">
-                        <TrashTabContent scope="company" companyId={effectiveCompanyId} />
-                      </Fragment>,
-                      <Fragment key="archive">
-                        <ArchiveTabContent scope="company" companyId={effectiveCompanyId} />
-                      </Fragment>,
-                    ]
-                  : []),
-              ]
-            : []),
-        ]}
-      </PageWithTabs>
-
-      {effectiveCompanyId != null && (
-        <ContextScopePageModals
-          scope={{ type: 'company', companyId: effectiveCompanyId }}
-          contextModalOpened={contextModalOpened}
-          closeContextModal={closeContextModal}
-          documentModalOpened={documentModalOpened}
-          closeDocumentModal={closeDocumentModal}
-          contextInitialType={contextInitialType}
-          onInvalidateContexts={invalidateContexts}
-          editTarget={editTarget}
-          onCloseEdit={() => setEditTarget(null)}
-          onEditSuccess={handleEditSuccess}
-          deleteTarget={deleteTarget}
-          onCloseDelete={() => setDeleteTarget(null)}
-          deleteLoading={deleteLoading}
-          onDeleteConfirm={() => {
-            void handleDeleteConfirm();
-          }}
-        />
-      )}
-    </Box>
+    <ScopeWorkspaceEntry
+      scope={{ type: 'company', id: effectiveCompanyId }}
+      scopeLabel={company?.name}
+      canManage={canManage}
+    />
   );
 }

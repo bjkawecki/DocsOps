@@ -1,7 +1,9 @@
 import { Button, Group, Modal, Radio, Select, Stack, Text, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import { useNewContextScopeDisplayLabel } from './useNewContextScopeDisplayLabel';
 
 export type NewContextScope =
@@ -39,6 +41,7 @@ export function NewContextModal({
   onSuccess,
   initialType,
 }: NewContextModalProps) {
+  const navigate = useNavigate();
   const [selectedType, setSelectedType] = useState<'process' | 'project' | null>(
     initialType ?? null
   );
@@ -94,6 +97,7 @@ export function NewContextModal({
         body: JSON.stringify(body),
       });
       if (res.status === 201) {
+        const created = (await res.json()) as { contextId: string };
         notifications.show({
           title: 'Context created',
           message: selectedType === 'process' ? 'Process was created.' : 'Project was created.',
@@ -101,6 +105,7 @@ export function NewContextModal({
         });
         onSuccess?.();
         handleClose();
+        void navigate(contextUrl(created.contextId));
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         notifications.show({

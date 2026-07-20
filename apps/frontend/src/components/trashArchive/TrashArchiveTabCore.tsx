@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
+import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import { formatTableDate } from '../../lib/formatDate';
 import { SortableTableTh } from '../ui/SortableTableTh';
 import type { TrashArchiveItem, TrashArchiveTabBaseProps } from './trashArchiveTypes';
@@ -31,8 +32,8 @@ type ListResponse = {
 
 function itemHref(item: TrashArchiveItem): string {
   if (item.type === 'document') return `/documents/${item.id}`;
-  if (item.type === 'process') return `/processes/${item.id}`;
-  return `/projects/${item.id}`;
+  if (item.contextId) return contextUrl(item.contextId);
+  return '#';
 }
 
 export type TrashArchiveTabVariant = 'trash' | 'archive';

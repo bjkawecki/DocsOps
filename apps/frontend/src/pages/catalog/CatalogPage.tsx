@@ -17,6 +17,7 @@ import { useCallback, useMemo, useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { IconArrowDown, IconArrowUp, IconSelector } from '@tabler/icons-react';
 import { PageHeader } from '../../components/ui/PageHeader';
+import { contextUrl } from '../contextWorkspace/contextPaths';
 import { apiFetch } from '../../api/client';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
 import '../../utils/searchSnippetMark.css';
@@ -86,9 +87,7 @@ function formatDate(iso: string): string {
 }
 
 function contextHref(doc: CatalogDocument): string {
-  if (doc.contextProcessId) return `/processes/${doc.contextProcessId}`;
-  if (doc.contextProjectId) return `/projects/${doc.contextProjectId}`;
-  return '#';
+  return contextUrl(doc.contextId);
 }
 
 function parseStoredPageSize(): number {
