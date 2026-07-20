@@ -3,6 +3,24 @@ export function isActive(path: string, current: string): boolean {
   return current === path || current.startsWith(path + '/');
 }
 
+/**
+ * Org/Personal/Shared sidebar link is active on its own route or when the
+ * current content owner scope (process/project/document) matches this link.
+ */
+export function isOrgNavActive(
+  path: string,
+  pathname: string,
+  navScope: { type: string; id?: string } | null,
+  linkScope: { type: string; id?: string }
+): boolean {
+  if (isActive(path, pathname)) return true;
+  if (navScope == null || navScope.type !== linkScope.type) return false;
+  if (linkScope.id != null) {
+    return navScope.id === linkScope.id;
+  }
+  return true;
+}
+
 /** Shared styles for sidebar nav links (hover/active). Uses theme variables. */
 export function getNavLinkStyles(): { root: Record<string, unknown> } {
   return {

@@ -1,5 +1,6 @@
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
-import { isActive } from './appShellNavUtils.js';
+import { isOrgNavActive } from './appShellNavUtils.js';
+import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
@@ -17,12 +18,13 @@ export function AppShellNavNoIdentity({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const navScope = useAppShellNavScope();
   return (
     <>
       <AppShellScopeNavLink
         to="/company"
         label="Company"
-        active={isActive('/company', pathname)}
+        active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
         leftSection={<IconBuildingSkyscraper size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
@@ -32,7 +34,7 @@ export function AppShellNavNoIdentity({
       <AppShellScopeNavLink
         to="/department"
         label="Department"
-        active={isActive('/department', pathname)}
+        active={isOrgNavActive('/department', pathname, navScope, { type: 'department' })}
         leftSection={<IconSitemap size={18} />}
         navLinkStyles={navLinkStyles}
         isMiniRail={isMiniRail}
@@ -41,7 +43,7 @@ export function AppShellNavNoIdentity({
       <AppShellScopeNavLink
         to="/team"
         label="Team"
-        active={isActive('/team', pathname)}
+        active={isOrgNavActive('/team', pathname, navScope, { type: 'team' })}
         leftSection={<IconUsersGroup size={18} />}
         navLinkStyles={navLinkStyles}
         isMiniRail={isMiniRail}

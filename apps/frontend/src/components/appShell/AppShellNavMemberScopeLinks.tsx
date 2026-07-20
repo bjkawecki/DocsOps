@@ -1,5 +1,6 @@
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
-import { isActive } from './appShellNavUtils.js';
+import { isOrgNavActive } from './appShellNavUtils.js';
+import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
@@ -25,16 +26,31 @@ export function AppShellNavMemberScopeLinks({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const navScope = useAppShellNavScope();
   const departmentBadge =
     userDepartmentId !== undefined ? departmentCounts[userDepartmentId] : undefined;
   const teamBadge = userTeamId !== undefined ? teamCounts[userTeamId] : undefined;
+
+  const companyActive = isOrgNavActive('/company', pathname, navScope, { type: 'company' });
+  const departmentActive = userDepartmentId
+    ? isOrgNavActive(`/department/${userDepartmentId}`, pathname, navScope, {
+        type: 'department',
+        id: userDepartmentId,
+      })
+    : isOrgNavActive('/department', pathname, navScope, { type: 'department' });
+  const teamActive = userTeamId
+    ? isOrgNavActive(`/team/${userTeamId}`, pathname, navScope, {
+        type: 'team',
+        id: userTeamId,
+      })
+    : isOrgNavActive('/team', pathname, navScope, { type: 'team' });
 
   return (
     <>
       <AppShellScopeNavLink
         to="/company"
         label="Company"
-        active={isActive('/company', pathname)}
+        active={companyActive}
         leftSection={<IconBuildingSkyscraper size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
@@ -44,11 +60,7 @@ export function AppShellNavMemberScopeLinks({
       <AppShellScopeNavLink
         to={userDepartmentId ? `/department/${userDepartmentId}` : '/department'}
         label="Department"
-        active={
-          userDepartmentId
-            ? isActive(`/department/${userDepartmentId}`, pathname)
-            : isActive('/department', pathname)
-        }
+        active={departmentActive}
         leftSection={<IconSitemap size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={departmentBadge}
@@ -58,9 +70,7 @@ export function AppShellNavMemberScopeLinks({
       <AppShellScopeNavLink
         to={userTeamId ? `/team/${userTeamId}` : '/team'}
         label="Team"
-        active={
-          userTeamId ? isActive(`/team/${userTeamId}`, pathname) : isActive('/team', pathname)
-        }
+        active={teamActive}
         leftSection={<IconUsersGroup size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={teamBadge}

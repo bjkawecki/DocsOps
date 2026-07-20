@@ -35,6 +35,7 @@ import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 
 type SubcontextResponse = {
   id: string;
@@ -289,6 +290,7 @@ export function SubcontextDetailPage() {
     ];
   }, [data, scope?.type, scopeName, scopeUrlWithTab, subcontextId, projectIdParam]);
   useSetAppShellBreadcrumbs(breadcrumbItems);
+  useSetAppShellNavScope(scope);
 
   if (!subcontextId || !projectIdParam) return null;
 

@@ -58,13 +58,14 @@ a:not(.mantine-Button-root):visited,
   color: var(--mantine-primary-color-4);
 }
 
-/* Context detail: process/project list – no visited state (always same color). */
+/* Context detail: process/project sibling list – neutral text; primary only when active. */
 [data-context-sibling-nav] a,
-[data-context-sibling-nav] a:visited {
-  color: var(--mantine-primary-color-4);
+[data-context-sibling-nav] a:visited,
+[data-context-sibling-nav] .mantine-NavLink-root {
+  color: inherit;
 }
-[data-context-sibling-nav] a:hover {
-  color: var(--mantine-primary-color-3);
+[data-context-sibling-nav] .mantine-NavLink-root[data-active] {
+  color: var(--mantine-primary-color-filled);
 }
 /* Left column: do not shrink below 280px on large screens. */
 @media (min-width: 62em) {

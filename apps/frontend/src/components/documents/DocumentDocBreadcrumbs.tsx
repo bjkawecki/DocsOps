@@ -14,6 +14,7 @@ import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../appShell/AppShellNavScopeContext.js';
 
 /** Felder aus dem Document-GET, die für Scope-/Kontext-Breadcrumbs nötig sind. */
 export type DocumentForDocBreadcrumbs = {
@@ -128,5 +129,7 @@ export function DocumentDocBreadcrumbs({
     [documentId, doc, linkDocumentTitle]
   );
   useSetAppShellBreadcrumbs(items);
+  const scope = (doc.scope ?? null) as RecentScope | null;
+  useSetAppShellNavScope(scope);
   return null;
 }

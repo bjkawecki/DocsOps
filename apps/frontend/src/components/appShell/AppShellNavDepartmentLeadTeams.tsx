@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { NavLink, Stack, Text } from '@mantine/core';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
-import { isActive } from './appShellNavUtils.js';
+import { isOrgNavActive } from './appShellNavUtils.js';
+import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellNavCollapsibleSection } from './AppShellNavCollapsibleSection';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
@@ -34,10 +35,14 @@ export function AppShellNavDepartmentLeadTeams({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const navScope = useAppShellNavScope();
   const teamMenuItems = teams.map((team) => ({
     to: `/team/${team.id}`,
     label: team.name,
-    active: pathname === `/team/${team.id}`,
+    active: isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
+      type: 'team',
+      id: team.id,
+    }),
     badgeCount: teamCounts[team.id],
   }));
 
@@ -46,7 +51,7 @@ export function AppShellNavDepartmentLeadTeams({
       <AppShellScopeNavLink
         to="/company"
         label="Company"
-        active={isActive('/company', pathname)}
+        active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
         leftSection={<IconBuildingSkyscraper size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
@@ -56,7 +61,10 @@ export function AppShellNavDepartmentLeadTeams({
       <AppShellScopeNavLink
         to={`/department/${departmentId}`}
         label="Department"
-        active={isActive(`/department/${departmentId}`, pathname)}
+        active={isOrgNavActive(`/department/${departmentId}`, pathname, navScope, {
+          type: 'department',
+          id: departmentId,
+        })}
         leftSection={<IconSitemap size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={departmentCounts[departmentId]}
@@ -80,7 +88,10 @@ export function AppShellNavDepartmentLeadTeams({
               component={Link}
               to={`/team/${team.id}`}
               label={team.name}
-              active={pathname === `/team/${team.id}`}
+              active={isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
+                type: 'team',
+                id: team.id,
+              })}
               onClick={onNavigate}
               rightSection={
                 teamCounts[team.id] !== undefined && teamCounts[team.id] > 0 ? (

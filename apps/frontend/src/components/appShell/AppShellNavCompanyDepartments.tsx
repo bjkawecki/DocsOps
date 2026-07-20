@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { Box, NavLink, Stack, Text } from '@mantine/core';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import type { DepartmentWithTeams } from './appShellNavUtils.js';
-import { isActive } from './appShellNavUtils.js';
+import { isOrgNavActive } from './appShellNavUtils.js';
+import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellNavCollapsibleSection } from './AppShellNavCollapsibleSection';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
@@ -35,15 +36,21 @@ export function AppShellNavCompanyDepartments({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const navScope = useAppShellNavScope();
   const singleDeptDocumentCount =
     depts.length === 1 && typeof departmentCounts[depts[0].id] === 'number'
       ? departmentCounts[depts[0].id]
       : undefined;
 
+  const companyActive = isOrgNavActive('/company', pathname, navScope, { type: 'company' });
+
   const departmentMenuItems = depts.map((dept) => ({
     to: `/department/${dept.id}`,
     label: dept.name,
-    active: isActive(`/department/${dept.id}`, pathname),
+    active: isOrgNavActive(`/department/${dept.id}`, pathname, navScope, {
+      type: 'department',
+      id: dept.id,
+    }),
     badgeCount: departmentCounts[dept.id],
   }));
 
@@ -52,7 +59,10 @@ export function AppShellNavCompanyDepartments({
     items: (dept.teams ?? []).map((team) => ({
       to: `/team/${team.id}`,
       label: team.name,
-      active: pathname === `/team/${team.id}`,
+      active: isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
+        type: 'team',
+        id: team.id,
+      }),
       badgeCount: teamCounts[team.id],
     })),
   }));
@@ -62,7 +72,7 @@ export function AppShellNavCompanyDepartments({
       <AppShellScopeNavLink
         to="/company"
         label="Company"
-        active={isActive('/company', pathname)}
+        active={companyActive}
         leftSection={<IconBuildingSkyscraper size={18} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
@@ -93,7 +103,10 @@ export function AppShellNavCompanyDepartments({
               component={Link}
               to={`/department/${dept.id}`}
               label={dept.name}
-              active={isActive(`/department/${dept.id}`, pathname)}
+              active={isOrgNavActive(`/department/${dept.id}`, pathname, navScope, {
+                type: 'department',
+                id: dept.id,
+              })}
               onClick={onNavigate}
               rightSection={
                 departmentCounts[dept.id] !== undefined && departmentCounts[dept.id] > 0 ? (
@@ -130,7 +143,10 @@ export function AppShellNavCompanyDepartments({
                   component={Link}
                   to={`/team/${team.id}`}
                   label={team.name}
-                  active={pathname === `/team/${team.id}`}
+                  active={isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
+                    type: 'team',
+                    id: team.id,
+                  })}
                   onClick={onNavigate}
                   rightSection={
                     teamCounts[team.id] !== undefined && teamCounts[team.id] > 0 ? (

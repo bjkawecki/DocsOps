@@ -46,6 +46,7 @@ import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 
 type ContextType = 'process' | 'project';
 
@@ -332,6 +333,7 @@ export function ContextDetailPage({ type, id }: ContextDetailPageProps) {
     ];
   }, [data, scope?.type, scopeName, scopeUrlWithTab, typeLabel]);
   useSetAppShellBreadcrumbs(breadcrumbItems);
+  useSetAppShellNavScope(scope);
 
   if (isPending)
     return (

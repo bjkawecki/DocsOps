@@ -12,7 +12,8 @@ import { AppShellSidebarBrand } from './AppShellSidebarBrand.js';
 import { AppShellNavbarToolRow } from './AppShellNavbarToolRow.js';
 import { AppShellSidebarCollapseControl } from './AppShellSidebarCollapseControl.js';
 import { AdminAppVersionLabel } from '../AdminAppVersionLabel.js';
-import { isActive } from './appShellNavUtils.js';
+import { isActive, isOrgNavActive } from './appShellNavUtils.js';
+import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { MAIN_NAV_ID, SIDEBAR_MINI_GAP } from './appShellLayoutConstants.js';
 import type { useAppShellSidebarData } from './useAppShellSidebarData.js';
 
@@ -35,6 +36,7 @@ export function AppShellNavbar({
   onNavigate,
   onOpenSearch,
 }: Props) {
+  const navScope = useAppShellNavScope();
   return (
     <MantineAppShell.Navbar
       id={MAIN_NAV_ID}
@@ -122,7 +124,9 @@ export function AppShellNavbar({
               <AppShellSidebarNavLink
                 to="/personal"
                 label="Personal"
-                active={isActive('/personal', s.location.pathname)}
+                active={isOrgNavActive('/personal', s.location.pathname, navScope, {
+                  type: 'personal',
+                })}
                 leftSection={<IconUser size={18} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
@@ -146,7 +150,9 @@ export function AppShellNavbar({
               <AppShellSidebarNavLink
                 to="/shared"
                 label="Shared"
-                active={isActive('/shared', s.location.pathname)}
+                active={isOrgNavActive('/shared', s.location.pathname, navScope, {
+                  type: 'shared',
+                })}
                 leftSection={<IconShare size={18} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
