@@ -1,95 +1,76 @@
-import {
-  Box,
-  Card,
-  Container,
-  Flex,
-  Group,
-  NavLink,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Box, Container, Flex, NavLink, Paper, Stack } from '@mantine/core';
 import { IconHelp } from '@tabler/icons-react';
-import { HELP_TOPICS } from './helpTopics';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import {
+  useSetAppShellBreadcrumbActions,
+  useSetAppShellBreadcrumbs,
+} from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
+import { SectionLabel } from '../../components/ui/SectionLabel.js';
+import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import { HELP_TOPIC_ICON_SIZE, HELP_TOPICS } from './helpTopics.js';
 
 /** Max width of the help content card (readable line length including padding). */
 const HELP_PANEL_MAX_WIDTH = 720;
 
+const navLinkFullWidth = {
+  borderRadius: 'var(--mantine-radius-sm)',
+  width: '100%',
+} as const;
+
 export function HelpLayout() {
   const { pathname } = useLocation();
 
+  useSetAppShellBreadcrumbs([
+    {
+      key: 'help',
+      label: 'Help',
+      icon: <IconHelp size={14} stroke={1.5} />,
+    },
+  ]);
+  useSetAppShellBreadcrumbActions(null);
+  useSetAppShellNavScope(null);
+
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <Stack gap="lg" mb="xl" mt="md">
-        <GroupTitleRow />
-      </Stack>
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
+          <ContextWorkspaceLeftColumn data-context-sibling-nav sticky>
+            <ContentCardWrapper fullHeight={false}>
+              <SectionLabel mb="sm">Topics</SectionLabel>
+              <Stack component="nav" gap={2} align="stretch" w="100%" aria-label="Help topics">
+                {HELP_TOPICS.map((topic) => {
+                  const Icon = topic.icon;
+                  return (
+                    <NavLink
+                      key={topic.to}
+                      component={Link}
+                      to={topic.to}
+                      label={topic.label}
+                      leftSection={<Icon size={HELP_TOPIC_ICON_SIZE} stroke={1.5} />}
+                      active={pathname === topic.to}
+                      aria-current={pathname === topic.to ? 'page' : undefined}
+                      variant="subtle"
+                      style={navLinkFullWidth}
+                    />
+                  );
+                })}
+              </Stack>
+            </ContentCardWrapper>
+          </ContextWorkspaceLeftColumn>
 
-      <Paper withBorder={false} p="lg" radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'xl', lg: 48 }}
-          align="flex-start"
-        >
-          <Box
-            w={{ base: '100%', lg: 280 }}
-            style={{
-              flexShrink: 0,
-              position: 'sticky',
-              top: 'var(--mantine-spacing-xl)',
-            }}
-            data-help-topics-nav
-          >
-            <Text
-              tt="uppercase"
-              fz="xs"
-              fw={600}
-              c="dimmed"
-              mb="sm"
-              style={{ paddingLeft: 'var(--mantine-spacing-xs)' }}
-            >
-              In this guide
-            </Text>
-            <Stack component="nav" gap={2}>
-              {HELP_TOPICS.map((topic) => (
-                <NavLink
-                  key={topic.to}
-                  component={Link}
-                  to={topic.to}
-                  label={topic.label}
-                  active={pathname === topic.to}
-                  variant="filled"
-                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
-                />
-              ))}
-            </Stack>
-          </Box>
-
-          <Box flex={1} maw="100%" style={{ minWidth: 0 }}>
-            <Card
-              withBorder
-              padding="xl"
-              maw={HELP_PANEL_MAX_WIDTH}
-              w="100%"
-              style={{ textAlign: 'left' }}
-            >
-              <Box style={{ width: '100%', textAlign: 'left' }}>
-                <Outlet />
-              </Box>
-            </Card>
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <Box maw={HELP_PANEL_MAX_WIDTH} w="100%">
+              <ContentCardWrapper fullHeight={false} padding="lg">
+                <Box style={{ textAlign: 'left' }}>
+                  <Outlet />
+                </Box>
+              </ContentCardWrapper>
+            </Box>
           </Box>
         </Flex>
       </Paper>
     </Container>
-  );
-}
-
-function GroupTitleRow() {
-  return (
-    <Group gap="sm" align="center" wrap="nowrap">
-      <IconHelp size={32} stroke={1.5} color="var(--mantine-color-dimmed)" aria-hidden />
-      <Title order={1}>Help</Title>
-    </Group>
   );
 }
