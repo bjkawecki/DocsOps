@@ -406,6 +406,10 @@ export function useDocumentPage() {
         invalidateDocumentIndexCaches(queryClient, documentId, data?.contextId);
         invalidateMeDraftsAndPersonalDocuments(queryClient);
         void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
+        setMode('view');
+        setEditInitialSnapshot(null);
+        setLeadDraftDirty(false);
+        clearEditUrlParams();
         const isRepublish = Boolean(data?.publishedAt);
         notifications.show({
           title: isRepublish ? 'Published changes' : 'Published',

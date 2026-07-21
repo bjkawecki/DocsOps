@@ -355,11 +355,6 @@ export function DocumentPageLoadedLayout({
               style={{ minHeight: 0 }}
             >
               <Stack gap="lg" style={{ flex: 1, minWidth: 0 }}>
-                {mode === 'view' && data.description ? (
-                  <Text size="sm" c="dimmed" maw="90ch" w="100%">
-                    {data.description}
-                  </Text>
-                ) : null}
                 {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
                   <Box maw="90ch" w="100%">
                     <DocumentPublishedVersionAlert

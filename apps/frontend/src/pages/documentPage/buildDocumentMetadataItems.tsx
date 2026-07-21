@@ -1,13 +1,13 @@
-import { Stack, Text } from '@mantine/core';
+import { Badge, Group, Stack, Text } from '@mantine/core';
 import type { DocumentResponse } from './documentPageTypes';
 
 /**
- * Version/draft + tags for the document left column (under context, above TOC).
- * Two plain text lines – no badge chrome.
+ * Version/draft + tags + description for the document left column (under context, above TOC).
  */
 export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
   const versionNumber = data.currentPublishedVersionNumber;
-  const tagNames = data.documentTags.map((dt) => dt.tag.name).filter(Boolean);
+  const tags = data.documentTags.filter((dt) => dt.tag.name.trim().length > 0);
+  const description = data.description?.trim() || null;
   const dateLabel = data.publishedAt
     ? new Date(data.publishedAt).toLocaleDateString(undefined)
     : null;
@@ -25,15 +25,32 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
   }
 
   return (
-    <Stack gap={4} w="100%">
+    <Stack gap={6} w="100%">
       {statusLine != null ? (
         <Text size="sm" c="dimmed">
           {statusLine}
         </Text>
       ) : null}
-      {tagNames.length > 0 ? (
-        <Text size="sm" c="dimmed" aria-label="Tags">
-          Tags: {tagNames.join(', ')}
+      {tags.length > 0 ? (
+        <Group gap={6} wrap="wrap" aria-label="Tags">
+          {tags.map((dt) => (
+            <Badge
+              key={dt.tag.id}
+              size="xs"
+              variant="light"
+              color="gray"
+              radius="xl"
+              tt="none"
+              fw={500}
+            >
+              {dt.tag.name}
+            </Badge>
+          ))}
+        </Group>
+      ) : null}
+      {description != null ? (
+        <Text size="sm" c="dimmed" style={{ lineHeight: 1.4 }}>
+          {description}
         </Text>
       ) : null}
     </Stack>

@@ -325,7 +325,9 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
   });
   app.patch(
     '/documents/:documentId',
-    { preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))] },
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('writeOrPublish'))],
+    },
     async (request, reply) => {
       const prisma = request.server.prisma;
       const userId = getEffectiveUserId(request as RequestWithUser);

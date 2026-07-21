@@ -3,6 +3,7 @@ import { getEffectiveUserId, type RequestWithUser } from '../../auth/middleware.
 import { canRead, canSeeDocumentInTrash } from './canRead.js';
 import { canWrite } from './canWrite.js';
 import { canManageDocumentGrants } from './canManageDocumentGrants.js';
+import { canPublishDocument } from './canPublishDocument.js';
 import { DOCUMENT_FOR_PERMISSION_INCLUDE } from './documentLoad.js';
 
 export const DOCUMENT_ID_PARAM = 'documentId';
@@ -12,9 +13,10 @@ export const DOCUMENT_ID_PARAM = 'documentId';
  * Muss nach requireAuth laufen. Liest documentId aus request.params.documentId.
  * 400 wenn documentId fehlt, 401 wenn kein User, 404 wenn Dokument nicht existiert, 403 wenn kein Zugriff.
  * `readOrWrite`: canRead **oder** canWrite (z. B. Lead-Draft für Autoren ohne separates Read-Grant).
+ * `writeOrPublish`: canWrite **oder** canPublishDocument (UI Edit für Scope-Leads inkl. Metadata).
  */
 export function requireDocumentAccess(
-  mode: 'read' | 'write' | 'readOrWrite'
+  mode: 'read' | 'write' | 'readOrWrite' | 'writeOrPublish'
 ): (request: FastifyRequest, reply: FastifyReply) => Promise<void> {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     const documentId = (request.params as Record<string, string | undefined>)?.[DOCUMENT_ID_PARAM];
@@ -42,12 +44,18 @@ export function requireDocumentAccess(
       }
       return;
     }
-    const allowed =
-      mode === 'read'
-        ? await canRead(prisma, userId, doc)
-        : mode === 'write'
-          ? await canWrite(prisma, userId, doc)
-          : (await canRead(prisma, userId, doc)) || (await canWrite(prisma, userId, doc));
+    let allowed = false;
+    if (mode === 'read') {
+      allowed = await canRead(prisma, userId, doc);
+    } else if (mode === 'write') {
+      allowed = await canWrite(prisma, userId, doc);
+    } else if (mode === 'writeOrPublish') {
+      allowed =
+        (await canWrite(prisma, userId, doc)) ||
+        (await canPublishDocument(prisma, userId, documentId));
+    } else {
+      allowed = (await canRead(prisma, userId, doc)) || (await canWrite(prisma, userId, doc));
+    }
     if (!allowed) {
       return reply.status(403).send({ error: 'No access to this document' });
     }
