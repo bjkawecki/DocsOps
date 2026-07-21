@@ -2,7 +2,7 @@ import { Stack, Text, Title } from '@mantine/core';
 
 export function HelpOverviewPage() {
   return (
-    <Stack gap="md" align="stretch" style={{ textAlign: 'left' }}>
+    <Stack gap={6} align="stretch" style={{ textAlign: 'left' }}>
       <Title order={2}>What is DocsOps?</Title>
       <Text size="md">
         DocsOps is a documentation and knowledge workspace for engineering organisations. You work

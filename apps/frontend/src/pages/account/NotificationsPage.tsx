@@ -8,6 +8,7 @@ import {
   Paper,
   Stack,
   Switch,
+  Text,
   Tooltip,
 } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
@@ -46,6 +47,7 @@ export function NotificationsPage() {
   const isAdmin = me?.user.isAdmin === true;
   const [searchParams, setSearchParams] = useSearchParams();
   const [canMarkAll, setCanMarkAll] = useState(false);
+  const [listTotal, setListTotal] = useState<number | null>(null);
   const markAllAsRead = useMarkAllNotificationsAsRead();
 
   const parsedCategory = parseMeNotificationCategory(searchParams.get('category'));
@@ -78,9 +80,17 @@ export function NotificationsPage() {
     [setSearchParams]
   );
 
+  const totalLabel =
+    listTotal == null ? null : `${listTotal} notification${listTotal !== 1 ? 's' : ''}`;
+
   const breadcrumbActions = useMemo(
     () => (
       <Group gap="md" wrap="nowrap" align="center">
+        {totalLabel != null ? (
+          <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+            {totalLabel}
+          </Text>
+        ) : null}
         <Switch
           size="sm"
           label="Unread only"
@@ -100,17 +110,28 @@ export function NotificationsPage() {
       </Group>
     ),
     // mutate identity is stable; syncKey below drives shell refresh
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- unreadOnly + canMarkAll + pending
-    [unreadOnly, canMarkAll, markAllAsRead.isPending, markAllAsRead.mutate, handleUnreadOnlyChange]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- unreadOnly + canMarkAll + pending + total
+    [
+      totalLabel,
+      unreadOnly,
+      canMarkAll,
+      markAllAsRead.isPending,
+      markAllAsRead.mutate,
+      handleUnreadOnlyChange,
+    ]
   );
 
   useSetAppShellBreadcrumbActions(
     breadcrumbActions,
-    `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}`
+    `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}:${listTotal ?? 'x'}`
   );
 
   const handleCanMarkAllChange = useCallback((next: boolean) => {
     setCanMarkAll(next);
+  }, []);
+
+  const handleTotalChange = useCallback((total: number | null) => {
+    setListTotal(total);
   }, []);
 
   const categoryHref = (next: MeNotificationCategory) => {
@@ -179,6 +200,7 @@ export function NotificationsPage() {
               category={category}
               unreadOnly={unreadOnly}
               onCanMarkAllChange={handleCanMarkAllChange}
+              onTotalChange={handleTotalChange}
             />
           </Box>
         </Flex>

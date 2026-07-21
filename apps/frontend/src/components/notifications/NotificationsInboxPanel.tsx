@@ -1,7 +1,6 @@
 import {
   Alert,
   Anchor,
-  Badge,
   Box,
   Group,
   Loader,
@@ -15,12 +14,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '../../api/client';
+import { apiFetch } from '../../api/client.js';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
-import { useMe } from '../../hooks/useMe';
+import { useMe } from '../../hooks/useMe.js';
 import { NotificationDetailModal } from './NotificationDetailModal.js';
 import { meNotificationsListQueryKey } from './meNotificationQueryParams.js';
 import { eventTypeToCategory, NotificationCategoryIcon } from './notificationCategoryUi.js';
+import { NotificationReadBadge } from './NotificationReadBadge.js';
 import {
   DEFAULT_LIMIT,
   PAGE_SIZE_OPTIONS,
@@ -54,12 +54,15 @@ type NotificationsInboxPanelProps = {
   unreadOnly: boolean;
   /** Whether Mark all can run (current list has items and is loaded). */
   onCanMarkAllChange?: (canMarkAll: boolean) => void;
+  /** Total matching notifications for breadcrumb (null while loading / error). */
+  onTotalChange?: (total: number | null) => void;
 };
 
 export function NotificationsInboxPanel({
   category,
   unreadOnly,
   onCanMarkAllChange,
+  onTotalChange,
 }: NotificationsInboxPanelProps) {
   const queryClient = useQueryClient();
   const { data: me } = useMe();
@@ -127,39 +130,42 @@ export function NotificationsInboxPanel({
   const notificationItems = notificationsQuery.data?.items ?? [];
   const totalNotifications = notificationsQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalNotifications / limit));
+  const listReady = !notificationsQuery.isPending && !notificationsQuery.isError;
 
   useEffect(() => {
-    onCanMarkAllChange?.(
-      !notificationsQuery.isPending && !notificationsQuery.isError && totalNotifications > 0
-    );
-  }, [
-    onCanMarkAllChange,
-    notificationsQuery.isPending,
-    notificationsQuery.isError,
-    totalNotifications,
-  ]);
+    onCanMarkAllChange?.(listReady && totalNotifications > 0);
+  }, [onCanMarkAllChange, listReady, totalNotifications]);
+
+  useEffect(() => {
+    if (notificationsQuery.isPending) {
+      onTotalChange?.(null);
+      return;
+    }
+    if (notificationsQuery.isError) {
+      onTotalChange?.(null);
+      return;
+    }
+    onTotalChange?.(totalNotifications);
+  }, [onTotalChange, notificationsQuery.isPending, notificationsQuery.isError, totalNotifications]);
+
+  const pageSizeSelect = (
+    <Select
+      aria-label="Per page"
+      data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+      value={String(limit)}
+      onChange={(v) => {
+        if (!v) return;
+        setLimit(parseInt(v, 10));
+        setPage(1);
+      }}
+      allowDeselect={false}
+      w={72}
+      size="xs"
+    />
+  );
 
   return (
     <Stack gap="md">
-      <Group gap="md" wrap="wrap" align="flex-end" w="100%" justify="flex-end">
-        <Text size="sm" c="dimmed">
-          {notificationsQuery.data != null
-            ? `${totalNotifications} notification${totalNotifications !== 1 ? 's' : ''}`
-            : '–'}
-        </Text>
-        <Select
-          label="Per page"
-          data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-          value={String(limit)}
-          onChange={(v) => {
-            if (!v) return;
-            setLimit(parseInt(v, 10));
-            setPage(1);
-          }}
-          style={{ width: 90 }}
-        />
-      </Group>
-
       {notificationsQuery.isPending && <Loader size="sm" />}
       {notificationsQuery.isError && (
         <Alert color="red">
@@ -168,7 +174,7 @@ export function NotificationsInboxPanel({
             : 'Failed to load notifications'}
         </Alert>
       )}
-      {!notificationsQuery.isPending && !notificationsQuery.isError && (
+      {listReady && (
         <>
           <Box style={{ overflowX: 'auto' }}>
             <Table withTableBorder className="dense-list-table" style={{ minWidth: 640 }}>
@@ -200,9 +206,11 @@ export function NotificationsInboxPanel({
                         data-clickable-table-row
                         onClick={() => setDetailItem(item)}
                         style={{
-                          borderLeft: unread
-                            ? '3px solid var(--mantine-color-blue-filled)'
-                            : '3px solid transparent',
+                          // Inset shadow keeps table withTableBorder visible under border-collapse
+                          // (a transparent/blue borderLeft on <tr> wins collapse and hides the outer edge).
+                          boxShadow: unread
+                            ? 'inset 3px 0 0 var(--mantine-color-blue-filled)'
+                            : undefined,
                         }}
                       >
                         <Table.Td>
@@ -214,11 +222,7 @@ export function NotificationsInboxPanel({
                               <Text size="sm" c="dimmed" fw={600} lineClamp={2}>
                                 {eventHeadline(item.eventType)}
                               </Text>
-                              {!unread && (
-                                <Badge size="xs" variant="dot" color="gray">
-                                  Read
-                                </Badge>
-                              )}
+                              {!unread && <NotificationReadBadge />}
                             </Group>
                           </Group>
                         </Table.Td>
@@ -261,11 +265,17 @@ export function NotificationsInboxPanel({
               </Table.Tbody>
             </Table>
           </Box>
-          {totalPages > 1 && (
-            <Group justify="flex-end">
-              <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
+          <Group justify="flex-end" align="center" gap="md" wrap="wrap">
+            <Group gap="xs" wrap="nowrap" align="center">
+              <Text size="xs" c="dimmed">
+                Per page
+              </Text>
+              {pageSizeSelect}
             </Group>
-          )}
+            {totalPages > 1 ? (
+              <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
+            ) : null}
+          </Group>
         </>
       )}
 

@@ -9,7 +9,7 @@
   min-height: 220px;
   outline: none;
   padding: var(--mantine-spacing-sm);
-  font-family: 'Source Sans 3 Variable', 'Source Sans 3', system-ui, sans-serif;
+  font-family: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
   font-size: var(--mantine-font-size-lg);
   line-height: 1.65;
 }

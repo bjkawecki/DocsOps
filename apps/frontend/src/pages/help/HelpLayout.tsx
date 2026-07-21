@@ -1,4 +1,4 @@
-import { Box, Container, Flex, NavLink, Paper, Stack } from '@mantine/core';
+import { Box, Card, Container, Flex, NavLink, Paper, Stack } from '@mantine/core';
 import { IconHelp } from '@tabler/icons-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
@@ -7,12 +7,17 @@ import {
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
+import { WIDTH_OPEN as DOCUMENT_COMMENTS_WIDTH_OPEN } from '../../components/documents/documentComments/documentCommentsConstants.js';
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
+import '../DocumentContent.css';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
 import { HELP_TOPIC_ICON_SIZE, HELP_TOPICS } from './helpTopics.js';
 
-/** Max width of the help content card (readable line length including padding). */
-const HELP_PANEL_MAX_WIDTH = 720;
+/**
+ * Invisible right rail – matches open document comments width so the centered
+ * reading column lands like the document page (without shifting the topics nav).
+ */
+const HELP_BALANCE_RAIL_WIDTH = DOCUMENT_COMMENTS_WIDTH_OPEN;
 
 const navLinkFullWidth = {
   borderRadius: 'var(--mantine-radius-sm)',
@@ -33,10 +38,21 @@ export function HelpLayout() {
   useSetAppShellNavScope(null);
 
   return (
-    <Container fluid maw={1600} px="md" mb="xl">
-      <Paper withBorder={false} p={0} radius="md">
-        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
-          <ContextWorkspaceLeftColumn data-context-sibling-nav sticky>
+    <Container fluid maw={1600} px="md" className="document-page-shell" w="100%">
+      <Paper
+        withBorder={false}
+        p={0}
+        radius="md"
+        bg="transparent"
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+      >
+        <Flex
+          direction={{ base: 'column', lg: 'row' }}
+          gap="md"
+          align="stretch"
+          style={{ flex: 1, minHeight: 0 }}
+        >
+          <ContextWorkspaceLeftColumn data-context-sibling-nav>
             <ContentCardWrapper fullHeight={false}>
               <SectionLabel mb="sm">Topics</SectionLabel>
               <Stack component="nav" gap={2} align="stretch" w="100%" aria-label="Help topics">
@@ -60,15 +76,27 @@ export function HelpLayout() {
             </ContentCardWrapper>
           </ContextWorkspaceLeftColumn>
 
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <Box maw={HELP_PANEL_MAX_WIDTH} w="100%">
-              <ContentCardWrapper fullHeight={false} padding="lg">
-                <Box style={{ textAlign: 'left' }}>
-                  <Outlet />
-                </Box>
-              </ContentCardWrapper>
+          <Box className="document-page-reading" style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
+            <Box className="document-page-scroll">
+              <Card
+                withBorder
+                className="document-page-card document-content document-content--help"
+                w="100%"
+                padding={0}
+                styles={{
+                  root: {
+                    padding: '2rem 3rem',
+                    background: 'var(--mantine-color-body)',
+                    textAlign: 'left',
+                  },
+                }}
+              >
+                <Outlet />
+              </Card>
             </Box>
           </Box>
+
+          <Box aria-hidden visibleFrom="lg" w={HELP_BALANCE_RAIL_WIDTH} style={{ flexShrink: 0 }} />
         </Flex>
       </Paper>
     </Container>

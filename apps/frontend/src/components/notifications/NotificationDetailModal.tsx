@@ -2,6 +2,7 @@ import { Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import type { NotificationItem } from './meNotificationTypes.js';
+import { NotificationReadBadge } from './NotificationReadBadge.js';
 import {
   documentDisplayTitle,
   eventHeadline,
@@ -47,9 +48,7 @@ export function NotificationDetailModal({
               Unread
             </Badge>
           ) : (
-            <Badge color="gray" variant="dot">
-              Read
-            </Badge>
+            <NotificationReadBadge />
           )}
         </Group>
 

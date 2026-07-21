@@ -1,8 +1,25 @@
 /* Readable line length and spacing for document body */
 .document-content {
-  font-family: 'Source Sans 3 Variable', 'Source Sans 3', system-ui, sans-serif;
-  font-size: var(--mantine-font-size-lg);
+  font-family: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: var(--mantine-font-size-xl);
   line-height: 1.65;
+}
+
+/* Soften pure white in dark mode so help body text is less glare-y (dimmed stays dimmed). */
+[data-mantine-color-scheme='dark'] .document-content.document-content--help {
+  /* theme-dark.css sets --mantine-color-text with !important; override only in help. */
+  --mantine-color-text: var(--mantine-color-dark-0) !important;
+  color: var(--mantine-color-dark-0);
+}
+
+/* Mantine Text/Title set theme Inter + own size – force reading font metrics. */
+.document-content .mantine-Text-root,
+.document-content .mantine-List-root,
+.document-content .mantine-List-itemLabel,
+.document-content .mantine-Anchor-root {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .document-content h1,
@@ -12,8 +29,14 @@
 .document-content h5,
 .document-content h6 {
   font-family: inherit;
-  margin-top: 1em;
-  margin-bottom: 0.4em;
+  margin-top: 0;
+  margin-bottom: 0.35em;
+}
+
+.document-content .mantine-Title-root {
+  font-family: inherit;
+  margin-top: 0;
+  margin-bottom: 0.35em;
 }
 
 .document-content p {
@@ -28,7 +51,8 @@
 .document-content h3:first-child,
 .document-content h4:first-child,
 .document-content h5:first-child,
-.document-content h6:first-child {
+.document-content h6:first-child,
+.document-content .mantine-Title-root:first-child {
   margin-top: 0;
 }
 .document-content ul,

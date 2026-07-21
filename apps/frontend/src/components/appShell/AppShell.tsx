@@ -59,7 +59,8 @@ function AppShellFrame({
     liveEventsStatus,
   });
   const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
-  const isDocumentReadingPage = /^\/documents\/[^/]+$/.test(s.location.pathname);
+  const isContainedReadingPage =
+    /^\/documents\/[^/]+$/.test(s.location.pathname) || s.location.pathname.startsWith('/help');
 
   return (
     <DocumentSearchProvider value={{ openSearch: search.openSearch }}>
@@ -139,7 +140,7 @@ function AppShellFrame({
               />
               <Box
                 className={
-                  isDocumentReadingPage
+                  isContainedReadingPage
                     ? 'app-shell-main-body app-shell-main-body--document'
                     : 'app-shell-main-body'
                 }
@@ -155,7 +156,7 @@ function AppShellFrame({
                 />
                 <Box
                   className={
-                    isDocumentReadingPage
+                    isContainedReadingPage
                       ? 'app-shell-outlet app-shell-outlet--document'
                       : 'app-shell-outlet'
                   }
