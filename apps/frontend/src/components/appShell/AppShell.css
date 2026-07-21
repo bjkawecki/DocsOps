@@ -371,6 +371,18 @@ a.document-chrome-nav-link:focus-visible,
   color: var(--mantine-primary-color-filled);
 }
 
+/* Expanded sidebar + nested org links: active state (cannot use &[data-active] in Mantine styles prop). */
+[data-sidebar-nav] .mantine-NavLink-root[data-active],
+[data-sidebar-link][data-active] {
+  background: light-dark(
+    color-mix(in srgb, var(--mantine-primary-color-filled) 14%, transparent),
+    color-mix(in srgb, var(--mantine-primary-color-filled) 24%, transparent)
+  );
+  color: var(--mantine-primary-color-filled);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--mantine-primary-color-filled);
+}
+
 .app-shell-sidebar-mini-trigger {
   width: var(--app-shell-mini-item-size);
   height: var(--app-shell-mini-item-size);

@@ -1,12 +1,8 @@
-import { Box, Collapse, NavLink, Stack, Text, UnstyledButton } from '@mantine/core';
-import { IconChevronDown, IconChevronRight, IconClipboardCheck } from '@tabler/icons-react';
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { Box, NavLink, Stack, Text } from '@mantine/core';
+import { IconClipboardCheck } from '@tabler/icons-react';
+import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
-import {
-  readSidebarSectionOpen,
-  writeSidebarSectionOpen,
-} from '../contextWorkspace/contextPaths.js';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
 
 export type ReviewsSidebarDoc = {
@@ -34,7 +30,7 @@ const nestedListStyle: CSSProperties = {
   marginTop: 4,
 };
 
-const peerHeaderButtonStyle: CSSProperties = {
+const peerHeaderStyle: CSSProperties = {
   width: '100%',
   minHeight: 32,
   display: 'flex',
@@ -44,58 +40,33 @@ const peerHeaderButtonStyle: CSSProperties = {
   borderRadius: 'var(--mantine-radius-sm)',
 };
 
-function PeerCollapsibleSection({
-  sectionId,
+function PeerSection({
   label,
   icon,
-  defaultOpen = true,
   children,
 }: {
-  sectionId: string;
   label: string;
   icon?: ReactNode;
-  defaultOpen?: boolean;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
-  const [open, setOpen] = useState(() => readSidebarSectionOpen(sectionId, defaultOpen));
-  const toggle = () => {
-    setOpen((o) => {
-      const next = !o;
-      writeSidebarSectionOpen(sectionId, next);
-      return next;
-    });
-  };
   return (
     <Box>
-      <UnstyledButton
-        type="button"
-        onClick={toggle}
-        style={peerHeaderButtonStyle}
-        aria-expanded={open}
-        className="context-sidebar-peer-header"
-      >
+      <Box style={peerHeaderStyle} className="context-sidebar-peer-header">
         {icon}
         <Text size="sm" c="dimmed" fw={600} truncate style={{ flex: 1, textAlign: 'left' }}>
           {label}
         </Text>
-        {open ? (
-          <IconChevronDown size={14} style={{ flexShrink: 0 }} aria-hidden />
-        ) : (
-          <IconChevronRight size={14} style={{ flexShrink: 0 }} aria-hidden />
-        )}
-      </UnstyledButton>
-      <Collapse in={open}>
-        <Box style={nestedListStyle}>
-          <Stack gap={6} align="stretch" w="100%">
-            {children}
-          </Stack>
-        </Box>
-      </Collapse>
+      </Box>
+      <Box style={nestedListStyle}>
+        <Stack gap={6} align="stretch" w="100%">
+          {children}
+        </Stack>
+      </Box>
     </Box>
   );
 }
 
-/** Left chrome for Reviews: scopes with nested documents pending review. */
+/** Left chrome for Reviews: scopes with nested documents pending review (always expanded). */
 export function ReviewsScopeSidebar({ documents }: ReviewsScopeSidebarProps) {
   const scopeGroups = useMemo(() => {
     const map = new Map<string, { label: string; docs: ReviewsSidebarDoc[] }>();
@@ -117,22 +88,16 @@ export function ReviewsScopeSidebar({ documents }: ReviewsScopeSidebarProps) {
       <ContentCardWrapper fullHeight={false}>
         <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Reviews navigation">
           {scopeGroups.length === 0 ? (
-            <PeerCollapsibleSection
-              sectionId="reviews:pending"
+            <PeerSection
               label="Pending review"
               icon={<IconClipboardCheck size={ICON_SIZE} stroke={1.5} />}
-              defaultOpen
-            >
-              {null}
-            </PeerCollapsibleSection>
+            />
           ) : (
             scopeGroups.map((group) => (
-              <PeerCollapsibleSection
+              <PeerSection
                 key={group.key}
-                sectionId={`reviews-scope:${group.key}`}
                 label={group.label}
                 icon={<IconClipboardCheck size={ICON_SIZE} stroke={1.5} />}
-                defaultOpen
               >
                 {group.docs.map((d) => (
                   <NavLink
@@ -144,7 +109,7 @@ export function ReviewsScopeSidebar({ documents }: ReviewsScopeSidebarProps) {
                     style={navLinkFullWidth}
                   />
                 ))}
-              </PeerCollapsibleSection>
+              </PeerSection>
             ))
           )}
         </Stack>

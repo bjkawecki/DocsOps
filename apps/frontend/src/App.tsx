@@ -19,7 +19,7 @@ import {
   DepartmentTrashArchivePage,
   PersonalTrashArchivePage,
   TeamTrashArchivePage,
-} from './pages/contextWorkspace/ScopeTrashArchivePage';
+} from './pages/contextWorkspace/ScopeTrashArchiveRoutePages';
 import { SettingsPage } from './pages/account/SettingsPage';
 import { NotificationsPage } from './pages/account/NotificationsPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';

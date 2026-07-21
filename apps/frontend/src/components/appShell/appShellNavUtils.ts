@@ -21,7 +21,7 @@ export function isOrgNavActive(
   return true;
 }
 
-/** Shared styles for sidebar nav links (hover/active). Uses theme variables. */
+/** Shared styles for sidebar nav links (base layout). Active styles live in AppShell.css. */
 export function getNavLinkStyles(): { root: Record<string, unknown> } {
   return {
     root: {
@@ -30,13 +30,6 @@ export function getNavLinkStyles(): { root: Record<string, unknown> } {
       minHeight: 28,
       fontWeight: 500,
       fontSize: 'var(--mantine-font-size-sm)',
-      '&[data-active]': {
-        backgroundColor:
-          'light-dark(color-mix(in srgb, var(--mantine-primary-color-filled) 14%, transparent), color-mix(in srgb, var(--mantine-primary-color-filled) 24%, transparent))',
-        color: 'var(--mantine-primary-color-filled)',
-        fontWeight: 600,
-        boxShadow: 'inset 2px 0 0 var(--mantine-primary-color-filled)',
-      },
     },
   };
 }

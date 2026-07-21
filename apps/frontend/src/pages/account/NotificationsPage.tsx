@@ -1,32 +1,40 @@
-import { Box, Container, Flex, NavLink, Paper, Stack, Text } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Group,
+  NavLink,
+  Paper,
+  Stack,
+  Switch,
+  Tooltip,
+} from '@mantine/core';
+import { IconBell } from '@tabler/icons-react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { PageHeader } from '../../components/ui/PageHeader';
+import {
+  useSetAppShellBreadcrumbActions,
+  useSetAppShellBreadcrumbs,
+} from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import {
   NotificationsInboxPanel,
   parseMeNotificationCategory,
   parseMeNotificationUnreadOnly,
   type MeNotificationCategory,
 } from '../../components/notifications/NotificationsInboxPanel';
+import {
+  NOTIFICATION_CATEGORY_NAV,
+  NotificationCategoryIcon,
+} from '../../components/notifications/notificationCategoryUi.js';
+import { useMarkAllNotificationsAsRead } from '../../components/notifications/useMarkAllNotificationsAsRead.js';
+import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe';
+import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
 
-const CATEGORY_NAV: {
-  value: MeNotificationCategory;
-  label: string;
-  description?: string;
-  adminOnly?: boolean;
-}[] = [
-  { value: 'all', label: 'All' },
-  { value: 'documents', label: 'Documents', description: 'Publish, updates, archive, …' },
-  { value: 'reviews', label: 'Reviews', description: 'Draft requests' },
-  { value: 'announcements', label: 'Announcements', description: 'Admin broadcasts' },
-  {
-    value: 'operations',
-    label: 'Operations',
-    description: 'Backups and migration jobs',
-    adminOnly: true,
-  },
-  { value: 'org', label: 'Organization', description: 'Roles and membership' },
-];
+const ICON_SIZE = 16;
 
 const navLinkFullWidth = {
   borderRadius: 'var(--mantine-radius-sm)',
@@ -37,11 +45,73 @@ export function NotificationsPage() {
   const { data: me } = useMe();
   const isAdmin = me?.user.isAdmin === true;
   const [searchParams, setSearchParams] = useSearchParams();
+  const [canMarkAll, setCanMarkAll] = useState(false);
+  const markAllAsRead = useMarkAllNotificationsAsRead();
+
   const parsedCategory = parseMeNotificationCategory(searchParams.get('category'));
   const category = parsedCategory === 'operations' && !isAdmin ? 'announcements' : parsedCategory;
   const unreadOnly = parseMeNotificationUnreadOnly(searchParams.get('unreadOnly'));
 
-  const visibleCategories = CATEGORY_NAV.filter((item) => !item.adminOnly || isAdmin);
+  const visibleCategories = NOTIFICATION_CATEGORY_NAV.filter((item) => !item.adminOnly || isAdmin);
+
+  useSetAppShellBreadcrumbs([
+    {
+      key: 'notifications',
+      label: 'Notifications',
+      icon: <IconBell size={14} stroke={1.5} />,
+    },
+  ]);
+  useSetAppShellNavScope(null);
+
+  const handleUnreadOnlyChange = useCallback(
+    (next: boolean) => {
+      setSearchParams(
+        (prev) => {
+          const p = new URLSearchParams(prev);
+          if (next) p.set('unreadOnly', 'true');
+          else p.delete('unreadOnly');
+          return p;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  const breadcrumbActions = useMemo(
+    () => (
+      <Group gap="md" wrap="nowrap" align="center">
+        <Switch
+          size="sm"
+          label="Unread only"
+          checked={unreadOnly}
+          onChange={(event) => {
+            handleUnreadOnlyChange(event.currentTarget.checked);
+          }}
+        />
+        <Button
+          size="sm"
+          variant="default"
+          onClick={() => markAllAsRead.mutate()}
+          disabled={markAllAsRead.isPending || !canMarkAll}
+        >
+          Mark all as read
+        </Button>
+      </Group>
+    ),
+    // mutate identity is stable; syncKey below drives shell refresh
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- unreadOnly + canMarkAll + pending
+    [unreadOnly, canMarkAll, markAllAsRead.isPending, markAllAsRead.mutate, handleUnreadOnlyChange]
+  );
+
+  useSetAppShellBreadcrumbActions(
+    breadcrumbActions,
+    `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}`
+  );
+
+  const handleCanMarkAllChange = useCallback((next: boolean) => {
+    setCanMarkAll(next);
+  }, []);
 
   const categoryHref = (next: MeNotificationCategory) => {
     const p = new URLSearchParams(searchParams);
@@ -51,51 +121,13 @@ export function NotificationsPage() {
     return qs.length > 0 ? `/notifications?${qs}` : '/notifications';
   };
 
-  const handleUnreadOnlyChange = (next: boolean) => {
-    setSearchParams(
-      (prev) => {
-        const p = new URLSearchParams(prev);
-        if (next) p.set('unreadOnly', 'true');
-        else p.delete('unreadOnly');
-        return p;
-      },
-      { replace: true }
-    );
-  };
-
   return (
     <Container fluid maw={1600} px="md" mb="xl">
-      <Stack gap={0} mt="md">
-        <PageHeader
-          title="Notifications"
-          description="Document and review activity for your account."
-        />
-        <Paper withBorder={false} p="lg" radius="md">
-          <Flex
-            direction={{ base: 'column', lg: 'row' }}
-            gap={{ base: 'xl', lg: 48 }}
-            align="flex-start"
-          >
-            <Box
-              w={{ base: '100%', lg: 280 }}
-              style={{
-                flexShrink: 0,
-                border: '1px solid var(--mantine-color-default-border)',
-                borderRadius: 'var(--mantine-radius-md)',
-                padding: 'var(--mantine-spacing-sm)',
-              }}
-              data-notifications-type-nav
-            >
-              <Text
-                tt="uppercase"
-                fz="xs"
-                fw={600}
-                c="dimmed"
-                mb="sm"
-                style={{ paddingLeft: 'var(--mantine-spacing-xs)' }}
-              >
-                Type
-              </Text>
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
+          <ContextWorkspaceLeftColumn data-context-sibling-nav>
+            <ContentCardWrapper fullHeight={false}>
+              <SectionLabel mb="sm">Type</SectionLabel>
               <Stack
                 component="nav"
                 gap={2}
@@ -103,34 +135,54 @@ export function NotificationsPage() {
                 w="100%"
                 aria-label="Notification categories"
               >
-                {visibleCategories.map((item) => (
-                  <NavLink
-                    key={item.value}
-                    component={Link}
-                    to={categoryHref(item.value)}
-                    replace
-                    label={item.label}
-                    description={item.description}
-                    active={category === item.value}
-                    aria-current={category === item.value ? 'page' : undefined}
-                    variant="light"
-                    style={navLinkFullWidth}
-                  />
-                ))}
+                {visibleCategories.map((item) => {
+                  const link = (
+                    <NavLink
+                      component={Link}
+                      to={categoryHref(item.value)}
+                      replace
+                      label={item.label}
+                      leftSection={
+                        <NotificationCategoryIcon category={item.value} size={ICON_SIZE} />
+                      }
+                      active={category === item.value}
+                      aria-current={category === item.value ? 'page' : undefined}
+                      variant="subtle"
+                      style={navLinkFullWidth}
+                    />
+                  );
+                  if (item.description == null) {
+                    return (
+                      <Box key={item.value} w="100%">
+                        {link}
+                      </Box>
+                    );
+                  }
+                  return (
+                    <Tooltip
+                      key={item.value}
+                      label={item.description}
+                      position="right"
+                      withArrow
+                      openDelay={400}
+                    >
+                      <Box w="100%">{link}</Box>
+                    </Tooltip>
+                  );
+                })}
               </Stack>
-            </Box>
+            </ContentCardWrapper>
+          </ContextWorkspaceLeftColumn>
 
-            <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-              <NotificationsInboxPanel
-                category={category}
-                unreadOnly={unreadOnly}
-                onUnreadOnlyChange={handleUnreadOnlyChange}
-                embedded
-              />
-            </Box>
-          </Flex>
-        </Paper>
-      </Stack>
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <NotificationsInboxPanel
+              category={category}
+              unreadOnly={unreadOnly}
+              onCanMarkAllChange={handleCanMarkAllChange}
+            />
+          </Box>
+        </Flex>
+      </Paper>
     </Container>
   );
 }
