@@ -23,16 +23,8 @@ function PendingReviewsTable({
   items: ReviewPendingSuggestionsItem[];
   emptyLabel: string;
 }) {
-  if (items.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        {emptyLabel}
-      </Text>
-    );
-  }
-
   return (
-    <Table striped highlightOnHover withTableBorder className="dense-list-table">
+    <Table withTableBorder className="dense-list-table">
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Document</Table.Th>
@@ -43,37 +35,47 @@ function PendingReviewsTable({
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {items.map((item) => (
-          <Table.Tr key={item.documentId}>
-            <Table.Td>
-              <Text
-                component={Link}
-                to={documentDraftLink(item.documentId)}
-                size="sm"
-                fw={500}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {item.documentTitle}
-              </Text>
-            </Table.Td>
-            <Table.Td>
-              <Text size="sm">{item.scopeName}</Text>
-            </Table.Td>
-            <Table.Td>
-              <Badge size="sm" variant="light" color="yellow">
-                {item.pendingSuggestionCount}
-              </Badge>
-            </Table.Td>
-            <Table.Td>
-              <Text size="sm">{item.authorIds.length}</Text>
-            </Table.Td>
-            <Table.Td>
-              <Text size="sm">
-                {item.lastSuggestionAt ? formatTableDate(item.lastSuggestionAt) : '–'}
+        {items.length === 0 ? (
+          <Table.Tr>
+            <Table.Td colSpan={5}>
+              <Text size="sm" c="dimmed">
+                {emptyLabel}
               </Text>
             </Table.Td>
           </Table.Tr>
-        ))}
+        ) : (
+          items.map((item) => (
+            <Table.Tr key={item.documentId}>
+              <Table.Td>
+                <Text
+                  component={Link}
+                  to={documentDraftLink(item.documentId)}
+                  size="sm"
+                  fw={500}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {item.documentTitle}
+                </Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{item.scopeName}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Badge size="sm" variant="light" color="yellow">
+                  {item.pendingSuggestionCount}
+                </Badge>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">{item.authorIds.length}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Text size="sm">
+                  {item.lastSuggestionAt ? formatTableDate(item.lastSuggestionAt) : '–'}
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          ))
+        )}
       </Table.Tbody>
     </Table>
   );

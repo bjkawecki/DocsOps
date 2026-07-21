@@ -123,9 +123,14 @@ export function SharedScopeSidebar({ documents, drafts }: SharedScopeSidebarProp
       <ContentCardWrapper fullHeight={false}>
         <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Shared navigation">
           {scopeGroups.length === 0 ? (
-            <Text size="sm" c="dimmed" px="xs">
-              No shared documents yet.
-            </Text>
+            <PeerCollapsibleSection
+              sectionId="shared:documents"
+              label="Shared"
+              icon={<IconShare size={ICON_SIZE} stroke={1.5} />}
+              defaultOpen
+            >
+              {null}
+            </PeerCollapsibleSection>
           ) : (
             scopeGroups.map((group) => (
               <PeerCollapsibleSection

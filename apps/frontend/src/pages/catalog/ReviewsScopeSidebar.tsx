@@ -117,9 +117,14 @@ export function ReviewsScopeSidebar({ documents }: ReviewsScopeSidebarProps) {
       <ContentCardWrapper fullHeight={false}>
         <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Reviews navigation">
           {scopeGroups.length === 0 ? (
-            <Text size="sm" c="dimmed" px="xs">
-              No documents pending review.
-            </Text>
+            <PeerCollapsibleSection
+              sectionId="reviews:pending"
+              label="Pending review"
+              icon={<IconClipboardCheck size={ICON_SIZE} stroke={1.5} />}
+              defaultOpen
+            >
+              {null}
+            </PeerCollapsibleSection>
           ) : (
             scopeGroups.map((group) => (
               <PeerCollapsibleSection
