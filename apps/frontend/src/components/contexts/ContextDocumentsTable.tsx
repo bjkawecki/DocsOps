@@ -9,13 +9,20 @@ export type ContextDocumentsTableRow = {
   documentTags: { tag: { id: string; name: string } }[];
 };
 
-export function ContextDocumentsTable({ documents }: { documents: ContextDocumentsTableRow[] }) {
+export function ContextDocumentsTable({
+  documents,
+  emptyMessage = 'No documents yet.',
+}: {
+  documents: ContextDocumentsTableRow[];
+  /** Shown when `documents` is empty. */
+  emptyMessage?: string;
+}) {
   const navigate = useNavigate();
 
   if (documents.length === 0) {
     return (
       <Text size="sm" c="dimmed">
-        No documents yet.
+        {emptyMessage}
       </Text>
     );
   }

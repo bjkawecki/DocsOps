@@ -56,7 +56,7 @@ export async function submitNewContextDocumentDraft({
         message: 'Redirecting to document.',
         color: 'green',
       });
-      void navigate(`/documents/${doc.id}`);
+      void navigate(`/documents/${doc.id}?mode=edit&tab=draft`);
     } else {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       notifications.show({

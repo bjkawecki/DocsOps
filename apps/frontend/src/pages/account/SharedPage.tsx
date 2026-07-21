@@ -1,130 +1,128 @@
-import { Box, Card, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Box, Container, Flex, Paper, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
-import { useState, Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { apiFetch } from '../../api/client';
-import { DraftsCard, DraftsTabContent } from '../../components/trashArchive';
-import { ViewMoreButton } from '../../components/contexts/cardShared';
-import { PageWithTabs } from '../../components/ui/PageWithTabs';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
+import { ContentCardWrapper } from '../../components/contexts/cardShared';
+import {
+  ContextDocumentsTable,
+  type ContextDocumentsTableRow,
+} from '../../components/contexts/ContextDocumentsTable';
+import { SectionLabel } from '../../components/ui/SectionLabel';
+import { useMeDrafts } from '../../hooks/useMeDrafts';
+import { SharedScopeSidebar, type SharedSidebarDoc } from './SharedScopeSidebar.js';
 
-type DocItem = {
+type SharedDocItem = {
   id: string;
   title: string;
-  contextId: string;
+  contextId: string | null;
   createdAt: string;
   updatedAt: string;
+  documentTags?: { tag: { id: string; name: string } }[];
+  context?: {
+    id: string;
+    displayName: string | null;
+    contextType: string | null;
+    ownerDisplayName: string | null;
+  } | null;
 };
 
 const SHARED_SCOPE = { type: 'shared' as const };
 
+function scopeLabelForDoc(doc: SharedDocItem): { scopeKey: string; scopeLabel: string } {
+  const owner = doc.context?.ownerDisplayName?.trim();
+  const contextName = doc.context?.displayName?.trim();
+  if (owner && contextName) {
+    return {
+      scopeKey: `${owner}::${doc.contextId ?? 'none'}`,
+      scopeLabel: `${owner} · ${contextName}`,
+    };
+  }
+  if (owner) {
+    return { scopeKey: owner, scopeLabel: owner };
+  }
+  if (contextName && doc.contextId) {
+    return { scopeKey: doc.contextId, scopeLabel: contextName };
+  }
+  return { scopeKey: 'unknown', scopeLabel: 'Other' };
+}
+
+/** Shared inbox: left scope/doc nav + documents table (same chrome as context workspace). */
 export function SharedPage() {
-  const [activeTab, setActiveTab] = useState('overview');
   useRegisterScopePageChrome(SHARED_SCOPE);
+
   const { data: sharedDocsRes, isPending: docsPending } = useQuery({
     queryKey: ['me', 'shared-documents'],
     queryFn: async () => {
-      const res = await apiFetch('/api/v1/me/shared-documents?limit=50&offset=0');
+      const res = await apiFetch('/api/v1/me/shared-documents?limit=100&offset=0');
       if (!res.ok) throw new Error('Failed to load shared documents');
-      return (await res.json()) as { items: DocItem[]; total: number };
+      return (await res.json()) as { items: SharedDocItem[]; total: number };
     },
   });
 
-  const sharedDocs = sharedDocsRes?.items ?? [];
-  const docsPreview = sharedDocs.slice(0, 5);
+  const { data: draftsData } = useMeDrafts({ scope: 'shared' }, { limit: 20 });
 
-  const tabs = [
-    { value: 'overview', label: 'Overview' },
-    { value: 'documents', label: 'Documents' },
-    { value: 'drafts', label: 'Drafts' },
-  ];
-
-  const overviewPanel = (
-    <Stack gap="md">
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-        <Card withBorder padding="md" h="100%">
-          <Stack gap="xs" h="100%" style={{ display: 'flex', flexDirection: 'column' }}>
-            <Box style={{ flex: 1, minHeight: 0 }}>
-              <Text fw={600} size="sm">
-                Shared with you
-              </Text>
-              {docsPreview.length === 0 ? (
-                <Text size="sm" c="dimmed">
-                  No documents shared with you yet.
-                </Text>
-              ) : (
-                <Stack gap={4} align="flex-start">
-                  {docsPreview.map((d) => (
-                    <Link
-                      key={d.id}
-                      to={`/documents/${d.id}`}
-                      style={{ fontSize: 'var(--mantine-font-size-sm)' }}
-                    >
-                      {d.title || d.id}
-                    </Link>
-                  ))}
-                </Stack>
-              )}
-            </Box>
-            <ViewMoreButton onClick={() => setActiveTab('documents')} />
-          </Stack>
-        </Card>
-        <DraftsCard
-          scopeParams={{ scope: 'shared' }}
-          limit={10}
-          onViewMore={() => setActiveTab('drafts')}
-        />
-      </SimpleGrid>
-    </Stack>
+  const sidebarDocs: SharedSidebarDoc[] = useMemo(
+    () =>
+      (sharedDocsRes?.items ?? []).map((d) => {
+        const { scopeKey, scopeLabel } = scopeLabelForDoc(d);
+        return {
+          id: d.id,
+          title: d.title?.trim() || 'Untitled',
+          scopeKey,
+          scopeLabel,
+        };
+      }),
+    [sharedDocsRes?.items]
   );
 
-  const documentsPanel = (
-    <Stack gap="md">
-      {docsPending ? (
-        <Card withBorder padding="md">
-          <Text size="sm" c="dimmed">
-            Loading documents…
-          </Text>
-        </Card>
-      ) : sharedDocs.length === 0 ? (
-        <Card withBorder padding="md">
-          <Text size="sm" c="dimmed">
-            No documents shared with you yet.
-          </Text>
-        </Card>
-      ) : (
-        <Stack gap="xs">
-          {sharedDocs.map((d) => (
-            <Card key={d.id} withBorder padding="sm" component={Link} to={`/documents/${d.id}`}>
-              <Text fw={500} size="sm">
-                {d.title || d.id}
-              </Text>
-            </Card>
-          ))}
-        </Stack>
-      )}
-    </Stack>
+  const documents: ContextDocumentsTableRow[] = useMemo(
+    () =>
+      (sharedDocsRes?.items ?? []).map((d) => ({
+        id: d.id,
+        title: d.title?.trim() || 'Untitled',
+        updatedAt: d.updatedAt,
+        documentTags: d.documentTags ?? [],
+      })),
+    [sharedDocsRes?.items]
+  );
+
+  const sidebarDrafts = useMemo(
+    () =>
+      (draftsData?.draftDocuments ?? []).map((d) => ({
+        id: d.id,
+        title: d.title?.trim() || 'Untitled',
+      })),
+    [draftsData?.draftDocuments]
   );
 
   return (
-    <Box>
-      <PageWithTabs
-        title="Shared"
-        hideTitle
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        recentScope={SHARED_SCOPE}
-        recentViewMoreHref="/catalog"
-      >
-        {[
-          <Fragment key="overview">{overviewPanel}</Fragment>,
-          <Fragment key="documents">{documentsPanel}</Fragment>,
-          <Fragment key="drafts">
-            <DraftsTabContent scopeParams={{ scope: 'shared' }} />
-          </Fragment>,
-        ]}
-      </PageWithTabs>
-    </Box>
+    <Container fluid maw={1600} px="md" mb="xl">
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex
+          direction={{ base: 'column', lg: 'row' }}
+          gap={{ base: 'md', lg: 'lg' }}
+          align="flex-start"
+        >
+          <SharedScopeSidebar documents={sidebarDocs} drafts={sidebarDrafts} />
+
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <ContentCardWrapper fullHeight={false}>
+              <SectionLabel mb="sm">Documents</SectionLabel>
+              {docsPending ? (
+                <Text size="sm" c="dimmed">
+                  Loading documents…
+                </Text>
+              ) : (
+                <ContextDocumentsTable
+                  documents={documents}
+                  emptyMessage="No documents shared with you yet."
+                />
+              )}
+            </ContentCardWrapper>
+          </Box>
+        </Flex>
+      </Paper>
+    </Container>
   );
 }

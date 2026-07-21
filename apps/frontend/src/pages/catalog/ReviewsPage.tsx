@@ -1,14 +1,21 @@
-import { Badge, Box, Group, Pagination, Stack, Table, Text } from '@mantine/core';
+import { Badge, Box, Container, Flex, Paper, Table, Text } from '@mantine/core';
+import { IconClipboardCheck } from '@tabler/icons-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { ContentCardWrapper } from '../../components/contexts/cardShared';
+import { SectionLabel } from '../../components/ui/SectionLabel';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { formatTableDate } from '../../lib/formatDate';
-
-const PAGE_SIZE = 20;
+import { ReviewsScopeSidebar, type ReviewsSidebarDoc } from './ReviewsScopeSidebar.js';
 
 function documentDraftLink(documentId: string): string {
   return `/documents/${documentId}?mode=edit&tab=draft`;
+}
+
+function scopeKeyForReview(item: ReviewPendingSuggestionsItem): string {
+  return `${item.scopeType}:${item.scopeId ?? 'none'}`;
 }
 
 function PendingReviewsTable({
@@ -64,7 +71,7 @@ function PendingReviewsTable({
             </Table.Td>
             <Table.Td>
               <Text size="sm">
-                {item.lastSuggestionAt ? formatTableDate(item.lastSuggestionAt) : '—'}
+                {item.lastSuggestionAt ? formatTableDate(item.lastSuggestionAt) : '–'}
               </Text>
             </Table.Td>
           </Table.Tr>
@@ -74,42 +81,63 @@ function PendingReviewsTable({
   );
 }
 
+/** Reviews inbox: left scope/doc nav + pending-review table (same chrome as Shared). */
 export function ReviewsPage() {
-  const [page, setPage] = useState(1);
-  const offset = (page - 1) * PAGE_SIZE;
-  const { data, isPending, isError } = useMeReviews({ limit: PAGE_SIZE, offset });
+  useSetAppShellBreadcrumbs([
+    {
+      key: 'reviews',
+      label: 'Reviews',
+      icon: <IconClipboardCheck size={14} stroke={1.5} />,
+    },
+  ]);
+  useSetAppShellNavScope(null);
+
+  const { data, isPending, isError } = useMeReviews({ limit: 100, offset: 0 });
 
   const pending = data?.pendingForReview ?? [];
-  const totalPages = Math.max(Math.ceil((data?.totalPendingForReview ?? 0) / PAGE_SIZE), 1);
+
+  const sidebarDocs: ReviewsSidebarDoc[] = useMemo(
+    () =>
+      (data?.pendingForReview ?? []).map((item) => ({
+        id: item.documentId,
+        title: item.documentTitle?.trim() || 'Untitled',
+        scopeKey: scopeKeyForReview(item),
+        scopeLabel: item.scopeName?.trim() || 'Other',
+      })),
+    [data?.pendingForReview]
+  );
 
   return (
-    <Box>
-      <PageHeader
-        title="Reviews"
-        description="Documents in your scopes with pending inline draft suggestions from scope authors."
-      />
-      <Stack gap="md">
-        {isError && (
-          <Text size="sm" c="red">
-            Could not load reviews.
-          </Text>
-        )}
-        {isPending ? (
-          <Text size="sm" c="dimmed">
-            Loading…
-          </Text>
-        ) : (
-          <PendingReviewsTable
-            items={pending}
-            emptyLabel="No documents with pending suggestions in your scopes."
-          />
-        )}
-        {!isPending && totalPages > 1 && (
-          <Group justify="center">
-            <Pagination total={totalPages} value={page} onChange={setPage} />
-          </Group>
-        )}
-      </Stack>
-    </Box>
+    <Container fluid maw={1600} px="md" mb="xl">
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex
+          direction={{ base: 'column', lg: 'row' }}
+          gap={{ base: 'md', lg: 'lg' }}
+          align="flex-start"
+        >
+          <ReviewsScopeSidebar documents={sidebarDocs} />
+
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <ContentCardWrapper fullHeight={false}>
+              <SectionLabel mb="sm">Pending review</SectionLabel>
+              {isError ? (
+                <Text size="sm" c="red">
+                  Could not load reviews.
+                </Text>
+              ) : isPending ? (
+                <Text size="sm" c="dimmed">
+                  Loading…
+                </Text>
+              ) : (
+                <PendingReviewsTable
+                  items={pending}
+                  emptyLabel="No documents with pending suggestions in your scopes."
+                />
+              )}
+            </ContentCardWrapper>
+          </Box>
+        </Flex>
+      </Paper>
+    </Container>
   );
 }

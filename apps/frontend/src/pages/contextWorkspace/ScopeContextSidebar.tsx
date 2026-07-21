@@ -4,6 +4,7 @@ import {
   IconBriefcase,
   IconChevronDown,
   IconChevronRight,
+  IconPencil,
   IconRoute,
   IconTrash,
 } from '@tabler/icons-react';
@@ -292,6 +293,26 @@ export function ScopeContextSidebar({
             )}
           </PeerCollapsibleSection>
 
+          {drafts != null && drafts.length > 0 && (
+            <PeerCollapsibleSection
+              sectionId="drafts"
+              label="Drafts"
+              icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}
+              defaultOpen={false}
+            >
+              {drafts.map((d) => (
+                <NavLink
+                  key={d.id}
+                  component={Link}
+                  to={`/documents/${d.id}`}
+                  label={d.title}
+                  variant="subtle"
+                  style={navLinkFullWidth}
+                />
+              ))}
+            </PeerCollapsibleSection>
+          )}
+
           {trashArchive != null && (
             <Stack gap={6} align="stretch" w="100%">
               <NavLink
@@ -313,21 +334,6 @@ export function ScopeContextSidebar({
                 style={navLinkFullWidth}
               />
             </Stack>
-          )}
-
-          {drafts != null && drafts.length > 0 && (
-            <PeerCollapsibleSection sectionId="drafts" label="Drafts" defaultOpen={false}>
-              {drafts.map((d) => (
-                <NavLink
-                  key={d.id}
-                  component={Link}
-                  to={`/documents/${d.id}`}
-                  label={d.title}
-                  variant="subtle"
-                  style={navLinkFullWidth}
-                />
-              ))}
-            </PeerCollapsibleSection>
           )}
         </Stack>
       </ContentCardWrapper>

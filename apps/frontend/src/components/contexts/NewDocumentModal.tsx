@@ -151,7 +151,7 @@ export function NewDocumentModal({
           message: 'Redirecting to draft.',
           color: 'green',
         });
-        void navigate(`/documents/${doc.id}`);
+        void navigate(`/documents/${doc.id}?mode=edit&tab=draft`);
       } else {
         const errBody = (await res.json().catch(() => ({}))) as { error?: string };
         notifications.show({

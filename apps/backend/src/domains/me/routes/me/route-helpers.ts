@@ -36,6 +36,14 @@ const meDocumentsSelect = {
   createdAt: true,
   updatedAt: true,
   documentTags: { include: { tag: { select: { id: true, name: true } } } },
+  context: {
+    select: {
+      id: true,
+      displayName: true,
+      contextType: true,
+      ownerDisplayName: true,
+    },
+  },
 } as const;
 
 function mapContextIdRows(rows: Array<{ contextId: string }>): string[] {
