@@ -217,6 +217,14 @@ export const PRIMARY_COLOR_PALETTES: Record<PrimaryColorPreset, ColorScale> = {
   fuchsia: [...fuchsiaScale],
 };
 
+/** Accent shade index used as theme `primaryShade` (and for UI previews). */
+export const PRIMARY_COLOR_ACCENT_SHADE = 4;
+
+/** Hex accent for a preset (matches theme primary shade). */
+export function getPrimaryColorAccent(preset: PrimaryColorPreset): string {
+  return PRIMARY_COLOR_PALETTES[preset][PRIMARY_COLOR_ACCENT_SHADE];
+}
+
 /**
  * Builds the app theme with the given primary color preset and optional text scale.
  * Used by ThemeFromPreferences; main.tsx keeps createAppTheme('blue') for login/unauthenticated.
@@ -231,7 +239,7 @@ export function createAppTheme(
   return createTheme({
     primaryColor,
     ...(scale !== 1 ? { scale } : {}),
-    primaryShade: 4 /* Sky primary = #4690f7 at index 4 */,
+    primaryShade: PRIMARY_COLOR_ACCENT_SHADE /* Sky primary = #4690f7 at index 4 */,
     defaultRadius: 'sm',
     /** Inter: free neo-grotesque close to Meter’s Suisse Int’l (commercial). */
     fontFamily: uiFont,

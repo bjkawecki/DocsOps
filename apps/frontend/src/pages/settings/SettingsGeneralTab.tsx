@@ -1,45 +1,37 @@
 import {
-  Box,
-  Card,
+  ActionIcon,
+  Alert,
+  Button,
+  Group,
+  List,
+  Loader,
+  Menu,
+  Modal,
   Stack,
   Text,
-  List,
   TextInput,
-  Button,
-  Loader,
-  Alert,
-  Group,
-  Grid,
-  Modal,
-  Menu,
-  ActionIcon,
-  SegmentedControl,
-  Switch,
-  Select,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMantineColorScheme } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useState, useEffect, type SubmitEvent } from 'react';
 import { IconDotsVertical } from '@tabler/icons-react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { apiFetch } from '../../api/client';
-import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
-import { useMe, meQueryKey } from '../../hooks/useMe';
-import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
+import { SettingsContentCard } from './SettingsContentCard.js';
+import { meQueryKey, useMe } from '../../hooks/useMe';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
 import {
-  PRIMARY_COLOR_PRESETS,
-  PRIMARY_COLOR_PRESET_LABELS,
-  type PrimaryColorPreset,
-  type TextSizePreference,
-} from '../../theme';
+  SETTINGS_CARD_ROW_GAP,
+  SETTINGS_CARD_STACK_GAP,
+  SETTINGS_FIELD_LABEL_GAP,
+  settingsCardDomId,
+} from './settingsLayout.js';
 
 export function SettingsGeneralTab() {
   const queryClient = useQueryClient();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [deactivateOpened, { open: openDeactivate, close: closeDeactivate }] = useDisclosure(false);
   const [name, setName] = useState('');
-  const { setColorScheme } = useMantineColorScheme();
 
   const { data, isPending, isError, error } = useMe();
 
@@ -48,15 +40,6 @@ export function SettingsGeneralTab() {
       setName(data.user.name);
     }
   }, [data]);
-
-  // Sync Mantine scheme when preference is known (do not force 'auto' while me is loading)
-  useEffect(() => {
-    const preferred = data?.preferences?.theme;
-    if (preferred === undefined) return;
-    setColorScheme(preferred);
-    // setColorScheme from useMantineColorScheme is unstable; sync only on theme change
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
-  }, [data?.preferences?.theme]);
 
   const patchMe = useMutation({
     mutationFn: async (body: { name: string }) => {
@@ -107,71 +90,23 @@ export function SettingsGeneralTab() {
     },
   });
 
-  const patchPreferences = useMutation({
-    mutationFn: async (body: Partial<UserPreferences>) => {
-      const res = await apiFetch('/api/v1/me/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error('Failed to save preferences');
-      return res.json() as Promise<UserPreferences>;
-    },
-    onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ['me', 'preferences'] });
-      void queryClient.invalidateQueries({ queryKey: meQueryKey });
-      if (variables.theme !== undefined) {
-        setColorScheme(variables.theme);
-        try {
-          window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, variables.theme);
-        } catch {
-          // ignore localStorage errors (e.g. private mode)
-        }
-        notifications.show({
-          title: 'Theme updated',
-          message: `Color scheme set to ${variables.theme}.`,
-          color: 'green',
-        });
-      }
-      if (variables.sidebarPinned !== undefined) {
-        notifications.show({
-          title: 'Sidebar preference saved',
-          message: variables.sidebarPinned ? 'Sidebar is pinned.' : 'Sidebar can be collapsed.',
-          color: 'green',
-        });
-      }
-      if (variables.primaryColor !== undefined) {
-        notifications.show({
-          title: 'Primary color updated',
-          message: 'Accent color has been updated.',
-          color: 'green',
-        });
-      }
-      if (variables.locale !== undefined) {
-        notifications.show({
-          title: 'Language saved',
-          message: 'Your language preference has been updated.',
-          color: 'green',
-        });
-      }
-      if (variables.textSize !== undefined) {
-        notifications.show({
-          title: 'Text size updated',
-          message: 'Interface text scale has been updated.',
-          color: 'green',
-        });
-      }
-    },
-    onError: (err: Error) => {
-      notifications.show({ title: 'Save failed', message: err.message, color: 'red' });
-    },
-  });
-
   const handleSubmitEdit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     patchMe.mutate({ name });
   };
 
-  if (isPending || !data) return <Loader size="sm" />;
+  if (isPending || !data) {
+    return (
+      <>
+        <SettingsContentCard id={settingsCardDomId('profile')} data-settings-card="profile">
+          <Loader size="sm" />
+        </SettingsContentCard>
+        <SettingsContentCard id={settingsCardDomId('identity')} data-settings-card="identity">
+          <Loader size="sm" />
+        </SettingsContentCard>
+      </>
+    );
+  }
   if (isError) {
     return (
       <Alert color="red" title="Error">
@@ -180,258 +115,100 @@ export function SettingsGeneralTab() {
     );
   }
 
-  const { user, identity, preferences } = data;
-  const theme = preferences?.theme ?? 'auto';
-  const sidebarPinned = preferences?.sidebarPinned ?? false;
-  const primaryColor: PrimaryColorPreset = preferences?.primaryColor ?? 'blue';
-  const textSize: TextSizePreference = preferences?.textSize ?? 'default';
-  const locale = preferences?.locale ?? 'en';
+  const { user, identity } = data;
 
   return (
     <>
-      <Grid gutter="md">
-        {/* Card 1: Profile (Menu: Edit, Deactivate) */}
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Card withBorder padding={0} h="100%">
-            <Box py="xs" px="md" bg="var(--mantine-color-default-hover)">
-              <Text fw={600} size="md">
-                Profile
+      <SettingsContentCard id={settingsCardDomId('profile')} data-settings-card="profile">
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+            <SettingsCardTitle jumpId="profile" />
+            <Menu shadow="md" position="bottom-end">
+              <Menu.Target>
+                <ActionIcon variant="subtle" size="md" aria-label="Profile actions">
+                  <IconDotsVertical size={18} stroke={3} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={openEdit}>Edit Profile</Menu.Item>
+                <Menu.Item color="red" onClick={openDeactivate}>
+                  Deactivate
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
+          <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+            <Text size="lg" fw={500}>
+              {user.name}
+            </Text>
+            {user.isAdmin && (
+              <Text size="sm" c="dimmed">
+                Admin User
               </Text>
-            </Box>
-            <Box p="md">
-              <Stack gap="xs">
-                <Group justify="space-between" align="flex-start">
-                  <Stack gap={2}>
-                    <Text size="lg" fw={500}>
-                      {user.name}
-                    </Text>
-                    {user.isAdmin && (
-                      <Text size="sm" c="dimmed">
-                        Admin User
-                      </Text>
-                    )}
-                  </Stack>
-                  <Menu shadow="md" position="bottom-end">
-                    <Menu.Target>
-                      <ActionIcon variant="subtle" size="md" aria-label="Profile actions">
-                        <IconDotsVertical size={18} stroke={3} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item onClick={openEdit}>Edit Profile</Menu.Item>
-                      <Menu.Item color="red" onClick={openDeactivate}>
-                        Deactivate
-                      </Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-                {user.email != null && user.email !== '' && (
-                  <Text size="sm" c="dimmed">
-                    {user.email}
-                  </Text>
-                )}
-              </Stack>
-            </Box>
-          </Card>
-        </Grid.Col>
+            )}
+            {user.email != null && user.email !== '' && user.email !== user.name && (
+              <Text size="sm" c="dimmed">
+                {user.email}
+              </Text>
+            )}
+          </Stack>
+        </Stack>
+      </SettingsContentCard>
 
-        {/* Card 2: Appearance */}
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Card withBorder padding={0} h="100%">
-            <Box py="xs" px="md" bg="var(--mantine-color-default-hover)">
-              <Text fw={600} size="md">
-                Appearance
+      <SettingsContentCard id={settingsCardDomId('identity')} data-settings-card="identity">
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <SettingsCardTitle jumpId="identity" />
+          <Stack gap={SETTINGS_CARD_ROW_GAP}>
+            <div>
+              <Text size="sm" fw={500} mb={4}>
+                User Entity
               </Text>
-            </Box>
-            <Box p="md">
-              <Stack gap="lg">
-                <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
-                      Theme
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Change the theme mode.
-                    </Text>
-                  </Stack>
-                  <SegmentedControl
-                    value={theme}
-                    onChange={(value) =>
-                      patchPreferences.mutate({ theme: value as 'light' | 'dark' | 'auto' })
-                    }
-                    data={[
-                      { label: 'Light', value: 'light' },
-                      { label: 'Dark', value: 'dark' },
-                      { label: 'Auto', value: 'auto' },
-                    ]}
-                    disabled={patchPreferences.isPending}
-                  />
-                </Group>
-                <Group justify="space-between" align="center" wrap="nowrap" gap="md">
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
-                      Pin sidebar
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Start with the sidebar expanded on desktop. You can still collapse it anytime.
-                      On mobile, navigation always opens from the menu button.
-                    </Text>
-                  </Stack>
-                  <Switch
-                    checked={sidebarPinned}
-                    onChange={(e) =>
-                      patchPreferences.mutate({ sidebarPinned: e.currentTarget.checked })
-                    }
-                    disabled={patchPreferences.isPending}
-                  />
-                </Group>
-                <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
-                      Primary color
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Accent color for links, tabs, and buttons.
-                    </Text>
-                  </Stack>
-                  <Select
-                    value={primaryColor}
-                    onChange={(value) => {
-                      if (
-                        value !== null &&
-                        (PRIMARY_COLOR_PRESETS as readonly string[]).includes(value)
-                      ) {
-                        patchPreferences.mutate({
-                          primaryColor: value as PrimaryColorPreset,
-                        });
-                      }
-                    }}
-                    data={[...PRIMARY_COLOR_PRESETS]
-                      .sort((a, b) =>
-                        PRIMARY_COLOR_PRESET_LABELS[a].localeCompare(PRIMARY_COLOR_PRESET_LABELS[b])
-                      )
-                      .map((preset) => ({
-                        label: PRIMARY_COLOR_PRESET_LABELS[preset],
-                        value: preset,
-                      }))}
-                    disabled={patchPreferences.isPending}
-                    w={200}
-                    styles={{ option: { whiteSpace: 'nowrap' } }}
-                  />
-                </Group>
-                <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
-                      Text size
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Improves readability; applies across the app.
-                    </Text>
-                  </Stack>
-                  <SegmentedControl
-                    value={textSize}
-                    onChange={(value) =>
-                      patchPreferences.mutate({ textSize: value as TextSizePreference })
-                    }
-                    data={[
-                      { label: 'Default', value: 'default' },
-                      { label: 'Large', value: 'large' },
-                      { label: 'Larger', value: 'larger' },
-                    ]}
-                    disabled={patchPreferences.isPending}
-                  />
-                </Group>
-                <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-                  <Stack gap={2}>
-                    <Text size="sm" fw={500}>
-                      Interface language
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      Language for the user interface.
-                    </Text>
-                  </Stack>
-                  <Select
-                    value={locale}
-                    onChange={(value) => {
-                      if (value === 'en' || value === 'de') {
-                        patchPreferences.mutate({ locale: value });
-                      }
-                    }}
-                    data={[
-                      { label: 'English', value: 'en' },
-                      { label: 'Deutsch', value: 'de' },
-                    ]}
-                    disabled={patchPreferences.isPending}
-                    w={160}
-                  />
-                </Group>
-              </Stack>
-            </Box>
-          </Card>
-        </Grid.Col>
-
-        {/* Card 3: DocsOps Identity */}
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Card withBorder padding={0} h="100%">
-            <Box py="xs" px="md" bg="var(--mantine-color-default-hover)">
-              <Text fw={600} size="md">
-                DocsOps Identity
+              <Text size="sm" c="dimmed">
+                {user.isAdmin ? 'Admin User' : 'User'}
               </Text>
-            </Box>
-            <Box p="md">
-              <Stack gap="md">
-                <div>
-                  <Text size="sm" fw={500} mb={4}>
-                    User Entity
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {user.isAdmin ? 'Admin User' : 'User'}
-                  </Text>
-                </div>
-                <div>
-                  <Text size="sm" fw={500} mb={4}>
-                    Ownership Entities
-                  </Text>
-                  {identity.teams.length > 0 ||
-                  identity.departmentLeads.length > 0 ||
-                  identity.departmentAuthors.length > 0 ||
-                  identity.companyLeads?.length > 0 ? (
-                    <List size="sm">
-                      {identity.teams.map((t) => (
-                        <List.Item key={t.teamId}>
-                          {t.teamName} ({t.departmentName}) –{' '}
-                          {t.role === 'leader'
-                            ? 'Team Lead'
-                            : t.role === 'author'
-                              ? 'Team Author'
-                              : 'Member'}
-                        </List.Item>
-                      ))}
-                      {identity.departmentLeads.map((d) => (
-                        <List.Item key={d.id}>Department Lead: {d.name}</List.Item>
-                      ))}
-                      {identity.departmentAuthors.map((d) => (
-                        <List.Item key={d.id}>Department Author: {d.name}</List.Item>
-                      ))}
-                      {identity.companyLeads?.map((c) => (
-                        <List.Item key={c.id}>Company Lead: {c.name}</List.Item>
-                      ))}
-                    </List>
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      –
-                    </Text>
-                  )}
-                </div>
-              </Stack>
-            </Box>
-          </Card>
-        </Grid.Col>
-      </Grid>
+            </div>
+            <div>
+              <Text size="sm" fw={500} mb={4}>
+                Ownership Entities
+              </Text>
+              {identity.teams.length > 0 ||
+              identity.departmentLeads.length > 0 ||
+              identity.departmentAuthors.length > 0 ||
+              identity.companyLeads?.length > 0 ? (
+                <List size="sm">
+                  {identity.teams.map((t) => (
+                    <List.Item key={t.teamId}>
+                      {t.teamName} ({t.departmentName}) –{' '}
+                      {t.role === 'leader'
+                        ? 'Team Lead'
+                        : t.role === 'author'
+                          ? 'Team Author'
+                          : 'Member'}
+                    </List.Item>
+                  ))}
+                  {identity.departmentLeads.map((d) => (
+                    <List.Item key={d.id}>Department Lead: {d.name}</List.Item>
+                  ))}
+                  {identity.departmentAuthors.map((d) => (
+                    <List.Item key={d.id}>Department Author: {d.name}</List.Item>
+                  ))}
+                  {identity.companyLeads?.map((c) => (
+                    <List.Item key={c.id}>Company Lead: {c.name}</List.Item>
+                  ))}
+                </List>
+              ) : (
+                <Text size="sm" c="dimmed">
+                  –
+                </Text>
+              )}
+            </div>
+          </Stack>
+        </Stack>
+      </SettingsContentCard>
 
       <Modal opened={editOpened} onClose={closeEdit} title="Edit profile">
         <form onSubmit={handleSubmitEdit}>
-          <Stack gap="md">
+          <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <TextInput
               label="Display name"
               value={name}
@@ -452,7 +229,7 @@ export function SettingsGeneralTab() {
       </Modal>
 
       <Modal opened={deactivateOpened} onClose={closeDeactivate} title="Deactivate account">
-        <Stack gap="md">
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
           {user.isAdmin ? (
             <Text size="sm" c="dimmed">
               Administrators cannot deactivate their own account. Please ask another administrator.

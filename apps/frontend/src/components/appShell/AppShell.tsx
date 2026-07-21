@@ -8,6 +8,7 @@ import { meQueryKey } from '../../hooks/useMe';
 import { DocumentSearchModal } from '../search/DocumentSearchModal.js';
 import { DocumentSearchProvider } from '../search/DocumentSearchContext.js';
 import { useDocumentSearch } from '../search/useDocumentSearch.js';
+import { SettingsModal } from '../settings/SettingsModal.js';
 import { AppShellBreadcrumbBar } from './AppShellBreadcrumbBar.js';
 import { AppShellBreadcrumbsProvider } from './AppShellBreadcrumbsContext.js';
 import { AppShellNavScopeProvider } from './AppShellNavScopeContext.js';
@@ -122,6 +123,8 @@ function AppShellFrame({
               searchData={search.searchData}
               goToCatalogFromModal={search.goToCatalogFromModal}
             />
+
+            <SettingsModal />
 
             <MantineAppShell.Main id={MAIN_CONTENT_ID} component="main" className="app-shell-main">
               <AppShellTopBar

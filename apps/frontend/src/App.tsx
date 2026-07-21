@@ -20,7 +20,7 @@ import {
   PersonalTrashArchivePage,
   TeamTrashArchivePage,
 } from './pages/contextWorkspace/ScopeTrashArchiveRoutePages';
-import { SettingsPage } from './pages/account/SettingsPage';
+import { SettingsRouteRedirect } from './pages/settings/SettingsRouteRedirect';
 import { NotificationsPage } from './pages/account/NotificationsPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';
 import { AuthGuard } from './components/guards/AuthGuard';
@@ -144,7 +144,7 @@ function App() {
             <Route path="shared" element={<SharedPage />} />
             <Route path="reviews" element={<ReviewsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings" element={<SettingsRouteRedirect />} />
             <Route path="whats-new" element={<WhatsNewPage />} />
             <Route path="help" element={<HelpLayout />}>
               <Route index element={<Navigate to="overview" replace />} />

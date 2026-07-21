@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ActionIcon,
   Avatar,
@@ -35,6 +35,12 @@ import { meQueryKey } from '../../hooks/useMe.js';
 import { useWhatsNewBadge } from '../../hooks/useWhatsNewBadge.js';
 import type { UserPreferences } from '../system/ThemeFromPreferences.js';
 import { useIdentityScopePeopleControl } from '../scopePeople/useIdentityScopePeopleControl.js';
+import {
+  closeSettingsSearchParams,
+  DEFAULT_SETTINGS_JUMP_ID,
+  isSettingsOpen,
+  openSettingsSearchParams,
+} from '../../pages/settings/settingsLayout.js';
 import { isActive } from './appShellNavUtils.js';
 import { MAIN_NAV_ID } from './appShellLayoutConstants.js';
 
@@ -71,13 +77,24 @@ export function AppShellTopBar({
   const displayName = me?.user?.name ?? 'Account';
   const showWhatsNewBadge = useWhatsNewBadge();
   const hasNotifBadge = unreadNotificationsCount > 0;
+  const [searchParams, setSearchParams] = useSearchParams();
   const notifActive = isActive('/notifications', pathname);
-  const settingsActive = isActive('/settings', pathname);
+  const settingsActive = isSettingsOpen(searchParams);
   const helpActive = isActive('/help', pathname);
   const { setColorScheme } = useMantineColorScheme();
   const queryClient = useQueryClient();
   const theme = me?.preferences?.theme ?? 'auto';
   const peopleControl = useIdentityScopePeopleControl();
+
+  const toggleSettings = () => {
+    setSearchParams(
+      (prev) =>
+        isSettingsOpen(prev)
+          ? closeSettingsSearchParams(prev)
+          : openSettingsSearchParams(prev, DEFAULT_SETTINGS_JUMP_ID),
+      { replace: true }
+    );
+  };
 
   const patchTheme = useMutation({
     mutationFn: async (nextTheme: 'light' | 'dark' | 'auto') => {
@@ -160,7 +177,7 @@ export function AppShellTopBar({
         aria-label={
           badge && hasNotifBadge ? `${label} (${unreadNotificationsCount} unread)` : label
         }
-        style={active ? { color: 'var(--mantine-primary-color-filled)' } : undefined}
+        style={{ color: 'var(--mantine-primary-color-4)' }}
       >
         {badge && hasNotifBadge ? (
           <Box className="app-shell-sidebar-icon-wrap" component="span">
@@ -212,12 +229,18 @@ export function AppShellTopBar({
             notifActive,
             true
           )}
-          {utilIcon(
-            '/settings',
-            'Settings',
-            <IconSettings size={18} stroke={1.75} />,
-            settingsActive
-          )}
+          <Tooltip label="Settings" withArrow>
+            <ActionIcon
+              variant={settingsActive ? 'light' : 'subtle'}
+              size={32}
+              aria-label="Settings"
+              aria-pressed={settingsActive}
+              onClick={toggleSettings}
+              style={{ color: 'var(--mantine-primary-color-4)' }}
+            >
+              <IconSettings size={18} stroke={1.75} />
+            </ActionIcon>
+          </Tooltip>
           {utilIcon('/help/overview', 'Help', <IconHelp size={18} stroke={1.75} />, helpActive)}
           <Menu
             position="bottom-end"

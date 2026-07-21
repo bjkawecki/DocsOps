@@ -1,9 +1,16 @@
-import { Box, Card, Stack, Text, Table, Select, Loader, Alert, Grid } from '@mantine/core';
+import { Alert, Box, Loader, Select, Stack, Table, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { apiFetch } from '../../api/client';
 import type { StorageOverviewResponse } from '../../api/storage-types';
+import { SettingsContentCard } from './SettingsContentCard.js';
 import { useMe } from '../../hooks/useMe';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
+import {
+  SETTINGS_FIELD_LABEL_GAP,
+  SETTINGS_CARD_STACK_GAP,
+  settingsCardDomId,
+} from './settingsLayout.js';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -115,82 +122,80 @@ export function SettingsStorageTab() {
 
   if (mePending || !me) {
     return (
-      <Box p="md">
+      <SettingsContentCard id={settingsCardDomId('storage')} data-settings-card="storage">
         <Loader size="sm" />
-      </Box>
+      </SettingsContentCard>
     );
   }
 
   return (
-    <Grid gutter="md">
-      <Grid.Col span={{ base: 12, sm: 12 }}>
-        <Card withBorder padding={0} h="100%">
-          <Box py="xs" px="md" bg="var(--mantine-color-default-hover)">
-            <Text fw={600} size="md">
-              Storage
+    <SettingsContentCard id={settingsCardDomId('storage')} data-settings-card="storage">
+      <Stack gap={SETTINGS_CARD_STACK_GAP}>
+        <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+          <SettingsCardTitle jumpId="storage" />
+          <Text size="xs" c="dimmed">
+            Storage used by document attachments (and PDF exports). Choose a scope to view your
+            usage or, as a lead, your team, department, or company.
+          </Text>
+        </Stack>
+
+        <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+          {scopeOptions.length > 1 ? (
+            <Select
+              label="Scope"
+              data={scopeOptions.map((o) => ({ value: o.value, label: o.label }))}
+              value={selectedScope}
+              onChange={(v) => v && setSelectedScope(v)}
+              size="sm"
+              w="100%"
+              maw={320}
+            />
+          ) : null}
+          {storage && !storagePending ? (
+            <Text size="sm" c="dimmed">
+              <Text span fw={600} c="var(--mantine-color-text)">
+                {formatBytes(storage.usedBytes)}
+              </Text>
+              {' used · '}
+              <Text span fw={600} c="var(--mantine-color-text)">
+                {storage.attachmentCount}
+              </Text>
+              {' attachment(s)'}
             </Text>
+          ) : null}
+        </Stack>
+
+        {isError && (
+          <Alert color="red">
+            {error instanceof Error ? error.message : 'Failed to load storage'}
+          </Alert>
+        )}
+        {storagePending && <Loader size="sm" />}
+        {storage && !storagePending && storage.byUser && storage.byUser.length > 0 && (
+          <Box style={{ overflowX: 'auto' }}>
+            <Table withTableBorder className="dense-list-table" style={{ minWidth: 360 }}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>User</Table.Th>
+                  <Table.Th>Used</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {storage.byUser.map((u) => (
+                  <Table.Tr key={u.userId}>
+                    <Table.Td>
+                      <Text size="sm">{u.name || u.userId}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{formatBytes(u.usedBytes)}</Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
           </Box>
-          <Box p="md">
-            <Text size="xs" c="dimmed" mb="md">
-              Storage used by document attachments (and PDF exports). Choose a scope to view your
-              usage or, as a lead, your team, department, or company.
-            </Text>
-            {scopeOptions.length > 1 && (
-              <Select
-                label="Scope"
-                data={scopeOptions.map((o) => ({ value: o.value, label: o.label }))}
-                value={selectedScope}
-                onChange={(v) => v && setSelectedScope(v)}
-                mb="md"
-                size="sm"
-                style={{ maxWidth: 320 }}
-              />
-            )}
-            {isError && (
-              <Alert color="red" mb="md">
-                {error instanceof Error ? error.message : 'Failed to load storage'}
-              </Alert>
-            )}
-            {storagePending && <Loader size="sm" />}
-            {storage && !storagePending && (
-              <Stack gap="md">
-                <Text size="sm">
-                  <Text span fw={600}>
-                    {formatBytes(storage.usedBytes)}
-                  </Text>
-                  {' used · '}
-                  <Text span fw={600}>
-                    {storage.attachmentCount}
-                  </Text>
-                  {' attachment(s)'}
-                </Text>
-                {storage.byUser && storage.byUser.length > 0 && (
-                  <Table striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>User</Table.Th>
-                        <Table.Th>Used</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {storage.byUser.map((u) => (
-                        <Table.Tr key={u.userId}>
-                          <Table.Td>
-                            <Text size="sm">{u.name || u.userId}</Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Text size="sm">{formatBytes(u.usedBytes)}</Text>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                )}
-              </Stack>
-            )}
-          </Box>
-        </Card>
-      </Grid.Col>
-    </Grid>
+        )}
+      </Stack>
+    </SettingsContentCard>
   );
 }

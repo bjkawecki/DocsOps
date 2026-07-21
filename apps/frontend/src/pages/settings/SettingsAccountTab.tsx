@@ -1,21 +1,27 @@
 import {
-  Box,
-  Card,
+  Alert,
+  Button,
+  Group,
+  Loader,
+  Modal,
+  PasswordInput,
   Stack,
   Text,
-  Button,
   TextInput,
-  PasswordInput,
-  Group,
-  Modal,
-  Grid,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { useState, useEffect, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { apiFetch } from '../../api/client';
-import { useMe, meQueryKey } from '../../hooks/useMe';
+import { SettingsContentCard } from './SettingsContentCard.js';
+import { meQueryKey, useMe } from '../../hooks/useMe';
+import {
+  SETTINGS_CARD_STACK_GAP,
+  SETTINGS_FIELD_LABEL_GAP,
+  settingsCardDomId,
+} from './settingsLayout.js';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -111,20 +117,21 @@ export function SettingsAccountTab() {
 
   if (isPending || !data) {
     return (
-      <Card withBorder padding="md">
-        <Text size="sm" c="dimmed">
-          Loading…
-        </Text>
-      </Card>
+      <>
+        <SettingsContentCard id={settingsCardDomId('email')} data-settings-card="email">
+          <Loader size="sm" />
+        </SettingsContentCard>
+        <SettingsContentCard id={settingsCardDomId('password')} data-settings-card="password">
+          <Loader size="sm" />
+        </SettingsContentCard>
+      </>
     );
   }
   if (isError) {
     return (
-      <Card withBorder padding="md">
-        <Text size="sm" c="red">
-          {error?.message}
-        </Text>
-      </Card>
+      <Alert color="red" title="Error">
+        {error?.message}
+      </Alert>
     );
   }
 
@@ -133,77 +140,56 @@ export function SettingsAccountTab() {
 
   return (
     <>
-      <Grid gutter="md">
-        {/* Card: Email */}
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Card withBorder padding={0} h="100%">
-            <Box py="sm" px="md" bg="var(--mantine-color-default-hover)">
-              <Text fw={600} size="md">
-                Email
-              </Text>
-            </Box>
-            <Box p="lg">
-              <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xl">
-                <Stack gap="sm">
-                  <Text size="sm" fw={500} style={{ fontFamily: 'monospace' }}>
-                    {hasLocalLogin ? (user.email ?? '–') : '–'}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {hasLocalLogin
-                      ? 'Your login email. You need your current password to change it.'
-                      : 'Managed by SSO. Cannot be changed here.'}
-                  </Text>
-                </Stack>
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  onClick={openChangeEmail}
-                  disabled={!hasLocalLogin}
-                >
-                  Change email
-                </Button>
-              </Group>
-            </Box>
-          </Card>
-        </Grid.Col>
+      <SettingsContentCard id={settingsCardDomId('email')} data-settings-card="email">
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+            <SettingsCardTitle jumpId="email" />
+            <Button variant="default" size="xs" onClick={openChangeEmail} disabled={!hasLocalLogin}>
+              Change email
+            </Button>
+          </Group>
+          <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+            <Text size="sm" fw={500} style={{ fontFamily: 'monospace' }}>
+              {hasLocalLogin ? (user.email ?? '–') : '–'}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {hasLocalLogin
+                ? 'Your login email. You need your current password to change it.'
+                : 'Managed by SSO. Cannot be changed here.'}
+            </Text>
+          </Stack>
+        </Stack>
+      </SettingsContentCard>
 
-        {/* Card: Password */}
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Card withBorder padding={0} h="100%">
-            <Box py="sm" px="md" bg="var(--mantine-color-default-hover)">
-              <Text fw={600} size="md">
-                Password
-              </Text>
-            </Box>
-            <Box p="lg">
-              <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xl">
-                <Stack gap="sm">
-                  <Text size="sm" fw={500} style={{ fontFamily: 'monospace', letterSpacing: 2 }}>
-                    {hasLocalLogin ? '**********' : '–'}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {hasLocalLogin
-                      ? 'Change your password. You will need your current password.'
-                      : 'Managed by SSO. Cannot be changed here.'}
-                  </Text>
-                </Stack>
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  onClick={openChangePassword}
-                  disabled={!hasLocalLogin}
-                >
-                  Change password
-                </Button>
-              </Group>
-            </Box>
-          </Card>
-        </Grid.Col>
-      </Grid>
+      <SettingsContentCard id={settingsCardDomId('password')} data-settings-card="password">
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+            <SettingsCardTitle jumpId="password" />
+            <Button
+              variant="default"
+              size="xs"
+              onClick={openChangePassword}
+              disabled={!hasLocalLogin}
+            >
+              Change password
+            </Button>
+          </Group>
+          <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+            <Text size="sm" fw={500} style={{ fontFamily: 'monospace', letterSpacing: 2 }}>
+              {hasLocalLogin ? '**********' : '–'}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {hasLocalLogin
+                ? 'Change your password. You will need your current password.'
+                : 'Managed by SSO. Cannot be changed here.'}
+            </Text>
+          </Stack>
+        </Stack>
+      </SettingsContentCard>
 
       <Modal opened={changeEmailOpened} onClose={closeChangeEmail} title="Change email">
         <form onSubmit={handleSubmitChangeEmail}>
-          <Stack gap="md">
+          <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <TextInput
               label="New email"
               type="email"
@@ -232,7 +218,7 @@ export function SettingsAccountTab() {
 
       <Modal opened={changePasswordOpened} onClose={closeChangePassword} title="Change password">
         <form onSubmit={handleSubmitChangePassword}>
-          <Stack gap="md">
+          <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <PasswordInput
               label="Current password"
               value={currentPassword}

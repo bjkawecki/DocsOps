@@ -1,10 +1,18 @@
-import { Alert, Box, Button, Card, Group, Loader, Stack, Switch, Text } from '@mantine/core';
+import { Alert, Button, Group, Loader, Stack, Switch, Text } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
-import { meQueryKey, useMe } from '../../hooks/useMe';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
+import { SettingsContentCard } from './SettingsContentCard.js';
+import { meQueryKey, useMe } from '../../hooks/useMe';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
+import {
+  SETTINGS_CARD_ROW_GAP,
+  SETTINGS_CARD_STACK_GAP,
+  closeSettingsSearchParams,
+  settingsCardDomId,
+} from './settingsLayout.js';
 
 type NotificationPrefKey =
   | 'documentChanges'
@@ -28,6 +36,8 @@ function readNotificationPref(
 
 export function SettingsNotificationsTab() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: me, isPending: mePending, isError: meError, error: meErr } = useMe();
 
   const patchPreferences = useMutation({
@@ -69,7 +79,24 @@ export function SettingsNotificationsTab() {
     });
   };
 
-  if (mePending) return <Loader size="sm" />;
+  if (mePending) {
+    return (
+      <>
+        <SettingsContentCard
+          id={settingsCardDomId('notifications-in-app')}
+          data-settings-card="notifications-in-app"
+        >
+          <Loader size="sm" />
+        </SettingsContentCard>
+        <SettingsContentCard
+          id={settingsCardDomId('notifications-email')}
+          data-settings-card="notifications-email"
+        >
+          <Loader size="sm" />
+        </SettingsContentCard>
+      </>
+    );
+  }
   if (meError || !me) {
     return (
       <Alert color="red" title="Error">
@@ -84,26 +111,38 @@ export function SettingsNotificationsTab() {
   const email = prefs.email ?? {};
 
   return (
-    <Stack gap="md">
-      <Card withBorder padding={0}>
-        <Box py="xs" px="md" bg="var(--mantine-color-default-hover)">
-          <Text fw={600} size="md">
-            Notification preferences
+    <>
+      <SettingsContentCard
+        id={settingsCardDomId('notifications-in-app')}
+        data-settings-card="notifications-in-app"
+      >
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+            <SettingsCardTitle jumpId="notifications-in-app" />
+            <Button
+              variant="default"
+              size="xs"
+              onClick={() => {
+                const next = closeSettingsSearchParams(searchParams);
+                const qs = next.toString();
+                void navigate(qs.length > 0 ? `/notifications?${qs}` : '/notifications');
+              }}
+            >
+              Open inbox
+            </Button>
+          </Group>
+          <Text size="xs" c="dimmed">
+            <strong>Document changes</strong> covers publish, visible updates to published
+            documents, archive/trash/restore, and sharing changes (grants).{' '}
+            <strong>Draft requests</strong> covers the review workflow.{' '}
+            <strong>Organization</strong> covers team membership and lead roles.{' '}
+            <strong>Announcements</strong> covers admin broadcasts. <strong>Reminders</strong> is
+            reserved for future use.
           </Text>
-        </Box>
-        <Box p="md">
-          <Stack gap="md">
-            <Text size="xs" c="dimmed">
-              <strong>Document changes</strong> covers publish, visible updates to published
-              documents, archive/trash/restore, and sharing changes (grants).{' '}
-              <strong>Draft requests</strong> covers the review workflow.{' '}
-              <strong>Organization</strong> covers team membership and lead roles.{' '}
-              <strong>Announcements</strong> covers admin broadcasts. <strong>Reminders</strong> is
-              reserved for future use.
-            </Text>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                In-app: document changes
+          <Stack gap={SETTINGS_CARD_ROW_GAP}>
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Document changes
               </Text>
               <Switch
                 checked={inApp.documentChanges ?? true}
@@ -113,9 +152,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                In-app: draft requests
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Draft requests
               </Text>
               <Switch
                 checked={inApp.draftRequests ?? true}
@@ -125,9 +164,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                In-app: reminders
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Reminders
               </Text>
               <Switch
                 checked={inApp.reminders ?? true}
@@ -137,9 +176,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                In-app: organization
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Organization
               </Text>
               <Switch
                 checked={inApp.orgChanges ?? true}
@@ -149,9 +188,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                In-app: announcements
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Announcements
               </Text>
               <Switch
                 checked={readNotificationPref(inApp, 'announcements', true)}
@@ -162,9 +201,9 @@ export function SettingsNotificationsTab() {
               />
             </Group>
             {isAdmin && (
-              <Group justify="space-between">
-                <Text size="sm" fw={500}>
-                  In-app: operations
+              <Group justify="space-between" wrap="nowrap" gap="md">
+                <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                  Operations
                 </Text>
                 <Switch
                   checked={readNotificationPref(inApp, 'operations', true)}
@@ -175,9 +214,20 @@ export function SettingsNotificationsTab() {
                 />
               </Group>
             )}
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Email: document changes
+          </Stack>
+        </Stack>
+      </SettingsContentCard>
+
+      <SettingsContentCard
+        id={settingsCardDomId('notifications-email')}
+        data-settings-card="notifications-email"
+      >
+        <Stack gap={SETTINGS_CARD_STACK_GAP}>
+          <SettingsCardTitle jumpId="notifications-email" />
+          <Stack gap={SETTINGS_CARD_ROW_GAP}>
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Document changes
               </Text>
               <Switch
                 checked={email.documentChanges ?? false}
@@ -187,9 +237,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Email: draft requests
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Draft requests
               </Text>
               <Switch
                 checked={email.draftRequests ?? false}
@@ -199,9 +249,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Email: reminders
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Reminders
               </Text>
               <Switch
                 checked={email.reminders ?? false}
@@ -211,9 +261,9 @@ export function SettingsNotificationsTab() {
                 disabled={patchPreferences.isPending}
               />
             </Group>
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Email: announcements
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Announcements
               </Text>
               <Switch
                 checked={readNotificationPref(email, 'announcements', false)}
@@ -224,9 +274,9 @@ export function SettingsNotificationsTab() {
               />
             </Group>
             {isAdmin && (
-              <Group justify="space-between">
-                <Text size="sm" fw={500}>
-                  Email: operations
+              <Group justify="space-between" wrap="nowrap" gap="md">
+                <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                  Operations
                 </Text>
                 <Switch
                   checked={readNotificationPref(email, 'operations', false)}
@@ -237,9 +287,9 @@ export function SettingsNotificationsTab() {
                 />
               </Group>
             )}
-            <Group justify="space-between">
-              <Text size="sm" fw={500}>
-                Email: organization
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Organization
               </Text>
               <Switch
                 checked={email.orgChanges ?? false}
@@ -250,12 +300,8 @@ export function SettingsNotificationsTab() {
               />
             </Group>
           </Stack>
-        </Box>
-      </Card>
-
-      <Button component={Link} to="/notifications" variant="filled">
-        Open notifications inbox
-      </Button>
-    </Stack>
+        </Stack>
+      </SettingsContentCard>
+    </>
   );
 }
