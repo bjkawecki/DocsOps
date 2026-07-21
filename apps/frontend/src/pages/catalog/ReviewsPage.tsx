@@ -4,8 +4,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
-import { ContentCardWrapper } from '../../components/contexts/cardShared';
-import { SectionLabel } from '../../components/ui/SectionLabel';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { formatTableDate } from '../../lib/formatDate';
 import { ReviewsScopeSidebar, type ReviewsSidebarDoc } from './ReviewsScopeSidebar.js';
@@ -118,23 +116,20 @@ export function ReviewsPage() {
           <ReviewsScopeSidebar documents={sidebarDocs} />
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <ContentCardWrapper fullHeight={false}>
-              <SectionLabel mb="sm">Pending review</SectionLabel>
-              {isError ? (
-                <Text size="sm" c="red">
-                  Could not load reviews.
-                </Text>
-              ) : isPending ? (
-                <Text size="sm" c="dimmed">
-                  Loading…
-                </Text>
-              ) : (
-                <PendingReviewsTable
-                  items={pending}
-                  emptyLabel="No documents with pending suggestions in your scopes."
-                />
-              )}
-            </ContentCardWrapper>
+            {isError ? (
+              <Text size="sm" c="red">
+                Could not load reviews.
+              </Text>
+            ) : isPending ? (
+              <Text size="sm" c="dimmed">
+                Loading…
+              </Text>
+            ) : (
+              <PendingReviewsTable
+                items={pending}
+                emptyLabel="No documents with pending suggestions in your scopes."
+              />
+            )}
           </Box>
         </Flex>
       </Paper>

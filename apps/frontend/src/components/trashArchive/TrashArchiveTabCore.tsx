@@ -1,14 +1,4 @@
-import {
-  Button,
-  Card,
-  Group,
-  Pagination,
-  Select,
-  Stack,
-  Table,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -267,11 +257,9 @@ export function TrashArchiveTabCore({
 
   if (isPending) {
     return (
-      <Card withBorder padding="md">
-        <Text size="sm" c="dimmed">
-          {loadingLabel}
-        </Text>
-      </Card>
+      <Text size="sm" c="dimmed">
+        {loadingLabel}
+      </Text>
     );
   }
 

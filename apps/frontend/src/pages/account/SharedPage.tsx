@@ -1,14 +1,15 @@
 import { Box, Container, Flex, Paper, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
-import { ContentCardWrapper } from '../../components/contexts/cardShared';
 import {
   ContextDocumentsTable,
+  readDocsListLimit,
+  readDocsListPage,
   type ContextDocumentsTableRow,
 } from '../../components/contexts/ContextDocumentsTable';
-import { SectionLabel } from '../../components/ui/SectionLabel';
 import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { SharedScopeSidebar, type SharedSidebarDoc } from './SharedScopeSidebar.js';
 
@@ -50,11 +51,26 @@ function scopeLabelForDoc(doc: SharedDocItem): { scopeKey: string; scopeLabel: s
 /** Shared inbox: left scope/doc nav + documents table (same chrome as context workspace). */
 export function SharedPage() {
   useRegisterScopePageChrome(SHARED_SCOPE);
+  const [searchParams] = useSearchParams();
+  const docsPage = readDocsListPage(searchParams);
+  const docsLimit = readDocsListLimit(searchParams);
+  const docsOffset = (docsPage - 1) * docsLimit;
 
-  const { data: sharedDocsRes, isPending: docsPending } = useQuery({
-    queryKey: ['me', 'shared-documents'],
+  const { data: sidebarDocsRes } = useQuery({
+    queryKey: ['me', 'shared-documents', 'sidebar'],
     queryFn: async () => {
       const res = await apiFetch('/api/v1/me/shared-documents?limit=100&offset=0');
+      if (!res.ok) throw new Error('Failed to load shared documents');
+      return (await res.json()) as { items: SharedDocItem[]; total: number };
+    },
+  });
+
+  const { data: sharedDocsRes, isPending: docsPending } = useQuery({
+    queryKey: ['me', 'shared-documents', docsLimit, docsOffset],
+    queryFn: async () => {
+      const res = await apiFetch(
+        `/api/v1/me/shared-documents?limit=${docsLimit}&offset=${docsOffset}`
+      );
       if (!res.ok) throw new Error('Failed to load shared documents');
       return (await res.json()) as { items: SharedDocItem[]; total: number };
     },
@@ -64,7 +80,7 @@ export function SharedPage() {
 
   const sidebarDocs: SharedSidebarDoc[] = useMemo(
     () =>
-      (sharedDocsRes?.items ?? []).map((d) => {
+      (sidebarDocsRes?.items ?? []).map((d) => {
         const { scopeKey, scopeLabel } = scopeLabelForDoc(d);
         return {
           id: d.id,
@@ -73,7 +89,7 @@ export function SharedPage() {
           scopeLabel,
         };
       }),
-    [sharedDocsRes?.items]
+    [sidebarDocsRes?.items]
   );
 
   const documents: ContextDocumentsTableRow[] = useMemo(
@@ -107,19 +123,17 @@ export function SharedPage() {
           <SharedScopeSidebar documents={sidebarDocs} drafts={sidebarDrafts} />
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <ContentCardWrapper fullHeight={false}>
-              <SectionLabel mb="sm">Documents</SectionLabel>
-              {docsPending ? (
-                <Text size="sm" c="dimmed">
-                  Loading documents…
-                </Text>
-              ) : (
-                <ContextDocumentsTable
-                  documents={documents}
-                  emptyMessage="No documents shared with you yet."
-                />
-              )}
-            </ContentCardWrapper>
+            {docsPending ? (
+              <Text size="sm" c="dimmed">
+                Loading documents…
+              </Text>
+            ) : (
+              <ContextDocumentsTable
+                documents={documents}
+                total={sharedDocsRes?.total ?? 0}
+                emptyMessage="No documents shared with you yet."
+              />
+            )}
           </Box>
         </Flex>
       </Paper>

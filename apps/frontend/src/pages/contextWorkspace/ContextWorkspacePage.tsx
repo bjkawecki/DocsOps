@@ -16,10 +16,9 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { IconArchive, IconDotsVertical, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
-import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { useMe } from '../../hooks/useMe';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
@@ -32,9 +31,12 @@ import {
 import { scopeToKey } from '../../hooks/useRecentItems';
 import { ContentLink } from '../../components/ui/ContentLink';
 import { SectionLabel } from '../../components/ui/SectionLabel';
-import { ContextDocumentsTable } from '../../components/contexts/ContextDocumentsTable';
+import {
+  ContextDocumentsTable,
+  readDocsListLimit,
+  readDocsListPage,
+} from '../../components/contexts/ContextDocumentsTable';
 import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
-import { ContentCardWrapper } from '../../components/contexts/cardShared';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
@@ -43,20 +45,15 @@ import {
   buildContextBreadcrumbs,
   scopeBreadcrumbItem,
 } from '../../components/appShell/scopeBreadcrumbs.js';
-import {
-  ScopeContextSidebar,
-  type SidebarContextItem,
-  type SidebarProjectItem,
-} from './ScopeContextSidebar.js';
+import { ScopeContextSidebar } from './ScopeContextSidebar.js';
 import {
   contextUrl,
   scopeArchiveUrl,
-  scopeToDraftsParams,
-  scopeToOwnerQueryParams,
   scopeTrashUrl,
   writeLastScopeContextId,
 } from './contextPaths.js';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs.js';
+import { useScopeSidebarNav } from './useScopeSidebarNav.js';
 
 type ContextType = 'process' | 'project' | 'subcontext';
 
@@ -90,13 +87,6 @@ type ContextDocument = {
   documentTags: { tag: { id: string; name: string } }[];
 };
 
-type SiblingEntityItem = {
-  id: string;
-  name: string;
-  contextId: string;
-  subcontexts?: { id: string; name: string; contextId: string }[];
-};
-
 /** Base API path for the entity behind a Context (process/project/subcontext mutations). */
 function entityEndpointBase(contextType: ContextType): string {
   if (contextType === 'process') return '/api/v1/processes';
@@ -108,8 +98,13 @@ export function ContextWorkspacePage() {
   const { contextId } = useParams<{ contextId: string }>();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: me } = useMe();
   const recentActions = useRecentItemsActions();
+
+  const docsPage = readDocsListPage(searchParams);
+  const docsLimit = readDocsListLimit(searchParams);
+  const docsOffset = (docsPage - 1) * docsLimit;
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [editName, setEditName] = useState('');
@@ -152,9 +147,11 @@ export function ContextWorkspacePage() {
   });
 
   const { data: documentsData } = useQuery({
-    queryKey: ['contexts', contextId, 'documents'],
+    queryKey: ['contexts', contextId, 'documents', docsLimit, docsOffset],
     queryFn: async () => {
-      const res = await apiFetch(`/api/v1/contexts/${contextId}/documents?limit=100&offset=0`);
+      const res = await apiFetch(
+        `/api/v1/contexts/${contextId}/documents?limit=${docsLimit}&offset=${docsOffset}`
+      );
       if (!res.ok) throw new Error('Failed to load documents');
       return res.json() as Promise<{
         items: ContextDocument[];
@@ -166,6 +163,7 @@ export function ContextWorkspacePage() {
     enabled: !!contextId,
   });
   const documents = documentsData?.items ?? [];
+  const documentsTotal = documentsData?.total ?? 0;
 
   const { data: tagsData } = useQuery({
     queryKey: ['tags', data?.ownerId],
@@ -184,50 +182,13 @@ export function ContextWorkspacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by owner FK fields
     [data?.owner.companyId, data?.owner.departmentId, data?.owner.teamId, data?.owner.ownerUserId]
   );
-  const scopeKey = scope == null ? null : scopeToKey(scope);
   const scopeName = data?.owner.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
-
-  const ownerParams = scope ? scopeToOwnerQueryParams(scope) : null;
-  const { data: processesData } = useQuery({
-    queryKey: ['processes', 'siblings', scopeKey],
-    queryFn: async () => {
-      const res = await apiFetch(`/api/v1/processes?${ownerParams}`);
-      if (!res.ok) throw new Error('Failed to load processes');
-      return (await res.json()) as { items: SiblingEntityItem[] };
-    },
-    enabled: ownerParams != null,
-  });
-  const { data: projectsData } = useQuery({
-    queryKey: ['projects', 'siblings', scopeKey],
-    queryFn: async () => {
-      const res = await apiFetch(`/api/v1/projects?${ownerParams}`);
-      if (!res.ok) throw new Error('Failed to load projects');
-      return (await res.json()) as { items: SiblingEntityItem[] };
-    },
-    enabled: ownerParams != null,
-  });
-  const sidebarProcesses: SidebarContextItem[] = (processesData?.items ?? []).map((p) => ({
-    contextId: p.contextId,
-    name: p.name,
-  }));
-  const sidebarProjects: SidebarProjectItem[] = (projectsData?.items ?? []).map((p) => ({
-    contextId: p.contextId,
-    name: p.name,
-    subcontexts: (p.subcontexts ?? []).map((s) => ({
-      contextId: s.contextId,
-      name: s.name,
-    })),
-  }));
-
-  const draftsParams = scope ? scopeToDraftsParams(scope) : null;
-  const { data: draftsData } = useMeDrafts(draftsParams ?? {}, {
-    limit: 8,
-    enabled: draftsParams != null,
-  });
-  const sidebarDrafts = (draftsData?.draftDocuments ?? []).map((d) => ({
-    id: d.id,
-    title: d.title,
-  }));
+  const {
+    processes: sidebarProcesses,
+    projects: sidebarProjects,
+    drafts: sidebarDrafts,
+    scopeKey,
+  } = useScopeSidebarNav(scope);
 
   useEffect(() => {
     if (!data || data.id !== contextId || !recentActions) return;
@@ -528,50 +489,45 @@ export function ContextWorkspacePage() {
                 Loading…
               </Text>
             ) : !contextSelected ? (
-              <ContentCardWrapper fullHeight={false}>
-                <Text size="sm" c="dimmed">
-                  Select a process or project to view documents.
-                </Text>
-              </ContentCardWrapper>
+              <Text size="sm" c="dimmed">
+                Select a process or project to view documents.
+              </Text>
             ) : (
-              <ContentCardWrapper fullHeight={false}>
-                <Stack gap="xl">
-                  <Box data-context-docs-table>
-                    <SectionLabel mb="sm">Documents</SectionLabel>
-                    <ContextDocumentsTable documents={documents} />
-                  </Box>
+              <Stack gap="xl">
+                <Box data-context-docs-table>
+                  <ContextDocumentsTable documents={documents} total={documentsTotal} />
+                </Box>
 
-                  {data.contextType === 'project' && (
-                    <Box>
-                      <Group justify="space-between" wrap="nowrap" mb="sm">
-                        <SectionLabel>Subcontexts</SectionLabel>
-                        {data.canWriteContext && (
-                          <Button variant="filled" size="xs" onClick={openNewSubcontext}>
-                            Create subcontext
-                          </Button>
-                        )}
-                      </Group>
-                      {(data.subcontexts?.length ?? 0) === 0 ? (
-                        <Text size="sm" c="dimmed">
-                          No subcontexts yet.
-                        </Text>
-                      ) : (
-                        <Stack gap={4}>
-                          {(data.subcontexts ?? []).map((sub) => (
-                            <ContentLink
-                              key={sub.id}
-                              to={contextUrl(sub.contextId)}
-                              style={{ fontSize: 'var(--mantine-font-size-sm)' }}
-                            >
-                              {sub.name}
-                            </ContentLink>
-                          ))}
-                        </Stack>
+                {data.contextType === 'project' && (
+                  <Box>
+                    <Group justify="space-between" wrap="nowrap" mb="sm">
+                      <SectionLabel>Subcontexts</SectionLabel>
+                      {data.canWriteContext && (
+                        <Button variant="filled" size="xs" onClick={openNewSubcontext}>
+                          Create subcontext
+                        </Button>
                       )}
-                    </Box>
-                  )}
-                </Stack>
-              </ContentCardWrapper>
+                    </Group>
+                    {(data.subcontexts?.length ?? 0) === 0 ? (
+                      <Text size="sm" c="dimmed">
+                        No subcontexts yet.
+                      </Text>
+                    ) : (
+                      <Stack gap={4}>
+                        {(data.subcontexts ?? []).map((sub) => (
+                          <ContentLink
+                            key={sub.id}
+                            to={contextUrl(sub.contextId)}
+                            style={{ fontSize: 'var(--mantine-font-size-sm)' }}
+                          >
+                            {sub.name}
+                          </ContentLink>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                )}
+              </Stack>
             )}
           </Box>
         </Flex>

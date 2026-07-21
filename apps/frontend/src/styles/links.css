@@ -1,11 +1,13 @@
-/* Link color follows theme primary (index 4, e.g. sky #4690f7). Unvisited = primary-4, visited = primary-3 (lighter). */
+/* Link color follows theme primary (index 4). Visited matches unvisited (no lighter fade). */
 :root {
   --mantine-color-anchor: var(--mantine-primary-color-4);
 }
 
 /* Exclude Button-as-Link so filled variants keep Mantine contrast (--button-color). */
 a:not(.mantine-Button-root),
-.mantine-Anchor-root {
+a:not(.mantine-Button-root):visited,
+.mantine-Anchor-root,
+.mantine-Anchor-root:visited {
   color: var(--mantine-primary-color-4);
 }
 
@@ -24,13 +26,8 @@ a:not(.mantine-Button-root),
   text-decoration: underline;
 }
 
-a:not(.mantine-Button-root):visited,
-.mantine-Anchor-root:visited {
-  color: var(--mantine-primary-color-3);
-}
-
 /*
- * Card "View more" (subtle/light Link-Buttons): keep primary label color, no visited fade.
+ * Card "View more" (subtle/light Link-Buttons): keep primary label color (same when visited).
  * Filled Link-Buttons elsewhere must not get this rule (contrast text from Mantine).
  */
 .mantine-Card-root a.mantine-Button-root[data-variant='subtle'],

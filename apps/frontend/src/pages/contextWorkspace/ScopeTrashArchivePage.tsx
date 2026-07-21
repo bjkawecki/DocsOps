@@ -1,4 +1,4 @@
-import { Text } from '@mantine/core';
+import { Box, Container, Flex, Paper, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
@@ -11,6 +11,9 @@ import { useMe } from '../../hooks/useMe';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import { scopeToUrl } from '../../lib/scopeNav.js';
+import { ScopeContextSidebar } from './ScopeContextSidebar.js';
+import { scopeArchiveUrl, scopeTrashUrl } from './contextPaths.js';
+import { useScopeSidebarNav } from './useScopeSidebarNav.js';
 
 export type ScopeTrashArchiveKind = 'trash' | 'archive';
 
@@ -26,7 +29,7 @@ type Props = {
 };
 
 /**
- * Lead-only trash/archive view for a scope (no tab chrome).
+ * Lead-only trash/archive view for a scope – same two-column chrome as the context workspace.
  */
 export function ScopeTrashArchivePage({
   navScope,
@@ -40,6 +43,7 @@ export function ScopeTrashArchivePage({
 }: Props) {
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
+  const { processes, projects, drafts } = useScopeSidebarNav(navScope);
   const trailSuffix = useMemo((): AppShellBreadcrumbItem[] => {
     return [
       {
@@ -49,6 +53,15 @@ export function ScopeTrashArchivePage({
     ];
   }, [kind]);
   useRegisterScopePageChrome(navScope, scopeLabel, null, trailSuffix);
+
+  const trashArchive = {
+    trashTo: scopeTrashUrl(navScope),
+    archiveTo: scopeArchiveUrl(navScope),
+  };
+
+  const handleContextNavClick = () => {
+    // Link navigation only; no selection toggle on trash/archive.
+  };
 
   if (isPending) {
     return (
@@ -62,10 +75,35 @@ export function ScopeTrashArchivePage({
   }
 
   const contentProps = { scope: trashScope, companyId, departmentId, teamId };
-  if (kind === 'trash') {
-    return <TrashTabContent {...contentProps} />;
-  }
-  return <ArchiveTabContent {...contentProps} />;
+
+  return (
+    <Container fluid maw={1600} px="md" mb="xl">
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex
+          direction={{ base: 'column', lg: 'row' }}
+          gap={{ base: 'md', lg: 'lg' }}
+          align="flex-start"
+        >
+          <ScopeContextSidebar
+            processes={processes}
+            projects={projects}
+            drafts={drafts}
+            activeContextId={null}
+            onContextNavClick={handleContextNavClick}
+            trashArchive={trashArchive}
+          />
+
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+            {kind === 'trash' ? (
+              <TrashTabContent {...contentProps} />
+            ) : (
+              <ArchiveTabContent {...contentProps} />
+            )}
+          </Box>
+        </Flex>
+      </Paper>
+    </Container>
+  );
 }
 
 export function CompanyTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind }) {

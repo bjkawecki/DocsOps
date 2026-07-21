@@ -15,8 +15,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo, useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { IconArrowDown, IconArrowUp, IconSelector } from '@tabler/icons-react';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
+import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { contextUrl } from '../contextWorkspace/contextPaths';
 import { apiFetch } from '../../api/client';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
@@ -109,6 +110,15 @@ function parseStoredPageSize(): number {
  */
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useSetAppShellBreadcrumbs([
+    {
+      key: 'catalog',
+      label: 'Catalog',
+      icon: <IconListSearch size={14} stroke={1.5} />,
+    },
+  ]);
+  useSetAppShellNavScope(null);
 
   const contextType = searchParams.get('contextType') ?? '';
   const tagIds = useMemo(() => {
@@ -270,10 +280,6 @@ export function CatalogPage() {
 
   return (
     <Box>
-      <PageHeader
-        title="Catalog"
-        description="All documents you can access. Filter, search, and sort."
-      />
       <Stack gap="md">
         <Box className="catalog-sticky-filters">
           <Group gap="md" wrap="wrap" align="flex-end">
