@@ -8,9 +8,9 @@
   .document-comments-rail-host {
     border-top: none;
     position: sticky;
-    top: var(--mantine-spacing-md);
+    top: 0;
     align-self: flex-start;
-    max-height: calc(100vh - 5.5rem);
+    max-height: 100%;
   }
 }
 

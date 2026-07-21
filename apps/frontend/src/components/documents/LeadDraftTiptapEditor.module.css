@@ -1,7 +1,7 @@
 .editorShell {
   border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   border-radius: var(--mantine-radius-sm);
-  background: light-dark(var(--mantine-color-body), var(--mantine-color-dark-7));
+  background: var(--mantine-color-body);
 }
 
 /* Tiptap: editierbare Wurzel ist .ProseMirror */
@@ -9,8 +9,9 @@
   min-height: 220px;
   outline: none;
   padding: var(--mantine-spacing-sm);
-  font-size: var(--mantine-font-size-sm);
-  line-height: 1.55;
+  font-family: 'Source Sans 3 Variable', 'Source Sans 3', system-ui, sans-serif;
+  font-size: var(--mantine-font-size-lg);
+  line-height: 1.65;
 }
 
 .editorShell :global(.ProseMirror p) {
@@ -20,7 +21,8 @@
 .editorShell :global(.ProseMirror h1),
 .editorShell :global(.ProseMirror h2),
 .editorShell :global(.ProseMirror h3) {
-  margin: 0.5em 0 0.25em;
+  margin: 1em 0 0.4em;
+  font-family: inherit;
   font-weight: 650;
 }
 

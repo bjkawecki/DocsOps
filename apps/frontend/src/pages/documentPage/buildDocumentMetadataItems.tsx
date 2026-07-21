@@ -1,8 +1,9 @@
 import { Badge, Group, Stack, Text } from '@mantine/core';
 import type { DocumentResponse } from './documentPageTypes';
+import { DocumentChromeCollapsiblePanel } from './DocumentChromeCollapsiblePanel.js';
 
 /**
- * Version/draft + tags + description for the document left column (under context, above TOC).
+ * Version/draft + tags + description for the document left column (under TOC).
  */
 export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
   const versionNumber = data.currentPublishedVersionNumber;
@@ -24,35 +25,44 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
     statusLine = 'Draft';
   }
 
+  const hasContent = statusLine != null || tags.length > 0 || description != null;
+  if (!hasContent) return null;
+
   return (
-    <Stack gap={6} w="100%">
-      {statusLine != null ? (
-        <Text size="sm" c="dimmed">
-          {statusLine}
-        </Text>
-      ) : null}
-      {tags.length > 0 ? (
-        <Group gap={6} wrap="wrap" aria-label="Tags">
-          {tags.map((dt) => (
-            <Badge
-              key={dt.tag.id}
-              size="xs"
-              variant="light"
-              color="gray"
-              radius="xl"
-              tt="none"
-              fw={500}
-            >
-              {dt.tag.name}
-            </Badge>
-          ))}
-        </Group>
-      ) : null}
-      {description != null ? (
-        <Text size="sm" c="dimmed" style={{ lineHeight: 1.4 }}>
-          {description}
-        </Text>
-      ) : null}
-    </Stack>
+    <DocumentChromeCollapsiblePanel
+      sectionId="doc-page:details"
+      title="Details"
+      defaultOpen={false}
+    >
+      <Stack gap="sm" w="100%" px={4}>
+        {statusLine != null ? (
+          <Text size="sm" c="dimmed">
+            {statusLine}
+          </Text>
+        ) : null}
+        {tags.length > 0 ? (
+          <Group gap={6} wrap="wrap" aria-label="Tags">
+            {tags.map((dt) => (
+              <Badge
+                key={dt.tag.id}
+                size="xs"
+                variant="light"
+                color="gray"
+                radius="xl"
+                tt="none"
+                fw={500}
+              >
+                {dt.tag.name}
+              </Badge>
+            ))}
+          </Group>
+        ) : null}
+        {description != null ? (
+          <Text size="sm" c="dimmed" style={{ lineHeight: 1.4 }}>
+            {description}
+          </Text>
+        ) : null}
+      </Stack>
+    </DocumentChromeCollapsiblePanel>
   );
 }

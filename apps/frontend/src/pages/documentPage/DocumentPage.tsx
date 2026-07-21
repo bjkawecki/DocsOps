@@ -1,3 +1,4 @@
+import { Box } from '@mantine/core';
 import '../DocumentContent.css';
 import { DocumentPageErrorView } from './DocumentPageErrorView';
 import { DocumentPageLoadedLayout } from './DocumentPageLoadedLayout';
@@ -9,17 +10,25 @@ export function DocumentPage() {
   const vm = useDocumentPage();
 
   if (vm.isPending) {
-    return <DocumentPagePendingView />;
+    return (
+      <Box className="document-page-shell">
+        <DocumentPagePendingView />
+      </Box>
+    );
   }
 
   if (vm.isError || !vm.data || !vm.documentId) {
-    return <DocumentPageErrorView />;
+    return (
+      <Box className="document-page-shell">
+        <DocumentPageErrorView />
+      </Box>
+    );
   }
 
   const data = vm.data;
 
   return (
-    <>
+    <Box className="document-page-shell">
       <DocumentPageLoadedLayout
         documentId={vm.documentId}
         data={data}
@@ -100,6 +109,6 @@ export function DocumentPage() {
           void vm.handleDeleteTag(id);
         }}
       />
-    </>
+    </Box>
   );
 }

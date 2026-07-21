@@ -55,7 +55,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       if (inline) {
         return (
           <Text
-            size="sm"
+            size="lg"
             c="var(--mantine-color-text)"
             component="p"
             style={{ whiteSpace: 'pre-wrap' }}
@@ -68,7 +68,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       if (!t.trim()) return null;
       return (
         <Text
-          size="sm"
+          size="lg"
           c="var(--mantine-color-text)"
           component="p"
           style={{ whiteSpace: 'pre-wrap' }}
@@ -81,7 +81,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       const items = node.content ?? [];
       if (items.length === 0) return null;
       return (
-        <List type="unordered" size="sm" spacing="xs" withPadding>
+        <List type="unordered" size="lg" spacing="xs" withPadding>
           {items.map((item) => (
             <List.Item key={item.id}>{renderNode(item, anchorMap)}</List.Item>
           ))}
@@ -111,14 +111,14 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       const inline = renderInlineBlockContent([node]);
       if (inline) {
         return (
-          <Text size="sm" component="span" style={{ whiteSpace: 'pre-wrap' }}>
+          <Text size="lg" component="span" style={{ whiteSpace: 'pre-wrap' }}>
             {inline}
           </Text>
         );
       }
       const t = node.meta?.text;
       return typeof t === 'string' && t.length > 0 ? (
-        <Text size="sm" component="span" style={{ whiteSpace: 'pre-wrap' }}>
+        <Text size="lg" component="span" style={{ whiteSpace: 'pre-wrap' }}>
           {t}
         </Text>
       ) : null;
@@ -127,7 +127,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       const t = walkNode(node);
       if (!t.trim()) return null;
       return (
-        <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
+        <Text size="lg" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
           {t}
         </Text>
       );

@@ -8,6 +8,7 @@ import App from './App';
 import { COLOR_SCHEME_STORAGE_KEY } from './constants';
 import { appTheme } from './theme';
 import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/source-sans-3/wght.css';
 import '@mantine/core/styles.css';
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';

@@ -58,6 +58,7 @@ function AppShellFrame({
     liveEventsStatus,
   });
   const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
+  const isDocumentReadingPage = /^\/documents\/[^/]+$/.test(s.location.pathname);
 
   return (
     <DocumentSearchProvider value={{ openSearch: search.openSearch }}>
@@ -71,7 +72,7 @@ function AppShellFrame({
             }}
             padding={0}
             header={{ height: headerHeight }}
-            style={{ flex: 1, minHeight: 0 }}
+            style={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
           >
             {headerHeight > 0 ? (
               <MantineAppShell.Header withBorder={false}>
@@ -134,10 +135,14 @@ function AppShellFrame({
                 logout={s.logout}
               />
               <Box
+                className={
+                  isDocumentReadingPage
+                    ? 'app-shell-main-body app-shell-main-body--document'
+                    : 'app-shell-main-body'
+                }
                 pt={{ base: 'md', md: 'sm' }}
                 pb={{ base: 'md', md: 'lg', xl: 'xl' }}
                 px={{ base: 'md', md: 'lg', xl: 'xl' }}
-                style={{ minHeight: '100%' }}
               >
                 <AppShellBreadcrumbBar />
                 <AppShellImpersonationBannerSlot
@@ -145,7 +150,15 @@ function AppShellFrame({
                   resolvedColorScheme={s.resolvedColorScheme}
                   stopImpersonateMutation={s.stopImpersonateMutation}
                 />
-                <Outlet key={s.location.pathname} />
+                <Box
+                  className={
+                    isDocumentReadingPage
+                      ? 'app-shell-outlet app-shell-outlet--document'
+                      : 'app-shell-outlet'
+                  }
+                >
+                  <Outlet key={s.location.pathname} />
+                </Box>
               </Box>
             </MantineAppShell.Main>
           </MantineAppShell>
@@ -218,7 +231,14 @@ export function AppShell() {
 
   return (
     <LiveEventsProvider>
-      <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      <Box
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100dvh',
+          overflow: 'hidden',
+        }}
+      >
         <AppShellSkipLink />
         <AppShellFrame
           s={s}

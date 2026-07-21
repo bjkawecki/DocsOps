@@ -8,7 +8,6 @@ import {
   Flex,
   Group,
   Menu,
-  Paper,
   Stack,
   Tabs,
   Text,
@@ -43,13 +42,17 @@ import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppSh
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import { ContextSwitcherSelect } from '../contextWorkspace/ContextSwitcherSelect.js';
 import { contextUrl } from '../contextWorkspace/contextPaths.js';
-import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import {
+  CONTEXT_WORKSPACE_LEFT_WIDTH,
+  ContextWorkspaceLeftColumn,
+} from '../contextWorkspace/contextWorkspaceChrome.js';
 import type {
   DocumentResponse,
   DocumentScope,
   PdfExportJobStatusResponse,
 } from './documentPageTypes';
 import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
+import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
 import { DocumentTocNav } from './DocumentTocNav.js';
 
 function documentScopeToRecentScope(scope: DocumentScope | null): RecentScope | null {
@@ -318,204 +321,223 @@ export function DocumentPageLoadedLayout({
   );
 
   return (
-    <Container fluid maw={1600} px="md" mb="xl">
+    <>
       <DocumentDocBreadcrumbs documentId={documentId} doc={breadcrumbDoc} />
 
-      <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
-        >
-          <ContextWorkspaceLeftColumn sticky>
-            <Stack gap="md" w="100%">
-              {data.contextId != null && ownerScope != null && (
-                <ContextSwitcherSelect
-                  owner={ownerScope}
-                  value={data.contextId}
-                  onChange={(nextId) => {
-                    void navigate(contextUrl(nextId));
-                  }}
-                />
-              )}
-              <DocumentSidebarMeta data={data} />
-              {numberedHeadings.length > 0 && (
-                <DocumentTocNav numberedHeadings={numberedHeadings} />
-              )}
-            </Stack>
-          </ContextWorkspaceLeftColumn>
+      {/* Same inset as ContextWorkspacePage (`Container fluid maw={1600} px="md"`). */}
+      <Container
+        fluid
+        maw={1600}
+        px="md"
+        className="document-page-body"
+        style={{ flex: '1 1 0%', minHeight: 0, display: 'flex' }}
+      >
+        <Box className="document-page-left" w={{ base: '100%', lg: CONTEXT_WORKSPACE_LEFT_WIDTH }}>
+          <Box className="document-page-left-inner">
+            <ContextWorkspaceLeftColumn>
+              <Stack gap="md" w="100%">
+                {data.contextId != null && ownerScope != null && (
+                  <ContextSwitcherSelect
+                    owner={ownerScope}
+                    value={data.contextId}
+                    onChange={(nextId) => {
+                      void navigate(contextUrl(nextId));
+                    }}
+                  />
+                )}
+                {numberedHeadings.length > 0 && (
+                  <DocumentTocNav numberedHeadings={numberedHeadings} />
+                )}
+                <DocumentSidebarMeta data={data} />
+                {data.contextId != null && (
+                  <DocumentContextDocsNav
+                    contextId={data.contextId}
+                    currentDocumentId={documentId}
+                    contextType={data.contextType}
+                  />
+                )}
+              </Stack>
+            </ContextWorkspaceLeftColumn>
+          </Box>
+        </Box>
 
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <Flex
-              gap={{ base: 'lg', lg: 'xl' }}
-              direction={{ base: 'column', lg: 'row' }}
-              align="flex-start"
-              wrap="nowrap"
-              w="100%"
-              style={{ minHeight: 0 }}
-            >
-              <Stack gap="lg" style={{ flex: 1, minWidth: 0 }}>
-                {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
-                  <Box maw="90ch" w="100%">
+        <Box className="document-page-main">
+          <Flex
+            gap={{ base: 'lg', lg: 'xl' }}
+            direction={{ base: 'column', lg: 'row' }}
+            align="stretch"
+            wrap="nowrap"
+            w="100%"
+            h="100%"
+            style={{ minHeight: 0, overflow: 'hidden', flex: '1 1 0%' }}
+          >
+            <Box className="document-page-reading">
+              <Box className="document-page-scroll">
+                <Stack gap="lg" align="stretch" w="100%">
+                  {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
                     <DocumentPublishedVersionAlert
                       show
                       currentVersion={latestPublishedVersion}
                       acknowledgedVersion={ackPublishedVersion}
                       onReload={onReloadPublishedContent}
                     />
-                  </Box>
-                )}
-                {mode === 'view' ? (
-                  <Card
-                    withBorder
-                    maw="90ch"
-                    w="100%"
-                    padding={0}
-                    styles={{
-                      root: {
-                        padding: '2rem 2.5rem',
-                      },
-                    }}
-                  >
-                    <Box style={{ maxWidth: '100%' }}>
-                      {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
-                        publishedPlainFromBlocks ? (
-                          <DocumentBlocksPreview doc={data.publishedBlocks} />
+                  )}
+                  {mode === 'view' ? (
+                    <Card
+                      withBorder
+                      className="document-page-card"
+                      w="100%"
+                      padding={0}
+                      styles={{
+                        root: {
+                          padding: '2rem 3rem',
+                          background: 'var(--mantine-color-body)',
+                        },
+                      }}
+                    >
+                      <Box style={{ maxWidth: '100%' }}>
+                        {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
+                          publishedPlainFromBlocks ? (
+                            <DocumentBlocksPreview doc={data.publishedBlocks} />
+                          ) : (
+                            <Text size="sm" c="dimmed">
+                              Published blocks do not contain extractable text for this preview.
+                            </Text>
+                          )
                         ) : (
                           <Text size="sm" c="dimmed">
-                            Published blocks do not contain extractable text for this preview.
+                            No published block content is available for this view. Open edit mode to
+                            work on the draft, or publish once the document has blocks.
                           </Text>
-                        )
-                      ) : (
-                        <Text size="sm" c="dimmed">
-                          No published block content is available for this view. Open edit mode to
-                          work on the draft, or publish once the document has blocks.
-                        </Text>
-                      )}
-                    </Box>
-                  </Card>
-                ) : (
-                  <Card
-                    withBorder
-                    maw="90ch"
-                    w="100%"
-                    padding={0}
-                    styles={{
-                      root: {
-                        padding: '2rem 2.5rem',
-                      },
-                    }}
-                  >
-                    <Tabs
-                      value={editTab}
-                      onChange={(v) => setEditTab((v as typeof editTab) ?? 'draft')}
-                    >
-                      <Tabs.List>
-                        <Tabs.Tab value="draft">Draft</Tabs.Tab>
-                        <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
-                        {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
-                      </Tabs.List>
-                      <Tabs.Panel value="draft" pt="md">
-                        {!hasDraftBlocks && !hasPublishedBlocks && leadDraftLastSynced != null && (
-                          <Alert color="yellow" mb="md" title="Draft content is empty">
-                            <Text size="sm">
-                              No block content is currently available for this document. Save the
-                              draft once to initialize it.
-                            </Text>
-                          </Alert>
                         )}
-                        <DocumentLeadDraftPanel
-                          ref={leadDraftPanelRef}
-                          documentId={documentId}
-                          refetchWhenVisible={isTabVisible}
-                          canPublish={!!data.canPublish}
-                          publishedVersionIsStale={publishedVersionIsStale}
-                          currentPublishedVersionNumber={latestPublishedVersion}
-                          ackPublishedVersion={ackPublishedVersion}
-                          onReloadPublishedContent={onReloadPublishedContent}
-                          currentUserId={me?.user?.id}
-                          currentUserName={me?.user?.name}
-                          isAdmin={me?.user?.isAdmin === true}
-                          fallbackBlocks={data.publishedBlocks ?? null}
-                          onDirtyChange={setLeadDraftDirty}
-                          onLastSyncedChange={setLeadDraftLastSynced}
-                          onPendingSuggestionCountChange={setLeadDraftPendingSuggestions}
-                        />
-                      </Tabs.Panel>
-                      <Tabs.Panel value="metadata" pt="md">
-                        <Stack gap="md">
-                          <TextInput
-                            label="Title"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.currentTarget.value)}
-                            maxLength={500}
-                          />
-                          <TextInput
-                            label="Description"
-                            placeholder="Short description (optional)"
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.currentTarget.value)}
-                            maxLength={500}
-                          />
-                          <Group align="flex-end" gap="xs">
-                            <MultiSelect
-                              label="Tags"
-                              placeholder="Select or add tags"
-                              data={tagOptions}
-                              value={editTagIds}
-                              onChange={setEditTagIds}
-                              searchable
-                              clearable
-                              style={{ flex: 1 }}
-                            />
-                            <Button variant="filled" size="sm" onClick={openCreateTag}>
-                              Create tag
-                            </Button>
-                            <Button variant="subtle" size="sm" onClick={openManageTags}>
-                              Manage tags
-                            </Button>
-                          </Group>
-                        </Stack>
-                      </Tabs.Panel>
-                      {canManageAccess && (
-                        <Tabs.Panel value="access" pt="md">
-                          <DocumentAccessPanel
+                      </Box>
+                    </Card>
+                  ) : (
+                    <Card
+                      withBorder
+                      className="document-page-card"
+                      w="100%"
+                      padding={0}
+                      styles={{
+                        root: {
+                          padding: '2rem 3rem',
+                          background: 'var(--mantine-color-body)',
+                        },
+                      }}
+                    >
+                      <Tabs
+                        value={editTab}
+                        onChange={(v) => setEditTab((v as typeof editTab) ?? 'draft')}
+                      >
+                        <Tabs.List>
+                          <Tabs.Tab value="draft">Draft</Tabs.Tab>
+                          <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
+                          {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
+                        </Tabs.List>
+                        <Tabs.Panel value="draft" pt="md">
+                          {!hasDraftBlocks &&
+                            !hasPublishedBlocks &&
+                            leadDraftLastSynced != null && (
+                              <Alert color="yellow" mb="md" title="Draft content is empty">
+                                <Text size="sm">
+                                  No block content is currently available for this document. Save
+                                  the draft once to initialize it.
+                                </Text>
+                              </Alert>
+                            )}
+                          <DocumentLeadDraftPanel
+                            ref={leadDraftPanelRef}
                             documentId={documentId}
-                            canEditAccess={canManageAccess}
-                            documentScope={
-                              data.scope?.type === 'team' ||
-                              data.scope?.type === 'department' ||
-                              data.scope?.type === 'company'
-                                ? { type: data.scope.type, id: data.scope.id }
-                                : data.scope?.type === 'personal'
-                                  ? { type: 'personal' }
-                                  : null
-                            }
+                            refetchWhenVisible={isTabVisible}
+                            canPublish={!!data.canPublish}
+                            publishedVersionIsStale={publishedVersionIsStale}
+                            currentPublishedVersionNumber={latestPublishedVersion}
+                            ackPublishedVersion={ackPublishedVersion}
+                            onReloadPublishedContent={onReloadPublishedContent}
+                            currentUserId={me?.user?.id}
+                            currentUserName={me?.user?.name}
+                            isAdmin={me?.user?.isAdmin === true}
+                            fallbackBlocks={data.publishedBlocks ?? null}
+                            onDirtyChange={setLeadDraftDirty}
+                            onLastSyncedChange={setLeadDraftLastSynced}
+                            onPendingSuggestionCountChange={setLeadDraftPendingSuggestions}
                           />
                         </Tabs.Panel>
-                      )}
-                    </Tabs>
-                  </Card>
-                )}
-              </Stack>
-
-              <Box
-                component="aside"
-                aria-label="Comments"
-                w={{ base: '100%', lg: 'auto' }}
-                style={{ flexShrink: 0, alignSelf: 'stretch' }}
-              >
-                <DocumentCommentsSection
-                  documentId={documentId}
-                  currentUserId={me?.user?.id}
-                  headings={headings.map(({ id, text }) => ({ id, text }))}
-                  layout="rail"
-                />
+                        <Tabs.Panel value="metadata" pt="md">
+                          <Stack gap="md">
+                            <TextInput
+                              label="Title"
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.currentTarget.value)}
+                              maxLength={500}
+                            />
+                            <TextInput
+                              label="Description"
+                              placeholder="Short description (optional)"
+                              value={editDescription}
+                              onChange={(e) => setEditDescription(e.currentTarget.value)}
+                              maxLength={500}
+                            />
+                            <Group align="flex-end" gap="xs">
+                              <MultiSelect
+                                label="Tags"
+                                placeholder="Select or add tags"
+                                data={tagOptions}
+                                value={editTagIds}
+                                onChange={setEditTagIds}
+                                searchable
+                                clearable
+                                style={{ flex: 1 }}
+                              />
+                              <Button variant="filled" size="sm" onClick={openCreateTag}>
+                                Create tag
+                              </Button>
+                              <Button variant="subtle" size="sm" onClick={openManageTags}>
+                                Manage tags
+                              </Button>
+                            </Group>
+                          </Stack>
+                        </Tabs.Panel>
+                        {canManageAccess && (
+                          <Tabs.Panel value="access" pt="md">
+                            <DocumentAccessPanel
+                              documentId={documentId}
+                              canEditAccess={canManageAccess}
+                              documentScope={
+                                data.scope?.type === 'team' ||
+                                data.scope?.type === 'department' ||
+                                data.scope?.type === 'company'
+                                  ? { type: data.scope.type, id: data.scope.id }
+                                  : data.scope?.type === 'personal'
+                                    ? { type: 'personal' }
+                                    : null
+                              }
+                            />
+                          </Tabs.Panel>
+                        )}
+                      </Tabs>
+                    </Card>
+                  )}
+                </Stack>
               </Box>
-            </Flex>
-          </Box>
-        </Flex>
-      </Paper>
-    </Container>
+            </Box>
+
+            <Box
+              component="aside"
+              aria-label="Comments"
+              w={{ base: '100%', lg: 'auto' }}
+              style={{ flexShrink: 0, alignSelf: 'stretch' }}
+            >
+              <DocumentCommentsSection
+                documentId={documentId}
+                currentUserId={me?.user?.id}
+                headings={headings.map(({ id, text }) => ({ id, text }))}
+                layout="rail"
+              />
+            </Box>
+          </Flex>
+        </Box>
+      </Container>
+    </>
   );
 }

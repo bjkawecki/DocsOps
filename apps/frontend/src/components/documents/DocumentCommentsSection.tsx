@@ -120,14 +120,14 @@ export function DocumentCommentsSection({
 
   const isRail = layout === 'rail';
   const contentWidth = panelOpen ? WIDTH_OPEN : WIDTH_CLOSED;
-  const outerWidth = isRail ? TOGGLE_STRIP_WIDTH + contentWidth : undefined;
-  const outerMinWidth = isRail ? TOGGLE_STRIP_WIDTH + contentWidth : undefined;
+  // Always reserve the open rail width so the document column does not shift horizontally.
+  const railReservedWidth = TOGGLE_STRIP_WIDTH + WIDTH_OPEN;
   const outerStyle: CSSProperties = isRail
     ? {
-        width: outerWidth,
-        minWidth: outerMinWidth,
-        maxWidth: TOGGLE_STRIP_WIDTH + WIDTH_OPEN,
-        transition: 'width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease',
+        width: railReservedWidth,
+        minWidth: railReservedWidth,
+        maxWidth: railReservedWidth,
+        justifyContent: 'flex-end',
       }
     : {
         width: '100%',
@@ -151,9 +151,7 @@ export function DocumentCommentsSection({
               borderLeft: '1px solid var(--mantine-color-default-border)',
             }),
         background: 'var(--mantine-color-body)',
-        ...(isRail
-          ? { maxHeight: 'min(calc(100vh - 5.5rem), 900px)' }
-          : { maxHeight: 'min(75vh, 640px)' }),
+        ...(isRail ? { maxHeight: '100%' } : { maxHeight: 'min(75vh, 640px)' }),
       }}
     >
       <Box
