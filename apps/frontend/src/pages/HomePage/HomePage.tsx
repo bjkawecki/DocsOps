@@ -142,7 +142,9 @@ export function HomePage() {
             <div className="pulse-home-feed-wrap">
               {items.length === 0 && !isPending ? (
                 <Text size="sm" c="dimmed">
-                  {activeKind ? 'No items in this category.' : "You're all caught up."}
+                  {activeKind
+                    ? 'No items in this category.'
+                    : 'Nothing needs your attention right now.'}
                 </Text>
               ) : items.length > 0 ? (
                 <PulseFeed

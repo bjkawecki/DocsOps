@@ -73,9 +73,9 @@ function displayFirstName(fullName: string | undefined | null): string | null {
   return first;
 }
 
-function updatesStatusLine(updateCount: number, firstName: string | null): string {
+function updatesStatusLine(updateCount: number): string {
   if (updateCount === 0) {
-    return firstName ? `You're all caught up, ${firstName}.` : "You're all caught up.";
+    return "You're all caught up.";
   }
   const itemsLabel = updateCount === 1 ? '1 item' : `${updateCount} items`;
   return `Catch up when you're ready · ${itemsLabel}`;
@@ -98,18 +98,16 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
   const firstName = displayFirstName(userName);
   const greet = timeGreeting();
   const greetingText = firstName ? `${greet}, ${firstName}` : greet;
-  const statusText = updatesStatusLine(updateCount, firstName);
+  const statusText = updatesStatusLine(updateCount);
 
   const visibleDefs = STAT_DEFS.filter((d) => stats[d.key] > 0 || activeKind === d.kind);
 
   return (
     <div className="pulse-stats">
       <div className="pulse-stats-header">
-        {updateCount > 0 ? (
-          <Text className="pulse-stats-greeting" c="dimmed">
-            {greetingText}
-          </Text>
-        ) : null}
+        <Text className="pulse-stats-greeting" c="dimmed">
+          {greetingText}
+        </Text>
         <Text className="pulse-stats-status" fw={600}>
           {statusText}
         </Text>
