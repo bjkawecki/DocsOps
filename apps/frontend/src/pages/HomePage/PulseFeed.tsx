@@ -1,13 +1,6 @@
-import { ActionIcon, Group, Stack, Text, UnstyledButton } from '@mantine/core';
-import {
-  IconCheck,
-  IconClipboardCheck,
-  IconFilePlus,
-  IconFileText,
-  IconMessageCircle,
-  IconPencil,
-  IconRefresh,
-} from '@tabler/icons-react';
+import { useEffect, useRef, useState } from 'react';
+import { ActionIcon, Loader, Text, useMantineTheme } from '@mantine/core';
+import { IconCircleCheck } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import {
   isPulseActivityKind,
@@ -15,94 +8,269 @@ import {
   type PulseItem,
   type PulseItemKind,
 } from '../../hooks/useMePulse.js';
+import {
+  formatPulseDayLabel,
+  formatPulseOccurredAt,
+  pulseDayKey,
+} from './formatPulseOccurredAt.js';
+import { getPulseDisplay, pulseKindIcon } from './pulseKindVisuals.js';
 
 const ICON_SIZE = 16;
+/** Brief confirm blink before collapse. */
+const BLINK_MS = 180;
+/** Fallback if transitionend does not fire. */
+const COLLAPSE_FALLBACK_MS = 400;
 
 function KindIcon({ kind }: { kind: PulseItemKind }) {
-  switch (kind) {
-    case 'draft-open':
-      return <IconPencil size={ICON_SIZE} aria-hidden />;
-    case 'review-awaiting':
-      return <IconClipboardCheck size={ICON_SIZE} aria-hidden />;
-    case 'review-decided':
-      return <IconCheck size={ICON_SIZE} aria-hidden />;
-    case 'document-new':
-      return <IconFilePlus size={ICON_SIZE} aria-hidden />;
-    case 'document-updated':
-      return <IconRefresh size={ICON_SIZE} aria-hidden />;
-    case 'document-comments':
-      return <IconMessageCircle size={ICON_SIZE} aria-hidden />;
-    default:
-      return <IconFileText size={ICON_SIZE} aria-hidden />;
+  const Icon = pulseKindIcon(kind);
+  return <Icon size={ICON_SIZE} stroke={1.75} className="pulse-feed-row-icon-svg" aria-hidden />;
+}
+
+type DayGroup = {
+  dayKey: string;
+  label: string;
+  items: PulseItem[];
+};
+
+function groupByDay(items: PulseItem[]): DayGroup[] {
+  const groups: DayGroup[] = [];
+  for (const item of items) {
+    const key = pulseDayKey(item.occurredAt);
+    const last = groups[groups.length - 1];
+    if (last && last.dayKey === key) {
+      last.items.push(item);
+    } else {
+      groups.push({
+        dayKey: key,
+        label: formatPulseDayLabel(item.occurredAt),
+        items: [item],
+      });
+    }
   }
+  return groups;
 }
 
 type ItemProps = {
   item: PulseItem;
+  mock: boolean;
+  dismissing: boolean;
+  onDismissStart: (itemId: string) => void;
+  onDismissComplete: (itemId: string) => void;
 };
 
-function PulseFeedItem({ item }: ItemProps) {
+function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComplete }: ItemProps) {
   const navigate = useNavigate();
+  const theme = useMantineTheme();
   const markRead = useMarkPulseItemRead();
-  const canMarkRead = isPulseActivityKind(item.kind);
+  const showDismiss = isPulseActivityKind(item.kind);
+  const [confirmed, setConfirmed] = useState(false);
+  const [blinking, setBlinking] = useState(false);
+  const blinkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const finishOnce = useRef(false);
+  const display = getPulseDisplay(item);
+
+  const finishDismiss = () => {
+    if (finishOnce.current) return;
+    finishOnce.current = true;
+    if (fallbackTimer.current) {
+      clearTimeout(fallbackTimer.current);
+      fallbackTimer.current = null;
+    }
+    if (!mock) {
+      markRead.mutate(item.id, {
+        onSettled: () => onDismissComplete(item.id),
+      });
+      return;
+    }
+    onDismissComplete(item.id);
+  };
+  const finishDismissRef = useRef(finishDismiss);
+  finishDismissRef.current = finishDismiss;
+
+  useEffect(() => {
+    return () => {
+      if (blinkTimer.current) clearTimeout(blinkTimer.current);
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!dismissing || !rowRef.current) return;
+    const el = rowRef.current;
+    const onEnd = (ev: TransitionEvent) => {
+      if (ev.target !== el) return;
+      if (ev.propertyName !== 'max-height') return;
+      finishDismissRef.current();
+    };
+    el.addEventListener('transitionend', onEnd);
+    fallbackTimer.current = setTimeout(() => {
+      finishDismissRef.current();
+    }, COLLAPSE_FALLBACK_MS);
+    return () => {
+      el.removeEventListener('transitionend', onEnd);
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+    };
+  }, [dismissing]);
 
   const openItem = () => {
-    if (canMarkRead) {
-      markRead.mutate(item.id);
-    }
     void navigate(item.href);
   };
 
+  const onMarkAsRead = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (dismissing || confirmed) return;
+    const el = rowRef.current;
+    const startH = el?.offsetHeight ?? null;
+    finishOnce.current = false;
+    if (el && startH != null) {
+      el.style.maxHeight = `${startH}px`;
+      void el.offsetHeight;
+    }
+    setConfirmed(true);
+    setBlinking(true);
+    if (blinkTimer.current) clearTimeout(blinkTimer.current);
+    blinkTimer.current = setTimeout(() => {
+      onDismissStart(item.id);
+    }, BLINK_MS);
+  };
+
   return (
-    <Group gap="sm" wrap="nowrap" align="flex-start" py={6}>
-      <UnstyledButton
-        onClick={openItem}
-        style={{
-          display: 'flex',
-          gap: 10,
-          flex: 1,
-          minWidth: 0,
-          textAlign: 'left',
-          alignItems: 'flex-start',
-        }}
-      >
-        <Text c="dimmed" mt={2} style={{ flexShrink: 0 }}>
-          <KindIcon kind={item.kind} />
+    <div
+      ref={rowRef}
+      role="link"
+      tabIndex={0}
+      className={['pulse-feed-row', dismissing ? 'pulse-feed-row--dismissing' : '']
+        .filter(Boolean)
+        .join(' ')}
+      onClick={openItem}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openItem();
+        }
+      }}
+    >
+      <span className="pulse-feed-row-icon">
+        <KindIcon kind={item.kind} />
+      </span>
+      <span className="pulse-feed-row-text">
+        <span className="pulse-feed-row-headline">
+          <span className="pulse-feed-row-keyword">{display.keyword}</span>
+        </span>
+        <Text className="pulse-feed-row-subject" c="dimmed" lineClamp={1} component="span">
+          {display.subject}
         </Text>
-        <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-          <Text size="sm" fw={500} lineClamp={1}>
-            {item.title}
-          </Text>
-          <Text size="sm" c="dimmed" lineClamp={2}>
-            {item.body}
-          </Text>
-        </Stack>
-      </UnstyledButton>
-      {canMarkRead ? (
-        <ActionIcon
-          variant="subtle"
-          size="sm"
-          aria-label="Mark as read"
-          onClick={() => markRead.mutate(item.id)}
-          loading={markRead.isPending}
-        >
-          <IconCheck size={14} />
-        </ActionIcon>
-      ) : null}
-    </Group>
+      </span>
+      <span className="pulse-feed-row-end">
+        <span className="pulse-feed-row-time">{formatPulseOccurredAt(item.occurredAt)}</span>
+        {showDismiss ? (
+          <ActionIcon
+            className={`pulse-feed-row-action${blinking ? ' pulse-feed-row-action--blink' : ''}`}
+            variant={confirmed ? 'filled' : 'default'}
+            color={confirmed ? theme.primaryColor : 'gray'}
+            size="md"
+            aria-label="Mark as read"
+            onClick={onMarkAsRead}
+            disabled={!mock && markRead.isPending}
+          >
+            <IconCircleCheck size={18} />
+          </ActionIcon>
+        ) : null}
+      </span>
+    </div>
   );
 }
 
 type Props = {
   items: PulseItem[];
+  mock?: boolean;
+  onDismiss: (itemId: string) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
 };
 
-export function PulseFeed({ items }: Props) {
+function findScrollParent(el: HTMLElement | null): HTMLElement | null {
+  let n: HTMLElement | null = el;
+  while (n) {
+    const oy = getComputedStyle(n).overflowY;
+    if (
+      (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+      n.scrollHeight > n.clientHeight + 1
+    ) {
+      return n;
+    }
+    n = n.parentElement;
+  }
+  return null;
+}
+
+export function PulseFeed({
+  items,
+  mock = false,
+  onDismiss,
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  onLoadMore,
+}: Props) {
+  const [dismissingIds, setDismissingIds] = useState<Set<string>>(() => new Set());
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const groups = groupByDay(items);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasNextPage || !onLoadMore) return;
+    const root = findScrollParent(el);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) onLoadMore();
+      },
+      { root, rootMargin: '240px', threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, onLoadMore, items.length]);
+
   return (
-    <Stack gap={2} align="stretch">
-      {items.map((item) => (
-        <PulseFeedItem key={item.id} item={item} />
+    <div className="pulse-feed">
+      {groups.map((group) => (
+        <section key={group.dayKey} className="pulse-feed-day-group" aria-label={group.label}>
+          <div className="pulse-feed-day-label">{group.label}</div>
+          <div className="pulse-feed-day-rows">
+            {group.items.map((item) => (
+              <PulseFeedItem
+                key={item.id}
+                item={item}
+                mock={mock}
+                dismissing={dismissingIds.has(item.id)}
+                onDismissStart={(id) => {
+                  setDismissingIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(id);
+                    return next;
+                  });
+                }}
+                onDismissComplete={(id) => {
+                  setDismissingIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(id);
+                    return next;
+                  });
+                  onDismiss(id);
+                }}
+              />
+            ))}
+          </div>
+        </section>
       ))}
-    </Stack>
+      {hasNextPage ? (
+        <div ref={sentinelRef} className="pulse-feed-sentinel" aria-hidden>
+          {isFetchingNextPage ? <Loader size="sm" /> : null}
+        </div>
+      ) : null}
+    </div>
   );
 }

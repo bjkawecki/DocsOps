@@ -141,4 +141,43 @@ describe('GET /api/v1/me/pulse', () => {
     });
     expect(res.statusCode).toBe(400);
   });
+
+  it('paginates feed with limit and offset and returns total', async () => {
+    const docId = ctx.publishedDocId;
+    await prisma.$executeRaw`
+      INSERT INTO user_notification (id, user_id, event_type, payload, created_at, read_at)
+      VALUES
+        (${randomUUID()}, ${ctx.scopeLeadId}, 'document-updated',
+         ${JSON.stringify({ documentId: docId })}::jsonb, NOW() - INTERVAL '2 hours', NULL),
+        (${randomUUID()}, ${ctx.scopeLeadId}, 'document-comment-created',
+         ${JSON.stringify({ documentId: docId })}::jsonb, NOW() - INTERVAL '1 hour', NULL)
+    `;
+
+    const page1 = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/v1/me/pulse?limit=1&offset=0',
+      headers: { cookie },
+    });
+    expect(page1.statusCode).toBe(200);
+    const body1 = page1.json() as {
+      items: Array<{ id: string }>;
+      total: number;
+      limit: number;
+      offset: number;
+    };
+    expect(body1.limit).toBe(1);
+    expect(body1.offset).toBe(0);
+    expect(body1.items).toHaveLength(1);
+    expect(body1.total).toBeGreaterThanOrEqual(2);
+
+    const page2 = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/v1/me/pulse?limit=1&offset=1',
+      headers: { cookie },
+    });
+    const body2 = page2.json() as { items: Array<{ id: string }>; total: number };
+    expect(body2.items).toHaveLength(1);
+    expect(body2.items[0]?.id).not.toBe(body1.items[0]?.id);
+    expect(body2.total).toBe(body1.total);
+  });
 });

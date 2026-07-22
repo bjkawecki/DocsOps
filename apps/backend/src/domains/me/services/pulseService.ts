@@ -69,6 +69,10 @@ export type PulseResponse = {
   stats: PulseStats;
   items: PulseItem[];
   settings: PulseSettings;
+  /** Total items matching filter (before limit/offset). */
+  total: number;
+  limit: number;
+  offset: number;
 };
 
 function inLast24h(iso: string, now: Date): boolean {
@@ -362,10 +366,15 @@ export async function getMePulse(
 
   items.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
   const filtered = query.kind ? items.filter((i) => i.kind === query.kind) : items;
+  const total = filtered.length;
+  const page = filtered.slice(query.offset, query.offset + query.limit);
 
   return {
     stats,
-    items: filtered.slice(0, query.limit),
+    items: page,
     settings,
+    total,
+    limit: query.limit,
+    offset: query.offset,
   };
 }

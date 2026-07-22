@@ -73,7 +73,7 @@ describe('pulseService helpers', () => {
     expect(map.get('d1')?.latest.id).toBe('b');
   });
 
-  it('buildPulseBody uses half-verbose English templates', () => {
+  it('buildPulseBody uses category labels without colon or quantity', () => {
     expect(
       buildPulseBody({
         kind: 'document-new',
@@ -82,7 +82,7 @@ describe('pulseService helpers', () => {
         contextName: 'Onboarding',
         contextTypeLabel: 'process',
       })
-    ).toBe('For Platform, process Onboarding has a new document: Handbook');
+    ).toBe('New Document');
 
     expect(
       buildPulseBody({
@@ -93,6 +93,17 @@ describe('pulseService helpers', () => {
         contextTypeLabel: null,
         commentCount: 5,
       })
-    ).toBe('For Platform, Handbook has 5 new comments.');
+    ).toBe('Comments');
+
+    expect(
+      buildPulseBody({
+        kind: 'review-awaiting',
+        title: 'Security guidelines',
+        scopeName: 'Platform',
+        contextName: null,
+        contextTypeLabel: null,
+        pendingSuggestionCount: 3,
+      })
+    ).toBe('Review');
   });
 });

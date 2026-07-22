@@ -221,7 +221,7 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant zur Sidebar). Keine Suchleiste auf Home (Suche nur Sidebar + Ctrl/⌘K). **KI-Schalter** (Normal/KI) bleibt optional in **§21**.
 
-**Layout (Zielbild):** Home = **Pulse** – Stats-Zeile + chronologischer Feed (halb-verbose). Kein Hero. Empty: „You're all caught up.“ Continue reading bleibt Sidebar. Prefs: Settings → Pulse (`pulseSettings`). Live: SSE `pulse.changed` invalidiert den Pulse-Feed.
+**Layout (Zielbild):** Home = Pulse ohne Hero/Motto; Greeting + Action-Status; Action-|Activity-Chips; Feed Keyword-first, Zeileklick → Dokument (`href`); Mark-as-read separat. Empty caught up. Continue Sidebar. Prefs Pulse. SSE `pulse.changed`. Dev-Mock Debug-Menü.
 
 [x] **Pulse API (Stufe 1):** Aggregierter Feed + Stats (Open Drafts/Reviews, New/Updated/Comments dedupliziert pro Doc; Comments mit Zähler; Activity bis read; Open work bis erledigt). Eigenständige `pulseSettings` in Preferences.
 [x] **Pulse UI (Stufe 2):** Home Stats + Feed + Filter (`?kind=`), Mark-as-read / Link-Klick; Settings-Karte Pulse.

@@ -1,10 +1,25 @@
 import { useState } from 'react';
-import { Box, Menu, Text, Stack, Badge, ScrollArea, Loader, ActionIcon } from '@mantine/core';
+import {
+  Box,
+  Menu,
+  Text,
+  Stack,
+  Badge,
+  ScrollArea,
+  Loader,
+  ActionIcon,
+  Group,
+} from '@mantine/core';
 import { IconBug } from '@tabler/icons-react';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AdminUser } from './appShellNavUtils.js';
 import { AppShellDebugResetModal } from './AppShellDebugResetModal.js';
 import { AppShellDebugReseedModal } from './AppShellDebugReseedModal.js';
+import {
+  isPulseMockEnabledInSession,
+  writePulseMockStorage,
+} from '../../pages/HomePage/pulseMockData.js';
 
 type Props = {
   show: boolean;
@@ -27,8 +42,22 @@ export function AppShellDebugMenu({
 }: Props) {
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [reseedModalOpen, setReseedModalOpen] = useState(false);
+  const [pulseMockOn, setPulseMockOn] = useState(() => isPulseMockEnabledInSession());
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   if (!show) return null;
+
+  const togglePulseMock = () => {
+    const next = !pulseMockOn;
+    setPulseMockOn(next);
+    writePulseMockStorage(next);
+    const params = new URLSearchParams(searchParams);
+    if (next) params.set('pulseMock', '1');
+    else params.delete('pulseMock');
+    const qs = params.toString();
+    void navigate({ pathname: '/', search: qs ? `?${qs}` : '' });
+  };
 
   return (
     <>
@@ -92,6 +121,14 @@ export function AppShellDebugMenu({
 
             <Menu.Divider />
             <Menu.Label>Development</Menu.Label>
+            <Menu.Item closeMenuOnClick={false} onClick={togglePulseMock}>
+              <Group justify="space-between" wrap="nowrap" gap="sm">
+                <Text size="sm">Pulse mock feed</Text>
+                <Badge size="xs" variant={pulseMockOn ? 'filled' : 'light'} color="grape">
+                  {pulseMockOn ? 'On' : 'Off'}
+                </Badge>
+              </Group>
+            </Menu.Item>
             <Menu.Item
               color="red"
               onClick={() => setResetModalOpen(true)}

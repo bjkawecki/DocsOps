@@ -289,10 +289,11 @@ export const pulseItemKindSchema = z.enum([
 ]);
 export type PulseItemKind = z.infer<typeof pulseItemKindSchema>;
 
-/** Query: GET /me/pulse – optional kind filter + feed limit. */
+/** Query: GET /me/pulse – optional kind filter + feed pagination. */
 export const mePulseQuerySchema = z.object({
   kind: pulseItemKindSchema.optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
 });
 export type MePulseQuery = z.infer<typeof mePulseQuerySchema>;
 

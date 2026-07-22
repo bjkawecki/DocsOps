@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../api/client.js';
 
 export type PulseItemKind =
@@ -50,14 +50,26 @@ export type MePulseResponse = {
   stats: PulseStats;
   items: PulseItem[];
   settings: PulseSettings;
+  total: number;
+  limit: number;
+  offset: number;
 };
+
+export const PULSE_PAGE_SIZE = 20;
 
 export function mePulseQueryKey(kind?: PulseItemKind): unknown[] {
   return kind ? ['me', 'pulse', kind] : ['me', 'pulse'];
 }
 
-export async function fetchMePulse(kind?: PulseItemKind): Promise<MePulseResponse> {
-  const qs = new URLSearchParams({ limit: '50' });
+export async function fetchMePulsePage(
+  kind: PulseItemKind | undefined,
+  offset: number,
+  limit: number = PULSE_PAGE_SIZE
+): Promise<MePulseResponse> {
+  const qs = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
   if (kind) qs.set('kind', kind);
   const res = await apiFetch(`/api/v1/me/pulse?${qs.toString()}`);
   if (!res.ok) {
@@ -67,11 +79,17 @@ export async function fetchMePulse(kind?: PulseItemKind): Promise<MePulseRespons
   return (await res.json()) as MePulseResponse;
 }
 
-export function useMePulse(kind?: PulseItemKind, options?: { enabled?: boolean }) {
-  return useQuery({
+export function useMePulseInfinite(kind?: PulseItemKind, options?: { enabled?: boolean }) {
+  return useInfiniteQuery({
     queryKey: mePulseQueryKey(kind),
-    queryFn: () => fetchMePulse(kind),
+    initialPageParam: 0,
     enabled: options?.enabled !== false,
+    queryFn: ({ pageParam }) => fetchMePulsePage(kind, pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.items.length, 0);
+      if (loaded >= lastPage.total) return undefined;
+      return loaded;
+    },
   });
 }
 

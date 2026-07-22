@@ -33,6 +33,45 @@ export function scopeToKey(scope: RecentScope): string {
   return `${scope.type}:${scope.id}`;
 }
 
+/** Identity slice used to resolve human-readable recent scope labels. */
+export type RecentScopeIdentity = Pick<
+  MeResponse['identity'],
+  'teams' | 'departments' | 'departmentLeads' | 'companyLeads'
+>;
+
+/**
+ * Display label for a preferences `recentItemsByScope` map key.
+ */
+export function formatRecentScopeLabel(
+  scopeKey: string,
+  identity: RecentScopeIdentity | null | undefined
+): string {
+  if (scopeKey === 'personal') return 'Personal';
+  if (scopeKey === 'shared') return 'Shared';
+
+  const colon = scopeKey.indexOf(':');
+  if (colon < 0) return scopeKey;
+  const kind = scopeKey.slice(0, colon);
+  const id = scopeKey.slice(colon + 1);
+  if (!id) return kind;
+
+  if (kind === 'team') {
+    const team = identity?.teams.find((t) => t.teamId === id);
+    return team?.teamName?.trim() || 'Team';
+  }
+  if (kind === 'department') {
+    const fromDepts = identity?.departments.find((d) => d.id === id);
+    if (fromDepts?.name?.trim()) return fromDepts.name.trim();
+    const fromLeads = identity?.departmentLeads.find((d) => d.id === id);
+    return fromLeads?.name?.trim() || 'Department';
+  }
+  if (kind === 'company') {
+    const company = identity?.companyLeads.find((c) => c.id === id);
+    return company?.name?.trim() || 'Company';
+  }
+  return scopeKey;
+}
+
 export interface RecentItemsContextValue {
   /** List for the given scope; addRecent(item, scope) writes to this scope. */
   addRecent: (item: RecentItem, scope: RecentScope) => void;
