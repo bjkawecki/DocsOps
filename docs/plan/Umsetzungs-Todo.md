@@ -221,16 +221,15 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant zur Sidebar). Keine Suchleiste auf Home (Suche nur Sidebar + Ctrl/⌘K). **KI-Schalter** (Normal/KI) bleibt optional in **§21**.
 
-**Layout (Zielbild / Stufe 1 API):** Pulse-API `GET /api/v1/me/pulse` (+ `POST …/pulse/items/:itemId/read`, Prefs `pulseSettings`). UI-Stufe folgt. Zwischenzeitlich Attention-Hub zweispaltig ab `md` (Drafts / Reviews | Updates / Comments). Hero (Logo + Tagline) ohne Search. CSV-Seed legt Demo-Unread-Notifications an.
+**Layout (Zielbild):** Home = **Pulse** – Stats-Zeile + chronologischer Feed (halb-verbose). Kein Hero. Empty: „You're all caught up.“ Continue reading bleibt Sidebar. Prefs: Settings → Pulse (`pulseSettings`). Live-Updates (`pulse.changed`) folgen in Stufe 3.
 
 [x] **Pulse API (Stufe 1):** Aggregierter Feed + Stats (Open Drafts/Reviews, New/Updated/Comments dedupliziert pro Doc; Comments mit Zähler; Activity bis read; Open work bis erledigt). Eigenständige `pulseSettings` in Preferences.
+[x] **Pulse UI (Stufe 2):** Home Stats + Feed + Filter (`?kind=`), Mark-as-read / Link-Klick; Settings-Karte Pulse.
 [x] **Pinned auf Home entfernt** (API `GET/POST/DELETE /pinned` bleibt; Pin-Modell ggf. später persönlich).
 [x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
-[x] **Updates:** Ungelesene Document-Lifecycle-Notifications (`category=documents&unreadOnly=true`); Mark-as-read beim Öffnen; Empty-State wenn leer.
-[x] **Comments:** Ungelesene Kommentar-Notifications (`category=comments`); getrennt von Document changes (Preferenzen `documentComments`); Empty-State wenn leer.
-[x] **Your drafts / Needs review:** Conditional Sections (Drafts, Reviews bei Lead-Rechten); kein „View more“ zu Catalog.
+[x] **Updates / Comments / Drafts-Blöcke auf Home:** durch Pulse-Feed ersetzt (Inbox `/notifications` unverändert).
 
-**Entfallen auf `/`:** Latest-documents-Block, Pinned-Block, Continue-Block, Suchleiste, View-more-Links.
+**Entfallen auf `/`:** Latest-documents-Block, Pinned-Block, Continue-Block, Suchleiste, View-more-Links, Hero/Tagline, separate Attention-Spalten.
 
 ---
 

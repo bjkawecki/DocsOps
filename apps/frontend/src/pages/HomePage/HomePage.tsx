@@ -1,92 +1,80 @@
-import { Box, Container, Group, Stack, Text } from '@mantine/core';
-import { DocopsLogo } from '../../components/appShell/DocopsLogo';
-import { useMe } from '../../hooks/useMe';
-import { useMeDrafts } from '../../hooks/useMeDrafts';
-import { useMeReviews } from '../../hooks/useMeReviews';
-import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
-import { HOME_CONTENT_MAX_WIDTH, HOME_SECTION_LIMIT } from './homePageConstants';
-import { HomeSections } from './HomeSections';
+import { Alert, Box, Loader, Stack, Text, Title } from '@mantine/core';
+import { useSearchParams } from 'react-router-dom';
+import { useMePulse, type PulseItemKind } from '../../hooks/useMePulse.js';
+import { SectionLabel } from '../../components/ui/SectionLabel.js';
+import { HOME_CONTENT_MAX_WIDTH } from './homePageConstants.js';
+import { PulseFeed } from './PulseFeed.js';
+import { PulseStatsRow } from './PulseStatsRow.js';
 
+const KIND_VALUES: PulseItemKind[] = [
+  'draft-open',
+  'review-awaiting',
+  'review-decided',
+  'document-new',
+  'document-updated',
+  'document-comments',
+];
+
+function parseKindParam(raw: string | null): PulseItemKind | null {
+  if (raw == null || raw === '') return null;
+  return KIND_VALUES.includes(raw as PulseItemKind) ? (raw as PulseItemKind) : null;
+}
+
+/**
+ * Home pulse: stats row + chronological feed (no hero).
+ */
 export function HomePage() {
-  const resolvedColorScheme = useResolvedColorScheme();
-  const { data: me } = useMe();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeKind = parseKindParam(searchParams.get('kind'));
+  const { data, isPending, isError, error } = useMePulse(activeKind ?? undefined);
 
-  const isAdmin = me?.user.isAdmin === true;
-  const isCompanyLead = (me?.identity?.companyLeads?.length ?? 0) > 0;
-  const isDepartmentLead = (me?.identity?.departmentLeads?.length ?? 0) > 0;
-  const hasReviewRights =
-    isAdmin ||
-    isCompanyLead ||
-    isDepartmentLead ||
-    (me?.identity?.teams?.some((t) => t.role === 'leader') ?? false);
-
-  const { data: draftsData, isPending: draftsPending } = useMeDrafts(
-    {},
-    { limit: HOME_SECTION_LIMIT, offset: 0 }
-  );
-  const draftDocuments = draftsData?.draftDocuments ?? [];
-
-  const { data: reviewsData, isPending: reviewsPending } = useMeReviews(
-    { limit: HOME_SECTION_LIMIT, offset: 0 },
-    { enabled: hasReviewRights }
-  );
-  const pendingReviews = reviewsData?.pendingForReview ?? [];
-
-  const brandColor = resolvedColorScheme === 'dark' ? 'dark.0' : 'dimmed';
+  const setKind = (kind: PulseItemKind | null) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (kind) next.set('kind', kind);
+        else next.delete('kind');
+        return next;
+      },
+      { replace: true }
+    );
+  };
 
   return (
-    <Container fluid maw={1600} px="md" pb="xl">
-      <Stack align="center" gap={0} pt={{ base: 'xl', md: 'md' }}>
-        <Stack align="center" gap="xs">
-          <Group gap="lg" justify="center">
-            <DocopsLogo width={96} height={96} />
-            <Box component="span">
-              <Text component="span" c={brandColor} style={{ fontSize: '2.4rem', fontWeight: 600 }}>
-                Docs
-              </Text>
-              <Text
-                component="span"
-                c="var(--mantine-primary-color-filled)"
-                style={{ fontSize: '2.4rem', fontWeight: 600 }}
-              >
-                Ops
-              </Text>
-            </Box>
-          </Group>
-          <Text
-            component="p"
-            size="md"
-            ta="center"
-            maw={540}
-            lh={1.55}
-            m={0}
-            fw={500}
-            c={resolvedColorScheme === 'dark' ? 'gray.4' : 'gray.7'}
-            style={{ letterSpacing: '0.02em' }}
-          >
-            The{' '}
-            <Text span inherit c="var(--mantine-primary-color-filled)" fw={700}>
-              knowledge
-            </Text>{' '}
-            our organisation{' '}
-            <Text span inherit fw={600}>
-              runs on.
-            </Text>
+    <Box px="md" pb="xl" pt={{ base: 'md', md: 'sm' }}>
+      <Stack gap="lg" maw={HOME_CONTENT_MAX_WIDTH} mx="auto" align="stretch">
+        <div>
+          <Title order={2} size="h3" mb={4}>
+            Pulse
+          </Title>
+          <Text size="sm" c="dimmed">
+            What needs attention across your organisation.
           </Text>
-        </Stack>
+        </div>
 
-        <Box w="100%" maw={HOME_CONTENT_MAX_WIDTH} mx="auto" mt="xl" pt="sm">
-          <HomeSections
-            draftDocuments={draftDocuments}
-            draftsPending={draftsPending}
-            draftsTotal={draftsData?.total}
-            pendingReviews={pendingReviews}
-            reviewsPending={reviewsPending}
-            reviewsTotal={reviewsData?.totalPendingForReview}
-            hasReviewRights={hasReviewRights}
-          />
-        </Box>
+        {isPending ? <Loader size="sm" /> : null}
+        {isError ? (
+          <Alert color="red" title="Could not load pulse">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </Alert>
+        ) : null}
+
+        {data ? (
+          <>
+            <PulseStatsRow stats={data.stats} activeKind={activeKind} onSelectKind={setKind} />
+            <Stack gap="xs" align="stretch">
+              <SectionLabel mb={0}>{activeKind ? 'Filtered feed' : 'Feed'}</SectionLabel>
+              {data.items.length === 0 ? (
+                <Text size="sm" c="dimmed">
+                  {activeKind ? 'No items in this category.' : "You're all caught up."}
+                </Text>
+              ) : (
+                <PulseFeed items={data.items} />
+              )}
+            </Stack>
+          </>
+        ) : null}
       </Stack>
-    </Container>
+    </Box>
   );
 }

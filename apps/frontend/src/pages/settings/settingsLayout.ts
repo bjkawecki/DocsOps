@@ -24,6 +24,7 @@ export type SettingsJumpId =
   | 'password'
   | 'sessions'
   | 'storage'
+  | 'pulse'
   | 'notifications-in-app'
   | 'notifications-email';
 
@@ -43,6 +44,7 @@ export const SETTINGS_JUMP_IDS: ReadonlyArray<SettingsJumpId> = [
   'password',
   'sessions',
   'storage',
+  'pulse',
   'notifications-in-app',
   'notifications-email',
 ];
@@ -58,6 +60,7 @@ export const SETTINGS_JUMP_LABELS: Record<SettingsJumpId, string> = {
   password: 'Password',
   sessions: 'Sessions',
   storage: 'Storage',
+  pulse: 'Pulse',
   'notifications-in-app': 'In-app',
   'notifications-email': 'Email notifications',
 };

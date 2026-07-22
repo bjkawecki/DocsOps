@@ -5,6 +5,7 @@ import { SettingsAccountTab } from './SettingsAccountTab.js';
 import { SettingsAppearanceTab } from './SettingsAppearanceTab.js';
 import { SettingsGeneralTab } from './SettingsGeneralTab.js';
 import { SettingsNotificationsTab } from './SettingsNotificationsTab.js';
+import { SettingsPulseTab } from './SettingsPulseTab.js';
 import { SettingsSecurityTab } from './SettingsSecurityTab.js';
 import { SettingsStorageTab } from './SettingsStorageTab.js';
 import {
@@ -231,6 +232,7 @@ export function SettingsPanel() {
           <SettingsAccountTab />
           <SettingsSecurityTab />
           <SettingsStorageTab />
+          <SettingsPulseTab />
           <SettingsNotificationsTab />
           <Box h={endPadPx} aria-hidden style={{ flexShrink: 0 }} />
         </Stack>

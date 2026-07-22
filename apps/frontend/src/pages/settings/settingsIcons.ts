@@ -1,6 +1,7 @@
 import {
   IconBell,
   IconDatabase,
+  IconActivityHeartbeat,
   IconLock,
   IconMail,
   IconPalette,
@@ -22,6 +23,7 @@ export const SETTINGS_JUMP_ICON_COMPONENTS: Record<SettingsJumpId, TablerIcon> =
   password: IconLock,
   sessions: IconUserCircle,
   storage: IconDatabase,
+  pulse: IconActivityHeartbeat,
   'notifications-in-app': IconBell,
   'notifications-email': IconMail,
 };

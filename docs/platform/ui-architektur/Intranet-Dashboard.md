@@ -8,7 +8,7 @@ Aktuelle Routen und Seiten der DocsOps-App. Details zu Layout und Sidebar: [Umse
 
 | Route                       | Inhalt                                                                                        |
 | --------------------------- | --------------------------------------------------------------------------------------------- |
-| `/`                         | Home (Attention hub: Drafts / Reviews / Updates / Comments; Suche = Sidebar + Cmd-K)          |
+| `/`                         | Home = Pulse (Stats + Feed; Suche = Sidebar + Cmd-K)                                          |
 | `/catalog`                  | Einstieg für alle Dokumente (Tabelle, filter- und suchbar)                                    |
 | `/team`                     | Einstieg Team (eigenes Team; rollenabhängig)                                                  |
 | `/team/:teamId`             | Team-Kontext (Projekte, Prozesse, Dokumente)                                                  |

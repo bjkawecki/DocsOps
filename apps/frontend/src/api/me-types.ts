@@ -73,6 +73,13 @@ export type MeResponse = {
         orgChanges?: boolean;
       };
     };
+    pulseSettings?: {
+      showDrafts?: boolean;
+      showReviews?: boolean;
+      showNewDocuments?: boolean;
+      showUpdatedDocuments?: boolean;
+      showComments?: boolean;
+    };
     lastSeenReleaseVersion?: string;
   };
   /** Nur gesetzt, wenn Admin gerade als anderer Nutzer agiert. */
