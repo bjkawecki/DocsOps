@@ -41,6 +41,10 @@ export const liveClientEventSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     v: z.literal(LIVE_EVENT_VERSION),
+    type: z.literal('pulse.changed'),
+  }),
+  z.object({
+    v: z.literal(LIVE_EVENT_VERSION),
     type: z.literal('maintenance.status-changed'),
     payload: publicMaintenanceStatusPayloadSchema,
   }),

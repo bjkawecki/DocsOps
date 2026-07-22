@@ -221,10 +221,11 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant zur Sidebar). Keine Suchleiste auf Home (Suche nur Sidebar + Ctrl/⌘K). **KI-Schalter** (Normal/KI) bleibt optional in **§21**.
 
-**Layout (Zielbild):** Home = **Pulse** – Stats-Zeile + chronologischer Feed (halb-verbose). Kein Hero. Empty: „You're all caught up.“ Continue reading bleibt Sidebar. Prefs: Settings → Pulse (`pulseSettings`). Live-Updates (`pulse.changed`) folgen in Stufe 3.
+**Layout (Zielbild):** Home = **Pulse** – Stats-Zeile + chronologischer Feed (halb-verbose). Kein Hero. Empty: „You're all caught up.“ Continue reading bleibt Sidebar. Prefs: Settings → Pulse (`pulseSettings`). Live: SSE `pulse.changed` invalidiert den Pulse-Feed.
 
 [x] **Pulse API (Stufe 1):** Aggregierter Feed + Stats (Open Drafts/Reviews, New/Updated/Comments dedupliziert pro Doc; Comments mit Zähler; Activity bis read; Open work bis erledigt). Eigenständige `pulseSettings` in Preferences.
 [x] **Pulse UI (Stufe 2):** Home Stats + Feed + Filter (`?kind=`), Mark-as-read / Link-Klick; Settings-Karte Pulse.
+[x] **Pulse live (Stufe 3):** SSE `pulse.changed` (bei Notification-Unread-Änderungen und Document-Collaboration); Frontend `invalidateQueries(['me','pulse'])`.
 [x] **Pinned auf Home entfernt** (API `GET/POST/DELETE /pinned` bleibt; Pin-Modell ggf. später persönlich).
 [x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
 [x] **Updates / Comments / Drafts-Blöcke auf Home:** durch Pulse-Feed ersetzt (Inbox `/notifications` unverändert).
@@ -484,9 +485,10 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ### Event-Typen (v1 → Ausbau)
 
-[x] `**notification.unread-changed`** – Invalidate-only; Sidebar + optional offene Inbox.
-[x] `**maintenance.status-changed**`–`{ active, reason? }`; App-Shell-Banner (ersetzt §25-Follow-up „Maintenance-Broadcast“).
-[x] **`document.collaboration-changed`\*\* – `{ documentId }`; Invalidate für Lead-Draft, Suggestions und Dokument-Detail (Near-Realtime für [Edit-System §5.4](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime)); Empfänger: Kollaborations-Audience bei Draft/Suggestions, alle Leser bei Publish.
+[x] **`notification.unread-changed`** – Invalidate-only; Sidebar + optional offene Inbox.
+[x] **`pulse.changed`** – Invalidate Home Pulse (`['me','pulse']`); mit Notification-Unread und Document-Collaboration mitgesendet. Doc/Comment-Notifs bleiben v1 Quelle für Pulse; Inbox-Verschlankung Follow-up.
+[x] **`maintenance.status-changed`** – `{ active, reason? }`; App-Shell-Banner (ersetzt §25-Follow-up „Maintenance-Broadcast“).
+[x] **`document.collaboration-changed`** – `{ documentId }`; Invalidate für Lead-Draft, Suggestions und Dokument-Detail (Near-Realtime für [Edit-System §5.4](Edit-System-Blocks-Suggestions-Lead-Draft.md#54-near-realtime)); Empfänger: Kollaborations-Audience bei Draft/Suggestions, alle Leser bei Publish.
 
 ### Backend (Komponenten)
 
@@ -499,7 +501,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 ### Frontend (Komponenten)
 
 [x] `**useLiveEvents` / `EventSource`:** in App-Shell; Reconnect mit Exponential Backoff; Tab hidden → Verbindung schließen.
-[x] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
+[x] **React Query:** bei `notification.unread-changed` → `invalidateQueries(['me','notifications',…])`; bei `pulse.changed` → `invalidateQueries(['me','pulse'])`; bei `maintenance.status-changed` → Maintenance-Query setzen.
 [x] **Fallback:** Wenn SSE nach N Versuchen fehlschlägt → optional langsames Polling **nur\*\* für Unread-Count (Feature-Flag / Env); Standard bleibt SSE.
 
 ### Betrieb & Tests

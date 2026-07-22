@@ -31,6 +31,7 @@ export type DocumentCollaborationHint = {
 
 type LiveClientEvent =
   | { v: 1; type: 'notification.unread-changed' }
+  | { v: 1; type: 'pulse.changed' }
   | {
       v: 1;
       type: 'maintenance.status-changed';
@@ -83,6 +84,7 @@ async function handleDocumentCollaborationChanged(
   ]);
 
   void queryClient.invalidateQueries({ queryKey: ['me', 'reviews'] });
+  void queryClient.invalidateQueries({ queryKey: ['me', 'pulse'] });
 }
 
 function applyDraftPresencePayload(
@@ -101,6 +103,9 @@ function parseLiveClientEvent(data: string): LiveClientEvent | null {
     if (event.v !== 1 || typeof event.type !== 'string') return null;
     if (event.type === 'notification.unread-changed') {
       return { v: 1, type: 'notification.unread-changed' };
+    }
+    if (event.type === 'pulse.changed') {
+      return { v: 1, type: 'pulse.changed' };
     }
     if (event.type === 'maintenance.status-changed') {
       const payload = event.payload;
@@ -205,6 +210,7 @@ function invalidatePostMaintenanceQueries(queryClient: ReturnType<typeof useQuer
 
 function catchUpQueries(queryClient: ReturnType<typeof useQueryClient>): void {
   void queryClient.invalidateQueries({ queryKey: ['me', 'notifications', 'unread-count'] });
+  void queryClient.invalidateQueries({ queryKey: ['me', 'pulse'] });
   void queryClient.invalidateQueries({ queryKey: maintenanceStatusQueryKey() });
   invalidatePostMaintenanceQueries(queryClient);
 }
@@ -258,6 +264,10 @@ export function useLiveEvents(): UseLiveEventsResult {
     (event: LiveClientEvent) => {
       if (event.type === 'notification.unread-changed') {
         void queryClient.invalidateQueries({ queryKey: ['me', 'notifications', 'unread-count'] });
+        return;
+      }
+      if (event.type === 'pulse.changed') {
+        void queryClient.invalidateQueries({ queryKey: ['me', 'pulse'] });
         return;
       }
       if (event.type === 'document.collaboration-changed') {

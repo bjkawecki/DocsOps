@@ -23,6 +23,21 @@ describe('liveEventTypes', () => {
     });
   });
 
+  it('parses pulse.changed NOTIFY envelope', () => {
+    const userId = 'cmqxvsywu000jeimm25vybdcq';
+    const raw = JSON.stringify({
+      target: 'user',
+      userId,
+      event: { v: LIVE_EVENT_VERSION, type: 'pulse.changed' },
+    });
+    const parsed = parseLiveNotifyPayload(raw);
+    expect(parsed).toEqual({
+      target: 'user',
+      userId,
+      event: { v: 1, type: 'pulse.changed' },
+    });
+  });
+
   it('parses maintenance broadcast NOTIFY envelope', () => {
     const raw = JSON.stringify({
       target: 'all',

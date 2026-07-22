@@ -1,6 +1,7 @@
 import type { PrismaClient } from '../../../generated/prisma/client.js';
 import { isLiveEventsEnabled } from './liveEventConfig.js';
 import { notifyLiveEvent } from './liveEventNotify.js';
+import { notifyPulseChanged } from './pulseLiveEvents.js';
 
 export type DocumentCollaborationChangedMeta = {
   draftRevision?: number;
@@ -36,6 +37,8 @@ export async function notifyDocumentCollaborationChanged(
       },
     },
   });
+  // Open drafts / review-awaiting on Home Pulse depend on draft suggestion state.
+  await notifyPulseChanged(prisma, userId);
 }
 
 export async function notifyDocumentCollaborationChangedMany(
