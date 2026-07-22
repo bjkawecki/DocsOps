@@ -57,6 +57,13 @@ type UserPreferences = {
       orgChanges?: boolean;
     };
   };
+  pulseSettings?: {
+    showDrafts?: boolean;
+    showReviews?: boolean;
+    showNewDocuments?: boolean;
+    showUpdatedDocuments?: boolean;
+    showComments?: boolean;
+  };
 };
 
 type MeIdentityTeam = {

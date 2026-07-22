@@ -33,6 +33,16 @@ export const notificationSettingsSchema = z.object({
   email: notificationChannelPreferencesSchema.optional(),
 });
 
+/** Home Pulse feed toggles (independent of notification channel prefs). */
+export const pulseSettingsSchema = z.object({
+  showDrafts: z.boolean().optional(),
+  showReviews: z.boolean().optional(),
+  showNewDocuments: z.boolean().optional(),
+  showUpdatedDocuments: z.boolean().optional(),
+  showComments: z.boolean().optional(),
+});
+export type PulseSettingsPatch = z.infer<typeof pulseSettingsSchema>;
+
 export const patchPreferencesBodySchema = z.object({
   theme: z.enum(['light', 'dark', 'auto']).optional(),
   sidebarPinned: z.boolean().optional(),
@@ -56,6 +66,7 @@ export const patchPreferencesBodySchema = z.object({
   textSize: z.enum(['default', 'large', 'larger']).optional(),
   recentItemsByScope: z.record(z.string(), z.array(recentItemSchema).max(8)).optional(),
   notificationSettings: notificationSettingsSchema.optional(),
+  pulseSettings: pulseSettingsSchema.optional(),
   lastSeenReleaseVersion: z
     .string()
     .regex(/^\d+\.\d+\.\d+$/, 'Version must be SemVer (e.g. 0.1.0)')
@@ -267,3 +278,33 @@ export const meReviewsQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 });
 export type MeReviewsQuery = z.infer<typeof meReviewsQuerySchema>;
+
+export const pulseItemKindSchema = z.enum([
+  'draft-open',
+  'review-awaiting',
+  'review-decided',
+  'document-new',
+  'document-updated',
+  'document-comments',
+]);
+export type PulseItemKind = z.infer<typeof pulseItemKindSchema>;
+
+/** Query: GET /me/pulse – optional kind filter + feed limit. */
+export const mePulseQuerySchema = z.object({
+  kind: pulseItemKindSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+export type MePulseQuery = z.infer<typeof mePulseQuerySchema>;
+
+/** Params: POST /me/pulse/items/:itemId/read – stable id `kind:documentId`. */
+export const pulseItemIdParamSchema = z.object({
+  itemId: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(
+      /^(draft-open|review-awaiting|review-decided|document-new|document-updated|document-comments):.+$/,
+      'Invalid pulse item id'
+    ),
+});
+export type PulseItemIdParam = z.infer<typeof pulseItemIdParamSchema>;

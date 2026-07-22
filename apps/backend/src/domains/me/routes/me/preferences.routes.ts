@@ -61,6 +61,12 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
           },
         },
       }),
+      ...(body.pulseSettings !== undefined && {
+        pulseSettings: {
+          ...currentPrefs.pulseSettings,
+          ...body.pulseSettings,
+        },
+      }),
     };
 
     await request.server.prisma.user.update({
