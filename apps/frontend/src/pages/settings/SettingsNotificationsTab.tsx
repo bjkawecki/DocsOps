@@ -16,6 +16,7 @@ import {
 
 type NotificationPrefKey =
   | 'documentChanges'
+  | 'documentComments'
   | 'draftRequests'
   | 'reminders'
   | 'announcements'
@@ -31,6 +32,16 @@ function readNotificationPref(
   if (value !== undefined) return value;
   const legacy = channel.system;
   if (legacy !== undefined) return legacy;
+  return defaultValue;
+}
+
+/** Comments used to share documentChanges; honour that until set explicitly. */
+function readDocumentCommentsPref(
+  channel: Record<string, boolean | undefined>,
+  defaultValue: boolean
+): boolean {
+  if (channel.documentComments !== undefined) return channel.documentComments;
+  if (channel.documentChanges !== undefined) return channel.documentChanges;
   return defaultValue;
 }
 
@@ -134,6 +145,7 @@ export function SettingsNotificationsTab() {
           <Text size="xs" c="dimmed">
             <strong>Document changes</strong> covers publish, visible updates to published
             documents, archive/trash/restore, and sharing changes (grants).{' '}
+            <strong>Comments</strong> covers mentions and discussion on documents.{' '}
             <strong>Draft requests</strong> covers the review workflow.{' '}
             <strong>Organization</strong> covers team membership and lead roles.{' '}
             <strong>Announcements</strong> covers admin broadcasts. <strong>Reminders</strong> is
@@ -148,6 +160,22 @@ export function SettingsNotificationsTab() {
                 checked={inApp.documentChanges ?? true}
                 onChange={(event) =>
                   updateNotificationSetting('inApp', 'documentChanges', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Comments
+              </Text>
+              <Switch
+                checked={readDocumentCommentsPref(inApp, true)}
+                onChange={(event) =>
+                  updateNotificationSetting(
+                    'inApp',
+                    'documentComments',
+                    event.currentTarget.checked
+                  )
                 }
                 disabled={patchPreferences.isPending}
               />
@@ -233,6 +261,22 @@ export function SettingsNotificationsTab() {
                 checked={email.documentChanges ?? false}
                 onChange={(event) =>
                   updateNotificationSetting('email', 'documentChanges', event.currentTarget.checked)
+                }
+                disabled={patchPreferences.isPending}
+              />
+            </Group>
+            <Group justify="space-between" wrap="nowrap" gap="md">
+              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
+                Comments
+              </Text>
+              <Switch
+                checked={readDocumentCommentsPref(email, false)}
+                onChange={(event) =>
+                  updateNotificationSetting(
+                    'email',
+                    'documentComments',
+                    event.currentTarget.checked
+                  )
                 }
                 disabled={patchPreferences.isPending}
               />

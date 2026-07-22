@@ -6,8 +6,10 @@ export const DOCUMENT_NOTIFICATION_EVENT_TYPES = [
   'document-deleted',
   'document-restored',
   'document-grants-changed',
-  'document-comment-created',
 ] as const;
+
+/** Discussion on documents (mentions, replies) – separate from lifecycle updates. */
+export const COMMENT_NOTIFICATION_EVENT_TYPES = ['document-comment-created'] as const;
 
 export const REVIEW_NOTIFICATION_EVENT_TYPES = [
   'draft-request-submitted',
@@ -59,6 +61,7 @@ export type SystemNotificationEventType = (typeof SYSTEM_NOTIFICATION_EVENT_TYPE
 
 export type NotificationPreferenceCategory =
   | 'documentChanges'
+  | 'documentComments'
   | 'draftRequests'
   | 'reminders'
   | 'announcements'
@@ -77,7 +80,7 @@ type NotificationSettingsPrefs = {
 
 export type { NotificationSettingsPrefs };
 
-/** Reads a channel toggle; falls back to legacy `system` for announcements/operations. */
+/** Reads a channel toggle; falls back to legacy prefs where documented. */
 export function isNotificationPreferenceEnabled(
   channel: 'inApp' | 'email',
   category: NotificationPreferenceCategory,
@@ -94,15 +97,21 @@ export function isNotificationPreferenceEnabled(
   ) {
     return channelPrefs['system'];
   }
+  // Comments previously shared documentChanges; honour that until users set documentComments.
+  if (category === 'documentComments' && channelPrefs.documentChanges !== undefined) {
+    return channelPrefs.documentChanges;
+  }
   return defaultWhenUnset;
 }
 
 const ORG_EVENT_TYPE_SET = new Set<string>(ORG_NOTIFICATION_EVENT_TYPES);
+const COMMENT_EVENT_TYPE_SET = new Set<string>(COMMENT_NOTIFICATION_EVENT_TYPES);
 
 /** Maps event_type to Settings preference channel (inApp / email toggles). */
 export function resolveNotificationPreferenceCategory(
   eventType: string
 ): NotificationPreferenceCategory {
+  if (COMMENT_EVENT_TYPE_SET.has(eventType)) return 'documentComments';
   if (eventType === 'admin-broadcast') return 'announcements';
   if (eventType === 'update-available') return 'operations';
   if (eventType.startsWith('backup-')) return 'operations';

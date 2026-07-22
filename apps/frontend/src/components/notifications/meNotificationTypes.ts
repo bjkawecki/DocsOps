@@ -21,6 +21,7 @@ export const DEFAULT_LIMIT = 10;
 export const ME_NOTIFICATION_CATEGORIES = [
   'all',
   'documents',
+  'comments',
   'reviews',
   'announcements',
   'operations',

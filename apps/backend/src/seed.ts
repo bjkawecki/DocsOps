@@ -10,6 +10,7 @@ import { seedOwners } from './seed/owners.js';
 import { seedContexts } from './seed/contexts.js';
 import { seedTags } from './seed/tags.js';
 import { seedDocuments } from './seed/documents.js';
+import { seedHomeDemoNotifications } from './seed/notifications.js';
 
 export async function runSeedFromCsvFiles(prisma: PrismaClient): Promise<void> {
   const csv = loadSeedCsvData();
@@ -22,6 +23,7 @@ export async function runSeedFromCsvFiles(prisma: PrismaClient): Promise<void> {
   const contextData = await seedContexts(prisma, masterData, ownerData);
   const tagByNameAndOwner = await seedTags(prisma, masterData, ownerData);
   await seedDocuments(prisma, contextData, tagByNameAndOwner);
+  await seedHomeDemoNotifications(prisma);
 }
 
 export async function runSeedIfEmpty(prisma: PrismaClient): Promise<boolean> {

@@ -82,7 +82,7 @@ Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. S
 [x] **Struktur (Backstage-orientiert):** Zweiteiliges Layout ohne Nav-Kopfleiste: nur **Sidebar** (links) + **Main** (rechts). Main immer: (1) Seiten-Header oben (Titel, ggf. Metadaten/Aktionen), (2) bei Unterbereichen Tabs, sonst direkt (3) Content.
 [x] **Tab-Bereich:** Auf **jeder Page außer Catalog** gibt es einen Tab-Bereich unter dem Seiten-Header. Gibt es keine weiteren Tabs, heißt der einzige Tab **„Overview“**. (Catalog hat keinen Tab-Bereich.)
 [x] **Sidebar (neu):** Logo oben. Haupt-Navigation in dieser Reihenfolge:
-[x] **Home (Dashboard):** Einstieg `/` (Dashboard/Überblick; vgl. §10); Label in der Sidebar aktuell **Dashboard**.
+[x] **Home:** Einstieg `/` (Überblick; vgl. §13); Label in der Sidebar **Home**.
 [x] **Catalog:** Entry-Point `/catalog` für alle Dokumente als **Tabelle**, filter-, such- und sortierbar.
 [x] **Team / Department / Company** – **Rollenabhängige Darstellung** (Zwischenüberschrift **Organization**; Nutzer ohne geladene `me`-Identity sehen zunächst generische Company/Department/Team-Links; nach Laden rollenspezifische Struktur):
 [x] **Team-Member:** Links **Company**, **Department** (eigene Abteilung, falls bekannt), **Team** (eigenes Team, falls bekannt); sonst Platzhalter-Routen `/department`, `/team`.
@@ -219,11 +219,17 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 ## 13. Dashboard / Home
 
-Startseite ohne Quick Links (redundant zur Sidebar). **Suchleiste** auf dem Dashboard für **Normal-Suche** (Quick-Search-Modal → FTS/Catalog) ist umgesetzt. **KI-Schalter** (Normal/KI) bleibt optional in **§21**. Drei Blöcke (weitere Blöcke siehe §15e, §17):
+Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant zur Sidebar). Keine Suchleiste auf Home (Suche nur Sidebar + Ctrl/⌘K). **KI-Schalter** (Normal/KI) bleibt optional in **§21**.
 
-[x] **Pinned:** Nur **Dokumente** (Flag am Document: „in Liste von Scopes gepinnt“). Team Lead kann für sein Team anpinnen, Department Lead für sein Department, Company Lead für alle (es gibt nur eine Company). Nur Scope-Lead (und Admin) darf anpinnen; Anzeige für Nutzer: Pins aus eigenem Team, eigenem Department, Company-weit. Datenmodell: DocumentPinnedInScope (documentId, scopeType, scopeId, order, pinnedById); siehe [Prisma-Schema-Entwurf §7 (Pinned)](Prisma-Schema-Entwurf.md#7-pinned-geplant); danach API und Dashboard-Block.
-[x] **Recent:** Zuletzt angesehene Einträge (aus bestehender recentItemsByScope, auf dem Dashboard aggregiert, z. B. Top 10 über alle Scopes).
-[x] **Latest:** Neueste Dokumente, die der Nutzer lesen darf (z. B. Slice aus Catalog, sortiert nach updatedAt, Limit 10).
+**Layout (Zielbild):** Attention-Hub zweispaltig ab `md` (links Drafts / Reviews sofern vorhanden, sonst Attention volle Breite; rechts Updates / Comments mit Empty-States). Hero (Logo + Tagline) ohne Search. CSV-Seed legt Demo-Unread-Notifications an (Home Attention sichtbar nach Reseed).
+
+[x] **Pinned auf Home entfernt** (API `GET/POST/DELETE /pinned` bleibt; Pin-Modell ggf. später persönlich).
+[x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
+[x] **Updates:** Ungelesene Document-Lifecycle-Notifications (`category=documents&unreadOnly=true`); Mark-as-read beim Öffnen; Empty-State wenn leer.
+[x] **Comments:** Ungelesene Kommentar-Notifications (`category=comments`); getrennt von Document changes (Preferenzen `documentComments`); Empty-State wenn leer.
+[x] **Your drafts / Needs review:** Conditional Sections (Drafts, Reviews bei Lead-Rechten); kein „View more“ zu Catalog.
+
+**Entfallen auf `/`:** Latest-documents-Block, Pinned-Block, Continue-Block, Suchleiste, View-more-Links.
 
 ---
 

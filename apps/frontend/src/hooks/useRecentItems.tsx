@@ -13,7 +13,12 @@ export interface RecentItem {
   type: RecentItemType;
   id: string;
   name?: string;
+  /** Process/project/subcontext display name when known. */
+  contextName?: string;
 }
+
+/** Aggregated home Continue row (includes preferences map key for scope display). */
+export type AggregatedRecentItem = RecentItem & { scopeKey: string };
 
 /** Scope for "recently viewed" – organisational unit or user-related. */
 export type RecentScope =
@@ -41,7 +46,7 @@ const RecentItemsContext = createContext<RecentItemsContextValue | null>(null);
  * Deduplicates by type+id (keeps first = most recent).
  */
 function fromPreferences(
-  raw: { type: string; id: string; name?: string }[] | undefined
+  raw: { type: string; id: string; name?: string; contextName?: string }[] | undefined
 ): RecentItem[] {
   if (!Array.isArray(raw)) return [];
   const seen = new Set<string>();
@@ -59,28 +64,37 @@ function fromPreferences(
     const key = `${x.type}:${x.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ type: x.type, id: x.id, name: x.name });
+    out.push({
+      type: x.type,
+      id: x.id,
+      name: x.name,
+      ...(typeof x.contextName === 'string' && x.contextName.trim() !== ''
+        ? { contextName: x.contextName }
+        : {}),
+    });
   }
   return out;
 }
 
 /**
- * Aggregate recent items from all scopes (for dashboard). Deduplicates by type+id, keeps order, limits count.
+ * Aggregate recent items from all scopes (for home). Deduplicates by type+id, keeps order, limits count.
  */
 export function getAggregatedRecentItems(
-  recentItemsByScope: Record<string, { type: string; id: string; name?: string }[]> | undefined,
+  recentItemsByScope:
+    | Record<string, { type: string; id: string; name?: string; contextName?: string }[]>
+    | undefined,
   limit = 10
-): RecentItem[] {
+): AggregatedRecentItem[] {
   if (!recentItemsByScope || typeof recentItemsByScope !== 'object') return [];
   const seen = new Set<string>();
-  const result: RecentItem[] = [];
-  for (const list of Object.values(recentItemsByScope)) {
+  const result: AggregatedRecentItem[] = [];
+  for (const [scopeKey, list] of Object.entries(recentItemsByScope)) {
     const items = fromPreferences(list);
     for (const item of items) {
       const key = `${item.type}:${item.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      result.push(item);
+      result.push({ ...item, scopeKey });
       if (result.length >= limit) return result;
     }
   }
@@ -129,7 +143,8 @@ export function RecentItemsProvider({ children }: { children: ReactNode }) {
       const alreadyFirst =
         current[0]?.type === item.type &&
         current[0]?.id === item.id &&
-        (item.name === undefined || current[0]?.name === item.name);
+        (item.name === undefined || current[0]?.name === item.name) &&
+        (item.contextName === undefined || current[0]?.contextName === item.contextName);
       if (alreadyFirst) return;
 
       const filtered = current.filter((x) => !(x.type === item.type && x.id === item.id));

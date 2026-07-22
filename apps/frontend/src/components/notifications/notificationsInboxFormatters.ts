@@ -194,6 +194,7 @@ export function notificationSourceLabel(item: NotificationItem): string {
   if (item.eventType === 'update-succeeded' || item.eventType === 'update-failed') return 'System';
   if (item.eventType.startsWith('platform-')) return 'System';
   if (item.eventType.startsWith('draft-request-')) return 'Review';
+  if (item.eventType === 'document-comment-created') return 'Comment';
   if (payloadDocumentId(item.payload) != null) return 'Document';
   return 'Notification';
 }

@@ -13,10 +13,12 @@ const recentItemSchema = z.object({
   type: z.enum(['process', 'project', 'document']),
   id: z.cuid(),
   name: z.string().max(255).optional(),
+  contextName: z.string().max(255).optional(),
 });
 
 const notificationChannelPreferencesSchema = z.object({
   documentChanges: z.boolean().optional(),
+  documentComments: z.boolean().optional(),
   draftRequests: z.boolean().optional(),
   reminders: z.boolean().optional(),
   announcements: z.boolean().optional(),
@@ -217,6 +219,7 @@ export type MeCanViewScopePeopleResponse = z.infer<typeof meCanViewScopePeopleRe
 export const meNotificationCategorySchema = z.enum([
   'all',
   'documents',
+  'comments',
   'reviews',
   'announcements',
   'operations',

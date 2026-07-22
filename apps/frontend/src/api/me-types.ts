@@ -44,11 +44,17 @@ export type MeResponse = {
     textSize?: 'default' | 'large' | 'larger';
     recentItemsByScope?: Record<
       string,
-      { type: 'process' | 'project' | 'document'; id: string; name?: string }[]
+      {
+        type: 'process' | 'project' | 'document';
+        id: string;
+        name?: string;
+        contextName?: string;
+      }[]
     >;
     notificationSettings?: {
       inApp?: {
         documentChanges?: boolean;
+        documentComments?: boolean;
         draftRequests?: boolean;
         reminders?: boolean;
         announcements?: boolean;
@@ -58,6 +64,7 @@ export type MeResponse = {
       };
       email?: {
         documentChanges?: boolean;
+        documentComments?: boolean;
         draftRequests?: boolean;
         reminders?: boolean;
         announcements?: boolean;

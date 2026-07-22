@@ -529,6 +529,26 @@ a.document-chrome-nav-link:focus-visible,
   color: var(--mantine-color-text);
 }
 
+.app-shell-continue-item:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+/* Continue reading: thin, always-dimmed scrollbar (overflow only). */
+.app-shell-continue-scroll .mantine-ScrollArea-scrollbar[data-orientation='vertical'] {
+  width: 4px;
+  padding: 0;
+  background: transparent;
+}
+
+.app-shell-continue-scroll .mantine-ScrollArea-thumb {
+  background-color: color-mix(in srgb, var(--mantine-color-dimmed) 45%, transparent);
+  border-radius: 999px;
+}
+
+.app-shell-continue-scroll .mantine-ScrollArea-thumb:hover {
+  background-color: color-mix(in srgb, var(--mantine-color-dimmed) 70%, transparent);
+}
+
 .app-shell-navbar-search-trigger--mini {
   flex: none;
   width: var(--app-shell-mini-item-size);

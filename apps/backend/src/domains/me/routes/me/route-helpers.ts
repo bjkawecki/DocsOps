@@ -14,6 +14,7 @@ import type {
 } from './route-types.js';
 import {
   ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES,
+  COMMENT_NOTIFICATION_EVENT_TYPES,
   DOCUMENT_NOTIFICATION_EVENT_TYPES,
   OPERATIONS_NOTIFICATION_EVENT_TYPES,
   ORG_NOTIFICATION_EVENT_TYPES,
@@ -108,6 +109,9 @@ function notificationsCategorySql(category: string): Prisma.Sql {
   if (category === 'documents') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...DOCUMENT_NOTIFICATION_EVENT_TYPES])})`;
   }
+  if (category === 'comments') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...COMMENT_NOTIFICATION_EVENT_TYPES])})`;
+  }
   if (category === 'reviews') {
     return Prisma.sql`AND event_type IN (${Prisma.join([...REVIEW_NOTIFICATION_EVENT_TYPES])})`;
   }
@@ -166,7 +170,14 @@ function dedupeRecentPreferencesItems(
     const key = `${item.type}:${item.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ type: item.type, id: item.id, ...(item.name != null ? { name: item.name } : {}) });
+    out.push({
+      type: item.type,
+      id: item.id,
+      ...(item.name != null ? { name: item.name } : {}),
+      ...(item.contextName != null && item.contextName !== ''
+        ? { contextName: item.contextName }
+        : {}),
+    });
     if (out.length >= 8) break;
   }
   return out;

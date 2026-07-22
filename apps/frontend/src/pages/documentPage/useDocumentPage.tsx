@@ -219,8 +219,16 @@ export function useDocumentPage() {
           : data.scope.type === 'department'
             ? { type: 'department' as const, id: data.scope.id }
             : { type: 'team' as const, id: data.scope.id };
-    recentActions.addRecent({ type: 'document', id: data.id, name: data.title }, scope);
-  }, [data?.id, data?.title, data?.scope, recentActions]);
+    recentActions.addRecent(
+      {
+        type: 'document',
+        id: data.id,
+        name: data.title,
+        ...(data.contextName?.trim() ? { contextName: data.contextName.trim() } : {}),
+      },
+      scope
+    );
+  }, [data?.id, data?.title, data?.contextName, data?.scope, recentActions]);
 
   useEffect(() => {
     if (!pdfExportStatus || !documentId) return;

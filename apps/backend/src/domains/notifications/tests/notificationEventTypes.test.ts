@@ -40,10 +40,29 @@ describe('resolveNotificationPreferenceCategory', () => {
     ).toBe(false);
   });
 
-  it('maps comments to documentChanges', () => {
+  it('maps comments to documentComments', () => {
     expect(resolveNotificationPreferenceCategory('document-comment-created')).toBe(
-      'documentChanges'
+      'documentComments'
     );
+  });
+
+  it('falls back documentComments to documentChanges when unset', () => {
+    expect(
+      isNotificationPreferenceEnabled(
+        'inApp',
+        'documentComments',
+        { inApp: { documentChanges: false } },
+        true
+      )
+    ).toBe(false);
+    expect(
+      isNotificationPreferenceEnabled(
+        'inApp',
+        'documentComments',
+        { inApp: { documentComments: true, documentChanges: false } },
+        false
+      )
+    ).toBe(true);
   });
 });
 

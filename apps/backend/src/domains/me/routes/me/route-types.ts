@@ -12,6 +12,7 @@ type RecentPreferencesItem = {
   type: 'process' | 'project' | 'document';
   id: string;
   name?: string;
+  contextName?: string;
 };
 
 type UserPreferences = {
@@ -37,6 +38,7 @@ type UserPreferences = {
   notificationSettings?: {
     inApp?: {
       documentChanges?: boolean;
+      documentComments?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
       announcements?: boolean;
@@ -46,6 +48,7 @@ type UserPreferences = {
     };
     email?: {
       documentChanges?: boolean;
+      documentComments?: boolean;
       draftRequests?: boolean;
       reminders?: boolean;
       announcements?: boolean;

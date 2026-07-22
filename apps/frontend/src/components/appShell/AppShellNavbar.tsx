@@ -1,6 +1,6 @@
 import { AppShell as MantineAppShell, Stack, Box, Text, Divider } from '@mantine/core';
 import {
-  IconLayoutDashboard,
+  IconHome,
   IconListSearch,
   IconUser,
   IconShare,
@@ -11,6 +11,7 @@ import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
 import { AppShellSidebarBrand } from './AppShellSidebarBrand.js';
 import { AppShellNavbarToolRow } from './AppShellNavbarToolRow.js';
 import { AppShellSidebarCollapseControl } from './AppShellSidebarCollapseControl.js';
+import { AppShellContinueReading } from './AppShellContinueReading.js';
 import { AdminAppVersionLabel } from '../AdminAppVersionLabel.js';
 import { isActive, isOrgNavActive } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
@@ -66,9 +67,9 @@ export function AppShellNavbar({
             >
               <AppShellSidebarNavLink
                 to="/"
-                label="Dashboard"
+                label="Home"
                 active={isActive('/', s.location.pathname)}
-                leftSection={<IconLayoutDashboard size={18} />}
+                leftSection={<IconHome size={18} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 onNavigate={onNavigate}
@@ -159,6 +160,7 @@ export function AppShellNavbar({
                 badgeCount={s.sharedCount}
                 onNavigate={onNavigate}
               />
+              <AppShellContinueReading isMiniRail={isMiniRail} onNavigate={onNavigate} />
             </Stack>
           </MantineAppShell.Section>
         </Box>
