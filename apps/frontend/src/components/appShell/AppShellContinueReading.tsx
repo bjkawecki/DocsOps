@@ -144,6 +144,8 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
   if (isMiniRail) return null;
 
   const items = getAggregatedRecentItems(me?.preferences?.recentItemsByScope, CONTINUE_LIST_LIMIT);
+  if (items.length === 0) return null;
+
   const preview = items.slice(0, CONTINUE_VISIBLE_COUNT);
   const showSeeAll = items.length > CONTINUE_VISIBLE_COUNT;
 
@@ -173,13 +175,7 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
           </UnstyledButton>
         ) : null}
       </Group>
-      {items.length === 0 ? (
-        <Text size="xs" c="dimmed" px={4}>
-          No recent items
-        </Text>
-      ) : (
-        <ContinueCompactList items={preview} onSelect={goTo} />
-      )}
+      <ContinueCompactList items={preview} onSelect={goTo} />
       <Modal
         opened={allOpen}
         onClose={closeAll}

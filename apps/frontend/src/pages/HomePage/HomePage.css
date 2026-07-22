@@ -1,8 +1,10 @@
 .pulse-home {
   position: relative;
+  overflow-x: clip;
   /*
    * AppShell `.app-shell-main-body` uses pt sm (md+) / md (base). Sticky top:0 sits at the
-   * content edge; cover the padding band with ::before (not extra content padding).
+   * content edge; cover the padding band with an upward box-shadow (not 100vw – that
+   * causes horizontal scroll).
    */
   --pulse-sticky-pad-compensate: var(--mantine-spacing-sm);
   --pulse-type-status: 0.9375rem; /* 15px */
@@ -34,19 +36,8 @@
   padding-top: var(--mantine-spacing-lg);
   padding-bottom: 20px;
   background: var(--mantine-color-body);
-}
-
-/* Opaque fill for AppShell main-body top padding so feed never peeks above sticky */
-.pulse-home-sticky-header::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: calc(-1 * var(--pulse-sticky-pad-compensate));
-  width: 100vw;
-  height: var(--pulse-sticky-pad-compensate);
-  transform: translateX(-50%);
-  background: var(--mantine-color-body);
-  pointer-events: none;
+  /* Cover AppShell main-body top padding in the content column only */
+  box-shadow: 0 calc(-1 * var(--pulse-sticky-pad-compensate)) 0 0 var(--mantine-color-body);
 }
 
 .pulse-stats {
