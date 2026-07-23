@@ -38,7 +38,7 @@ export function AppShellSidebarCollapseControl({ isMiniRail, onToggle }: Props) 
       aria-expanded
       aria-controls={MAIN_NAV_ID}
     >
-      <IconLayoutSidebarLeftCollapse size={18} stroke={1.75} />
+      <IconLayoutSidebarLeftCollapse size={SIDEBAR_MINI_ICON_SIZE} stroke={1.75} />
       <Text size="sm" fw={500} c="dimmed" component="span">
         Collapse
       </Text>

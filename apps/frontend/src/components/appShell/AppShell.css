@@ -1,6 +1,6 @@
 .app-shell-navbar {
   --app-shell-mini-item-size: 32px;
-  --app-shell-mini-icon-size: 18px;
+  --app-shell-mini-icon-size: 20px;
   --app-shell-mini-gap: 6px;
   --app-shell-chrome-height: 44px;
   --mantine-nav-link-height: 28px;
@@ -364,24 +364,28 @@ a.document-chrome-nav-link:focus-visible,
 }
 
 .app-shell-sidebar-nav-link--mini > .mantine-NavLink-root[data-active] {
-  background: transparent;
+  background: var(--mantine-primary-color-light);
   color: var(--mantine-primary-color-filled);
 }
 
-/* Expanded sidebar + nested org links: active = accent text/icon only (no fill, no rail). */
+/* Expanded sidebar + nested org links: active = light primary fill (same weight as idle). */
 [data-sidebar-nav] .mantine-NavLink-root[data-active],
 [data-sidebar-link][data-active] {
-  background: transparent;
+  background: var(--mantine-primary-color-light);
   color: var(--mantine-primary-color-filled);
-  font-weight: 600;
   box-shadow: none;
 }
 
-/* Hover must win over active transparent background. */
-[data-sidebar-nav] .mantine-NavLink-root:hover,
-[data-sidebar-link]:hover,
-.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root:hover {
+[data-sidebar-nav] .mantine-NavLink-root:hover:not([data-active]),
+[data-sidebar-link]:hover:not([data-active]),
+.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root:hover:not([data-active]) {
   background: var(--mantine-color-default-hover);
+}
+
+[data-sidebar-nav] .mantine-NavLink-root[data-active]:hover,
+[data-sidebar-link][data-active]:hover,
+.app-shell-sidebar-nav-link--mini > .mantine-NavLink-root[data-active]:hover {
+  background: var(--mantine-primary-color-light-hover, var(--mantine-primary-color-light));
 }
 
 .app-shell-sidebar-mini-trigger {

@@ -69,7 +69,7 @@ export function AppShellNavbar({
                 to="/"
                 label="Home"
                 active={isActive('/', s.location.pathname)}
-                leftSection={<IconHome size={18} />}
+                leftSection={<IconHome size={20} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 onNavigate={onNavigate}
@@ -78,7 +78,7 @@ export function AppShellNavbar({
                 to="/catalog"
                 label="Catalog"
                 active={isActive('/catalog', s.location.pathname)}
-                leftSection={<IconListSearch size={18} />}
+                leftSection={<IconListSearch size={20} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 badgeCount={s.catalogCount}
@@ -87,7 +87,7 @@ export function AppShellNavbar({
               {s.showOrganizationNav ? (
                 <>
                   {!isMiniRail ? (
-                    <Text size="xs" fw={600} c="dimmed" mt={14} mb={2}>
+                    <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
                       Organization
                     </Text>
                   ) : null}
@@ -118,7 +118,7 @@ export function AppShellNavbar({
                 </>
               ) : null}
               {!isMiniRail ? (
-                <Text size="xs" fw={600} c="dimmed" mt={14} mb={2}>
+                <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
                   Personal
                 </Text>
               ) : null}
@@ -128,7 +128,7 @@ export function AppShellNavbar({
                 active={isOrgNavActive('/personal', s.location.pathname, navScope, {
                   type: 'personal',
                 })}
-                leftSection={<IconUser size={18} />}
+                leftSection={<IconUser size={20} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 badgeCount={s.personalCount}
@@ -141,7 +141,7 @@ export function AppShellNavbar({
                   title="Open draft requests you can merge or reject"
                   ariaLabel="Reviews: open draft requests awaiting your decision"
                   active={isActive('/reviews', s.location.pathname)}
-                  leftSection={<IconClipboardCheck size={18} />}
+                  leftSection={<IconClipboardCheck size={20} />}
                   navLinkStyles={s.navLinkStyles}
                   isMiniRail={isMiniRail}
                   badgeCount={s.reviewsCount}
@@ -154,7 +154,7 @@ export function AppShellNavbar({
                 active={isOrgNavActive('/shared', s.location.pathname, navScope, {
                   type: 'shared',
                 })}
-                leftSection={<IconShare size={18} />}
+                leftSection={<IconShare size={20} />}
                 navLinkStyles={s.navLinkStyles}
                 isMiniRail={isMiniRail}
                 badgeCount={s.sharedCount}

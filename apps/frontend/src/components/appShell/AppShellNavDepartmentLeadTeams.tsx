@@ -52,7 +52,7 @@ export function AppShellNavDepartmentLeadTeams({
         to="/company"
         label="Company"
         active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
-        leftSection={<IconBuildingSkyscraper size={18} />}
+        leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
         isMiniRail={isMiniRail}
@@ -65,7 +65,7 @@ export function AppShellNavDepartmentLeadTeams({
           type: 'department',
           id: departmentId,
         })}
-        leftSection={<IconSitemap size={18} />}
+        leftSection={<IconSitemap size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={departmentCounts[departmentId]}
         isMiniRail={isMiniRail}
@@ -73,7 +73,7 @@ export function AppShellNavDepartmentLeadTeams({
       />
       <AppShellNavCollapsibleSection
         label="Teams"
-        icon={<IconUsersGroup size={18} style={{ flexShrink: 0 }} />}
+        icon={<IconUsersGroup size={20} style={{ flexShrink: 0 }} />}
         expanded={isTeamsExpanded}
         onToggle={toggleTeamsExpanded}
         isMiniRail={isMiniRail}

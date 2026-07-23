@@ -26,10 +26,10 @@ export function getNavLinkStyles(): { root: Record<string, unknown> } {
   return {
     root: {
       borderRadius: 'var(--mantine-radius-sm)',
-      padding: '2px 6px',
-      minHeight: 28,
-      fontWeight: 500,
-      fontSize: 'var(--mantine-font-size-sm)',
+      padding: '4px 8px',
+      minHeight: 32,
+      fontWeight: 600,
+      fontSize: 'var(--mantine-font-size-md)',
     },
   };
 }

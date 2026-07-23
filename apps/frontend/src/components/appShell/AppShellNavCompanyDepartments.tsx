@@ -73,7 +73,7 @@ export function AppShellNavCompanyDepartments({
         to="/company"
         label="Company"
         active={companyActive}
-        leftSection={<IconBuildingSkyscraper size={18} />}
+        leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
         isMiniRail={isMiniRail}
@@ -81,7 +81,7 @@ export function AppShellNavCompanyDepartments({
       />
       <AppShellNavCollapsibleSection
         label="Departments"
-        icon={<IconSitemap size={18} style={{ flexShrink: 0 }} />}
+        icon={<IconSitemap size={20} style={{ flexShrink: 0 }} />}
         expanded={departmentsSectionExpanded}
         onToggle={() => setDepartmentsSectionExpanded((v) => !v)}
         isMiniRail={isMiniRail}
@@ -123,7 +123,7 @@ export function AppShellNavCompanyDepartments({
       </AppShellNavCollapsibleSection>
       <AppShellNavCollapsibleSection
         label="Teams"
-        icon={<IconUsersGroup size={18} style={{ flexShrink: 0 }} />}
+        icon={<IconUsersGroup size={20} style={{ flexShrink: 0 }} />}
         expanded={teamsSectionExpanded}
         onToggle={() => setTeamsSectionExpanded((v) => !v)}
         isMiniRail={isMiniRail}

@@ -51,7 +51,7 @@ export function AppShellNavMemberScopeLinks({
         to="/company"
         label="Company"
         active={companyActive}
-        leftSection={<IconBuildingSkyscraper size={18} />}
+        leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
         isMiniRail={isMiniRail}
@@ -61,7 +61,7 @@ export function AppShellNavMemberScopeLinks({
         to={userDepartmentId ? `/department/${userDepartmentId}` : '/department'}
         label="Department"
         active={departmentActive}
-        leftSection={<IconSitemap size={18} />}
+        leftSection={<IconSitemap size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={departmentBadge}
         isMiniRail={isMiniRail}
@@ -71,7 +71,7 @@ export function AppShellNavMemberScopeLinks({
         to={userTeamId ? `/team/${userTeamId}` : '/team'}
         label="Team"
         active={teamActive}
-        leftSection={<IconUsersGroup size={18} />}
+        leftSection={<IconUsersGroup size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={teamBadge}
         isMiniRail={isMiniRail}

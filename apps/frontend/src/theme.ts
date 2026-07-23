@@ -286,18 +286,18 @@ export function createAppTheme(
       },
       NavLink: {
         defaultProps: {
-          px: 6,
-          py: 2,
+          px: 8,
+          py: 4,
         },
         styles: {
           root: {
-            minHeight: 28,
-            fontSize: 'var(--mantine-font-size-sm)',
+            minHeight: 32,
+            fontSize: 'var(--mantine-font-size-md)',
             borderRadius: 'var(--mantine-radius-sm)',
           },
           label: {
-            fontSize: 'var(--mantine-font-size-sm)',
-            fontWeight: 500,
+            fontSize: 'var(--mantine-font-size-md)',
+            fontWeight: 600,
           },
         },
       },

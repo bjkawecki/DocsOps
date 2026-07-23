@@ -25,7 +25,7 @@ export function AppShellNavNoIdentity({
         to="/company"
         label="Company"
         active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
-        leftSection={<IconBuildingSkyscraper size={18} />}
+        leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
         badgeCount={companyCount}
         isMiniRail={isMiniRail}
@@ -35,7 +35,7 @@ export function AppShellNavNoIdentity({
         to="/department"
         label="Department"
         active={isOrgNavActive('/department', pathname, navScope, { type: 'department' })}
-        leftSection={<IconSitemap size={18} />}
+        leftSection={<IconSitemap size={20} />}
         navLinkStyles={navLinkStyles}
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
@@ -44,7 +44,7 @@ export function AppShellNavNoIdentity({
         to="/team"
         label="Team"
         active={isOrgNavActive('/team', pathname, navScope, { type: 'team' })}
-        leftSection={<IconUsersGroup size={18} />}
+        leftSection={<IconUsersGroup size={20} />}
         navLinkStyles={navLinkStyles}
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
