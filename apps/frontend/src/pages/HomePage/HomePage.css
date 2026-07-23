@@ -7,9 +7,39 @@
    * causes horizontal scroll).
    */
   --pulse-sticky-pad-compensate: var(--mantine-spacing-sm);
-  --pulse-type-status: 0.9375rem; /* 15px */
+  --pulse-type-status: 1.375rem; /* 22px – peak above explore section */
   --pulse-type-feed: 0.875rem; /* 14px */
   --pulse-type-meta: 0.75rem; /* 12px */
+}
+
+/* Fill mode: empty feed – lock main pane scroll, illustration absolute */
+.app-shell-main-body:has(.pulse-home--explore-fill) {
+  overflow: hidden;
+}
+
+.app-shell-outlet:has(.pulse-home--explore-fill) {
+  flex: 1 1 0%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pulse-home--explore-fill {
+  flex: 1 1 0%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-bottom: 0 !important;
+}
+
+.pulse-home--explore-fill .pulse-home-main,
+.pulse-home--explore-fill .pulse-home-feed-wrap {
+  flex: 1 1 0%;
+  min-height: 0;
 }
 
 @media (max-width: 62em) {
@@ -20,12 +50,26 @@
 
 .pulse-home-feed-wrap {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 
 .pulse-home-main {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Text / feed column – illustration intentionally sits outside this */
+.pulse-home-column {
+  width: 100%;
+  max-width: var(--pulse-home-column-max, 720px);
+  margin-inline: auto;
   min-width: 0;
 }
 
@@ -58,13 +102,30 @@
 
 .pulse-stats-greeting {
   font-weight: 400;
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--mantine-font-size-lg);
+}
+
+.pulse-stats-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.pulse-stats-status-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--mantine-primary-color-filled);
+  line-height: 0;
 }
 
 .pulse-stats-status {
   color: var(--mantine-color-text);
   font-size: var(--pulse-type-status);
-  line-height: 1.35;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .pulse-feed-row-headline {
@@ -277,4 +338,184 @@
   align-items: center;
   min-height: 2rem;
   padding: 12px 0 4px;
+}
+
+.pulse-explore {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pulse-explore--fill {
+  position: relative;
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pulse-explore--footer {
+  flex: 0 0 auto;
+  margin-top: 2.75rem;
+}
+
+.pulse-explore-column {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+
+.pulse-explore--fill .pulse-explore-column {
+  margin-top: 1.75rem;
+  padding-bottom: 0;
+  flex: 0 0 auto;
+}
+
+.pulse-explore-section {
+  position: relative;
+  z-index: 1;
+  padding-top: 2.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--mantine-color-dimmed) 28%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.pulse-explore-illustration-wrap {
+  z-index: 0;
+  pointer-events: none;
+  line-height: 0;
+}
+
+.pulse-explore-illustration-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+/*
+ * Fill: bottom-pinned. Full width + YMin slice (top kept, mild bottom crop).
+ * Height capped at half the viewport – explicit min() (aspect-ratio + max-height is unreliable).
+ */
+.pulse-explore--fill .pulse-explore-illustration-wrap {
+  position: absolute;
+  left: calc(-1 * var(--mantine-spacing-md));
+  right: calc(-1 * var(--mantine-spacing-md));
+  bottom: 0;
+  top: auto;
+  flex: none;
+  width: auto;
+  height: min(50vh, calc((100vw - 2 * var(--mantine-spacing-md)) * 1530 / 4096));
+  max-height: 50vh;
+  min-height: 0;
+  margin: 0;
+  opacity: 0.45;
+  overflow: hidden;
+  display: block;
+  z-index: 0;
+  pointer-events: none;
+  line-height: 0;
+}
+
+.pulse-explore--fill .pulse-explore-illustration-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Footer: same bottom pin + half-viewport cap */
+.pulse-explore--footer .pulse-explore-illustration-wrap {
+  position: sticky;
+  bottom: 0;
+  display: block;
+  width: calc(100% + 2 * var(--mantine-spacing-md));
+  max-width: none;
+  height: min(50vh, calc((100vw - 2 * var(--mantine-spacing-md)) * 1530 / 4096));
+  max-height: 50vh;
+  margin-top: calc(-1 * (var(--mantine-spacing-xl) + var(--mantine-spacing-lg)));
+  margin-left: calc(-1 * var(--mantine-spacing-md));
+  margin-right: calc(-1 * var(--mantine-spacing-md));
+  margin-bottom: 0;
+  opacity: 0.45;
+  overflow: hidden;
+  line-height: 0;
+  z-index: 0;
+}
+
+.pulse-explore--footer .pulse-explore-illustration-wrap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pulse-explore-heading-block {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.pulse-explore-heading-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+  line-height: 0;
+}
+
+.pulse-explore-heading {
+  letter-spacing: normal;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.pulse-explore-grid {
+  --pulse-explore-cols: 3;
+  display: grid;
+  grid-template-columns: repeat(var(--pulse-explore-cols), minmax(0, 13.5rem));
+  column-gap: 1.25rem;
+  row-gap: 1.25rem;
+  justify-content: start;
+}
+
+@media (max-width: 36em) {
+  .pulse-explore-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pulse-explore-scope-row {
+  min-width: 0;
+}
+
+.pulse-explore-scope-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+  line-height: 0;
+}
+
+.pulse-explore-scope {
+  letter-spacing: normal;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+a.pulse-explore-link,
+a.pulse-explore-link:visited,
+.mantine-Anchor-root.pulse-explore-link,
+.mantine-Anchor-root.pulse-explore-link:visited {
+  color: var(--mantine-primary-color-filled);
+  text-decoration: none;
+}
+
+a.pulse-explore-link:hover,
+a.pulse-explore-link:focus-visible,
+.mantine-Anchor-root.pulse-explore-link:hover,
+.mantine-Anchor-root.pulse-explore-link:focus-visible {
+  color: var(--mantine-primary-color-filled);
+  text-decoration: underline;
 }

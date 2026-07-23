@@ -297,6 +297,25 @@ export const mePulseQuerySchema = z.object({
 });
 export type MePulseQuery = z.infer<typeof mePulseQuerySchema>;
 
+/** Response: GET /me/pulse/explore – empty Pulse home discover columns. */
+export const mePulseExploreResponseSchema = z.object({
+  columns: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        title: z.string().min(1),
+        items: z.array(
+          z.object({
+            id: z.string().min(1),
+            title: z.string(),
+          })
+        ),
+      })
+    )
+    .max(3),
+});
+export type MePulseExploreResponse = z.infer<typeof mePulseExploreResponseSchema>;
+
 /** Params: POST /me/pulse/items/:itemId/read – stable id `kind:documentId`. */
 export const pulseItemIdParamSchema = z.object({
   itemId: z

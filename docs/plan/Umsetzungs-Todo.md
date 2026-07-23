@@ -221,7 +221,7 @@ Personal-Seite (`/personal`) und Shared-Seite (`/shared`) mit derselben Struktur
 
 Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant zur Sidebar). Keine Suchleiste auf Home (Suche nur Sidebar + Ctrl/⌘K). **KI-Schalter** (Normal/KI) bleibt optional in **§21**.
 
-**Layout (Zielbild):** Home = Pulse ohne Hero/Motto; Greeting + Action-Status; Action-|Activity-Chips; Feed Keyword-first, Zeileklick → Dokument (`href`); Mark-as-read separat. Empty caught up. Continue Sidebar. Prefs Pulse. SSE `pulse.changed`. Dev-Mock Debug-Menü.
+**Layout (Zielbild):** Home = Pulse ohne Hero/Motto; Greeting + Action-Status; Action-|Activity-Chips; Feed Keyword-first, Zeileklick → Dokument (`href`); Mark-as-read separat. Empty caught up + Explore. Continue Sidebar. Prefs Pulse. SSE `pulse.changed`. Dev-Mock Debug-Menü.
 
 [x] **Pulse API (Stufe 1):** Aggregierter Feed + Stats (Open Drafts/Reviews, New/Updated/Comments dedupliziert pro Doc; Comments mit Zähler; Activity bis read; Open work bis erledigt). Eigenständige `pulseSettings` in Preferences.
 [x] **Pulse UI (Stufe 2):** Home Stats + Feed + Filter (`?kind=`), Mark-as-read / Link-Klick; Settings-Karte Pulse.
@@ -229,6 +229,9 @@ Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant 
 [x] **Pinned auf Home entfernt** (API `GET/POST/DELETE /pinned` bleibt; Pin-Modell ggf. später persönlich).
 [x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
 [x] **Updates / Comments / Drafts-Blöcke auf Home:** durch Pulse-Feed ersetzt (Inbox `/notifications` unverändert).
+[x] **Empty Explore:** Bei leerem Pulse (ohne `?kind=`): dezente theme-farbige Illustration + Explore (bis zu 3 Spalten: Team → Department → Company → Your drafts → Your documents; max. 5 recent Docs/Spalte; nur nicht-leere). API `GET /me/pulse/explore`. Wenn keine Docs: „No documents to explore yet.“
+
+**Follow-up (nicht umgesetzt):** **Document views** – View-Zähler für Popularität/Explore-Sortierung; Dedup **pro User + Kalendertag**; nur authentifizierte Published-Reads; Analytics optional später.
 
 **Entfallen auf `/`:** Latest-documents-Block, Pinned-Block, Continue-Block, Suchleiste, View-more-Links, Hero/Tagline, separate Attention-Spalten.
 

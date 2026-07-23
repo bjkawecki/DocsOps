@@ -1,5 +1,5 @@
 import './HomePage.css';
-import { Alert, Box, Loader, Stack, Text } from '@mantine/core';
+import { Alert, Box, Loader, Text } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMe } from '../../hooks/useMe.js';
@@ -12,6 +12,7 @@ import {
 import { HOME_CONTENT_MAX_WIDTH } from './homePageConstants.js';
 import { PulseFeed } from './PulseFeed.js';
 import { PulseStatsRow } from './PulseStatsRow.js';
+import { PulseExploreBlock } from './PulseExploreBlock.js';
 import { filterMockPulse, shouldUsePulseMock } from './pulseMockData.js';
 
 const KIND_VALUES: PulseItemKind[] = [
@@ -30,6 +31,7 @@ function parseKindParam(raw: string | null): PulseItemKind | null {
 
 /**
  * Home: greeting + filters, pulse feed with infinite scroll.
+ * Explore + illustration always follow the feed (fill when empty, footer when not).
  */
 export function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,6 +71,11 @@ export function HomePage() {
   const items = useMock ? (mockData?.items ?? []) : (apiItems ?? []);
   const feedHasNext = useMock ? (mockData?.total ?? 0) > mockLimit : Boolean(hasNextPage);
   const feedFetchingNext = useMock ? false : isFetchingNextPage;
+
+  const feedEmpty = items.length === 0 && !isPending;
+  const exploreLayout = items.length > 0 ? 'footer' : 'fill';
+  const homeExploreClass =
+    items.length > 0 ? 'pulse-home--explore-footer' : 'pulse-home--explore-fill';
 
   useEffect(() => {
     const home = homeRef.current;
@@ -120,18 +127,31 @@ export function HomePage() {
   };
 
   return (
-    <Box ref={homeRef} className="pulse-home" px="md" pb="xl" pt={0}>
-      <Stack gap={28} maw={HOME_CONTENT_MAX_WIDTH} mx="auto" align="stretch">
-        {!useMock && isPending ? <Loader size="sm" /> : null}
-        {!useMock && isError ? (
+    <Box
+      ref={homeRef}
+      className={`pulse-home${stats ? ` ${homeExploreClass}` : ''}`}
+      px="md"
+      pb="xl"
+      pt={0}
+      style={{ ['--pulse-home-column-max' as string]: `${HOME_CONTENT_MAX_WIDTH}px` }}
+    >
+      {!useMock && isPending ? (
+        <div className="pulse-home-column">
+          <Loader size="sm" />
+        </div>
+      ) : null}
+      {!useMock && isError ? (
+        <div className="pulse-home-column">
           <Alert color="red" title="Could not load pulse">
             {error instanceof Error ? error.message : 'Unknown error'}
           </Alert>
-        ) : null}
+        </div>
+      ) : null}
 
-        {stats ? (
-          <div className="pulse-home-main">
-            <div className="pulse-home-sticky-header" ref={stickyHeaderRef}>
+      {stats ? (
+        <div className="pulse-home-main">
+          <div className="pulse-home-sticky-header" ref={stickyHeaderRef}>
+            <div className="pulse-home-column">
               <PulseStatsRow
                 stats={stats}
                 activeKind={activeKind}
@@ -139,14 +159,17 @@ export function HomePage() {
                 userName={me?.user?.name}
               />
             </div>
-            <div className="pulse-home-feed-wrap">
-              {items.length === 0 && !isPending ? (
+          </div>
+          <div className="pulse-home-feed-wrap">
+            {feedEmpty && activeKind ? (
+              <div className="pulse-home-column">
                 <Text size="sm" c="dimmed">
-                  {activeKind
-                    ? 'No items in this category.'
-                    : 'Nothing needs your attention right now.'}
+                  No items in this category.
                 </Text>
-              ) : items.length > 0 ? (
+              </div>
+            ) : null}
+            {items.length > 0 ? (
+              <div className="pulse-home-column">
                 <PulseFeed
                   items={items}
                   mock={useMock}
@@ -155,11 +178,12 @@ export function HomePage() {
                   isFetchingNextPage={feedFetchingNext}
                   onLoadMore={loadMore}
                 />
-              ) : null}
-            </div>
+              </div>
+            ) : null}
+            <PulseExploreBlock enabled layout={exploreLayout} />
           </div>
-        ) : null}
-      </Stack>
+        </div>
+      ) : null}
     </Box>
   );
 }

@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Group, Text, Tooltip, useMantineTheme } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
+import { IconCircleCheck, IconX } from '@tabler/icons-react';
 import type { PulseItemKind, PulseStats } from '../../hooks/useMePulse.js';
 
 export type PulseStatKey =
@@ -99,6 +99,7 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
   const greet = timeGreeting();
   const greetingText = firstName ? `${greet}, ${firstName}` : greet;
   const statusText = updatesStatusLine(updateCount);
+  const allCaughtUp = updateCount === 0;
 
   const visibleDefs = STAT_DEFS.filter((d) => stats[d.key] > 0 || activeKind === d.kind);
 
@@ -108,9 +109,16 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
         <Text className="pulse-stats-greeting" c="dimmed">
           {greetingText}
         </Text>
-        <Text className="pulse-stats-status" fw={600}>
-          {statusText}
-        </Text>
+        <div className="pulse-stats-status-row">
+          {allCaughtUp ? (
+            <span className="pulse-stats-status-icon" aria-hidden>
+              <IconCircleCheck size={34} stroke={1.35} />
+            </span>
+          ) : null}
+          <Text className="pulse-stats-status" fw={700}>
+            {statusText}
+          </Text>
+        </div>
       </div>
       <Group gap="sm" wrap="wrap" role="toolbar" aria-label="Pulse filters">
         {visibleDefs.map((def) => {
