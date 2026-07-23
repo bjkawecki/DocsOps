@@ -379,6 +379,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
+[ ] **Barrierefreiheit – Schriftgröße:** In Settings die UI-Schriftgröße anpassen können (Accessibility), app-weit wirksam und persistent. _Grundlage:_ Preference `textSize` (`default` / `large` / `larger`) inkl. Appearance-UI und Theme-Scale (§8) – Todo = prüfen/ausbauen, ob das für Barrierefreiheit ausreicht (z. B. klarere Beschriftung als Accessibility-Option, Preview, ggf. weitere Stufen, Wirkung auf Dokumentenleser).
 
 ---
 

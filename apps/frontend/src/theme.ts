@@ -227,7 +227,7 @@ export function getPrimaryColorAccent(preset: PrimaryColorPreset): string {
 
 /**
  * Builds the app theme with the given primary color preset and optional text scale.
- * Used by ThemeFromPreferences; main.tsx keeps createAppTheme('blue') for login/unauthenticated.
+ * Used by AppMantineProvider from preferences (login/unauthenticated → default blue).
  */
 export function createAppTheme(
   primaryColor: PrimaryColorPreset,
@@ -304,6 +304,3 @@ export function createAppTheme(
     },
   });
 }
-
-/** Default theme for unauthenticated shell (e.g. main.tsx, login). */
-export const appTheme = createAppTheme('blue');

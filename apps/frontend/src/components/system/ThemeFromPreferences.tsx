@@ -1,9 +1,9 @@
-import { type ReactNode, useEffect, useMemo, useRef } from 'react';
-import { MantineThemeProvider, useMantineColorScheme } from '@mantine/core';
+import { type ReactNode, useEffect, useRef } from 'react';
+import { useMantineColorScheme } from '@mantine/core';
 import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
 import { useMe } from '../../hooks/useMe';
 import { RecentItemsProvider } from '../../hooks/useRecentItems';
-import { createAppTheme, type PrimaryColorPreset, type TextSizePreference } from '../../theme';
+import type { PrimaryColorPreset, TextSizePreference } from '../../theme';
 
 export type UserPreferences = {
   theme?: 'light' | 'dark' | 'auto';
@@ -48,6 +48,7 @@ export type UserPreferences = {
 
 /**
  * Syncs the root Mantine color scheme when the stored preference changes.
+ * Primary color / text size are applied by AppMantineProvider (single MantineProvider + CSS vars).
  * Must not nest a second MantineProvider (fights outer localStorage manager).
  * Must not depend on colorScheme/setColorScheme identity (feedback loop).
  */
@@ -72,22 +73,18 @@ function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark
 }
 
 /**
- * Applies user theme overrides (primary color, text size, color scheme) from GET /me.
+ * Syncs color scheme from GET /me and provides recent-items context.
  * AuthGuard already waits for me; never unmount children on preference refetch.
+ * Primary color / text scale: see AppMantineProvider.
  */
 export function ThemeFromPreferences({ children }: { children: ReactNode }) {
   const { data: me } = useMe();
-  const preferences = me?.preferences;
-
-  const primaryColor: PrimaryColorPreset = preferences?.primaryColor ?? 'blue';
-  const textSize: TextSizePreference = preferences?.textSize ?? 'default';
-  const theme = useMemo(() => createAppTheme(primaryColor, textSize), [primaryColor, textSize]);
-  const preferredScheme = preferences?.theme ?? 'auto';
+  const preferredScheme = me?.preferences?.theme ?? 'auto';
 
   return (
-    <MantineThemeProvider theme={theme}>
+    <>
       <SyncColorScheme preferredScheme={preferredScheme} />
       <RecentItemsProvider>{children}</RecentItemsProvider>
-    </MantineThemeProvider>
+    </>
   );
 }
