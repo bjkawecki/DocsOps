@@ -456,9 +456,16 @@ a.pulse-start-here-link.pulse-explore-link,
   z-index: 0;
   pointer-events: none;
   line-height: 0;
+  position: relative;
 }
 
-.pulse-explore-illustration-wrap svg {
+.pulse-explore-illustration-bg {
+  opacity: 0.45;
+  pointer-events: none;
+  line-height: 0;
+}
+
+.pulse-explore-illustration-bg svg {
   display: block;
   width: 100%;
   height: auto;
@@ -482,7 +489,6 @@ a.pulse-start-here-link.pulse-explore-link,
   max-height: 50vh;
   min-height: 0;
   margin: 0;
-  opacity: 0.45;
   overflow: hidden;
   display: block;
   z-index: 0;
@@ -490,7 +496,8 @@ a.pulse-start-here-link.pulse-explore-link,
   line-height: 0;
 }
 
-.pulse-explore--fill .pulse-explore-illustration-wrap svg {
+.pulse-explore--fill .pulse-explore-illustration-bg,
+.pulse-explore--fill .pulse-explore-illustration-bg svg {
   display: block;
   width: 100%;
   height: 100%;
@@ -510,16 +517,138 @@ a.pulse-start-here-link.pulse-explore-link,
   margin-left: calc(-1 * var(--mantine-spacing-md));
   margin-right: calc(-1 * var(--mantine-spacing-md));
   margin-bottom: 0;
-  opacity: 0.45;
   overflow: hidden;
   line-height: 0;
   z-index: 0;
 }
 
-.pulse-explore--footer .pulse-explore-illustration-wrap svg {
+.pulse-explore--footer .pulse-explore-illustration-bg,
+.pulse-explore--footer .pulse-explore-illustration-bg svg {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Playful overlays: same opacity as illustration; pinwheels on nodes + send-plane */
+.pulse-illust-playful {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.45;
+}
+
+.pulse-illust-pinwheel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0.15rem 0.15rem 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  line-height: 0;
+  border-radius: var(--mantine-radius-sm);
+  /* Foot of the stick sits on the node */
+  transform: translate(-50%, -100%);
+}
+
+.pulse-illust-pinwheel:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.pulse-illust-pinwheel-vanes {
+  transform-origin: 16px 16px;
+  transform-box: view-box;
+  animation: pulse-illust-pinwheel-spin 9s linear infinite;
+}
+
+.pulse-illust-pinwheel--blow .pulse-illust-pinwheel-vanes {
+  animation-duration: 0.5s;
+}
+
+.pulse-illust-trail-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.pulse-illust-trail-dash {
+  animation: pulse-illust-trail-fade 0.55s linear forwards;
+}
+
+@keyframes pulse-illust-trail-fade {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.pulse-illust-plane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Keep off-stage until delay ends (avoids trail from 0,0 during delay) */
+  visibility: hidden;
+  pointer-events: none;
+  offset-rotate: auto 0deg;
+  offset-anchor: center;
+  offset-distance: 0%;
+  animation-name: pulse-illust-plane-fly;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  will-change: offset-distance;
+}
+
+.pulse-illust-plane-svg {
+  display: block;
+  overflow: visible;
+}
+
+@keyframes pulse-illust-pinwheel-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-illust-plane-fly {
+  0% {
+    visibility: visible;
+    offset-distance: 0%;
+  }
+  100% {
+    visibility: visible;
+    offset-distance: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-illust-pinwheel-vanes,
+  .pulse-illust-pinwheel--blow .pulse-illust-pinwheel-vanes,
+  .pulse-illust-plane {
+    animation: none;
+  }
+
+  .pulse-illust-plane {
+    offset-distance: 28%;
+    visibility: visible;
+  }
+
+  .pulse-illust-trail-layer {
+    display: none;
+  }
 }
 
 .pulse-explore-heading-block {

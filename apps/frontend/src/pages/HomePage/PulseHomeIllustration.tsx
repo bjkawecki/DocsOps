@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box } from '@mantine/core';
+import { PulseIllustrationPlayfulDetails } from './PulseIllustrationPlayfulDetails.js';
 import { usePulseEmptyIllustrationVars } from './usePulseEmptyIllustrationVars.js';
 
 type Props = {
@@ -49,8 +50,13 @@ export function PulseHomeIllustration({ layout }: Props) {
     <Box
       className={`pulse-explore-illustration-wrap pulse-explore-illustration-wrap--${layout}`}
       style={illustVars}
-      aria-hidden
-      dangerouslySetInnerHTML={{ __html: svgMarkup }}
-    />
+    >
+      <div
+        className="pulse-explore-illustration-bg"
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: svgMarkup }}
+      />
+      <PulseIllustrationPlayfulDetails />
+    </Box>
   );
 }
