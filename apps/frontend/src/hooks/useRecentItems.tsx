@@ -17,7 +17,7 @@ export interface RecentItem {
   contextName?: string;
 }
 
-/** Aggregated home Continue row (includes preferences map key for scope display). */
+/** Aggregated recent row (includes preferences map key for scope display). */
 export type AggregatedRecentItem = RecentItem & { scopeKey: string };
 
 /** Scope for "recently viewed" – organisational unit or user-related. */
@@ -116,20 +116,25 @@ function fromPreferences(
 }
 
 /**
- * Aggregate recent items from all scopes (for home). Deduplicates by type+id, keeps order, limits count.
+ * Aggregate recent items from all scopes (e.g. Continue reading).
+ * Deduplicates by type+id, keeps encounter order, limits count.
+ * Optional `types` filters while aggregating (so the limit is filled with matches).
  */
 export function getAggregatedRecentItems(
   recentItemsByScope:
     | Record<string, { type: string; id: string; name?: string; contextName?: string }[]>
     | undefined,
-  limit = 10
+  limit = 10,
+  options?: { types?: readonly RecentItemType[] }
 ): AggregatedRecentItem[] {
   if (!recentItemsByScope || typeof recentItemsByScope !== 'object') return [];
+  const typeFilter = options?.types != null ? new Set<string>(options.types) : null;
   const seen = new Set<string>();
   const result: AggregatedRecentItem[] = [];
   for (const [scopeKey, list] of Object.entries(recentItemsByScope)) {
     const items = fromPreferences(list);
     for (const item of items) {
+      if (typeFilter != null && !typeFilter.has(item.type)) continue;
       const key = `${item.type}:${item.id}`;
       if (seen.has(key)) continue;
       seen.add(key);

@@ -227,7 +227,7 @@ Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant 
 [x] **Pulse UI (Stufe 2):** Home Stats + Feed + Filter (`?kind=`), Mark-as-read / Link-Klick; Settings-Karte Pulse.
 [x] **Pulse live (Stufe 3):** SSE `pulse.changed` (bei Notification-Unread-Änderungen und Document-Collaboration); Frontend `invalidateQueries(['me','pulse'])`.
 [x] **Pinned auf Home entfernt** (API `GET/POST/DELETE /pinned` bleibt; Pin-Modell ggf. später persönlich).
-[x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
+[x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope` **nur Dokumente**; ca. 3 sichtbare Zeilen, weitere per „See all“-Modal. Nicht auf Home. Scope-Recent bleibt gemischt (Kontexte + Docs).
 [x] **Updates / Comments / Drafts-Blöcke auf Home:** durch Pulse-Feed ersetzt (Inbox `/notifications` unverändert).
 [x] **Empty Explore:** Bei leerem Pulse (ohne `?kind=`): dezente theme-farbige Illustration + Explore (bis zu 3 Spalten: Team → Department → Company → Your drafts → Your documents; max. 5 recent Docs/Spalte; nur nicht-leere). API `GET /me/pulse/explore`. Wenn keine Docs: „No documents to explore yet.“
 [x] **Start here:** Ein Start-Dokument pro Team/Department/Company (`startDocumentId`); Scope-Lead setzt/entfernt am Dokument (More-actions). Home: alle lesbaren Start-Docs als Section (Heading analog Explore; Teams → Depts → Companies; `GET /me/pulse/start-here` → `{ items }`). Scope-Overview „Change…“ später.

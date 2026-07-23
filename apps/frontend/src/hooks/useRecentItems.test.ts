@@ -30,6 +30,22 @@ describe('getAggregatedRecentItems', () => {
     expect(items[0]?.contextName).toBe('My Notes Process');
     expect(items[0]?.scopeKey).toBe('personal');
   });
+
+  it('can filter to documents only while filling the limit', () => {
+    const items = getAggregatedRecentItems(
+      {
+        'team:t1': [
+          { type: 'process', id: 'p1', name: 'Onboarding' },
+          { type: 'document', id: 'd1', name: 'Wiki' },
+          { type: 'project', id: 'pr1', name: 'Alpha' },
+          { type: 'document', id: 'd2', name: 'Guide' },
+        ],
+      },
+      10,
+      { types: ['document'] }
+    );
+    expect(items.map((i) => i.id)).toEqual(['d1', 'd2']);
+  });
 });
 
 describe('formatRecentScopeLabel', () => {

@@ -1,15 +1,13 @@
 import { Box, Button, Group, Modal, ScrollArea, Stack, Text, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconClock } from '@tabler/icons-react';
+import { IconClock, IconFileText } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { RecentItemIcon } from '../contexts/RecentItemsCard.js';
 import { useMe } from '../../hooks/useMe.js';
 import {
   formatRecentScopeLabel,
   getAggregatedRecentItems,
   type AggregatedRecentItem,
 } from '../../hooks/useRecentItems.js';
-import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
 
 export const CONTINUE_LIST_LIMIT = 40;
 /** Rows shown in the sidebar (rest via See all). */
@@ -17,24 +15,8 @@ const CONTINUE_VISIBLE_COUNT = 3;
 /** Fixed modal list viewport (cap height; scroll inside). */
 const CONTINUE_MODAL_LIST_HEIGHT = 'min(420px, 60vh)';
 
-const ITEM_ICON_SIZE = 14;
-const DETAILED_ITEM_ICON_SIZE = 16;
-
-const continueItemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  height: 28,
-  padding: '0 6px',
-  borderRadius: 'var(--mantine-radius-sm)',
-  width: '100%',
-  textAlign: 'left' as const,
-  boxSizing: 'border-box' as const,
-};
-
-function recentHref(item: AggregatedRecentItem): string {
-  return item.type === 'document' ? `/documents/${item.id}` : contextUrl(item.id);
-}
+const ITEM_ICON_SIZE = 20;
+const DETAILED_ITEM_ICON_SIZE = 20;
 
 function itemLabel(item: AggregatedRecentItem): string {
   return item.name?.trim() ? item.name : item.id;
@@ -44,10 +26,8 @@ function itemMetaLine(item: AggregatedRecentItem, scopeLabel: string): string | 
   const parts: string[] = [];
   const scope = scopeLabel.trim();
   if (scope) parts.push(`Scope: ${scope}`);
-  if (item.type === 'document') {
-    const ctx = item.contextName?.trim();
-    if (ctx) parts.push(`Context: ${ctx}`);
-  }
+  const ctx = item.contextName?.trim();
+  if (ctx) parts.push(`Context: ${ctx}`);
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
@@ -69,19 +49,9 @@ function ContinueCompactList({ items, onSelect }: CompactListProps) {
           key={`${item.type}-${item.id}`}
           onClick={() => onSelect(item)}
           className="app-shell-continue-item"
-          style={continueItemStyle}
         >
-          <RecentItemIcon type={item.type} size={ITEM_ICON_SIZE} />
-          <Text
-            size="sm"
-            style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
+          <IconFileText size={ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
+          <Text size="md" fw={600} className="app-shell-continue-item-label">
             {itemLabel(item)}
           </Text>
         </UnstyledButton>
@@ -108,10 +78,10 @@ function ContinueDetailedList({ items, onSelect, scopeLabelFor }: DetailedListPr
             className="app-shell-continue-item app-shell-continue-item--detailed"
           >
             <span className="app-shell-continue-item-icon">
-              <RecentItemIcon type={item.type} size={DETAILED_ITEM_ICON_SIZE} />
+              <IconFileText size={DETAILED_ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
             </span>
             <span className="app-shell-continue-item-text">
-              <Text size="md" className="app-shell-continue-item-title" component="span">
+              <Text size="md" fw={600} className="app-shell-continue-item-title" component="span">
                 {itemLabel(item)}
               </Text>
               {meta ? (
@@ -133,7 +103,7 @@ function ContinueDetailedList({ items, onSelect, scopeLabelFor }: DetailedListPr
 }
 
 /**
- * Global Continue reading list in the expanded sidebar.
+ * Global Continue reading list in the expanded sidebar (documents only).
  * Shows 3 rows; See all opens a fixed-height scrollable modal (up to 40).
  */
 export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
@@ -143,7 +113,9 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
 
   if (isMiniRail) return null;
 
-  const items = getAggregatedRecentItems(me?.preferences?.recentItemsByScope, CONTINUE_LIST_LIMIT);
+  const items = getAggregatedRecentItems(me?.preferences?.recentItemsByScope, CONTINUE_LIST_LIMIT, {
+    types: ['document'],
+  });
   if (items.length === 0) return null;
 
   const preview = items.slice(0, CONTINUE_VISIBLE_COUNT);
@@ -155,13 +127,13 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
   const goTo = (item: AggregatedRecentItem) => {
     closeAll();
     onNavigate();
-    void navigate(recentHref(item));
+    void navigate(`/documents/${item.id}`);
   };
 
   return (
     <Box mt={14} px={4}>
       <Group justify="space-between" align="center" gap="xs" wrap="nowrap" mb={2}>
-        <Text size="xs" fw={600} c="dimmed" style={{ flexShrink: 0 }}>
+        <Text size="sm" fw={600} c="dimmed" style={{ flexShrink: 0 }}>
           Continue reading
         </Text>
         {showSeeAll ? (

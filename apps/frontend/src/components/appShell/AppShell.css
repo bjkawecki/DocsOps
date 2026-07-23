@@ -534,6 +534,26 @@ a.document-chrome-nav-link:focus-visible,
   color: var(--mantine-color-text);
 }
 
+.app-shell-continue-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: var(--mantine-radius-sm);
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.app-shell-continue-item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
 .app-shell-continue-item:hover {
   background: var(--mantine-color-default-hover);
 }
