@@ -3,7 +3,7 @@ import {
   blockDocumentJsonFromSeedSections,
   type SeedDocumentBlockSection,
 } from '../domains/documents/services/blocks/documentBlocksBackfill.js';
-import type { SeedContextData } from './types.js';
+import type { SeedContextData, SeedMasterData } from './types.js';
 
 type PublishedSeedDocInput = {
   title: string;
@@ -69,10 +69,49 @@ function seedDocTitle(scopeKey: string, kind: 'process' | 'project'): string {
   return kind === 'process' ? 'Overview' : 'Project Overview';
 }
 
+/** Mark the scope process doc as Start here for team / department / company. */
+async function setStartHereForScope(
+  prisma: PrismaClient,
+  masterData: SeedMasterData,
+  scopeKey: string,
+  documentId: string
+): Promise<void> {
+  if (scopeKey.startsWith('team:')) {
+    const name = scopeKey.slice('team:'.length);
+    const teamId = masterData.teamById.get(name);
+    if (teamId) {
+      await prisma.team.update({ where: { id: teamId }, data: { startDocumentId: documentId } });
+    }
+    return;
+  }
+  if (scopeKey.startsWith('department:')) {
+    const name = scopeKey.slice('department:'.length);
+    const departmentId = masterData.departmentById.get(name);
+    if (departmentId) {
+      await prisma.department.update({
+        where: { id: departmentId },
+        data: { startDocumentId: documentId },
+      });
+    }
+    return;
+  }
+  if (scopeKey.startsWith('company:')) {
+    const name = scopeKey.slice('company:'.length);
+    const companyId = masterData.companyById.get(name);
+    if (companyId) {
+      await prisma.company.update({
+        where: { id: companyId },
+        data: { startDocumentId: documentId },
+      });
+    }
+  }
+}
+
 async function seedDocuments(
   prisma: PrismaClient,
   contextData: SeedContextData,
-  tagByNameAndOwner: Map<string, string>
+  tagByNameAndOwner: Map<string, string>,
+  masterData: SeedMasterData
 ): Promise<void> {
   for (const [scopeKey, processId] of contextData.processByScope) {
     const process = await prisma.process.findUniqueOrThrow({
@@ -84,6 +123,7 @@ async function seedDocuments(
       sections: SEED_DOCUMENT_SECTIONS,
       contextId: process.contextId,
     });
+    await setStartHereForScope(prisma, masterData, scopeKey, doc.id);
     if (process.ownerId && scopeKey.startsWith('company:')) {
       const tagId = tagByNameAndOwner.get(`${process.ownerId}:Referenz`);
       if (tagId) {

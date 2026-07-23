@@ -9,6 +9,7 @@ import {
   contextRoutes,
   assignmentsRoutes,
   scopePeopleRoutes,
+  startHereRoutes,
 } from './domains/organisation/routes/index.js';
 import { documentsRoutes } from './domains/documents/routes/index.js';
 import { meRoutes } from './domains/me/routes/index.js';
@@ -170,6 +171,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.register(authRoutes, { prefix: '/api/v1' });
   app.register(organisationRoutes, { prefix: '/api/v1' });
+  app.register(startHereRoutes, { prefix: '/api/v1' });
   app.register(contextRoutes, { prefix: '/api/v1' });
   app.register(documentsRoutes, { prefix: '/api/v1' });
   app.register(assignmentsRoutes, { prefix: '/api/v1' });

@@ -46,6 +46,7 @@ import {
 } from '../services/route-support/documentRouteSupport.js';
 import { requireStorageAndDocumentAttachment } from './document-attachment-route-helpers.js';
 import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
+import { listStartHereOptionsForDocument } from '../../organisation/services/startHereService.js';
 
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -233,12 +234,16 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
             .send({ error: 'Draft documents are only visible to users with write access' });
         }
       }
-      const [writeAllowed, deleteAllowed, canPublish, canModerateComments] = await Promise.all([
-        isTrashed ? Promise.resolve(false) : canWrite(prisma, userId, doc),
-        canDeleteDocument(prisma, userId, documentId),
-        isTrashed ? Promise.resolve(false) : canPublishDocument(prisma, userId, documentId),
-        isTrashed ? Promise.resolve(false) : canModerateDocumentComments(prisma, userId, doc),
-      ]);
+      const [writeAllowed, deleteAllowed, canPublish, canModerateComments, startHereScopes] =
+        await Promise.all([
+          isTrashed ? Promise.resolve(false) : canWrite(prisma, userId, doc),
+          canDeleteDocument(prisma, userId, documentId),
+          isTrashed ? Promise.resolve(false) : canPublishDocument(prisma, userId, documentId),
+          isTrashed ? Promise.resolve(false) : canModerateDocumentComments(prisma, userId, doc),
+          isTrashed
+            ? Promise.resolve([])
+            : listStartHereOptionsForDocument(prisma, userId, documentId),
+        ]);
       return reply.send(
         buildDocumentDetailResponse({
           doc,
@@ -246,6 +251,7 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
           deleteAllowed,
           canPublish,
           canModerateComments,
+          startHereScopes,
         })
       );
     }

@@ -27,6 +27,8 @@ import {
   IconHistory,
   IconDotsVertical,
   IconDownload,
+  IconFlag,
+  IconFlagOff,
 } from '@tabler/icons-react';
 import {
   DocumentBlocksPreview,
@@ -40,6 +42,10 @@ import { DocumentCommentsSection } from '../../components/documents/DocumentComm
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
+import {
+  useClearScopeStartDocument,
+  useSetScopeStartDocument,
+} from '../../hooks/useScopeStartDocument.js';
 import { ContextSwitcherSelect } from '../contextWorkspace/ContextSwitcherSelect.js';
 import { contextUrl } from '../contextWorkspace/contextPaths.js';
 import {
@@ -164,6 +170,10 @@ export function DocumentPageLoadedLayout({
   const hasNoContext = data.contextId == null;
   const canEnterEditMode = data.canWrite || !!data.canPublish;
   const canManageAccess = !!data.canPublish;
+  const startHereScopes = data.startHereScopes ?? [];
+  const setStartHere = useSetScopeStartDocument(documentId);
+  const clearStartHere = useClearScopeStartDocument(documentId);
+  const startHereBusy = setStartHere.isPending || clearStartHere.isPending;
   const publishedPlainFromBlocks =
     data.publishedBlocks != null ? blockDocumentToPlainPreview(data.publishedBlocks).trim() : '';
   const ownerScope = useMemo(
@@ -266,6 +276,38 @@ export function DocumentPageLoadedLayout({
                 Assign to context
               </Menu.Item>
             )}
+            {startHereScopes.length > 0 && <Menu.Divider />}
+            {startHereScopes.map((scope) =>
+              scope.isCurrent ? (
+                <Menu.Item
+                  key={`${scope.scopeType}:${scope.scopeId}`}
+                  leftSection={<IconFlagOff size={14} />}
+                  disabled={startHereBusy}
+                  onClick={() =>
+                    void clearStartHere.mutateAsync({
+                      scopeType: scope.scopeType,
+                      scopeId: scope.scopeId,
+                    })
+                  }
+                >
+                  Remove Start here for {scope.scopeName}
+                </Menu.Item>
+              ) : (
+                <Menu.Item
+                  key={`${scope.scopeType}:${scope.scopeId}`}
+                  leftSection={<IconFlag size={14} />}
+                  disabled={startHereBusy}
+                  onClick={() =>
+                    void setStartHere.mutateAsync({
+                      scopeType: scope.scopeType,
+                      scopeId: scope.scopeId,
+                    })
+                  }
+                >
+                  Set as Start here for {scope.scopeName}
+                </Menu.Item>
+              )
+            )}
             {data.canWrite && !data.archivedAt && (
               <Menu.Item
                 leftSection={<IconArchive size={14} />}
@@ -313,11 +355,15 @@ export function DocumentPageLoadedLayout({
     data.archivedAt,
     data.canDelete,
     data.publishedAt,
+    startHereScopes,
+    startHereBusy,
   ]);
 
   useSetAppShellBreadcrumbActions(
     breadcrumbActions,
-    `doc-actions:${documentId}:${mode}:${editTab}:${leadDraftDirty}:${showPublishButton}:${pdfExportLoading}`
+    `doc-actions:${documentId}:${mode}:${editTab}:${leadDraftDirty}:${showPublishButton}:${pdfExportLoading}:${startHereBusy}:${startHereScopes
+      .map((s) => `${s.scopeType}:${s.scopeId}:${s.isCurrent ? 1 : 0}`)
+      .join(',')}`
   );
 
   return (

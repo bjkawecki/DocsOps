@@ -221,6 +221,29 @@ describe('GET /api/v1/me/pulse/explore', () => {
     expect(deptCol!.items.some((i) => i.id === ctx.publishedDocId)).toBe(true);
   });
 
+  it('excludes scope start documents from explore columns', async () => {
+    await prisma.department.update({
+      where: { id: ctx.departmentId },
+      data: { startDocumentId: ctx.publishedDocId },
+    });
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/v1/me/pulse/explore',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as {
+      columns: Array<{ items: Array<{ id: string }> }>;
+    };
+    for (const col of body.columns) {
+      expect(col.items.some((i) => i.id === ctx.publishedDocId)).toBe(false);
+    }
+    await prisma.department.update({
+      where: { id: ctx.departmentId },
+      data: { startDocumentId: null },
+    });
+  });
+
   it('derives department and company columns from team membership', async () => {
     await prisma.teamMember.create({
       data: { teamId: ctx.teamId, userId: ctx.writerId },

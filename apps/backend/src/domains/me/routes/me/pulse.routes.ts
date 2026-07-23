@@ -7,6 +7,7 @@ import {
 import { mePulseQuerySchema, pulseItemIdParamSchema } from '../../schemas/me.js';
 import { getMePulse, markPulseItemRead } from '../../services/pulseService.js';
 import { getMePulseExplore } from '../../services/pulseExploreService.js';
+import { listStartHereForUser } from '../../../organisation/services/startHereService.js';
 
 function registerMePulseRoutes(app: FastifyInstance): void {
   app.get('/me/pulse', { preHandler: requireAuthPreHandler }, async (request, reply) => {
@@ -24,6 +25,12 @@ function registerMePulseRoutes(app: FastifyInstance): void {
     const userId = getEffectiveUserId(request as RequestWithUser);
     const explore = await getMePulseExplore(request.server.prisma, userId);
     return reply.send(explore);
+  });
+
+  app.get('/me/pulse/start-here', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const items = await listStartHereForUser(request.server.prisma, userId);
+    return reply.send({ items });
   });
 
   app.post<{ Params: { itemId: string } }>(

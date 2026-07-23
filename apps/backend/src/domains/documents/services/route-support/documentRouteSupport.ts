@@ -207,6 +207,12 @@ export function buildDocumentDetailResponse(args: {
   deleteAllowed: boolean;
   canPublish: boolean;
   canModerateComments: boolean;
+  startHereScopes?: Array<{
+    scopeType: 'team' | 'department' | 'company';
+    scopeId: string;
+    scopeName: string;
+    isCurrent: boolean;
+  }>;
 }) {
   const { doc } = args;
   const ctx = doc.context;
@@ -296,6 +302,7 @@ export function buildDocumentDetailResponse(args: {
     canDelete: args.deleteAllowed,
     canPublish: args.canPublish,
     canModerateComments: args.canModerateComments,
+    startHereScopes: args.startHereScopes ?? [],
     scope,
     contextOwnerId,
     contextType,

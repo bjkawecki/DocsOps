@@ -11,6 +11,8 @@ import { useMePulseExplore } from '../../hooks/useMePulseExplore.js';
 
 type Props = {
   enabled: boolean;
+  /** Top border when Start here is not shown (first visible block). */
+  ruled?: boolean;
 };
 
 const SCOPE_ICON_SIZE = 16;
@@ -31,13 +33,16 @@ function exploreScopeIcon(columnKey: string) {
 /**
  * Explore columns for Pulse home (heading + scope grids).
  */
-export function PulseExploreSection({ enabled }: Props) {
+export function PulseExploreSection({ enabled, ruled = true }: Props) {
   const { data, isPending, isError } = useMePulseExplore(enabled);
   const columns = data?.columns ?? [];
 
   return (
     <div className="pulse-home-column pulse-explore-column">
-      <Stack gap="lg" className="pulse-explore-section">
+      <Stack
+        gap={14}
+        className={`pulse-explore-section${ruled ? ' pulse-explore-section--ruled' : ''}`}
+      >
         <div className="pulse-explore-heading-block">
           <span className="pulse-explore-heading-icon" aria-hidden>
             <IconCompass size={22} stroke={1.5} />
@@ -66,7 +71,7 @@ export function PulseExploreSection({ enabled }: Props) {
               <Stack key={col.key} gap={8} className="pulse-explore-col">
                 <Group gap={6} wrap="nowrap" className="pulse-explore-scope-row">
                   <span className="pulse-explore-scope-icon">{exploreScopeIcon(col.key)}</span>
-                  <Text size="sm" fw={600} c="dimmed" className="pulse-explore-scope" lineClamp={1}>
+                  <Text size="sm" fw={500} c="dimmed" className="pulse-explore-scope" lineClamp={1}>
                     {col.title}
                   </Text>
                 </Group>

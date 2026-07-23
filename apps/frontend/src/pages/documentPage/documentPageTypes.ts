@@ -39,6 +39,13 @@ export type DocumentResponse = {
   canDelete: boolean;
   canModerateComments?: boolean;
   canPublish?: boolean;
+  /** Scopes where the current user may set/clear Start here for this document. */
+  startHereScopes?: Array<{
+    scopeType: 'team' | 'department' | 'company';
+    scopeId: string;
+    scopeName: string;
+    isCurrent: boolean;
+  }>;
   scope: DocumentScope | null;
   contextOwnerId?: string | null;
   contextType?: 'process' | 'project' | 'subcontext';

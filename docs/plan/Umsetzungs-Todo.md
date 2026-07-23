@@ -230,6 +230,7 @@ Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant 
 [x] **Continue reading:** In der **App-Sidebar** (expanded; Mini-Rail ausgeblendet), aggregiert aus `recentItemsByScope`; ca. 3 sichtbare Zeilen, weitere per subtiler Scrollbar. Nicht auf Home.
 [x] **Updates / Comments / Drafts-Blöcke auf Home:** durch Pulse-Feed ersetzt (Inbox `/notifications` unverändert).
 [x] **Empty Explore:** Bei leerem Pulse (ohne `?kind=`): dezente theme-farbige Illustration + Explore (bis zu 3 Spalten: Team → Department → Company → Your drafts → Your documents; max. 5 recent Docs/Spalte; nur nicht-leere). API `GET /me/pulse/explore`. Wenn keine Docs: „No documents to explore yet.“
+[x] **Start here:** Ein Start-Dokument pro Team/Department/Company (`startDocumentId`); Scope-Lead setzt/entfernt am Dokument (More-actions). Home: alle lesbaren Start-Docs als Section (Heading analog Explore; Teams → Depts → Companies; `GET /me/pulse/start-here` → `{ items }`). Scope-Overview „Change…“ später.
 
 **Follow-up (nicht umgesetzt):** **Document views** – View-Zähler für Popularität/Explore-Sortierung; Dedup **pro User + Kalendertag**; nur authentifizierte Published-Reads; Analytics optional später.
 

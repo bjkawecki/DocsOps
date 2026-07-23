@@ -22,7 +22,7 @@ export async function runSeedFromCsvFiles(prisma: PrismaClient): Promise<void> {
   const ownerData = await seedOwners(prisma, masterData);
   const contextData = await seedContexts(prisma, masterData, ownerData);
   const tagByNameAndOwner = await seedTags(prisma, masterData, ownerData);
-  await seedDocuments(prisma, contextData, tagByNameAndOwner);
+  await seedDocuments(prisma, contextData, tagByNameAndOwner, masterData);
   await seedHomeDemoNotifications(prisma);
 }
 

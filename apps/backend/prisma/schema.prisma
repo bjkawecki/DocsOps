@@ -17,11 +17,15 @@ datasource db {
 
 /// Oberste Organisationseinheit. Enthält Abteilungen; Struktur bestimmt Ownership, nicht automatisch Zugriff.
 model Company {
-  id             String        @id @default(cuid())
-  name           String
-  departments    Department[]
-  companyLeads   CompanyLead[]
-  owners         Owner[]       @relation("OwnerCompany")
+  id               String        @id @default(cuid())
+  name             String
+  startDocumentId  String?
+  startDocument    Document?     @relation("CompanyStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  departments      Department[]
+  companyLeads     CompanyLead[]
+  owners           Owner[]       @relation("OwnerCompany")
+
+  @@index([startDocumentId])
 }
 
 /// Abteilung mit Teams; kann Prozesse und Projekte besitzen (Owner). Rechte werden explizit vergeben.
@@ -30,25 +34,33 @@ model Department {
   name                   String
   companyId              String
   company                Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  startDocumentId        String?
+  startDocument          Document?       @relation("DepartmentStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
   teams                  Team[]
   owners                 Owner[]         @relation("OwnerDepartment")
   departmentLeads        DepartmentLead[]
   departmentAuthors      DepartmentAuthor[]
   documentGrantDept      DocumentGrantDepartment[]
+
+  @@index([startDocumentId])
 }
 
 /// Autonome Einheit: Mitglieder sehen Team-Dokumente (Leserechte), Schreibrechte nur für Team Lead/explizite Grants.
 /// Kann Prozesse und Projekte besitzen (Owner). Dynamisch zusammensetzbar.
 model Team {
-  id           String          @id @default(cuid())
-  name         String
-  departmentId String
-  department   Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
-  members      TeamMember[]
-  teamLeads    TeamLead[]
-  teamAuthors  TeamAuthor[]
-  owners       Owner[]         @relation("OwnerTeam")
+  id              String          @id @default(cuid())
+  name            String
+  departmentId    String
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  startDocumentId String?
+  startDocument   Document?       @relation("TeamStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  members         TeamMember[]
+  teamLeads       TeamLead[]
+  teamAuthors     TeamAuthor[]
+  owners          Owner[]         @relation("OwnerTeam")
   documentGrantTeam DocumentGrantTeam[]
+
+  @@index([startDocumentId])
 }
 
 /// Zuordnung Nutzer ↔ Team (Mitgliedschaft). Nur Team-Mitgliedschaft zählt für Zugriff auf Team-Dokumente.
@@ -276,6 +288,9 @@ model Document {
   grantTeam                 DocumentGrantTeam[]
   grantDepartment           DocumentGrantDepartment[]
   pinnedInScopes            DocumentPinnedInScope[]
+  startHereForTeams         Team[]                   @relation("TeamStartDocument")
+  startHereForDepartments   Department[]             @relation("DepartmentStartDocument")
+  startHereForCompanies     Company[]                @relation("CompanyStartDocument")
   publishedAt               DateTime?                // null = Draft; nur für canWrite sichtbar
   description               String?                 @db.Text // optional, Kurzbeschreibung (API: max 500 Zeichen)
   createdById               String?                  // optional; „Erstellt von“ / Autor

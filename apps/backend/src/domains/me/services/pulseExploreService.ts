@@ -26,10 +26,33 @@ type ScopeCandidate = {
   filter?: CatalogListScopeFilter;
 };
 
+async function loadStartDocumentIds(prisma: PrismaClient): Promise<string[]> {
+  const [teams, departments, companies] = await Promise.all([
+    prisma.team.findMany({
+      where: { startDocumentId: { not: null } },
+      select: { startDocumentId: true },
+    }),
+    prisma.department.findMany({
+      where: { startDocumentId: { not: null } },
+      select: { startDocumentId: true },
+    }),
+    prisma.company.findMany({
+      where: { startDocumentId: { not: null } },
+      select: { startDocumentId: true },
+    }),
+  ]);
+  const ids = new Set<string>();
+  for (const row of [...teams, ...departments, ...companies]) {
+    if (row.startDocumentId) ids.add(row.startDocumentId);
+  }
+  return [...ids];
+}
+
 async function loadPublishedInScope(
   prisma: PrismaClient,
   userId: string,
-  filter: CatalogListScopeFilter
+  filter: CatalogListScopeFilter,
+  excludeDocumentIds: string[]
 ): Promise<PulseExploreItem[]> {
   const [readableScope, writableScope] = await Promise.all([
     getReadableCatalogScope(prisma, userId),
@@ -40,19 +63,24 @@ async function loadPublishedInScope(
 
   const docs = await prisma.document.findMany({
     where: {
-      AND: [catalogBase.baseWhere, { publishedAt: { not: null } }],
+      AND: [
+        catalogBase.baseWhere,
+        { publishedAt: { not: null } },
+        ...(excludeDocumentIds.length > 0 ? [{ id: { notIn: excludeDocumentIds } }] : []),
+      ],
     },
     select: { id: true, title: true },
     orderBy: { publishedAt: 'desc' },
     take: EXPLORE_PER_COLUMN,
   });
-  return docs.map((d) => ({ id: d.id, title: d.title }));
+  return dedupeExploreItemsById(docs.map((d) => ({ id: d.id, title: d.title })));
 }
 
 async function loadCreatorDocs(
   prisma: PrismaClient,
   userId: string,
-  published: boolean
+  published: boolean,
+  excludeDocumentIds: string[]
 ): Promise<PulseExploreItem[]> {
   const docs = await prisma.document.findMany({
     where: {
@@ -60,12 +88,24 @@ async function loadCreatorDocs(
       archivedAt: null,
       createdById: userId,
       publishedAt: published ? { not: null } : null,
+      ...(excludeDocumentIds.length > 0 ? { id: { notIn: excludeDocumentIds } } : {}),
     },
     select: { id: true, title: true },
     orderBy: published ? { publishedAt: 'desc' } : { updatedAt: 'desc' },
     take: EXPLORE_PER_COLUMN,
   });
-  return docs.map((d) => ({ id: d.id, title: d.title }));
+  return dedupeExploreItemsById(docs.map((d) => ({ id: d.id, title: d.title })));
+}
+
+function dedupeExploreItemsById(items: PulseExploreItem[]): PulseExploreItem[] {
+  const seen = new Set<string>();
+  const out: PulseExploreItem[] = [];
+  for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    out.push(item);
+  }
+  return out;
 }
 
 /**
@@ -123,14 +163,7 @@ async function adminOrgScopeCandidates(prisma: PrismaClient): Promise<ScopeCandi
   return candidates;
 }
 
-async function buildCandidates(
-  prisma: PrismaClient,
-  userId: string
-): Promise<{
-  candidates: ScopeCandidate[];
-  isAdmin: boolean;
-  usedAdminOrgFallback: boolean;
-}> {
+async function buildCandidates(prisma: PrismaClient, userId: string): Promise<ScopeCandidate[]> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -217,7 +250,7 @@ async function buildCandidates(
       },
     },
   });
-  if (!user) return { candidates: [], isAdmin: false, usedAdminOrgFallback: false };
+  if (!user) return [];
 
   const candidates: ScopeCandidate[] = [];
 
@@ -260,50 +293,43 @@ async function buildCandidates(
     });
   }
 
-  let usedAdminOrgFallback = false;
   const hasOrgFilter = candidates.some((c) => c.filter != null);
   if (!hasOrgFilter && user.isAdmin) {
-    const adminScopes = await adminOrgScopeCandidates(prisma);
-    candidates.push(...adminScopes);
-    usedAdminOrgFallback = adminScopes.length > 0;
+    candidates.push(...(await adminOrgScopeCandidates(prisma)));
   }
 
   candidates.push({ key: 'drafts', title: 'Your drafts', kind: 'drafts' });
   candidates.push({ key: 'your-documents', title: 'Your documents', kind: 'your-documents' });
 
-  return { candidates, isAdmin: user.isAdmin, usedAdminOrgFallback };
+  return candidates;
 }
 
 async function columnsFromCatalog(
   prisma: PrismaClient,
   userId: string
-): Promise<{
-  columns: PulseExploreColumn[];
-  isAdmin: boolean;
-  usedAdminOrgFallback: boolean;
-  candidateSummaries: Array<{ key: string; kind: string; itemCount: number }>;
-}> {
-  const { candidates, isAdmin, usedAdminOrgFallback } = await buildCandidates(prisma, userId);
+): Promise<PulseExploreColumn[]> {
+  const [candidates, excludeDocumentIds] = await Promise.all([
+    buildCandidates(prisma, userId),
+    loadStartDocumentIds(prisma),
+  ]);
   const columns: PulseExploreColumn[] = [];
-  const candidateSummaries: Array<{ key: string; kind: string; itemCount: number }> = [];
 
   for (const candidate of candidates) {
     let items: PulseExploreItem[] = [];
     if (candidate.kind === 'drafts') {
-      items = await loadCreatorDocs(prisma, userId, false);
+      items = await loadCreatorDocs(prisma, userId, false, excludeDocumentIds);
     } else if (candidate.kind === 'your-documents') {
-      items = await loadCreatorDocs(prisma, userId, true);
+      items = await loadCreatorDocs(prisma, userId, true, excludeDocumentIds);
     } else if (candidate.filter) {
-      items = await loadPublishedInScope(prisma, userId, candidate.filter);
+      items = await loadPublishedInScope(prisma, userId, candidate.filter, excludeDocumentIds);
     }
-    candidateSummaries.push({ key: candidate.key, kind: candidate.kind, itemCount: items.length });
 
     if (items.length === 0) continue;
     if (columns.length >= EXPLORE_MAX_COLUMNS) continue;
     columns.push({ key: candidate.key, title: candidate.title, items });
   }
 
-  return { columns, isAdmin, usedAdminOrgFallback, candidateSummaries };
+  return columns;
 }
 
 /**
@@ -314,37 +340,6 @@ export async function getMePulseExplore(
   prisma: PrismaClient,
   userId: string
 ): Promise<PulseExploreResponse> {
-  const { columns, isAdmin, usedAdminOrgFallback, candidateSummaries } = await columnsFromCatalog(
-    prisma,
-    userId
-  );
-  // #region agent log
-  try {
-    const fs = await import('node:fs');
-    fs.mkdirSync('/app/.cursor', { recursive: true });
-    fs.appendFileSync(
-      '/app/.cursor/debug-c2113f.log',
-      JSON.stringify({
-        sessionId: 'c2113f',
-        runId: 'post-fix',
-        hypothesisId: 'H7',
-        location: 'pulseExploreService.ts:getMePulseExplore',
-        message: 'catalog explore result',
-        data: {
-          userIdPrefix: userId.slice(0, 8),
-          isAdmin,
-          usedAdminOrgFallback,
-          columnCount: columns.length,
-          columnKeys: columns.map((c) => c.key),
-          itemCounts: columns.map((c) => c.items.length),
-          candidateSummaries: candidateSummaries.slice(0, 8),
-        },
-        timestamp: Date.now(),
-      }) + '\n'
-    );
-  } catch {
-    /* ignore debug log failures */
-  }
-  // #endregion
+  const columns = await columnsFromCatalog(prisma, userId);
   return { columns };
 }

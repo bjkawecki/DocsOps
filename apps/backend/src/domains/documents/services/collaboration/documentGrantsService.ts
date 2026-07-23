@@ -34,6 +34,8 @@ const documentOwnerContextSelect = {
   },
 } as const;
 
+export { documentOwnerContextSelect };
+
 type OwnerRow = {
   ownerUserId: string | null;
   companyId: string | null;
