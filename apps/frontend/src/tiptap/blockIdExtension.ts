@@ -7,7 +7,10 @@ const BLOCK_ID_NODE_TYPES = new Set([
   'heading',
   'codeBlock',
   'bulletList',
+  'orderedList',
   'listItem',
+  'blockquote',
+  'horizontalRule',
 ]);
 
 /**

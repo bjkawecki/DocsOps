@@ -66,7 +66,28 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Pr
             variant={editor.isActive('bulletList') ? 'filled' : 'light'}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
-            List
+            Bullet list
+          </Button>
+          <Button
+            size="compact-xs"
+            variant={editor.isActive('orderedList') ? 'filled' : 'light'}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          >
+            Numbered list
+          </Button>
+          <Button
+            size="compact-xs"
+            variant={editor.isActive('blockquote') ? 'filled' : 'light'}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            Quote
+          </Button>
+          <Button
+            size="compact-xs"
+            variant="light"
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          >
+            Divider
           </Button>
           <Button
             size="compact-xs"

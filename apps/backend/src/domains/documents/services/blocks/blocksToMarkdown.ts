@@ -67,6 +67,25 @@ function blockNodeToMarkdown(node: BlockNode): string {
           return `- ${line.replace(/\n/g, '\n  ')}`;
         })
         .join('\n');
+    case 'ordered_list':
+      return (node.content ?? [])
+        .map((item, index) => {
+          const line = blockNodeToMarkdown(item);
+          return `${index + 1}. ${line.replace(/\n/g, '\n   ')}`;
+        })
+        .join('\n');
+    case 'blockquote':
+      return (node.content ?? [])
+        .map((child) =>
+          blockNodeToMarkdown(child)
+            .split('\n')
+            .map((line) => (line.length > 0 ? `> ${line}` : '>'))
+            .join('\n')
+        )
+        .filter((s) => s.length > 0)
+        .join('\n>\n');
+    case 'horizontal_rule':
+      return '---';
     default:
       return innerText(node);
   }

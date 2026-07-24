@@ -63,6 +63,11 @@
 .document-content blockquote {
   margin: 1.1em 0;
 }
+.document-content hr {
+  margin: 1.1em 0;
+  border: none;
+  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
 .document-content code {
   font-family: var(--mantine-font-family-monospace);
   font-size: 0.88em;

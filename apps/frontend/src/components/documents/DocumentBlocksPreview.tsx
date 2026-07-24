@@ -88,6 +88,50 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
         </List>
       );
     }
+    case 'ordered_list': {
+      const items = node.content ?? [];
+      if (items.length === 0) return null;
+      return (
+        <List type="ordered" size="lg" spacing="xs" withPadding>
+          {items.map((item) => (
+            <List.Item key={item.id}>{renderNode(item, anchorMap)}</List.Item>
+          ))}
+        </List>
+      );
+    }
+    case 'blockquote': {
+      const parts = node.content ?? [];
+      if (parts.length === 0) return null;
+      return (
+        <Box
+          component="blockquote"
+          pl="md"
+          style={{
+            borderInlineStart:
+              '3px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
+            margin: 0,
+          }}
+        >
+          <Stack gap="sm">
+            {parts.map((c) => (
+              <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+            ))}
+          </Stack>
+        </Box>
+      );
+    }
+    case 'horizontal_rule':
+      return (
+        <Box
+          component="hr"
+          my="md"
+          style={{
+            border: 'none',
+            borderTop:
+              '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+          }}
+        />
+      );
     case 'list_item': {
       const parts = node.content ?? [];
       if (parts.length === 0) return null;
@@ -153,9 +197,15 @@ type Props = {
 export function DocumentBlocksPreview({ title, doc }: Props) {
   if (doc == null || doc.blocks.length === 0) return null;
   const normalizedDoc = ensureUniqueBlockIdsInDocument(doc);
-  const text = blockDocumentToPlainPreview(normalizedDoc);
-  if (!text.trim()) return null;
   const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(normalizedDoc);
+  const rendered = normalizedDoc.blocks
+    .map((block) => {
+      const el = renderNode(block, anchorIdByBlockNodeId);
+      if (el == null) return null;
+      return <Box key={block.id}>{el}</Box>;
+    })
+    .filter((el) => el != null);
+  if (rendered.length === 0) return null;
   return (
     <Box mb="md" className="document-content">
       {title ? (
@@ -163,13 +213,7 @@ export function DocumentBlocksPreview({ title, doc }: Props) {
           {title}
         </Text>
       ) : null}
-      <Stack gap="md">
-        {normalizedDoc.blocks.map((block) => {
-          const el = renderNode(block, anchorIdByBlockNodeId);
-          if (el == null) return null;
-          return <Box key={block.id}>{el}</Box>;
-        })}
-      </Stack>
+      <Stack gap="md">{rendered}</Stack>
     </Box>
   );
 }

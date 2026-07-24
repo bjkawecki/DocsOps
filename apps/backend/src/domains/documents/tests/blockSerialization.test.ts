@@ -60,6 +60,21 @@ describe('block serialization (EPIC-2)', () => {
     expect(md).toContain(' text');
   });
 
+  it('exports and imports ordered list, blockquote and horizontal rule', () => {
+    const md = ['1. First', '2. Second', '', '> Quoted line', '', '---'].join('\n');
+    const doc = markdownToBlockDocumentV0(md);
+    expect(doc.blocks.map((b) => b.type)).toEqual([
+      'ordered_list',
+      'blockquote',
+      'horizontal_rule',
+    ]);
+    const out = blockDocumentV0ToMarkdown(doc);
+    expect(out).toContain('1. First');
+    expect(out).toContain('2. Second');
+    expect(out).toContain('> Quoted line');
+    expect(out).toContain('---');
+  });
+
   it('strips pending suggestions from markdown export', () => {
     const doc = {
       schemaVersion: 1 as const,

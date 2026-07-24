@@ -149,9 +149,6 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
     const extensions = useMemo(
       () => [
         StarterKit.configure({
-          orderedList: false,
-          blockquote: false,
-          horizontalRule: false,
           strike: false,
           code: false,
         }),

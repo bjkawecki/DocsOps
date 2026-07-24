@@ -17,10 +17,23 @@ function isBullet(line: string): boolean {
   return /^[-*]\s+\S/.test(line);
 }
 
+function isOrdered(line: string): boolean {
+  return /^\d+\.\s+\S/.test(line);
+}
+
+function isBlockquote(line: string): boolean {
+  return /^>\s?/.test(line);
+}
+
+function isHorizontalRule(line: string): boolean {
+  return /^(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line.trim());
+}
+
 /**
  * Minimal Markdown → Block-Dokument v0 (EPIC-2 / PR-2b).
  * Für Migration/Import; kein vollständiger CommonMark-Parser.
- * Unterstützt grob: Überschriften, Fließtext-Absätze, einfache `-`/`*`-Listen, fenced ``` code ```.
+ * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
+ * Blockquotes, Horizontal Rules, fenced ``` code ```.
  */
 export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
   const md = markdown.replace(/\r\n/g, '\n');
@@ -59,6 +72,12 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
       continue;
     }
 
+    if (isHorizontalRule(line)) {
+      blocks.push({ id: randomUUID(), type: 'horizontal_rule', attrs: {} });
+      i += 1;
+      continue;
+    }
+
     const hm = line.match(/^(#{1,6})\s+(.*)$/);
     if (hm) {
       const hashes = hm[1];
@@ -72,6 +91,32 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
         });
       }
       i += 1;
+      continue;
+    }
+
+    if (isBlockquote(line)) {
+      const quoteLines: string[] = [];
+      while (i < lines.length) {
+        const row = lines[i];
+        if (row === undefined) break;
+        if (!isBlockquote(row) && row.trim() !== '') break;
+        if (row.trim() === '') {
+          // blank line ends quote only if next is not a quote continuation
+          const next = lines[i + 1];
+          if (next === undefined || !isBlockquote(next)) break;
+          quoteLines.push('');
+          i += 1;
+          continue;
+        }
+        quoteLines.push(row.replace(/^>\s?/, ''));
+        i += 1;
+      }
+      const innerDoc = markdownToBlockDocumentV0(quoteLines.join('\n'));
+      blocks.push({
+        id: randomUUID(),
+        type: 'blockquote',
+        content: innerDoc.blocks,
+      });
       continue;
     }
 
@@ -100,12 +145,46 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
       continue;
     }
 
+    if (isOrdered(line)) {
+      const items: BlockNode[] = [];
+      while (i < lines.length) {
+        const row = lines[i];
+        if (row === undefined) break;
+        const m = row.match(/^\d+\.\s+(.*)$/);
+        if (!m) break;
+        const itemText = m[1]?.trim() ?? '';
+        items.push({
+          id: randomUUID(),
+          type: 'list_item',
+          content: [
+            {
+              id: randomUUID(),
+              type: 'paragraph',
+              content: [textNode(itemText)],
+            },
+          ],
+        });
+        i += 1;
+      }
+      blocks.push({ id: randomUUID(), type: 'ordered_list', content: items });
+      continue;
+    }
+
     const para: string[] = [];
     while (i < lines.length) {
       const l = lines[i];
       if (l === undefined) break;
       if (l.trim() === '') break;
-      if (isFenceStart(l) || isHeading(l) || isBullet(l)) break;
+      if (
+        isFenceStart(l) ||
+        isHeading(l) ||
+        isBullet(l) ||
+        isOrdered(l) ||
+        isBlockquote(l) ||
+        isHorizontalRule(l)
+      ) {
+        break;
+      }
       para.push(l);
       i += 1;
     }

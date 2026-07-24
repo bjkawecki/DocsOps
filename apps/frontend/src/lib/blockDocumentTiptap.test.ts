@@ -193,6 +193,69 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[0]?.content?.[0]?.meta?.suggestion).toBeUndefined();
   });
 
+  it('roundtrips ordered list, blockquote and horizontal rule', () => {
+    const source: BlockDocument = {
+      schemaVersion: 0,
+      blocks: [
+        {
+          id: 'ol1',
+          type: 'ordered_list',
+          content: [
+            {
+              id: 'li1',
+              type: 'list_item',
+              content: [
+                {
+                  id: 'p1',
+                  type: 'paragraph',
+                  content: [{ id: 't1', type: 'text', meta: { text: 'First' } }],
+                },
+              ],
+            },
+            {
+              id: 'li2',
+              type: 'list_item',
+              content: [
+                {
+                  id: 'p2',
+                  type: 'paragraph',
+                  content: [{ id: 't2', type: 'text', meta: { text: 'Second' } }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'bq1',
+          type: 'blockquote',
+          content: [
+            {
+              id: 'p3',
+              type: 'paragraph',
+              content: [{ id: 't3', type: 'text', meta: { text: 'Quoted' } }],
+            },
+          ],
+        },
+        { id: 'hr1', type: 'horizontal_rule', attrs: {} },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    expect(json.content?.map((n) => n.type)).toEqual([
+      'orderedList',
+      'blockquote',
+      'horizontalRule',
+    ]);
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks.map((b) => b.type)).toEqual([
+      'ordered_list',
+      'blockquote',
+      'horizontal_rule',
+    ]);
+    expect(back.blocks[0]?.content?.[0]?.content?.[0]?.content?.[0]?.meta?.text).toBe('First');
+    expect(back.blocks[1]?.content?.[0]?.content?.[0]?.meta?.text).toBe('Quoted');
+    expect(back.blocks[2]?.id).toBe('hr1');
+  });
+
   it('omits empty paragraphs without suggestions from export', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',
