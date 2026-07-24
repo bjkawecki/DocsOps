@@ -32,8 +32,16 @@
   overflow: auto;
 }
 
+/* Document page: breadcrumbs stay put; outlet below is the page scrollport. */
 .app-shell-main-body--document {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  min-height: 0;
+}
+
+.app-shell-main-body--document > .app-shell-breadcrumb-bar {
+  flex-shrink: 0;
 }
 
 .app-shell-outlet {
@@ -42,124 +50,192 @@
 }
 
 /*
- * Document reading page only: constrain outlet height and scroll inside the reading column.
- * Other pages keep natural content height (no tall empty flex void).
+ * Document reading page: this outlet is the page scrollport (below breadcrumbs).
+ * Sidebar / edit chrome / comments use position sticky inside it.
  */
 .app-shell-outlet--document {
   flex: 1 1 0%;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.document-page-shell {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0%;
-  min-height: 0;
-  height: 100%;
-  overflow: hidden;
-}
-
-.document-page-body {
-  flex: 1 1 0%;
-  min-height: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--mantine-spacing-lg);
-  overflow: hidden;
-}
-
-.document-page-left {
-  flex: 0 0 auto;
-  min-height: 0;
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-}
-
-.document-page-left-inner {
-  flex: 1 1 0%;
-  min-height: 0;
-  overflow: auto;
-}
-
-.document-page-main {
-  flex: 1 1 0%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Reading column: centered scrollport; wider body without a framed card look. */
-.document-page-reading {
-  flex: 1 1 0%;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.document-page-scroll {
-  width: 100%;
-  max-width: min(100%, 52rem);
-  min-height: 0;
-  height: 100%;
+  height: auto;
+  display: block;
   overflow-x: hidden;
   overflow-y: auto;
-  /* Pull body copy away from the breadcrumb chrome (spacing only, no surface). */
-  padding-top: 1.5rem;
-  /* Extra scroll room so the end of the document can sit above the viewport bottom. */
-  padding-bottom: min(40vh, 18rem);
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
-.document-page-scroll:hover,
-.document-page-scroll:focus-within {
+.app-shell-outlet--document:hover,
+.app-shell-outlet--document:focus-within {
   scrollbar-color: color-mix(in srgb, var(--mantine-color-dimmed) 55%, transparent) transparent;
 }
 
-.document-page-scroll::-webkit-scrollbar {
+.app-shell-outlet--document::-webkit-scrollbar {
   width: 8px;
 }
 
-.document-page-scroll::-webkit-scrollbar-button {
+.app-shell-outlet--document::-webkit-scrollbar-button {
   display: none;
   width: 0;
   height: 0;
 }
 
-.document-page-scroll::-webkit-scrollbar-track {
+.app-shell-outlet--document::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.document-page-scroll::-webkit-scrollbar-thumb {
+.app-shell-outlet--document::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
-.document-page-scroll:hover::-webkit-scrollbar-thumb,
-.document-page-scroll:focus-within::-webkit-scrollbar-thumb {
+.app-shell-outlet--document:hover::-webkit-scrollbar-thumb,
+.app-shell-outlet--document:focus-within::-webkit-scrollbar-thumb {
   background-color: color-mix(in srgb, var(--mantine-color-dimmed) 55%, transparent);
 }
 
-.document-page-scroll::-webkit-scrollbar-thumb:hover {
+.app-shell-outlet--document::-webkit-scrollbar-thumb:hover {
   background-color: color-mix(in srgb, var(--mantine-color-dimmed) 75%, transparent);
+}
+
+.document-page-shell {
+  display: block;
+  flex: none;
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+}
+
+.document-page-body {
+  flex: none;
+  min-height: min-content;
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--mantine-spacing-lg);
+  overflow: visible;
+}
+
+.document-page-left {
+  flex: 0 0 auto;
+  min-height: min-content;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-page-left-inner {
+  flex: none;
+  min-height: min-content;
+  overflow: visible;
+}
+
+.document-page-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reading column: shares row with comments; do not use width:100% (pushes rail off-screen). */
+.document-page-reading {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: min-content;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  overflow: visible;
+}
+
+.document-page-scroll {
+  width: 100%;
+  max-width: min(100%, 52rem);
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+  /* Pull body copy away from the breadcrumb chrome (spacing only, no surface). */
+  padding-top: 1.5rem;
+  /* Extra scroll room so the end of the document can sit above the viewport bottom. */
+  padding-bottom: min(40vh, 18rem);
+}
+
+/* Edit: no top padding – sticky tabs/chrome would otherwise slide up into that pad. */
+.document-page-scroll--edit {
+  display: block;
+  padding-top: 0;
+}
+
+.document-page-edit-fill {
+  display: block;
+  width: 100%;
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+}
+
+.document-page-edit-tabs > .mantine-Tabs-panel.document-page-edit-panel-scroll {
+  display: block;
+  overflow: visible;
 }
 
 .document-page-card {
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.document-page-card--edit {
+  display: block;
+  overflow: visible;
+}
+
+/* Edit: one sticky stack (tabs + draft chrome) – no gap between sticky layers. */
+.document-page-edit-tabs {
+  display: block;
+  overflow: visible;
+}
+
+.document-page-edit-sticky-stack {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  /* Opaque so scrolling prose cannot show through tabs/chrome. */
+  background-color: var(--mantine-color-body);
+  background-image: none;
+  isolation: isolate;
+}
+
+.document-page-edit-sticky-stack .mantine-Tabs-list {
+  margin-bottom: 0 !important;
+  padding-bottom: 0;
+}
+
+.document-page-edit-sticky-chrome-host {
+  margin: 0;
+  padding: 0;
+  background-color: var(--mantine-color-body);
+}
+
+.document-page-edit-tabs > .mantine-Tabs-panel {
+  display: block;
+  overflow: visible;
+}
+
+.document-page-edit-tabs > .mantine-Tabs-panel[data-hidden='true'],
+.document-page-edit-tabs > .mantine-Tabs-panel[hidden] {
+  display: none;
 }
 
 /* Shared nav-row style for TOC + more-documents lists. */
@@ -193,10 +269,6 @@ a.document-chrome-nav-link:focus-visible,
 }
 
 @media (max-width: 61.99em) {
-  .document-page-body {
-    overflow: auto;
-  }
-
   .document-page-main {
     overflow: visible;
     display: block;
@@ -212,9 +284,11 @@ a.document-chrome-nav-link:focus-visible,
   }
 
   .document-page-scroll {
-    overflow: visible;
-    height: auto;
     max-width: none;
+  }
+
+  .document-page-edit-sticky-stack {
+    position: static;
   }
 
   .document-page-left-inner {
@@ -226,12 +300,44 @@ a.document-chrome-nav-link:focus-visible,
 @media (min-width: 62em) {
   .document-page-body {
     flex-direction: row;
+    align-items: flex-start;
     /* Wider gutter between TOC/chrome column and document text. */
     gap: 2.5rem;
   }
 
+  .document-page-reading {
+    /* Slight right bias so body copy sits less tight against the left chrome. */
+    padding-inline-start: clamp(1.25rem, 4vw, 3rem);
+  }
+
+  .document-page-left {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100%;
+  }
+
+  .document-page-left-inner {
+    max-height: 100%;
+    overflow: auto;
+  }
+
   .document-page-scroll {
     padding-top: 1.75rem;
+  }
+
+  /* Must win over .document-page-scroll padding above (same specificity, later). */
+  .document-page-scroll--edit {
+    padding-top: 0;
+  }
+
+  /* Stretch aside to reading-column height so comments sticky has room to stick.
+   * Width must come from the rail child (min-content) – not width:100% on the host. */
+  .document-page-comments-aside {
+    align-self: stretch;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: min-content;
   }
 }
 

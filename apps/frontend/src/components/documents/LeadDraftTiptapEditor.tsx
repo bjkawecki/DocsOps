@@ -7,12 +7,14 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import type { BlockDocument } from '../../api/document-types';
 import {
   blockDocumentToTiptapJson,
@@ -53,6 +55,8 @@ type Props = {
   onSaveShortcut?: () => void;
   onSubmitShortcut?: () => void;
   inlineSuggestionBar?: ReactNode;
+  /** Draft status / banners rendered above the typography toolbar (sticky chrome). */
+  chromePrefix?: ReactNode;
   suggestionInteractions?: {
     documentId: string;
     draftRevision: number;
@@ -78,6 +82,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       onSaveShortcut,
       onSubmitShortcut,
       inlineSuggestionBar,
+      chromePrefix,
       suggestionInteractions,
     },
     ref
@@ -87,6 +92,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
     const onDirtyChangeRef = useRef(onDirtyChange);
     const onSaveShortcutRef = useRef(onSaveShortcut);
     const onSubmitShortcutRef = useRef(onSubmitShortcut);
+    const [chromeHost, setChromeHost] = useState<Element | null>(null);
     const authorMode = editorMode === 'author';
     const [hoverTarget, setHoverTarget] = useState<SuggestionHoverTarget | null>(null);
     const hoverCloseTimerRef = useRef<number | null>(null);
@@ -204,6 +210,10 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       },
     });
 
+    useLayoutEffect(() => {
+      setChromeHost(document.querySelector('[data-document-edit-sticky-chrome]'));
+    }, [editor]);
+
     useEffect(() => {
       if (!editor) return;
       type AuthorOpts = { authorId: string; enabled: boolean };
@@ -272,8 +282,9 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       );
     }
 
-    return (
-      <Box>
+    const chrome = (
+      <Box className={classes.chrome}>
+        {chromePrefix}
         {inlineSuggestionBar != null && <Box mb="sm">{inlineSuggestionBar}</Box>}
         {!editable && (
           <Group gap="xs" mb="sm">
@@ -283,8 +294,16 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
           </Group>
         )}
         {editable && (
-          <LeadDraftEditorToolbar editor={editor} authorMode={authorMode} authorId={authorId} />
+          <Box className={classes.toolbar}>
+            <LeadDraftEditorToolbar editor={editor} authorMode={authorMode} authorId={authorId} />
+          </Box>
         )}
+      </Box>
+    );
+
+    return (
+      <Box className={classes.root}>
+        {chromeHost ? createPortal(chrome, chromeHost) : chrome}
         <Box className={classes.editorShell}>
           <EditorContent editor={editor} />
         </Box>

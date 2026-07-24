@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core';
+import { Alert, Box, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core';
 import { useMemo } from 'react';
 import { LeadDraftTiptapEditor } from '../LeadDraftTiptapEditor.js';
 import { DraftCollaborationBanner } from './DraftCollaborationBanner.js';
@@ -50,8 +50,8 @@ export function DocumentLeadDraftPanelView({
   const editorEditable = !!canEdit && (editorMode !== 'author' || !!currentUserId);
   const sessionLoading = !!canEdit && editorMode === 'author' && !currentUserId;
 
-  return (
-    <Stack gap="sm">
+  const chromePrefix = (
+    <Stack gap="sm" mb="sm">
       <DraftCollaborationBanner
         canPublish={!!canPublish}
         remotePending={remotePending}
@@ -95,7 +95,11 @@ export function DocumentLeadDraftPanelView({
           </Stack>
         </Alert>
       )}
+    </Stack>
+  );
 
+  return (
+    <Box className="document-page-edit-fill">
       <LeadDraftTiptapEditor
         ref={editorRef}
         sourceDocument={appliedDoc}
@@ -104,6 +108,7 @@ export function DocumentLeadDraftPanelView({
         editable={editorEditable}
         editorMode={editorMode}
         authorId={currentUserId}
+        chromePrefix={chromePrefix}
         onDirtyChange={setDirty}
         onSaveShortcut={() => {
           void handleSave();
@@ -120,7 +125,7 @@ export function DocumentLeadDraftPanelView({
         }}
       />
       {isAdmin && (
-        <Group justify="flex-end">
+        <Group justify="flex-end" style={{ flexShrink: 0 }} mt="xs">
           <Button
             size="xs"
             variant="subtle"
@@ -150,6 +155,6 @@ export function DocumentLeadDraftPanelView({
           }}
         />
       </Modal>
-    </Stack>
+    </Box>
   );
 }

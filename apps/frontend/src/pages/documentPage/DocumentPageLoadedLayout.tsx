@@ -376,7 +376,7 @@ export function DocumentPageLoadedLayout({
         maw={1600}
         px="md"
         className="document-page-body"
-        style={{ flex: '1 1 0%', minHeight: 0, display: 'flex' }}
+        style={{ display: 'flex' }}
       >
         <Box className="document-page-left" w={{ base: '100%', lg: CONTEXT_WORKSPACE_LEFT_WIDTH }}>
           <Box className="document-page-left-inner">
@@ -411,24 +411,29 @@ export function DocumentPageLoadedLayout({
           <Flex
             gap={{ base: 'lg', lg: 'xl' }}
             direction={{ base: 'column', lg: 'row' }}
-            align="stretch"
+            align={{ base: 'stretch', lg: 'stretch' }}
             wrap="nowrap"
             w="100%"
-            h="100%"
-            style={{ minHeight: 0, overflow: 'hidden', flex: '1 1 0%' }}
+            style={{ overflow: 'visible' }}
           >
             <Box className="document-page-reading">
-              <Box className="document-page-scroll">
-                <Stack gap="lg" align="stretch" w="100%">
-                  {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
-                    <DocumentPublishedVersionAlert
-                      show
-                      currentVersion={latestPublishedVersion}
-                      acknowledgedVersion={ackPublishedVersion}
-                      onReload={onReloadPublishedContent}
-                    />
-                  )}
-                  {mode === 'view' ? (
+              <Box
+                className={
+                  mode === 'edit'
+                    ? 'document-page-scroll document-page-scroll--edit'
+                    : 'document-page-scroll'
+                }
+              >
+                {mode === 'view' ? (
+                  <Stack gap="lg" align="stretch" w="100%">
+                    {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
+                      <DocumentPublishedVersionAlert
+                        show
+                        currentVersion={latestPublishedVersion}
+                        acknowledgedVersion={ackPublishedVersion}
+                        onReload={onReloadPublishedContent}
+                      />
+                    )}
                     <Card
                       className="document-page-card"
                       w="100%"
@@ -457,32 +462,57 @@ export function DocumentPageLoadedLayout({
                         )}
                       </Box>
                     </Card>
-                  ) : (
+                  </Stack>
+                ) : (
+                  <Box className="document-page-edit-fill">
+                    {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
+                      <Box mb="md" style={{ flexShrink: 0 }}>
+                        <DocumentPublishedVersionAlert
+                          show
+                          currentVersion={latestPublishedVersion}
+                          acknowledgedVersion={ackPublishedVersion}
+                          onReload={onReloadPublishedContent}
+                        />
+                      </Box>
+                    )}
                     <Card
-                      className="document-page-card"
+                      className="document-page-card document-page-card--edit"
                       w="100%"
                       padding={0}
                       styles={{
                         root: {
-                          padding: '0 0 2rem',
+                          padding: 0,
                           background: 'transparent',
+                          overflow: 'visible',
                         },
                       }}
                     >
                       <Tabs
+                        className="document-page-edit-tabs"
                         value={editTab}
                         onChange={(v) => setEditTab((v as typeof editTab) ?? 'draft')}
                       >
-                        <Tabs.List>
-                          <Tabs.Tab value="draft">Draft</Tabs.Tab>
-                          <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
-                          {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
-                        </Tabs.List>
-                        <Tabs.Panel value="draft" pt="md">
+                        <Box className="document-page-edit-sticky-stack">
+                          <Tabs.List>
+                            <Tabs.Tab value="draft">Draft</Tabs.Tab>
+                            <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
+                            {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
+                          </Tabs.List>
+                          <Box
+                            className="document-page-edit-sticky-chrome-host"
+                            data-document-edit-sticky-chrome
+                          />
+                        </Box>
+                        <Tabs.Panel value="draft" className="document-page-edit-fill">
                           {!hasDraftBlocks &&
                             !hasPublishedBlocks &&
                             leadDraftLastSynced != null && (
-                              <Alert color="yellow" mb="md" title="Draft content is empty">
+                              <Alert
+                                color="yellow"
+                                mb="md"
+                                title="Draft content is empty"
+                                style={{ flexShrink: 0 }}
+                              >
                                 <Text size="sm">
                                   No block content is currently available for this document. Save
                                   the draft once to initialize it.
@@ -507,7 +537,11 @@ export function DocumentPageLoadedLayout({
                             onPendingSuggestionCountChange={setLeadDraftPendingSuggestions}
                           />
                         </Tabs.Panel>
-                        <Tabs.Panel value="metadata" pt="md">
+                        <Tabs.Panel
+                          value="metadata"
+                          pt="md"
+                          className="document-page-edit-panel-scroll"
+                        >
                           <Stack gap="md">
                             <TextInput
                               label="Title"
@@ -543,7 +577,11 @@ export function DocumentPageLoadedLayout({
                           </Stack>
                         </Tabs.Panel>
                         {canManageAccess && (
-                          <Tabs.Panel value="access" pt="md">
+                          <Tabs.Panel
+                            value="access"
+                            pt="md"
+                            className="document-page-edit-panel-scroll"
+                          >
                             <DocumentAccessPanel
                               documentId={documentId}
                               canEditAccess={canManageAccess}
@@ -561,16 +599,17 @@ export function DocumentPageLoadedLayout({
                         )}
                       </Tabs>
                     </Card>
-                  )}
-                </Stack>
+                  </Box>
+                )}
               </Box>
             </Box>
 
             <Box
               component="aside"
               aria-label="Comments"
+              className="document-page-comments-aside"
               w={{ base: '100%', lg: 'auto' }}
-              style={{ flexShrink: 0, alignSelf: 'stretch' }}
+              style={{ flexShrink: 0 }}
             >
               <DocumentCommentsSection
                 documentId={documentId}

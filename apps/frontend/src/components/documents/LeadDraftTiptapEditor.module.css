@@ -1,7 +1,28 @@
+.root {
+  display: block;
+  width: 100%;
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+}
+
+.chrome {
+  /* Sticky is on .document-page-edit-sticky-stack (tabs + chrome portal host). */
+  margin: 0;
+  background-color: var(--mantine-color-body);
+  padding-top: var(--mantine-spacing-sm);
+  padding-bottom: var(--mantine-spacing-xs);
+}
+
+.toolbar {
+  flex-shrink: 0;
+}
+
 .editorShell {
   border: none;
   border-radius: 0;
   background: transparent;
+  overflow: visible;
 }
 
 /* Tiptap: editierbare Wurzel ist .ProseMirror */
