@@ -637,14 +637,16 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 ### 28a. Leser-Ansicht (Ist & Ausbau)
 
-**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Listen, Code); **Table of Contents** (sticky, nummeriert); `maxWidth: 75ch`; Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
+**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Listen, Code); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Tabellen im Block-Renderer; eingeschränkter Editor (H1–H3, Listen, Code – kein Rich-Embed); Lesetypografie noch `size="sm"` in der Preview.
+**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Tabellen/Callouts im Block-Renderer; eingeschränkter Editor (H1–H3, Listen, Code – kein Rich-Embed); Lesetypografie noch ausbaufähig.
 
 [ ] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in Leser- und ggf. Editor-Ansicht.
 [ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
-[ ] **Leser-Typografie:** Eigene `.document-content`-Styles (Zeilenlänge, Heading-Scale, Code/Listen-Abstände); optional „Reader mode“ (weniger Chrome).
-[ ] **Tabellen:** Block-Typ `table` in Preview/Editor (falls im Block-Schema vorgesehen oder ergänzen).
+[ ] **Leser-Typografie:** Eigene `.document-content`-Styles (Heading-Scale, Code/Listen-Abstände); optional „Reader mode“ (weniger Chrome).
+[ ] **Tabellen:** Block-Typ `table` (TipTap Table-Extension + Zod/Schema + Preview + Markdown/Typst-Export).
+[ ] **Callouts / Warnungen:** Custom-Block z. B. `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Export).
+[ ] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration.
 [ ] **Interne Links:** Querverweise zwischen Dokumenten (`[[title]]` oder Dokument-Picker); Backlinks optional später.
 
 ### 28b. Dokument-Templates (neue Drafts)

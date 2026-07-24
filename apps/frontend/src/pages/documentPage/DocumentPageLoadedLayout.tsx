@@ -430,14 +430,13 @@ export function DocumentPageLoadedLayout({
                   )}
                   {mode === 'view' ? (
                     <Card
-                      withBorder
                       className="document-page-card"
                       w="100%"
                       padding={0}
                       styles={{
                         root: {
-                          padding: '2rem 3rem',
-                          background: 'var(--mantine-color-body)',
+                          padding: '0 0 2rem',
+                          background: 'transparent',
                         },
                       }}
                     >
@@ -460,14 +459,13 @@ export function DocumentPageLoadedLayout({
                     </Card>
                   ) : (
                     <Card
-                      withBorder
                       className="document-page-card"
                       w="100%"
                       padding={0}
                       styles={{
                         root: {
-                          padding: '2rem 3rem',
-                          background: 'var(--mantine-color-body)',
+                          padding: '0 0 2rem',
+                          background: 'transparent',
                         },
                       }}
                     >

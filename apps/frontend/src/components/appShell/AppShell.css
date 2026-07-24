@@ -96,7 +96,7 @@
   flex-direction: column;
 }
 
-/* Reading column: center a narrow scrollport so the scrollbar sits on the card. */
+/* Reading column: centered scrollport; wider body without a framed card look. */
 .document-page-reading {
   flex: 1 1 0%;
   min-width: 0;
@@ -108,11 +108,13 @@
 
 .document-page-scroll {
   width: 100%;
-  max-width: 70ch;
+  max-width: min(100%, 52rem);
   min-height: 0;
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  /* Pull body copy away from the breadcrumb chrome (spacing only, no surface). */
+  padding-top: 1.5rem;
   /* Extra scroll room so the end of the document can sit above the viewport bottom. */
   padding-bottom: min(40vh, 18rem);
   scrollbar-width: thin;
@@ -155,7 +157,9 @@
 }
 
 .document-page-card {
-  background: var(--mantine-color-body);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* Shared nav-row style for TOC + more-documents lists. */
@@ -222,6 +226,12 @@ a.document-chrome-nav-link:focus-visible,
 @media (min-width: 62em) {
   .document-page-body {
     flex-direction: row;
+    /* Wider gutter between TOC/chrome column and document text. */
+    gap: 2.5rem;
+  }
+
+  .document-page-scroll {
+    padding-top: 1.75rem;
   }
 }
 
