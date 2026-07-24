@@ -11,6 +11,10 @@ const BLOCK_ID_NODE_TYPES = new Set([
   'listItem',
   'blockquote',
   'horizontalRule',
+  'table',
+  'tableRow',
+  'tableCell',
+  'tableHeader',
 ]);
 
 /**

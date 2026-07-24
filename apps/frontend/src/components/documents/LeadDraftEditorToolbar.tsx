@@ -96,6 +96,40 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Pr
           >
             Code block
           </Button>
+          <Button
+            size="compact-xs"
+            variant={editor.isActive('table') ? 'filled' : 'light'}
+            onClick={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+          >
+            Table
+          </Button>
+          {editor.isActive('table') && (
+            <>
+              <Button
+                size="compact-xs"
+                variant="light"
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+              >
+                + Row
+              </Button>
+              <Button
+                size="compact-xs"
+                variant="light"
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+              >
+                + Col
+              </Button>
+              <Button
+                size="compact-xs"
+                variant="light"
+                onClick={() => editor.chain().focus().deleteTable().run()}
+              >
+                Delete table
+              </Button>
+            </>
+          )}
         </>
       )}
       {inlineButton(

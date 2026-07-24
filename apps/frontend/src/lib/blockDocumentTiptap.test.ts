@@ -256,6 +256,84 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[2]?.id).toBe('hr1');
   });
 
+  it('roundtrips table with header and body cells', () => {
+    const source: BlockDocument = {
+      schemaVersion: 0,
+      blocks: [
+        {
+          id: 'tbl1',
+          type: 'table',
+          content: [
+            {
+              id: 'r1',
+              type: 'table_row',
+              content: [
+                {
+                  id: 'h1',
+                  type: 'table_header',
+                  content: [
+                    {
+                      id: 'p1',
+                      type: 'paragraph',
+                      content: [{ id: 't1', type: 'text', meta: { text: 'Name' } }],
+                    },
+                  ],
+                },
+                {
+                  id: 'h2',
+                  type: 'table_header',
+                  content: [
+                    {
+                      id: 'p2',
+                      type: 'paragraph',
+                      content: [{ id: 't2', type: 'text', meta: { text: 'Role' } }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'r2',
+              type: 'table_row',
+              content: [
+                {
+                  id: 'c1',
+                  type: 'table_cell',
+                  content: [
+                    {
+                      id: 'p3',
+                      type: 'paragraph',
+                      content: [{ id: 't3', type: 'text', meta: { text: 'Ada' } }],
+                    },
+                  ],
+                },
+                {
+                  id: 'c2',
+                  type: 'table_cell',
+                  content: [
+                    {
+                      id: 'p4',
+                      type: 'paragraph',
+                      content: [{ id: 't4', type: 'text', meta: { text: 'Lead' } }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    expect(json.content?.[0]?.type).toBe('table');
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks[0]?.type).toBe('table');
+    expect(back.blocks[0]?.content?.[0]?.content?.[0]?.type).toBe('table_header');
+    expect(back.blocks[0]?.content?.[1]?.content?.[0]?.content?.[0]?.content?.[0]?.meta?.text).toBe(
+      'Ada'
+    );
+  });
+
   it('omits empty paragraphs without suggestions from export', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',

@@ -2,6 +2,10 @@ import { Badge, Box, Group, Text } from '@mantine/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { SuggestionFriendlyCode } from '../../tiptap/suggestionFriendlyCode.js';
 import StarterKit from '@tiptap/starter-kit';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
 import {
   forwardRef,
   useCallback,
@@ -152,6 +156,13 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
           strike: false,
           code: false,
         }),
+        Table.configure({
+          resizable: false,
+          allowTableNodeSelection: true,
+        }),
+        TableRow,
+        TableHeader,
+        TableCell,
         SuggestionFriendlyCode,
         BlockIdExtension,
         SuggestionInsertMark,

@@ -1,5 +1,6 @@
 import type { BlockDocument, BlockNode } from './blockSchema.js';
 import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
+import { tableBlockToMarkdown } from './markdownTable.js';
 
 function textFromMeta(node: BlockNode): string {
   const t = node.meta?.text;
@@ -86,6 +87,12 @@ function blockNodeToMarkdown(node: BlockNode): string {
         .join('\n>\n');
     case 'horizontal_rule':
       return '---';
+    case 'table':
+      return tableBlockToMarkdown(node, innerText);
+    case 'table_row':
+    case 'table_cell':
+    case 'table_header':
+      return innerText(node);
     default:
       return innerText(node);
   }

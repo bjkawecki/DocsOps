@@ -2,6 +2,7 @@ import type { JSONContent } from '@tiptap/core';
 import type { BlockNodeV0 } from '../api/document-types';
 import { randomId } from './randomId.js';
 import { mergeAdjacentSuggestionLeaves } from './blockDocumentTiptapExportHelpers.js';
+import { tableOurToTiptap, tiptapTableToOur } from './blockDocumentTiptapTable.js';
 
 type InlineMark = 'bold' | 'italic' | 'code';
 
@@ -240,6 +241,8 @@ export function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null
         type: 'horizontalRule',
         attrs: { blockId: block.id },
       };
+    case 'table':
+      return tableOurToTiptap(block, paragraphOurToTiptap, newId, textLeaf);
     default: {
       const text = innerTextFromBlockNode(block);
       if (!text) {
@@ -351,6 +354,15 @@ export function tiptapTopLevelToOur(node: JSONContent): BlockNodeV0 | null {
         attrs: {},
       };
     }
+    case 'table':
+      return tiptapTableToOur(
+        node,
+        readBlockId,
+        tiptapParagraphToOur,
+        pmInlineToTextLeaves,
+        textLeaf,
+        newId
+      );
     default: {
       if (node.content?.length) {
         return {

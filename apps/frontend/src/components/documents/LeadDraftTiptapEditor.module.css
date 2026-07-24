@@ -67,6 +67,31 @@
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
+.editorShell :global(.ProseMirror table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.editorShell :global(.ProseMirror th),
+.editorShell :global(.ProseMirror td) {
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  padding: 0.4em 0.55em;
+  vertical-align: top;
+  min-width: 1em;
+}
+
+.editorShell :global(.ProseMirror th) {
+  font-weight: 650;
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.editorShell :global(.ProseMirror .selectedCell) {
+  background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+}
+
 .editorShell :global(.ProseMirror pre) {
   margin: 0.5em 0;
   padding: var(--mantine-spacing-xs);

@@ -75,6 +75,16 @@ describe('block serialization (EPIC-2)', () => {
     expect(out).toContain('---');
   });
 
+  it('exports and imports GFM tables', () => {
+    const md = ['| Name | Role |', '| --- | --- |', '| Ada | Lead |'].join('\n');
+    const doc = markdownToBlockDocumentV0(md);
+    expect(doc.blocks.map((b) => b.type)).toEqual(['table']);
+    expect(doc.blocks[0]?.content?.[0]?.content?.[0]?.type).toBe('table_header');
+    const out = blockDocumentV0ToMarkdown(doc);
+    expect(out).toContain('| Name | Role |');
+    expect(out).toContain('| Ada | Lead |');
+  });
+
   it('strips pending suggestions from markdown export', () => {
     const doc = {
       schemaVersion: 1 as const,

@@ -1,4 +1,4 @@
-import { Box, Code, List, Stack, Text, Title } from '@mantine/core';
+import { Box, Code, List, Stack, Table, Text, Title } from '@mantine/core';
 import { Fragment, type ReactNode } from 'react';
 import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
@@ -132,6 +132,47 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
           }}
         />
       );
+    case 'table': {
+      const rows = (node.content ?? []).filter((r) => r.type === 'table_row');
+      if (rows.length === 0) return null;
+      return (
+        <Table withTableBorder withColumnBorders stickyHeader={false}>
+          <Table.Tbody>
+            {rows.map((row) => (
+              <Table.Tr key={row.id}>
+                {(row.content ?? [])
+                  .filter((c) => c.type === 'table_cell' || c.type === 'table_header')
+                  .map((cell) => {
+                    const CellTag = cell.type === 'table_header' ? Table.Th : Table.Td;
+                    return (
+                      <CellTag key={cell.id} style={{ verticalAlign: 'top' }}>
+                        <Stack gap={4}>
+                          {(cell.content ?? []).map((c) => (
+                            <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+                          ))}
+                        </Stack>
+                      </CellTag>
+                    );
+                  })}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      );
+    }
+    case 'table_row':
+    case 'table_cell':
+    case 'table_header': {
+      const parts = node.content ?? [];
+      if (parts.length === 0) return null;
+      return (
+        <Stack gap={4}>
+          {parts.map((c) => (
+            <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+          ))}
+        </Stack>
+      );
+    }
     case 'list_item': {
       const parts = node.content ?? [];
       if (parts.length === 0) return null;

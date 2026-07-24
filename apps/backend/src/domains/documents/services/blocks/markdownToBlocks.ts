@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { BlockDocumentV0, BlockNode } from './blockSchema.js';
+import { looksLikeMarkdownTableStart, tryParseMarkdownTable } from './markdownTable.js';
 
 function textNode(text: string): BlockNode {
   return { id: randomUUID(), type: 'text', attrs: {}, meta: { text } };
@@ -33,7 +34,7 @@ function isHorizontalRule(line: string): boolean {
  * Minimal Markdown → Block-Dokument v0 (EPIC-2 / PR-2b).
  * Für Migration/Import; kein vollständiger CommonMark-Parser.
  * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
- * Blockquotes, Horizontal Rules, fenced ``` code ```.
+ * Blockquotes, Horizontal Rules, GFM-Tabellen, fenced ``` code ```.
  */
 export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
   const md = markdown.replace(/\r\n/g, '\n');
@@ -47,6 +48,15 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
     if (line.trim() === '') {
       i += 1;
       continue;
+    }
+
+    if (looksLikeMarkdownTableStart(lines, i)) {
+      const parsed = tryParseMarkdownTable(lines, i, textNode, randomUUID);
+      if (parsed) {
+        blocks.push(parsed.block);
+        i = parsed.nextIndex;
+        continue;
+      }
     }
 
     if (isFenceStart(line)) {
@@ -181,7 +191,8 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
         isBullet(l) ||
         isOrdered(l) ||
         isBlockquote(l) ||
-        isHorizontalRule(l)
+        isHorizontalRule(l) ||
+        looksLikeMarkdownTableStart(lines, i)
       ) {
         break;
       }
