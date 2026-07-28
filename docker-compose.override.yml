@@ -1,11 +1,17 @@
 # Prod-nah: App per Volume-Mount + Watch. Nutzung: docker compose up
 # Caddy leitet auf app:8080; Backend-Code wird live neu geladen.
+# Dev: Host-Ports nur Loopback; kein Autostart nach Reboot (restart: "no").
 services:
   postgres:
+    restart: 'no'
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
+
+  minio:
+    restart: 'no'
 
   app:
+    restart: 'no'
     build:
       context: .
       dockerfile: docker/Dockerfile.node-dev
@@ -55,6 +61,7 @@ services:
       start_period: 120s
 
   docsops-job-worker:
+    restart: 'no'
     build:
       context: .
       dockerfile: docker/Dockerfile.node-dev
@@ -100,16 +107,18 @@ services:
       context: .
       dockerfile: docker/Dockerfile.node-dev
     image: docsops-node-dev
-    restart: unless-stopped
+    restart: 'no'
     user: '${UID:-1000}:${GID:-1000}'
     working_dir: /app
     ports:
-      - '5173:5173'
+      - '127.0.0.1:5173:5173'
     depends_on:
       app:
         condition: service_healthy
     environment:
       VITE_DEV_PROXY_API: http://app:8080
+      # Listen inside the container so Caddy can reach frontend:5173; host bind is loopback-only.
+      VITE_DEV_SERVER_HOST: '0.0.0.0'
     volumes:
       - .:/app
     healthcheck:
@@ -123,9 +132,9 @@ services:
   caddy:
     container_name: ${COMPOSE_PROJECT_NAME:-docsops}-caddy
     image: caddy:2-alpine
-    restart: unless-stopped
+    restart: 'no'
     ports:
-      - '5000:80'
+      - '127.0.0.1:5000:80'
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:

@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 /** Wenn du nur `pnpm --filter frontend dev` startest: /api → Backend (Standard 8080 wie `make dev`). */
 const devApiTarget = process.env.VITE_DEV_PROXY_API ?? 'http://127.0.0.1:8080';
+/** Default loopback; Docker Compose sets `VITE_DEV_SERVER_HOST=0.0.0.0` for Caddy. */
+const devServerHost = process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1';
 
 export default defineConfig({
   plugins: [react()],
@@ -31,7 +33,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true,
+    host: devServerHost,
     proxy: {
       '/api': { target: devApiTarget, changeOrigin: true },
       '/health': { target: devApiTarget, changeOrigin: true },

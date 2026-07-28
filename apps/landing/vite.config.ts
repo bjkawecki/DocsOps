@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
     envDir: landingDir,
     server: {
       port: 5174,
-      host: true,
+      host: process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1',
     },
   };
 });
