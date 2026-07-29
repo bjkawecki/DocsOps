@@ -45,6 +45,9 @@ const HelpOverviewPage = lazy(() =>
 const HelpOrganisationPage = lazy(() =>
   import('./pages/help/HelpOrganisationPage').then((m) => ({ default: m.HelpOrganisationPage }))
 );
+const HelpContextsPage = lazy(() =>
+  import('./pages/help/HelpContextsPage').then((m) => ({ default: m.HelpContextsPage }))
+);
 const HelpPermissionsPage = lazy(() =>
   import('./pages/help/HelpPermissionsPage').then((m) => ({ default: m.HelpPermissionsPage }))
 );
@@ -150,6 +153,7 @@ function App() {
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<HelpOverviewPage />} />
               <Route path="organisation" element={<HelpOrganisationPage />} />
+              <Route path="contexts" element={<HelpContextsPage />} />
               <Route path="permissions" element={<HelpPermissionsPage />} />
               <Route path="workflow" element={<HelpWorkflowPage />} />
               <Route path="collaboration" element={<HelpCollaborationPage />} />

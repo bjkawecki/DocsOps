@@ -5,12 +5,12 @@ export function HelpWorkflowPage() {
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
         <Title order={2}>Document lifecycle</Title>
-        <Text size="md">
+        <Text>
           Documents generally move from an initial draft through collaboration and quality gates to
           a published state. The labels in the product may vary slightly, but the idea is
           consistent.
         </Text>
-        <List type="ordered" size="md" spacing="sm">
+        <List type="ordered" spacing="sm">
           <List.Item>
             <strong>Draft</strong> – Start a draft in a context you can write to. The draft is yours
             or your team&apos;s working copy until it is published or shared as your process
@@ -31,7 +31,7 @@ export function HelpWorkflowPage() {
           </List.Item>
         </List>
       </Stack>
-      <Text size="md" c="dimmed">
+      <Text c="dimmed">
         Archiving and trash are separate lifecycle steps for retiring or recovering content.
       </Text>
     </Stack>

@@ -248,6 +248,8 @@ Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant 
 [x] **Anlegen/Bearbeiten/Löschen von Dokumenten in Kontexten:** Dokumentenliste auf Kontext-Detail-Seite (Process/Project), „New document“-Modal, DocumentPage mit Lese-/Bearbeiten-Modus, PATCH/DELETE; Recent Items beim Öffnen eines Dokuments. Create-Button als Menu (Process | Project | Document); bei Document nur Kontext + Titel im Modal, **kein Redirect** nach Anlegen – Nutzer bleibt auf der Seite.
 [x] **Subcontext-UI (Unterkontexte unter Projekten):** Auf Projekt-Detailseite Block „Unterkontexte“ mit Liste und „Unterkontext anlegen“; Subcontext-Detailseite (`/subcontexts/:subcontextId`) mit Dokumentenliste, „Neues Dokument“, Bearbeiten/Löschen; GET Subcontext liefert `canWriteContext`; Breadcrumb/Link „Unterkontext von [Projektname]“.
 [x] **Kontextfreie Drafts (Teil 2):** Document.contextId optional (Prisma + Migration). Rechte: bei contextId null nur Creator (createdById) und Grants (canRead/canWrite); getWritableCatalogScope um documentIdsFromCreator erweitern; POST /documents mit optionalem contextId (ohne = Draft ohne Kontext); PATCH contextId (null → Kontext) erlauben; Publish nur mit Kontext. Frontend: „Draft ohne Kontext“ im Create-Menü (Personal), Anzeige in Drafts-Tab/Card, DocumentPage „Assign to context“, Catalog.
+[ ] **Dokument zwischen Kontexten verschieben:** Explizite Move-Aktion (von→nach), damit die feste Kontext-Struktur im Alltag korrigierbar bleibt (falscher Unterkontext, Sichtwechsel Product/Engineering/Ops). Abgrenzung zu „Assign to context“ (nur kontextfreier Draft → erster Kontext). Rechte: Zielkontext `canWriteContext`; Tags/Grants am Ziel-Scope validieren; Audit/Historie der Verschiebung.
+[ ] **Move-Freigabe (abgestuft):** **Gleicher Owner-Scope** (z. B. Unterkontexte desselben Team-Projekts): Sofort-Move durch Scope-Lead (kein Zwei-Seiten-Workflow). **Owner-Wechsel** (anderes Team/Department/Company bzw. Personal↔Org): Antrag durch Sender-Lead, Accept durch Empfänger-Lead (beide Seiten); Ablehnen/Zurückziehen; optional Inbox-Notification. Kein pauschales Dual-Approval für jeden Unterkontext-Wechsel.
 [x] **Trash & Archive (Personal & Organization):** Trash-Tab (soft-deleted documents/drafts), GET `/me/trash`, POST `/documents/:id/restore`; Archive-Tab (archivierte Dokumente), Document.archivedAt (Prisma + Migration), GET `/me/archive`, PATCH document.archivedAt; Catalog/Listen filtern archivierte Dokumente aus; Tabs auf Personal-, Company-, Department- und Team-Seite (Sichtbarkeit: Admin oder Scope-Lead, Rechte nach unten).
 [x] **Kontext Trash & Archive (Variante B):** Schema: Process/Project mit `archivedAt`; Soft-Delete (DELETE Kontext → deletedAt + Kaskade auf Dokumente, Pins entfernen); POST restore/unarchive für Kontexte; POST documents/restore bei trashed Kontext = Abkoppeln (contextId null). GET /me/trash und /me/archive inkl. Kontexte (items mit type document|process|project, displayTitle, Filter/Sort), Scopes **personal**, **company**, **department**, **team**. **Rechte §4b:** Schreib-Tabs (Drafts, Trash, Archive) nur für Admin oder Scope-Lead (Company/Department/Team Lead; Rechte gelten nach unten); GET /me/drafts – ausstehende Reviews nur für Schreiber (writable); bei fehlendem Zugriff leere Liste (kein 403). Frontend: Trash/Archive als Tabelle (Filter Typ, Sort, Restore/Unarchive pro Zeile); „Move to trash“ und „Archive“ an Kontexten; Archive/Unarchive auf DocumentPage. Einheitliche Regel: `canShowWriteTabs(me, canManage)` (lib/canShowWriteTabs.ts).
 
@@ -322,6 +324,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] S3-Client (MinIO) im Backend anbinden
 [x] Upload/Download für Anhänge, Bilder und Exporte (z. B. PDF aus §17) in Dokumenten
+[ ] **Bilder im Fließtext (Editor/Preview):** Abgrenzung zu reinen Attachments – siehe §28a Image-/Figure-Block (Darstellung + Caption-Nummerierung).
 [x] Speicherorte in DB referenzieren (z. B. `Document.pdfUrl` für Export-PDFs; vgl. §17); Berechtigungen vor Download prüfen
 [x] **Speicherübersicht (Assets aus MinIO):** Nutzung/Speicher pro Nutzer sichtbar – **Nutzer:** nur eigene Nutzung; **Team-Lead:** Nutzung aller Team-Mitglieder; **Department-Lead:** Nutzung aller Members der Abteilung (alle Teams der Abteilung); **Company-Lead / Admin:** Nutzung aller Abteilungen.
 [x] **Speicherübersicht im Frontend:** Settings-Tab „Storage“ mit Scope-Auswahl (Personal, Team/Department/Company für Leads/Admin), Anzeige von genutzten Bytes und Anhänge-Anzahl; bei Lead-Scope Tabelle „pro Nutzer“.
@@ -639,9 +642,10 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 **Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Horizontal Rule, Tabellen, Code); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; noch keine Inline-Links im Fließtext (ADR 005); Lesetypografie noch ausbaufähig.
+**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; noch keine Inline-Links und keine Image-/Figure-Blöcke im Fließtext; Lesetypografie noch ausbaufähig.
 
 [ ] **Inline-Links (Fließtext):** TipTap-Link-Mark + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
+[ ] **Bilder / Abbildungen:** Block-Typ z. B. `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (Abbildung 1, 2, …); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
 [ ] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in Leser- und ggf. Editor-Ansicht.
 [ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
 [ ] **Leser-Typografie:** Eigene `.document-content`-Styles (Heading-Scale, Code/Listen-Abstände); optional „Reader mode“ (weniger Chrome).
@@ -650,33 +654,37 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [ ] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration.
 [ ] **Interne Links (Dokument↔Dokument):** Querverweise zwischen Dokumenten (`[[title]]` oder Dokument-Picker); Backlinks optional später – getrennt von ADR 005 (Inline-URL/`#anker`).
 
-### 28b. Dokument-Templates (neue Drafts)
+### 28b. Dokument-Types & Templates (neue Drafts)
 
-**Idee:** Beim Anlegen eines **neuen Drafts** (oder „New document“) optional **Template** wählen – vorbelegter Block-Inhalt + optional vorgeschlagener Titel/Tags. Kein separates `/templates`-Wiki; Templates sind **Starter-Inhalte**. **Built-in** (Plattform) plus **Custom** (von Scope Leads und Admins erstellbar).
+**Zielbild:** Drei getrennte Ebenen – **Context** (process / project / subcontext = wo), optionaler **Document type** (welche Art Doc), **Template** (Starter-Inhalt zu einem Type). Beim Anlegen: Type/Template wählen; Vorschau zeigt **when to use**, **example title**, **typical chapters**; Draft erhält Blocks und optional gesetzten Type (`null` erlaubt).
 
-**Vorgeschlagene Templates (Startliste):** Detaillierte Gliederungen (Titel, Beschreibung, Unterkapitel mit Leitfragen): [Dokument-Templates.md](Dokument-Templates.md).
+**Built-in** (Plattform) plus **Custom**: Scope Lead (Company/Department/Team) und Admin (org-/plattformweit). v1: ein Default-Template pro Type. Picker darf nach „often used in process/project“ filtern, ohne harte Pflicht. Details und Gliederungen: [Dokument-Templates.md](Dokument-Templates.md).
 
-| Template                     | Kontext | DE (Orientierung)       | Zweck                                            |
-| ---------------------------- | ------- | ----------------------- | ------------------------------------------------ |
-| **Policy**                   | Prozess | Richtlinie              | Verbindliche Regeln, Geltung, Verantwortung      |
-| **Standard**                 | Prozess | Standard                | Messbare Mindestanforderung                      |
-| **Baseline**                 | Prozess | Baseline                | Mindest-Konfiguration / Ausgangszustand          |
-| **Guideline**                | Prozess | Leitlinie               | Empfohlene Praxis, flexibler als Policy/Standard |
-| **Procedure**                | Prozess | Verfahren, SOP          | Schrittfolge für wiederkehrende Aufgaben         |
-| **Runbook**                  | Prozess | Runbook                 | Incident, Wiederherstellung, zeitkritisch        |
-| **Playbook**                 | Prozess | Playbook                | Wiederkehrender operativer Workflow              |
-| **Checklist**                | Prozess | Checkliste              | Abhakbare Schritte                               |
-| **Repository documentation** | Projekt | Repository-Doku         | Repo-Überblick, Setup, Konventionen              |
-| **ADR**                      | Projekt | Architekturentscheidung | Entscheidung dokumentieren                       |
-| **Architecture overview**    | Projekt | Architekturübersicht    | Systemkontext, Komponenten                       |
-| **Meeting notes**            | Projekt | Protokoll               | Besprechung, Action Items                        |
-| **Post-mortem**              | Projekt | Post-Mortem             | Incident-Nachbereitung                           |
+**UI:** Anwenden im New-document-Flow. Verwalten: Nav-Eintrag unterhalb **Catalog** (z. B. `Document templates`, Route `/document-templates`); nur Lead/Admin. Redirect `/templates` → `/document-templates`. Autoren ohne Lead-Rolle brauchen den Menüpunkt nicht.
 
-[ ] **Konzept:** Template-Definition (JSON/Blocks pro `templateId`); Built-in (statisch/Config) vs. Custom (persistiert, scope- oder plattformgebunden); UI-Auswahl im New-Document-Flow; Nutzung bei `canWrite` im Kontext.
-[ ] **Berechtigung Custom-Templates:** Scope Leads dürfen Templates für ihren Geltungsbereich anlegen/bearbeiten/löschen; Admins zusätzlich plattformweit – Prüfung über `isScopeLead` / `isAdmin` (Permissions-Layer), nicht in Routes inline.
-[ ] **Backend:** `GET /api/v1/document-templates` (Built-in + sichtbare Custom für Scope); CRUD für Custom (`POST/PATCH/DELETE …/document-templates`) nur Lead/Admin; `POST /documents` mit `templateId` → initialer `draftBlocks`-Inhalt.
-[ ] **Frontend:** Template-Picker im New-Document-Modal; Vorschau-Kurzbeschreibung; Verwaltungs-UI „Document templates“ für Leads/Admins (Scope- oder Admin-Bereich).
-[ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) (Policy, Standard, Baseline, Guideline, Procedure, Runbook, Playbook, Repository documentation); DE↔EN-Mapping für Picker-Tooltips.
-[ ] **Doku:** Help-Artikel „Choosing a template“ und „Creating document templates (leads)“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
+| Type (Built-in)              | Often used in | DE (Orientierung)       | Zweck                                            |
+| ---------------------------- | ------------- | ----------------------- | ------------------------------------------------ |
+| **Policy**                   | Process       | Richtlinie              | Verbindliche Regeln, Geltung, Verantwortung      |
+| **Standard**                 | Process       | Standard                | Messbare Mindestanforderung                      |
+| **Baseline**                 | Process       | Baseline                | Mindest-Konfiguration / Ausgangszustand          |
+| **Guideline**                | Process       | Leitlinie               | Empfohlene Praxis, flexibler als Policy/Standard |
+| **Procedure**                | Process       | Verfahren, SOP          | Schrittfolge für wiederkehrende Aufgaben         |
+| **Runbook**                  | Process       | Runbook                 | Incident, Wiederherstellung, zeitkritisch        |
+| **Playbook**                 | Process       | Playbook                | Wiederkehrender operativer Workflow              |
+| **Checklist**                | Process       | Checkliste              | Abhakbare Schritte                               |
+| **Repository documentation** | Project       | Repository-Doku         | Repo-Überblick, Setup, Konventionen              |
+| **ADR**                      | Project       | Architekturentscheidung | Entscheidung dokumentieren                       |
+| **Architecture overview**    | Project       | Architekturübersicht    | Systemkontext, Komponenten                       |
+| **Meeting notes**            | Project       | Protokoll               | Besprechung, Action Items                        |
+| **Post-mortem**              | Project       | Post-Mortem             | Incident-Nachbereitung                           |
 
-**Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die erste Planung.
+Spalte **Often used in** = Hinweis für Picker-Filter, keine Bindung an Kontext-Typ (Document shape ≠ context kind; siehe Help `/help/contexts`).
+
+[ ] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/templates` → `/document-templates`.
+[ ] **Berechtigung:** Templates/Types **verwenden** bei `canWrite` im Kontext; Custom Types/Templates anlegen/bearbeiten/löschen nur Scope Lead / Admin über Permissions-Layer (`isScopeLead` / `isAdmin`), nicht in Routes inline.
+[ ] **Backend:** Types- + Templates-API (`GET` Built-in ∪ sichtbare Custom); CRUD Custom nur Lead/Admin; Document-Feld optional; `POST /documents` mit `templateId` / `typeId` → initialer `draftBlocks` + optional Type.
+[ ] **Frontend:** Picker im New-Document-Flow (when-to-use, example title, chapter outline); Manage-Seite; Nav unter Catalog nur mit Manage-Recht.
+[ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) an Type+Template-Modell anbinden; DE↔EN-Mapping für Picker-Tooltips.
+[ ] **Doku:** Help „Choosing a document type“ / „Managing templates (leads)“; Contexts-Help bereits unter `/help/contexts`; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
+
+**Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die Planung (Umsetzung folgt).

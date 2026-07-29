@@ -5,7 +5,7 @@ export function HelpCollaborationPage() {
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
         <Title order={2}>Reviews & merging</Title>
-        <Text size="md">
+        <Text>
           Many teams are fine with <strong>real-time collaborative editing</strong> (several people
           in one live draft). DocsOps is aimed especially at organisations where that model is{' '}
           <strong>not</strong> how they want to ship documentation–whether because of regulation,
@@ -14,7 +14,7 @@ export function HelpCollaborationPage() {
       </Stack>
       <Stack gap={6}>
         <Title order={3}>Regulated and accountable work</Title>
-        <Text size="md">
+        <Text>
           In regulated settings, “whatever is in the shared buffer right now” is rarely the artifact
           you want to stand behind. You need a <strong>defined moment</strong> when a change is
           accepted: who reviewed it, what was approved, and what readers should treat as current.
@@ -24,7 +24,7 @@ export function HelpCollaborationPage() {
       </Stack>
       <Stack gap={6}>
         <Title order={3}>Distributed and asynchronous teams</Title>
-        <Text size="md">
+        <Text>
           When people work across time zones or calendars, expecting everyone to be online in the
           same document at once is fragile. A workflow built around{' '}
           <strong>drafts, comments, and merge</strong> fits hand-offs: you finish a change, others
@@ -34,7 +34,7 @@ export function HelpCollaborationPage() {
       </Stack>
       <Stack gap={6}>
         <Title order={3}>Why merge, not fancy live sync?</Title>
-        <Text size="md">
+        <Text>
           Keeping many cursors in sync in one surface is a deep engineering problem on its own. That
           is a secondary point: the main one is product fit. A <strong>merge-based</strong>{' '}
           path–draft → review (where needed) → integrate into a published version–matches how many
@@ -44,7 +44,7 @@ export function HelpCollaborationPage() {
       </Stack>
       <Stack gap={6}>
         <Title order={3}>What you get</Title>
-        <List size="md" spacing="xs">
+        <List spacing="xs">
           <List.Item>
             Published versions readers can trust, plus change history for audit and learning.
           </List.Item>

@@ -21,7 +21,9 @@ services:
     entrypoint: []
     volumes:
       - .:/app
-    command: sh -c "pnpm install && pnpm --filter backend exec tsx scripts/wait-for-database.ts && pnpm --filter backend exec prisma migrate deploy && (pnpm --filter backend run create-admin || true) && pnpm --filter backend run dev"
+    # If workspace state is stale (e.g. interrupted install), plain `pnpm install`
+    # can report "Already up to date" while backend bins like tsx are missing.
+    command: sh -c "pnpm install --prod=false && if [ ! -x apps/backend/node_modules/.bin/tsx ]; then pnpm install --prod=false --force; fi && pnpm --filter backend run wait-for-database && pnpm --filter backend exec prisma migrate deploy && (pnpm --filter backend run create-admin || true) && pnpm --filter backend run dev"
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,7 +73,7 @@ services:
     entrypoint: []
     volumes:
       - .:/app
-    command: sh -c "pnpm --filter backend exec tsx scripts/wait-for-database.ts && pnpm --filter backend run worker:dev"
+    command: sh -c "pnpm --filter backend run wait-for-database && pnpm --filter backend run worker:dev"
     depends_on:
       postgres:
         condition: service_healthy
@@ -127,7 +129,7 @@ services:
       timeout: 5s
       retries: 30
       start_period: 120s
-    command: sh -c "pnpm install --ignore-scripts && pnpm --filter frontend run dev"
+    command: sh -c "pnpm install --prod=false --ignore-scripts && pnpm --filter frontend run dev"
 
   caddy:
     container_name: ${COMPOSE_PROJECT_NAME:-docsops}-caddy

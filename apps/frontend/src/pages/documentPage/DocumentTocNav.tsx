@@ -11,7 +11,8 @@ const TOC_INDENT_PX = 14;
 function scrollHeadingIntoView(id: string) {
   const target = document.getElementById(id);
   if (target == null) return;
-  const scrollRoot = document.querySelector('.document-page-scroll');
+  // Page scrollport is the app-shell outlet (not `.document-page-scroll`).
+  const scrollRoot = document.querySelector('.app-shell-outlet--document');
   if (scrollRoot instanceof HTMLElement) {
     const rootRect = scrollRoot.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();

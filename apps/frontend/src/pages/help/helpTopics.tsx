@@ -1,5 +1,6 @@
 import {
   IconBuildingSkyscraper,
+  IconFolders,
   IconGitBranch,
   IconGitMerge,
   IconInfoCircle,
@@ -18,6 +19,11 @@ export const HELP_TOPICS = [
     to: '/help/organisation',
     label: 'Organisation & scopes',
     icon: IconBuildingSkyscraper,
+  },
+  {
+    to: '/help/contexts',
+    label: 'Processes & projects',
+    icon: IconFolders,
   },
   {
     to: '/help/permissions',

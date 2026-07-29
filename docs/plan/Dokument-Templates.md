@@ -1,28 +1,30 @@
 # Dokument-Templates – Ideensammlung
 
 **Stand:** Juli 2026  
-**Bezug:** [Umsetzungs-Todo §28](Umsetzungs-Todo.md) (Interne Tech-Docs & Dokument-Templates, Phase 2)
+**Bezug:** [Umsetzungs-Todo §28b](Umsetzungs-Todo.md) (Document types & templates, Phase 2)
 
-Templates sind **Starter-Inhalte** beim Anlegen eines neuen Drafts: vorgegebener **Titel**, kurze **Beschreibung** (Zweck / wann verwenden), **Unterkapitel** mit **Leitfragen** als Ausfüllhilfe. Keine eigenen Entitäten in v1; Zuordnung zu Kontext-Typ optional (Prozess vs. Projekt).
+**Ebenen:** **Context** (process / project / subcontext) = wo das Dokument liegt. **Document type** (optional am Dokument) = welche Art Doc (Policy, Runbook, ADR, …; Built-in + Custom). **Template** = Starter-Inhalt zu einem Type (example title, typical chapters / Leitfragen, Kurztext **when to use**). Document shape ≠ context kind – ein Runbook kann in process oder project liegen.
 
-**Produkt-Sprache (UI):** Englisch für Template-Namen und Platzhalter im Editor.  
+**v1:** Ein Default-Template pro Type. Custom Types/Templates: Scope Lead (Geltungsbereich) und Admin (org-/plattformweit). Anwenden im New-document-Flow; Verwalten unter Catalog (`Document templates`).
+
+**Produkt-Sprache (UI):** Englisch für Type-/Template-Namen und Platzhalter im Editor.  
 **Doku & Autoren-Hilfe:** Deutsch-Englisch-Mapping unten – für Help-Texte, Picker-Beschreibungen (optional lokalisiert später) und interne Abstimmung.
 
 ---
 
 ## Deutsch ↔ Englisch (Begriffe & Template-Labels)
 
-| Deutsch (häufig in Firmen)     | UI-Label (EN)            | `templateId` (Vorschlag)   | Verbindlichkeit            | Kurz                                                             |
-| ------------------------------ | ------------------------ | -------------------------- | -------------------------- | ---------------------------------------------------------------- |
-| Richtlinie                     | Policy                   | `policy`                   | Verbindlich, strategisch   | Was gilt organisationweit – Ziele, Pflichten, Geltung            |
-| Standard                       | Standard                 | `standard`                 | Verbindlich, prüfbar       | Messbare Mindestanforderung („so muss es sein“)                  |
-| Baseline                       | Baseline                 | `baseline`                 | Verbindlich, konkret       | Ausgangszustand / Mindest-Konfiguration (Security, IT, Qualität) |
-| Leitlinie, Richtschnur         | Guideline                | `guideline`                | Empfehlung                 | Soll-Vorgehen; Abweichungen möglich mit Begründung               |
-| Verfahren, Arbeitsanweisung    | Procedure                | `procedure`                | Verbindlich, operativ      | Schrittfolge für wiederkehrende Tätigkeit                        |
-| Standardarbeitsanweisung (SOP) | Procedure                | `procedure`                | wie Procedure              | SOP = übliches EN-Synonym; kein separates Template nötig         |
-| Runbook                        | Runbook                  | `runbook`                  | Verbindlich unter Incident | Reaktiv, zeitkritisch, Störung/Wiederherstellung                 |
-| Playbook                       | Playbook                 | `playbook`                 | Verbindlich im Ablauf      | Proaktiv, wiederkehrender Workflow mit Rollen                    |
-| Repository-Dokumentation       | Repository documentation | `repository-documentation` | Projektbezogen             | Repo-Überblick für Entwickler:innen                              |
+| Deutsch (häufig in Firmen)     | UI-Label (EN)            | `typeId` / `templateId` (Vorschlag) | Verbindlichkeit            | Kurz                                                             |
+| ------------------------------ | ------------------------ | ----------------------------------- | -------------------------- | ---------------------------------------------------------------- |
+| Richtlinie                     | Policy                   | `policy`                            | Verbindlich, strategisch   | Was gilt organisationweit – Ziele, Pflichten, Geltung            |
+| Standard                       | Standard                 | `standard`                          | Verbindlich, prüfbar       | Messbare Mindestanforderung („so muss es sein“)                  |
+| Baseline                       | Baseline                 | `baseline`                          | Verbindlich, konkret       | Ausgangszustand / Mindest-Konfiguration (Security, IT, Qualität) |
+| Leitlinie, Richtschnur         | Guideline                | `guideline`                         | Empfehlung                 | Soll-Vorgehen; Abweichungen möglich mit Begründung               |
+| Verfahren, Arbeitsanweisung    | Procedure                | `procedure`                         | Verbindlich, operativ      | Schrittfolge für wiederkehrende Tätigkeit                        |
+| Standardarbeitsanweisung (SOP) | Procedure                | `procedure`                         | wie Procedure              | SOP = übliches EN-Synonym; kein separates Template nötig         |
+| Runbook                        | Runbook                  | `runbook`                           | Verbindlich unter Incident | Reaktiv, zeitkritisch, Störung/Wiederherstellung                 |
+| Playbook                       | Playbook                 | `playbook`                          | Verbindlich im Ablauf      | Proaktiv, wiederkehrender Workflow mit Rollen                    |
+| Repository-Dokumentation       | Repository documentation | `repository-documentation`          | Projektbezogen             | Repo-Überblick für Entwickler:innen                              |
 
 **Hierarchie (typisch, von oben nach unten):**
 
@@ -38,33 +40,34 @@ Policy  →  Standard  →  Baseline  →  Guideline  →  Procedure  →  Runbo
 - **Procedures** setzen Policy/Standard in wiederholbare Schritte um.
 - **Runbooks/Playbooks** sind operative Ausprägungen (Incident vs. wiederkehrender Ablauf).
 
-**UI-Hinweis:** Im Template-Picker nur **englische Labels**; optional Tooltip mit deutschem Begriff aus der Tabelle (z. B. „Policy (Richtlinie)“).
+**UI-Hinweis:** Im Type-/Template-Picker nur **englische Labels**; optional Tooltip mit deutschem Begriff aus der Tabelle (z. B. „Policy (Richtlinie)“). Spalte „Often used in“ in §28b ist Filter-Hinweis, keine Pflichtbindung an process/project.
 
 ---
 
 ## Konzept (gemeinsam)
 
-| Feld            | Inhalt                                                                          |
-| --------------- | ------------------------------------------------------------------------------- |
-| **Title**       | Template-Name als Dokumenttitel (editierbar)                                    |
-| **Description** | 1–2 Sätze im Draft-Intro oder als erster Absatz: wofür das Template gedacht ist |
-| **Sections**    | H2-Unterkapitel; je Abschnitt 1–3 Leitfragen als Platzhalter oder Aufzählung    |
+| Feld            | Inhalt                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| **Type**        | Klassifikation (`typeId`, Label, kurze when-to-use); optional am Dokument (`null` = untyped) |
+| **Title**       | Example / suggested document title (editierbar beim Anlegen)                                 |
+| **Description** | When to use (1–2 Sätze) – im Picker und optional als Draft-Intro                             |
+| **Sections**    | Typical chapters (H2); je Abschnitt 1–3 Leitfragen als Platzhalter oder Aufzählung           |
 
 Leitfragen sind **Ausfüllhilfen**, keine Pflichtfelder. Autor:in ersetzt sie durch Inhalt oder löscht überflüssige Abschnitte.
 
 ### Template-Quellen & Berechtigung
 
-| Quelle                 | Wer pflegt                          | Sichtbarkeit (Ziel)                                |
-| ---------------------- | ----------------------------------- | -------------------------------------------------- |
-| **Built-in**           | Plattform (Repo/Config)             | Alle Scopes; nicht löschbar                        |
-| **Custom (Scope)**     | Scope Lead (Firma, Abteilung, Team) | Nutzer:innen im jeweiligen Geltungsbereich         |
-| **Custom (Plattform)** | Admin (`isAdmin`)                   | Organisationsweit oder als Vorlage für alle Scopes |
+| Quelle                           | Wer pflegt                          | Sichtbarkeit (Ziel)                                |
+| -------------------------------- | ----------------------------------- | -------------------------------------------------- |
+| **Built-in**                     | Plattform (Repo/Config)             | Alle Scopes; nicht löschbar                        |
+| **Custom (Scope)**               | Scope Lead (Firma, Abteilung, Team) | Nutzer:innen im jeweiligen Geltungsbereich         |
+| **Custom (Company / Plattform)** | Admin (`isAdmin`)                   | Organisationsweit oder als Vorlage für alle Scopes |
 
-**Anforderung:** Scope Leads und Admins dürfen **eigene Templates erstellen** (und bearbeiten/löschen), nicht nur Built-ins beim Draft-Anlegen auswählen.
+**Anforderung:** Scope Leads und Admins dürfen **eigene Types und Templates** erstellen (und bearbeiten/löschen), nicht nur Built-ins beim Draft-Anlegen auswählen.
 
-- **Scope Lead:** Templates für den eigenen Geltungsbereich – z. B. Team-Runbook-Vorlage, Abteilungs-Policy-Layout.
-- **Admin:** Zusätzlich plattformweite Templates oder Vorlagen, die in mehreren Scopes sichtbar sind.
-- **Autor:innen ohne Lead-Rolle:** Templates **verwenden** (bei `canWrite` im Kontext), nicht definieren.
+- **Scope Lead:** Types/Templates für den eigenen Geltungsbereich.
+- **Admin:** Zusätzlich company-/plattformweite Types oder Vorlagen, die in mehreren Scopes sichtbar sind.
+- **Autor:innen ohne Lead-Rolle:** Types/Templates **verwenden** (bei `canWrite` im Kontext), nicht definieren; Verwaltungs-Nav unter Catalog nicht nötig.
 
 Berechtigung über Permissions-Layer (`isScopeLead`, `isAdmin`) – keine parallele Rollenlogik in Routes.
 
