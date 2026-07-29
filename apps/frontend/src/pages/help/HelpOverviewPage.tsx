@@ -16,6 +16,10 @@ export function HelpOverviewPage() {
         <Anchor component={Link} to="/help/contexts">
           Processes & projects
         </Anchor>
+        . What does <strong>not</strong> belong here is covered in{' '}
+        <Anchor component={Link} to="/help/out-of-scope">
+          What DocsOps is not
+        </Anchor>
         .
       </Text>
       <Text c="dimmed" fs="italic">

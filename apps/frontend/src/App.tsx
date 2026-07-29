@@ -42,6 +42,9 @@ const HelpLayout = lazy(() =>
 const HelpOverviewPage = lazy(() =>
   import('./pages/help/HelpOverviewPage').then((m) => ({ default: m.HelpOverviewPage }))
 );
+const HelpOutOfScopePage = lazy(() =>
+  import('./pages/help/HelpOutOfScopePage').then((m) => ({ default: m.HelpOutOfScopePage }))
+);
 const HelpOrganisationPage = lazy(() =>
   import('./pages/help/HelpOrganisationPage').then((m) => ({ default: m.HelpOrganisationPage }))
 );
@@ -152,6 +155,7 @@ function App() {
             <Route path="help" element={<HelpLayout />}>
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<HelpOverviewPage />} />
+              <Route path="out-of-scope" element={<HelpOutOfScopePage />} />
               <Route path="organisation" element={<HelpOrganisationPage />} />
               <Route path="contexts" element={<HelpContextsPage />} />
               <Route path="permissions" element={<HelpPermissionsPage />} />

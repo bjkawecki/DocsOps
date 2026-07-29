@@ -380,13 +380,39 @@ Berechtigung über Permissions-Layer (`isScopeLead`, `isAdmin`) – keine parall
 
 ## Weitere Kandidaten (noch ohne Detail-Gliederung)
 
-| Template (EN)         | DE                            | Kontext           | Kurz                       |
-| --------------------- | ----------------------------- | ----------------- | -------------------------- |
-| Checklist             | Checkliste                    | Prozess / Projekt | Abhakbare Schritte         |
-| ADR                   | ADR / Architekturentscheidung | Projekt           | Entscheidung dokumentieren |
-| Architecture overview | Architekturübersicht          | Projekt           | Systemkontext, Komponenten |
-| Meeting notes         | Protokoll                     | Projekt           | Besprechung, Action Items  |
-| Post-mortem           | Post-Mortem                   | Projekt           | Incident-Nachbereitung     |
+| Template (EN)         | DE                            | Kontext           | Kurz                                   |
+| --------------------- | ----------------------------- | ----------------- | -------------------------------------- |
+| Checklist             | Checkliste                    | Prozess / Projekt | Abhakbare Schritte                     |
+| ADR                   | ADR / Architekturentscheidung | Projekt           | Entscheidung dokumentieren             |
+| Architecture overview | Architekturübersicht          | Projekt           | Systemkontext, Komponenten             |
+| Meeting notes         | Protokoll                     | Projekt           | Besprechung, Action Items              |
+| Post-mortem           | Post-Mortem                   | Projekt           | Incident-Nachbereitung                 |
+| Known issue           | Bekannter Fehler / Bug report | Projekt           | Wissensartefakt, nicht Ticket-Workflow |
+
+### Known issue (Bug report als Wissensartefakt)
+
+| Feld                  | Inhalt                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| **Title**             | `Known issue` (Picker; Tooltip DE: „Bekannter Fehler / Bug-Dokumentation“)                |
+| **typeId**            | `known-issue` (alternatives UI-Label: Bug report)                                         |
+| **Typischer Einsatz** | Bekannte Einschränkung am Produkt: Symptom, Impact, Workaround; Verweis auf Issue-Tracker |
+| **Nicht dafür**       | Assignee, Sprint, Triage-Status – das bleibt im Tracker                                   |
+| **Often used in**     | Project (Product / initiative); optional Subcontext „Known issues“                        |
+| **Example title**     | `Known issue: export fails for files larger than 50 MB`                                   |
+
+**When to use:** The defect is lasting knowledge (support, ops, readers need a workaround or clear „this is known“). Link the tracker issue; do not replace the tracker.
+
+**Typical chapters (Leitfragen):**
+
+1. **Summary** – One-line symptom and who is affected.
+2. **Symptoms** – What users or systems observe.
+3. **Expected vs actual** – Short contrast.
+4. **Environment** – Versions, scopes, browsers, flags if relevant.
+5. **Workaround** – What to do until fixed (or „none“).
+6. **Tracker** – Link to the issue (SSoT for assignment and status).
+7. **Status / resolution** – Open, mitigated, fixed in version X (keep in sync with tracker).
+
+**Abgrenzung:** Runbook = how to react under pressure. Post-mortem = after an incident. Known issue = durable description of a known defect for the knowledge base.
 
 ---
 

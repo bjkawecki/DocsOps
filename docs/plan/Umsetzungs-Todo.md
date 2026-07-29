@@ -662,29 +662,32 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 **UI:** Anwenden im New-document-Flow. Verwalten: Nav-Eintrag unterhalb **Catalog** (z. B. `Document templates`, Route `/document-templates`); nur Lead/Admin. Redirect `/templates` → `/document-templates`. Autoren ohne Lead-Rolle brauchen den Menüpunkt nicht.
 
-| Type (Built-in)              | Often used in | DE (Orientierung)       | Zweck                                            |
-| ---------------------------- | ------------- | ----------------------- | ------------------------------------------------ |
-| **Policy**                   | Process       | Richtlinie              | Verbindliche Regeln, Geltung, Verantwortung      |
-| **Standard**                 | Process       | Standard                | Messbare Mindestanforderung                      |
-| **Baseline**                 | Process       | Baseline                | Mindest-Konfiguration / Ausgangszustand          |
-| **Guideline**                | Process       | Leitlinie               | Empfohlene Praxis, flexibler als Policy/Standard |
-| **Procedure**                | Process       | Verfahren, SOP          | Schrittfolge für wiederkehrende Aufgaben         |
-| **Runbook**                  | Process       | Runbook                 | Incident, Wiederherstellung, zeitkritisch        |
-| **Playbook**                 | Process       | Playbook                | Wiederkehrender operativer Workflow              |
-| **Checklist**                | Process       | Checkliste              | Abhakbare Schritte                               |
-| **Repository documentation** | Project       | Repository-Doku         | Repo-Überblick, Setup, Konventionen              |
-| **ADR**                      | Project       | Architekturentscheidung | Entscheidung dokumentieren                       |
-| **Architecture overview**    | Project       | Architekturübersicht    | Systemkontext, Komponenten                       |
-| **Meeting notes**            | Project       | Protokoll               | Besprechung, Action Items                        |
-| **Post-mortem**              | Project       | Post-Mortem             | Incident-Nachbereitung                           |
+| Type (Built-in)              | Often used in | DE (Orientierung)       | Zweck                                                                                  |
+| ---------------------------- | ------------- | ----------------------- | -------------------------------------------------------------------------------------- |
+| **Policy**                   | Process       | Richtlinie              | Verbindliche Regeln, Geltung, Verantwortung                                            |
+| **Standard**                 | Process       | Standard                | Messbare Mindestanforderung                                                            |
+| **Baseline**                 | Process       | Baseline                | Mindest-Konfiguration / Ausgangszustand                                                |
+| **Guideline**                | Process       | Leitlinie               | Empfohlene Praxis, flexibler als Policy/Standard                                       |
+| **Procedure**                | Process       | Verfahren, SOP          | Schrittfolge für wiederkehrende Aufgaben                                               |
+| **Runbook**                  | Process       | Runbook                 | Incident, Wiederherstellung, zeitkritisch                                              |
+| **Playbook**                 | Process       | Playbook                | Wiederkehrender operativer Workflow                                                    |
+| **Checklist**                | Process       | Checkliste              | Abhakbare Schritte                                                                     |
+| **Repository documentation** | Project       | Repository-Doku         | Repo-Überblick, Setup, Konventionen                                                    |
+| **ADR**                      | Project       | Architekturentscheidung | Entscheidung dokumentieren                                                             |
+| **Architecture overview**    | Project       | Architekturübersicht    | Systemkontext, Komponenten                                                             |
+| **Meeting notes**            | Project       | Protokoll               | Besprechung, Action Items                                                              |
+| **Post-mortem**              | Project       | Post-Mortem             | Incident-Nachbereitung                                                                 |
+| **Known issue**              | Project       | Bekannter Fehler / Bug  | Wissensartefakt: Symptom, Impact, Workaround; Link zum Ticket – **kein** Issue-Tracker |
 
 Spalte **Often used in** = Hinweis für Picker-Filter, keine Bindung an Kontext-Typ (Document shape ≠ context kind; siehe Help `/help/contexts`).
+
+**Known issue (UI-Label alternativ „Bug report“):** Dokumentation eines **bekannten** Defekts im Wissenssystem (Repro, Expected/Actual, Environment, Workaround, Tracker-Link). Nicht Assignee/Sprint/Statusmaschine – das bleibt im Issue-Tracker. Typischer Ablageort: Product-**Project** (optional Subcontext). Abgrenzung: Runbook = Reaktion; Post-mortem = Nachbereitung; Known issue = „das ist bekannt und so äußert es sich“.
 
 [ ] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/templates` → `/document-templates`.
 [ ] **Berechtigung:** Templates/Types **verwenden** bei `canWrite` im Kontext; Custom Types/Templates anlegen/bearbeiten/löschen nur Scope Lead / Admin über Permissions-Layer (`isScopeLead` / `isAdmin`), nicht in Routes inline.
 [ ] **Backend:** Types- + Templates-API (`GET` Built-in ∪ sichtbare Custom); CRUD Custom nur Lead/Admin; Document-Feld optional; `POST /documents` mit `templateId` / `typeId` → initialer `draftBlocks` + optional Type.
 [ ] **Frontend:** Picker im New-Document-Flow (when-to-use, example title, chapter outline); Manage-Seite; Nav unter Catalog nur mit Manage-Recht.
 [ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) an Type+Template-Modell anbinden; DE↔EN-Mapping für Picker-Tooltips.
-[ ] **Doku:** Help „Choosing a document type“ / „Managing templates (leads)“; Contexts-Help bereits unter `/help/contexts`; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
+[ ] **Doku:** Help „Choosing a document type“ / „Managing templates (leads)“; Contexts-Help unter `/help/contexts`; Out-of-scope unter `/help/out-of-scope`; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
 
 **Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die Planung (Umsetzung folgt).

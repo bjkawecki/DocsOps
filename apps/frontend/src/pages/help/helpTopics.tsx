@@ -1,4 +1,5 @@
 import {
+  IconBan,
   IconBuildingSkyscraper,
   IconFolders,
   IconGitBranch,
@@ -14,6 +15,11 @@ export const HELP_TOPICS = [
     to: '/help/overview',
     label: 'What is DocsOps?',
     icon: IconInfoCircle,
+  },
+  {
+    to: '/help/out-of-scope',
+    label: 'What DocsOps is not',
+    icon: IconBan,
   },
   {
     to: '/help/organisation',
