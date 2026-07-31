@@ -143,6 +143,19 @@ describe('block serialization (EPIC-2)', () => {
     expect(round.blocks.map((b) => b.attrs?.variant)).toEqual(['warning', 'info', 'tip']);
   });
 
+  it('exports and imports mermaid fences (§28a)', () => {
+    const md = ['```mermaid', 'flowchart LR', '  A --> B', '```'].join('\n');
+    const doc = markdownToBlockDocumentV0(md);
+    expect(doc.blocks.map((b) => b.type)).toEqual(['mermaid']);
+    expect(doc.blocks[0]?.attrs).toEqual({});
+    const out = blockDocumentV0ToMarkdown(doc);
+    expect(out).toContain('```mermaid');
+    expect(out).toContain('flowchart LR');
+    expect(out).toContain('A --> B');
+    const round = markdownToBlockDocumentV0(out);
+    expect(round.blocks[0]?.type).toBe('mermaid');
+  });
+
   it('exports and imports GFM tables', () => {
     const md = ['| Name | Role |', '| --- | --- |', '| Ada | Lead |'].join('\n');
     const doc = markdownToBlockDocumentV0(md);

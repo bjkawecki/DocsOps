@@ -1,0 +1,95 @@
+.editorRoot {
+  margin: 1.1em 0;
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem 0.25rem 0.85rem;
+  min-height: 2rem;
+}
+
+.editorLabel {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  user-select: none;
+}
+
+.editorRemove {
+  flex-shrink: 0;
+}
+
+.editorPre {
+  margin: 0;
+  padding: 0 0.85rem 0.75rem;
+  background: transparent;
+  overflow-x: auto;
+}
+
+.editorCode {
+  display: block;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  white-space: pre;
+  outline: none;
+}
+
+.previewRoot {
+  margin: 1.1em 0;
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+.previewHeader {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  user-select: none;
+}
+
+.previewBody {
+  padding: 0.85rem;
+  overflow-x: auto;
+}
+
+.previewBody :global(svg) {
+  max-width: 100%;
+  height: auto;
+}
+
+.previewError {
+  color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-3));
+  font-size: var(--mantine-font-size-sm);
+  margin-bottom: 0.5rem;
+}
+
+.previewSource {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--mantine-radius-xs);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7));
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.previewEmpty {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  font-size: var(--mantine-font-size-sm);
+}

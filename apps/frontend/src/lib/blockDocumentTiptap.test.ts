@@ -435,6 +435,28 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[0]?.content?.[0]?.content?.[0]?.meta?.text).toBe('Watch disk space');
   });
 
+  it('round-trips mermaid blocks (§28a)', () => {
+    const source: BlockDocument = {
+      schemaVersion: 0,
+      blocks: [
+        {
+          id: 'm1',
+          type: 'mermaid',
+          attrs: {},
+          content: [{ id: 't1', type: 'text', meta: { text: 'flowchart LR\n  A --> B' } }],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    expect(json.content?.[0]?.type).toBe('mermaid');
+    expect(json.content?.[0]?.attrs?.blockId).toBe('m1');
+    expect(json.content?.[0]?.content?.[0]?.text).toBe('flowchart LR\n  A --> B');
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks[0]?.type).toBe('mermaid');
+    expect(back.blocks[0]?.id).toBe('m1');
+    expect(back.blocks[0]?.content?.[0]?.meta?.text).toBe('flowchart LR\n  A --> B');
+  });
+
   it('omits empty paragraphs without suggestions from export', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',

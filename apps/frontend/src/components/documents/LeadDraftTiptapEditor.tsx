@@ -39,6 +39,7 @@ import { SuggestionMarkPopover } from './documentLeadDraft/SuggestionMarkPopover
 import { useDraftSuggestionMutations } from './documentLeadDraft/useDraftSuggestionMutations.js';
 import { DocumentImage } from '../../tiptap/documentImage.js';
 import { DocumentCallout } from '../../tiptap/documentCallout.js';
+import { DocumentMermaid } from '../../tiptap/documentMermaid.js';
 import { LeadDraftEditorToolbar } from './LeadDraftEditorToolbar.js';
 import classes from './LeadDraftTiptapEditor.module.css';
 
@@ -182,6 +183,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
         TableCell,
         DocumentImage,
         DocumentCallout,
+        DocumentMermaid,
         SuggestionFriendlyCode,
         BlockIdExtension,
         SuggestionInsertMark,

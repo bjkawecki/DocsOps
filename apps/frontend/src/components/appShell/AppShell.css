@@ -186,14 +186,19 @@
 }
 
 .document-page-card {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  /* Override Mantine Card paper surface + overflow (overflow:hidden breaks sticky). */
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  padding: 0 0 2rem;
 }
 
 .document-page-card--edit {
   display: block;
-  overflow: visible;
+  /* No border here – sticky tabs/chrome live inside this Card; border goes on editorShell. */
+  padding: 0 0 1.5rem;
 }
 
 /* Edit: one sticky stack (tabs + draft chrome) – no gap between sticky layers. */

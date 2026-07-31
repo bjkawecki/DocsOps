@@ -434,17 +434,7 @@ export function DocumentPageLoadedLayout({
                         onReload={onReloadPublishedContent}
                       />
                     )}
-                    <Card
-                      className="document-page-card"
-                      w="100%"
-                      padding={0}
-                      styles={{
-                        root: {
-                          padding: '0 0 2rem',
-                          background: 'transparent',
-                        },
-                      }}
-                    >
+                    <Card className="document-page-card" w="100%" padding={0}>
                       <Box style={{ maxWidth: '100%' }}>
                         {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
                           publishedPlainFromBlocks ? (
@@ -482,13 +472,6 @@ export function DocumentPageLoadedLayout({
                       className="document-page-card document-page-card--edit"
                       w="100%"
                       padding={0}
-                      styles={{
-                        root: {
-                          padding: 0,
-                          background: 'transparent',
-                          overflow: 'visible',
-                        },
-                      }}
                     >
                       <Tabs
                         className="document-page-edit-tabs"

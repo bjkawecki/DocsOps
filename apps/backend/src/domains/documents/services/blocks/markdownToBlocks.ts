@@ -38,7 +38,7 @@ const GFM_ALERT_LINE = /^\[!(NOTE|WARNING|TIP)\]\s*$/i;
  * Für Migration/Import; kein vollständiger CommonMark-Parser.
  * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
  * Blockquotes, GFM Alerts (`[!NOTE|WARNING|TIP]` → callout), Horizontal Rules,
- * GFM-Tabellen, fenced ``` code ```.
+ * GFM-Tabellen, fenced ``` code ```, fenced ```mermaid``` → mermaid.
  */
 export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
   const md = markdown.replace(/\r\n/g, '\n');
@@ -75,14 +75,23 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
         i += 1;
       }
       if (i < lines.length && isFenceStart(lines[i] ?? '')) i += 1;
-      const attrs: Record<string, unknown> = {};
-      if (lang.length > 0) attrs.lang = lang;
-      blocks.push({
-        id: randomUUID(),
-        type: 'code',
-        attrs,
-        content: [textNode(body.join('\n'))],
-      });
+      if (lang.toLowerCase() === 'mermaid') {
+        blocks.push({
+          id: randomUUID(),
+          type: 'mermaid',
+          attrs: {},
+          content: [textNode(body.join('\n'))],
+        });
+      } else {
+        const attrs: Record<string, unknown> = {};
+        if (lang.length > 0) attrs.lang = lang;
+        blocks.push({
+          id: randomUUID(),
+          type: 'code',
+          attrs,
+          content: [textNode(body.join('\n'))],
+        });
+      }
       continue;
     }
 

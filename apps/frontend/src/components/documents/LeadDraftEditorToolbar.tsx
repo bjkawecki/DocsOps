@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/core';
 import {
   IconAlertTriangle,
   IconBold,
+  IconChartDots3,
   IconCode,
   IconColumnInsertRight,
   IconFileCode,
@@ -29,6 +30,7 @@ import {
   isCalloutVariant,
   type CalloutVariant,
 } from '../../lib/calloutVariant.js';
+import { DEFAULT_MERMAID_SOURCE } from '../../tiptap/documentMermaid.js';
 import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
 import classes from './LeadDraftEditorToolbar.module.css';
 
@@ -241,6 +243,13 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
               }}
             />
           )}
+          <ToolIcon
+            label="Mermaid diagram"
+            active={editor.isActive('mermaid')}
+            onClick={() => editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()}
+          >
+            <IconChartDots3 size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
           <ToolIcon
             label="Image"
             active={editor.isActive('image')}

@@ -234,6 +234,14 @@ export function ourTopLevelBlockToTiptap(
         content: text ? [{ type: 'text', text }] : [],
       };
     }
+    case 'mermaid': {
+      const text = innerTextFromBlockNode(block);
+      return {
+        type: 'mermaid',
+        attrs: { blockId: block.id },
+        content: text ? [{ type: 'text', text }] : [],
+      };
+    }
     case 'bullet_list': {
       const items = (block.content ?? []).filter((c) => c.type === 'list_item');
       return {
@@ -362,6 +370,16 @@ export function tiptapTopLevelToOur(node: JSONContent): BlockNodeV0 | null {
         id,
         type: 'code',
         attrs: lang ? { lang } : {},
+        content: [textLeaf(t)],
+      };
+    }
+    case 'mermaid': {
+      const id = readBlockId(node.attrs as Record<string, unknown> | undefined);
+      const t = pmInlineText(node.content);
+      return {
+        id,
+        type: 'mermaid',
+        attrs: {},
         content: [textLeaf(t)],
       };
     }

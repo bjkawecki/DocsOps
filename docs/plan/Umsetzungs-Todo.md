@@ -640,14 +640,14 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 ### 28a. Leser-Ansicht (Ist & Ausbau)
 
-**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Callouts, Horizontal Rule, Tabellen, Code mit Syntax-Highlighting, Bilder/Abbildungen); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
+**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Callouts, Mermaid-Diagramme, Horizontal Rule, Tabellen, Code mit Syntax-Highlighting, Bilder/Abbildungen); **Table of Contents** (sticky, nummeriert); Lesespalte `max-width: min(100%, 52rem)` (View ohne Rahmen; Edit: Border nur um die Draft-Body/`editorShell`, Sticky Tabs/Toolbar unverändert); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** keine Mermaid/Diagramm-Blöcke; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links, Tabellen, Bilder/Abbildungen, Code-Highlighting (Preview) und Callouts sind umgesetzt.
+**Lücken vs. GitBook/Mintlify:** Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links, Tabellen, Bilder/Abbildungen, Code-Highlighting (Preview), Callouts und Mermaid-Diagramme sind umgesetzt.
 
 [x] **Inline-Links (Fließtext):** TipTap-Link-Mark + `meta.link` + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
 [x] **Bilder / Abbildungen:** Block-Typ `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (`Figure n`); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
 [x] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in der Leser-Preview (`@mantine/code-highlight` + highlight.js); Sprache im Editor wählbar.
-[ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
+[x] **Diagramme:** Mermaid-Block (Lesen mit clientseitigem Render `securityLevel: 'strict'`; Editor Quelltext ohne Live-Embed) – Architektur, Ablaufdiagramme. Markdown ` ```mermaid `.
 [ ] **Leser-Typografie:** Heading-Scale und ggf. engere Code/Listen-Abstände in `.document-content`; optional „Reader mode“ (weniger Chrome). Basis-Styles (Font, Zeilenhöhe, Tabellen/Code) bereits vorhanden.
 [x] **Tabellen:** Block-Typ `table` (TipTap Table-Extension + Zod/Schema + Preview + Markdown/Typst-Export).
 [x] **Callouts / Warnungen:** Custom-Block `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Markdown/Typst-Export als GFM Alerts).

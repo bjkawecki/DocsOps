@@ -90,6 +90,10 @@ function blockNodeToMarkdown(node: BlockNode, ctx: MarkdownExportContext): strin
       const body = innerText(node);
       return `\`\`\`${lang}\n${body}\n\`\`\``;
     }
+    case 'mermaid': {
+      const body = innerText(node);
+      return `\`\`\`mermaid\n${body}\n\`\`\``;
+    }
     case 'list_item':
       return innerText(node);
     case 'bullet_list':

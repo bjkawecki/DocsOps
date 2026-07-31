@@ -97,8 +97,6 @@ export function HelpLayout() {
                   padding={0}
                   styles={{
                     root: {
-                      padding: '0 0 2rem',
-                      background: 'transparent',
                       textAlign: 'left',
                       overflow: 'visible',
                     },

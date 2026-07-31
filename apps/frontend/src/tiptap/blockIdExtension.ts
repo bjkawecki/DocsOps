@@ -11,6 +11,7 @@ const BLOCK_ID_NODE_TYPES = new Set([
   'listItem',
   'blockquote',
   'callout',
+  'mermaid',
   'horizontalRule',
   'image',
   'table',

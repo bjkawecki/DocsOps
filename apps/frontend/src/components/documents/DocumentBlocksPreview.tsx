@@ -10,6 +10,7 @@ import {
 } from '../../pages/documentPage/blockDocumentHeadings';
 import { renderInlineBlockContent } from './documentBlockPreviewInline.js';
 import { DocumentPreviewCodeBlock } from './DocumentPreviewCodeBlock';
+import { DocumentPreviewMermaid } from './DocumentPreviewMermaid';
 import calloutClasses from './DocumentCallout.module.css';
 import { CALLOUT_VARIANT_LABELS } from '../../lib/calloutVariant.js';
 
@@ -271,6 +272,9 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
           label={codeBlockLanguageLabel(rawLang, language)}
         />
       );
+    }
+    case 'mermaid': {
+      return <DocumentPreviewMermaid source={walkNode(node)} />;
     }
     case 'text': {
       const inline = renderInlineBlockContent([node]);
