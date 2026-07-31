@@ -7,6 +7,7 @@ import {
   assertBlockDocumentImagesValid,
   assertBlockDocumentCalloutsValid,
   InvalidBlockLinkHrefError,
+  InvalidBlockDocumentLinkError,
   InvalidBlockImageError,
   InvalidBlockCalloutError,
   type BlockDocument,
@@ -124,7 +125,7 @@ export async function patchLeadDraft(
   }
   let parsed = normalizeBlockDocumentSchemaVersion(safe.data);
   try {
-    assertBlockDocumentLinksValid(parsed);
+    await assertBlockDocumentLinksValid(prisma, ctx.userId, parsed);
     assertBlockDocumentCalloutsValid(parsed);
     const attachmentRows = await prisma.documentAttachment.findMany({
       where: { documentId },
@@ -134,6 +135,13 @@ export async function patchLeadDraft(
   } catch (err) {
     if (err instanceof InvalidBlockLinkHrefError) {
       return { ok: false, error: 'validation', issues: { linkHref: err.href } };
+    }
+    if (err instanceof InvalidBlockDocumentLinkError) {
+      return {
+        ok: false,
+        error: 'validation',
+        issues: { linkDocumentId: err.documentId, linkDocumentReason: err.reason },
+      };
     }
     if (err instanceof InvalidBlockImageError) {
       return {

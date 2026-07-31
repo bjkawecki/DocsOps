@@ -84,6 +84,27 @@ describe('block serialization (EPIC-2)', () => {
     expect(md).toContain('[intro](#intro)');
   });
 
+  it('exports cross-document links as docsops-doc tokens (ADR 006)', () => {
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: { text: 'Related', link: { documentId: 'clxxxxxxxxxxxxxxxxxx' } },
+            },
+          ],
+        },
+      ],
+    };
+    const md = blockDocumentV0ToMarkdown(doc);
+    expect(md).toContain('[Related](docsops-doc:clxxxxxxxxxxxxxxxxxx)');
+  });
+
   it('exports image blocks with Figure numbering (§28a)', () => {
     const doc = {
       schemaVersion: 0 as const,

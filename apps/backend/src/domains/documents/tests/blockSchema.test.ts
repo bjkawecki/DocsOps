@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import {
   exampleBlockDocumentV0,
   parseBlockDocumentV0,
@@ -12,8 +13,22 @@ import {
   assertBlockDocumentCalloutsValid,
   InvalidBlockCalloutError,
   InvalidBlockLinkHrefError,
+  InvalidBlockDocumentLinkError,
   InvalidBlockImageError,
 } from '../services/blocks/blockSchema.js';
+import { canRead } from '../permissions/canRead.js';
+
+vi.mock('../permissions/canRead.js', () => ({
+  canRead: vi.fn(),
+}));
+
+function makePrisma(opts: { documentExists: boolean }): PrismaClient {
+  return {
+    document: {
+      findFirst: vi.fn().mockResolvedValue(opts.documentExists ? { id: 'doc_target' } : null),
+    },
+  } as unknown as PrismaClient;
+}
 
 describe('blockSchema v0', () => {
   it('parses the bundled example', () => {
@@ -102,7 +117,11 @@ describe('blockSchema v1', () => {
   });
 });
 
-describe('blockSchema link href (ADR 005)', () => {
+describe('blockSchema link href (ADR 005 / 006)', () => {
+  beforeEach(() => {
+    vi.mocked(canRead).mockReset();
+  });
+
   it('allows http(s) and hash slugs', () => {
     expect(isAllowedLinkHref('https://example.com/path')).toBe(true);
     expect(isAllowedLinkHref('http://example.com')).toBe(true);
@@ -117,7 +136,7 @@ describe('blockSchema link href (ADR 005)', () => {
     expect(isAllowedLinkHref('#bad slug')).toBe(false);
   });
 
-  it('assertBlockDocumentLinksValid rejects bad href', () => {
+  it('assertBlockDocumentLinksValid rejects bad href', async () => {
     const doc = {
       schemaVersion: 1 as const,
       blocks: [
@@ -134,10 +153,12 @@ describe('blockSchema link href (ADR 005)', () => {
         },
       ],
     };
-    expect(() => assertBlockDocumentLinksValid(doc)).toThrow(InvalidBlockLinkHrefError);
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: true }), 'user_1', doc)
+    ).rejects.toThrow(InvalidBlockLinkHrefError);
   });
 
-  it('assertBlockDocumentLinksValid accepts https and hash', () => {
+  it('assertBlockDocumentLinksValid accepts https and hash', async () => {
     const doc = {
       schemaVersion: 1 as const,
       blocks: [
@@ -151,7 +172,88 @@ describe('blockSchema link href (ADR 005)', () => {
         },
       ],
     };
-    expect(() => assertBlockDocumentLinksValid(doc)).not.toThrow();
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: true }), 'user_1', doc)
+    ).resolves.toBeUndefined();
+  });
+
+  it('assertBlockDocumentLinksValid accepts readable documentId', async () => {
+    vi.mocked(canRead).mockResolvedValue(true);
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            { id: 't1', type: 'text', meta: { text: 'other', link: { documentId: 'doc_target' } } },
+          ],
+        },
+      ],
+    };
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: true }), 'user_1', doc)
+    ).resolves.toBeUndefined();
+    expect(canRead).toHaveBeenCalledWith(expect.anything(), 'user_1', 'doc_target');
+  });
+
+  it('assertBlockDocumentLinksValid rejects unknown documentId', async () => {
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            { id: 't1', type: 'text', meta: { text: 'x', link: { documentId: 'missing' } } },
+          ],
+        },
+      ],
+    };
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: false }), 'user_1', doc)
+    ).rejects.toThrow(InvalidBlockDocumentLinkError);
+  });
+
+  it('assertBlockDocumentLinksValid rejects unread documentId', async () => {
+    vi.mocked(canRead).mockResolvedValue(false);
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            { id: 't1', type: 'text', meta: { text: 'x', link: { documentId: 'doc_target' } } },
+          ],
+        },
+      ],
+    };
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: true }), 'user_1', doc)
+    ).rejects.toThrow(InvalidBlockDocumentLinkError);
+  });
+
+  it('assertBlockDocumentLinksValid rejects malformed link meta', async () => {
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: { text: 'x', link: { href: 'https://a.example', documentId: 'doc_target' } },
+            },
+          ],
+        },
+      ],
+    };
+    await expect(
+      assertBlockDocumentLinksValid(makePrisma({ documentExists: true }), 'user_1', doc)
+    ).rejects.toThrow(InvalidBlockDocumentLinkError);
   });
 });
 

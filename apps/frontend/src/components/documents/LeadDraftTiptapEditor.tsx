@@ -25,7 +25,7 @@ import {
   blockDocumentToTiptapJson,
   tiptapJsonToBlockDocument,
 } from '../../lib/blockDocumentTiptap';
-import { isAllowedLinkHref } from '../../lib/blockLinkHref.js';
+import { isAllowedEditorLinkHref } from '../../lib/blockLinkHref.js';
 import { isSuggestionPersisted } from '../../lib/draftSuggestionUtils.js';
 import { withdrawLocalSuggestionInEditor } from '../../tiptap/withdrawLocalSuggestion.js';
 import { AuthorSuggestionModeExtension } from '../../tiptap/authorSuggestionMode';
@@ -168,11 +168,15 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
           openOnClick: false,
           autolink: false,
           linkOnPaste: false,
-          protocols: ['http', 'https'],
+          protocols: ['http', 'https', { scheme: 'docsops-doc', optionalSlashes: true }],
           HTMLAttributes: {
             rel: 'noopener noreferrer',
           },
-          validate: (href) => isAllowedLinkHref(href),
+          isAllowedUri: (url, ctx) => {
+            if (typeof url === 'string' && isAllowedEditorLinkHref(url)) return true;
+            return ctx.defaultValidate(url);
+          },
+          shouldAutoLink: (href) => isAllowedEditorLinkHref(href),
         }),
         Table.configure({
           resizable: false,

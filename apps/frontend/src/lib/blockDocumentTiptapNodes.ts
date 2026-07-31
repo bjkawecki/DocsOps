@@ -1,6 +1,11 @@
 import type { JSONContent } from '@tiptap/core';
 import type { BlockNodeV0 } from '../api/document-types';
-import { isAllowedLinkHref, readTextNodeLinkHref } from './blockLinkHref.js';
+import {
+  blockLinkFromEditorHref,
+  editorHrefFromBlockLink,
+  readTextNodeLink,
+  type BlockTextLink,
+} from './blockLinkHref.js';
 import { randomId } from './randomId.js';
 import { mergeAdjacentSuggestionLeaves } from './blockDocumentTiptapExportHelpers.js';
 import { imageOurToTiptap, tiptapImageToOur } from './blockDocumentTiptapImage.js';
@@ -63,12 +68,12 @@ export function textLeaf(
   text: string,
   marks?: InlineMark[],
   suggestion?: BlockSuggestion,
-  linkHref?: string
+  link?: BlockTextLink
 ): BlockNodeV0 {
   const meta: Record<string, unknown> = { text };
   if (marks?.length) meta.marks = marks;
   if (suggestion) meta.suggestion = suggestion;
-  if (linkHref != null && linkHref.length > 0) meta.link = { href: linkHref };
+  if (link != null) meta.link = link;
   return {
     id: newId(),
     type: 'text',
@@ -108,7 +113,7 @@ function pmInlineToTextLeaves(content: JSONContent[] | undefined): BlockNodeV0[]
     if (c.type === 'text' && typeof c.text === 'string') {
       const marks: InlineMark[] = [];
       let suggestion: BlockSuggestion | undefined;
-      let linkHref: string | undefined;
+      let link: BlockTextLink | undefined;
       for (const mark of c.marks ?? []) {
         if (mark.type === 'bold') marks.push('bold');
         if (mark.type === 'italic') marks.push('italic');
@@ -116,8 +121,9 @@ function pmInlineToTextLeaves(content: JSONContent[] | undefined): BlockNodeV0[]
         if (mark.type === 'link') {
           const attrs = mark.attrs as { href?: unknown } | undefined;
           const href = attrs?.href;
-          if (typeof href === 'string' && isAllowedLinkHref(href)) {
-            linkHref = href;
+          if (typeof href === 'string') {
+            const parsed = blockLinkFromEditorHref(href);
+            if (parsed) link = parsed;
           }
         }
         if (mark.type === 'suggestionInsert' || mark.type === 'suggestionDelete') {
@@ -137,7 +143,7 @@ function pmInlineToTextLeaves(content: JSONContent[] | undefined): BlockNodeV0[]
           }
         }
       }
-      leaves.push(textLeaf(c.text, marks.length ? marks : undefined, suggestion, linkHref));
+      leaves.push(textLeaf(c.text, marks.length ? marks : undefined, suggestion, link));
     } else if (c.type === 'hardBreak') {
       leaves.push(textLeaf('\n'));
     } else if (c.content?.length) {
@@ -169,10 +175,10 @@ function blockInlineContentToTiptap(content: BlockNodeV0[] | undefined): JSONCon
     if (!text) continue;
     const marks = readMarks(leaf.meta);
     const suggestion = readSuggestion(leaf.meta);
-    const linkHref = readTextNodeLinkHref(leaf.meta);
+    const link = readTextNodeLink(leaf.meta);
     const pmMarks: JSONContent['marks'] = marks.map((m) => ({ type: m }));
-    if (linkHref != null && isAllowedLinkHref(linkHref)) {
-      pmMarks.push({ type: 'link', attrs: { href: linkHref } });
+    if (link != null) {
+      pmMarks.push({ type: 'link', attrs: { href: editorHrefFromBlockLink(link) } });
     }
     if (suggestion?.status === 'pending') {
       pmMarks.push(suggestionToPmMark(suggestion));
@@ -460,7 +466,7 @@ export function blockDocumentUsesInlineMarks(docBlocks: BlockNodeV0[]): boolean 
     if (node.type === 'text') {
       const marks = node.meta?.marks;
       if (Array.isArray(marks) && marks.length > 0) return true;
-      return readTextNodeLinkHref(node.meta) != null;
+      return readTextNodeLink(node.meta) != null;
     }
     return (node.content ?? []).some(walk);
   };

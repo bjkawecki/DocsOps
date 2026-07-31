@@ -146,6 +146,34 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(leaves[1]?.meta?.link).toEqual({ href: '#intro' });
   });
 
+  it('roundtrips cross-document link through tiptap json (ADR 006)', () => {
+    const source: BlockDocument = {
+      schemaVersion: 1,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: { text: 'Related', link: { documentId: 'clxxxxxxxxxxxxxxxxxx' } },
+            },
+          ],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    const tipLeaf = json.content?.[0]?.content?.[0];
+    expect(tipLeaf?.marks).toEqual([
+      { type: 'link', attrs: { href: 'docsops-doc:clxxxxxxxxxxxxxxxxxx' } },
+    ]);
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks[0]?.content?.[0]?.meta?.link).toEqual({
+      documentId: 'clxxxxxxxxxxxxxxxxxx',
+    });
+  });
+
   it('drops disallowed link schemes when importing from tiptap', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',

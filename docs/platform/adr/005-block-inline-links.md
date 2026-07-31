@@ -18,7 +18,7 @@
    - **In-Dokument:** `#<heading-slug>` (nicht-leerer Slug ohne Whitespace)
 3. Roundtrip: TipTap `@tiptap/extension-link` (ohne Autolink), Preview (`<a>`), Markdown-Export (`[text](href)`). PDF über bestehende Markdown→Typst-Pipeline.
 4. **Ungültige `href`:** kein stiller Strip beim Speichern – `assertBlockDocumentLinksValid` lehnt ab. Im TipTap→Blocks-Konverter werden disallowed Schemes weggelassen (kein Persistieren unsicherer Links aus dem Editor).
-5. Cross-Document-Links (`documentId` / Picker) **nicht** Teil dieses ADR; siehe Todo §28a „Interne Links“.
+5. Cross-Document-Links (`documentId` / Picker) **nicht** Teil dieses ADR; siehe [ADR 006](006-cross-document-links.md).
 6. **`schemaVersion`:** bleibt **v1**, sobald Marks, `meta.link` oder Suggestions vorhanden sind.
 
 ## Nicht-Ziele (v1)

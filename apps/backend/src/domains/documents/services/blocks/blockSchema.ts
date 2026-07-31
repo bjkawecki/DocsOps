@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
+import { canRead } from '../../permissions/canRead.js';
 
 /**
  * Recursive block tree for Edit-System v0 (ADR 001, EPIC-0 / PR-0c).
@@ -61,24 +63,57 @@ export class InvalidBlockLinkHrefError extends Error {
   }
 }
 
+export type InvalidBlockDocumentLinkReason = 'malformed' | 'not_found' | 'forbidden';
+
+export class InvalidBlockDocumentLinkError extends Error {
+  readonly documentId: string | null;
+  readonly reason: InvalidBlockDocumentLinkReason;
+
+  constructor(reason: InvalidBlockDocumentLinkReason, documentId: string | null = null) {
+    super(
+      reason === 'malformed'
+        ? 'Invalid document link meta (expected href or documentId)'
+        : reason === 'not_found'
+          ? `Linked document not found: ${documentId}`
+          : `No read access to linked document: ${documentId}`
+    );
+    this.name = 'InvalidBlockDocumentLinkError';
+    this.reason = reason;
+    this.documentId = documentId;
+  }
+}
+
 export function assertAllowedLinkHref(href: string): void {
   if (isAllowedLinkHref(href)) return;
   throw new InvalidBlockLinkHrefError(href);
 }
 
-export const blockTextLinkSchema = z.object({
-  href: z
-    .string()
-    .min(1)
-    .refine(isAllowedLinkHref, { message: 'Link href must be http(s) or #heading-slug' }),
-});
+/** External / in-doc hash link (ADR 005). */
+export const blockTextHrefLinkSchema = z
+  .object({
+    href: z
+      .string()
+      .min(1)
+      .refine(isAllowedLinkHref, { message: 'Link href must be http(s) or #heading-slug' }),
+  })
+  .strict();
+
+/** Cross-document link (ADR 006). */
+export const blockTextDocumentLinkSchema = z
+  .object({
+    documentId: z.string().min(1),
+  })
+  .strict();
+
+/** Discriminated link meta: `{ href }` or `{ documentId }` (ADR 005 / 006). */
+export const blockTextLinkSchema = z.union([blockTextHrefLinkSchema, blockTextDocumentLinkSchema]);
 
 export type BlockTextLink = z.infer<typeof blockTextLinkSchema>;
 
 export const blockTextMetaSchema = z.object({
   text: z.string(),
   marks: z.array(blockTextMarkSchema).optional(),
-  /** Inline link (ADR 005); parallel to string marks. */
+  /** Inline link (ADR 005 / 006); parallel to string marks. */
   link: blockTextLinkSchema.optional(),
   suggestion: blockSuggestionMetaSchema.optional(),
 });
@@ -120,26 +155,77 @@ function textNodeHasLink(meta: Record<string, unknown> | undefined): boolean {
   return link != null && typeof link === 'object' && !Array.isArray(link);
 }
 
-/** Read `meta.link.href` when present; otherwise null. */
-export function readTextNodeLinkHref(meta: Record<string, unknown> | undefined): string | null {
+/**
+ * Read structured `meta.link` (ADR 005 / 006).
+ * Returns null when missing or malformed (neither exclusive `href` nor `documentId`).
+ * Does not validate href whitelist – callers use `assertAllowedLinkHref` / `isAllowedLinkHref`.
+ */
+export function readTextNodeLink(meta: Record<string, unknown> | undefined): BlockTextLink | null {
   if (!textNodeHasLink(meta)) return null;
   const link = meta!.link as Record<string, unknown>;
-  return typeof link.href === 'string' ? link.href : null;
+  const keys = Object.keys(link);
+  const href = link.href;
+  const documentId = link.documentId;
+  const hasHref = typeof href === 'string';
+  const hasDocumentId = typeof documentId === 'string';
+  if (hasHref && !hasDocumentId && keys.length === 1) {
+    return { href };
+  }
+  if (hasDocumentId && !hasHref && keys.length === 1 && documentId.length > 0) {
+    return { documentId };
+  }
+  return null;
+}
+
+/** Read `meta.link.href` when present (href variant only); otherwise null. */
+export function readTextNodeLinkHref(meta: Record<string, unknown> | undefined): string | null {
+  const link = readTextNodeLink(meta);
+  return link != null && 'href' in link ? link.href : null;
+}
+
+/** Read `meta.link.documentId` when present; otherwise null. */
+export function readTextNodeLinkDocumentId(
+  meta: Record<string, unknown> | undefined
+): string | null {
+  const link = readTextNodeLink(meta);
+  return link != null && 'documentId' in link ? link.documentId : null;
 }
 
 /**
- * Reject documents that carry `meta.link` with a disallowed href (ADR 005).
+ * Reject documents that carry invalid `meta.link` (ADR 005 / 006).
  * Call after parse/normalize on save paths – no silent strip.
+ * Cross-doc targets must exist and be readable via `canRead`.
  */
-export function assertBlockDocumentLinksValid(doc: BlockDocument): void {
-  const walk = (node: BlockNode): void => {
-    if (node.type === 'text') {
-      const href = readTextNodeLinkHref(node.meta);
-      if (href != null) assertAllowedLinkHref(href);
+export async function assertBlockDocumentLinksValid(
+  prisma: PrismaClient | Prisma.TransactionClient,
+  userId: string,
+  doc: BlockDocument
+): Promise<void> {
+  const walk = async (node: BlockNode): Promise<void> => {
+    if (node.type === 'text' && textNodeHasLink(node.meta)) {
+      const link = readTextNodeLink(node.meta);
+      if (link == null) {
+        throw new InvalidBlockDocumentLinkError('malformed');
+      }
+      if ('href' in link) {
+        assertAllowedLinkHref(link.href);
+      } else {
+        const target = await prisma.document.findFirst({
+          where: { id: link.documentId, deletedAt: null },
+          select: { id: true },
+        });
+        if (!target) {
+          throw new InvalidBlockDocumentLinkError('not_found', link.documentId);
+        }
+        const allowed = await canRead(prisma, userId, link.documentId);
+        if (!allowed) {
+          throw new InvalidBlockDocumentLinkError('forbidden', link.documentId);
+        }
+      }
     }
-    for (const child of node.content ?? []) walk(child);
+    for (const child of node.content ?? []) await walk(child);
   };
-  for (const block of doc.blocks) walk(block);
+  for (const block of doc.blocks) await walk(block);
 }
 
 /**

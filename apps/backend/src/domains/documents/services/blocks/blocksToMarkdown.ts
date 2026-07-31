@@ -5,9 +5,10 @@ import {
   readCalloutVariant,
   readImageAttachmentId,
   readImageCaption,
-  readTextNodeLinkHref,
+  readTextNodeLink,
 } from './blockSchema.js';
 import { attachmentHrefToken, formatFigureCaption } from './figureCaption.js';
+import { docsopsDocHrefToken } from './docsopsDocLink.js';
 import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
 import { tableBlockToMarkdown } from './markdownTable.js';
 
@@ -33,9 +34,11 @@ function formatInlineTextNode(node: BlockNode): string {
   if (marks.has('code')) out = `\`${out}\``;
   if (marks.has('bold')) out = `**${out}**`;
   if (marks.has('italic')) out = `*${out}*`;
-  const href = readTextNodeLinkHref(node.meta);
-  if (href != null && isAllowedLinkHref(href)) {
-    out = `[${out}](${href})`;
+  const link = readTextNodeLink(node.meta);
+  if (link != null && 'href' in link && isAllowedLinkHref(link.href)) {
+    out = `[${out}](${link.href})`;
+  } else if (link != null && 'documentId' in link) {
+    out = `[${out}](${docsopsDocHrefToken(link.documentId)})`;
   }
   return out;
 }

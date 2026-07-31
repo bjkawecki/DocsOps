@@ -1,10 +1,17 @@
 import { Anchor, Code, Text } from '@mantine/core';
-import { IconExternalLink } from '@tabler/icons-react';
-import { Fragment, type ReactNode } from 'react';
+import { IconExternalLink, IconLink } from '@tabler/icons-react';
+import { Fragment, type CSSProperties, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import type { BlockNodeV0 } from '../../api/document-types';
-import { isAllowedLinkHref, readTextNodeLinkHref } from '../../lib/blockLinkHref.js';
+import { isAllowedLinkHref, readTextNodeLink } from '../../lib/blockLinkHref.js';
 
 type InlineMark = 'bold' | 'italic' | 'code';
+
+const inlineLinkIconStyle: CSSProperties = {
+  display: 'inline-block',
+  verticalAlign: '-0.15em',
+  marginRight: 4,
+};
 
 function readInlineMarks(meta: Record<string, unknown> | undefined): InlineMark[] {
   const raw = meta?.marks;
@@ -40,13 +47,26 @@ function renderTextLeaf(leaf: BlockNodeV0): ReactNode {
     );
   }
 
-  const href = readTextNodeLinkHref(leaf.meta);
-  if (href != null && isAllowedLinkHref(href)) {
-    const external = /^https?:\/\//i.test(href);
+  const link = readTextNodeLink(leaf.meta);
+  if (link != null && 'documentId' in link) {
     node = (
       <Anchor
         key={`${leaf.id}-link`}
-        href={href}
+        component={Link}
+        to={`/documents/${link.documentId}`}
+        inherit
+        style={{ display: 'inline' }}
+      >
+        <IconLink size={14} stroke={1.75} style={inlineLinkIconStyle} aria-hidden />
+        {node}
+      </Anchor>
+    );
+  } else if (link != null && 'href' in link && isAllowedLinkHref(link.href)) {
+    const external = /^https?:\/\//i.test(link.href);
+    node = (
+      <Anchor
+        key={`${leaf.id}-link`}
+        href={link.href}
         {...(external
           ? { target: '_blank', rel: 'noopener noreferrer' }
           : { target: undefined, rel: undefined })}
@@ -54,16 +74,7 @@ function renderTextLeaf(leaf: BlockNodeV0): ReactNode {
         style={{ display: 'inline' }}
       >
         {external ? (
-          <IconExternalLink
-            size={14}
-            stroke={1.75}
-            style={{
-              display: 'inline-block',
-              verticalAlign: '-0.15em',
-              marginRight: 4,
-            }}
-            aria-hidden
-          />
+          <IconExternalLink size={14} stroke={1.75} style={inlineLinkIconStyle} aria-hidden />
         ) : null}
         {node}
       </Anchor>
@@ -73,7 +84,7 @@ function renderTextLeaf(leaf: BlockNodeV0): ReactNode {
   return <Fragment key={leaf.id}>{node}</Fragment>;
 }
 
-/** Render paragraph/heading inline leaves including marks and links (ADR 005). */
+/** Render paragraph/heading inline leaves including marks and links (ADR 005 / 006). */
 export function renderInlineBlockContent(content: BlockNodeV0[] | undefined): ReactNode {
   if (!content?.length) return null;
   const parts = content

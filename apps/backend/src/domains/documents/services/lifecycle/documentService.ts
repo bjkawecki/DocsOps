@@ -88,7 +88,7 @@ export async function publishDocument(
     );
   }
   const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
-  assertBlockDocumentLinksValid(normalized);
+  await assertBlockDocumentLinksValid(prisma, userId, normalized);
   assertBlockDocumentCalloutsValid(normalized);
   const attachmentRows = await prisma.documentAttachment.findMany({
     where: { documentId },

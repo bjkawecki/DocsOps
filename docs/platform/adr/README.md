@@ -9,5 +9,6 @@ Kurzfassungen von **festgelegten oder vorgeschlagenen** Architekturentscheidunge
 | [003 – Scope-Author Direct Draft](003-scope-author-direct-draft.md)                    | **Historisch** – Direct PATCH + Draft-Change-Ops; siehe ADR 004 |
 | [004 – Inline Draft Suggestions](004-inline-draft-suggestions.md)                      | Track Changes im Draft, Accept/Decline, Publish-Gate            |
 | [005 – Inline-Links im Block-Dokument](005-block-inline-links.md)                      | **Akzeptiert** – `meta.link`, http(s) + `#heading`-Anker        |
+| [006 – Cross-Document-Links](006-cross-document-links.md)                              | **Akzeptiert** – `meta.link.documentId`, Token `docsops-doc:`   |
 
 Siehe auch: [Edit-System-Blocks-PR-Epics.md](../../plan/Edit-System-Blocks-PR-Epics.md) (Phasen EPIC-1+).
