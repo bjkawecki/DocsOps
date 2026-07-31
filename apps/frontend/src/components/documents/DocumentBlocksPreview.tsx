@@ -1,5 +1,4 @@
 import { Box, List, Stack, Table, Text, Title } from '@mantine/core';
-import { CodeHighlight, CodeHighlightTabs } from '@mantine/code-highlight';
 import { Fragment, type ReactNode } from 'react';
 import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
@@ -10,7 +9,7 @@ import {
   nodeText,
 } from '../../pages/documentPage/blockDocumentHeadings';
 import { renderInlineBlockContent } from './documentBlockPreviewInline.js';
-import classes from './DocumentBlocksPreview.module.css';
+import { DocumentPreviewCodeBlock } from './DocumentPreviewCodeBlock';
 
 /** Label shown in the code block header (inside the chrome), or null if none. */
 function codeBlockLanguageLabel(rawLang: string, normalized: string): string | null {
@@ -242,25 +241,11 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
       const body = walkNode(node);
       const rawLang = typeof node.attrs?.lang === 'string' ? node.attrs.lang : '';
       const language = normalizeCodeLanguage(rawLang);
-      const label = codeBlockLanguageLabel(rawLang, language);
-      const highlightClassNames = { controls: classes.controls };
-      if (label) {
-        return (
-          <CodeHighlightTabs
-            code={[{ code: body, language, fileName: label }]}
-            radius="sm"
-            withCopyButton
-            classNames={highlightClassNames}
-          />
-        );
-      }
       return (
-        <CodeHighlight
+        <DocumentPreviewCodeBlock
           code={body}
           language={language}
-          radius="sm"
-          withCopyButton
-          classNames={highlightClassNames}
+          label={codeBlockLanguageLabel(rawLang, language)}
         />
       );
     }

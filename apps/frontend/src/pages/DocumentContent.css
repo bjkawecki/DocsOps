@@ -59,9 +59,15 @@
 .document-content ol {
   margin-bottom: 1.1em;
 }
-.document-content pre,
 .document-content blockquote {
   margin: 1.1em 0;
+}
+.document-content pre {
+  margin: 1.1em 0;
+}
+/* Block code lives in DocumentPreviewCodeBlock; keep margin on the chrome, not inner pre. */
+.document-content .document-preview-code-block pre {
+  margin: 0;
 }
 .document-content hr {
   margin: 1.1em 0;
@@ -84,7 +90,8 @@
   font-weight: 650;
   background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
 }
-.document-content code {
+/* Inline code only – block code is styled by DocumentPreviewCodeBlock. */
+.document-content :not(pre) > code {
   font-family: var(--mantine-font-family-monospace);
   font-size: 0.88em;
   padding: 0.12em 0.35em;
