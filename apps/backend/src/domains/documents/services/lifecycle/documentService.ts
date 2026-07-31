@@ -3,6 +3,7 @@ import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import {
   assertBlockDocumentLinksValid,
   assertBlockDocumentImagesValid,
+  assertBlockDocumentCalloutsValid,
   normalizeBlockDocumentSchemaVersion,
 } from '../blocks/blockSchema.js';
 import {
@@ -88,6 +89,7 @@ export async function publishDocument(
   }
   const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
   assertBlockDocumentLinksValid(normalized);
+  assertBlockDocumentCalloutsValid(normalized);
   const attachmentRows = await prisma.documentAttachment.findMany({
     where: { documentId },
     select: { id: true },

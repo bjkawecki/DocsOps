@@ -9,6 +9,8 @@ import {
   isAllowedLinkHref,
   assertBlockDocumentLinksValid,
   assertBlockDocumentImagesValid,
+  assertBlockDocumentCalloutsValid,
+  InvalidBlockCalloutError,
   InvalidBlockLinkHrefError,
   InvalidBlockImageError,
 } from '../services/blocks/blockSchema.js';
@@ -184,5 +186,46 @@ describe('blockSchema image blocks (§28a)', () => {
       ],
     };
     expect(() => assertBlockDocumentImagesValid(doc, new Set(['att_ok']))).not.toThrow();
+  });
+});
+
+describe('blockSchema callout blocks (§28a)', () => {
+  it('assertBlockDocumentCalloutsValid rejects missing variant', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [{ id: 'c1', type: 'callout', attrs: {}, content: [] }],
+    };
+    expect(() => assertBlockDocumentCalloutsValid(doc)).toThrow(InvalidBlockCalloutError);
+  });
+
+  it('assertBlockDocumentCalloutsValid rejects invalid variant', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [{ id: 'c1', type: 'callout', attrs: { variant: 'danger' }, content: [] }],
+    };
+    expect(() => assertBlockDocumentCalloutsValid(doc)).toThrow(InvalidBlockCalloutError);
+  });
+
+  it('assertBlockDocumentCalloutsValid accepts info|warning|tip', () => {
+    for (const variant of ['info', 'warning', 'tip'] as const) {
+      const doc = {
+        schemaVersion: 0 as const,
+        blocks: [
+          {
+            id: 'c1',
+            type: 'callout',
+            attrs: { variant },
+            content: [
+              {
+                id: 'p1',
+                type: 'paragraph',
+                content: [{ id: 't1', type: 'text', meta: { text: 'Note body' } }],
+              },
+            ],
+          },
+        ],
+      };
+      expect(() => assertBlockDocumentCalloutsValid(doc)).not.toThrow();
+    }
   });
 });

@@ -5,6 +5,7 @@ import { randomId } from './randomId.js';
 import { mergeAdjacentSuggestionLeaves } from './blockDocumentTiptapExportHelpers.js';
 import { imageOurToTiptap, tiptapImageToOur } from './blockDocumentTiptapImage.js';
 import { tableOurToTiptap, tiptapTableToOur } from './blockDocumentTiptapTable.js';
+import { isCalloutVariant } from './calloutVariant.js';
 
 /* TipTap ↔ blocks mapping grows with each block type; split further when adding the next type. */
 /* eslint-disable max-lines */
@@ -262,6 +263,21 @@ export function ourTopLevelBlockToTiptap(
             : [paragraphOurToTiptap({ id: newId(), type: 'paragraph', content: [textLeaf('')] })],
       };
     }
+    case 'callout': {
+      const rawVariant = block.attrs?.variant;
+      const variant = isCalloutVariant(rawVariant) ? rawVariant : 'info';
+      const inner = (block.content ?? [])
+        .map((child) => ourTopLevelBlockToTiptap(child, ctx))
+        .filter((n): n is JSONContent => n != null);
+      return {
+        type: 'callout',
+        attrs: { blockId: block.id, variant },
+        content:
+          inner.length > 0
+            ? inner
+            : [paragraphOurToTiptap({ id: newId(), type: 'paragraph', content: [textLeaf('')] })],
+      };
+    }
     case 'horizontal_rule':
       return {
         type: 'horizontalRule',
@@ -371,6 +387,21 @@ export function tiptapTopLevelToOur(node: JSONContent): BlockNodeV0 | null {
       return {
         id,
         type: 'blockquote',
+        content:
+          inner.length > 0 ? inner : [{ id: newId(), type: 'paragraph', content: [textLeaf('')] }],
+      };
+    }
+    case 'callout': {
+      const attrs = node.attrs as Record<string, unknown> | undefined;
+      const id = readBlockId(attrs);
+      const variant = isCalloutVariant(attrs?.variant) ? attrs.variant : 'info';
+      const inner = (node.content ?? [])
+        .map((c) => tiptapTopLevelToOur(c))
+        .filter((b): b is BlockNodeV0 => b != null);
+      return {
+        id,
+        type: 'callout',
+        attrs: { variant },
         content:
           inner.length > 0 ? inner : [{ id: newId(), type: 'paragraph', content: [textLeaf('')] }],
       };

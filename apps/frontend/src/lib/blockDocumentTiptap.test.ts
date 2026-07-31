@@ -406,6 +406,35 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[0]?.attrs?.src).toBeUndefined();
   });
 
+  it('round-trips callout blocks with variant (§28a)', () => {
+    const source: BlockDocument = {
+      schemaVersion: 0,
+      blocks: [
+        {
+          id: 'c1',
+          type: 'callout',
+          attrs: { variant: 'warning' },
+          content: [
+            {
+              id: 'p1',
+              type: 'paragraph',
+              content: [{ id: 't1', type: 'text', meta: { text: 'Watch disk space' } }],
+            },
+          ],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    expect(json.content?.[0]?.type).toBe('callout');
+    expect(json.content?.[0]?.attrs?.variant).toBe('warning');
+    expect(json.content?.[0]?.attrs?.blockId).toBe('c1');
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks[0]?.type).toBe('callout');
+    expect(back.blocks[0]?.id).toBe('c1');
+    expect(back.blocks[0]?.attrs?.variant).toBe('warning');
+    expect(back.blocks[0]?.content?.[0]?.content?.[0]?.meta?.text).toBe('Watch disk space');
+  });
+
   it('omits empty paragraphs without suggestions from export', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',

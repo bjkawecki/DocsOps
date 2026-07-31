@@ -1,6 +1,8 @@
 import type { BlockDocument, BlockNode } from './blockSchema.js';
 import {
+  CALLOUT_VARIANT_TO_GFM,
   isAllowedLinkHref,
+  readCalloutVariant,
   readImageAttachmentId,
   readImageCaption,
   readTextNodeLinkHref,
@@ -42,6 +44,18 @@ function formatInlineTextNode(node: BlockNode): string {
 function innerText(node: BlockNode): string {
   if (node.type === 'text') return formatInlineTextNode(node);
   return (node.content ?? []).map(innerText).join('');
+}
+
+function blockquotePrefixedChildren(node: BlockNode, ctx: MarkdownExportContext): string {
+  return (node.content ?? [])
+    .map((child) =>
+      blockNodeToMarkdown(child, ctx)
+        .split('\n')
+        .map((line) => (line.length > 0 ? `> ${line}` : '>'))
+        .join('\n')
+    )
+    .filter((s) => s.length > 0)
+    .join('\n>\n');
 }
 
 /**
@@ -93,15 +107,14 @@ function blockNodeToMarkdown(node: BlockNode, ctx: MarkdownExportContext): strin
         })
         .join('\n');
     case 'blockquote':
-      return (node.content ?? [])
-        .map((child) =>
-          blockNodeToMarkdown(child, ctx)
-            .split('\n')
-            .map((line) => (line.length > 0 ? `> ${line}` : '>'))
-            .join('\n')
-        )
-        .filter((s) => s.length > 0)
-        .join('\n>\n');
+      return blockquotePrefixedChildren(node, ctx);
+    case 'callout': {
+      const variant = readCalloutVariant(node.attrs);
+      if (variant == null) return blockquotePrefixedChildren(node, ctx);
+      const tag = CALLOUT_VARIANT_TO_GFM[variant];
+      const body = blockquotePrefixedChildren(node, ctx);
+      return body.length > 0 ? `> [!${tag}]\n${body}` : `> [!${tag}]`;
+    }
     case 'horizontal_rule':
       return '---';
     case 'table':

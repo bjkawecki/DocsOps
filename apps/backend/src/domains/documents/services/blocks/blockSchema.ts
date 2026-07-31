@@ -212,6 +212,66 @@ export function collectImageAttachmentIds(doc: BlockDocument): string[] {
   return ids;
 }
 
+/** Callout variants (§28a). */
+export const CALLOUT_VARIANTS = ['info', 'warning', 'tip'] as const;
+export type CalloutVariant = (typeof CALLOUT_VARIANTS)[number];
+
+const CALLOUT_VARIANT_SET = new Set<string>(CALLOUT_VARIANTS);
+
+/** GFM alert tags ↔ callout variants. */
+export const CALLOUT_VARIANT_TO_GFM: Record<CalloutVariant, 'NOTE' | 'WARNING' | 'TIP'> = {
+  info: 'NOTE',
+  warning: 'WARNING',
+  tip: 'TIP',
+};
+
+export function gfmAlertTagToCalloutVariant(tag: string): CalloutVariant | null {
+  switch (tag.trim().toUpperCase()) {
+    case 'NOTE':
+      return 'info';
+    case 'WARNING':
+      return 'warning';
+    case 'TIP':
+      return 'tip';
+    default:
+      return null;
+  }
+}
+
+export function readCalloutVariant(
+  attrs: Record<string, unknown> | undefined
+): CalloutVariant | null {
+  const raw = attrs?.variant;
+  return typeof raw === 'string' && CALLOUT_VARIANT_SET.has(raw) ? (raw as CalloutVariant) : null;
+}
+
+export class InvalidBlockCalloutError extends Error {
+  readonly variant: unknown;
+
+  constructor(variant: unknown) {
+    super(
+      `Callout block requires attrs.variant in (${CALLOUT_VARIANTS.join('|')}); got ${String(variant)}`
+    );
+    this.name = 'InvalidBlockCalloutError';
+    this.variant = variant;
+  }
+}
+
+/**
+ * Reject callout blocks with missing/invalid variant (§28a).
+ * Call after parse/normalize on save paths – no silent default.
+ */
+export function assertBlockDocumentCalloutsValid(doc: BlockDocument): void {
+  const walk = (node: BlockNode): void => {
+    if (node.type === 'callout') {
+      const variant = readCalloutVariant(node.attrs);
+      if (variant == null) throw new InvalidBlockCalloutError(node.attrs?.variant);
+    }
+    for (const child of node.content ?? []) walk(child);
+  };
+  for (const block of doc.blocks) walk(block);
+}
+
 /** True when any text node carries inline formatting marks or an inline link (ADR 002 / 005). */
 export function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
   const walk = (node: BlockNode): boolean => {

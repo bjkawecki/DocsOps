@@ -10,6 +10,7 @@ const BLOCK_ID_NODE_TYPES = new Set([
   'orderedList',
   'listItem',
   'blockquote',
+  'callout',
   'horizontalRule',
   'image',
   'table',

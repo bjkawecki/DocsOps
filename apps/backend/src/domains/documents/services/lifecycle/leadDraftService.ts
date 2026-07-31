@@ -5,8 +5,10 @@ import {
   normalizeBlockDocumentSchemaVersion,
   assertBlockDocumentLinksValid,
   assertBlockDocumentImagesValid,
+  assertBlockDocumentCalloutsValid,
   InvalidBlockLinkHrefError,
   InvalidBlockImageError,
+  InvalidBlockCalloutError,
   type BlockDocument,
 } from '../blocks/blockSchema.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
@@ -123,6 +125,7 @@ export async function patchLeadDraft(
   let parsed = normalizeBlockDocumentSchemaVersion(safe.data);
   try {
     assertBlockDocumentLinksValid(parsed);
+    assertBlockDocumentCalloutsValid(parsed);
     const attachmentRows = await prisma.documentAttachment.findMany({
       where: { documentId },
       select: { id: true },
@@ -137,6 +140,13 @@ export async function patchLeadDraft(
         ok: false,
         error: 'validation',
         issues: { imageAttachmentId: err.attachmentId, imageReason: err.reason },
+      };
+    }
+    if (err instanceof InvalidBlockCalloutError) {
+      return {
+        ok: false,
+        error: 'validation',
+        issues: { calloutVariant: err.variant },
       };
     }
     throw err;

@@ -640,9 +640,9 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 ### 28a. Leser-Ansicht (Ist & Ausbau)
 
-**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Horizontal Rule, Tabellen, Code mit Syntax-Highlighting, Bilder/Abbildungen); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
+**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Callouts, Horizontal Rule, Tabellen, Code mit Syntax-Highlighting, Bilder/Abbildungen); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links, Tabellen, Bilder/Abbildungen und Code-Highlighting (Preview) sind umgesetzt.
+**Lücken vs. GitBook/Mintlify:** keine Mermaid/Diagramm-Blöcke; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links, Tabellen, Bilder/Abbildungen, Code-Highlighting (Preview) und Callouts sind umgesetzt.
 
 [x] **Inline-Links (Fließtext):** TipTap-Link-Mark + `meta.link` + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
 [x] **Bilder / Abbildungen:** Block-Typ `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (`Figure n`); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
@@ -650,7 +650,7 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
 [ ] **Leser-Typografie:** Heading-Scale und ggf. engere Code/Listen-Abstände in `.document-content`; optional „Reader mode“ (weniger Chrome). Basis-Styles (Font, Zeilenhöhe, Tabellen/Code) bereits vorhanden.
 [x] **Tabellen:** Block-Typ `table` (TipTap Table-Extension + Zod/Schema + Preview + Markdown/Typst-Export).
-[ ] **Callouts / Warnungen:** Custom-Block z. B. `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Export).
+[x] **Callouts / Warnungen:** Custom-Block `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Markdown/Typst-Export als GFM Alerts).
 [ ] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration.
 [ ] **Interne Links (Dokument↔Dokument):** Querverweise zwischen Dokumenten (`[[title]]` oder Dokument-Picker); Backlinks optional später – getrennt von ADR 005 (Inline-URL/`#anker`).
 

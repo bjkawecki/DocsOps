@@ -10,6 +10,8 @@ import {
 } from '../../pages/documentPage/blockDocumentHeadings';
 import { renderInlineBlockContent } from './documentBlockPreviewInline.js';
 import { DocumentPreviewCodeBlock } from './DocumentPreviewCodeBlock';
+import calloutClasses from './DocumentCallout.module.css';
+import { CALLOUT_VARIANT_LABELS } from '../../lib/calloutVariant.js';
 
 /** Label shown in the code block header (inside the chrome), or null if none. */
 function codeBlockLanguageLabel(rawLang: string, normalized: string): string | null {
@@ -147,6 +149,27 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
             ))}
           </Stack>
         </Box>
+      );
+    }
+    case 'callout': {
+      const parts = node.content ?? [];
+      if (parts.length === 0) return null;
+      const rawVariant = node.attrs?.variant;
+      const variant =
+        rawVariant === 'warning' || rawVariant === 'tip' || rawVariant === 'info'
+          ? rawVariant
+          : 'info';
+      return (
+        <aside className={calloutClasses.root} data-callout="" data-variant={variant}>
+          <div className={calloutClasses.label}>{CALLOUT_VARIANT_LABELS[variant]}</div>
+          <div className={calloutClasses.content}>
+            <Stack gap="sm">
+              {parts.map((c) => (
+                <Fragment key={c.id}>{renderNode(c, ctx)}</Fragment>
+              ))}
+            </Stack>
+          </div>
+        </aside>
       );
     }
     case 'horizontal_rule':

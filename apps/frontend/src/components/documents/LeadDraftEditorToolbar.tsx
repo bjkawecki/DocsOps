@@ -1,6 +1,7 @@
 import { ActionIcon, Box, NativeSelect, Text, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
 import {
+  IconAlertTriangle,
   IconBold,
   IconCode,
   IconColumnInsertRight,
@@ -23,6 +24,11 @@ import {
 } from '../../tiptap/authorFormatGuards.js';
 import { insertImageFromFile } from '../../lib/uploadDocumentImage.js';
 import { CODE_LANGUAGE_OPTIONS, normalizeCodeLanguage } from '../../lib/normalizeCodeLanguage.js';
+import {
+  CALLOUT_VARIANT_OPTIONS,
+  isCalloutVariant,
+  type CalloutVariant,
+} from '../../lib/calloutVariant.js';
 import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
 import classes from './LeadDraftEditorToolbar.module.css';
 
@@ -169,6 +175,30 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           >
             <IconQuote size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
+          <ToolIcon
+            label="Callout"
+            active={editor.isActive('callout')}
+            onClick={() => editor.chain().focus().toggleCallout({ variant: 'info' }).run()}
+          >
+            <IconAlertTriangle size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          {editor.isActive('callout') && (
+            <NativeSelect
+              size="xs"
+              aria-label="Callout variant"
+              w={110}
+              data={[...CALLOUT_VARIANT_OPTIONS]}
+              value={(() => {
+                const attrs = editor.getAttributes('callout') as { variant?: unknown };
+                return isCalloutVariant(attrs.variant) ? attrs.variant : 'info';
+              })()}
+              onChange={(e) => {
+                const next = e.currentTarget.value as CalloutVariant;
+                if (!isCalloutVariant(next)) return;
+                editor.chain().focus().updateCalloutVariant(next).run();
+              }}
+            />
+          )}
           <ToolIcon
             label="Divider"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}

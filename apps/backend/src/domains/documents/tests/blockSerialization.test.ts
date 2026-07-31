@@ -120,6 +120,29 @@ describe('block serialization (EPIC-2)', () => {
     expect(out).toContain('---');
   });
 
+  it('exports and imports GFM alert callouts (§28a)', () => {
+    const md = [
+      '> [!WARNING]',
+      '> Watch the disk',
+      '',
+      '> [!NOTE]',
+      '> Info body',
+      '',
+      '> [!TIP]',
+      '> Tip body',
+    ].join('\n');
+    const doc = markdownToBlockDocumentV0(md);
+    expect(doc.blocks.map((b) => b.type)).toEqual(['callout', 'callout', 'callout']);
+    expect(doc.blocks.map((b) => b.attrs?.variant)).toEqual(['warning', 'info', 'tip']);
+    const out = blockDocumentV0ToMarkdown(doc);
+    expect(out).toContain('> [!WARNING]');
+    expect(out).toContain('> Watch the disk');
+    expect(out).toContain('> [!NOTE]');
+    expect(out).toContain('> [!TIP]');
+    const round = markdownToBlockDocumentV0(out);
+    expect(round.blocks.map((b) => b.attrs?.variant)).toEqual(['warning', 'info', 'tip']);
+  });
+
   it('exports and imports GFM tables', () => {
     const md = ['| Name | Role |', '| --- | --- |', '| Ada | Lead |'].join('\n');
     const doc = markdownToBlockDocumentV0(md);

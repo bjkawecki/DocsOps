@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { BlockDocumentV0, BlockNode } from './blockSchema.js';
+import { gfmAlertTagToCalloutVariant } from './blockSchema.js';
 import { looksLikeMarkdownTableStart, tryParseMarkdownTable } from './markdownTable.js';
 
 function textNode(text: string): BlockNode {
@@ -30,11 +31,14 @@ function isHorizontalRule(line: string): boolean {
   return /^(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line.trim());
 }
 
+const GFM_ALERT_LINE = /^\[!(NOTE|WARNING|TIP)\]\s*$/i;
+
 /**
  * Minimal Markdown → Block-Dokument v0 (EPIC-2 / PR-2b).
  * Für Migration/Import; kein vollständiger CommonMark-Parser.
  * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
- * Blockquotes, Horizontal Rules, GFM-Tabellen, fenced ``` code ```.
+ * Blockquotes, GFM Alerts (`[!NOTE|WARNING|TIP]` → callout), Horizontal Rules,
+ * GFM-Tabellen, fenced ``` code ```.
  */
 export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
   const md = markdown.replace(/\r\n/g, '\n');
@@ -114,6 +118,9 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
           // blank line ends quote only if next is not a quote continuation
           const next = lines[i + 1];
           if (next === undefined || !isBlockquote(next)) break;
+          // A new GFM alert tag starts a separate callout block.
+          const nextInner = next.replace(/^>\s?/, '').trim();
+          if (GFM_ALERT_LINE.test(nextInner)) break;
           quoteLines.push('');
           i += 1;
           continue;
@@ -121,12 +128,36 @@ export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
         quoteLines.push(row.replace(/^>\s?/, ''));
         i += 1;
       }
-      const innerDoc = markdownToBlockDocumentV0(quoteLines.join('\n'));
-      blocks.push({
-        id: randomUUID(),
-        type: 'blockquote',
-        content: innerDoc.blocks,
-      });
+
+      let calloutVariant: ReturnType<typeof gfmAlertTagToCalloutVariant> = null;
+      let bodyLines = quoteLines;
+      const firstNonEmptyIdx = quoteLines.findIndex((l) => l.trim() !== '');
+      if (firstNonEmptyIdx >= 0) {
+        const first = quoteLines[firstNonEmptyIdx] ?? '';
+        const alertMatch = first.trim().match(GFM_ALERT_LINE);
+        if (alertMatch?.[1]) {
+          calloutVariant = gfmAlertTagToCalloutVariant(alertMatch[1]);
+          if (calloutVariant != null) {
+            bodyLines = quoteLines.slice(firstNonEmptyIdx + 1);
+          }
+        }
+      }
+
+      const innerDoc = markdownToBlockDocumentV0(bodyLines.join('\n'));
+      if (calloutVariant != null) {
+        blocks.push({
+          id: randomUUID(),
+          type: 'callout',
+          attrs: { variant: calloutVariant },
+          content: innerDoc.blocks,
+        });
+      } else {
+        blocks.push({
+          id: randomUUID(),
+          type: 'blockquote',
+          content: innerDoc.blocks,
+        });
+      }
       continue;
     }
 
