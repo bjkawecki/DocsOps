@@ -150,6 +150,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.3.0
         version: 5.3.0
+      '@mantine/code-highlight':
+        specifier: ^8.3.18
+        version: 8.3.18(@mantine/core@8.3.15(@mantine/hooks@8.3.15(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.15(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/core':
         specifier: ^8.3.15
         version: 8.3.15(@mantine/hooks@8.3.15(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -207,6 +210,9 @@ importers:
       diff-match-patch:
         specifier: ^1.0.5
         version: 1.0.5
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -1061,6 +1067,14 @@ packages:
 
   '@kurkle/color@0.3.4':
     resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
+  '@mantine/code-highlight@8.3.18':
+    resolution: {integrity: sha512-/KAxx+H9YfzKK8jv10XB/tJNV8IWCY3axbTmyij4VnLp1ivAInU7GLv9NzdXPHTx4JazIGxMwrrVANQD4QaQjA==}
+    peerDependencies:
+      '@mantine/core': 8.3.18
+      '@mantine/hooks': 8.3.18
+      react: ^18.x || ^19.x
+      react-dom: ^18.x || ^19.x
 
   '@mantine/core@8.3.15':
     resolution: {integrity: sha512-wBn/GogB4x7a2Uj7Ztt3amRaApjED+9XqfE4wyCLh88R7KV55k9vnTdCx+irI/GLOOu9tXNUGm3a4t5sTajwkQ==}
@@ -3207,6 +3221,10 @@ packages:
 
   help-me@5.0.0:
     resolution: {integrity: sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==}
+
+  highlight.js@11.11.1:
+    resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
+    engines: {node: '>=12.0.0'}
 
   hono@4.12.14:
     resolution: {integrity: sha512-am5zfg3yu6sqn5yjKBNqhnTX7Cv+m00ox+7jbaKkrLMRJ4rAdldd1xPd/JzbBWspqaQv6RSTrgFN95EsfhC+7w==}
@@ -6036,6 +6054,14 @@ snapshots:
 
   '@kurkle/color@0.3.4': {}
 
+  '@mantine/code-highlight@8.3.18(@mantine/core@8.3.15(@mantine/hooks@8.3.15(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.15(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@mantine/core': 8.3.15(@mantine/hooks@8.3.15(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@mantine/hooks': 8.3.15(react@19.2.4)
+      clsx: 2.1.1
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
   '@mantine/core@8.3.15(@mantine/hooks@8.3.15(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@floating-ui/react': 0.27.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -8303,6 +8329,8 @@ snapshots:
       '@types/hast': 3.0.4
 
   help-me@5.0.0: {}
+
+  highlight.js@11.11.1: {}
 
   hono@4.12.14: {}
 

@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, NativeSelect, Text, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
 import {
   IconBold,
@@ -22,6 +22,7 @@ import {
   toggleAuthorInlineMark,
 } from '../../tiptap/authorFormatGuards.js';
 import { insertImageFromFile } from '../../lib/uploadDocumentImage.js';
+import { CODE_LANGUAGE_OPTIONS, normalizeCodeLanguage } from '../../lib/normalizeCodeLanguage.js';
 import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
 import classes from './LeadDraftEditorToolbar.module.css';
 
@@ -181,6 +182,35 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           >
             <IconFileCode size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
+          {editor.isActive('codeBlock') && (
+            <NativeSelect
+              size="xs"
+              aria-label="Code language"
+              w={130}
+              data={CODE_LANGUAGE_OPTIONS.map((o) => ({
+                value: o.value,
+                label: o.label,
+              }))}
+              value={(() => {
+                const attrs = editor.getAttributes('codeBlock') as { language?: unknown };
+                const lang = typeof attrs.language === 'string' ? attrs.language : '';
+                const normalized = normalizeCodeLanguage(lang);
+                if (!lang.trim()) return '';
+                if (normalized === 'plaintext') return '';
+                return CODE_LANGUAGE_OPTIONS.some((o) => o.value === normalized) ? normalized : '';
+              })()}
+              onChange={(e) => {
+                const next = e.currentTarget.value;
+                editor
+                  .chain()
+                  .focus()
+                  .updateAttributes('codeBlock', {
+                    language: next.length > 0 ? next : null,
+                  })
+                  .run();
+              }}
+            />
+          )}
           <ToolIcon
             label="Image"
             active={editor.isActive('image')}

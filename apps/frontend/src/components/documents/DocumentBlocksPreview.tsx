@@ -1,8 +1,10 @@
-import { Box, Code, List, Stack, Table, Text, Title } from '@mantine/core';
+import { Box, List, Stack, Table, Text, Title } from '@mantine/core';
+import { CodeHighlight } from '@mantine/code-highlight';
 import { Fragment, type ReactNode } from 'react';
 import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
 import { documentAttachmentUrl, formatFigureCaption } from '../../lib/figureCaption.js';
+import { normalizeCodeLanguage } from '../../lib/normalizeCodeLanguage.js';
 import {
   getBlockDocumentHeadingData,
   nodeText,
@@ -228,10 +230,17 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
     }
     case 'code': {
       const body = walkNode(node);
+      const rawLang = typeof node.attrs?.lang === 'string' ? node.attrs.lang : '';
+      const language = normalizeCodeLanguage(rawLang);
       return (
-        <Code block w="100%" style={{ whiteSpace: 'pre-wrap' }}>
-          {body}
-        </Code>
+        <Box>
+          {rawLang.trim() ? (
+            <Text size="xs" c="dimmed" mb={4} tt="uppercase" fw={600}>
+              {language === 'plaintext' ? rawLang.trim() : language}
+            </Text>
+          ) : null}
+          <CodeHighlight code={body} language={language} radius="sm" withCopyButton />
+        </Box>
       );
     }
     case 'text': {

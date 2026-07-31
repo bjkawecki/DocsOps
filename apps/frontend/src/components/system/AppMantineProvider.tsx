@@ -4,8 +4,10 @@ import {
   MantineProvider,
   type MantineColorSchemeManager,
 } from '@mantine/core';
+import { CodeHighlightAdapterProvider } from '@mantine/code-highlight';
 import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
 import { useMe } from '../../hooks/useMe';
+import { highlightJsAdapter } from '../../lib/highlightJsAdapter.js';
 import {
   createAppTheme,
   PRIMARY_COLOR_PRESETS,
@@ -61,7 +63,9 @@ export function AppMantineProvider({ children, colorSchemeManager }: Props) {
 
   return (
     <MantineProvider theme={theme} colorSchemeManager={manager} defaultColorScheme="auto">
-      {children}
+      <CodeHighlightAdapterProvider adapter={highlightJsAdapter}>
+        {children}
+      </CodeHighlightAdapterProvider>
     </MantineProvider>
   );
 }
