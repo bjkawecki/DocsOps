@@ -448,7 +448,10 @@ export function DocumentPageLoadedLayout({
                       <Box style={{ maxWidth: '100%' }}>
                         {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
                           publishedPlainFromBlocks ? (
-                            <DocumentBlocksPreview doc={data.publishedBlocks} />
+                            <DocumentBlocksPreview
+                              doc={data.publishedBlocks}
+                              documentId={documentId}
+                            />
                           ) : (
                             <Text size="sm" c="dimmed">
                               Published blocks do not contain extractable text for this preview.

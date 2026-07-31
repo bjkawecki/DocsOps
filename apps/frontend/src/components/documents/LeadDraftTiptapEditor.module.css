@@ -73,6 +73,37 @@
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
+.editorShell :global(.ProseMirror .document-image-node) {
+  margin: 0.75em 0;
+  display: block;
+}
+
+.editorShell :global(.ProseMirror .document-image-node__img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mantine-radius-xs);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__placeholder) {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--mantine-color-dimmed);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  border-radius: var(--mantine-radius-xs);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__caption-label) {
+  margin-top: 0.35rem;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__caption-input) {
+  margin-top: 0.35rem;
+  max-width: 28rem;
+}
+
 .editorShell :global(.ProseMirror table) {
   width: 100%;
   border-collapse: collapse;

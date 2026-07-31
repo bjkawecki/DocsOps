@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -9,11 +9,19 @@ const execFileAsync = promisify(execFile);
 const DEFAULT_COMPILE_TIMEOUT_MS = 120_000;
 const DEFAULT_MAX_BUFFER = 4 * 1024 * 1024;
 
+export type TypstPdfAssetFile = {
+  /** Path relative to the Typst work directory (e.g. `attachments/id.png`). */
+  relativePath: string;
+  data: Buffer;
+};
+
 export type TypstPdfExportOptions = {
   markdown: string;
   title?: string | null;
   typstBin?: string;
   typstArgs?: string[];
+  /** Binary assets written under the compile workdir before `typst compile`. */
+  assetFiles?: TypstPdfAssetFile[];
   execFileFn?: typeof execFileAsync;
   readOutputFn?: (path: string) => Promise<Buffer>;
   timeoutMs?: number;
@@ -51,11 +59,18 @@ export async function renderMarkdownToPdfBuffer(options: TypstPdfExportOptions):
   const outputPath = join(workDir, 'output.pdf');
 
   try {
+    for (const asset of options.assetFiles ?? []) {
+      const abs = join(workDir, asset.relativePath);
+      await mkdir(dirname(abs), { recursive: true });
+      await writeFile(abs, asset.data);
+    }
+
     const markdown = buildMarkdownForPdfExport(options.markdown, options.title);
     await writeFile(inputPath, markdown, 'utf8');
 
     try {
       await execFn(typstCommand, ['compile', ...typstExtraArgs, inputPath, outputPath], {
+        cwd: workDir,
         timeout: timeoutMs,
         maxBuffer: DEFAULT_MAX_BUFFER,
       });

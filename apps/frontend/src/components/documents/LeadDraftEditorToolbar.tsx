@@ -9,17 +9,19 @@ import {
   IconList,
   IconListNumbers,
   IconMinus,
+  IconPhoto,
   IconQuote,
   IconRowInsertBottom,
   IconTable,
   IconTableOff,
   IconTypography,
 } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import {
   authorSelectionAllowsInlineFormat,
   toggleAuthorInlineMark,
 } from '../../tiptap/authorFormatGuards.js';
+import { insertImageFromFile } from '../../lib/uploadDocumentImage.js';
 import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
 import classes from './LeadDraftEditorToolbar.module.css';
 
@@ -27,6 +29,7 @@ type Props = {
   editor: Editor;
   authorMode: boolean;
   authorId?: string;
+  documentId: string;
 };
 
 const AUTHOR_INLINE_DISABLED =
@@ -101,8 +104,9 @@ function HeadingTool({
   );
 }
 
-export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Props) {
+export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', documentId }: Props) {
   const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const linkControl = (
     <LeadDraftLinkPopover
@@ -177,6 +181,25 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Pr
           >
             <IconFileCode size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
+          <ToolIcon
+            label="Image"
+            active={editor.isActive('image')}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            <IconPhoto size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            hidden
+            onChange={(e) => {
+              const file = e.currentTarget.files?.[0];
+              e.currentTarget.value = '';
+              if (!file || !documentId) return;
+              void insertImageFromFile(editor, documentId, file);
+            }}
+          />
           <ToolIcon
             label="Table"
             active={editor.isActive('table')}

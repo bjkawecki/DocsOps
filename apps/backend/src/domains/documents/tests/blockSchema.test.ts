@@ -8,7 +8,9 @@ import {
   blockDocumentUsesInlineMarks,
   isAllowedLinkHref,
   assertBlockDocumentLinksValid,
+  assertBlockDocumentImagesValid,
   InvalidBlockLinkHrefError,
+  InvalidBlockImageError,
 } from '../services/blocks/blockSchema.js';
 
 describe('blockSchema v0', () => {
@@ -148,5 +150,39 @@ describe('blockSchema link href (ADR 005)', () => {
       ],
     };
     expect(() => assertBlockDocumentLinksValid(doc)).not.toThrow();
+  });
+});
+
+describe('blockSchema image blocks (§28a)', () => {
+  it('assertBlockDocumentImagesValid rejects missing attachmentId', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [{ id: 'i1', type: 'image', attrs: {} }],
+    };
+    expect(() => assertBlockDocumentImagesValid(doc, new Set())).toThrow(InvalidBlockImageError);
+  });
+
+  it('assertBlockDocumentImagesValid rejects unknown attachmentId', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [{ id: 'i1', type: 'image', attrs: { attachmentId: 'att_missing' } }],
+    };
+    expect(() => assertBlockDocumentImagesValid(doc, new Set(['att_other']))).toThrow(
+      InvalidBlockImageError
+    );
+  });
+
+  it('assertBlockDocumentImagesValid accepts known attachmentId', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [
+        {
+          id: 'i1',
+          type: 'image',
+          attrs: { attachmentId: 'att_ok', caption: 'Overview' },
+        },
+      ],
+    };
+    expect(() => assertBlockDocumentImagesValid(doc, new Set(['att_ok']))).not.toThrow();
   });
 });

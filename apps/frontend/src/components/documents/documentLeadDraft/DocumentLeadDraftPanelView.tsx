@@ -108,6 +108,7 @@ export function DocumentLeadDraftPanelView({
         editable={editorEditable}
         editorMode={editorMode}
         authorId={currentUserId}
+        documentId={documentId}
         chromePrefix={chromePrefix}
         onDirtyChange={setDirty}
         onSaveShortcut={() => {

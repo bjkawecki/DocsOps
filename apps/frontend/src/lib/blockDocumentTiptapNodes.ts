@@ -3,7 +3,15 @@ import type { BlockNodeV0 } from '../api/document-types';
 import { isAllowedLinkHref, readTextNodeLinkHref } from './blockLinkHref.js';
 import { randomId } from './randomId.js';
 import { mergeAdjacentSuggestionLeaves } from './blockDocumentTiptapExportHelpers.js';
+import { imageOurToTiptap, tiptapImageToOur } from './blockDocumentTiptapImage.js';
 import { tableOurToTiptap, tiptapTableToOur } from './blockDocumentTiptapTable.js';
+
+/* TipTap ↔ blocks mapping grows with each block type; split further when adding the next type. */
+/* eslint-disable max-lines */
+
+export type TiptapConvertContext = {
+  documentId?: string;
+};
 
 type InlineMark = 'bold' | 'italic' | 'code';
 
@@ -194,7 +202,10 @@ function listItemOurToTiptap(item: BlockNodeV0): JSONContent {
   };
 }
 
-export function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null {
+export function ourTopLevelBlockToTiptap(
+  block: BlockNodeV0,
+  ctx: TiptapConvertContext = {}
+): JSONContent | null {
   switch (block.type) {
     case 'heading': {
       const raw = block.attrs?.level;
@@ -240,7 +251,7 @@ export function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null
     }
     case 'blockquote': {
       const inner = (block.content ?? [])
-        .map((child) => ourTopLevelBlockToTiptap(child))
+        .map((child) => ourTopLevelBlockToTiptap(child, ctx))
         .filter((n): n is JSONContent => n != null);
       return {
         type: 'blockquote',
@@ -256,6 +267,8 @@ export function ourTopLevelBlockToTiptap(block: BlockNodeV0): JSONContent | null
         type: 'horizontalRule',
         attrs: { blockId: block.id },
       };
+    case 'image':
+      return imageOurToTiptap(block, ctx.documentId);
     case 'table':
       return tableOurToTiptap(block, paragraphOurToTiptap, newId, textLeaf);
     default: {
@@ -369,6 +382,8 @@ export function tiptapTopLevelToOur(node: JSONContent): BlockNodeV0 | null {
         attrs: {},
       };
     }
+    case 'image':
+      return tiptapImageToOur(node, readBlockId);
     case 'table':
       return tiptapTableToOur(
         node,

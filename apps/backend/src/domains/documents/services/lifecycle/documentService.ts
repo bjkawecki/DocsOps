@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from '../../../../../generated/prisma/clien
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
 import {
   assertBlockDocumentLinksValid,
+  assertBlockDocumentImagesValid,
   normalizeBlockDocumentSchemaVersion,
 } from '../blocks/blockSchema.js';
 import {
@@ -87,6 +88,11 @@ export async function publishDocument(
   }
   const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
   assertBlockDocumentLinksValid(normalized);
+  const attachmentRows = await prisma.documentAttachment.findMany({
+    where: { documentId },
+    select: { id: true },
+  });
+  assertBlockDocumentImagesValid(normalized, new Set(attachmentRows.map((r) => r.id)));
   const pendingCount = countPendingSuggestions(normalized);
   if (pendingCount > 0) {
     throw new DocumentNotPublishableError(

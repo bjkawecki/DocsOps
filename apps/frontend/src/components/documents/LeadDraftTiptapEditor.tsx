@@ -37,6 +37,7 @@ import {
 } from '../../tiptap/suggestionHoverExtension';
 import { SuggestionMarkPopover } from './documentLeadDraft/SuggestionMarkPopover.js';
 import { useDraftSuggestionMutations } from './documentLeadDraft/useDraftSuggestionMutations.js';
+import { DocumentImage } from '../../tiptap/documentImage.js';
 import { LeadDraftEditorToolbar } from './LeadDraftEditorToolbar.js';
 import classes from './LeadDraftTiptapEditor.module.css';
 
@@ -57,6 +58,8 @@ type Props = {
   editable: boolean;
   editorMode?: LeadDraftEditorMode;
   authorId?: string;
+  /** Needed for attachment-backed image src URLs and uploads. */
+  documentId: string;
   onDirtyChange?: (dirty: boolean) => void;
   onSaveShortcut?: () => void;
   onSubmitShortcut?: () => void;
@@ -84,6 +87,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       editable,
       editorMode = 'lead',
       authorId = '',
+      documentId,
       onDirtyChange,
       onSaveShortcut,
       onSubmitShortcut,
@@ -175,6 +179,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
         TableRow,
         TableHeader,
         TableCell,
+        DocumentImage,
         SuggestionFriendlyCode,
         BlockIdExtension,
         SuggestionInsertMark,
@@ -199,7 +204,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
     const editor = useEditor({
       extensions,
       editable,
-      content: blockDocumentToTiptapJson(sourceDocument),
+      content: blockDocumentToTiptapJson(sourceDocument, { documentId }),
       onUpdate: ({ editor: e }) => {
         const current = tiptapJsonToBlockDocument(e.getJSON());
         const dirty = JSON.stringify(current) !== baselineFingerprint;
@@ -286,13 +291,13 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
 
     useEffect(() => {
       if (!editor) return;
-      const nextJson = blockDocumentToTiptapJson(sourceDocument);
+      const nextJson = blockDocumentToTiptapJson(sourceDocument, { documentId });
       const cur = editor.getJSON();
       if (JSON.stringify(cur) === JSON.stringify(nextJson)) return;
       editor.commands.setContent(nextJson, false);
       dirtyRef.current = false;
       onDirtyChangeRef.current?.(false);
-    }, [contentFingerprint, editor, sourceDocument]);
+    }, [contentFingerprint, documentId, editor, sourceDocument]);
 
     if (!editor) {
       return (
@@ -315,7 +320,12 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
         )}
         {editable && (
           <Box className={classes.toolbar}>
-            <LeadDraftEditorToolbar editor={editor} authorMode={authorMode} authorId={authorId} />
+            <LeadDraftEditorToolbar
+              editor={editor}
+              authorMode={authorMode}
+              authorId={authorId}
+              documentId={documentId}
+            />
           </Box>
         )}
       </Box>

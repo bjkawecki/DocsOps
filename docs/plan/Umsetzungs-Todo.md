@@ -324,7 +324,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] S3-Client (MinIO) im Backend anbinden
 [x] Upload/Download für Anhänge, Bilder und Exporte (z. B. PDF aus §17) in Dokumenten
-[ ] **Bilder im Fließtext (Editor/Preview):** Abgrenzung zu reinen Attachments – siehe §28a Image-/Figure-Block (Darstellung + Caption-Nummerierung).
+[x] **Bilder im Fließtext (Editor/Preview):** Abgrenzung zu reinen Attachments – siehe §28a Image-/Figure-Block (Darstellung + Caption-Nummerierung).
 [x] Speicherorte in DB referenzieren (z. B. `Document.pdfUrl` für Export-PDFs; vgl. §17); Berechtigungen vor Download prüfen
 [x] **Speicherübersicht (Assets aus MinIO):** Nutzung/Speicher pro Nutzer sichtbar – **Nutzer:** nur eigene Nutzung; **Team-Lead:** Nutzung aller Team-Mitglieder; **Department-Lead:** Nutzung aller Members der Abteilung (alle Teams der Abteilung); **Company-Lead / Admin:** Nutzung aller Abteilungen.
 [x] **Speicherübersicht im Frontend:** Settings-Tab „Storage“ mit Scope-Auswahl (Personal, Team/Department/Company für Leads/Admin), Anzeige von genutzten Bytes und Anhänge-Anzahl; bei Lead-Scope Tabelle „pro Nutzer“.
@@ -640,12 +640,12 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 ### 28a. Leser-Ansicht (Ist & Ausbau)
 
-**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Horizontal Rule, Tabellen, Code); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
+**Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Horizontal Rule, Tabellen, Code, Bilder/Abbildungen); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken (`lang` wird mitgeführt, Preview noch plain); keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; keine Image-/Figure-Blöcke im Fließtext; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links (http(s) + `#heading-slug`) und Tabellen sind umgesetzt.
+**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken (`lang` wird mitgeführt, Preview noch plain); keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links (http(s) + `#heading-slug`), Tabellen und Bilder/Abbildungen (`image` + Caption) sind umgesetzt.
 
 [x] **Inline-Links (Fließtext):** TipTap-Link-Mark + `meta.link` + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
-[ ] **Bilder / Abbildungen:** Block-Typ z. B. `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (Abbildung 1, 2, …); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
+[x] **Bilder / Abbildungen:** Block-Typ `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (`Figure n`); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
 [ ] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in Leser- und ggf. Editor-Ansicht.
 [ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
 [ ] **Leser-Typografie:** Heading-Scale und ggf. engere Code/Listen-Abstände in `.document-content`; optional „Reader mode“ (weniger Chrome). Basis-Styles (Font, Zeilenhöhe, Tabellen/Code) bereits vorhanden.

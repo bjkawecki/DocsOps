@@ -1,7 +1,17 @@
 import type { BlockDocument, BlockNode } from './blockSchema.js';
-import { isAllowedLinkHref, readTextNodeLinkHref } from './blockSchema.js';
+import {
+  isAllowedLinkHref,
+  readImageAttachmentId,
+  readImageCaption,
+  readTextNodeLinkHref,
+} from './blockSchema.js';
+import { attachmentHrefToken, formatFigureCaption } from './figureCaption.js';
 import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
 import { tableBlockToMarkdown } from './markdownTable.js';
+
+type MarkdownExportContext = {
+  figureIndex: number;
+};
 
 function textFromMeta(node: BlockNode): string {
   const t = node.meta?.text;
@@ -40,13 +50,14 @@ function innerText(node: BlockNode): string {
  */
 export function blockDocumentV0ToMarkdown(doc: BlockDocument): string {
   const materialized = stripSuggestionsForPublished(doc);
+  const ctx: MarkdownExportContext = { figureIndex: 0 };
   return materialized.blocks
-    .map(blockNodeToMarkdown)
+    .map((block) => blockNodeToMarkdown(block, ctx))
     .filter((s) => s.length > 0)
     .join('\n\n');
 }
 
-function blockNodeToMarkdown(node: BlockNode): string {
+function blockNodeToMarkdown(node: BlockNode, ctx: MarkdownExportContext): string {
   switch (node.type) {
     case 'text':
       return textFromMeta(node);
@@ -70,21 +81,21 @@ function blockNodeToMarkdown(node: BlockNode): string {
     case 'bullet_list':
       return (node.content ?? [])
         .map((item) => {
-          const line = blockNodeToMarkdown(item);
+          const line = blockNodeToMarkdown(item, ctx);
           return `- ${line.replace(/\n/g, '\n  ')}`;
         })
         .join('\n');
     case 'ordered_list':
       return (node.content ?? [])
         .map((item, index) => {
-          const line = blockNodeToMarkdown(item);
+          const line = blockNodeToMarkdown(item, ctx);
           return `${index + 1}. ${line.replace(/\n/g, '\n   ')}`;
         })
         .join('\n');
     case 'blockquote':
       return (node.content ?? [])
         .map((child) =>
-          blockNodeToMarkdown(child)
+          blockNodeToMarkdown(child, ctx)
             .split('\n')
             .map((line) => (line.length > 0 ? `> ${line}` : '>'))
             .join('\n')
@@ -99,6 +110,13 @@ function blockNodeToMarkdown(node: BlockNode): string {
     case 'table_cell':
     case 'table_header':
       return innerText(node);
+    case 'image': {
+      const attachmentId = readImageAttachmentId(node.attrs);
+      if (attachmentId == null) return '';
+      ctx.figureIndex += 1;
+      const label = formatFigureCaption(ctx.figureIndex, readImageCaption(node.attrs));
+      return `![${label}](${attachmentHrefToken(attachmentId)})`;
+    }
     default:
       return innerText(node);
   }

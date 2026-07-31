@@ -84,6 +84,27 @@ describe('block serialization (EPIC-2)', () => {
     expect(md).toContain('[intro](#intro)');
   });
 
+  it('exports image blocks with Figure numbering (§28a)', () => {
+    const doc = {
+      schemaVersion: 0 as const,
+      blocks: [
+        {
+          id: 'i1',
+          type: 'image',
+          attrs: { attachmentId: 'att_a', caption: 'Overview' },
+        },
+        {
+          id: 'i2',
+          type: 'image',
+          attrs: { attachmentId: 'att_b' },
+        },
+      ],
+    };
+    const md = blockDocumentV0ToMarkdown(doc);
+    expect(md).toContain('![Figure 1: Overview](docsops-attachment:att_a)');
+    expect(md).toContain('![Figure 2](docsops-attachment:att_b)');
+  });
+
   it('exports and imports ordered list, blockquote and horizontal rule', () => {
     const md = ['1. First', '2. Second', '', '> Quoted line', '', '---'].join('\n');
     const doc = markdownToBlockDocumentV0(md);

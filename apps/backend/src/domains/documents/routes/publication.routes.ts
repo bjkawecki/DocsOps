@@ -458,13 +458,16 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
       if (!object) {
         return reply.status(404).send({ error: 'Attachment object not found in storage' });
       }
+      const contentType =
+        object.ContentType ?? attachment.contentType ?? 'application/octet-stream';
       const safeFilename = attachment.filename.replace(/"/g, '');
+      const isImage = contentType.toLowerCase().startsWith('image/');
+      reply.header('Content-Type', contentType);
       reply.header(
-        'Content-Type',
-        object.ContentType ?? attachment.contentType ?? 'application/octet-stream'
+        'Content-Disposition',
+        `${isImage ? 'inline' : 'attachment'}; filename="${safeFilename}"`
       );
-      reply.header('Content-Disposition', `attachment; filename="${safeFilename}"`);
-      reply.header('Cache-Control', 'private, no-store');
+      reply.header('Cache-Control', isImage ? 'private, max-age=60' : 'private, no-store');
       return reply.send(object.Body);
     }
   );

@@ -383,6 +383,29 @@ describe('tiptapJsonToBlockDocument', () => {
     );
   });
 
+  it('round-trips image blocks with attachmentId and caption (§28a)', () => {
+    const source: BlockDocument = {
+      schemaVersion: 0,
+      blocks: [
+        {
+          id: 'img1',
+          type: 'image',
+          attrs: { attachmentId: 'att_abc', caption: 'Overview', alt: 'Diagram' },
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source, { documentId: 'doc1' });
+    expect(json.content?.[0]?.type).toBe('image');
+    expect(json.content?.[0]?.attrs?.attachmentId).toBe('att_abc');
+    expect(json.content?.[0]?.attrs?.src).toBe('/api/v1/documents/doc1/attachments/att_abc');
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.blocks[0]?.type).toBe('image');
+    expect(back.blocks[0]?.attrs?.attachmentId).toBe('att_abc');
+    expect(back.blocks[0]?.attrs?.caption).toBe('Overview');
+    expect(back.blocks[0]?.attrs?.alt).toBe('Diagram');
+    expect(back.blocks[0]?.attrs?.src).toBeUndefined();
+  });
+
   it('omits empty paragraphs without suggestions from export', () => {
     const doc = tiptapJsonToBlockDocument({
       type: 'doc',

@@ -142,6 +142,76 @@ export function assertBlockDocumentLinksValid(doc: BlockDocument): void {
   for (const block of doc.blocks) walk(block);
 }
 
+/**
+ * Image block (§28a): `type: 'image'` with `attrs.attachmentId` (cuid),
+ * optional `attrs.alt` / `attrs.caption` (strings). Figure numbers are not stored.
+ */
+export function readImageAttachmentId(attrs: Record<string, unknown> | undefined): string | null {
+  const id = attrs?.attachmentId;
+  return typeof id === 'string' && id.length > 0 ? id : null;
+}
+
+export function readImageCaption(attrs: Record<string, unknown> | undefined): string | null {
+  const caption = attrs?.caption;
+  return typeof caption === 'string' ? caption : null;
+}
+
+export function readImageAlt(attrs: Record<string, unknown> | undefined): string | null {
+  const alt = attrs?.alt;
+  return typeof alt === 'string' ? alt : null;
+}
+
+export class InvalidBlockImageError extends Error {
+  readonly attachmentId: string | null;
+  readonly reason: 'missing' | 'unknown';
+
+  constructor(reason: 'missing' | 'unknown', attachmentId: string | null) {
+    const detail =
+      reason === 'missing'
+        ? 'Image block requires attrs.attachmentId'
+        : `Image attachment not found on document: ${attachmentId ?? ''}`;
+    super(detail);
+    this.name = 'InvalidBlockImageError';
+    this.reason = reason;
+    this.attachmentId = attachmentId;
+  }
+}
+
+/**
+ * Reject image blocks with missing/foreign attachmentIds (§28a).
+ * Call after parse/normalize on save paths – no silent strip.
+ */
+export function assertBlockDocumentImagesValid(
+  doc: BlockDocument,
+  knownAttachmentIds: ReadonlySet<string>
+): void {
+  const walk = (node: BlockNode): void => {
+    if (node.type === 'image') {
+      const attachmentId = readImageAttachmentId(node.attrs);
+      if (attachmentId == null) throw new InvalidBlockImageError('missing', null);
+      if (!knownAttachmentIds.has(attachmentId)) {
+        throw new InvalidBlockImageError('unknown', attachmentId);
+      }
+    }
+    for (const child of node.content ?? []) walk(child);
+  };
+  for (const block of doc.blocks) walk(block);
+}
+
+/** Collect attachmentIds referenced by top-level and nested `image` blocks. */
+export function collectImageAttachmentIds(doc: BlockDocument): string[] {
+  const ids: string[] = [];
+  const walk = (node: BlockNode): void => {
+    if (node.type === 'image') {
+      const id = readImageAttachmentId(node.attrs);
+      if (id != null) ids.push(id);
+    }
+    for (const child of node.content ?? []) walk(child);
+  };
+  for (const block of doc.blocks) walk(block);
+  return ids;
+}
+
 /** True when any text node carries inline formatting marks or an inline link (ADR 002 / 005). */
 export function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
   const walk = (node: BlockNode): boolean => {

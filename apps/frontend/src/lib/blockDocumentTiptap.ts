@@ -19,9 +19,13 @@ function newId(): string {
   return randomId();
 }
 
-export function blockDocumentToTiptapJson(doc: BlockDocument): JSONContent {
+export function blockDocumentToTiptapJson(
+  doc: BlockDocument,
+  options?: { documentId?: string }
+): JSONContent {
+  const ctx = { documentId: options?.documentId };
   const content = doc.blocks
-    .map(ourTopLevelBlockToTiptap)
+    .map((block) => ourTopLevelBlockToTiptap(block, ctx))
     .filter((n): n is JSONContent => n != null);
   if (content.length === 0) {
     return {

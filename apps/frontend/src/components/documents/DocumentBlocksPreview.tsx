@@ -2,11 +2,29 @@ import { Box, Code, List, Stack, Table, Text, Title } from '@mantine/core';
 import { Fragment, type ReactNode } from 'react';
 import type { BlockDocument, BlockNodeV0 } from '../../api/document-types';
 import { ensureUniqueBlockIdsInDocument } from '../../lib/blockDocumentTiptap';
+import { documentAttachmentUrl, formatFigureCaption } from '../../lib/figureCaption.js';
 import {
   getBlockDocumentHeadingData,
   nodeText,
 } from '../../pages/documentPage/blockDocumentHeadings';
 import { renderInlineBlockContent } from './documentBlockPreviewInline.js';
+
+type PreviewCtx = {
+  anchorMap: ReadonlyMap<string, string>;
+  figureNumberByBlockId: ReadonlyMap<string, number>;
+  documentId: string;
+};
+
+function buildFigureNumberByBlockId(doc: BlockDocument): Map<string, number> {
+  const map = new Map<string, number>();
+  let n = 0;
+  for (const block of doc.blocks) {
+    if (block.type !== 'image') continue;
+    n += 1;
+    map.set(block.id, n);
+  }
+  return map;
+}
 
 function walkNode(node: BlockNodeV0): string {
   if (node.type === 'text') {
@@ -30,10 +48,10 @@ function headingOrder(attrs: Record<string, unknown> | undefined): 1 | 2 | 3 | 4
   return 2;
 }
 
-function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): ReactNode {
+function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
   switch (node.type) {
     case 'heading': {
-      const anchorId = anchorMap.get(node.id);
+      const anchorId = ctx.anchorMap.get(node.id);
       const order = headingOrder(node.attrs);
       const inline = renderInlineBlockContent(node.content);
       const fallback = nodeText(node).trim();
@@ -83,7 +101,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       return (
         <List type="unordered" size="lg" spacing="xs" withPadding>
           {items.map((item) => (
-            <List.Item key={item.id}>{renderNode(item, anchorMap)}</List.Item>
+            <List.Item key={item.id}>{renderNode(item, ctx)}</List.Item>
           ))}
         </List>
       );
@@ -94,7 +112,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       return (
         <List type="ordered" size="lg" spacing="xs" withPadding>
           {items.map((item) => (
-            <List.Item key={item.id}>{renderNode(item, anchorMap)}</List.Item>
+            <List.Item key={item.id}>{renderNode(item, ctx)}</List.Item>
           ))}
         </List>
       );
@@ -114,7 +132,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
         >
           <Stack gap="sm">
             {parts.map((c) => (
-              <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+              <Fragment key={c.id}>{renderNode(c, ctx)}</Fragment>
             ))}
           </Stack>
         </Box>
@@ -132,6 +150,30 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
           }}
         />
       );
+    case 'image': {
+      const attachmentId =
+        typeof node.attrs?.attachmentId === 'string' ? node.attrs.attachmentId : '';
+      if (!attachmentId || !ctx.documentId) return null;
+      const caption = typeof node.attrs?.caption === 'string' ? node.attrs.caption : '';
+      const alt = typeof node.attrs?.alt === 'string' ? node.attrs.alt : '';
+      const figureN = ctx.figureNumberByBlockId.get(node.id) ?? 1;
+      const label = formatFigureCaption(figureN, caption);
+      const src = documentAttachmentUrl(ctx.documentId, attachmentId);
+      return (
+        <Box component="figure" m={0} my="md">
+          <Box
+            component="img"
+            src={src}
+            alt={alt || label}
+            maw="100%"
+            style={{ display: 'block', height: 'auto' }}
+          />
+          <Text component="figcaption" size="sm" c="dimmed" mt="xs">
+            {label}
+          </Text>
+        </Box>
+      );
+    }
     case 'table': {
       const rows = (node.content ?? []).filter((r) => r.type === 'table_row');
       if (rows.length === 0) return null;
@@ -148,7 +190,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
                       <CellTag key={cell.id} style={{ verticalAlign: 'top' }}>
                         <Stack gap={4}>
                           {(cell.content ?? []).map((c) => (
-                            <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+                            <Fragment key={c.id}>{renderNode(c, ctx)}</Fragment>
                           ))}
                         </Stack>
                       </CellTag>
@@ -168,7 +210,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       return (
         <Stack gap={4}>
           {parts.map((c) => (
-            <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+            <Fragment key={c.id}>{renderNode(c, ctx)}</Fragment>
           ))}
         </Stack>
       );
@@ -179,7 +221,7 @@ function renderNode(node: BlockNodeV0, anchorMap: ReadonlyMap<string, string>): 
       return (
         <Stack gap={4}>
           {parts.map((c) => (
-            <Fragment key={c.id}>{renderNode(c, anchorMap)}</Fragment>
+            <Fragment key={c.id}>{renderNode(c, ctx)}</Fragment>
           ))}
         </Stack>
       );
@@ -232,16 +274,22 @@ type Props = {
   /** Optional section label above the preview; omit on the document page. */
   title?: string;
   doc: BlockDocument | null;
+  documentId: string;
 };
 
 /** Lesevorschau aus Blocks – Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */
-export function DocumentBlocksPreview({ title, doc }: Props) {
+export function DocumentBlocksPreview({ title, doc, documentId }: Props) {
   if (doc == null || doc.blocks.length === 0) return null;
   const normalizedDoc = ensureUniqueBlockIdsInDocument(doc);
   const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(normalizedDoc);
+  const ctx: PreviewCtx = {
+    anchorMap: anchorIdByBlockNodeId,
+    figureNumberByBlockId: buildFigureNumberByBlockId(normalizedDoc),
+    documentId,
+  };
   const rendered = normalizedDoc.blocks
     .map((block) => {
-      const el = renderNode(block, anchorIdByBlockNodeId);
+      const el = renderNode(block, ctx);
       if (el == null) return null;
       return <Box key={block.id}>{el}</Box>;
     })
