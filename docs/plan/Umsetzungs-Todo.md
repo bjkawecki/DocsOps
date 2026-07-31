@@ -642,13 +642,13 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 **Ist (umgesetzt):** `DocumentPage` View-Modus mit `DocumentBlocksPreview` (Blocks → Überschriften, Absätze, Bullet-/Nummerierte Listen, Blockquote, Horizontal Rule, Tabellen, Code); **Table of Contents** (sticky, nummeriert); Lesespalte ohne Rahmen, `max-width: min(100%, 52rem)` (View + Edit); Published-Version-Alert bei veralteter Leser-Ansicht; Kommentar-Sektion; Version History/Diff.
 
-**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken; keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; noch keine Inline-Links und keine Image-/Figure-Blöcke im Fließtext; Lesetypografie noch ausbaufähig.
+**Lücken vs. GitBook/Mintlify:** kein Syntax-Highlighting in Code-Blöcken (`lang` wird mitgeführt, Preview noch plain); keine Mermaid/Diagramm-Blöcke; keine Callouts im Block-Renderer; keine Image-/Figure-Blöcke im Fließtext; Lesetypografie (`.document-content`) Basis vorhanden, Heading-Scale / Reader mode noch ausbaufähig. Inline-Links (http(s) + `#heading-slug`) und Tabellen sind umgesetzt.
 
-[ ] **Inline-Links (Fließtext):** TipTap-Link-Mark + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
+[x] **Inline-Links (Fließtext):** TipTap-Link-Mark + `meta.link` + Schema/Markdown/Preview – externe `https://` und In-Dokument-`#heading-slug`; siehe [ADR 005](../platform/adr/005-block-inline-links.md).
 [ ] **Bilder / Abbildungen:** Block-Typ z. B. `image` (TipTap + MinIO-Attachment-Ref); Darstellung in Reader-Preview und Editor; **Bildbeschreibung (Caption)** mit **automatischer fortlaufender Nummerierung pro Dokument** (Abbildung 1, 2, …); Markdown/Typst-Export. Querverweise „siehe Abb. n“ optional später.
 [ ] **Code-Blöcke:** Syntax-Highlighting (Sprache pro Block, z. B. `bash`, `yaml`, `sql`) in Leser- und ggf. Editor-Ansicht.
 [ ] **Diagramme:** Mermaid-Block (Lesen; optional später Editor-Embed) – Architektur, Ablaufdiagramme.
-[ ] **Leser-Typografie:** Eigene `.document-content`-Styles (Heading-Scale, Code/Listen-Abstände); optional „Reader mode“ (weniger Chrome).
+[ ] **Leser-Typografie:** Heading-Scale und ggf. engere Code/Listen-Abstände in `.document-content`; optional „Reader mode“ (weniger Chrome). Basis-Styles (Font, Zeilenhöhe, Tabellen/Code) bereits vorhanden.
 [x] **Tabellen:** Block-Typ `table` (TipTap Table-Extension + Zod/Schema + Preview + Markdown/Typst-Export).
 [ ] **Callouts / Warnungen:** Custom-Block z. B. `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Export).
 [ ] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration.
@@ -683,11 +683,12 @@ Spalte **Often used in** = Hinweis für Picker-Filter, keine Bindung an Kontext-
 
 **Known issue (UI-Label alternativ „Bug report“):** Dokumentation eines **bekannten** Defekts im Wissenssystem (Repro, Expected/Actual, Environment, Workaround, Tracker-Link). Nicht Assignee/Sprint/Statusmaschine – das bleibt im Issue-Tracker. Typischer Ablageort: Product-**Project** (optional Subcontext). Abgrenzung: Runbook = Reaktion; Post-mortem = Nachbereitung; Known issue = „das ist bekannt und so äußert es sich“.
 
-[ ] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/templates` → `/document-templates`.
+[x] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/templates` → `/document-templates` – festgehalten in diesem Abschnitt und [Dokument-Templates.md](Dokument-Templates.md) (Umsetzung folgt).
 [ ] **Berechtigung:** Templates/Types **verwenden** bei `canWrite` im Kontext; Custom Types/Templates anlegen/bearbeiten/löschen nur Scope Lead / Admin über Permissions-Layer (`isScopeLead` / `isAdmin`), nicht in Routes inline.
 [ ] **Backend:** Types- + Templates-API (`GET` Built-in ∪ sichtbare Custom); CRUD Custom nur Lead/Admin; Document-Feld optional; `POST /documents` mit `templateId` / `typeId` → initialer `draftBlocks` + optional Type.
 [ ] **Frontend:** Picker im New-Document-Flow (when-to-use, example title, chapter outline); Manage-Seite; Nav unter Catalog nur mit Manage-Recht.
 [ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) an Type+Template-Modell anbinden; DE↔EN-Mapping für Picker-Tooltips.
-[ ] **Doku:** Help „Choosing a document type“ / „Managing templates (leads)“; Contexts-Help unter `/help/contexts`; Out-of-scope unter `/help/out-of-scope`; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
+[x] **Doku (Help Scope):** Contexts-Help unter `/help/contexts`; Out-of-scope unter `/help/out-of-scope`.
+[ ] **Doku (Templates-Help):** Help „Choosing a document type“ / „Managing templates (leads)“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
 
-**Hinweis:** Früher existierte nur ein Redirect `/templates` → `/` und ein gelöschter Platzhalter `TemplatesPage` – **keine** umgesetzte Template-Funktion. Dieser Abschnitt ist die Planung (Umsetzung folgt).
+**Hinweis:** Redirect `/templates` → `/` und kein Template-Code – **keine** umgesetzte Template-Funktion. Konzept und Help zu Contexts/Out-of-scope sind da; Schema/API/UI folgen.

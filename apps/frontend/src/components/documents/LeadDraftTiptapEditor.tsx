@@ -2,6 +2,7 @@ import { Badge, Box, Group, Text } from '@mantine/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { SuggestionFriendlyCode } from '../../tiptap/suggestionFriendlyCode.js';
 import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
 import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
@@ -24,6 +25,7 @@ import {
   blockDocumentToTiptapJson,
   tiptapJsonToBlockDocument,
 } from '../../lib/blockDocumentTiptap';
+import { isAllowedLinkHref } from '../../lib/blockLinkHref.js';
 import { isSuggestionPersisted } from '../../lib/draftSuggestionUtils.js';
 import { withdrawLocalSuggestionInEditor } from '../../tiptap/withdrawLocalSuggestion.js';
 import { AuthorSuggestionModeExtension } from '../../tiptap/authorSuggestionMode';
@@ -155,6 +157,16 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
         StarterKit.configure({
           strike: false,
           code: false,
+        }),
+        Link.configure({
+          openOnClick: false,
+          autolink: false,
+          linkOnPaste: false,
+          protocols: ['http', 'https'],
+          HTMLAttributes: {
+            rel: 'noopener noreferrer',
+          },
+          validate: (href) => isAllowedLinkHref(href),
         }),
         Table.configure({
           resizable: false,

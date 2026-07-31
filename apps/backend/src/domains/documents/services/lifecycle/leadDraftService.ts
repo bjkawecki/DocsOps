@@ -3,6 +3,8 @@ import { treeifyError } from 'zod';
 import {
   safeParseBlockDocument,
   normalizeBlockDocumentSchemaVersion,
+  assertBlockDocumentLinksValid,
+  InvalidBlockLinkHrefError,
   type BlockDocument,
 } from '../blocks/blockSchema.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
@@ -117,6 +119,14 @@ export async function patchLeadDraft(
     return { ok: false, error: 'validation', issues: treeifyError(safe.error) };
   }
   let parsed = normalizeBlockDocumentSchemaVersion(safe.data);
+  try {
+    assertBlockDocumentLinksValid(parsed);
+  } catch (err) {
+    if (err instanceof InvalidBlockLinkHrefError) {
+      return { ok: false, error: 'validation', issues: { linkHref: err.href } };
+    }
+    throw err;
+  }
 
   const beforeRow = await prisma.document.findFirst({
     where: { id: documentId, deletedAt: null, draftRevision: input.expectedRevision },

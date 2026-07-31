@@ -119,6 +119,55 @@ describe('tiptapJsonToBlockDocument', () => {
     expect(back.blocks[0]?.content?.[0]?.meta?.marks).toEqual(['bold']);
   });
 
+  it('roundtrips link with bold through tiptap json (ADR 005)', () => {
+    const source: BlockDocument = {
+      schemaVersion: 1,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: { text: 'Docs', marks: ['bold'], link: { href: 'https://example.com' } },
+            },
+            { id: 't2', type: 'text', meta: { text: ' ', link: { href: '#intro' } } },
+          ],
+        },
+      ],
+    };
+    const json = blockDocumentToTiptapJson(source);
+    const back = tiptapJsonToBlockDocument(json);
+    expect(back.schemaVersion).toBe(1);
+    const leaves = back.blocks[0]?.content ?? [];
+    expect(leaves[0]?.meta?.marks).toEqual(['bold']);
+    expect(leaves[0]?.meta?.link).toEqual({ href: 'https://example.com' });
+    expect(leaves[1]?.meta?.link).toEqual({ href: '#intro' });
+  });
+
+  it('drops disallowed link schemes when importing from tiptap', () => {
+    const doc = tiptapJsonToBlockDocument({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: { blockId: 'p1' },
+          content: [
+            {
+              type: 'text',
+              text: 'bad',
+              marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }],
+            },
+          ],
+        },
+      ],
+    });
+    const leaf = doc.blocks[0]?.content?.[0];
+    expect(leaf?.meta?.link).toBeUndefined();
+    expect(leaf?.meta?.text).toBe('bad');
+  });
+
   it('roundtrips code mark on pending insert suggestion', () => {
     const source: BlockDocument = {
       schemaVersion: 1,

@@ -1,6 +1,9 @@
 import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
 import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
-import { normalizeBlockDocumentSchemaVersion } from '../blocks/blockSchema.js';
+import {
+  assertBlockDocumentLinksValid,
+  normalizeBlockDocumentSchemaVersion,
+} from '../blocks/blockSchema.js';
 import {
   countPendingSuggestions,
   stripSuggestionsForPublished,
@@ -83,6 +86,7 @@ export async function publishDocument(
     );
   }
   const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
+  assertBlockDocumentLinksValid(normalized);
   const pendingCount = countPendingSuggestions(normalized);
   if (pendingCount > 0) {
     throw new DocumentNotPublishableError(

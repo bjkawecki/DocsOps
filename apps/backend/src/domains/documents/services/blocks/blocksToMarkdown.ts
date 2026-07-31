@@ -1,4 +1,5 @@
 import type { BlockDocument, BlockNode } from './blockSchema.js';
+import { isAllowedLinkHref, readTextNodeLinkHref } from './blockSchema.js';
 import { stripSuggestionsForPublished } from '../collaboration/draftInlineSuggestions.js';
 import { tableBlockToMarkdown } from './markdownTable.js';
 
@@ -11,14 +12,19 @@ function formatInlineTextNode(node: BlockNode): string {
   const text = textFromMeta(node);
   if (node.type !== 'text') return text;
   const rawMarks = node.meta?.marks;
-  if (!Array.isArray(rawMarks) || rawMarks.length === 0) return text;
   const marks = new Set(
-    rawMarks.filter((m): m is string => m === 'bold' || m === 'italic' || m === 'code')
+    Array.isArray(rawMarks)
+      ? rawMarks.filter((m): m is string => m === 'bold' || m === 'italic' || m === 'code')
+      : []
   );
   let out = text;
   if (marks.has('code')) out = `\`${out}\``;
   if (marks.has('bold')) out = `**${out}**`;
   if (marks.has('italic')) out = `*${out}*`;
+  const href = readTextNodeLinkHref(node.meta);
+  if (href != null && isAllowedLinkHref(href)) {
+    out = `[${out}](${href})`;
+  }
   return out;
 }
 

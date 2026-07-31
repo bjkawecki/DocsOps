@@ -1,42 +1,46 @@
-# ADR 005: Inline-Links im Block-Dokument (geplant)
+# ADR 005: Inline-Links im Block-Dokument
 
 ## Status
 
-**Vorgeschlagen** (noch nicht umgesetzt).
+**Akzeptiert** (umgesetzt).
 
 ## Kontext
 
-- Block-Schema und TipTap-Lead-Editor unterstützen derzeit Marks `bold | italic | code` (ADR 002) und Strukturblöcke u. a. Listen, Blockquote, Horizontal Rule.
-- Heading-Anker (`id` / Slugs) existieren für TOC und Kommentar-Ziele, aber **kein** klickbarer Link im Fließtext.
+- Block-Schema und TipTap-Lead-Editor unterstützen Marks `bold | italic | code` (ADR 002) und Strukturblöcke u. a. Listen, Blockquote, Horizontal Rule, Tabellen.
+- Heading-Anker (`id` / Slugs) existieren für TOC und Kommentar-Ziele.
 - Für eine Docs-Plattform sind externe URLs und In-Dokument-Anker (`#heading-slug`) üblich; Querverweise zwischen Dokumenten sind separat geplant (Umsetzungs-Todo §28a).
 
-## Entscheidung (Ziel)
+## Entscheidung
 
-1. **Mark `link`** auf Text-Leafs mit Attributen, mindestens `href` (String).
+1. **Persistenz:** Text-Leafs tragen optional **`meta.link: { href: string }`** parallel zu `meta.marks` (ADR 002 bleibt String-Array). TipTap nutzt intern die Link-Mark mit `attrs.href`; Konverter mappt beidseitig.
 2. Erlaubte Ziele in v1:
-   - **Extern:** `http:` / `https:` (ggf. später `mailto:`)
-   - **In-Dokument:** `#<heading-slug>` gegen bestehende Heading-Anker desselben Dokuments
-3. Persistenz analog ADR 002: entweder Erweiterung von `meta.marks` um Objekte (`{ type: 'link', href }`) oder paralleles `meta.link`; Roundtrip über TipTap `@tiptap/extension-link`, Preview (`<a>`), Markdown-Export (`[text](href)`).
-4. **Kein** stiller Fallback bei ungültigen `href` – Speichern/Import ablehnen oder klar strippen mit Fehlerpfad (Produktentscheidung im Umsetzungs-PR).
+   - **Extern:** `http:` / `https:`
+   - **In-Dokument:** `#<heading-slug>` (nicht-leerer Slug ohne Whitespace)
+3. Roundtrip: TipTap `@tiptap/extension-link` (ohne Autolink), Preview (`<a>`), Markdown-Export (`[text](href)`). PDF über bestehende Markdown→Typst-Pipeline.
+4. **Ungültige `href`:** kein stiller Strip beim Speichern – `assertBlockDocumentLinksValid` lehnt ab. Im TipTap→Blocks-Konverter werden disallowed Schemes weggelassen (kein Persistieren unsicherer Links aus dem Editor).
 5. Cross-Document-Links (`documentId` / Picker) **nicht** Teil dieses ADR; siehe Todo §28a „Interne Links“.
+6. **`schemaVersion`:** bleibt **v1**, sobald Marks, `meta.link` oder Suggestions vorhanden sind.
 
 ## Nicht-Ziele (v1)
 
 - Relative App-Routen ohne Schema-Whitelist
 - Autolink beim Tippen ohne explizite Mark-UI
+- `mailto:`
 - Open-Graph-Previews / Embeds
+- Markdown-Import von Inline-Links (Export ja; Import von Inline-Marks folgt getrennt)
 
 ## Konsequenzen
 
-| Bereich  | Konsequenz                                                                 |
-| -------- | -------------------------------------------------------------------------- |
-| Schema   | ADR + Zod/`meta`-Form; ggf. `schemaVersion` nur wenn Breaking Change nötig |
-| Frontend | TipTap Link-Extension, Toolbar, Preview, Konverter `blockDocumentTiptap`   |
-| Backend  | Markdown Import/Export, Validierung `href`, PDF über Markdown              |
-| Security | Nur erlaubte Schemes; `rel`/`target` in Preview bewusst setzen             |
+| Bereich  | Konsequenz                                                               |
+| -------- | ------------------------------------------------------------------------ |
+| Schema   | `blockTextLinkSchema` / `meta.link`; Validierung auf Save-Pfaden         |
+| Frontend | TipTap Link-Extension, Toolbar, Preview, Konverter `blockDocumentTiptap` |
+| Backend  | Markdown-Export, `assertBlockDocumentLinksValid`                         |
+| Security | Nur erlaubte Schemes; Preview: `rel`/`target` für http(s)                |
 
 ## Changelog
 
-| Datum      | Änderung    |
-| ---------- | ----------- |
-| 2026-07-25 | Erstfassung |
+| Datum      | Änderung                                      |
+| ---------- | --------------------------------------------- |
+| 2026-07-25 | Erstfassung (vorgeschlagen)                   |
+| 2026-07-31 | Akzeptiert: `meta.link`, Whitelist, Umsetzung |

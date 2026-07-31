@@ -187,3 +187,67 @@ export function toggleAuthorInlineMark(editor: Editor, markName: AuthorInlineMar
   view.dispatch(tr);
   return true;
 }
+
+function withLinkHref(marks: readonly Mark[], markType: MarkType, href: string | null): Mark[] {
+  const suggestionMarks = marks.filter((m) => SUGGESTION_MARK_NAMES.has(m.type.name));
+  const other = marks.filter(
+    (m) => !SUGGESTION_MARK_NAMES.has(m.type.name) && m.type.name !== markType.name
+  );
+  if (href == null) return [...other, ...suggestionMarks];
+  return [...other, markType.create({ href }), ...suggestionMarks];
+}
+
+function applyLinkOnRange(
+  state: EditorState,
+  tr: Transaction,
+  rangeFrom: number,
+  rangeTo: number,
+  markType: MarkType,
+  href: string | null
+): readonly Mark[] | null {
+  let storedAtEnd: readonly Mark[] | null = null;
+  state.doc.nodesBetween(rangeFrom, rangeTo, (node, pos) => {
+    if (!node.isText) return;
+    const sliceFrom = Math.max(rangeFrom, pos);
+    const sliceTo = Math.min(rangeTo, pos + node.nodeSize);
+    if (sliceFrom >= sliceTo) return;
+    const nextMarks = withLinkHref(node.marks, markType, href);
+    replaceMarksOnRange(tr, sliceFrom, sliceTo, nextMarks);
+    if (sliceTo === rangeTo) storedAtEnd = nextMarks;
+  });
+  return storedAtEnd;
+}
+
+/** Set or clear a link mark on author suggestion text without dropping suggestion marks. */
+export function setAuthorLink(editor: Editor, href: string | null): boolean {
+  const markType = editor.state.schema.marks.link;
+  if (!markType) return false;
+
+  const { state, view } = editor;
+  const { from, to, empty } = state.selection;
+
+  if (empty) {
+    const cursorPos = from;
+    const stored = state.storedMarks ?? state.doc.resolve(from).marks();
+    if (href == null && markActiveAtCursor(state, markType)) {
+      const expanded = expandMarkRangeAtCursor(state, markType);
+      if (expanded) {
+        const tr = state.tr;
+        const storedAtEnd = applyLinkOnRange(state, tr, expanded.from, expanded.to, markType, null);
+        if (storedAtEnd) tr.setStoredMarks(storedAtEnd);
+        tr.setSelection(TextSelection.create(tr.doc, cursorPos, cursorPos));
+        view.dispatch(tr);
+        return true;
+      }
+    }
+    const next = withLinkHref(stored, markType, href);
+    view.dispatch(state.tr.setStoredMarks(next));
+    return true;
+  }
+
+  const tr = state.tr;
+  const storedAtEnd = applyLinkOnRange(state, tr, from, to, markType, href);
+  if (storedAtEnd) tr.setStoredMarks(storedAtEnd);
+  view.dispatch(tr);
+  return true;
+}

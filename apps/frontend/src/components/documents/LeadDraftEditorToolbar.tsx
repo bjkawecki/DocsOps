@@ -1,9 +1,27 @@
-import { Button, Group, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Text, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
+import {
+  IconBold,
+  IconCode,
+  IconColumnInsertRight,
+  IconFileCode,
+  IconItalic,
+  IconList,
+  IconListNumbers,
+  IconMinus,
+  IconQuote,
+  IconRowInsertBottom,
+  IconTable,
+  IconTableOff,
+  IconTypography,
+} from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 import {
   authorSelectionAllowsInlineFormat,
   toggleAuthorInlineMark,
 } from '../../tiptap/authorFormatGuards.js';
+import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
+import classes from './LeadDraftEditorToolbar.module.css';
 
 type Props = {
   editor: Editor;
@@ -14,167 +32,230 @@ type Props = {
 const AUTHOR_INLINE_DISABLED =
   'Inline formatting applies only to your suggested text, not existing content.';
 
+const ICON_SIZE = 16;
+
+function ToolCluster({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Box className={classes.cluster}>
+      <Text className={classes.clusterTitle}>{title}</Text>
+      <div className={classes.clusterTools}>{children}</div>
+    </Box>
+  );
+}
+
+function ToolIcon({
+  label,
+  active,
+  disabled = false,
+  disabledReason,
+  onClick,
+  children,
+}: {
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  const control = (
+    <ActionIcon
+      size={28}
+      variant={active ? 'filled' : 'light'}
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={label}
+    >
+      {children}
+    </ActionIcon>
+  );
+  return (
+    <Tooltip label={disabled && disabledReason ? disabledReason : label} withArrow>
+      <span className={classes.toolHit}>{control}</span>
+    </Tooltip>
+  );
+}
+
+function HeadingTool({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Tooltip label={label} withArrow>
+      <span className={classes.toolHit}>
+        <ActionIcon
+          size={28}
+          variant={active ? 'filled' : 'light'}
+          onClick={onClick}
+          aria-label={label}
+        >
+          <span className={classes.headingLabel}>{label}</span>
+        </ActionIcon>
+      </span>
+    </Tooltip>
+  );
+}
+
 export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '' }: Props) {
   const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
 
-  const inlineButton = (label: string, active: boolean, onClick: () => void, disabled: boolean) => {
-    const button = (
-      <Button
-        size="compact-xs"
-        variant={active ? 'filled' : 'light'}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {label}
-      </Button>
-    );
-    if (!disabled) return button;
-    return (
-      <Tooltip label={AUTHOR_INLINE_DISABLED} withArrow>
-        <span>{button}</span>
-      </Tooltip>
-    );
-  };
+  const linkControl = (
+    <LeadDraftLinkPopover
+      editor={editor}
+      authorMode={authorMode}
+      disabled={inlineDisabled}
+      disabledReason={inlineDisabled ? AUTHOR_INLINE_DISABLED : undefined}
+      active={editor.isActive('link')}
+    />
+  );
 
   return (
-    <Group gap="xs" mb="sm" wrap="wrap">
-      <Button
-        size="compact-xs"
-        variant={editor.isActive('heading', { level: 1 }) ? 'filled' : 'light'}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-      >
-        H1
-      </Button>
-      <Button
-        size="compact-xs"
-        variant={editor.isActive('heading', { level: 2 }) ? 'filled' : 'light'}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-      >
-        H2
-      </Button>
-      <Button
-        size="compact-xs"
-        variant={editor.isActive('heading', { level: 3 }) ? 'filled' : 'light'}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-      >
-        H3
-      </Button>
+    <div className={classes.row}>
+      <ToolCluster title="Block">
+        <HeadingTool
+          label="H1"
+          active={editor.isActive('heading', { level: 1 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        />
+        <HeadingTool
+          label="H2"
+          active={editor.isActive('heading', { level: 2 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        />
+        <HeadingTool
+          label="H3"
+          active={editor.isActive('heading', { level: 3 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        />
+        <ToolIcon
+          label="Paragraph"
+          active={editor.isActive('paragraph')}
+          onClick={() => editor.chain().focus().setParagraph().run()}
+        >
+          <IconTypography size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+      </ToolCluster>
+
       {!authorMode && (
-        <>
-          <Button
-            size="compact-xs"
-            variant={editor.isActive('bulletList') ? 'filled' : 'light'}
+        <ToolCluster title="Insert">
+          <ToolIcon
+            label="Bullet list"
+            active={editor.isActive('bulletList')}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
-            Bullet list
-          </Button>
-          <Button
-            size="compact-xs"
-            variant={editor.isActive('orderedList') ? 'filled' : 'light'}
+            <IconList size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <ToolIcon
+            label="Numbered list"
+            active={editor.isActive('orderedList')}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
-            Numbered list
-          </Button>
-          <Button
-            size="compact-xs"
-            variant={editor.isActive('blockquote') ? 'filled' : 'light'}
+            <IconListNumbers size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <ToolIcon
+            label="Quote"
+            active={editor.isActive('blockquote')}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
           >
-            Quote
-          </Button>
-          <Button
-            size="compact-xs"
-            variant="light"
+            <IconQuote size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <ToolIcon
+            label="Divider"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
-            Divider
-          </Button>
-          <Button
-            size="compact-xs"
-            variant={editor.isActive('codeBlock') ? 'filled' : 'light'}
+            <IconMinus size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <ToolIcon
+            label="Code block"
+            active={editor.isActive('codeBlock')}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           >
-            Code block
-          </Button>
-          <Button
-            size="compact-xs"
-            variant={editor.isActive('table') ? 'filled' : 'light'}
+            <IconFileCode size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+          <ToolIcon
+            label="Table"
+            active={editor.isActive('table')}
             onClick={() =>
               editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
             }
           >
-            Table
-          </Button>
+            <IconTable size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
           {editor.isActive('table') && (
             <>
-              <Button
-                size="compact-xs"
-                variant="light"
-                onClick={() => editor.chain().focus().addRowAfter().run()}
-              >
-                + Row
-              </Button>
-              <Button
-                size="compact-xs"
-                variant="light"
+              <ToolIcon label="Add row" onClick={() => editor.chain().focus().addRowAfter().run()}>
+                <IconRowInsertBottom size={ICON_SIZE} stroke={1.75} />
+              </ToolIcon>
+              <ToolIcon
+                label="Add column"
                 onClick={() => editor.chain().focus().addColumnAfter().run()}
               >
-                + Col
-              </Button>
-              <Button
-                size="compact-xs"
-                variant="light"
+                <IconColumnInsertRight size={ICON_SIZE} stroke={1.75} />
+              </ToolIcon>
+              <ToolIcon
+                label="Delete table"
                 onClick={() => editor.chain().focus().deleteTable().run()}
               >
-                Delete table
-              </Button>
+                <IconTableOff size={ICON_SIZE} stroke={1.75} />
+              </ToolIcon>
             </>
           )}
-        </>
+        </ToolCluster>
       )}
-      {inlineButton(
-        'Bold',
-        editor.isActive('bold'),
-        () => {
-          if (authorMode) {
-            toggleAuthorInlineMark(editor, 'bold');
-          } else {
-            editor.chain().focus().toggleBold().run();
-          }
-        },
-        inlineDisabled
-      )}
-      {inlineButton(
-        'Italic',
-        editor.isActive('italic'),
-        () => {
-          if (authorMode) {
-            toggleAuthorInlineMark(editor, 'italic');
-          } else {
-            editor.chain().focus().toggleItalic().run();
-          }
-        },
-        inlineDisabled
-      )}
-      {inlineButton(
-        'Inline code',
-        editor.isActive('code'),
-        () => {
-          if (authorMode) {
-            toggleAuthorInlineMark(editor, 'code');
-          } else {
-            editor.chain().focus().toggleCode().run();
-          }
-        },
-        inlineDisabled
-      )}
-      <Button
-        size="compact-xs"
-        variant="subtle"
-        onClick={() => editor.chain().focus().setParagraph().run()}
-      >
-        Paragraph
-      </Button>
-    </Group>
+
+      <ToolCluster title="Format">
+        <ToolIcon
+          label="Bold"
+          active={editor.isActive('bold')}
+          disabled={inlineDisabled}
+          disabledReason={AUTHOR_INLINE_DISABLED}
+          onClick={() => {
+            if (authorMode) {
+              toggleAuthorInlineMark(editor, 'bold');
+            } else {
+              editor.chain().focus().toggleBold().run();
+            }
+          }}
+        >
+          <IconBold size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+        <ToolIcon
+          label="Italic"
+          active={editor.isActive('italic')}
+          disabled={inlineDisabled}
+          disabledReason={AUTHOR_INLINE_DISABLED}
+          onClick={() => {
+            if (authorMode) {
+              toggleAuthorInlineMark(editor, 'italic');
+            } else {
+              editor.chain().focus().toggleItalic().run();
+            }
+          }}
+        >
+          <IconItalic size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+        <ToolIcon
+          label="Inline code"
+          active={editor.isActive('code')}
+          disabled={inlineDisabled}
+          disabledReason={AUTHOR_INLINE_DISABLED}
+          onClick={() => {
+            if (authorMode) {
+              toggleAuthorInlineMark(editor, 'code');
+            } else {
+              editor.chain().focus().toggleCode().run();
+            }
+          }}
+        >
+          <IconCode size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+        {linkControl}
+      </ToolCluster>
+    </div>
   );
 }

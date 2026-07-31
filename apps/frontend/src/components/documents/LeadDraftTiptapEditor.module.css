@@ -39,6 +39,12 @@
   margin: 0.35em 0;
 }
 
+.editorShell :global(.ProseMirror a) {
+  color: var(--mantine-color-blue-light-color);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 .editorShell :global(.ProseMirror h1),
 .editorShell :global(.ProseMirror h2),
 .editorShell :global(.ProseMirror h3) {

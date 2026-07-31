@@ -51,6 +51,8 @@ export function mergeAdjacentSuggestionLeaves(leaves: BlockNodeV0[]): BlockNodeV
     const curS = readSuggestion(leaf.meta);
     const prevMarks = JSON.stringify(prev?.meta?.marks ?? []);
     const curMarks = JSON.stringify(leaf.meta?.marks ?? []);
+    const prevLink = JSON.stringify(prev?.meta?.link ?? null);
+    const curLink = JSON.stringify(leaf.meta?.link ?? null);
     if (
       prev?.type === 'text' &&
       leaf.type === 'text' &&
@@ -58,6 +60,7 @@ export function mergeAdjacentSuggestionLeaves(leaves: BlockNodeV0[]): BlockNodeV
       curS &&
       suggestionMetaEqual(prevS, curS) &&
       prevMarks === curMarks &&
+      prevLink === curLink &&
       typeof prev.meta?.text === 'string' &&
       typeof leaf.meta?.text === 'string'
     ) {

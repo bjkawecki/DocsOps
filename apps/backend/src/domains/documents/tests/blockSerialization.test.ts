@@ -60,6 +60,30 @@ describe('block serialization (EPIC-2)', () => {
     expect(md).toContain(' text');
   });
 
+  it('exports inline links to markdown (ADR 005)', () => {
+    const doc = {
+      schemaVersion: 1 as const,
+      blocks: [
+        {
+          id: 'p1',
+          type: 'paragraph',
+          content: [
+            {
+              id: 't1',
+              type: 'text',
+              meta: { text: 'Docs', marks: ['bold'], link: { href: 'https://example.com' } },
+            },
+            { id: 't2', type: 'text', meta: { text: ' and ' } },
+            { id: 't3', type: 'text', meta: { text: 'intro', link: { href: '#intro' } } },
+          ],
+        },
+      ],
+    };
+    const md = blockDocumentV0ToMarkdown(doc);
+    expect(md).toContain('[**Docs**](https://example.com)');
+    expect(md).toContain('[intro](#intro)');
+  });
+
   it('exports and imports ordered list, blockquote and horizontal rule', () => {
     const md = ['1. First', '2. Second', '', '> Quoted line', '', '---'].join('\n');
     const doc = markdownToBlockDocumentV0(md);

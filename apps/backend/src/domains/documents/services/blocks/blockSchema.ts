@@ -44,13 +44,46 @@ export const blockSuggestionMetaSchema = z.object({
 
 export type BlockSuggestionMeta = z.infer<typeof blockSuggestionMetaSchema>;
 
+/** True when href is http(s) or an in-document heading hash (ADR 005). */
+export function isAllowedLinkHref(href: string): boolean {
+  if (/^https?:\/\//i.test(href)) return true;
+  if (/^#[^\s#]+$/.test(href)) return true;
+  return false;
+}
+
+export class InvalidBlockLinkHrefError extends Error {
+  readonly href: string;
+
+  constructor(href: string) {
+    super(`Invalid link href: ${href}`);
+    this.name = 'InvalidBlockLinkHrefError';
+    this.href = href;
+  }
+}
+
+export function assertAllowedLinkHref(href: string): void {
+  if (isAllowedLinkHref(href)) return;
+  throw new InvalidBlockLinkHrefError(href);
+}
+
+export const blockTextLinkSchema = z.object({
+  href: z
+    .string()
+    .min(1)
+    .refine(isAllowedLinkHref, { message: 'Link href must be http(s) or #heading-slug' }),
+});
+
+export type BlockTextLink = z.infer<typeof blockTextLinkSchema>;
+
 export const blockTextMetaSchema = z.object({
   text: z.string(),
   marks: z.array(blockTextMarkSchema).optional(),
+  /** Inline link (ADR 005); parallel to string marks. */
+  link: blockTextLinkSchema.optional(),
   suggestion: blockSuggestionMetaSchema.optional(),
 });
 
-/** Block document v1: same tree as v0; text nodes may carry inline `marks` in meta (ADR 002). */
+/** Block document v1: same tree as v0; text nodes may carry inline `marks` / `link` in meta. */
 export const blockDocumentSchemaV1 = z.object({
   schemaVersion: z.literal(1),
   blocks: z.array(blockNodeSchema),
@@ -82,12 +115,40 @@ export function parseBlockDocument(input: unknown): BlockDocument {
   return blockDocumentSchema.parse(input);
 }
 
-/** True when any text node carries inline formatting marks. */
+function textNodeHasLink(meta: Record<string, unknown> | undefined): boolean {
+  const link = meta?.link;
+  return link != null && typeof link === 'object' && !Array.isArray(link);
+}
+
+/** Read `meta.link.href` when present; otherwise null. */
+export function readTextNodeLinkHref(meta: Record<string, unknown> | undefined): string | null {
+  if (!textNodeHasLink(meta)) return null;
+  const link = meta!.link as Record<string, unknown>;
+  return typeof link.href === 'string' ? link.href : null;
+}
+
+/**
+ * Reject documents that carry `meta.link` with a disallowed href (ADR 005).
+ * Call after parse/normalize on save paths – no silent strip.
+ */
+export function assertBlockDocumentLinksValid(doc: BlockDocument): void {
+  const walk = (node: BlockNode): void => {
+    if (node.type === 'text') {
+      const href = readTextNodeLinkHref(node.meta);
+      if (href != null) assertAllowedLinkHref(href);
+    }
+    for (const child of node.content ?? []) walk(child);
+  };
+  for (const block of doc.blocks) walk(block);
+}
+
+/** True when any text node carries inline formatting marks or an inline link (ADR 002 / 005). */
 export function blockDocumentUsesInlineMarks(doc: BlockDocument): boolean {
   const walk = (node: BlockNode): boolean => {
     if (node.type === 'text') {
       const marks = node.meta?.marks;
-      return Array.isArray(marks) && marks.length > 0;
+      if (Array.isArray(marks) && marks.length > 0) return true;
+      return textNodeHasLink(node.meta);
     }
     return (node.content ?? []).some(walk);
   };

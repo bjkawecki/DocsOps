@@ -227,11 +227,14 @@ function mergeAdjacentTextLeaves(leaves: BlockNode[]): BlockNode[] {
     const curS = readBlockSuggestion(leaf.meta);
     const prevMarks = JSON.stringify(prev?.meta?.marks ?? []);
     const curMarks = JSON.stringify(leaf.meta?.marks ?? []);
+    const prevLink = JSON.stringify(prev?.meta?.link ?? null);
+    const curLink = JSON.stringify(leaf.meta?.link ?? null);
     if (
       prev?.type === 'text' &&
       !prevS &&
       !curS &&
       prevMarks === curMarks &&
+      prevLink === curLink &&
       typeof prev.meta?.text === 'string' &&
       typeof leaf.meta?.text === 'string'
     ) {
