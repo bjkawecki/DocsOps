@@ -21,6 +21,7 @@ import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
 import type { Company } from 'backend/api-types';
 import { CompanyForm } from './AdminCompanyForm';
+import { CompanyPdfBrandingForm } from '../../components/organisation/CompanyPdfBrandingForm.js';
 
 type CompaniesRes = { items: Company[]; total: number; limit: number; offset: number };
 type AssignmentListRes = {
@@ -326,6 +327,7 @@ export function AdminCompanyTab() {
           <Tabs defaultValue="overview">
             <Tabs.List>
               <Tabs.Tab value="overview">Overview</Tabs.Tab>
+              <Tabs.Tab value="pdf">PDF branding</Tabs.Tab>
               <Tabs.Tab value="manage">Manage</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="overview" pt="md">
@@ -492,6 +494,11 @@ export function AdminCompanyTab() {
                     </div>
                   </Group>
                 ) : null}
+              </Card>
+            </Tabs.Panel>
+            <Tabs.Panel value="pdf" pt="md">
+              <Card withBorder padding="md">
+                <CompanyPdfBrandingForm companyId={editingCompany.id} />
               </Card>
             </Tabs.Panel>
             <Tabs.Panel value="manage" pt="md">

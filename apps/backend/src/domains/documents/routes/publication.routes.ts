@@ -75,7 +75,9 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
       const filename = buildPdfDownloadFilename(doc.title, documentId);
       reply.header('Content-Type', object.ContentType ?? 'application/pdf');
       reply.header('Content-Disposition', `attachment; filename="${filename}"`);
-      reply.header('Cache-Control', 'private, max-age=60');
+      // Stable path; content changes per export – do not let browsers reuse an old PDF.
+      reply.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+      reply.header('ETag', `"${pdfUrl}"`);
       return reply.send(object.Body);
     }
   );
@@ -165,7 +167,10 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
         completedAt: job.completedOn ?? null,
         failedAt: null,
         pdfReady: isDone && Boolean(doc.pdfUrl),
-        downloadUrl: isDone && doc.pdfUrl ? `/api/v1/documents/${documentId}/pdf` : null,
+        downloadUrl:
+          isDone && doc.pdfUrl
+            ? `/api/v1/documents/${documentId}/pdf?v=${encodeURIComponent(doc.pdfUrl)}`
+            : null,
         error:
           state === 'failed' && job.output && typeof job.output === 'object'
             ? 'message' in job.output

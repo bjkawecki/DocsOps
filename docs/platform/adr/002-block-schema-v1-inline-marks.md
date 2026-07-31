@@ -24,10 +24,11 @@
 | -------- | ----------------------------------------------------------------------------------------------------------- |
 | Backend  | `blockDocumentSchema` = Union v0 \| v1; Publish speichert `blocksSchemaVersion` aus normalisiertem Dokument |
 | Frontend | Tiptap Bold/Italic/Code aktiv; Roundtrip über `blockDocumentTiptap.ts`                                      |
-| PDF      | Keine Template-Änderung nötig (Markdown → Typst)                                                            |
+| PDF      | Markdown → Typst; Company-Theme siehe ADR 007 (Preamble, nicht freies CSS)                                  |
 
 ## Changelog
 
-| Datum      | Änderung                         |
-| ---------- | -------------------------------- |
-| 2026-06-16 | Erstfassung (M3, Release v0.2.0) |
+| Datum      | Änderung                          |
+| ---------- | --------------------------------- |
+| 2026-06-16 | Erstfassung (M3, Release v0.2.0)  |
+| 2026-08-01 | PDF-Branding: Verweis auf ADR 007 |

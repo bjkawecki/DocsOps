@@ -5,11 +5,18 @@ FROM node:24-bookworm-slim
 ARG TYPST_VERSION=0.13.1
 COPY docker/install-typst-debian.sh /tmp/install-typst-debian.sh
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends wget postgresql-client zstd tar xz ca-certificates \
+  && apt-get install -y --no-install-recommends wget postgresql-client zstd tar xz-utils ca-certificates \
   && TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-debian.sh \
   && rm /tmp/install-typst-debian.sh \
+  && mkdir -p /var/cache/typst \
+  && printf '%s\n' '#import "@preview/cmarker:0.1.6": render' '#render("warm")' > /tmp/cmarker-warm.typ \
+  && typst compile --package-cache-path /var/cache/typst /tmp/cmarker-warm.typ /tmp/cmarker-warm.pdf \
+  && rm -f /tmp/cmarker-warm.typ /tmp/cmarker-warm.pdf \
+  && chmod -R a+rX /var/cache/typst \
   && rm -rf /var/lib/apt/lists/* \
   && corepack enable pnpm
+
+ENV TYPST_PACKAGE_CACHE_PATH=/var/cache/typst
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

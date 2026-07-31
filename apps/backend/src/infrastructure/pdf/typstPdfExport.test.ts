@@ -44,7 +44,8 @@ describe('renderMarkdownToPdfBuffer', () => {
     const [cmd, args] = execFileFn.mock.calls[0] as [string, string[]];
     expect(cmd).toBe('typst');
     expect(args[0]).toBe('compile');
-    expect(args.at(-2)).toMatch(/input\.md$/);
+    expect(args).toContain('--package-cache-path');
+    expect(args.at(-2)).toMatch(/main\.typ$/);
     expect(args.at(-1)).toMatch(/output\.pdf$/);
     expect(readOutputFn).toHaveBeenCalledOnce();
   });

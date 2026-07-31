@@ -6,6 +6,7 @@ import { initStorage } from './infrastructure/storage/index.js';
 import { authRoutes } from './domains/auth/routes/index.js';
 import {
   organisationRoutes,
+  companyPdfBrandingRoutes,
   contextRoutes,
   assignmentsRoutes,
   scopePeopleRoutes,
@@ -171,6 +172,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.register(authRoutes, { prefix: '/api/v1' });
   app.register(organisationRoutes, { prefix: '/api/v1' });
+  app.register(companyPdfBrandingRoutes, { prefix: '/api/v1' });
   app.register(startHereRoutes, { prefix: '/api/v1' });
   app.register(contextRoutes, { prefix: '/api/v1' });
   app.register(documentsRoutes, { prefix: '/api/v1' });

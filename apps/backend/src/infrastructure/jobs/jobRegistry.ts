@@ -1,6 +1,6 @@
 import type { PrismaClient } from '../../../generated/prisma/client.js';
 import { randomUUID } from 'node:crypto';
-import { renderMarkdownToPdfBuffer } from '../pdf/typstPdfExport.js';
+import { renderMarkdownToPdfBuffer, themeFromCompanyRow } from '../pdf/typstPdfExport.js';
 import type { Readable } from 'node:stream';
 import { jobPayloadSchemas, type JobPayloadByType, type JobType } from './jobTypes.js';
 import { initStorage, type StorageService } from '../storage/index.js';
@@ -25,6 +25,10 @@ import { runOperationalRestore } from '../../domains/admin/services/operationalR
 import { runPlatformExport } from '../../domains/admin/services/platformExportService.js';
 import { runPlatformImport } from '../../domains/admin/services/platformImportService.js';
 import { deliverAdminBroadcastById } from '../../domains/admin/services/adminBroadcastNotificationService.js';
+import {
+  getCompanyPdfBrandingRow,
+  resolvePdfBrandingCompanyIdForDocument,
+} from '../../domains/organisation/services/companyPdfBrandingService.js';
 
 async function readableToBuffer(body: Readable): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -136,10 +140,30 @@ async function exportDocumentToPdf(
 
   const markdownForPdf = rewriteAttachmentTokensForPdf(markdownBody, relativePathById);
 
+  const brandingCompanyId = await resolvePdfBrandingCompanyIdForDocument(
+    context.prisma,
+    document.id
+  );
+  const brandingRow =
+    brandingCompanyId != null
+      ? await getCompanyPdfBrandingRow(context.prisma, brandingCompanyId)
+      : null;
+  const theme = themeFromCompanyRow(brandingRow);
+  if (theme.logoObjectKey != null && theme.logoRelativePath != null) {
+    const logoObject = await storage.getObject(theme.logoObjectKey);
+    if (logoObject) {
+      assetFiles.push({
+        relativePath: theme.logoRelativePath,
+        data: await readableToBuffer(logoObject.Body),
+      });
+    }
+  }
+
   const pdfBuffer = await renderMarkdownToPdfBuffer({
     markdown: markdownForPdf,
     title: document.title,
     assetFiles,
+    theme,
   });
 
   const objectKey = `exports/documents/${document.id}/${Date.now()}-${randomUUID()}.pdf`;

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Install typst binary on Debian/glibc. Not always in apt – use GitHub release.
+# Install typst binary on Debian/glibc via the musl release (no separate gnu asset for x86_64).
 set -eu
 
 TYPST_VERSION="${TYPST_VERSION:-0.13.1}"
@@ -13,10 +13,11 @@ case "$arch" in
     ;;
 esac
 
-url="https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-${typst_arch}-unknown-linux-gnu.tar.xz"
+url="https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-${typst_arch}-unknown-linux-musl.tar.xz"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 wget -qO "${tmp}/typst.tar.xz" "$url"
 tar -xJf "${tmp}/typst.tar.xz" -C "$tmp"
-install -m 755 "${tmp}/typst-${typst_arch}-unknown-linux-gnu/typst" /usr/local/bin/typst
+install -m 755 "${tmp}/typst-${typst_arch}-unknown-linux-musl/typst" /usr/local/bin/typst
+typst --version

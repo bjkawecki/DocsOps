@@ -651,7 +651,7 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [x] **Leser-Typografie:** Heading-Scale (H1–H6) und engere Listen-/Code-/Tabellen-Abstände in `.document-content` (+ Editor-Spiegel); kein Reader-Mode in v1.
 [x] **Tabellen:** Block-Typ `table` (TipTap Table-Extension + Zod/Schema + Preview + Markdown/Typst-Export).
 [x] **Callouts / Warnungen:** Custom-Block `callout` mit Varianten `warning` | `info` | `tip` (Editor-Node, Reader-Preview, Markdown/Typst-Export als GFM Alerts).
-[ ] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration.
+[x] **PDF-Branding (Company):** Typst-Export mit optionalem Company-Theme (Logo, Primärfarbe, Margins) – Plattform-Default zuerst; kein freies Firmen-CSS. Admin/Company-Lead-Konfiguration; siehe ADR 007.
 [x] **Interne Links (Dokument↔Dokument):** Querverweise zwischen Dokumenten (`meta.link.documentId`, TipTap-Token `docsops-doc:`, Dokument-Picker); Backlinks optional später – getrennt von ADR 005 (Inline-URL/`#anker`); siehe ADR 006.
 
 ### 28b. Dokument-Types & Templates (neue Drafts)

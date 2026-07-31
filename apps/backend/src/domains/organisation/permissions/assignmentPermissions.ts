@@ -1,5 +1,6 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import {
+  isCompanyLead,
   isDepartmentLead,
   isTeamLead,
   loadActiveUser,
@@ -115,6 +116,20 @@ export async function canManageCompanyLeads(
   const row = await loadUserAndCompany(prisma, userId, companyId);
   if (!row) return false;
   return row.user.isAdmin;
+}
+
+/**
+ * Admin or Company Lead may configure PDF branding for the company (ADR 007).
+ */
+export async function canManageCompanyPdfBranding(
+  prisma: PrismaClient,
+  userId: string,
+  companyId: string
+): Promise<boolean> {
+  const row = await loadUserAndCompany(prisma, userId, companyId);
+  if (!row) return false;
+  if (row.user.isAdmin) return true;
+  return isCompanyLead(row.user, companyId);
 }
 
 /** Team lead (or dept lead/admin) may promote members to team authors. */

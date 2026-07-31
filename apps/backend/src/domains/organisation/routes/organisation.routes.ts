@@ -55,7 +55,15 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       }),
       prisma.company.count({ where: { id: { in: visibleCompanyIds } } }),
     ]);
-    return reply.send({ items: companies, total, limit: query.limit, offset: query.offset });
+    const items = companies.map((company) => {
+      const { pdfLogoObjectKey, pdfLogoContentType, ...rest } = company;
+      void pdfLogoContentType;
+      return {
+        ...rest,
+        hasPdfLogo: pdfLogoObjectKey != null && pdfLogoObjectKey.length > 0,
+      };
+    });
+    return reply.send({ items, total, limit: query.limit, offset: query.offset });
   });
 
   app.post(
@@ -88,7 +96,12 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         where: { id: companyId },
         include: { departments: true },
       });
-      return reply.send(company);
+      const { pdfLogoObjectKey, pdfLogoContentType, ...rest } = company;
+      void pdfLogoContentType;
+      return reply.send({
+        ...rest,
+        hasPdfLogo: pdfLogoObjectKey != null && pdfLogoObjectKey.length > 0,
+      });
     }
   );
 

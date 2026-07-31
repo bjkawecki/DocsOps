@@ -17,13 +17,20 @@ datasource db {
 
 /// Oberste Organisationseinheit. Enthält Abteilungen; Struktur bestimmt Ownership, nicht automatisch Zugriff.
 model Company {
-  id               String        @id @default(cuid())
-  name             String
-  startDocumentId  String?
-  startDocument    Document?     @relation("CompanyStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
-  departments      Department[]
-  companyLeads     CompanyLead[]
-  owners           Owner[]       @relation("OwnerCompany")
+  id                  String        @id @default(cuid())
+  name                String
+  startDocumentId     String?
+  startDocument       Document?     @relation("CompanyStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  /// PDF export branding (ADR 007); null = platform default at export time.
+  pdfPrimaryColor     String?
+  pdfMarginMm         Int?
+  pdfLogoObjectKey    String?
+  pdfLogoContentType  String?
+  /// Page-header logo corner: "left" | "right"; null = left.
+  pdfLogoPosition     String?
+  departments         Department[]
+  companyLeads        CompanyLead[]
+  owners              Owner[]       @relation("OwnerCompany")
 
   @@index([startDocumentId])
 }
