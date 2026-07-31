@@ -22,25 +22,81 @@
   line-height: inherit;
 }
 
+/* Heading scale (§28a Leser-Typografie) – override Mantine Title vars + element metrics */
 .document-content h1,
-.document-content h2,
-.document-content h3,
-.document-content h4,
-.document-content h5,
-.document-content h6 {
+.document-content .mantine-Title-root[data-order='1'] {
+  --title-fz: 2rem;
+  --title-fw: 700;
+  --title-lh: 1.25;
   font-family: inherit;
-  margin-top: 0;
-  margin-bottom: 0.35em;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.4em 0 0.4em;
 }
 
-.document-content .mantine-Title-root {
+.document-content h2,
+.document-content .mantine-Title-root[data-order='2'] {
+  --title-fz: 1.5rem;
+  --title-fw: 650;
+  --title-lh: 1.3;
   font-family: inherit;
-  margin-top: 0;
-  margin-bottom: 0.35em;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1.25em 0 0.35em;
+}
+
+.document-content h3,
+.document-content .mantine-Title-root[data-order='3'] {
+  --title-fz: 1.25rem;
+  --title-fw: 650;
+  --title-lh: 1.35;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 1.1em 0 0.3em;
+}
+
+.document-content h4,
+.document-content .mantine-Title-root[data-order='4'] {
+  --title-fz: 1.1rem;
+  --title-fw: 650;
+  --title-lh: 1.4;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 1em 0 0.3em;
+}
+
+.document-content h5,
+.document-content .mantine-Title-root[data-order='5'] {
+  --title-fz: 1.05rem;
+  --title-fw: 650;
+  --title-lh: 1.4;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 0.95em 0 0.25em;
+}
+
+.document-content h6,
+.document-content .mantine-Title-root[data-order='6'] {
+  --title-fz: 1rem;
+  --title-fw: 650;
+  --title-lh: 1.45;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.45;
+  margin: 0.9em 0 0.25em;
 }
 
 .document-content p {
-  margin-bottom: 1.1em;
+  margin-bottom: 1em;
   line-height: 1.65;
 }
 .document-content p:last-child {
@@ -57,27 +113,30 @@
 }
 .document-content ul,
 .document-content ol {
-  margin-bottom: 1.1em;
+  margin-bottom: 0.85em;
+}
+.document-content li + li {
+  margin-top: 0.2em;
 }
 .document-content blockquote {
-  margin: 1.1em 0;
+  margin: 0.9em 0;
 }
 .document-content pre {
-  margin: 1.1em 0;
+  margin: 0.9em 0;
 }
 /* Block code lives in DocumentPreviewCodeBlock; keep margin on the chrome, not inner pre. */
 .document-content .document-preview-code-block pre {
   margin: 0;
 }
 .document-content hr {
-  margin: 1.1em 0;
+  margin: 0.9em 0;
   border: none;
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 .document-content table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.1em 0;
+  margin: 0.9em 0;
   font-size: 0.95em;
 }
 .document-content th,

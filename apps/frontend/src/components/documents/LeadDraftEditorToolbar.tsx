@@ -2,6 +2,8 @@ import { ActionIcon, Box, NativeSelect, Text, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
 import {
   IconAlertTriangle,
+  IconArrowBackUp,
+  IconArrowForwardUp,
   IconBold,
   IconChartDots3,
   IconCode,
@@ -129,6 +131,23 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
 
   return (
     <div className={classes.row}>
+      <ToolCluster title="Edit">
+        <ToolIcon
+          label="Undo"
+          disabled={!editor.can().undo()}
+          onClick={() => editor.chain().focus().undo().run()}
+        >
+          <IconArrowBackUp size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+        <ToolIcon
+          label="Redo"
+          disabled={!editor.can().redo()}
+          onClick={() => editor.chain().focus().redo().run()}
+        >
+          <IconArrowForwardUp size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
+      </ToolCluster>
+
       <ToolCluster title="Block">
         <HeadingTool
           label="H1"

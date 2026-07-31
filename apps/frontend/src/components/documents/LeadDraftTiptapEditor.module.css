@@ -47,22 +47,48 @@
   text-underline-offset: 0.12em;
 }
 
-.editorShell :global(.ProseMirror h1),
-.editorShell :global(.ProseMirror h2),
-.editorShell :global(.ProseMirror h3) {
-  margin: 1em 0 0.4em;
+.editorShell :global(.ProseMirror h1) {
+  margin: 1.4em 0 0.4em;
   font-family: inherit;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.editorShell :global(.ProseMirror h2) {
+  margin: 1.25em 0 0.35em;
+  font-family: inherit;
+  font-size: 1.5rem;
   font-weight: 650;
+  line-height: 1.3;
+}
+
+.editorShell :global(.ProseMirror h3) {
+  margin: 1.1em 0 0.3em;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.editorShell :global(.ProseMirror h1:first-child),
+.editorShell :global(.ProseMirror h2:first-child),
+.editorShell :global(.ProseMirror h3:first-child) {
+  margin-top: 0;
 }
 
 .editorShell :global(.ProseMirror ul),
 .editorShell :global(.ProseMirror ol) {
-  margin: 0.35em 0;
+  margin: 0.35em 0 0.85em;
   padding-left: 1.25rem;
 }
 
+.editorShell :global(.ProseMirror li + li) {
+  margin-top: 0.2em;
+}
+
 .editorShell :global(.ProseMirror blockquote) {
-  margin: 0.75em 0;
+  margin: 0.9em 0;
   padding-inline-start: 0.85rem;
   border-inline-start: 3px solid
     light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
@@ -70,7 +96,7 @@
 }
 
 .editorShell :global(.ProseMirror hr) {
-  margin: 1em 0;
+  margin: 0.9em 0;
   border: none;
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
