@@ -1,5 +1,6 @@
 import type { TablerIcon } from '@tabler/icons-react';
 import {
+  IconArrowsExchange,
   IconBuilding,
   IconCloudDownload,
   IconFolder,
@@ -39,10 +40,10 @@ export const features: FeatureItem[] = [
     icon: IconGitPullRequest,
   },
   {
-    title: 'Prozess & Projekt',
+    title: 'Kontexte & Verschieben',
     description:
-      'Dokumente leben in Kontexten mit klarer Bedeutung – Prozessdoku und Projektdoku getrennt.',
-    icon: IconFolder,
+      'Dokumente leben in Prozess- und Projektkontexten – und können mit Lead-Freigabe zwischen Scopes wechseln.',
+    icon: IconArrowsExchange,
   },
   {
     title: 'Self-hosted & Open Source',
@@ -74,7 +75,8 @@ export const philosophiePrinciples = [
   },
   {
     title: 'Prozess & Projekt',
-    description: 'Kontexte statt einer flachen Seitenliste.',
+    description:
+      'Kontexte statt flacher Seitenliste – Dokumente können mit Lead-Freigabe zwischen Scopes wechseln.',
     icon: IconFolder,
   },
   {

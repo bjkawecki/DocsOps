@@ -48,7 +48,7 @@ export const HELP_TOPIC_GROUPS = [
       { to: '/help/document-types', label: 'Document types' },
       { to: '/help/permissions', label: 'Read & write access' },
       { to: '/help/workflow', label: 'Document lifecycle' },
-      { to: '/help/collaboration', label: 'Reviews & merging' },
+      { to: '/help/collaboration', label: 'Reviews & approvals' },
     ],
   },
 ] as const satisfies ReadonlyArray<HelpTopicGroup>;

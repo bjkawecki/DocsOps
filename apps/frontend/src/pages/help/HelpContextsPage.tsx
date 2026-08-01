@@ -87,6 +87,38 @@ export function HelpContextsPage() {
         </Anchor>
         .
       </Text>
+
+      <Title order={2}>Moving documents</Title>
+      <Text component="p">
+        If a document is already in a context and belongs elsewhere, use{' '}
+        <strong>Move to context</strong> on the document (More actions). That is different from{' '}
+        <strong>Assign to context</strong>, which only attaches a context-free draft for the first
+        time.
+      </Text>
+      <List spacing="xs">
+        <List.Item>
+          <strong>Same owner scope</strong> (for example another process in the same team) – the
+          move happens immediately when you have write rights on source and target. Tags and access
+          grants stay on the document.
+        </List.Item>
+        <List.Item>
+          <strong>Different owner scope</strong> (another team, department, company, or personal
+          area) – you create a <strong>move request</strong>. The target scope lead accepts or
+          rejects it under{' '}
+          <Anchor component={Link} to="/approvals?tab=moves">
+            Approvals → Move requests
+          </Anchor>
+          . You can withdraw a pending request anytime. On accept, scope-bound tags are removed;
+          grants stay.
+        </List.Item>
+      </List>
+      <Text component="p">
+        More on the Approvals hub and reviews:{' '}
+        <Anchor component={Link} to="/help/collaboration">
+          Reviews & approvals
+        </Anchor>
+        .
+      </Text>
     </Stack>
   );
 }
