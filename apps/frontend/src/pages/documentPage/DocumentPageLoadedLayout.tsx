@@ -115,6 +115,8 @@ export type DocumentPageLoadedLayoutProps = {
   handleUnarchive: () => Promise<void>;
   openAssignContext: () => void;
   openMoveContext: () => void;
+  moveDecisionLoading: boolean;
+  onMoveRequestDecision: (action: 'accept' | 'reject' | 'withdraw') => void;
   openDelete: () => void;
   openCreateTag: () => void;
   openManageTags: () => void;
@@ -166,6 +168,8 @@ export function DocumentPageLoadedLayout({
   handleUnarchive,
   openAssignContext,
   openMoveContext,
+  moveDecisionLoading,
+  onMoveRequestDecision,
   openDelete,
   openCreateTag,
   openManageTags,
@@ -285,9 +289,41 @@ export function DocumentPageLoadedLayout({
                 Assign to context
               </Menu.Item>
             )}
-            {!hasNoContext && data.canMove && (
+            {!hasNoContext && (data.canMove || data.canRequestMove) && !data.pendingMoveRequest && (
               <Menu.Item leftSection={<IconArrowsExchange size={14} />} onClick={openMoveContext}>
                 Move to context
+              </Menu.Item>
+            )}
+            {data.pendingMoveRequest?.canWithdraw && (
+              <Menu.Item
+                leftSection={<IconArrowsExchange size={14} />}
+                disabled={moveDecisionLoading}
+                onClick={() => onMoveRequestDecision('withdraw')}
+              >
+                Withdraw move request
+              </Menu.Item>
+            )}
+            {data.pendingMoveRequest?.canAccept && (
+              <Menu.Item
+                leftSection={<IconArrowsExchange size={14} />}
+                disabled={moveDecisionLoading}
+                onClick={() => onMoveRequestDecision('accept')}
+              >
+                Accept move request
+              </Menu.Item>
+            )}
+            {data.pendingMoveRequest?.canReject && (
+              <Menu.Item
+                leftSection={<IconArrowsExchange size={14} />}
+                disabled={moveDecisionLoading}
+                onClick={() => onMoveRequestDecision('reject')}
+              >
+                Reject move request
+              </Menu.Item>
+            )}
+            {data.pendingMoveRequest && (
+              <Menu.Item component={Link} to="/approvals?tab=moves">
+                Open in Approvals
               </Menu.Item>
             )}
             {startHereScopes.length > 0 && <Menu.Divider />}

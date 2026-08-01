@@ -9,6 +9,7 @@ import { registerMeProfileRoutes } from './me/profile.routes.js';
 import { registerMeStorageRoutes } from './me/storage.routes.js';
 import { registerMeTrashArchiveRoutes } from './me/trash-archive.routes.js';
 import { registerMeReviewsRoutes } from './me/reviews.routes.js';
+import { registerMeMoveRequestsRoutes } from './me/move-requests.routes.js';
 
 export type { MeTrashArchiveItem } from '../schemas/me.js';
 
@@ -17,6 +18,7 @@ const meRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   registerMePreferencesRoutes(app);
   registerMeDocumentsRoutes(app);
   registerMeReviewsRoutes(app);
+  registerMeMoveRequestsRoutes(app);
   registerMeTrashArchiveRoutes(app);
   registerMeStorageRoutes(app);
   registerMeNotificationRoutes(app);

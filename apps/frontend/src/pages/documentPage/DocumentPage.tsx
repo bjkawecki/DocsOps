@@ -71,6 +71,10 @@ export function DocumentPage() {
         handleUnarchive={vm.handleUnarchive}
         openAssignContext={vm.openAssignContext}
         openMoveContext={vm.openMoveContext}
+        moveDecisionLoading={vm.moveDecisionLoading}
+        onMoveRequestDecision={(action) => {
+          void vm.handleMoveRequestDecision(action);
+        }}
         openDelete={vm.openDelete}
         openCreateTag={vm.openCreateTag}
         openManageTags={vm.openManageTags}
@@ -102,6 +106,9 @@ export function DocumentPage() {
         moveContextOptions={vm.moveContextOptions}
         moveContextId={vm.moveContextId}
         setMoveContextId={vm.setMoveContextId}
+        moveRequestNote={vm.moveRequestNote}
+        setMoveRequestNote={vm.setMoveRequestNote}
+        moveTargetIsCrossOwner={vm.moveTargetIsCrossOwner}
         moveContextLoading={vm.moveContextLoading}
         onMoveContext={() => {
           void vm.handleMoveContext();

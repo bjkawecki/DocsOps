@@ -78,50 +78,81 @@ export function useDocumentPageSecondaryQueries(args: {
 
   const ownerQuery = ownerListQuery(documentScope);
   const { data: moveContextsData } = useQuery({
-    queryKey: ['processes', 'projects', 'for-move', ownerQuery],
+    queryKey: ['processes', 'projects', 'for-move', ownerQuery, contextOwnerId],
     queryFn: async () => {
-      if (!ownerQuery) return [] as ContextOption[];
-      const [procRes, projRes] = await Promise.all([
-        apiFetch(`/api/v1/processes?limit=100&offset=0&${ownerQuery}`),
-        apiFetch(`/api/v1/projects?limit=100&offset=0&${ownerQuery}`),
-      ]);
-      type ProcessItem = { id: string; contextId: string; name: string };
+      type OwnerInfo = { id: string; displayName?: string | null };
+      type ProcessItem = {
+        id: string;
+        contextId: string;
+        name: string;
+        owner?: OwnerInfo;
+      };
       type ProjectItem = {
         id: string;
         contextId: string;
         name: string;
+        owner?: OwnerInfo;
         subcontexts?: { id: string; contextId: string; name: string }[];
       };
-      const processes = procRes.ok
-        ? ((await procRes.json()) as { items: ProcessItem[] }).items
-        : [];
-      const projects = projRes.ok ? ((await projRes.json()) as { items: ProjectItem[] }).items : [];
-      const options: ContextOption[] = [
-        ...processes.map((p) => ({
-          id: p.id,
-          contextId: p.contextId,
-          name: p.name,
-          kind: 'process' as const,
-        })),
-        ...projects.flatMap((p) => {
-          const projectOpt: ContextOption = {
+
+      const loadPair = async (query: string | null) => {
+        const qs = query ? `&${query}` : '';
+        const [procRes, projRes] = await Promise.all([
+          apiFetch(`/api/v1/processes?limit=100&offset=0${qs}`),
+          apiFetch(`/api/v1/projects?limit=100&offset=0${qs}`),
+        ]);
+        const processes = procRes.ok
+          ? ((await procRes.json()) as { items: ProcessItem[] }).items
+          : [];
+        const projects = projRes.ok
+          ? ((await projRes.json()) as { items: ProjectItem[] }).items
+          : [];
+        return { processes, projects };
+      };
+
+      const sameOwner = await loadPair(ownerQuery);
+      const crossOwner =
+        ownerQuery != null ? await loadPair(null) : { processes: [], projects: [] };
+
+      const byContextId = new Map<string, ContextOption>();
+      const addOptions = (processes: ProcessItem[], projects: ProjectItem[]) => {
+        for (const p of processes) {
+          byContextId.set(p.contextId, {
+            id: p.id,
+            contextId: p.contextId,
+            name: p.name,
+            kind: 'process',
+            ownerId: p.owner?.id ?? null,
+            ownerDisplayName: p.owner?.displayName?.trim() || null,
+          });
+        }
+        for (const p of projects) {
+          byContextId.set(p.contextId, {
             id: p.id,
             contextId: p.contextId,
             name: p.name,
             kind: 'project',
-          };
-          const subOpts: ContextOption[] = (p.subcontexts ?? []).map((s) => ({
-            id: s.id,
-            contextId: s.contextId,
-            name: `${p.name} / ${s.name}`,
-            kind: 'project' as const,
-          }));
-          return [projectOpt, ...subOpts];
-        }),
-      ];
-      return options.filter((o) => o.contextId !== currentContextId);
+            ownerId: p.owner?.id ?? null,
+            ownerDisplayName: p.owner?.displayName?.trim() || null,
+          });
+          for (const s of p.subcontexts ?? []) {
+            byContextId.set(s.contextId, {
+              id: s.id,
+              contextId: s.contextId,
+              name: `${p.name} / ${s.name}`,
+              kind: 'project',
+              ownerId: p.owner?.id ?? null,
+              ownerDisplayName: p.owner?.displayName?.trim() || null,
+            });
+          }
+        }
+      };
+      addOptions(sameOwner.processes, sameOwner.projects);
+      addOptions(crossOwner.processes, crossOwner.projects);
+
+      return [...byContextId.values()].filter((o) => o.contextId !== currentContextId);
     },
-    enabled: moveContextOpened && !!documentId && !!ownerQuery,
+    enabled: moveContextOpened && !!documentId,
   });
 
   const { data: pdfExportStatus } = useQuery<PdfExportJobStatusResponse>({
@@ -148,10 +179,22 @@ export function useDocumentPageSecondaryQueries(args: {
     value: c.contextId,
     label: `${c.kind === 'process' ? 'Process' : 'Project'}: ${c.name}`,
   }));
-  const moveContextOptions = (moveContextsData ?? []).map((c) => ({
-    value: c.contextId,
-    label: `${c.kind === 'process' ? 'Process' : 'Project'}: ${c.name}`,
-  }));
+  const moveContextOptions = (moveContextsData ?? []).map((c) => {
+    const sameOwner = contextOwnerId != null && c.ownerId === contextOwnerId;
+    const prefix = c.kind === 'process' ? 'Process' : 'Project';
+    const approver = c.ownerDisplayName?.trim();
+    const suffix =
+      sameOwner || c.ownerId == null
+        ? ''
+        : approver
+          ? ` (approval: ${approver})`
+          : ' (requires approval)';
+    return {
+      value: c.contextId,
+      label: `${prefix}: ${c.name}${suffix}`,
+      ownerId: c.ownerId ?? null,
+    };
+  });
 
   return {
     tags,

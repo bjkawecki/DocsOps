@@ -280,6 +280,15 @@ export const meReviewsQuerySchema = z.object({
 });
 export type MeReviewsQuery = z.infer<typeof meReviewsQuerySchema>;
 
+/** Query: GET /me/move-requests – Approvals hub move inbox. */
+export const meMoveRequestsQuerySchema = z.object({
+  direction: z.enum(['inbound', 'outbound']).default('inbound'),
+  status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).default('pending'),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+export type MeMoveRequestsQuery = z.infer<typeof meMoveRequestsQuerySchema>;
+
 export const pulseItemKindSchema = z.enum([
   'draft-open',
   'review-awaiting',

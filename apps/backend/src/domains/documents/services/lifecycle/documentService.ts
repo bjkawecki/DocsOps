@@ -216,8 +216,23 @@ export async function restoreDocument(prisma: PrismaClient, documentId: string):
 /**
  * Soft-deletes a document (sets deletedAt) and removes pins. Caller must enforce canDeleteDocument.
  */
-export async function deleteDocument(prisma: PrismaClient, documentId: string): Promise<void> {
+export async function deleteDocument(
+  prisma: PrismaClient,
+  documentId: string,
+  deletedById?: string
+): Promise<void> {
   await prisma.documentPinnedInScope.deleteMany({ where: { documentId } });
+  if (deletedById) {
+    await prisma.documentMoveRequest.updateMany({
+      where: { documentId, status: 'pending' },
+      data: {
+        status: 'withdrawn',
+        decidedById: deletedById,
+        decidedAt: new Date(),
+        decisionNote: 'Document moved to trash',
+      },
+    });
+  }
   await prisma.document.update({
     where: { id: documentId },
     data: { deletedAt: new Date() },

@@ -9,6 +9,10 @@ export function eventHeadline(eventType: string): string {
     'document-archived': 'Document archived',
     'document-restored': 'Document restored',
     'document-moved': 'Document moved',
+    'document-move-requested': 'Document move requested',
+    'document-move-accepted': 'Document move accepted',
+    'document-move-rejected': 'Document move rejected',
+    'document-move-withdrawn': 'Document move withdrawn',
     'document-grants-changed': 'Document access changed',
     'document-comment-created': 'New comment on document',
     'draft-request-submitted': 'Review request submitted',
@@ -171,7 +175,19 @@ export function notificationBodyText(
     return 'New activity in a comment thread.';
   }
   if (eventType === 'document-moved') {
-    return 'The document was moved to another context in the same scope.';
+    return 'The document was moved to another context.';
+  }
+  if (eventType === 'document-move-requested') {
+    return 'A move into your scope is awaiting your decision.';
+  }
+  if (eventType === 'document-move-accepted') {
+    return 'Your move request was accepted.';
+  }
+  if (eventType === 'document-move-rejected') {
+    return 'Your move request was rejected.';
+  }
+  if (eventType === 'document-move-withdrawn') {
+    return 'A pending move request was withdrawn.';
   }
   const draftId = payloadDraftRequestId(payload);
   if (draftId == null) return null;

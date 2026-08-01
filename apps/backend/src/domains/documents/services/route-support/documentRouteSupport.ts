@@ -208,6 +208,21 @@ export function buildDocumentDetailResponse(args: {
   deleteAllowed: boolean;
   canPublish: boolean;
   canMove: boolean;
+  canRequestMove?: boolean;
+  canAcceptMove?: boolean;
+  pendingMoveRequest?: {
+    id: string;
+    toContextId: string;
+    fromContextId: string;
+    fromOwnerId: string;
+    toOwnerId: string;
+    note: string | null;
+    requestedById: string;
+    createdAt: string;
+    canWithdraw: boolean;
+    canAccept: boolean;
+    canReject: boolean;
+  } | null;
   canModerateComments: boolean;
   startHereScopes?: Array<{
     scopeType: 'team' | 'department' | 'company';
@@ -305,6 +320,9 @@ export function buildDocumentDetailResponse(args: {
     canDelete: args.deleteAllowed,
     canPublish: args.canPublish,
     canMove: args.canMove,
+    canRequestMove: args.canRequestMove ?? false,
+    canAcceptMove: args.canAcceptMove ?? false,
+    pendingMoveRequest: args.pendingMoveRequest ?? null,
     canModerateComments: args.canModerateComments,
     startHereScopes: args.startHereScopes ?? [],
     scope,

@@ -11,7 +11,7 @@ import { DepartmentRedirectPage } from './pages/department/DepartmentRedirectPag
 import { DepartmentContextPage } from './pages/department/DepartmentContextPage';
 import { PersonalPage } from './pages/account/PersonalPage';
 import { SharedPage } from './pages/account/SharedPage';
-import { ReviewsPage } from './pages/catalog/ReviewsPage';
+import { ApprovalsPage } from './pages/catalog/ApprovalsPage';
 import { TeamContextPage } from './pages/TeamContextPage';
 import { ContextWorkspacePage } from './pages/contextWorkspace/ContextWorkspacePage';
 import {
@@ -160,7 +160,8 @@ function App() {
             <Route path="personal/trash" element={<PersonalTrashArchivePage kind="trash" />} />
             <Route path="personal/archive" element={<PersonalTrashArchivePage kind="archive" />} />
             <Route path="shared" element={<SharedPage />} />
-            <Route path="reviews" element={<ReviewsPage />} />
+            <Route path="approvals" element={<ApprovalsPage />} />
+            <Route path="reviews" element={<Navigate to="/approvals" replace />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsRouteRedirect />} />
             <Route path="whats-new" element={<WhatsNewPage />} />

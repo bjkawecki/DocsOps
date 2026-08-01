@@ -146,17 +146,20 @@ export function AppShellNavbar({
                 badgeCount={s.personalCount}
                 onNavigate={onNavigate}
               />
-              {s.hasReviewRights ? (
+              {s.showApprovalsNav ? (
                 <AppShellSidebarNavLink
-                  to="/reviews"
-                  label="Reviews"
-                  title="Open draft requests you can merge or reject"
-                  ariaLabel="Reviews: open draft requests awaiting your decision"
-                  active={isActive('/reviews', s.location.pathname)}
+                  to="/approvals"
+                  label="Approvals"
+                  title="Open reviews and move requests awaiting a decision"
+                  ariaLabel="Approvals: open reviews and move requests"
+                  active={
+                    isActive('/approvals', s.location.pathname) ||
+                    isActive('/reviews', s.location.pathname)
+                  }
                   leftSection={<IconClipboardCheck size={20} />}
                   navLinkStyles={s.navLinkStyles}
                   isMiniRail={isMiniRail}
-                  badgeCount={s.reviewsCount}
+                  badgeCount={s.approvalsCount}
                   onNavigate={onNavigate}
                 />
               ) : null}

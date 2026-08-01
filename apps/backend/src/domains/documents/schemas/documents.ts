@@ -97,6 +97,26 @@ export const moveDocumentBodySchema = z.object({
 
 export type MoveDocumentBody = z.infer<typeof moveDocumentBodySchema>;
 
+/** Body: POST /documents/:id/move-requests – cross-owner move approval request. */
+export const createMoveRequestBodySchema = z.object({
+  targetContextId: z.cuid(),
+  note: z.string().max(2000).trim().optional().nullable(),
+});
+
+export type CreateMoveRequestBody = z.infer<typeof createMoveRequestBodySchema>;
+
+/** Body: accept / reject / withdraw move request. */
+export const decideMoveRequestBodySchema = z.object({
+  decisionNote: z.string().max(2000).trim().optional().nullable(),
+});
+
+export type DecideMoveRequestBody = z.infer<typeof decideMoveRequestBodySchema>;
+
+export const moveRequestIdParamSchema = z.object({
+  documentId: z.cuid(),
+  requestId: z.cuid(),
+});
+
 /** Body: PATCH Lead-Draft (Block-JSON); Optimistic Lock über `expectedRevision` (optional abgestimmt mit If-Match). */
 export const patchLeadDraftBodySchema = z.object({
   expectedRevision: z.number().int().min(0),

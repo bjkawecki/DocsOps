@@ -15,9 +15,12 @@ type Props = {
   onAssignContext: () => void;
   moveContextOpened: boolean;
   onCloseMoveContext: () => void;
-  moveContextOptions: { value: string; label: string }[];
+  moveContextOptions: { value: string; label: string; ownerId?: string | null }[];
   moveContextId: string | null;
   setMoveContextId: (v: string | null) => void;
+  moveRequestNote: string;
+  setMoveRequestNote: (v: string) => void;
+  moveTargetIsCrossOwner: boolean;
   moveContextLoading: boolean;
   onMoveContext: () => void;
   createTagOpened: boolean;
@@ -49,6 +52,9 @@ export function DocumentPageModals({
   moveContextOptions,
   moveContextId,
   setMoveContextId,
+  moveRequestNote,
+  setMoveRequestNote,
+  moveTargetIsCrossOwner,
   moveContextLoading,
   onMoveContext,
   createTagOpened,
@@ -120,18 +126,26 @@ export function DocumentPageModals({
       <Modal opened={moveContextOpened} onClose={onCloseMoveContext} title="Move document" centered>
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Move this document to another context in the same owner scope. Tags and access grants
-            stay on the document.
+            Same owner scope moves immediately. Other scopes create a move request for the target
+            lead. On accept, tags are removed; access grants stay on the document.
           </Text>
           <Select
             label="Target context"
             placeholder="Select process, project, or subcontext"
-            data={moveContextOptions}
+            data={moveContextOptions.map(({ value, label }) => ({ value, label }))}
             value={moveContextId}
             onChange={(v) => setMoveContextId(v)}
             searchable
-            nothingFoundMessage="No other contexts in this scope"
+            nothingFoundMessage="No other readable contexts"
           />
+          {moveTargetIsCrossOwner ? (
+            <TextInput
+              label="Note (optional)"
+              placeholder="Why should this document move?"
+              value={moveRequestNote}
+              onChange={(e) => setMoveRequestNote(e.currentTarget.value)}
+            />
+          ) : null}
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={onCloseMoveContext}>
               Cancel
@@ -141,7 +155,7 @@ export function DocumentPageModals({
               loading={moveContextLoading}
               onClick={() => void onMoveContext()}
             >
-              Move
+              {moveTargetIsCrossOwner ? 'Request move' : 'Move'}
             </Button>
           </Group>
         </Stack>

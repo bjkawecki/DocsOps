@@ -6,6 +6,10 @@ export const DOCUMENT_NOTIFICATION_EVENT_TYPES = [
   'document-deleted',
   'document-restored',
   'document-moved',
+  'document-move-requested',
+  'document-move-accepted',
+  'document-move-rejected',
+  'document-move-withdrawn',
   'document-grants-changed',
 ] as const;
 
@@ -120,6 +124,7 @@ export function resolveNotificationPreferenceCategory(
     return 'operations';
   if (ORG_EVENT_TYPE_SET.has(eventType)) return 'orgChanges';
   if (eventType.includes('draft-request')) return 'draftRequests';
+  if (eventType.startsWith('document-move-')) return 'draftRequests';
   if (eventType.includes('reminder')) return 'reminders';
   return 'documentChanges';
 }

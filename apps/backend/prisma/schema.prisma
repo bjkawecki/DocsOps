@@ -136,6 +136,8 @@ model User {
   documentVersionsCreated  DocumentVersion[]
   documentAttachmentsUploaded DocumentAttachment[]
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
+  documentMoveRequestsRequested DocumentMoveRequest[] @relation("DocumentMoveRequestedBy")
+  documentMoveRequestsDecided   DocumentMoveRequest[] @relation("DocumentMoveDecidedBy")
   sessions              Session[]
   backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
   updateRunsTriggered   UpdateRun[] @relation("UpdateRunTriggeredBy")
@@ -206,6 +208,8 @@ model Context {
   project          Project?
   subcontext       Subcontext?
   documents        Document[]
+  moveRequestsFrom DocumentMoveRequest[] @relation("MoveRequestFromContext")
+  moveRequestsTo   DocumentMoveRequest[] @relation("MoveRequestToContext")
 }
 
 /// Prozess: dauerhafter Kontext (z. B. Onboarding), selten archiviert.
@@ -315,8 +319,44 @@ model Document {
   versions                  DocumentVersion[]
   attachments               DocumentAttachment[]
   comments                  DocumentComment[]
+  moveRequests              DocumentMoveRequest[]
 
   @@index([documentTypeKey])
+}
+
+enum DocumentMoveRequestStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+/// Cross-owner move approval (Phase 2). Same-owner moves use POST /documents/:id/move without a request.
+model DocumentMoveRequest {
+  id             String                    @id @default(cuid())
+  documentId     String
+  document       Document                  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  fromContextId  String
+  fromContext    Context                   @relation("MoveRequestFromContext", fields: [fromContextId], references: [id], onDelete: Restrict)
+  toContextId    String
+  toContext      Context                   @relation("MoveRequestToContext", fields: [toContextId], references: [id], onDelete: Restrict)
+  fromOwnerId    String
+  toOwnerId      String
+  status         DocumentMoveRequestStatus @default(pending)
+  requestedById  String
+  requestedBy    User                      @relation("DocumentMoveRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  decidedById    String?
+  decidedBy      User?                     @relation("DocumentMoveDecidedBy", fields: [decidedById], references: [id], onDelete: SetNull)
+  note           String?                   @db.Text
+  decisionNote   String?                   @db.Text
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  decidedAt      DateTime?
+
+  @@index([documentId, status])
+  @@index([toOwnerId, status])
+  @@index([fromOwnerId, status])
+  @@index([requestedById, status])
 }
 
 /// Custom document type (scope-bound or platform-wide). Built-ins live in code (ADR 008).

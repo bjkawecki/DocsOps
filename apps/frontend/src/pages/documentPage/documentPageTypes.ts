@@ -42,6 +42,22 @@ export type DocumentResponse = {
   canPublish?: boolean;
   /** Same-owner move from current context (scope lead / personal owner / admin). */
   canMove?: boolean;
+  /** Cross-owner move request from current context. */
+  canRequestMove?: boolean;
+  canAcceptMove?: boolean;
+  pendingMoveRequest?: {
+    id: string;
+    toContextId: string;
+    fromContextId: string;
+    fromOwnerId: string;
+    toOwnerId: string;
+    note: string | null;
+    requestedById: string;
+    createdAt: string;
+    canWithdraw: boolean;
+    canAccept: boolean;
+    canReject: boolean;
+  } | null;
   /** Scopes where the current user may set/clear Start here for this document. */
   startHereScopes?: Array<{
     scopeType: 'team' | 'department' | 'company';
@@ -76,4 +92,7 @@ export type ContextOption = {
   contextId: string;
   name: string;
   kind: 'process' | 'project';
+  ownerId?: string | null;
+  /** Owner scope display name (company/department/team/personal) for cross-owner move labels. */
+  ownerDisplayName?: string | null;
 };

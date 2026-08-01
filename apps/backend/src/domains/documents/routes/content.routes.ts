@@ -29,6 +29,7 @@ import {
   DocumentBusinessError,
 } from '../services/lifecycle/documentService.js';
 import { moveDocument } from '../services/lifecycle/documentMoveService.js';
+import { getPendingMoveRequestForDocument } from '../services/lifecycle/documentMoveRequestService.js';
 import {
   createDocument,
   DocumentTemplateNotFoundError,
@@ -219,6 +220,7 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
         canMove,
         canModerateComments,
         startHereScopes,
+        moveRequestFlags,
       ] = await Promise.all([
         isTrashed ? Promise.resolve(false) : canWrite(prisma, userId, doc),
         canDeleteDocument(prisma, userId, documentId),
@@ -228,6 +230,13 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
         isTrashed
           ? Promise.resolve([])
           : listStartHereOptionsForDocument(prisma, userId, documentId),
+        isTrashed
+          ? Promise.resolve({
+              canRequestMove: false,
+              canAcceptMove: false,
+              pendingMoveRequest: null,
+            })
+          : getPendingMoveRequestForDocument(prisma, userId, documentId),
       ]);
       return reply.send(
         buildDocumentDetailResponse({
@@ -236,6 +245,9 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
           deleteAllowed,
           canPublish,
           canMove,
+          canRequestMove: moveRequestFlags.canRequestMove,
+          canAcceptMove: moveRequestFlags.canAcceptMove,
+          pendingMoveRequest: moveRequestFlags.pendingMoveRequest,
           canModerateComments,
           startHereScopes,
         })
@@ -527,7 +539,8 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
       }
       if (sourceOwnerId !== targetOwnerId) {
         return reply.status(409).send({
-          error: 'Cross-owner document move is not supported in v1',
+          error:
+            'Cross-owner move requires a move request; use POST /documents/:documentId/move-requests',
         });
       }
 
@@ -621,7 +634,7 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
           'Failed to resolve notification recipients before document delete'
         );
       }
-      await deleteDocument(prisma, documentId);
+      await deleteDocument(prisma, documentId, userId);
       await enqueueIncrementalReindexForDocumentSafe(request.log, {
         documentId,
         trigger: 'document-deleted',

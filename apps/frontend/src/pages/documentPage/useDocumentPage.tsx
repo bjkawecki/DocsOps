@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- document page view-model orchestrates load/edit/move/tags */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
@@ -61,7 +62,9 @@ export function useDocumentPage() {
   const [moveContextOpened, { open: openMoveContext, close: closeMoveContext }] =
     useDisclosure(false);
   const [moveContextId, setMoveContextId] = useState<string | null>(null);
+  const [moveRequestNote, setMoveRequestNote] = useState('');
   const [moveContextLoading, setMoveContextLoading] = useState(false);
+  const [moveDecisionLoading, setMoveDecisionLoading] = useState(false);
   const [pdfExportLoading, setPdfExportLoading] = useState(false);
   const [pdfExportJobId, setPdfExportJobId] = useState<string | null>(null);
   const [lastPdfExportStatus, setLastPdfExportStatus] = useState<string | null>(null);
@@ -522,33 +525,58 @@ export function useDocumentPage() {
   const onCloseMoveContext = () => {
     closeMoveContext();
     setMoveContextId(null);
+    setMoveRequestNote('');
   };
+
+  const selectedMoveOption = moveContextOptions.find((o) => o.value === moveContextId);
+  const moveTargetIsCrossOwner =
+    selectedMoveOption != null &&
+    contextOwnerId != null &&
+    selectedMoveOption.ownerId != null &&
+    selectedMoveOption.ownerId !== contextOwnerId;
 
   const handleMoveContext = async () => {
     if (!documentId || !moveContextId) return;
     setMoveContextLoading(true);
     try {
       const fromContextId = data?.contextId ?? null;
-      const res = await apiFetch(`/api/v1/documents/${documentId}/move`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetContextId: moveContextId }),
-      });
+      const isRequest = moveTargetIsCrossOwner;
+      const res = await apiFetch(
+        isRequest
+          ? `/api/v1/documents/${documentId}/move-requests`
+          : `/api/v1/documents/${documentId}/move`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            isRequest
+              ? {
+                  targetContextId: moveContextId,
+                  note: moveRequestNote.trim() ? moveRequestNote.trim() : null,
+                }
+              : { targetContextId: moveContextId }
+          ),
+        }
+      );
       if (res.ok) {
         onCloseMoveContext();
-        if (fromContextId)
+        if (!isRequest && fromContextId) {
           void queryClient.invalidateQueries({
             queryKey: ['contexts', fromContextId, 'documents'],
           });
-        void queryClient.invalidateQueries({
-          queryKey: ['contexts', moveContextId, 'documents'],
-        });
+          void queryClient.invalidateQueries({
+            queryKey: ['contexts', moveContextId, 'documents'],
+          });
+        }
         void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
         void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
         void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
+        void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
         notifications.show({
-          title: 'Document moved',
-          message: 'The document is now in the selected context.',
+          title: isRequest ? 'Move requested' : 'Document moved',
+          message: isRequest
+            ? 'The target lead can accept or reject the request under Approvals.'
+            : 'The document is now in the selected context.',
           color: 'green',
         });
       } else {
@@ -556,6 +584,46 @@ export function useDocumentPage() {
       }
     } finally {
       setMoveContextLoading(false);
+    }
+  };
+
+  const handleMoveRequestDecision = async (action: 'accept' | 'reject' | 'withdraw') => {
+    const pending = data?.pendingMoveRequest;
+    if (!documentId || !pending) return;
+    setMoveDecisionLoading(true);
+    try {
+      const res = await apiFetch(
+        `/api/v1/documents/${documentId}/move-requests/${pending.id}/${action}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }
+      );
+      if (res.ok) {
+        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+        void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
+        void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
+        notifications.show({
+          title:
+            action === 'accept'
+              ? 'Move accepted'
+              : action === 'reject'
+                ? 'Move rejected'
+                : 'Move request withdrawn',
+          message:
+            action === 'accept'
+              ? 'The document is now in the target context.'
+              : action === 'reject'
+                ? 'The document stays in its current context.'
+                : 'The target lead was notified.',
+          color: 'green',
+        });
+      } else {
+        void notifyApiErrorResponse(res);
+      }
+    } finally {
+      setMoveDecisionLoading(false);
     }
   };
 
@@ -715,7 +783,11 @@ export function useDocumentPage() {
     openMoveContext,
     moveContextId,
     setMoveContextId,
+    moveRequestNote,
+    setMoveRequestNote,
+    moveTargetIsCrossOwner,
     moveContextLoading,
+    moveDecisionLoading,
     onCloseMoveContext,
     handleDeleteConfirm,
     handleArchive,
@@ -726,6 +798,7 @@ export function useDocumentPage() {
     handlePublish,
     handleAssignContext,
     handleMoveContext,
+    handleMoveRequestDecision,
     handleCreateTag,
     handleStartPdfExport,
     handleDeleteTag,

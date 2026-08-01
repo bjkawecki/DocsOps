@@ -6,6 +6,7 @@ import { apiFetch } from '../../api/client';
 import { useMe, meQueryKey } from '../../hooks/useMe';
 import { useMeNotificationsUnreadTotal } from '../../hooks/useMeNotificationsUnreadTotal';
 import { useMeReviews } from '../../hooks/useMeReviews';
+import { useMeMoveRequests } from '../../hooks/useMeMoveRequests';
 import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
 import type { AdminUser, DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
 import { getNavLinkStyles } from './appShellNavUtils.js';
@@ -295,6 +296,14 @@ export function useAppShellSidebarData() {
   });
 
   const { data: reviewsData } = useMeReviews({ limit: 1, offset: 0 }, { enabled: hasReviewRights });
+  const { data: inboundMovesData } = useMeMoveRequests(
+    { direction: 'inbound', status: 'pending', limit: 1 },
+    { enabled: !!me?.identity }
+  );
+  const { data: outboundMovesData } = useMeMoveRequests(
+    { direction: 'outbound', status: 'pending', limit: 1 },
+    { enabled: !!me?.identity }
+  );
 
   const { data: templatesManageAccess } = useQuery({
     queryKey: ['document-templates', 'manage-access'],
@@ -306,10 +315,12 @@ export function useAppShellSidebarData() {
     enabled: !!me?.identity,
   });
   const canManageDocumentTemplates = templatesManageAccess?.canManage === true;
-  const reviewsCount =
-    reviewsData != null && reviewsData.totalPendingForReview > 0
-      ? reviewsData.totalPendingForReview
-      : undefined;
+  const reviewsPending = reviewsData?.totalPendingForReview ?? 0;
+  const inboundMovesPending = inboundMovesData?.total ?? 0;
+  const outboundMovesPending = outboundMovesData?.total ?? 0;
+  const approvalsCount =
+    reviewsPending + inboundMovesPending > 0 ? reviewsPending + inboundMovesPending : undefined;
+  const showApprovalsNav = hasReviewRights || inboundMovesPending > 0 || outboundMovesPending > 0;
 
   const scopeCountQueries = useQueries({
     queries: [
@@ -387,6 +398,7 @@ export function useAppShellSidebarData() {
     userTeamId,
     userDepartmentId,
     hasReviewRights,
+    showApprovalsNav,
     canManageDocumentTemplates,
     companyDepartments,
     departmentTeams,
@@ -402,7 +414,7 @@ export function useAppShellSidebarData() {
     catalogCount,
     personalCount,
     sharedCount,
-    reviewsCount,
+    approvalsCount,
     departmentCounts,
     teamCounts,
     showOrganizationNav,

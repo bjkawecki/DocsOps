@@ -27,6 +27,10 @@ const REVIEW_EVENT_TYPES = new Set([
   'draft-request-submitted',
   'draft-request-merged',
   'draft-request-rejected',
+  'document-move-requested',
+  'document-move-accepted',
+  'document-move-rejected',
+  'document-move-withdrawn',
 ]);
 
 const ANNOUNCEMENT_EVENT_TYPES = new Set(['admin-broadcast']);

@@ -28,7 +28,7 @@ export type MoveDocumentResult = {
   toContextId: string;
 };
 
-async function assertContextAcceptsDocuments(
+export async function assertContextAcceptsDocuments(
   prisma: PrismaClient,
   contextId: string
 ): Promise<void> {
@@ -107,7 +107,9 @@ export async function moveDocument(
     throw new DocumentBusinessError('Context has no owner');
   }
   if (sourceOwnerId !== targetOwnerId) {
-    throw new DocumentBusinessError('Cross-owner document move is not supported in v1');
+    throw new DocumentBusinessError(
+      'Cross-owner move requires a move request; use POST /documents/:documentId/move-requests'
+    );
   }
 
   const invalidTag = doc.documentTags.some((row) => row.tag.ownerId !== targetOwnerId);
