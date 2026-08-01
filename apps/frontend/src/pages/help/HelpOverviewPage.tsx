@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom';
 
 export function HelpOverviewPage() {
   return (
-    <Stack gap={6} align="stretch" style={{ textAlign: 'left' }}>
+    <Stack gap={0} align="stretch" style={{ textAlign: 'left' }}>
       <Title order={1}>What is DocsOps?</Title>
-      <Text>
+      <Text component="p">
         DocsOps is a documentation and knowledge workspace for engineering organisations. You work
         in scoped areas (company, department, team, or personal space), create documents in
         processes or projects, and move work through review and publication when your organisation
         uses that workflow.
       </Text>
-      <Text>
+      <Text component="p">
         Choosing between a <strong>process</strong> and a <strong>project</strong> is covered in{' '}
         <Anchor component={Link} to="/help/contexts">
           Processes & projects

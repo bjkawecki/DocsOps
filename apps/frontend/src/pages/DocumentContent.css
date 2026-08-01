@@ -97,13 +97,20 @@
 .document-content p:last-child {
   margin-bottom: 0;
 }
-.document-content h1:first-child,
-.document-content h2:first-child,
-.document-content h3:first-child,
-.document-content h4:first-child,
-.document-content h5:first-child,
-.document-content h6:first-child,
-.document-content .mantine-Title-root:first-child {
+/*
+ * Drop top margin only on the first heading of the reading column.
+ * Do not use `.mantine-Title-root:first-child` alone – DocumentBlocksPreview wraps
+ * each block in a Box, so every Title would match and lose margin-top (H2s then
+ * look closer to the previous paragraph than to their own body).
+ */
+.document-content > :is(h1, h2, h3, h4, h5, h6, .mantine-Title-root):first-child,
+.document-content
+  > .mantine-Stack-root
+  > :first-child:is(h1, h2, h3, h4, h5, h6, .mantine-Title-root),
+.document-content
+  > .mantine-Stack-root
+  > :first-child
+  :is(h1, h2, h3, h4, h5, h6, .mantine-Title-root):first-child {
   margin-top: 0;
 }
 .document-content ul,

@@ -12,13 +12,15 @@ import { templateSectionsToDraftBlocks } from '../templates/templateSectionsToDr
 import { safeParseBlockDocument } from '../services/blocks/blockSchema.js';
 
 describe('builtinDocumentTemplates', () => {
-  it('includes 14 built-in types with stable ids', () => {
-    expect(BUILTIN_DOCUMENT_TYPES).toHaveLength(14);
+  it('includes 8 built-in types with stable ids', () => {
+    expect(BUILTIN_DOCUMENT_TYPES).toHaveLength(8);
     expect(builtinTypeId('runbook')).toBe('builtin:runbook');
     expect(builtinTemplateId('runbook')).toBe('builtin:runbook');
     expect(getBuiltinDocumentType('runbook')?.label).toBe('Runbook');
     expect(parseBuiltinSlug('builtin:adr')).toBe('adr');
     expect(parseCustomTypeId('custom:abc')).toBe('abc');
+    expect(getBuiltinDocumentType('baseline')).toBeUndefined();
+    expect(getBuiltinDocumentType('playbook')).toBeUndefined();
   });
 
   it('filters by oftenUsedIn', () => {
@@ -26,7 +28,9 @@ describe('builtinDocumentTemplates', () => {
     const projectTypes = listBuiltinDocumentTypes('project');
     expect(processTypes.every((t) => t.oftenUsedIn === 'process')).toBe(true);
     expect(projectTypes.every((t) => t.oftenUsedIn === 'project')).toBe(true);
-    expect(processTypes.length + projectTypes.length).toBe(14);
+    expect(processTypes).toHaveLength(5);
+    expect(projectTypes).toHaveLength(3);
+    expect(processTypes.length + projectTypes.length).toBe(8);
   });
 
   it('converts sections to block document with H2 headings', () => {

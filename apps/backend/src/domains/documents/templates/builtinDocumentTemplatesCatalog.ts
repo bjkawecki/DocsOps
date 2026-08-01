@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- built-in template catalog content (ADR 008) */
 import type {
   BuiltinDocumentType,
   OftenUsedIn,
@@ -23,49 +22,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'policy',
     'Policy',
     'Richtlinie',
-    'Binding organization-wide rule: what must be complied with and why. Example: “All customer data must be encrypted at rest.”',
+    'A policy is a binding organizational rule that states what must be complied with and why. It sets intent and obligations at a strategic level, names who and what is in scope, and leaves measurable detail to standards or concrete steps to procedures. Use this type when readers need a durable “must / must not” decision that other documents implement.',
     'process',
     'Policy: information security',
     [
       {
-        heading: 'Purpose',
+        heading: 'Purpose & scope',
         prompts: [
-          'Why does this policy exist – which risk or goal does it address?',
-          'Which legal, regulatory, or business drivers apply?',
-        ],
-      },
-      {
-        heading: 'Scope',
-        prompts: [
-          'Who and what is covered (roles, systems, locations, data)?',
-          'What is explicitly excluded?',
+          'State why this policy exists: the risk, goal, or obligation it addresses, and which legal, regulatory, or business drivers apply. Define who and what is covered (roles, systems, locations, data) and what is explicitly out of scope.',
         ],
       },
       {
         heading: 'Policy statements',
         prompts: [
-          'What are the binding rules (clear, numbered)?',
-          'What is required vs. forbidden?',
+          'Write the binding rules in clear, preferably numbered language. Distinguish what is required from what is forbidden so readers can apply the policy without guessing intent.',
         ],
       },
       {
-        heading: 'Roles & accountability',
-        prompts: ['Who owns this policy – and who enforces it?', 'Which roles must comply?'],
-      },
-      {
-        heading: 'Compliance & exceptions',
+        heading: 'Roles, compliance & exceptions',
         prompts: [
-          'How is compliance checked or audited?',
-          'How can exceptions be requested and approved?',
+          'Name who owns the policy, who enforces it, and which roles must comply. Describe how compliance is checked or audited, and how exceptions are requested, approved, time-boxed, and recorded.',
         ],
       },
       {
-        heading: 'Related documents',
-        prompts: ['Which standards, baselines, guidelines, or procedures implement this policy?'],
-      },
-      {
-        heading: 'Review & version',
-        prompts: ['How often is this policy reviewed?', 'Who approves changes?'],
+        heading: 'Related docs & review',
+        prompts: [
+          'List the standards, guidelines, or procedures that implement this policy. Note how often the policy is reviewed and who approves changes or a new version.',
+        ],
       },
     ]
   ),
@@ -73,85 +56,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'standard',
     'Standard',
     'Standard',
-    'Mandatory, measurable requirement (“how much” / “what exactly”), usually derived from a policy. Example: “Passwords must be at least 12 characters.”',
+    'A standard is a mandatory, measurable requirement that turns policy intent into criteria you can check. It answers “how much” or “what exactly” in testable language so audits, reviews, or tooling can verify compliance without reinterpretation. Use this type when a rule must be concrete and auditable, not only directional.',
     'process',
     'Standard: password length',
     [
       {
-        heading: 'Purpose & parent policy',
+        heading: 'Purpose & scope',
         prompts: [
-          'Which policy or goal does this standard support?',
-          'What problem does non-compliance cause?',
+          'Explain which policy or goal this standard supports and why non-compliance matters. State which systems, teams, products, or document types it applies to.',
         ],
-      },
-      {
-        heading: 'Scope',
-        prompts: ['Which systems, teams, or document types does this apply to?'],
       },
       {
         heading: 'Requirements',
         prompts: [
-          'What must be true (measurable criteria)?',
-          'What is the minimum acceptable level?',
+          'Define the measurable criteria that must be true and the minimum acceptable level. Prefer testable wording so audits and tooling can check compliance without interpretation.',
         ],
       },
       {
-        heading: 'Verification',
+        heading: 'Verification & exceptions',
         prompts: [
-          'How do you check compliance (audit, tooling, review)?',
-          'What evidence is required?',
-        ],
-      },
-      {
-        heading: 'Exceptions',
-        prompts: ['When are deviations allowed – and who approves them?'],
-      },
-      {
-        heading: 'References',
-        prompts: ['Related baselines, guidelines, procedures, or external norms (ISO, etc.).'],
-      },
-    ]
-  ),
-  t(
-    'baseline',
-    'Baseline',
-    'Baseline',
-    'Minimum configuration or state that systems and environments must meet (often checklist-like). Example: “Hardened Linux image for production VMs.”',
-    'process',
-    'Baseline: server hardening',
-    [
-      {
-        heading: 'Purpose',
-        prompts: ['What baseline is being defined – and against which standard or policy?'],
-      },
-      {
-        heading: 'Scope',
-        prompts: ['Which assets, environments, or teams must meet this baseline?'],
-      },
-      {
-        heading: 'Baseline configuration',
-        prompts: [
-          'What are the required settings, versions, or controls (checklist)?',
-          'What is the reference implementation or template?',
-        ],
-      },
-      {
-        heading: 'Deviation handling',
-        prompts: [
-          'How are exceptions documented?',
-          'What is the process to bring non-compliant items into alignment?',
-        ],
-      },
-      {
-        heading: 'Verification & drift',
-        prompts: [
-          'How often is compliance checked?',
-          'How is configuration drift detected and remediated?',
+          'Describe how compliance is verified (audit, tooling, review) and what evidence is required. Say when deviations are allowed, who approves them, and how they are tracked to closure.',
         ],
       },
       {
         heading: 'References',
-        prompts: ['Links to automation (IaC), scans, related standards, or procedures.'],
+        prompts: [
+          'Point to related guidelines, procedures, or external norms (for example ISO) that readers need alongside this standard.',
+        ],
       },
     ]
   ),
@@ -159,39 +90,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'guideline',
     'Guideline',
     'Leitlinie',
-    'Recommended practice without mandating a single approach. Example: “Prefer small PRs and at least one reviewer outside the authoring team.”',
+    'A guideline recommends a preferred way of working without mandating a single approach. It helps teams align on good practice while still allowing reasoned deviation. Use this type when you want shared norms and examples, not a binding rule that must always be followed.',
     'process',
     'Guideline: code review practice',
     [
       {
-        heading: 'Purpose',
-        prompts: ['What practice does this guideline promote – and why?'],
-      },
-      {
-        heading: 'Scope & audience',
-        prompts: ['Who should follow this – in which situations?'],
+        heading: 'Purpose & audience',
+        prompts: [
+          'Describe the practice this guideline promotes and why it helps. Say who should follow it and in which situations it applies.',
+        ],
       },
       {
         heading: 'Recommendations',
         prompts: [
-          'What is the preferred approach (with examples)?',
-          'What should be avoided – and why?',
+          'Explain the preferred approach with concrete examples, and call out anti-patterns or approaches to avoid – including why they hurt quality, speed, or safety.',
         ],
       },
       {
-        heading: 'Alternatives',
+        heading: 'Alternatives & binding docs',
         prompts: [
-          'When is a different approach acceptable?',
-          'What must be documented if deviating?',
+          'Clarify when a different approach is acceptable and what must be documented if someone deviates. Name the policies or standards this guideline supports without replacing them.',
         ],
-      },
-      {
-        heading: 'Relation to binding docs',
-        prompts: ['Which policies or standards does this support – without replacing them?'],
       },
       {
         heading: 'Examples & references',
-        prompts: ['Good examples, anti-patterns, links to tools or templates.'],
+        prompts: [
+          'Add good examples, anti-patterns, and links to tools or related documents that make the guideline easy to apply day to day.',
+        ],
       },
     ]
   ),
@@ -199,43 +124,31 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'procedure',
     'Procedure',
     'Verfahren / SOP',
-    'Ordered how-to for a recurring, planned task (SOP). Example: “Publish a document: review → approve → publish.”',
+    'A procedure is an ordered how-to for a recurring, planned task (SOP). It tells who does what, in which sequence, under calm conditions, and what “done” looks like. Use this type for repeatable work with clear ownership – not for urgent incident response, which belongs in a runbook.',
     'process',
     'Procedure: publish a document',
     [
       {
-        heading: 'Purpose & scope',
+        heading: 'Purpose, roles & prerequisites',
         prompts: [
-          'What task does this procedure cover?',
-          'Which policy, standard, or baseline does it implement?',
+          'State the recurring task this procedure covers and which policy or standard it implements. Name who performs each step and who approves, plus the access, tools, or prior approvals required before starting.',
         ],
-      },
-      {
-        heading: 'Roles',
-        prompts: ['Who performs each step – and who approves?'],
-      },
-      {
-        heading: 'Prerequisites',
-        prompts: ['What access, tools, or prior approvals are required?'],
       },
       {
         heading: 'Steps',
         prompts: [
-          'What is the ordered step sequence (numbered)?',
-          'What is the expected result after each critical step?',
+          'Write an ordered, numbered sequence of steps. After each critical step, note the expected result so the performer can confirm they are still on track.',
         ],
       },
       {
-        heading: 'Checkpoints & records',
-        prompts: ['Where must results be logged or evidenced?', 'What constitutes completion?'],
-      },
-      {
-        heading: 'Safety & rollback',
-        prompts: ['What can go wrong – and how to undo or escalate?'],
+        heading: 'Checkpoints & safety',
+        prompts: [
+          'Say where results must be logged or evidenced and what constitutes completion. Describe what can go wrong, how to undo or roll back, and when to escalate.',
+        ],
       },
       {
         heading: 'References',
-        prompts: ['Related runbooks, playbooks, checklists, or systems.'],
+        prompts: ['Link related runbooks or systems used while following this procedure.'],
       },
     ]
   ),
@@ -243,189 +156,32 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'runbook',
     'Runbook',
     'Runbook',
-    'Urgent response for a specific alert or outage: diagnose, mitigate, verify. Example: “API 5xx spike: check deploy, roll back, notify stakeholders.”',
+    'A runbook is an urgent response guide for a specific alert, outage, or failure mode. It focuses on diagnose, mitigate, and verify under time pressure, with severity, escalation, and rollback spelled out. Use this type when operators need a fast, actionable path during an incident – not for calm, scheduled SOPs.',
     'process',
     'Runbook: service outage response',
     [
       {
-        heading: 'Purpose & scope',
+        heading: 'Purpose & prerequisites',
         prompts: [
-          'What situation or alert triggers this runbook?',
-          'What is in scope – and what is explicitly out of scope?',
+          'Describe the alert or situation that triggers this runbook and what is in or out of scope. List the access, tools, and notifications required before anyone starts mitigation.',
         ],
       },
       {
-        heading: 'Prerequisites',
+        heading: 'Severity & procedure',
         prompts: [
-          'What access, tools, or permissions are required before starting?',
-          'Who must be notified before or during execution?',
+          'Explain how severity is classified and when to escalate – including to whom. Provide ordered response steps and the expected outcome after each critical step so responders can move quickly under pressure.',
         ],
       },
       {
-        heading: 'Severity & escalation',
-        prompts: ['How is severity classified?', 'When do you escalate – and to whom?'],
-      },
-      {
-        heading: 'Procedure',
+        heading: 'Verification & rollback',
         prompts: [
-          'What are the steps in order (numbered)?',
-          'What is the expected outcome after each critical step?',
+          'State how to confirm recovery using signals or metrics. If a step fails or makes things worse, describe how to roll back safely and what to communicate.',
         ],
-      },
-      {
-        heading: 'Verification',
-        prompts: [
-          'How do you confirm the issue is resolved or the system is healthy?',
-          'What signals or metrics should you check?',
-        ],
-      },
-      {
-        heading: 'Rollback / recovery',
-        prompts: ['What if a step fails or makes things worse?', 'How do you roll back safely?'],
       },
       {
         heading: 'References',
-        prompts: ['Links to dashboards, related SOPs, architecture docs, or contacts.'],
-      },
-    ]
-  ),
-  t(
-    'playbook',
-    'Playbook',
-    'Playbook',
-    'Proactive, multi-role workflow with phases and gates. Example: “Onboard a new microservice: repo → CI → observability → go-live.”',
-    'process',
-    'Playbook: service onboarding',
-    [
-      {
-        heading: 'Purpose & audience',
         prompts: [
-          'What workflow does this playbook describe?',
-          'Who executes it – and who approves or reviews the result?',
-        ],
-      },
-      {
-        heading: 'When to use',
-        prompts: [
-          'On what trigger or schedule is this playbook used?',
-          'When should another document (e.g. runbook, SOP) be used instead?',
-        ],
-      },
-      {
-        heading: 'Roles & responsibilities',
-        prompts: [
-          'Which roles are involved at each stage?',
-          'Who is accountable for the final outcome?',
-        ],
-      },
-      {
-        heading: 'Preparation',
-        prompts: [
-          'What must be in place before starting (data, access, approvals)?',
-          'What checklist items apply before day one / before go-live?',
-        ],
-      },
-      {
-        heading: 'Workflow',
-        prompts: [
-          'What are the main phases and steps?',
-          'What are the decision points or gates between phases?',
-        ],
-      },
-      {
-        heading: 'Quality & acceptance',
-        prompts: ['What does “done” look like?', 'What evidence or artifacts must be produced?'],
-      },
-      {
-        heading: 'Exceptions & contacts',
-        prompts: [
-          'What are common exceptions and how are they handled?',
-          'Who to contact for questions or escalations?',
-        ],
-      },
-    ]
-  ),
-  t(
-    'checklist',
-    'Checklist',
-    'Checkliste',
-    'Short, tickable list to confirm readiness without a full narrative. Example: “Release readiness: tests green, changelog, feature flags, on-call briefed.”',
-    'process',
-    'Checklist: release readiness',
-    [
-      {
-        heading: 'Purpose',
-        prompts: ['What outcome does this checklist confirm?', 'When must it be completed?'],
-      },
-      {
-        heading: 'Items',
-        prompts: ['List the checkable steps in order.', 'Who signs off each item?'],
-      },
-      {
-        heading: 'Completion',
-        prompts: ['What constitutes “complete”?', 'Where is completion recorded?'],
-      },
-      {
-        heading: 'References',
-        prompts: ['Related procedures, runbooks, or standards.'],
-      },
-    ]
-  ),
-  t(
-    'repository-documentation',
-    'Repository documentation',
-    'Repository-Doku',
-    'Developer-facing overview of one code repository: purpose, layout, setup, and conventions. Example: “billing-service: how to run locally and where configs live.”',
-    'project',
-    'Repository documentation: billing-service',
-    [
-      {
-        heading: 'Purpose',
-        prompts: [
-          'What does this repository contain – and what problem does it solve?',
-          'Who are the primary consumers (teams, services, users)?',
-        ],
-      },
-      {
-        heading: 'Repository structure',
-        prompts: [
-          'How is the codebase organized (top-level folders, main modules)?',
-          'Where do config, infrastructure, and docs live?',
-        ],
-      },
-      {
-        heading: 'Getting started',
-        prompts: [
-          'What are the prerequisites (runtime, tools, credentials)?',
-          'How do you clone, install dependencies, and run locally?',
-        ],
-      },
-      {
-        heading: 'Build, test & deploy',
-        prompts: [
-          'How do you build and run tests?',
-          'How does deployment work – and which environments exist?',
-        ],
-      },
-      {
-        heading: 'Conventions',
-        prompts: [
-          'Branching, naming, and commit conventions?',
-          'Code review and merge expectations?',
-        ],
-      },
-      {
-        heading: 'Configuration & secrets',
-        prompts: [
-          'Which environment variables or config files matter?',
-          'Where are secrets managed – never commit what?',
-        ],
-      },
-      {
-        heading: 'Operations & ownership',
-        prompts: [
-          'Who maintains this repo – and who is on-call?',
-          'Links to runbooks, architecture docs, or issue trackers.',
+          'Link dashboards, related procedures, architecture docs, and on-call or stakeholder contacts needed during the incident.',
         ],
       },
     ]
@@ -434,29 +190,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'adr',
     'ADR',
     'Architekturentscheidung',
-    'Record one significant technical choice and its trade-offs (Architecture Decision Record). Example: “Use PostgreSQL as the primary store.”',
+    'An architecture decision record (ADR) captures one significant technical choice, the context that forced it, and the consequences and alternatives. It is a durable decision log so teams do not reopen settled debates without new information. Use this type for a single decision with lasting impact – not for a full system map or meeting minutes.',
     'project',
-    'ADR: choose PostgreSQL for primary store',
+    'ADR: choose primary data store',
     [
       {
         heading: 'Status',
-        prompts: ['Proposed, accepted, deprecated, superseded?'],
+        prompts: [
+          'Record the decision status: proposed, accepted, deprecated, or superseded (and by what, if relevant).',
+        ],
       },
       {
-        heading: 'Context',
-        prompts: ['What problem or force led to this decision?'],
-      },
-      {
-        heading: 'Decision',
-        prompts: ['What was decided?'],
+        heading: 'Context & decision',
+        prompts: [
+          'Describe the problem, forces, and constraints that led to this decision, then state clearly what was decided.',
+        ],
       },
       {
         heading: 'Consequences',
-        prompts: ['What becomes easier or harder?', 'What follow-up work is required?'],
+        prompts: [
+          'Explain what becomes easier or harder as a result, and list follow-up work that the decision implies.',
+        ],
       },
       {
-        heading: 'Alternatives considered',
-        prompts: ['Which options were rejected – and why?'],
+        heading: 'Alternatives',
+        prompts: [
+          'Summarize the options that were considered and rejected, with enough rationale that future readers do not reopen settled debate without new information.',
+        ],
       },
     ]
   ),
@@ -464,59 +224,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'architecture-overview',
     'Architecture overview',
     'Architekturübersicht',
-    'Living map of a product or initiative: context, components, data, and integrations. Example: “Docs platform: apps, Postgres, MinIO, job workers.”',
+    'An architecture overview is a living map of a product or initiative: context, main components, data, and integrations. It orients newcomers and operators to how the system fits together at a glance. Use this type for the current big picture; record individual trade-off decisions as ADRs and keep volatile ops detail in runbooks or procedures.',
     'project',
-    'Architecture overview: docs platform',
+    'Architecture overview: system landscape',
     [
       {
-        heading: 'Context',
-        prompts: ['What system is described?', 'Who are the users and external systems?'],
-      },
-      {
-        heading: 'Containers / components',
-        prompts: ['What are the main runtime units and responsibilities?'],
+        heading: 'Context & containers',
+        prompts: [
+          'Describe the system, its users, and external actors. List the main runtime units (services, apps, workers) and each unit’s responsibilities so newcomers can orient quickly.',
+        ],
       },
       {
         heading: 'Data & integrations',
-        prompts: ['What data stores and integrations matter?'],
+        prompts: [
+          'Explain which data stores matter, how data flows, and which integrations or external systems are in play.',
+        ],
       },
       {
-        heading: 'Cross-cutting concerns',
-        prompts: ['Auth, observability, deployment topology?'],
+        heading: 'Cross-cutting',
+        prompts: [
+          'Cover auth, observability, and deployment topology at a level that helps operators and developers without duplicating every ADR.',
+        ],
       },
       {
         heading: 'References',
-        prompts: ['Related ADRs, runbooks, repository docs.'],
-      },
-    ]
-  ),
-  t(
-    'meeting-notes',
-    'Meeting notes',
-    'Protokoll',
-    'Capture what was discussed, decided, and assigned in a meeting. Example: “Sprint planning 2026-08-01: scope, owners, dates.”',
-    'project',
-    'Meeting notes: sprint planning 2026-08-01',
-    [
-      {
-        heading: 'Attendees',
-        prompts: ['Who attended?'],
-      },
-      {
-        heading: 'Agenda',
-        prompts: ['What was planned to discuss?'],
-      },
-      {
-        heading: 'Notes',
-        prompts: ['Key discussion points.'],
-      },
-      {
-        heading: 'Decisions',
-        prompts: ['What was decided?'],
-      },
-      {
-        heading: 'Action items',
-        prompts: ['Who owns which follow-up – by when?'],
+        prompts: [
+          'Link related ADRs, runbooks, and repository or product docs that hold deeper or more volatile detail.',
+        ],
       },
     ]
   ),
@@ -524,71 +258,33 @@ export const BUILTIN_DOCUMENT_TYPES: readonly BuiltinDocumentType[] = [
     'post-mortem',
     'Post-mortem',
     'Post-Mortem',
-    'After-the-fact learning from an incident: timeline, causes, and lasting improvements. Example: “Outage 2026-07-15: deploy rollback gap.”',
+    'A post-mortem is a blameless after-action review of an incident: what happened, why, what went well, and which lasting improvements follow. It turns an outage or failure into shared learning with owners for follow-up. Use this type after recovery – during the incident, use a runbook instead.',
     'project',
-    'Post-mortem: production outage 2026-07-15',
+    'Post-mortem: production incident',
     [
       {
-        heading: 'Summary',
-        prompts: ['What happened in one paragraph?', 'Impact and duration?'],
-      },
-      {
-        heading: 'Timeline',
-        prompts: ['Key events with timestamps.'],
+        heading: 'Summary & timeline',
+        prompts: [
+          'Summarize what happened, the impact, and the duration in one short narrative, then list key events with timestamps for the incident arc.',
+        ],
       },
       {
         heading: 'Root cause',
-        prompts: ['What caused the incident?', 'Contributing factors?'],
+        prompts: [
+          'Explain the primary cause and the contributing factors that made the incident possible or worse. Prefer blameless, factual language.',
+        ],
       },
       {
-        heading: 'What went well',
-        prompts: ['Detection, response, communication strengths?'],
-      },
-      {
-        heading: 'What to improve',
-        prompts: ['Gaps and follow-up actions with owners.'],
+        heading: 'What went well / improve',
+        prompts: [
+          'Note strengths in detection, response, and communication. Then list gaps and lasting follow-up actions with clear owners so improvements actually land.',
+        ],
       },
       {
         heading: 'References',
-        prompts: ['Related runbooks, tickets, dashboards.'],
-      },
-    ]
-  ),
-  t(
-    'known-issue',
-    'Known issue',
-    'Bekannter Fehler',
-    'Knowledge-base entry for a known defect: symptoms, workaround, and tracker link (not the ticket itself). Example: “PDF export fails above 50 MB; workaround: split files.”',
-    'project',
-    'Known issue: export fails for files larger than 50 MB',
-    [
-      {
-        heading: 'Summary',
-        prompts: ['One-line symptom and who is affected.'],
-      },
-      {
-        heading: 'Symptoms',
-        prompts: ['What users or systems observe.'],
-      },
-      {
-        heading: 'Expected vs actual',
-        prompts: ['Short contrast.'],
-      },
-      {
-        heading: 'Environment',
-        prompts: ['Versions, scopes, browsers, flags if relevant.'],
-      },
-      {
-        heading: 'Workaround',
-        prompts: ['What to do until fixed (or “none”).'],
-      },
-      {
-        heading: 'Tracker',
-        prompts: ['Link to the issue (SSoT for assignment and status).'],
-      },
-      {
-        heading: 'Status / resolution',
-        prompts: ['Open, mitigated, fixed in version X (keep in sync with tracker).'],
+        prompts: [
+          'Link related runbooks, tickets, and dashboards that support the timeline or follow-up work.',
+        ],
       },
     ]
   ),

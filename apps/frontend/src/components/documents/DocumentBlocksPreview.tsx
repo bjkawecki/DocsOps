@@ -344,7 +344,7 @@ export function DocumentBlocksPreview({ title, doc, documentId }: Props) {
           {title}
         </Text>
       ) : null}
-      <Stack gap="md">{rendered}</Stack>
+      <Stack gap={0}>{rendered}</Stack>
     </Box>
   );
 }
