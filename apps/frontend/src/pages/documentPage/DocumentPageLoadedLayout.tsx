@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- document page layout shell */
 import {
   ActionIcon,
   Alert,
@@ -38,6 +39,7 @@ import { DocumentPublishedVersionAlert } from '../../components/documents/docume
 import { DocumentLeadDraftPanel } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import { DocumentAccessPanel } from '../../components/documents/DocumentAccessPanel';
+import { DocumentTypeMetadataSection } from './DocumentTypeMetadataSection.js';
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
@@ -80,6 +82,8 @@ export type DocumentPageLoadedLayoutProps = {
   setEditDescription: (v: string) => void;
   editTagIds: string[];
   setEditTagIds: (v: string[]) => void;
+  editTypeId: string | null;
+  setEditTypeId: (v: string | null) => void;
   saveLoading: boolean;
   publishLoading: boolean;
   editTab: 'draft' | 'metadata' | 'access';
@@ -128,6 +132,8 @@ export function DocumentPageLoadedLayout({
   setEditDescription,
   editTagIds,
   setEditTagIds,
+  editTypeId,
+  setEditTypeId,
   saveLoading,
   publishLoading,
   editTab,
@@ -542,6 +548,13 @@ export function DocumentPageLoadedLayout({
                               onChange={(e) => setEditDescription(e.currentTarget.value)}
                               maxLength={500}
                             />
+                            {data.canWrite ? (
+                              <DocumentTypeMetadataSection
+                                contextId={data.contextId}
+                                typeId={editTypeId}
+                                onTypeIdChange={setEditTypeId}
+                              />
+                            ) : null}
                             <Group align="flex-end" gap="xs">
                               <MultiSelect
                                 label="Tags"

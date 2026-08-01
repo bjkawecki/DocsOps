@@ -6,10 +6,10 @@ export type SectionLabelProps = {
   mb?: TextProps['mb'];
 };
 
-/** Meter-style section header: uppercase, compact, dimmed. */
+/** Content-sidebar section header: sentence case, bold, dimmed. */
 export function SectionLabel({ children, mb }: SectionLabelProps) {
   return (
-    <Text tt="uppercase" fz="xs" fw={600} c="dimmed" mb={mb}>
+    <Text size="sm" fw={600} c="dimmed" mb={mb}>
       {children}
     </Text>
   );

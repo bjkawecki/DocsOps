@@ -1,0 +1,24 @@
+---
+description: Document-like reading typography must use .document-content SSoT
+globs: apps/frontend/src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Document reading typography
+
+All document-like reading surfaces (document view/preview, Help body, Templates type detail) share **one** typography system:
+
+- CSS: `apps/frontend/src/pages/DocumentContent.css` (class `.document-content`)
+- Block preview: `DocumentBlocksPreview` (preferred when content is or can be a `BlockDocument`)
+- Static pages (Help): wrap with `DocumentReadingSurface` and use `Title` / `Text component="p"` / `List` like the preview
+
+## Do not
+
+- Add parallel reading CSS (e.g. `.content-reading`) or page-local heading scales
+- Style Help/Templates body with ad-hoc `size`/`c="dimmed"` that fights `.document-content`
+- Invent a second max-width or font stack for “docs-like” columns outside `document-page-scroll` + `.document-content`
+
+## Do
+
+- Put new reader typography changes only in `DocumentContent.css` (and editor mirror if required)
+- Prefer synthesizing a `BlockDocument` + `DocumentBlocksPreview` when showing template/outline-like content

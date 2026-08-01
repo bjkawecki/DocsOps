@@ -1,5 +1,5 @@
 import type { MeResponse } from '../../api/me-types.js';
-import type { DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
+import type { AppShellNavLinkStyles, DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
 import { AppShellNavCompanyDepartments } from './AppShellNavCompanyDepartments.js';
 import { AppShellNavDepartmentLeadTeams } from './AppShellNavDepartmentLeadTeams.js';
 import { AppShellNavMemberScopeLinks } from './AppShellNavMemberScopeLinks.js';
@@ -7,7 +7,7 @@ import { AppShellNavNoIdentity } from './AppShellNavNoIdentity.js';
 
 export type AppShellRoleBasedNavProps = {
   pathname: string;
-  navLinkStyles: { root: Record<string, unknown> };
+  navLinkStyles: AppShellNavLinkStyles;
   me: MeResponse | undefined;
   isAdmin: boolean;
   isCompanyLead: boolean;

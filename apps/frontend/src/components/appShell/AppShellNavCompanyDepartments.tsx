@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Box, NavLink, Stack, Text } from '@mantine/core';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
-import type { DepartmentWithTeams } from './appShellNavUtils.js';
+import type { AppShellNavLinkStyles, DepartmentWithTeams } from './appShellNavUtils.js';
 import { isOrgNavActive } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellNavCollapsibleSection } from './AppShellNavCollapsibleSection';
@@ -9,7 +9,7 @@ import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
   pathname: string;
-  navLinkStyles: { root: Record<string, unknown> };
+  navLinkStyles: AppShellNavLinkStyles;
   depts: DepartmentWithTeams[];
   companyCount: number | undefined;
   departmentCounts: Record<string, number>;

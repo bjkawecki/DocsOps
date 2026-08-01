@@ -4,7 +4,7 @@ export function HelpOutOfScopePage() {
   return (
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
-        <Title order={2}>What DocsOps is not</Title>
+        <Title order={1}>What DocsOps is not</Title>
         <Text>
           DocsOps holds <strong>durable internal knowledge</strong> with an official published
           stand: how the organisation works (processes) and what it is building or running
@@ -18,7 +18,7 @@ export function HelpOutOfScopePage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Out of scope</Title>
+        <Title order={2}>Out of scope</Title>
         <List spacing="sm">
           <List.Item>
             <strong>Issue trackers</strong> – assignees, sprints, triage status. Document a{' '}
@@ -63,7 +63,7 @@ export function HelpOutOfScopePage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Fine line</Title>
+        <Title order={2}>Fine line</Title>
         <List spacing="xs">
           <List.Item>
             <strong>Known issue / workaround</strong> → DocsOps; <strong>who fixes the bug</strong>{' '}

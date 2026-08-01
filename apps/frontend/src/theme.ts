@@ -292,12 +292,12 @@ export function createAppTheme(
         styles: {
           root: {
             minHeight: 32,
-            fontSize: 'var(--mantine-font-size-md)',
+            fontSize: 'var(--mantine-font-size-sm)',
             borderRadius: 'var(--mantine-radius-sm)',
           },
           label: {
-            fontSize: 'var(--mantine-font-size-md)',
-            fontWeight: 600,
+            fontSize: 'var(--mantine-font-size-sm)',
+            fontWeight: 500,
           },
         },
       },

@@ -4,7 +4,7 @@ export function HelpPermissionsPage() {
   return (
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
-        <Title order={2}>Read & write access</Title>
+        <Title order={1}>Read & write access</Title>
         <Text>
           Access follows where a process or project <strong>lives</strong> in the organisation (its
           owner scope) and your role in that scope. You will only see contexts and documents you are
@@ -12,7 +12,7 @@ export function HelpPermissionsPage() {
         </Text>
       </Stack>
       <Stack gap={6}>
-        <Title order={3}>Read vs write</Title>
+        <Title order={2}>Read vs write</Title>
         <List spacing="xs">
           <List.Item>
             <strong>Read</strong> lets you open documents and context pages in that scope.
@@ -24,7 +24,7 @@ export function HelpPermissionsPage() {
           </List.Item>
         </List>
       </Stack>
-      <Text c="dimmed">
+      <Text component="p">
         Company leads and administrators can have broader management capabilities (for example
         archiving or trash). Exact rules depend on your deployment and role configuration.
       </Text>

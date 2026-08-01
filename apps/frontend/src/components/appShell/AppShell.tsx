@@ -60,7 +60,9 @@ function AppShellFrame({
   });
   const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
   const isContainedReadingPage =
-    /^\/documents\/[^/]+$/.test(s.location.pathname) || s.location.pathname.startsWith('/help');
+    /^\/documents\/[^/]+$/.test(s.location.pathname) ||
+    s.location.pathname.startsWith('/help') ||
+    s.location.pathname === '/templates';
 
   return (
     <DocumentSearchProvider value={{ openSearch: search.openSearch }}>

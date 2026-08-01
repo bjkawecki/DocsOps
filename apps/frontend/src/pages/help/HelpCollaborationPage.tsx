@@ -4,7 +4,7 @@ export function HelpCollaborationPage() {
   return (
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
-        <Title order={2}>Reviews & merging</Title>
+        <Title order={1}>Reviews & merging</Title>
         <Text>
           Many teams are fine with <strong>real-time collaborative editing</strong> (several people
           in one live draft). DocsOps is aimed especially at organisations where that model is{' '}
@@ -13,7 +13,7 @@ export function HelpCollaborationPage() {
         </Text>
       </Stack>
       <Stack gap={6}>
-        <Title order={3}>Regulated and accountable work</Title>
+        <Title order={2}>Regulated and accountable work</Title>
         <Text>
           In regulated settings, “whatever is in the shared buffer right now” is rarely the artifact
           you want to stand behind. You need a <strong>defined moment</strong> when a change is
@@ -23,7 +23,7 @@ export function HelpCollaborationPage() {
         </Text>
       </Stack>
       <Stack gap={6}>
-        <Title order={3}>Distributed and asynchronous teams</Title>
+        <Title order={2}>Distributed and asynchronous teams</Title>
         <Text>
           When people work across time zones or calendars, expecting everyone to be online in the
           same document at once is fragile. A workflow built around{' '}
@@ -33,7 +33,7 @@ export function HelpCollaborationPage() {
         </Text>
       </Stack>
       <Stack gap={6}>
-        <Title order={3}>Why merge, not fancy live sync?</Title>
+        <Title order={2}>Why merge, not fancy live sync?</Title>
         <Text>
           Keeping many cursors in sync in one surface is a deep engineering problem on its own. That
           is a secondary point: the main one is product fit. A <strong>merge-based</strong>{' '}
@@ -43,7 +43,7 @@ export function HelpCollaborationPage() {
         </Text>
       </Stack>
       <Stack gap={6}>
-        <Title order={3}>What you get</Title>
+        <Title order={2}>What you get</Title>
         <List spacing="xs">
           <List.Item>
             Published versions readers can trust, plus change history for audit and learning.

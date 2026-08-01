@@ -1,4 +1,6 @@
 import { Button, Group, Modal, MultiSelect, Stack, TextInput } from '@mantine/core';
+import { DocumentTypePicker } from '../documents/DocumentTypePicker.js';
+import type { DocumentTypeSelection } from '../documents/documentTypeTypes.js';
 
 export type NewDraftDocumentModalProps = {
   opened: boolean;
@@ -8,6 +10,9 @@ export type NewDraftDocumentModalProps = {
   tagOptions: { value: string; label: string }[];
   tagIds: string[];
   onTagIdsChange: (ids: string[]) => void;
+  contextId: string;
+  typeSelection: DocumentTypeSelection;
+  onTypeSelectionChange: (next: DocumentTypeSelection) => void;
   loading: boolean;
   onSubmit: () => void | Promise<void>;
 };
@@ -20,11 +25,14 @@ export function NewDraftDocumentModal({
   tagOptions,
   tagIds,
   onTagIdsChange,
+  contextId,
+  typeSelection,
+  onTypeSelectionChange,
   loading,
   onSubmit,
 }: NewDraftDocumentModalProps) {
   return (
-    <Modal opened={opened} onClose={onClose} title="New draft" centered>
+    <Modal opened={opened} onClose={onClose} title="New draft" centered size="lg">
       <Stack gap="md">
         <TextInput
           label="Title"
@@ -32,6 +40,13 @@ export function NewDraftDocumentModal({
           onChange={(e) => onTitleChange(e.currentTarget.value)}
           placeholder="Draft title"
           required
+        />
+        <DocumentTypePicker
+          contextId={contextId}
+          value={typeSelection}
+          onChange={onTypeSelectionChange}
+          applyTemplateOnSelect
+          mode="create"
         />
         <MultiSelect
           label="Tags"

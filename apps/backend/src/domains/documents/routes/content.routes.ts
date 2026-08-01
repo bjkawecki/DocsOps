@@ -21,16 +21,26 @@ import {
 import {
   deleteDocument,
   updateDocumentMetadata,
+  updateDocumentTypeKey,
   type DocumentMetadataUpdateResult,
   DocumentNotFoundError,
   DocumentBusinessError,
 } from '../services/lifecycle/documentService.js';
-import { emptyBlockDocumentJson } from '../services/blocks/documentBlocksBackfill.js';
+import {
+  createDocument,
+  DocumentTemplateNotFoundError,
+  DocumentTemplateValidationError,
+} from '../services/lifecycle/createDocument.js';
+import {
+  resolveDocumentTypeKey,
+  resolveOwnerChainForContext,
+} from '../services/templates/documentTemplateService.js';
 import { documentMarkdownFromRow } from '../services/query/documentMarkdownSnapshot.js';
 import {
   documentIdParamSchema,
   createDocumentBodySchema,
   updateDocumentBodySchema,
+  updateDocumentTypeBodySchema,
 } from '../schemas/documents.js';
 import {
   excludeUserIds,
@@ -49,42 +59,6 @@ import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
 import { listStartHereOptionsForDocument } from '../../organisation/services/startHereService.js';
 
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-
-const DOCUMENT_CREATE_SELECT = {
-  id: true,
-  title: true,
-  draftBlocks: true,
-  publishedAt: true,
-  pdfUrl: true,
-  contextId: true,
-  createdAt: true,
-  updatedAt: true,
-  description: true,
-  createdById: true,
-  createdBy: { select: { name: true } },
-  documentTags: { include: { tag: { select: { id: true, name: true } } } },
-  currentPublishedVersion: { select: { blocks: true } },
-} as const;
-
-type CreatedDocumentResponseRow = {
-  publishedAt: Date | null;
-  draftBlocks: unknown;
-  currentPublishedVersion: { blocks: unknown } | null;
-  createdBy?: { name: string } | null;
-};
-
-function buildCreatedDocumentResponse<T extends CreatedDocumentResponseRow>(created: T) {
-  return {
-    ...created,
-    content: documentMarkdownFromRow({
-      publishedAt: created.publishedAt,
-      draftBlocks: created.draftBlocks,
-      currentPublishedVersion: created.currentPublishedVersion,
-    }),
-    createdByName: created.createdBy?.name ?? null,
-    writers: { users: [], teams: [], departments: [] },
-  };
-}
 
 async function validateContextWriteAccess(
   prisma: FastifyInstance['prisma'],
@@ -260,30 +234,33 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);
     const body = createDocumentBodySchema.parse(request.body);
-    const initialBlocks = emptyBlockDocumentJson();
 
     if (body.contextId == null) {
-      const doc = await prisma.document.create({
-        data: {
+      try {
+        const created = await createDocument(prisma, {
           title: body.title,
-          draftBlocks: initialBlocks,
           contextId: null,
           description: body.description ?? null,
-          publishedAt: null,
+          typeId: body.typeId,
+          templateId: body.templateId,
           createdById: userId,
-        },
-      });
-      const created = await prisma.document.findUniqueOrThrow({
-        where: { id: doc.id },
-        select: DOCUMENT_CREATE_SELECT,
-      });
-      await enqueueIncrementalReindexForDocumentSafe(request.log, {
-        documentId: doc.id,
-        contextId: null,
-        trigger: 'document-created',
-        warnMessage: 'Failed to enqueue reindex job after document creation',
-      });
-      return reply.status(201).send(buildCreatedDocumentResponse(created));
+        });
+        await enqueueIncrementalReindexForDocumentSafe(request.log, {
+          documentId: created.id,
+          contextId: null,
+          trigger: 'document-created',
+          warnMessage: 'Failed to enqueue reindex job after document creation',
+        });
+        return reply.status(201).send(created);
+      } catch (err) {
+        if (
+          err instanceof DocumentTemplateNotFoundError ||
+          err instanceof DocumentTemplateValidationError
+        ) {
+          return reply.status(400).send({ error: err.message });
+        }
+        throw err;
+      }
     }
 
     if (
@@ -301,34 +278,71 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
       return;
     }
 
-    const doc = await prisma.document.create({
-      data: {
+    try {
+      const created = await createDocument(prisma, {
         title: body.title,
-        draftBlocks: initialBlocks,
         contextId: body.contextId,
+        tagIds: body.tagIds,
         description: body.description ?? null,
-        publishedAt: null,
+        typeId: body.typeId,
+        templateId: body.templateId,
         createdById: userId,
-      },
-    });
-    if (body.tagIds.length > 0) {
-      await prisma.documentTag.createMany({
-        data: body.tagIds.map((tagId) => ({ documentId: doc.id, tagId })),
-        skipDuplicates: true,
       });
+      await enqueueIncrementalReindexForDocumentSafe(request.log, {
+        documentId: created.id,
+        contextId: created.contextId,
+        trigger: 'document-created',
+        warnMessage: 'Failed to enqueue reindex job after document creation',
+      });
+      return reply.status(201).send(created);
+    } catch (err) {
+      if (
+        err instanceof DocumentTemplateNotFoundError ||
+        err instanceof DocumentTemplateValidationError
+      ) {
+        return reply.status(400).send({ error: err.message });
+      }
+      throw err;
     }
-    const created = await prisma.document.findUniqueOrThrow({
-      where: { id: doc.id },
-      select: DOCUMENT_CREATE_SELECT,
-    });
-    await enqueueIncrementalReindexForDocumentSafe(request.log, {
-      documentId: doc.id,
-      contextId: created.contextId,
-      trigger: 'document-created',
-      warnMessage: 'Failed to enqueue reindex job after document creation',
-    });
-    return reply.status(201).send(buildCreatedDocumentResponse(created));
   });
+
+  app.patch<{ Params: { documentId: string } }>(
+    '/documents/:documentId/document-type',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+    },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const { documentId } = documentIdParamSchema.parse(request.params);
+      const body = updateDocumentTypeBodySchema.parse(request.body);
+
+      const doc = await prisma.document.findFirst({
+        where: { id: documentId, deletedAt: null },
+        select: { contextId: true },
+      });
+      if (!doc) return reply.status(404).send({ error: 'Document not found' });
+
+      try {
+        const chain =
+          doc.contextId != null ? await resolveOwnerChainForContext(prisma, doc.contextId) : null;
+        const documentTypeKey = await resolveDocumentTypeKey(prisma, body.typeId, chain);
+        const updated = await updateDocumentTypeKey(prisma, documentId, documentTypeKey);
+        return reply.send(updated);
+      } catch (err) {
+        if (
+          err instanceof DocumentTemplateNotFoundError ||
+          err instanceof DocumentTemplateValidationError
+        ) {
+          return reply.status(400).send({ error: err.message });
+        }
+        if (err instanceof DocumentNotFoundError) {
+          return reply.status(404).send({ error: 'Document not found' });
+        }
+        throw err;
+      }
+    }
+  );
+
   app.patch(
     '/documents/:documentId',
     {

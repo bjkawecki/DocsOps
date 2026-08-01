@@ -6,5 +6,6 @@ export * from './canPublishDocument.js';
 export * from './canEditLeadDraft.js';
 export * from './canResolveDraftSuggestion.js';
 export * from './canManageDocumentGrants.js';
+export * from './templatePermissions.js';
 export * from './documentLoad.js';
 export * from './middleware.js';

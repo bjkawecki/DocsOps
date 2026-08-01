@@ -251,6 +251,7 @@ a.document-chrome-nav-link,
   padding: 6px 4px;
   border-radius: var(--mantine-radius-sm);
   font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
   line-height: 1.4;
   color: var(--mantine-color-text) !important;
   overflow: hidden;

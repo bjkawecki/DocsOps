@@ -24,6 +24,7 @@ const DOCUMENT_PATCH_SELECT = {
   title: true,
   pdfUrl: true,
   contextId: true,
+  documentTypeKey: true,
   archivedAt: true,
   createdAt: true,
   updatedAt: true,
@@ -40,6 +41,7 @@ export interface DocumentMetadataUpdateResult {
   title: string;
   pdfUrl: string | null;
   contextId: string | null;
+  documentTypeKey: string | null;
   archivedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -264,6 +266,28 @@ export async function updateDocumentMetadata(
   const updated = await prisma.document.update({
     where: { id: documentId },
     data: updatePayload,
+    select: DOCUMENT_PATCH_SELECT,
+  });
+  return updated as DocumentMetadataUpdateResult;
+}
+
+/**
+ * Set or clear document type metadata only. Never touches draftBlocks / published content.
+ */
+export async function updateDocumentTypeKey(
+  prisma: PrismaClient,
+  documentId: string,
+  documentTypeKey: string | null
+): Promise<DocumentMetadataUpdateResult> {
+  const current = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { id: true },
+  });
+  if (!current) throw new DocumentNotFoundError(documentId);
+
+  const updated = await prisma.document.update({
+    where: { id: documentId },
+    data: { documentTypeKey },
     select: DOCUMENT_PATCH_SELECT,
   });
   return updated as DocumentMetadataUpdateResult;

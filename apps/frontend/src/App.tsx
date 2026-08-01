@@ -51,6 +51,16 @@ const HelpOrganisationPage = lazy(() =>
 const HelpContextsPage = lazy(() =>
   import('./pages/help/HelpContextsPage').then((m) => ({ default: m.HelpContextsPage }))
 );
+const DocumentTemplatesPage = lazy(() =>
+  import('./pages/documentTemplates/DocumentTemplatesPage').then((m) => ({
+    default: m.DocumentTemplatesPage,
+  }))
+);
+const HelpDocumentTypesPage = lazy(() =>
+  import('./pages/help/HelpDocumentTypesPage').then((m) => ({
+    default: m.HelpDocumentTypesPage,
+  }))
+);
 const HelpPermissionsPage = lazy(() =>
   import('./pages/help/HelpPermissionsPage').then((m) => ({ default: m.HelpPermissionsPage }))
 );
@@ -127,6 +137,8 @@ function App() {
           >
             <Route index element={<HomePage />} />
             <Route path="catalog" element={<CatalogPage />} />
+            <Route path="templates" element={<DocumentTemplatesPage />} />
+            <Route path="document-templates" element={<Navigate to="/templates" replace />} />
             <Route path="team" element={<TeamRedirectPage />} />
             <Route path="team/:teamId" element={<TeamContextPage />} />
             <Route path="team/:teamId/trash" element={<TeamTrashArchivePage kind="trash" />} />
@@ -158,6 +170,12 @@ function App() {
               <Route path="out-of-scope" element={<HelpOutOfScopePage />} />
               <Route path="organisation" element={<HelpOrganisationPage />} />
               <Route path="contexts" element={<HelpContextsPage />} />
+              <Route path="document-types" element={<HelpDocumentTypesPage />} />
+              <Route path="templates" element={<Navigate to="/help/document-types" replace />} />
+              <Route
+                path="managing-templates"
+                element={<Navigate to="/help/document-types" replace />}
+              />
               <Route path="permissions" element={<HelpPermissionsPage />} />
               <Route path="workflow" element={<HelpWorkflowPage />} />
               <Route path="collaboration" element={<HelpCollaborationPage />} />
@@ -167,7 +185,6 @@ function App() {
             <Route path="contexts/:contextId" element={<ContextWorkspacePage />} />
             <Route path="documents/:documentId" element={<DocumentPage />} />
             <Route path="documents/:documentId/versions" element={<DocumentVersionsPage />} />
-            <Route path="templates" element={<Navigate to="/" replace />} />
             <Route
               path="admin"
               element={

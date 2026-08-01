@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
+import type { AppShellNavLinkStyles } from './appShellNavUtils.js';
 
 export type AppShellScopeNavLinkProps = {
   to: string;
   label: string;
   active: boolean;
   leftSection: ReactNode;
-  navLinkStyles: { root: Record<string, unknown> };
+  navLinkStyles: AppShellNavLinkStyles;
   badgeCount?: number;
   isMiniRail?: boolean;
   onNavigate?: () => void;

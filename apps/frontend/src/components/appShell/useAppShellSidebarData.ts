@@ -295,6 +295,17 @@ export function useAppShellSidebarData() {
   });
 
   const { data: reviewsData } = useMeReviews({ limit: 1, offset: 0 }, { enabled: hasReviewRights });
+
+  const { data: templatesManageAccess } = useQuery({
+    queryKey: ['document-templates', 'manage-access'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/document-templates/manage-access');
+      if (!res.ok) throw new Error('Failed to load template manage access');
+      return (await res.json()) as { canManage: boolean };
+    },
+    enabled: !!me?.identity,
+  });
+  const canManageDocumentTemplates = templatesManageAccess?.canManage === true;
   const reviewsCount =
     reviewsData != null && reviewsData.totalPendingForReview > 0
       ? reviewsData.totalPendingForReview
@@ -376,6 +387,7 @@ export function useAppShellSidebarData() {
     userTeamId,
     userDepartmentId,
     hasReviewRights,
+    canManageDocumentTemplates,
     companyDepartments,
     departmentTeams,
     adminUsersRes,

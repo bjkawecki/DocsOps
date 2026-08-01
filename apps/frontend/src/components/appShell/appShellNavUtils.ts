@@ -21,15 +21,23 @@ export function isOrgNavActive(
   return true;
 }
 
-/** Shared styles for sidebar nav links (base layout). Active styles live in AppShell.css. */
-export function getNavLinkStyles(): { root: Record<string, unknown> } {
+export type AppShellNavLinkStyles = {
+  root: Record<string, unknown>;
+  label: Record<string, unknown>;
+};
+
+/** Shared styles for app-shell sidebar nav links (heavier weight than content sidebars). */
+export function getNavLinkStyles(): AppShellNavLinkStyles {
   return {
     root: {
       borderRadius: 'var(--mantine-radius-sm)',
       padding: '4px 8px',
       minHeight: 32,
-      fontWeight: 600,
       fontSize: 'var(--mantine-font-size-md)',
+    },
+    label: {
+      fontSize: 'var(--mantine-font-size-md)',
+      fontWeight: 600,
     },
   };
 }

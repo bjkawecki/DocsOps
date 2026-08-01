@@ -1,11 +1,11 @@
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
-import { isOrgNavActive } from './appShellNavUtils.js';
+import { isOrgNavActive, type AppShellNavLinkStyles } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
   pathname: string;
-  navLinkStyles: { root: Record<string, unknown> };
+  navLinkStyles: AppShellNavLinkStyles;
   companyCount: number | undefined;
   isMiniRail?: boolean;
   onNavigate?: () => void;

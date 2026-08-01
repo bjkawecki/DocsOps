@@ -4,7 +4,7 @@ export function HelpWorkflowPage() {
   return (
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
-        <Title order={2}>Document lifecycle</Title>
+        <Title order={1}>Document lifecycle</Title>
         <Text>
           Documents generally move from an initial draft through collaboration and quality gates to
           a published state. The labels in the product may vary slightly, but the idea is
@@ -31,7 +31,7 @@ export function HelpWorkflowPage() {
           </List.Item>
         </List>
       </Stack>
-      <Text c="dimmed">
+      <Text component="p">
         Archiving and trash are separate lifecycle steps for retiring or recovering content.
       </Text>
     </Stack>

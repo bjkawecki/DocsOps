@@ -7,6 +7,8 @@ export type SubmitNewContextDocumentDraftInput = {
   contextId: string;
   title: string;
   tagIds: string[];
+  typeId?: string | null;
+  templateId?: string | null;
   queryClient: QueryClient;
   navigate: NavigateFunction;
   setLoading: (loading: boolean) => void;
@@ -21,6 +23,8 @@ export async function submitNewContextDocumentDraft({
   contextId,
   title,
   tagIds,
+  typeId,
+  templateId,
   queryClient,
   navigate,
   setLoading,
@@ -37,6 +41,12 @@ export async function submitNewContextDocumentDraft({
   }
   setLoading(true);
   try {
+    const typePayload =
+      templateId != null
+        ? { templateId, typeId: typeId ?? undefined }
+        : typeId != null
+          ? { typeId }
+          : {};
     const res = await apiFetch('/api/v1/documents', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -44,6 +54,7 @@ export async function submitNewContextDocumentDraft({
         title: trimmed,
         contextId,
         tagIds,
+        ...typePayload,
       }),
     });
     if (res.status === 201) {

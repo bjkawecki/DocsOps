@@ -31,6 +31,7 @@ model Company {
   departments         Department[]
   companyLeads        CompanyLead[]
   owners              Owner[]       @relation("OwnerCompany")
+  customDocumentTypes CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -48,6 +49,7 @@ model Department {
   departmentLeads        DepartmentLead[]
   departmentAuthors      DepartmentAuthor[]
   documentGrantDept      DocumentGrantDepartment[]
+  customDocumentTypes    CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -66,6 +68,7 @@ model Team {
   teamAuthors     TeamAuthor[]
   owners          Owner[]         @relation("OwnerTeam")
   documentGrantTeam DocumentGrantTeam[]
+  customDocumentTypes CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -129,6 +132,7 @@ model User {
   documentGrantUser     DocumentGrantUser[]
   pinnedDocumentScopes  DocumentPinnedInScope[]
   createdDocuments      Document[]         @relation("DocumentCreatedBy")
+  customDocumentTypes   CustomDocumentType[]
   documentVersionsCreated  DocumentVersion[]
   documentAttachmentsUploaded DocumentAttachment[]
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
@@ -281,6 +285,8 @@ model DocumentPinnedInScope {
 model Document {
   id                        String                   @id @default(cuid())
   title                     String
+  /// Optional document type key: `builtin:<slug>` or `custom:<cuid>` (ADR 008). Template seeds only on create.
+  documentTypeKey           String?
   /// Gemeinsamer Lead-Draft als Block-JSON (schemaVersion im JSON); null = noch nicht initialisiert.
   draftBlocks               Json?
   /// Erhöht sich bei jedem erfolgreichen PATCH des Lead-Drafts (Optimistic-Concurrency).
@@ -309,6 +315,49 @@ model Document {
   versions                  DocumentVersion[]
   attachments               DocumentAttachment[]
   comments                  DocumentComment[]
+
+  @@index([documentTypeKey])
+}
+
+/// Custom document type (scope-bound or platform-wide). Built-ins live in code (ADR 008).
+model CustomDocumentType {
+  id           String                   @id @default(cuid())
+  label        String
+  whenToUse    String                   @db.Text
+  oftenUsedIn  String? // 'process' | 'project'
+  deLabel      String?
+  companyId    String?
+  company      Company?                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department?              @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  teamId       String?
+  team         Team?                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdById  String?
+  createdBy    User?                    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  deletedAt    DateTime?
+  templates    CustomDocumentTemplate[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([teamId])
+}
+
+/// Custom template for a custom document type (v1: one default per type).
+model CustomDocumentTemplate {
+  id           String             @id @default(cuid())
+  typeId       String
+  type         CustomDocumentType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  exampleTitle String
+  whenToUse    String             @db.Text
+  /// Array of { heading: string, prompts: string[] }
+  sections     Json
+  isDefault    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([typeId])
 }
 
 /// Tag: scope-gebunden (ownerId → Owner), für Kategorisierung und Filterung. Eindeutigkeit pro Scope: (ownerId, name).

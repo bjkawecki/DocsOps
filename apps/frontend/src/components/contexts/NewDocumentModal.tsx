@@ -15,6 +15,11 @@ import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { notifications } from '@mantine/notifications';
 import type { NewContextScope } from './NewContextModal';
+import { DocumentTypePicker } from '../documents/DocumentTypePicker.js';
+import {
+  BLANK_DOCUMENT_SELECTION,
+  type DocumentTypeSelection,
+} from '../documents/documentTypeTypes.js';
 
 export interface NewDocumentModalProps {
   opened: boolean;
@@ -59,6 +64,8 @@ export function NewDocumentModal({
   const [contextId, setContextId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [typeSelection, setTypeSelection] =
+    useState<DocumentTypeSelection>(BLANK_DOCUMENT_SELECTION);
   const [loading, setLoading] = useState(false);
 
   const processParams = buildProcessParams(scope);
@@ -110,6 +117,7 @@ export function NewDocumentModal({
     setContextId(null);
     setTitle('');
     setTagIds([]);
+    setTypeSelection(BLANK_DOCUMENT_SELECTION);
     setLoading(false);
   };
 
@@ -123,14 +131,24 @@ export function NewDocumentModal({
     ? title.trim().length > 0
     : contextId != null && title.trim().length > 0;
 
+  const handleTypeChange = (next: DocumentTypeSelection) => {
+    setTypeSelection(next);
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit) return;
     if (!noContext && !contextId) return;
     setLoading(true);
     try {
+      const typePayload =
+        typeSelection.templateId != null
+          ? { templateId: typeSelection.templateId, typeId: typeSelection.typeId ?? undefined }
+          : typeSelection.typeId != null
+            ? { typeId: typeSelection.typeId }
+            : {};
       const body = noContext
-        ? { title: title.trim() }
-        : { title: title.trim(), contextId: contextId!, tagIds };
+        ? { title: title.trim(), ...typePayload }
+        : { title: title.trim(), contextId: contextId!, tagIds, ...typePayload };
       const res = await apiFetch('/api/v1/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -166,7 +184,7 @@ export function NewDocumentModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title="New draft" size="sm">
+    <Modal opened={opened} onClose={handleClose} title="New draft" size="lg">
       <Stack gap="md">
         {allowNoContext && (
           <Radio.Group
@@ -204,6 +222,13 @@ export function NewDocumentModal({
           value={title}
           onChange={(e) => setTitle(e.currentTarget.value)}
           required
+        />
+        <DocumentTypePicker
+          contextId={noContext ? null : contextId}
+          value={typeSelection}
+          onChange={handleTypeChange}
+          applyTemplateOnSelect
+          mode="create"
         />
         {!noContext && (
           <MultiSelect

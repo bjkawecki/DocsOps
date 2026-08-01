@@ -40,6 +40,8 @@ export function useDocumentPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editTagIds, setEditTagIds] = useState<string[]>([]);
+  /** Picker type id (`builtin:…` or custom cuid); null = no type. */
+  const [editTypeId, setEditTypeId] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [createTagOpened, { open: openCreateTag, close: closeCreateTag }] = useDisclosure(false);
   const [manageTagsOpened, { open: openManageTags, close: closeManageTags }] = useDisclosure(false);
@@ -50,6 +52,7 @@ export function useDocumentPage() {
     title: string;
     description: string;
     tagIds: string[];
+    typeId: string | null;
   } | null>(null);
   const [assignContextOpened, { open: openAssignContext, close: closeAssignContext }] =
     useDisclosure(false);
@@ -99,6 +102,14 @@ export function useDocumentPage() {
       setEditTitle(data.title);
       setEditDescription(data.description ?? '');
       setEditTagIds(data.documentTags.map((dt) => dt.tag.id));
+      const key = data.documentTypeKey;
+      setEditTypeId(
+        key == null || key.length === 0
+          ? null
+          : key.startsWith('custom:')
+            ? key.slice('custom:'.length)
+            : key
+      );
     }
   }, [data]);
 
@@ -349,32 +360,64 @@ export function useDocumentPage() {
           tagIds: editTagIds,
         }),
       });
-      if (res.ok) {
-        invalidateDocumentIndexCaches(queryClient, documentId, data.contextId);
-        setMode('view');
-        setEditInitialSnapshot(null);
-        clearEditUrlParams();
-        notifications.show({
-          title: 'Saved',
-          message: 'Document metadata updated.',
-          color: 'green',
-        });
-      } else {
+      if (!res.ok) {
         void notifyApiErrorResponse(res);
+        return;
       }
+
+      const initialTypeId = editInitialSnapshot?.typeId ?? null;
+      if (editTypeId !== initialTypeId) {
+        const typeRes = await apiFetch(`/api/v1/documents/${documentId}/document-type`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ typeId: editTypeId }),
+        });
+        if (!typeRes.ok) {
+          void notifyApiErrorResponse(typeRes);
+          return;
+        }
+      }
+
+      invalidateDocumentIndexCaches(queryClient, documentId, data.contextId);
+      setMode('view');
+      setEditInitialSnapshot(null);
+      clearEditUrlParams();
+      notifications.show({
+        title: 'Saved',
+        message: 'Document metadata updated.',
+        color: 'green',
+      });
     } finally {
       setSaveLoading(false);
     }
-  }, [clearEditUrlParams, data, documentId, editDescription, editTagIds, editTitle, queryClient]);
+  }, [
+    clearEditUrlParams,
+    data,
+    documentId,
+    editDescription,
+    editInitialSnapshot?.typeId,
+    editTagIds,
+    editTitle,
+    editTypeId,
+    queryClient,
+  ]);
 
   const handleEditClick = () => {
     if (!data) return;
     setEditTab('draft');
     setLeadDraftDirty(false);
+    const key = data.documentTypeKey;
+    const typeId =
+      key == null || key.length === 0
+        ? null
+        : key.startsWith('custom:')
+          ? key.slice('custom:'.length)
+          : key;
     setEditInitialSnapshot({
       title: data.title,
       description: data.description ?? '',
       tagIds: data.documentTags.map((dt) => dt.tag.id),
+      typeId,
     });
     setMode('edit');
     syncEditUrlParams('draft');
@@ -385,7 +428,8 @@ export function useDocumentPage() {
       editInitialSnapshot != null &&
       (editTitle !== editInitialSnapshot.title ||
         editDescription !== editInitialSnapshot.description ||
-        editTagIds.join(',') !== editInitialSnapshot.tagIds.join(','));
+        editTagIds.join(',') !== editInitialSnapshot.tagIds.join(',') ||
+        editTypeId !== editInitialSnapshot.typeId);
     const dirty = dirtyMetadata || leadDraftDirty;
     if (dirty) {
       const ok = window.confirm('Unsaved progress may be lost. Cancel editing anyway?');
@@ -553,7 +597,8 @@ export function useDocumentPage() {
     editInitialSnapshot != null &&
     (editTitle !== editInitialSnapshot.title ||
       editDescription !== editInitialSnapshot.description ||
-      editTagIds.join(',') !== editInitialSnapshot.tagIds.join(','));
+      editTagIds.join(',') !== editInitialSnapshot.tagIds.join(',') ||
+      editTypeId !== editInitialSnapshot.typeId);
   const hasUnsavedChanges = metadataDirty || leadDraftDirty;
 
   const onCloseAssignContext = () => {
@@ -575,6 +620,8 @@ export function useDocumentPage() {
     setEditDescription,
     editTagIds,
     setEditTagIds,
+    editTypeId,
+    setEditTypeId,
     saveLoading,
     publishLoading,
     editTab,

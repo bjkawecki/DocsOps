@@ -5,6 +5,7 @@ import {
   IconUser,
   IconShare,
   IconClipboardCheck,
+  IconTemplate,
 } from '@tabler/icons-react';
 import { AppShellRoleBasedNav } from './AppShellRoleBasedNav.js';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
@@ -84,6 +85,17 @@ export function AppShellNavbar({
                 badgeCount={s.catalogCount}
                 onNavigate={onNavigate}
               />
+              {s.canManageDocumentTemplates ? (
+                <AppShellSidebarNavLink
+                  to="/templates"
+                  label="Templates"
+                  active={isActive('/templates', s.location.pathname)}
+                  leftSection={<IconTemplate size={20} />}
+                  navLinkStyles={s.navLinkStyles}
+                  isMiniRail={isMiniRail}
+                  onNavigate={onNavigate}
+                />
+              ) : null}
               {s.showOrganizationNav ? (
                 <>
                   {!isMiniRail ? (

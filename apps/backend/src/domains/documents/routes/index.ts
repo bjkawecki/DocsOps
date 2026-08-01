@@ -4,6 +4,7 @@ import { registerContentRoutes } from './content.routes.js';
 import { registerPublicationRoutes } from './publication.routes.js';
 import { registerCollaborationRoutes } from './collaboration.routes.js';
 import { registerGrantsTagsRoutes } from './grants-tags.routes.js';
+import { registerDocumentTemplateRoutes } from './documentTemplates.routes.js';
 
 const documentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   // Allow binary uploads for attachment route (body as Buffer).
@@ -22,6 +23,7 @@ const documentsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   registerPublicationRoutes(app);
   registerCollaborationRoutes(app);
   registerGrantsTagsRoutes(app);
+  registerDocumentTemplateRoutes(app);
   return Promise.resolve();
 };
 

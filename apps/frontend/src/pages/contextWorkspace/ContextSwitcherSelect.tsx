@@ -56,6 +56,11 @@ const nestedListStyle: CSSProperties = {
   marginTop: 4,
 };
 
+const activeOptionStyle: CSSProperties = {
+  backgroundColor: 'var(--mantine-primary-color-light)',
+  color: 'var(--mantine-primary-color-light-color)',
+};
+
 /** Collapsible Processes/Projects header inside the switcher dropdown. */
 function DropdownCollapsibleSection({
   sectionId,
@@ -174,6 +179,22 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
   const hasAny = processes.length > 0 || projects.length > 0;
   const disabled = ownerParams == null || (!hasAny && !loading);
 
+  const renderContextOption = (option: ContextOption) => {
+    const isActive = option.value === value;
+    return (
+      <Combobox.Option
+        key={option.value}
+        value={option.value}
+        active={isActive}
+        style={isActive ? activeOptionStyle : undefined}
+      >
+        <Text size="sm" fw={isActive ? 600 : 400} truncate c={isActive ? 'inherit' : undefined}>
+          {option.label}
+        </Text>
+      </Combobox.Option>
+    );
+  };
+
   return (
     <Combobox
       store={combobox}
@@ -221,11 +242,7 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
                     No processes yet.
                   </Text>
                 ) : (
-                  processes.map((p) => (
-                    <Combobox.Option key={p.value} value={p.value} active={p.value === value}>
-                      {p.label}
-                    </Combobox.Option>
-                  ))
+                  processes.map(renderContextOption)
                 )}
               </DropdownCollapsibleSection>
 
@@ -240,11 +257,7 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
                     No projects yet.
                   </Text>
                 ) : (
-                  projects.map((p) => (
-                    <Combobox.Option key={p.value} value={p.value} active={p.value === value}>
-                      {p.label}
-                    </Combobox.Option>
-                  ))
+                  projects.map(renderContextOption)
                 )}
               </DropdownCollapsibleSection>
             </Stack>

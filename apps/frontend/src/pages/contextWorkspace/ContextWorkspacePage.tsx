@@ -38,6 +38,10 @@ import {
 } from '../../components/contexts/ContextDocumentsTable';
 import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
+import {
+  BLANK_DOCUMENT_SELECTION,
+  type DocumentTypeSelection,
+} from '../../components/documents/documentTypeTypes.js';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
@@ -114,6 +118,8 @@ export function ContextWorkspacePage() {
   const [newDocOpened, { open: openNewDoc, close: closeNewDoc }] = useDisclosure(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocTagIds, setNewDocTagIds] = useState<string[]>([]);
+  const [newDocTypeSelection, setNewDocTypeSelection] =
+    useState<DocumentTypeSelection>(BLANK_DOCUMENT_SELECTION);
   const [newDocLoading, setNewDocLoading] = useState(false);
   const [newSubcontextOpened, { open: openNewSubcontext, close: closeNewSubcontext }] =
     useDisclosure(false);
@@ -401,6 +407,8 @@ export function ContextWorkspacePage() {
       contextId,
       title: newDocTitle,
       tagIds: newDocTagIds,
+      typeId: newDocTypeSelection.typeId,
+      templateId: newDocTypeSelection.templateId,
       queryClient,
       navigate,
       setLoading: setNewDocLoading,
@@ -408,6 +416,7 @@ export function ContextWorkspacePage() {
         closeNewDoc();
         setNewDocTitle('');
         setNewDocTagIds([]);
+        setNewDocTypeSelection(BLANK_DOCUMENT_SELECTION);
       },
     });
   };
@@ -566,6 +575,9 @@ export function ContextWorkspacePage() {
         tagOptions={tagOptions}
         tagIds={newDocTagIds}
         onTagIdsChange={setNewDocTagIds}
+        contextId={contextId ?? ''}
+        typeSelection={newDocTypeSelection}
+        onTypeSelectionChange={setNewDocTypeSelection}
         loading={newDocLoading}
         onSubmit={handleCreateDocument}
       />

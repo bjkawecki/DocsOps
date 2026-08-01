@@ -660,7 +660,7 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 **Built-in** (Plattform) plus **Custom**: Scope Lead (Company/Department/Team) und Admin (org-/plattformweit). v1: ein Default-Template pro Type. Picker darf nach „often used in process/project“ filtern, ohne harte Pflicht. Details und Gliederungen: [Dokument-Templates.md](Dokument-Templates.md).
 
-**UI:** Anwenden im New-document-Flow. Verwalten: Nav-Eintrag unterhalb **Catalog** (z. B. `Document templates`, Route `/document-templates`); nur Lead/Admin. Redirect `/templates` → `/document-templates`. Autoren ohne Lead-Rolle brauchen den Menüpunkt nicht.
+**UI:** Anwenden im New-document-Flow. Verwalten: Nav-Eintrag unterhalb **Catalog** (`Templates`, Route `/templates`); nur Lead/Admin. Redirect `/document-templates` → `/templates`. Autoren ohne Lead-Rolle brauchen den Menüpunkt nicht.
 
 | Type (Built-in)              | Often used in | DE (Orientierung)       | Zweck                                                                                  |
 | ---------------------------- | ------------- | ----------------------- | -------------------------------------------------------------------------------------- |
@@ -683,12 +683,12 @@ Spalte **Often used in** = Hinweis für Picker-Filter, keine Bindung an Kontext-
 
 **Known issue (UI-Label alternativ „Bug report“):** Dokumentation eines **bekannten** Defekts im Wissenssystem (Repro, Expected/Actual, Environment, Workaround, Tracker-Link). Nicht Assignee/Sprint/Statusmaschine – das bleibt im Issue-Tracker. Typischer Ablageort: Product-**Project** (optional Subcontext). Abgrenzung: Runbook = Reaktion; Post-mortem = Nachbereitung; Known issue = „das ist bekannt und so äußert es sich“.
 
-[x] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/templates` → `/document-templates` – festgehalten in diesem Abschnitt und [Dokument-Templates.md](Dokument-Templates.md) (Umsetzung folgt).
-[ ] **Berechtigung:** Templates/Types **verwenden** bei `canWrite` im Kontext; Custom Types/Templates anlegen/bearbeiten/löschen nur Scope Lead / Admin über Permissions-Layer (`isScopeLead` / `isAdmin`), nicht in Routes inline.
-[ ] **Backend:** Types- + Templates-API (`GET` Built-in ∪ sichtbare Custom); CRUD Custom nur Lead/Admin; Document-Feld optional; `POST /documents` mit `templateId` / `typeId` → initialer `draftBlocks` + optional Type.
-[ ] **Frontend:** Picker im New-Document-Flow (when-to-use, example title, chapter outline); Manage-Seite; Nav unter Catalog nur mit Manage-Recht.
-[ ] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) an Type+Template-Modell anbinden; DE↔EN-Mapping für Picker-Tooltips.
+[x] **Konzept:** Optional `documentType` am Dokument; Type vs Template (Starter: example title, chapters, when-to-use); Built-in vs Custom (Scope + Admin/Company); Create-Flow + Verwaltungs-UI unter Catalog; Redirect `/document-templates` → `/templates` – festgehalten in diesem Abschnitt und [Dokument-Templates.md](Dokument-Templates.md) (Umsetzung folgt).
+[x] **Berechtigung:** Templates/Types **verwenden** bei `canWrite` im Kontext; Custom Types/Templates anlegen/bearbeiten/löschen nur Scope Lead / Admin über Permissions-Layer (`isScopeLead` / `isAdmin`), nicht in Routes inline.
+[x] **Backend:** Types- + Templates-API (`GET` Built-in ∪ sichtbare Custom); CRUD Custom nur Lead/Admin; Document-Feld optional; `POST /documents` mit `templateId` / `typeId` → initialer `draftBlocks` + optional Type.
+[x] **Frontend:** Picker im New-Document-Flow (when-to-use, example title, chapter outline); Manage-Seite; Nav unter Catalog nur mit Manage-Recht.
+[x] **Inhalt:** Built-in-Kern aus [Dokument-Templates.md](Dokument-Templates.md) an Type+Template-Modell anbinden; DE↔EN-Mapping für Picker-Tooltips.
 [x] **Doku (Help Scope):** Contexts-Help unter `/help/contexts`; Out-of-scope unter `/help/out-of-scope`.
-[ ] **Doku (Templates-Help):** Help „Choosing a document type“ / „Managing templates (leads)“; Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
+[x] **Doku (Templates-Help):** Help „Document types“ (inkl. Templates für Leads); Verweis in [Positionierung](../marketing/Positionierung-und-Landing.md).
 
-**Hinweis:** Redirect `/templates` → `/` und kein Template-Code – **keine** umgesetzte Template-Funktion. Konzept und Help zu Contexts/Out-of-scope sind da; Schema/API/UI folgen.
+**Hinweis:** `/document-templates` → `/templates`. Template-Seed nur beim Create mit `templateId`; nachträglicher Type-Wechsel ändert nur Metadaten (ADR 008).

@@ -39,6 +39,8 @@ export function DocumentPage() {
         setEditDescription={vm.setEditDescription}
         editTagIds={vm.editTagIds}
         setEditTagIds={vm.setEditTagIds}
+        editTypeId={vm.editTypeId}
+        setEditTypeId={vm.setEditTypeId}
         saveLoading={vm.saveLoading}
         publishLoading={vm.publishLoading}
         editTab={vm.editTab}

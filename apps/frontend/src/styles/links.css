@@ -72,7 +72,7 @@ a:not(.mantine-Button-root):visited,
 }
 [data-context-sibling-nav] .mantine-NavLink-root .mantine-NavLink-label,
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root .mantine-NavLink-label {
-  font-weight: 400;
+  font-weight: 500;
   font-size: var(--mantine-font-size-sm);
   color: inherit;
 }
@@ -103,6 +103,7 @@ a:not(.mantine-Button-root):visited,
   a.mantine-NavLink-root[data-active]
   .mantine-NavLink-label {
   color: inherit;
+  font-weight: 500;
 }
 /* Left column: do not shrink below 280px on large screens. */
 @media (min-width: 62em) {

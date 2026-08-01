@@ -65,10 +65,22 @@ export const createDocumentBodySchema = z
     contextId: z.cuid().optional(),
     tagIds: z.array(z.cuid()).optional().default([]),
     description: z.string().max(500).trim().optional(),
+    /** Built-in `builtin:<slug>` or custom type cuid / `custom:<cuid>`. Sets type without seeding unless templateId set. */
+    typeId: z.string().min(1).max(80).optional(),
+    /** Built-in or custom template id. Seeds draftBlocks and sets type. */
+    templateId: z.string().min(1).max(80).optional(),
   })
   .refine((data) => data.contextId != null || data.tagIds.length === 0, {
     message: 'tagIds not allowed when creating a context-free draft (no contextId)',
   });
+
+/** Body: set/clear document type metadata only (no draftBlocks). */
+export const updateDocumentTypeBodySchema = z.object({
+  /** null clears type. Built-in `builtin:<slug>` or custom type id / `custom:<cuid>`. */
+  typeId: z.string().min(1).max(80).nullable(),
+});
+
+export type UpdateDocumentTypeBody = z.infer<typeof updateDocumentTypeBodySchema>;
 
 /** Body: Dokument-Metadaten aktualisieren (title, contextId, description, tagIds). Lifecycle nur über dedizierte Endpoints. */
 export const updateDocumentBodySchema = z.object({

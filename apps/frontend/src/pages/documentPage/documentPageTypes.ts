@@ -24,6 +24,7 @@ export type DocumentResponse = {
   publishedBlocksSchemaVersion?: number | null;
   pdfUrl: string | null;
   contextId: string | null;
+  documentTypeKey?: string | null;
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;

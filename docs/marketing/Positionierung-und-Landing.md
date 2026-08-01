@@ -216,6 +216,8 @@ Kürzere Varianten (Hero, Login, Help, App-Home):
 
 Hinweis: „Governance“ hier = kontrollierter Wissensstand (Publish, Grants, Versionen), nicht GRC/Compliance-Suite. Kombination mit „authoritative“ / „official“ erwägen, wenn „governance“ zu bürokratisch wirkt.
 
+In-App-Hilfe zu Document Types & Templates: `/help/document-types` (ADR 008 / §28b).
+
 ---
 
 ## 8. Nächste Schritte (Landing-Implementierung)

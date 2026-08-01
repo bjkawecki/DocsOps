@@ -5,7 +5,7 @@ export function HelpContextsPage() {
   return (
     <Stack gap="sm" align="stretch" style={{ textAlign: 'left' }}>
       <Stack gap={6}>
-        <Title order={2}>Processes & projects</Title>
+        <Title order={1}>Processes & projects</Title>
         <Text>
           Documents live in a <strong>context</strong>: a <strong>process</strong>, a{' '}
           <strong>project</strong>, or a <strong>subcontext</strong> under a project. Choosing the
@@ -16,7 +16,7 @@ export function HelpContextsPage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Two questions</Title>
+        <Title order={2}>Two questions</Title>
         <List spacing="xs">
           <List.Item>
             <strong>Process</strong> – Is there a clear <strong>trigger</strong>? Ask:{' '}
@@ -32,7 +32,7 @@ export function HelpContextsPage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>What belongs inside</Title>
+        <Title order={2}>What belongs inside</Title>
         <Text>
           A <strong>process</strong> holds reusable guidance for that trigger: roles, steps,
           checklists, and principles that stay useful across many concrete cases.
@@ -50,7 +50,7 @@ export function HelpContextsPage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Naming</Title>
+        <Title order={2}>Naming</Title>
         <List spacing="xs">
           <List.Item>
             Name a <strong>process</strong> after the <strong>trigger</strong> (for example{' '}
@@ -66,7 +66,7 @@ export function HelpContextsPage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Does it belong in an existing context?</Title>
+        <Title order={2}>Does it belong in an existing context?</Title>
         <List spacing="xs">
           <List.Item>
             Same trigger or same subject as an existing context → put the document{' '}
@@ -84,7 +84,7 @@ export function HelpContextsPage() {
       </Stack>
 
       <Stack gap={6}>
-        <Title order={3}>Document shape is not context kind</Title>
+        <Title order={2}>Document shape is not context kind</Title>
         <Text>
           How a document is written (step-by-step guide, policy, decision record, and so on) does{' '}
           <strong>not</strong> decide whether the context is a process or a project. Trigger vs

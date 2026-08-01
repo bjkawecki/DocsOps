@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, NavLink, Text, Tooltip } from '@mantine/core';
+import type { AppShellNavLinkStyles } from './appShellNavUtils.js';
 
 export type AppShellSidebarNavLinkProps = {
   to: string;
   label: string;
   active: boolean;
   leftSection: ReactNode;
-  navLinkStyles: { root: Record<string, unknown> };
+  navLinkStyles: AppShellNavLinkStyles;
   isMiniRail: boolean;
   badgeCount?: number;
   ariaLabel?: string;

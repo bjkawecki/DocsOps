@@ -138,6 +138,7 @@ type DocumentDetailShape = {
   title: string;
   draftRevision: number;
   draftBlocks: unknown;
+  documentTypeKey: string | null;
   pdfUrl: string | null;
   contextId: string | null;
   createdAt: Date;
@@ -275,6 +276,7 @@ export function buildDocumentDetailResponse(args: {
   return {
     id: doc.id,
     title: doc.title,
+    documentTypeKey: doc.documentTypeKey,
     content: documentMarkdownFromRow({
       publishedAt: doc.publishedAt,
       draftBlocks: doc.draftBlocks,
