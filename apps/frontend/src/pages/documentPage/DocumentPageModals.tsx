@@ -13,6 +13,13 @@ type Props = {
   setAssignContextId: (v: string | null) => void;
   assignContextLoading: boolean;
   onAssignContext: () => void;
+  moveContextOpened: boolean;
+  onCloseMoveContext: () => void;
+  moveContextOptions: { value: string; label: string }[];
+  moveContextId: string | null;
+  setMoveContextId: (v: string | null) => void;
+  moveContextLoading: boolean;
+  onMoveContext: () => void;
   createTagOpened: boolean;
   closeCreateTag: () => void;
   newTagName: string;
@@ -37,6 +44,13 @@ export function DocumentPageModals({
   setAssignContextId,
   assignContextLoading,
   onAssignContext,
+  moveContextOpened,
+  onCloseMoveContext,
+  moveContextOptions,
+  moveContextId,
+  setMoveContextId,
+  moveContextLoading,
+  onMoveContext,
   createTagOpened,
   closeCreateTag,
   newTagName,
@@ -98,6 +112,36 @@ export function DocumentPageModals({
               onClick={() => void onAssignContext()}
             >
               Assign
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal opened={moveContextOpened} onClose={onCloseMoveContext} title="Move document" centered>
+        <Stack gap="md">
+          <Text size="sm" c="dimmed">
+            Move this document to another context in the same owner scope. Tags and access grants
+            stay on the document.
+          </Text>
+          <Select
+            label="Target context"
+            placeholder="Select process, project, or subcontext"
+            data={moveContextOptions}
+            value={moveContextId}
+            onChange={(v) => setMoveContextId(v)}
+            searchable
+            nothingFoundMessage="No other contexts in this scope"
+          />
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={onCloseMoveContext}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!moveContextId}
+              loading={moveContextLoading}
+              onClick={() => void onMoveContext()}
+            >
+              Move
             </Button>
           </Group>
         </Stack>

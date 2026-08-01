@@ -58,6 +58,10 @@ export function useDocumentPage() {
     useDisclosure(false);
   const [assignContextId, setAssignContextId] = useState<string | null>(null);
   const [assignContextLoading, setAssignContextLoading] = useState(false);
+  const [moveContextOpened, { open: openMoveContext, close: closeMoveContext }] =
+    useDisclosure(false);
+  const [moveContextId, setMoveContextId] = useState<string | null>(null);
+  const [moveContextLoading, setMoveContextLoading] = useState(false);
   const [pdfExportLoading, setPdfExportLoading] = useState(false);
   const [pdfExportJobId, setPdfExportJobId] = useState<string | null>(null);
   const [lastPdfExportStatus, setLastPdfExportStatus] = useState<string | null>(null);
@@ -88,12 +92,15 @@ export function useDocumentPage() {
 
   const contextOwnerId = data?.contextOwnerId ?? null;
 
-  const { tags, tagOptions, assignContextOptions, pdfExportStatus } =
+  const { tags, tagOptions, assignContextOptions, moveContextOptions, pdfExportStatus } =
     useDocumentPageSecondaryQueries({
       documentId,
       contextOwnerId,
+      documentScope: data?.scope ?? null,
+      currentContextId: data?.contextId ?? null,
       isTabVisible,
       assignContextOpened,
+      moveContextOpened,
       pdfExportJobId,
     });
 
@@ -512,6 +519,46 @@ export function useDocumentPage() {
     }
   };
 
+  const onCloseMoveContext = () => {
+    closeMoveContext();
+    setMoveContextId(null);
+  };
+
+  const handleMoveContext = async () => {
+    if (!documentId || !moveContextId) return;
+    setMoveContextLoading(true);
+    try {
+      const fromContextId = data?.contextId ?? null;
+      const res = await apiFetch(`/api/v1/documents/${documentId}/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetContextId: moveContextId }),
+      });
+      if (res.ok) {
+        onCloseMoveContext();
+        if (fromContextId)
+          void queryClient.invalidateQueries({
+            queryKey: ['contexts', fromContextId, 'documents'],
+          });
+        void queryClient.invalidateQueries({
+          queryKey: ['contexts', moveContextId, 'documents'],
+        });
+        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
+        void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
+        void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
+        notifications.show({
+          title: 'Document moved',
+          message: 'The document is now in the selected context.',
+          color: 'green',
+        });
+      } else {
+        void notifyApiErrorResponse(res);
+      }
+    } finally {
+      setMoveContextLoading(false);
+    }
+  };
+
   const handleCreateTag = async () => {
     const name = newTagName.trim();
     if (!name || !contextOwnerId) return;
@@ -641,6 +688,7 @@ export function useDocumentPage() {
     tagOptions,
     tags,
     assignContextOptions,
+    moveContextOptions,
     pdfExportStatus,
     pdfExportLoading,
     isTabVisible,
@@ -663,6 +711,12 @@ export function useDocumentPage() {
     setAssignContextId,
     assignContextLoading,
     onCloseAssignContext,
+    moveContextOpened,
+    openMoveContext,
+    moveContextId,
+    setMoveContextId,
+    moveContextLoading,
+    onCloseMoveContext,
     handleDeleteConfirm,
     handleArchive,
     handleUnarchive,
@@ -671,6 +725,7 @@ export function useDocumentPage() {
     handleCancelEdit,
     handlePublish,
     handleAssignContext,
+    handleMoveContext,
     handleCreateTag,
     handleStartPdfExport,
     handleDeleteTag,

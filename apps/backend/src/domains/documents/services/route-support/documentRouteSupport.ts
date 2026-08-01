@@ -207,6 +207,7 @@ export function buildDocumentDetailResponse(args: {
   writeAllowed: boolean;
   deleteAllowed: boolean;
   canPublish: boolean;
+  canMove: boolean;
   canModerateComments: boolean;
   startHereScopes?: Array<{
     scopeType: 'team' | 'department' | 'company';
@@ -303,6 +304,7 @@ export function buildDocumentDetailResponse(args: {
     canWrite: args.writeAllowed,
     canDelete: args.deleteAllowed,
     canPublish: args.canPublish,
+    canMove: args.canMove,
     canModerateComments: args.canModerateComments,
     startHereScopes: args.startHereScopes ?? [],
     scope,

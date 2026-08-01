@@ -3,6 +3,7 @@ export * from './canWrite.js';
 export * from './commentPermissions.js';
 export * from './canDeleteDocument.js';
 export * from './canPublishDocument.js';
+export * from './canMoveDocument.js';
 export * from './canEditLeadDraft.js';
 export * from './canResolveDraftSuggestion.js';
 export * from './canManageDocumentGrants.js';

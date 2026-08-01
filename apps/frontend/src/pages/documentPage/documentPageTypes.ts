@@ -40,6 +40,8 @@ export type DocumentResponse = {
   canDelete: boolean;
   canModerateComments?: boolean;
   canPublish?: boolean;
+  /** Same-owner move from current context (scope lead / personal owner / admin). */
+  canMove?: boolean;
   /** Scopes where the current user may set/clear Start here for this document. */
   startHereScopes?: Array<{
     scopeType: 'team' | 'department' | 'company';

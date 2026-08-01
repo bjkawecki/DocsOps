@@ -5,6 +5,7 @@ export const DOCUMENT_NOTIFICATION_EVENT_TYPES = [
   'document-archived',
   'document-deleted',
   'document-restored',
+  'document-moved',
   'document-grants-changed',
 ] as const;
 

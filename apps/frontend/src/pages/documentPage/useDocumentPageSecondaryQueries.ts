@@ -1,15 +1,36 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
-import type { ContextOption, PdfExportJobStatusResponse } from './documentPageTypes';
+import type { ContextOption, DocumentScope, PdfExportJobStatusResponse } from './documentPageTypes';
+
+function ownerListQuery(scope: DocumentScope | null | undefined): string | null {
+  if (scope == null) return null;
+  if (scope.type === 'personal') return 'ownerUserId=me';
+  if (scope.type === 'company') return `companyId=${scope.id}`;
+  if (scope.type === 'department') return `departmentId=${scope.id}`;
+  if (scope.type === 'team') return `teamId=${scope.id}`;
+  return null;
+}
 
 export function useDocumentPageSecondaryQueries(args: {
   documentId: string | undefined;
   contextOwnerId: string | null;
+  documentScope: DocumentScope | null | undefined;
+  currentContextId: string | null | undefined;
   isTabVisible: boolean;
   assignContextOpened: boolean;
+  moveContextOpened: boolean;
   pdfExportJobId: string | null;
 }) {
-  const { documentId, contextOwnerId, isTabVisible, assignContextOpened, pdfExportJobId } = args;
+  const {
+    documentId,
+    contextOwnerId,
+    documentScope,
+    currentContextId,
+    isTabVisible,
+    assignContextOpened,
+    moveContextOpened,
+    pdfExportJobId,
+  } = args;
 
   const { data: tagsData } = useQuery({
     queryKey: ['tags', contextOwnerId],
@@ -55,6 +76,54 @@ export function useDocumentPageSecondaryQueries(args: {
     enabled: assignContextOpened && !!documentId,
   });
 
+  const ownerQuery = ownerListQuery(documentScope);
+  const { data: moveContextsData } = useQuery({
+    queryKey: ['processes', 'projects', 'for-move', ownerQuery],
+    queryFn: async () => {
+      if (!ownerQuery) return [] as ContextOption[];
+      const [procRes, projRes] = await Promise.all([
+        apiFetch(`/api/v1/processes?limit=100&offset=0&${ownerQuery}`),
+        apiFetch(`/api/v1/projects?limit=100&offset=0&${ownerQuery}`),
+      ]);
+      type ProcessItem = { id: string; contextId: string; name: string };
+      type ProjectItem = {
+        id: string;
+        contextId: string;
+        name: string;
+        subcontexts?: { id: string; contextId: string; name: string }[];
+      };
+      const processes = procRes.ok
+        ? ((await procRes.json()) as { items: ProcessItem[] }).items
+        : [];
+      const projects = projRes.ok ? ((await projRes.json()) as { items: ProjectItem[] }).items : [];
+      const options: ContextOption[] = [
+        ...processes.map((p) => ({
+          id: p.id,
+          contextId: p.contextId,
+          name: p.name,
+          kind: 'process' as const,
+        })),
+        ...projects.flatMap((p) => {
+          const projectOpt: ContextOption = {
+            id: p.id,
+            contextId: p.contextId,
+            name: p.name,
+            kind: 'project',
+          };
+          const subOpts: ContextOption[] = (p.subcontexts ?? []).map((s) => ({
+            id: s.id,
+            contextId: s.contextId,
+            name: `${p.name} / ${s.name}`,
+            kind: 'project' as const,
+          }));
+          return [projectOpt, ...subOpts];
+        }),
+      ];
+      return options.filter((o) => o.contextId !== currentContextId);
+    },
+    enabled: moveContextOpened && !!documentId && !!ownerQuery,
+  });
+
   const { data: pdfExportStatus } = useQuery<PdfExportJobStatusResponse>({
     queryKey: ['document-export-pdf-status', documentId, pdfExportJobId],
     queryFn: async () => {
@@ -79,11 +148,16 @@ export function useDocumentPageSecondaryQueries(args: {
     value: c.contextId,
     label: `${c.kind === 'process' ? 'Process' : 'Project'}: ${c.name}`,
   }));
+  const moveContextOptions = (moveContextsData ?? []).map((c) => ({
+    value: c.contextId,
+    label: `${c.kind === 'process' ? 'Process' : 'Project'}: ${c.name}`,
+  }));
 
   return {
     tags,
     tagOptions,
     assignContextOptions,
+    moveContextOptions,
     pdfExportStatus,
   };
 }

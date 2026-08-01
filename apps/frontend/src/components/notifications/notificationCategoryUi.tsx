@@ -17,6 +17,7 @@ const DOCUMENT_EVENT_TYPES = new Set([
   'document-archived',
   'document-deleted',
   'document-restored',
+  'document-moved',
   'document-grants-changed',
 ]);
 

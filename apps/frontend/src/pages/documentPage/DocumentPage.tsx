@@ -70,6 +70,7 @@ export function DocumentPage() {
         handleArchive={vm.handleArchive}
         handleUnarchive={vm.handleUnarchive}
         openAssignContext={vm.openAssignContext}
+        openMoveContext={vm.openMoveContext}
         openDelete={vm.openDelete}
         openCreateTag={vm.openCreateTag}
         openManageTags={vm.openManageTags}
@@ -95,6 +96,15 @@ export function DocumentPage() {
         assignContextLoading={vm.assignContextLoading}
         onAssignContext={() => {
           void vm.handleAssignContext();
+        }}
+        moveContextOpened={vm.moveContextOpened}
+        onCloseMoveContext={vm.onCloseMoveContext}
+        moveContextOptions={vm.moveContextOptions}
+        moveContextId={vm.moveContextId}
+        setMoveContextId={vm.setMoveContextId}
+        moveContextLoading={vm.moveContextLoading}
+        onMoveContext={() => {
+          void vm.handleMoveContext();
         }}
         createTagOpened={vm.createTagOpened}
         closeCreateTag={vm.closeCreateTag}

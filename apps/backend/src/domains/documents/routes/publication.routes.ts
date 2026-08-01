@@ -10,6 +10,7 @@ import {
   requireDocumentAccess,
   canDeleteDocument,
   canPublishDocument,
+  canMoveDocument,
   canWrite,
   canModerateDocumentComments,
   DOCUMENT_FOR_PERMISSION_INCLUDE,
@@ -245,18 +246,21 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
           documentId,
           doc.currentPublishedVersion?.versionNumber ?? 1
         );
-        const [writeAllowed, deleteAllowed, canPublish, canModerateComments] = await Promise.all([
-          canWrite(prisma, userId, doc),
-          canDeleteDocument(prisma, userId, documentId),
-          canPublishDocument(prisma, userId, documentId),
-          canModerateDocumentComments(prisma, userId, doc),
-        ]);
+        const [writeAllowed, deleteAllowed, canPublish, canMove, canModerateComments] =
+          await Promise.all([
+            canWrite(prisma, userId, doc),
+            canDeleteDocument(prisma, userId, documentId),
+            canPublishDocument(prisma, userId, documentId),
+            canMoveDocument(prisma, userId, documentId),
+            canModerateDocumentComments(prisma, userId, doc),
+          ]);
         return reply.send(
           buildDocumentDetailResponse({
             doc,
             writeAllowed,
             deleteAllowed,
             canPublish,
+            canMove,
             canModerateComments,
           })
         );

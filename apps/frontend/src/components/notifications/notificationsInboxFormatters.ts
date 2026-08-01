@@ -8,6 +8,7 @@ export function eventHeadline(eventType: string): string {
     'document-published': 'Document published',
     'document-archived': 'Document archived',
     'document-restored': 'Document restored',
+    'document-moved': 'Document moved',
     'document-grants-changed': 'Document access changed',
     'document-comment-created': 'New comment on document',
     'draft-request-submitted': 'Review request submitted',
@@ -168,6 +169,9 @@ export function notificationBodyText(
     }
     if (previewText !== '') return truncate(previewText, 120);
     return 'New activity in a comment thread.';
+  }
+  if (eventType === 'document-moved') {
+    return 'The document was moved to another context in the same scope.';
   }
   const draftId = payloadDraftRequestId(payload);
   if (draftId == null) return null;

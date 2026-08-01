@@ -23,6 +23,7 @@ import {
   IconArchiveOff,
   IconPencil,
   IconTarget,
+  IconArrowsExchange,
   IconTrash,
   IconCloudUpload,
   IconHistory,
@@ -113,6 +114,7 @@ export type DocumentPageLoadedLayoutProps = {
   handleArchive: () => Promise<void>;
   handleUnarchive: () => Promise<void>;
   openAssignContext: () => void;
+  openMoveContext: () => void;
   openDelete: () => void;
   openCreateTag: () => void;
   openManageTags: () => void;
@@ -163,6 +165,7 @@ export function DocumentPageLoadedLayout({
   handleArchive,
   handleUnarchive,
   openAssignContext,
+  openMoveContext,
   openDelete,
   openCreateTag,
   openManageTags,
@@ -282,6 +285,11 @@ export function DocumentPageLoadedLayout({
                 Assign to context
               </Menu.Item>
             )}
+            {!hasNoContext && data.canMove && (
+              <Menu.Item leftSection={<IconArrowsExchange size={14} />} onClick={openMoveContext}>
+                Move to context
+              </Menu.Item>
+            )}
             {startHereScopes.length > 0 && <Menu.Divider />}
             {startHereScopes.map((scope) =>
               scope.isCurrent ? (
@@ -357,6 +365,7 @@ export function DocumentPageLoadedLayout({
     pdfExportStatus?.downloadUrl,
     hasNoContext,
     data.canWrite,
+    data.canMove,
     data.canPublish,
     data.archivedAt,
     data.canDelete,

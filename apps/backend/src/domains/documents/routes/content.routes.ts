@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- document content CRUD + assign/move/attachments */
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import {
@@ -11,6 +12,7 @@ import {
   canDeleteDocument,
   canWrite,
   canPublishDocument,
+  canMoveDocument,
   canModerateDocumentComments,
   DOCUMENT_FOR_PERMISSION_INCLUDE,
 } from '../permissions/index.js';
@@ -26,6 +28,7 @@ import {
   DocumentNotFoundError,
   DocumentBusinessError,
 } from '../services/lifecycle/documentService.js';
+import { moveDocument } from '../services/lifecycle/documentMoveService.js';
 import {
   createDocument,
   DocumentTemplateNotFoundError,
@@ -41,6 +44,7 @@ import {
   createDocumentBodySchema,
   updateDocumentBodySchema,
   updateDocumentTypeBodySchema,
+  moveDocumentBodySchema,
 } from '../schemas/documents.js';
 import {
   excludeUserIds,
@@ -208,22 +212,30 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
             .send({ error: 'Draft documents are only visible to users with write access' });
         }
       }
-      const [writeAllowed, deleteAllowed, canPublish, canModerateComments, startHereScopes] =
-        await Promise.all([
-          isTrashed ? Promise.resolve(false) : canWrite(prisma, userId, doc),
-          canDeleteDocument(prisma, userId, documentId),
-          isTrashed ? Promise.resolve(false) : canPublishDocument(prisma, userId, documentId),
-          isTrashed ? Promise.resolve(false) : canModerateDocumentComments(prisma, userId, doc),
-          isTrashed
-            ? Promise.resolve([])
-            : listStartHereOptionsForDocument(prisma, userId, documentId),
-        ]);
+      const [
+        writeAllowed,
+        deleteAllowed,
+        canPublish,
+        canMove,
+        canModerateComments,
+        startHereScopes,
+      ] = await Promise.all([
+        isTrashed ? Promise.resolve(false) : canWrite(prisma, userId, doc),
+        canDeleteDocument(prisma, userId, documentId),
+        isTrashed ? Promise.resolve(false) : canPublishDocument(prisma, userId, documentId),
+        isTrashed ? Promise.resolve(false) : canMoveDocument(prisma, userId, documentId),
+        isTrashed ? Promise.resolve(false) : canModerateDocumentComments(prisma, userId, doc),
+        isTrashed
+          ? Promise.resolve([])
+          : listStartHereOptionsForDocument(prisma, userId, documentId),
+      ]);
       return reply.send(
         buildDocumentDetailResponse({
           doc,
           writeAllowed,
           deleteAllowed,
           canPublish,
+          canMove,
           canModerateComments,
           startHereScopes,
         })
@@ -354,6 +366,30 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
       const { documentId } = documentIdParamSchema.parse(request.params);
       const body = updateDocumentBodySchema.parse(request.body);
 
+      const beforeUpdate = await prisma.document.findUnique({
+        where: { id: documentId },
+        select: {
+          publishedAt: true,
+          title: true,
+          description: true,
+          contextId: true,
+          documentTags: { select: { tagId: true } },
+        },
+      });
+      if (!beforeUpdate) return reply.status(404).send({ error: 'Document not found' });
+
+      if (
+        body.contextId !== undefined &&
+        body.contextId !== null &&
+        beforeUpdate.contextId != null &&
+        body.contextId !== beforeUpdate.contextId
+      ) {
+        return reply.status(400).send({
+          error:
+            'Changing context on an assigned document requires POST /documents/:documentId/move',
+        });
+      }
+
       if (body.contextId !== undefined && body.contextId !== null) {
         if (
           !(await validateContextWriteAccess(
@@ -369,32 +405,15 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
       }
 
       if (body.tagIds !== undefined && body.tagIds.length > 0) {
-        const doc = await prisma.document.findUnique({
-          where: { id: documentId },
-          select: { contextId: true },
-        });
-        if (!doc) return reply.status(404).send({ error: 'Document not found' });
-        if (doc.contextId == null) {
+        if (beforeUpdate.contextId == null) {
           return reply
             .status(400)
             .send({ error: 'Document has no context; tags require a context' });
         }
-        if (!(await validateTagsForContext(prisma, doc.contextId, body.tagIds, reply))) {
+        if (!(await validateTagsForContext(prisma, beforeUpdate.contextId, body.tagIds, reply))) {
           return;
         }
       }
-
-      const beforeUpdate = await prisma.document.findUnique({
-        where: { id: documentId },
-        select: {
-          publishedAt: true,
-          title: true,
-          description: true,
-          contextId: true,
-          documentTags: { select: { tagId: true } },
-        },
-      });
-      if (!beforeUpdate) return reply.status(404).send({ error: 'Document not found' });
 
       const shouldConsiderReaderNotification =
         beforeUpdate.publishedAt != null && patchTouchesReaderVisibleFields(body);
@@ -458,6 +477,123 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
           return reply.status(404).send({ error: 'Document not found' });
         if (err instanceof DocumentBusinessError)
           return reply.status(400).send({ error: err.message });
+        throw err;
+      }
+    }
+  );
+
+  app.post(
+    '/documents/:documentId/move',
+    {
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('writeOrPublish'))],
+    },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      const { documentId } = documentIdParamSchema.parse(request.params);
+      const body = moveDocumentBodySchema.parse(request.body);
+
+      const sourceDoc = await prisma.document.findUnique({
+        where: { id: documentId },
+        select: { contextId: true, deletedAt: true },
+      });
+      if (!sourceDoc || sourceDoc.deletedAt != null) {
+        return reply.status(404).send({ error: 'Document not found' });
+      }
+      if (sourceDoc.contextId == null) {
+        return reply.status(400).send({
+          error: 'Document has no context; use PATCH to assign a context first',
+        });
+      }
+
+      if (
+        !(await validateContextWriteAccess(
+          prisma,
+          userId,
+          sourceDoc.contextId,
+          reply,
+          'Permission denied to move document from this context'
+        ))
+      ) {
+        return;
+      }
+
+      const [sourceOwnerId, targetOwnerId] = await Promise.all([
+        getContextOwnerId(prisma, sourceDoc.contextId),
+        getContextOwnerId(prisma, body.targetContextId),
+      ]);
+      if (sourceOwnerId == null || targetOwnerId == null) {
+        return reply.status(400).send({ error: 'Context has no owner' });
+      }
+      if (sourceOwnerId !== targetOwnerId) {
+        return reply.status(409).send({
+          error: 'Cross-owner document move is not supported in v1',
+        });
+      }
+
+      if (
+        !(await validateContextWriteAccess(
+          prisma,
+          userId,
+          body.targetContextId,
+          reply,
+          'Permission denied to move document to this context'
+        ))
+      ) {
+        return;
+      }
+
+      try {
+        const result = await moveDocument(prisma, documentId, body.targetContextId);
+        await enqueueIncrementalReindexForDocumentSafe(request.log, {
+          documentId,
+          contextId: result.toContextId,
+          trigger: 'document-updated',
+          warnMessage: 'Failed to enqueue reindex job after document move',
+        });
+        try {
+          const recipientIds = excludeUserIds(
+            await listUserIdsWhoCanReadOrWriteDocument(prisma, documentId),
+            userId
+          );
+          await enqueueNotificationEvent({
+            eventType: 'document-moved',
+            targetUserIds: recipientIds,
+            payload: {
+              documentId,
+              fromContextId: result.fromContextId,
+              toContextId: result.toContextId,
+              contextId: result.toContextId,
+              movedByUserId: userId,
+            },
+          });
+        } catch (error) {
+          request.log.warn(
+            { error, documentId },
+            'Failed to enqueue notification job after document move'
+          );
+        }
+        request.log.info(
+          {
+            documentId,
+            fromContextId: result.fromContextId,
+            toContextId: result.toContextId,
+            movedByUserId: userId,
+          },
+          'Document moved between contexts'
+        );
+        return reply.send(result.document);
+      } catch (err) {
+        if (err instanceof DocumentNotFoundError) {
+          return reply.status(404).send({ error: 'Document not found' });
+        }
+        if (err instanceof DocumentBusinessError) {
+          const message = err.message;
+          if (message.includes('Cross-owner')) {
+            return reply.status(409).send({ error: message });
+          }
+          return reply.status(400).send({ error: message });
+        }
         throw err;
       }
     }

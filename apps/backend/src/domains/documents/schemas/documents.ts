@@ -90,6 +90,13 @@ export const updateDocumentBodySchema = z.object({
   description: z.string().max(500).trim().optional().nullable(),
 });
 
+/** Body: POST /documents/:id/move – same-owner Sofort-Move. */
+export const moveDocumentBodySchema = z.object({
+  targetContextId: z.cuid(),
+});
+
+export type MoveDocumentBody = z.infer<typeof moveDocumentBodySchema>;
+
 /** Body: PATCH Lead-Draft (Block-JSON); Optimistic Lock über `expectedRevision` (optional abgestimmt mit If-Match). */
 export const patchLeadDraftBodySchema = z.object({
   expectedRevision: z.number().int().min(0),
