@@ -22,3 +22,6 @@ All document-like reading surfaces (document view/preview, Help body, Templates 
 
 - Put new reader typography changes only in `DocumentContent.css` (and editor mirror if required)
 - Prefer synthesizing a `BlockDocument` + `DocumentBlocksPreview` when showing template/outline-like content
+- Reading font (sans Open Sans / serif Georgia) is user preference `documentReadingFont`; apply via
+  `--document-font-family` and `document.documentElement[data-document-reading-font]` – do not hardcode
+  a second stack on Help/Templates/document pages

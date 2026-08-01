@@ -45,6 +45,9 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
       ...(body.locale !== undefined && { locale: body.locale }),
       ...(body.primaryColor !== undefined && { primaryColor: body.primaryColor }),
       ...(body.textSize !== undefined && { textSize: body.textSize }),
+      ...(body.documentReadingFont !== undefined && {
+        documentReadingFont: body.documentReadingFont,
+      }),
       ...(body.recentItemsByScope !== undefined && { recentItemsByScope }),
       ...(body.lastSeenReleaseVersion !== undefined && {
         lastSeenReleaseVersion: body.lastSeenReleaseVersion,

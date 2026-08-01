@@ -64,6 +64,7 @@ export const patchPreferencesBodySchema = z.object({
     ])
     .optional(),
   textSize: z.enum(['default', 'large', 'larger']).optional(),
+  documentReadingFont: z.enum(['sans', 'serif']).optional(),
   recentItemsByScope: z.record(z.string(), z.array(recentItemSchema).max(8)).optional(),
   notificationSettings: notificationSettingsSchema.optional(),
   pulseSettings: pulseSettingsSchema.optional(),

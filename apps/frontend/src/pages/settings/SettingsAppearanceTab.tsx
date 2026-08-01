@@ -14,7 +14,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect } from 'react';
 import { apiFetch } from '../../api/client';
-import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
+import type {
+  DocumentReadingFontPreference,
+  UserPreferences,
+} from '../../components/system/ThemeFromPreferences';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
 import { meQueryKey, useMe } from '../../hooks/useMe';
@@ -110,6 +113,16 @@ export function SettingsAppearanceTab() {
           color: 'green',
         });
       }
+      if (variables.documentReadingFont !== undefined) {
+        notifications.show({
+          title: 'Document reading font updated',
+          message:
+            variables.documentReadingFont === 'serif'
+              ? 'Document text uses Georgia (serif).'
+              : 'Document text uses Open Sans (sans).',
+          color: 'green',
+        });
+      }
     },
     onError: (err: Error) => {
       notifications.show({ title: 'Save failed', message: err.message, color: 'red' });
@@ -138,6 +151,8 @@ export function SettingsAppearanceTab() {
   const primaryAccent = getPrimaryColorAccent(primaryColor);
   const primaryAccentFg = contrastOnAccent(primaryAccent);
   const textSize: TextSizePreference = preferences?.textSize ?? 'default';
+  const documentReadingFont: DocumentReadingFontPreference =
+    preferences?.documentReadingFont === 'serif' ? 'serif' : 'sans';
   const locale = preferences?.locale ?? 'en';
 
   return (
@@ -248,6 +263,29 @@ export function SettingsAppearanceTab() {
               { label: 'Default', value: 'default' },
               { label: 'Large', value: 'large' },
               { label: 'Larger', value: 'larger' },
+            ]}
+            disabled={patchPreferences.isPending}
+          />
+        </Group>
+        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+          <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
+            <Text size="sm" fw={500}>
+              Document reading font
+            </Text>
+            <Text size="xs" c="dimmed">
+              Sans (Open Sans) or serif (Georgia) for documents, Help, and templates.
+            </Text>
+          </Stack>
+          <SegmentedControl
+            value={documentReadingFont}
+            onChange={(value) =>
+              patchPreferences.mutate({
+                documentReadingFont: value as DocumentReadingFontPreference,
+              })
+            }
+            data={[
+              { label: 'Sans', value: 'sans' },
+              { label: 'Serif', value: 'serif' },
             ]}
             disabled={patchPreferences.isPending}
           />

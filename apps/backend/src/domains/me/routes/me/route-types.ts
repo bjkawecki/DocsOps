@@ -33,6 +33,7 @@ type UserPreferences = {
     | 'orange'
     | 'fuchsia';
   textSize?: 'default' | 'large' | 'larger';
+  documentReadingFont?: 'sans' | 'serif';
   recentItemsByScope?: Record<string, RecentPreferencesItem[]>;
   lastSeenReleaseVersion?: string;
   notificationSettings?: {

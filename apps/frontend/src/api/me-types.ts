@@ -42,6 +42,7 @@ export type MeResponse = {
       | 'orange'
       | 'fuchsia';
     textSize?: 'default' | 'large' | 'larger';
+    documentReadingFont?: 'sans' | 'serif';
     recentItemsByScope?: Record<
       string,
       {

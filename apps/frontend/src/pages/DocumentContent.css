@@ -1,7 +1,18 @@
 /* SSoT for document-like reading (document view, Help, Templates preview).
- * Do not add parallel scales (e.g. .content-reading). See .cursor/rules/document-reading-typography.mdc */
+ * Do not add parallel scales (e.g. .content-reading). See .cursor/rules/document-reading-typography.mdc
+ *
+ * Reading font: --document-font-family (sans = Open Sans default; serif = Georgia via
+ * document.documentElement[data-document-reading-font="serif"]). */
+:root {
+  --document-font-family: 'Open Sans', system-ui, sans-serif;
+}
+
+:root[data-document-reading-font='serif'] {
+  --document-font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
 .document-content {
-  font-family: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--document-font-family);
   font-size: var(--mantine-font-size-xl);
   line-height: 1.65;
 }

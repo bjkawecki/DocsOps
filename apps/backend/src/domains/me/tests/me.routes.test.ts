@@ -287,6 +287,41 @@ describe('Me routes (GET/PATCH /me, GET/PATCH /me/preferences)', () => {
     expect(prefs?.textSize).toBe('larger');
   });
 
+  it('PATCH /api/v1/me/preferences → documentReadingFont gespeichert und per GET geliefert', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
+    });
+    const cookie = getCookieHeader(loginRes);
+
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/me/preferences',
+      headers: { cookie },
+      payload: { documentReadingFont: 'serif' },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { documentReadingFont: string };
+    expect(body.documentReadingFont).toBe('serif');
+
+    const getRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/me/preferences',
+      headers: { cookie },
+    });
+    expect(getRes.statusCode).toBe(200);
+    const getBody = getRes.json() as { documentReadingFont?: string };
+    expect(getBody.documentReadingFont).toBe('serif');
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: testUserId },
+      select: { preferences: true },
+    });
+    const prefs = user.preferences as { documentReadingFont?: string } | null;
+    expect(prefs?.documentReadingFont).toBe('serif');
+  });
+
   it('PATCH /api/v1/me/preferences → scopeRecentPanelOpen gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',

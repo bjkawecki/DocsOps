@@ -5,12 +5,15 @@ import { useMe } from '../../hooks/useMe';
 import { RecentItemsProvider } from '../../hooks/useRecentItems';
 import type { PrimaryColorPreset, TextSizePreference } from '../../theme';
 
+export type DocumentReadingFontPreference = 'sans' | 'serif';
+
 export type UserPreferences = {
   theme?: 'light' | 'dark' | 'auto';
   sidebarPinned?: boolean;
   locale?: 'en' | 'de';
   primaryColor?: PrimaryColorPreset;
   textSize?: TextSizePreference;
+  documentReadingFont?: DocumentReadingFontPreference;
   recentItemsByScope?: Record<
     string,
     { type: 'process' | 'project' | 'document'; id: string; name?: string; contextName?: string }[]
@@ -72,6 +75,24 @@ function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark
   return null;
 }
 
+/** Applies document reading font via `html[data-document-reading-font]` for `.document-content`. */
+function SyncDocumentReadingFont({
+  preferredFont,
+}: {
+  preferredFont: DocumentReadingFontPreference;
+}) {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (preferredFont === 'serif') {
+      root.dataset.documentReadingFont = 'serif';
+    } else {
+      delete root.dataset.documentReadingFont;
+    }
+  }, [preferredFont]);
+
+  return null;
+}
+
 /**
  * Syncs color scheme from GET /me and provides recent-items context.
  * AuthGuard already waits for me; never unmount children on preference refetch.
@@ -80,10 +101,13 @@ function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark
 export function ThemeFromPreferences({ children }: { children: ReactNode }) {
   const { data: me } = useMe();
   const preferredScheme = me?.preferences?.theme ?? 'auto';
+  const preferredReadingFont: DocumentReadingFontPreference =
+    me?.preferences?.documentReadingFont === 'serif' ? 'serif' : 'sans';
 
   return (
     <>
       <SyncColorScheme preferredScheme={preferredScheme} />
+      <SyncDocumentReadingFont preferredFont={preferredReadingFont} />
       <RecentItemsProvider>{children}</RecentItemsProvider>
     </>
   );
