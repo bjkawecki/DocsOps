@@ -51,7 +51,7 @@
 .editorShell :global(.ProseMirror h1) {
   margin: 1.4em 0 0.4em;
   font-family: inherit;
-  font-size: 2rem;
+  font-size: calc(2rem * var(--mantine-scale));
   font-weight: 700;
   line-height: 1.25;
 }
@@ -59,7 +59,7 @@
 .editorShell :global(.ProseMirror h2) {
   margin: 1.5em 0 0.45em;
   font-family: inherit;
-  font-size: 1.5rem;
+  font-size: calc(1.5rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.3;
 }
@@ -67,7 +67,7 @@
 .editorShell :global(.ProseMirror h3) {
   margin: 1.1em 0 0.3em;
   font-family: inherit;
-  font-size: 1.25rem;
+  font-size: calc(1.25rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.35;
 }

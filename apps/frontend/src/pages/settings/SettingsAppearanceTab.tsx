@@ -1,8 +1,10 @@
 import {
   Alert,
+  Box,
   ColorSwatch,
   Group,
   Loader,
+  Paper,
   SegmentedControl,
   Select,
   Stack,
@@ -25,6 +27,8 @@ import {
   getPrimaryColorAccent,
   PRIMARY_COLOR_PRESET_LABELS,
   PRIMARY_COLOR_PRESETS,
+  TEXT_SIZE_OPTION_LABELS,
+  TEXT_SIZE_SCALE_PERCENT,
   type PrimaryColorPreset,
   type TextSizePreference,
 } from '../../theme';
@@ -109,7 +113,7 @@ export function SettingsAppearanceTab() {
       if (variables.textSize !== undefined) {
         notifications.show({
           title: 'Text size updated',
-          message: 'Interface text scale has been updated.',
+          message: `Accessibility scale set to ${TEXT_SIZE_SCALE_PERCENT[variables.textSize]}%. Applies to the interface and document reading text.`,
           color: 'green',
         });
       }
@@ -247,26 +251,45 @@ export function SettingsAppearanceTab() {
             }}
           />
         </Group>
-        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-          <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
-            <Text size="sm" fw={500}>
-              Text size
-            </Text>
-            <Text size="xs" c="dimmed">
-              Improves readability; applies across the app.
-            </Text>
-          </Stack>
-          <SegmentedControl
-            value={textSize}
-            onChange={(value) => patchPreferences.mutate({ textSize: value as TextSizePreference })}
-            data={[
-              { label: 'Default', value: 'default' },
-              { label: 'Large', value: 'large' },
-              { label: 'Larger', value: 'larger' },
-            ]}
-            disabled={patchPreferences.isPending}
-          />
-        </Group>
+        <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+            <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
+              <Text size="sm" fw={500} id="settings-text-size-label">
+                Text size
+              </Text>
+              <Text size="xs" c="dimmed" id="settings-text-size-description">
+                Accessibility control. Scales navigation, forms, and document reading text
+                (including Help). Current scale: {TEXT_SIZE_SCALE_PERCENT[textSize]}%.
+              </Text>
+            </Stack>
+            <SegmentedControl
+              value={textSize}
+              onChange={(value) =>
+                patchPreferences.mutate({ textSize: value as TextSizePreference })
+              }
+              data={(Object.keys(TEXT_SIZE_OPTION_LABELS) as TextSizePreference[]).map((value) => ({
+                value,
+                label: TEXT_SIZE_OPTION_LABELS[value],
+              }))}
+              disabled={patchPreferences.isPending}
+              aria-labelledby="settings-text-size-label"
+              aria-describedby="settings-text-size-description"
+            />
+          </Group>
+          <Paper
+            withBorder
+            p="sm"
+            radius="sm"
+            aria-hidden
+            style={{ maxWidth: 420 }}
+            className="document-content"
+          >
+            <Box component="p" mb={0} style={{ marginBottom: 0 }}>
+              Preview: Interface and document text scale together. This sample uses the document
+              reading font.
+            </Box>
+          </Paper>
+        </Stack>
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>

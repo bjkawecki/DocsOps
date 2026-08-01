@@ -113,7 +113,7 @@ Vor Admin umgesetzt, damit Theme (Hell/Dunkel/Auto) früh app-weit gilt. Einstel
 [x] **UI-Inhalte (verteilt auf Tabs General / Account / Security / Storage / Notifications)**
 [x] **Profile (Tab General):** Anzeige User (Name, E-Mail read-only, isAdmin). **Dreipunkt-Menü** (Mantine Menu): „Edit“ → Modal nur **Anzeigename**, PATCH `/api/v1/me`; „Deactivate“ (rot, nur wenn `!user.isAdmin`) → Bestätigungs-Modal, POST `/me/deactivate`, dann Logout + Redirect zu Login, Toast.
 [x] **Account (Tab Account):** Nur bei lokalem Login (`hasLocalLogin`): E-Mail read-only, Buttons „Change email“ / „Change password“ mit Modals; PATCH `/api/v1/me/account`. Bei SSO: Hinweis „Login managed by SSO“, keine Bearbeitung.
-[x] **Appearance (Tab General):** Theme **Light / Dark / Auto**, „Pin Sidebar“, **Primary color**, **Text size**, **Interface-Sprache** (en/de); Persistenz über PATCH `/api/v1/me/preferences`; Theme app-weit (`ThemeFromPreferences`, `createAppTheme`).
+[x] **Appearance (Tab General):** Theme **Light / Dark / Auto**, „Pin Sidebar“, **Primary color**, **Text size** (Accessibility-Scale über Mantine `theme.scale` / `--mantine-scale`; gilt für UI und Dokumentenleser inkl. Help), **Interface-Sprache** (en/de); Persistenz über PATCH `/api/v1/me/preferences`; Theme app-weit (`ThemeFromPreferences`, `createAppTheme`).
 [x] **Notifications (Tab Notifications):** Platzhalter („Notification preferences will be available here …“); konkrete Optionen später (vgl. §17, §20).
 [x] **Sprache:** in **Appearance** integriert (nicht eigene „Language-Card“); PATCH `/api/v1/me/preferences` mit `locale`.
 [x] **Security / Sessions (Tab Security):** Liste der Sessions (Created, Expires, „Current session“-Badge), Revoke pro Zeile (außer aktueller Session), „Revoke all other sessions“.
@@ -382,7 +382,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
-[ ] **Barrierefreiheit – Schriftgröße:** In Settings die UI-Schriftgröße anpassen können (Accessibility), app-weit wirksam und persistent. _Grundlage:_ Preference `textSize` (`default` / `large` / `larger`) inkl. Appearance-UI und Theme-Scale (§8) – Todo = prüfen/ausbauen, ob das für Barrierefreiheit ausreicht (z. B. klarere Beschriftung als Accessibility-Option, Preview, ggf. weitere Stufen, Wirkung auf Dokumentenleser).
+[x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.
 
 ---
 

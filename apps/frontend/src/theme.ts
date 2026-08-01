@@ -1,9 +1,23 @@
-import { createTheme } from '@mantine/core';
+import { createTheme, rem } from '@mantine/core';
 
-/** User-selectable UI text scale (Mantine `theme.scale`). */
+/** User-selectable UI text scale (Mantine `theme.scale` → `--mantine-scale`). */
 export type TextSizePreference = 'default' | 'large' | 'larger';
 
-function textSizeToScale(textSize: TextSizePreference | undefined): number {
+/** Labels for Settings SegmentedControl (accessibility). */
+export const TEXT_SIZE_OPTION_LABELS: Record<TextSizePreference, string> = {
+  default: 'Default',
+  large: 'Large',
+  larger: 'Larger',
+};
+
+/** Relative scale shown in Settings help text / preview. */
+export const TEXT_SIZE_SCALE_PERCENT: Record<TextSizePreference, number> = {
+  default: 100,
+  large: 112,
+  larger: 125,
+};
+
+export function textSizeToScale(textSize: TextSizePreference | undefined): number {
   if (textSize === 'large') return 1.125;
   if (textSize === 'larger') return 1.25;
   return 1;
@@ -244,20 +258,21 @@ export function createAppTheme(
     /** Inter: free neo-grotesque close to Meter’s Suisse Int’l (commercial). */
     fontFamily: uiFont,
     headings: { fontFamily: uiFont },
-    /** Slightly denser than Mantine defaults (Meter-inspired shell). */
+    /** Slightly denser than Mantine defaults (Meter-inspired shell).
+     * Use `rem()` so values become `calc(... * var(--mantine-scale))` and honor textSize. */
     fontSizes: {
-      xs: '0.75rem',
-      sm: '0.8125rem',
-      md: '0.875rem',
-      lg: '1rem',
-      xl: '1.125rem',
+      xs: rem(12),
+      sm: rem(13),
+      md: rem(14),
+      lg: rem(16),
+      xl: rem(18),
     },
     spacing: {
-      xs: '0.5rem',
-      sm: '0.625rem',
-      md: '0.875rem',
-      lg: '1.125rem',
-      xl: '1.375rem',
+      xs: rem(8),
+      sm: rem(10),
+      md: rem(14),
+      lg: rem(18),
+      xl: rem(22),
     },
     colors: {
       blue: [...PRIMARY_COLOR_PALETTES.blue],
