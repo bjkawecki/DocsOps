@@ -360,7 +360,12 @@ cmd_uninstall() {
 
 main() {
   local cmd="${1:-}"
-  shift || true
+  # curl …/docsops-demo | sudo bash  → default to install (like install.sh)
+  if [[ -z "$cmd" ]]; then
+    cmd=install
+  else
+    shift || true
+  fi
   case "$cmd" in
     install) cmd_install "$@" ;;
     reset | reinstall) cmd_reset "$@" ;;
@@ -368,9 +373,8 @@ main() {
     status) cmd_status "$@" ;;
     logs) cmd_logs "$@" ;;
     uninstall) cmd_uninstall "$@" ;;
-    -h | --help | help | "")
+    -h | --help | help)
       usage
-      [[ -n "$cmd" && "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" ]] || exit 0
       exit 0
       ;;
     *)

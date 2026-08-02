@@ -73,7 +73,12 @@ Ziel: Auf der VM ein Skript ausführen – danach sind Landing und Demo-App loka
 
 ```bash
 # Auf der VM (Release-Asset docsops-demo oder aus dem Bundle):
-sudo ./docsops-demo install --version v0.1.0
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo \
+  | sudo bash
+
+# Gepinnt:
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo \
+  | sudo bash -s -- --version v0.1.0
 
 # Mit lokalem Bundle + bereits geladenen Images (kein GHCR-Pull):
 DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.0.tar.gz \

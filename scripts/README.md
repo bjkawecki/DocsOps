@@ -18,8 +18,8 @@
 **Demo / VM-Lab (Landing + App):**
 
 ```bash
-# Auf der Ubuntu-VM:
-sudo ./docsops-demo install --version v0.1.0
+# Auf der Ubuntu-VM (Release-Asset):
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo | sudo bash
 
 # Lokal mit Bundle + geladenen Images:
 DOCSOPS_BUNDLE_PATH=/path/docsops-v0.1.0.tar.gz DOCSOPS_SKIP_IMAGE_PULL=1 \
