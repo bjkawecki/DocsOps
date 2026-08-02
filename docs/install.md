@@ -58,7 +58,62 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Team Lead       | `team.lead@demo.docsops.local`       | CSV       |
 | Member          | `member@demo.docsops.local`          | CSV       |
 
-Org: **Nordlicht Software GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
+Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
+
+### VM-Lab (Landing + Demo auf einer Ubuntu-VM)
+
+Ziel: Release-naher Stack mit **einem** Caddy auf Port 80 und zwei Hostnamen.
+
+| Hostname             | Inhalt                                   |
+| -------------------- | ---------------------------------------- |
+| `docsops.local`      | Statische Landing (`apps/landing` Build) |
+| `demo.docsops.local` | Demo-App (`DEMO_MODE`, CSV-Seed)         |
+
+**1. Client-Hosts** (Laptop/Browser-Host):
+
+```text
+<VM-IP>  docsops.local demo.docsops.local
+```
+
+**2. Env** `/etc/docsops/docsops.env` (Auszug):
+
+```bash
+DOCSOPS_VERSION=v0.1.0
+DOCSOPS_IMAGE_PREFIX=ghcr.io/bjkawecki
+COMPOSE_PROJECT_NAME=docsops-demo
+SESSION_SECRET=…           # lang, zufällig
+BACKUP_ENCRYPTION_KEY=…    # 32+ Bytes, Base64 oder wie Prod
+ADMIN_EMAIL=admin@demo.docsops.local
+ADMIN_PASSWORD=DocsOps1
+LANDING_DIST_DIR=/opt/docsops/landing
+```
+
+**3. Landing bauen** (auf einer Maschine mit Node/pnpm, z. B. Dev-Host):
+
+```bash
+VITE_DEMO_URL=http://demo.docsops.local \
+VITE_SITE_URL=http://docsops.local \
+  make landing-build
+# dist nach VM kopieren:
+rsync -a apps/landing/dist/ user@vm:/opt/docsops/landing/
+```
+
+**4. Stack starten** (im Bundle-Verzeichnis, z. B. `/opt/docsops`):
+
+```bash
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f docker-compose.prod.yml \
+  -f docker-compose.demo.yml -f docker-compose.lab.yml \
+  pull
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f docker-compose.prod.yml \
+  -f docker-compose.demo.yml -f docker-compose.lab.yml \
+  up -d
+```
+
+Dateien `docker-compose.demo.yml`, `docker-compose.lab.yml` und `Caddyfile.lab` liegen ab `v0.1.0` im Release-Bundle. Nach einem Retag derselben Version immer `pull` und Container neu anlegen.
+
+**5. Smoke:** http://docsops.local → Demo-CTA → Login mit Seed-Accounts (`DocsOps1`) → Org Musterwerk IT GmbH.
 
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 

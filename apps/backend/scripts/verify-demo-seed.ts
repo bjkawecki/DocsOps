@@ -57,7 +57,7 @@ async function main() {
     select: { email: true, passwordHash: true, isAdmin: true },
   });
 
-  if (companies.length !== 1 || companies[0]?.name !== 'Nordlicht Software GmbH') {
+  if (companies.length !== 1 || companies[0]?.name !== 'Musterwerk IT GmbH') {
     throw new Error(`Unexpected companies: ${JSON.stringify(companies)}`);
   }
   if (departments.length !== 1 || departments[0]?.name !== 'Produktentwicklung') {

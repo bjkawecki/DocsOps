@@ -5,6 +5,8 @@
 #   docker compose --env-file /etc/docsops/docsops.env \
 #     -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.demo.yml up -d
 #
+# VM-Lab (Landing + Demo hostnames): also add -f docker-compose.lab.yml (see docs/install.md).
+#
 # Intranet production must NOT include this file (no seed, no debug tools).
 
 services:

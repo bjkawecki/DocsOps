@@ -66,7 +66,7 @@ async function seedOwners(prisma: PrismaClient, data: SeedMasterData): Promise<S
     ownerByDepartment,
     ownerByTeam,
     ownerByUser,
-    companyName: data.companies[0]?.name ?? 'Nordlicht Software GmbH',
+    companyName: data.companies[0]?.name ?? 'Musterwerk IT GmbH',
     firstTeamName: data.teams[0]?.name,
   };
 }

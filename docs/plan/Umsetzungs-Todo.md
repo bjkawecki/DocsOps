@@ -388,7 +388,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Phase 3 Workspace-Rest EN+DE:** Context/Org Workspace, Catalog/Home/Search-Reste, Templates, Trash/Archive/Drafts-Chrome, Scope People, What's-new-Chrome.
 [x] **Phase 4 Admin-Tiefe EN+DE:** Backup, Migration, System/Mail-Detail, Jobs/Scheduler, Org-Forms/Tabellen-Rest.
 [ ] **Help-DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
-[x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Nordlicht Software GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
+[x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Musterwerk IT GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
 
 **Demo-Instanz (`demo.docsops.de`):**
 

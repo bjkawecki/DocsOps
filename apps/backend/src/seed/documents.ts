@@ -17,7 +17,7 @@ const SEED_DOCUMENT_SECTIONS: SeedDocumentBlockSection[] = [
   { type: 'heading', level: 2, text: 'Zweck' },
   {
     type: 'paragraph',
-    text: 'Dieses Dokument gehört zum Demo-Datensatz von Nordlicht Software GmbH (Software X / Barrierefreiheit). Es zeigt typische Struktur und Lesefluss in DocsOps.',
+    text: 'Dieses Dokument gehört zum Demo-Datensatz von Musterwerk IT GmbH (Software X / Barrierefreiheit). Es zeigt typische Struktur und Lesefluss in DocsOps.',
   },
   { type: 'heading', level: 2, text: 'Nächste Schritte' },
   {
@@ -77,7 +77,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
       return {
         title: 'Dokumentationsrichtlinie',
         sections: storySections(
-          'Verbindliche Regeln für interne Dokumentation bei Nordlicht Software: wo Inhalte leben, wer freigibt und wie Lesende Orientierung finden.',
+          'Verbindliche Regeln für interne Dokumentation bei Musterwerk IT: wo Inhalte leben, wer freigibt und wie Lesende Orientierung finden.',
           'Scope-Leads veröffentlichen; Autoren arbeiten im Lead-Draft mit Vorschlägen. Persönliche Räume bleiben privat, sofern nicht freigegeben.'
         ),
       };

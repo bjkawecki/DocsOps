@@ -1,0 +1,36 @@
+# Lab / VM: one Caddy on :80 with two hostnames.
+# Landing (static) + demo app stack. Pair with docker-compose.lab.yml.
+{
+	auto_https disable_redirects
+	log {
+		output stdout
+		format console
+	}
+}
+
+http://docsops.local {
+	root * /srv/landing
+	encode gzip
+	try_files {path} /index.html
+	file_server
+}
+
+http://demo.docsops.local {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle /api/v1/me/events {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}

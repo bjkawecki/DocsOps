@@ -2,14 +2,9 @@
   "formatVersion": 1,
   "releases": [
     {
-      "version": "0.2.0",
-      "date": "2026-07-01",
-      "title": "Edit-System v0.2.0"
-    },
-    {
-      "version": "0.3.0",
-      "date": "2026-08-15",
-      "title": "Editor & admin polish"
+      "version": "0.1.0",
+      "date": "2026-08-02",
+      "title": "DocsOps v0.1.0"
     }
   ]
 }

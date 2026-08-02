@@ -192,7 +192,7 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Formulierung Nutzungsbedingungen / Disclaimer (Anwalt)
 - „Enter demo“ vs. sichtbare Demo-Credentials
 - **Rollen-UX:** Seed-Accounts (A) vs. Demo-Switcher (B) vs. beides – Entscheidung vor Umsetzung
-- Seed-Sprache (DE vs. EN) für `demo.docsops.de` (bei App-i18n: DE-Seed sinnvoll)
+- Seed-Sprache: DE-Seed (Musterwerk IT GmbH) für Demo/Lab
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 
-**Nächster Schritt:** App-i18n EN/DE nach [Plan-App-i18n](Plan-App-i18n.md); parallel Rollen-Entscheidung für Demo; dann Landing-Deploy + Demo-Stack.
+**Nächster Schritt:** Entwicklungs-Release `v0.1.0` retaggen (GHCR + Bundle inkl. Demo/Lab-Compose); VM-Lab nach [install.md](../install.md) (Abschnitt VM-Lab). Danach Demo-Schutz/Rollenwahl und `docsops-demo`-Ops (§19).

@@ -42,7 +42,10 @@ stamp_install_sh() {
 
 copy_file "${ROOT}/docker-compose.yml" "${BUNDLE_ROOT}/docker-compose.yml"
 copy_file "${ROOT}/docker-compose.prod.yml" "${BUNDLE_ROOT}/docker-compose.prod.yml"
+copy_file "${ROOT}/docker-compose.demo.yml" "${BUNDLE_ROOT}/docker-compose.demo.yml"
+copy_file "${ROOT}/docker-compose.lab.yml" "${BUNDLE_ROOT}/docker-compose.lab.yml"
 copy_file "${ROOT}/Caddyfile.prod" "${BUNDLE_ROOT}/Caddyfile.prod"
+copy_file "${ROOT}/Caddyfile.lab" "${BUNDLE_ROOT}/Caddyfile.lab"
 stamp_install_sh "${ROOT}/install.sh" "${BUNDLE_ROOT}/install.sh" "$VERSION"
 copy_file "${ROOT}/uninstall.sh" "${BUNDLE_ROOT}/uninstall.sh"
 copy_file "${ROOT}/scripts/install-prod.sh" "${BUNDLE_ROOT}/scripts/install-prod.sh"

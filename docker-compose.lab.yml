@@ -1,0 +1,17 @@
+# VM / local lab: Landing on docsops.local + demo app on demo.docsops.local (one Caddy :80).
+# Requires docker-compose.demo.yml (DEMO_MODE) and a built Landing dist on the host.
+#
+# Usage:
+#   export LANDING_DIST_DIR=/opt/docsops/landing   # must contain index.html from make landing-build
+#   docker compose --env-file /etc/docsops/docsops.env \
+#     -f docker-compose.yml -f docker-compose.prod.yml \
+#     -f docker-compose.demo.yml -f docker-compose.lab.yml \
+#     up -d
+#
+# Client /etc/hosts: <VM-IP> docsops.local demo.docsops.local
+
+services:
+  caddy:
+    volumes:
+      - ./Caddyfile.lab:/etc/caddy/Caddyfile:ro
+      - ${LANDING_DIST_DIR:-./landing}:/srv/landing:ro

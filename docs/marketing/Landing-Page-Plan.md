@@ -111,7 +111,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 ### Technik
 
 - [x] Mobile Navbar, OG-Tags, Hero LCP-Attribute, Version-Badge
-- [ ] `Caddyfile.local` + Hosts-Doku
+- [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
 - [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 
 ---
