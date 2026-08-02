@@ -1,16 +1,18 @@
-import { describe, expect, it } from 'vitest';
-import { getLoginErrorDisplay, getLoginRedirectErrorDisplay } from './loginErrors';
+import { describe, it, expect } from 'vitest';
+import { getLoginErrorKeys, getLoginRedirectErrorKeys } from './loginErrors';
 
 describe('loginErrors', () => {
-  it('maps session-not-established to a user-facing message', () => {
-    const display = getLoginErrorDisplay(new Error('Session not established'));
-    expect(display.title).toBe('Login failed');
-    expect(display.message).toContain('no session was created');
-    expect(display.hint).toBeTruthy();
+  it('maps session-not-established to keys', () => {
+    const display = getLoginErrorKeys(new Error('Session not established'));
+    expect(display.titleKey).toBe('errors.loginFailedTitle');
+    expect(display.messageKey).toBe('errors.sessionNotEstablishedMessage');
+    expect(display.hintKey).toBe('errors.sessionNotEstablishedHint');
   });
 
-  it('maps auth redirect reasons', () => {
-    expect(getLoginRedirectErrorDisplay('auth_required').title).toBe('Sign in required');
-    expect(getLoginRedirectErrorDisplay('session_expired').title).toBe('Session expired');
+  it('maps redirect reasons', () => {
+    expect(getLoginRedirectErrorKeys('auth_required').titleKey).toBe('errors.signInRequiredTitle');
+    expect(getLoginRedirectErrorKeys('session_expired').titleKey).toBe(
+      'errors.sessionExpiredTitle'
+    );
   });
 });

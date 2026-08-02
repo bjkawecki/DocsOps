@@ -1,15 +1,16 @@
 /**
  * Admin primary areas + content-sidebar items (SSoT for nav and redirects).
+ * Labels: i18n keys under namespace `admin` (e.g. nav.users).
  */
 
 export type AdminNavItem = {
   to: string;
-  label: string;
+  labelKey: string;
 };
 
 export type AdminNavGroup = {
   id: 'organisation' | 'operations' | 'data' | 'platform';
-  label: string;
+  labelKey: string;
   /** Base path for the group (index redirects to first item). */
   basePath: string;
   items: readonly AdminNavItem[];
@@ -20,41 +21,41 @@ export const ADMIN_DEFAULT_PATH = '/admin/organisation/users';
 export const adminNavGroups = [
   {
     id: 'organisation',
-    label: 'Organisation',
+    labelKey: 'nav.organisation',
     basePath: '/admin/organisation',
     items: [
-      { to: '/admin/organisation/users', label: 'Users' },
-      { to: '/admin/organisation/teams', label: 'Teams' },
-      { to: '/admin/organisation/departments', label: 'Departments' },
-      { to: '/admin/organisation/company', label: 'Company' },
+      { to: '/admin/organisation/users', labelKey: 'nav.users' },
+      { to: '/admin/organisation/teams', labelKey: 'nav.teams' },
+      { to: '/admin/organisation/departments', labelKey: 'nav.departments' },
+      { to: '/admin/organisation/company', labelKey: 'nav.company' },
     ],
   },
   {
     id: 'operations',
-    label: 'Operations',
+    labelKey: 'nav.operations',
     basePath: '/admin/operations',
     items: [
-      { to: '/admin/operations/jobs', label: 'Jobs' },
-      { to: '/admin/operations/scheduler', label: 'Scheduler' },
+      { to: '/admin/operations/jobs', labelKey: 'nav.jobs' },
+      { to: '/admin/operations/scheduler', labelKey: 'nav.scheduler' },
     ],
   },
   {
     id: 'data',
-    label: 'Data',
+    labelKey: 'nav.data',
     basePath: '/admin/data',
     items: [
-      { to: '/admin/data/backup', label: 'Backup' },
-      { to: '/admin/data/migration', label: 'Migration' },
+      { to: '/admin/data/backup', labelKey: 'nav.backup' },
+      { to: '/admin/data/migration', labelKey: 'nav.migration' },
     ],
   },
   {
     id: 'platform',
-    label: 'Platform',
+    labelKey: 'nav.platform',
     basePath: '/admin/platform',
     items: [
-      { to: '/admin/platform/system', label: 'System' },
-      { to: '/admin/platform/mail', label: 'Mail' },
-      { to: '/admin/platform/broadcast', label: 'Broadcast' },
+      { to: '/admin/platform/system', labelKey: 'nav.system' },
+      { to: '/admin/platform/mail', labelKey: 'nav.mail' },
+      { to: '/admin/platform/broadcast', labelKey: 'nav.broadcast' },
     ],
   },
 ] as const satisfies readonly AdminNavGroup[];

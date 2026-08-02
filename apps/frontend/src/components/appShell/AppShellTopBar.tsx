@@ -41,6 +41,7 @@ import {
   isSettingsOpen,
   openSettingsSearchParams,
 } from '../../pages/settings/settingsLayout.js';
+import { useTranslation } from 'react-i18next';
 import { isActive } from './appShellNavUtils.js';
 import { MAIN_NAV_ID } from './appShellLayoutConstants.js';
 
@@ -74,7 +75,8 @@ export function AppShellTopBar({
   setAccountMenuOpen,
   logout,
 }: Props) {
-  const displayName = me?.user?.name ?? 'Account';
+  const { t } = useTranslation('shell');
+  const displayName = me?.user?.name ?? t('account.menu');
   const showWhatsNewBadge = useWhatsNewBadge();
   const hasNotifBadge = unreadNotificationsCount > 0;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -129,7 +131,7 @@ export function AppShellTopBar({
       }
       return { previousMe, previousPrefs };
     },
-    onSuccess: (data, nextTheme) => {
+    onSuccess: (data) => {
       queryClient.setQueryData(['me', 'preferences'], data);
       queryClient.setQueryData(meQueryKey, (old: MeResponse | undefined) => {
         if (!old) return old;
@@ -139,8 +141,7 @@ export function AppShellTopBar({
         };
       });
       notifications.show({
-        title: 'Theme updated',
-        message: `Color scheme set to ${nextTheme}.`,
+        message: t('toasts.themeUpdated'),
         color: 'green',
       });
     },
@@ -153,7 +154,11 @@ export function AppShellTopBar({
       }
       const rollback = context?.previousMe?.preferences?.theme ?? 'auto';
       setColorScheme(rollback);
-      notifications.show({ title: 'Theme update failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('toasts.themeUpdateFailed'),
+        message: err.message,
+        color: 'red',
+      });
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ['me', 'preferences'] });
@@ -175,7 +180,9 @@ export function AppShellTopBar({
         variant={active ? 'light' : 'subtle'}
         size={32}
         aria-label={
-          badge && hasNotifBadge ? `${label} (${unreadNotificationsCount} unread)` : label
+          badge && hasNotifBadge
+            ? t('account.notificationsUnread', { count: unreadNotificationsCount })
+            : label
         }
         style={{ color: 'var(--mantine-primary-color-4)' }}
       >
@@ -200,7 +207,7 @@ export function AppShellTopBar({
             opened={mobileOpened}
             onClick={onToggleMobile}
             size="sm"
-            aria-label={mobileOpened ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-label={mobileOpened ? t('nav.closeMenu') : t('nav.openMenu')}
             aria-expanded={mobileOpened}
             aria-controls={MAIN_NAV_ID}
           />
@@ -224,16 +231,16 @@ export function AppShellTopBar({
           )}
           {utilIcon(
             '/notifications',
-            'Notifications',
+            t('account.notifications'),
             <IconBell size={18} stroke={1.75} />,
             notifActive,
             true
           )}
-          <Tooltip label="Settings" withArrow>
+          <Tooltip label={t('account.settings')} withArrow>
             <ActionIcon
               variant={settingsActive ? 'light' : 'subtle'}
               size={32}
-              aria-label="Settings"
+              aria-label={t('account.settings')}
               aria-pressed={settingsActive}
               onClick={toggleSettings}
               style={{ color: 'var(--mantine-primary-color-4)' }}
@@ -241,7 +248,12 @@ export function AppShellTopBar({
               <IconSettings size={18} stroke={1.75} />
             </ActionIcon>
           </Tooltip>
-          {utilIcon('/help/overview', 'Help', <IconHelp size={18} stroke={1.75} />, helpActive)}
+          {utilIcon(
+            '/help/overview',
+            t('account.help'),
+            <IconHelp size={18} stroke={1.75} />,
+            helpActive
+          )}
           <Menu
             position="bottom-end"
             shadow="md"
@@ -255,7 +267,7 @@ export function AppShellTopBar({
                 data-user-menu-trigger
                 aria-haspopup="menu"
                 aria-expanded={accountMenuOpen}
-                aria-label={`Account menu, ${displayName}`}
+                aria-label={t('account.menuAria', { name: displayName })}
                 className="app-shell-account-brand-trigger"
               >
                 <Avatar size={32} radius="50%" color="var(--mantine-primary-color-filled)">
@@ -282,11 +294,11 @@ export function AppShellTopBar({
                 onClick={(event) => event.stopPropagation()}
               >
                 <Group justify="space-between" align="center" wrap="nowrap" gap="sm">
-                  <Text size="sm">Theme</Text>
+                  <Text size="sm">{t('account.theme')}</Text>
                   <SegmentedControl
                     size="xs"
                     value={theme}
-                    aria-label="Color scheme"
+                    aria-label={t('account.colorScheme')}
                     onChange={(value) => {
                       if (value === 'light' || value === 'dark' || value === 'auto') {
                         patchTheme.mutate(value);
@@ -297,7 +309,7 @@ export function AppShellTopBar({
                       {
                         value: 'auto',
                         label: (
-                          <span title="System">
+                          <span title={t('account.themeSystem')}>
                             <IconDeviceDesktop size={14} stroke={1.75} aria-hidden />
                           </span>
                         ),
@@ -305,7 +317,7 @@ export function AppShellTopBar({
                       {
                         value: 'light',
                         label: (
-                          <span title="Light">
+                          <span title={t('account.themeLight')}>
                             <IconSun size={14} stroke={1.75} aria-hidden />
                           </span>
                         ),
@@ -313,7 +325,7 @@ export function AppShellTopBar({
                       {
                         value: 'dark',
                         label: (
-                          <span title="Dark">
+                          <span title={t('account.themeDark')}>
                             <IconMoon size={14} stroke={1.75} aria-hidden />
                           </span>
                         ),
@@ -329,13 +341,13 @@ export function AppShellTopBar({
                 rightSection={
                   showWhatsNewBadge ? (
                     <Badge size="xs" variant="filled">
-                      New
+                      {t('account.whatsNewBadge')}
                     </Badge>
                   ) : undefined
                 }
                 closeMenuOnClick
               >
-                What&apos;s new
+                {t('account.whatsNew')}
               </Menu.Item>
               {me?.user?.isAdmin && (
                 <Menu.Item
@@ -344,7 +356,7 @@ export function AppShellTopBar({
                   leftSection={<IconShield size={14} />}
                   closeMenuOnClick
                 >
-                  Admin
+                  {t('account.admin')}
                 </Menu.Item>
               )}
               <Menu.Divider />
@@ -355,7 +367,7 @@ export function AppShellTopBar({
                 color="red"
                 closeMenuOnClick
               >
-                Log out
+                {t('account.logOut')}
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

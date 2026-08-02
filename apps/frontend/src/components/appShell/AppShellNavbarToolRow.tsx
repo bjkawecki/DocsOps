@@ -1,5 +1,6 @@
 import { Tooltip } from '@mantine/core';
 import { SIDEBAR_MINI_ICON_SIZE } from './appShellLayoutConstants.js';
+import { useTranslation } from 'react-i18next';
 import { SearchIcon } from '../search/SearchIcon.js';
 
 type Props = {
@@ -16,6 +17,7 @@ function shortcutLabel(): string {
 
 /** Sidebar search trigger only (utilities live in the main top bar). */
 export function AppShellNavbarToolRow({ isMiniRail, onOpenSearch }: Props) {
+  const { t } = useTranslation('shell');
   const kbd = shortcutLabel();
 
   const searchTrigger = (
@@ -27,13 +29,13 @@ export function AppShellNavbarToolRow({ isMiniRail, onOpenSearch }: Props) {
           : 'app-shell-navbar-search-trigger'
       }
       onClick={onOpenSearch}
-      aria-label={`Search documents (${kbd})`}
+      aria-label={t('nav.searchAria', { kbd })}
     >
       <SearchIcon size={SIDEBAR_MINI_ICON_SIZE} />
       {!isMiniRail ? (
         <>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Search…
+            {t('nav.searchEllipsis')}
           </span>
           <kbd className="app-shell-navbar-search-kbd">{kbd}</kbd>
         </>
@@ -50,7 +52,7 @@ export function AppShellNavbarToolRow({ isMiniRail, onOpenSearch }: Props) {
       }
     >
       {isMiniRail ? (
-        <Tooltip label={`Search (${kbd})`} position="right" withArrow>
+        <Tooltip label={t('nav.searchTooltip', { kbd })} position="right" withArrow>
           {searchTrigger}
         </Tooltip>
       ) : (

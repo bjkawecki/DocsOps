@@ -6,6 +6,7 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 import { useMemo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { ContentSidebarCollapsibleSection } from '../../components/ui/ContentSidebarCollapsibleSection.js';
@@ -35,6 +36,7 @@ function groupIcon(groupId: (typeof adminNavGroups)[number]['id']): ReactNode {
  * Admin content sidebar: primary areas as collapsible sections with page links.
  */
 export function AdminContentSidebar() {
+  const { t } = useTranslation('admin');
   const location = useLocation();
   const activeGroup = findAdminNavGroup(location.pathname);
 
@@ -47,7 +49,7 @@ export function AdminContentSidebar() {
           <ContentSidebarCollapsibleSection
             key={group.id}
             sectionId={`admin:${group.id}`}
-            label={group.label}
+            label={t(group.labelKey)}
             icon={groupIcon(group.id)}
             defaultOpen={group.id === 'organisation'}
             forceOpenWhen={activeGroupIds.has(group.id)}
@@ -60,7 +62,7 @@ export function AdminContentSidebar() {
                   <NavLink
                     component={Link}
                     to={item.to}
-                    label={item.label}
+                    label={t(item.labelKey)}
                     active={active}
                     aria-current={active ? 'page' : undefined}
                     variant="subtle"

@@ -15,6 +15,7 @@ import { useMantineColorScheme } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import type {
   DocumentReadingFontPreference,
@@ -51,6 +52,7 @@ function contrastOnAccent(hex: string): string {
   return luminance > 0.55 ? 'var(--mantine-color-black)' : 'var(--mantine-color-white)';
 }
 export function SettingsAppearanceTab() {
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
   const { setColorScheme } = useMantineColorScheme();
   const { data, isPending, isError, error } = useMe();
@@ -83,53 +85,35 @@ export function SettingsAppearanceTab() {
         } catch {
           // ignore localStorage errors (e.g. private mode)
         }
-        notifications.show({
-          title: 'Theme updated',
-          message: `Color scheme set to ${variables.theme}.`,
-          color: 'green',
-        });
+        notifications.show({ message: t('appearance.toasts.themeSaved'), color: 'green' });
       }
       if (variables.sidebarPinned !== undefined) {
         notifications.show({
-          title: 'Sidebar preference saved',
-          message: variables.sidebarPinned ? 'Sidebar is pinned.' : 'Sidebar can be collapsed.',
+          message: variables.sidebarPinned
+            ? t('appearance.toasts.sidebarPinned')
+            : t('appearance.toasts.sidebarUnpinned'),
           color: 'green',
         });
       }
       if (variables.primaryColor !== undefined) {
-        notifications.show({
-          title: 'Primary color updated',
-          message: 'Accent color has been updated.',
-          color: 'green',
-        });
+        notifications.show({ message: t('appearance.toasts.primaryColorSaved'), color: 'green' });
       }
       if (variables.locale !== undefined) {
-        notifications.show({
-          title: 'Language saved',
-          message: 'Your language preference has been updated.',
-          color: 'green',
-        });
+        notifications.show({ message: t('appearance.toasts.localeSaved'), color: 'green' });
       }
       if (variables.textSize !== undefined) {
-        notifications.show({
-          title: 'Text size updated',
-          message: `Accessibility scale set to ${TEXT_SIZE_SCALE_PERCENT[variables.textSize]}%. Applies to the interface and document reading text.`,
-          color: 'green',
-        });
+        notifications.show({ message: t('appearance.toasts.textSizeSaved'), color: 'green' });
       }
       if (variables.documentReadingFont !== undefined) {
-        notifications.show({
-          title: 'Document reading font updated',
-          message:
-            variables.documentReadingFont === 'serif'
-              ? 'Document text uses Georgia (serif).'
-              : 'Document text uses Open Sans (sans).',
-          color: 'green',
-        });
+        notifications.show({ message: t('appearance.toasts.readingFontSaved'), color: 'green' });
       }
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Save failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('appearance.toasts.saveFailed'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -162,14 +146,14 @@ export function SettingsAppearanceTab() {
   return (
     <SettingsContentCard id={settingsCardDomId('appearance')} data-settings-card="appearance">
       <Stack gap={SETTINGS_CARD_STACK_GAP}>
-        <SettingsCardTitle jumpId="appearance" />
+        <SettingsCardTitle jumpId="appearance" label={t('appearance.title')} />
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>
-              Theme
+              {t('appearance.theme')}
             </Text>
             <Text size="xs" c="dimmed">
-              Change the theme mode.
+              {t('appearance.themeDescription')}
             </Text>
           </Stack>
           <SegmentedControl
@@ -178,9 +162,9 @@ export function SettingsAppearanceTab() {
               patchPreferences.mutate({ theme: value as 'light' | 'dark' | 'auto' })
             }
             data={[
-              { label: 'Light', value: 'light' },
-              { label: 'Dark', value: 'dark' },
-              { label: 'Auto', value: 'auto' },
+              { label: t('appearance.themeLight'), value: 'light' },
+              { label: t('appearance.themeDark'), value: 'dark' },
+              { label: t('appearance.themeAuto'), value: 'auto' },
             ]}
             disabled={patchPreferences.isPending}
           />
@@ -188,11 +172,10 @@ export function SettingsAppearanceTab() {
         <Group justify="space-between" align="center" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>
-              Pin sidebar
+              {t('appearance.pinSidebar')}
             </Text>
             <Text size="xs" c="dimmed">
-              Start with the sidebar expanded on desktop. You can still collapse it anytime. On
-              mobile, navigation always opens from the menu button.
+              {t('appearance.pinSidebarDescription')}
             </Text>
           </Stack>
           <Switch
@@ -204,10 +187,10 @@ export function SettingsAppearanceTab() {
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>
-              Primary color
+              {t('appearance.primaryColor')}
             </Text>
             <Text size="xs" c="dimmed">
-              Accent color for links, tabs, and buttons.
+              {t('appearance.primaryColorDescription')}
             </Text>
           </Stack>
           <Select
@@ -255,11 +238,10 @@ export function SettingsAppearanceTab() {
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
             <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
               <Text size="sm" fw={500} id="settings-text-size-label">
-                Text size
+                {t('appearance.textSize')}
               </Text>
               <Text size="xs" c="dimmed" id="settings-text-size-description">
-                Accessibility control. Scales navigation, forms, and document reading text
-                (including Help). Current scale: {TEXT_SIZE_SCALE_PERCENT[textSize]}%.
+                {t('appearance.textSizeDescription')} {TEXT_SIZE_SCALE_PERCENT[textSize]}%.
               </Text>
             </Stack>
             <SegmentedControl
@@ -293,10 +275,10 @@ export function SettingsAppearanceTab() {
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>
-              Document reading font
+              {t('appearance.readingFont')}
             </Text>
             <Text size="xs" c="dimmed">
-              Sans (Open Sans) or serif (Georgia) for documents, Help, and templates.
+              {t('appearance.readingFontDescription')}
             </Text>
           </Stack>
           <SegmentedControl
@@ -307,8 +289,8 @@ export function SettingsAppearanceTab() {
               })
             }
             data={[
-              { label: 'Sans', value: 'sans' },
-              { label: 'Serif', value: 'serif' },
+              { label: t('appearance.readingFontSans'), value: 'sans' },
+              { label: t('appearance.readingFontSerif'), value: 'serif' },
             ]}
             disabled={patchPreferences.isPending}
           />
@@ -316,10 +298,10 @@ export function SettingsAppearanceTab() {
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <Text size="sm" fw={500}>
-              Interface language
+              {t('appearance.locale')}
             </Text>
             <Text size="xs" c="dimmed">
-              Language for the user interface.
+              {t('appearance.localeDescription')}
             </Text>
           </Stack>
           <Select
@@ -330,8 +312,8 @@ export function SettingsAppearanceTab() {
               }
             }}
             data={[
-              { label: 'English', value: 'en' },
-              { label: 'Deutsch', value: 'de' },
+              { label: t('appearance.localeEn'), value: 'en' },
+              { label: t('appearance.localeDe'), value: 'de' },
             ]}
             disabled={patchPreferences.isPending}
             w={160}

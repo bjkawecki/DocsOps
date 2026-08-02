@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "organisation": "Organisation",
+    "operations": "Operations",
+    "data": "Data",
+    "platform": "Platform",
+    "users": "Users",
+    "teams": "Teams",
+    "departments": "Departments",
+    "company": "Company",
+    "jobs": "Jobs",
+    "scheduler": "Scheduler",
+    "backup": "Backup",
+    "migration": "Migration",
+    "system": "System",
+    "mail": "Mail",
+    "broadcast": "Broadcast"
+  },
+  "actions": {
+    "createUser": "Create user",
+    "createTeam": "Create team",
+    "createDepartment": "Create department",
+    "createCompany": "Create company",
+    "createMessage": "Create message",
+    "backupNow": "Backup now",
+    "backupSettings": "Settings",
+    "exportPlatform": "Export platform",
+    "importPlatform": "Import platform",
+    "howToUpdate": "How to update",
+    "applyUpdate": "Apply update",
+    "checkForUpdates": "Check for updates",
+    "saveMailSettings": "Save mail settings",
+    "sendTestEmail": "Send test email"
+  }
+}

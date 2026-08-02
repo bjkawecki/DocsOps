@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -18,6 +19,7 @@ import { AdminSystemUpdateStepsModal } from './AdminSystemUpdateStepsModal.js';
 import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
 
 export function AdminSystemTab() {
+  const { t } = useTranslation('admin');
   const statusQuery = useAdminUpdateStatus();
   const settingsQuery = useAdminSystemSettings();
   const checkMutation = useCheckForUpdates();
@@ -64,11 +66,11 @@ export function AdminSystemTab() {
     () => (
       <Group gap="sm" align="center" wrap="nowrap">
         <Button size="xs" variant="default" onClick={openSteps} disabled={status == null}>
-          How to update
+          {t('actions.howToUpdate')}
         </Button>
         {canApplyUpdate ? (
           <Button size="xs" color="orange" onClick={openApply}>
-            Apply update
+            {t('actions.applyUpdate')}
           </Button>
         ) : null}
         <Tooltip
@@ -82,7 +84,7 @@ export function AdminSystemTab() {
             disabled={checkDisabled}
             onClick={() => void handleCheck()}
           >
-            Check for updates
+            {t('actions.checkForUpdates')}
           </Button>
         </Tooltip>
       </Group>
@@ -96,6 +98,7 @@ export function AdminSystemTab() {
       openApply,
       openSteps,
       status,
+      t,
     ]
   );
   useSetAppShellBreadcrumbActions(

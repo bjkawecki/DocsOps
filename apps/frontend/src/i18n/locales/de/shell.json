@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "main": "Hauptnavigation",
+    "home": "Start",
+    "catalog": "Katalog",
+    "personal": "Persönlich",
+    "shared": "Geteilt",
+    "approvals": "Freigaben",
+    "approvalsTitle": "Offene Reviews und Verschiebe-Anfragen",
+    "approvalsAria": "Freigaben: offene Reviews und Verschiebe-Anfragen",
+    "templates": "Vorlagen",
+    "organization": "Organisation",
+    "search": "Suche",
+    "searchEllipsis": "Suchen…",
+    "searchAria": "Dokumente suchen ({{kbd}})",
+    "searchTooltip": "Suche ({{kbd}})",
+    "collapse": "Einklappen",
+    "collapseSidebar": "Seitenleiste einklappen",
+    "collapseSidebarAria": "Seitenleiste auf Icon-Leiste einklappen",
+    "expandSidebar": "Seitenleiste ausklappen",
+    "openMenu": "Navigationsmenü öffnen",
+    "closeMenu": "Navigationsmenü schließen"
+  },
+  "account": {
+    "menu": "Konto",
+    "menuAria": "Kontomenü, {{name}}",
+    "settings": "Einstellungen",
+    "admin": "Admin",
+    "help": "Hilfe",
+    "whatsNew": "Neuigkeiten",
+    "whatsNewBadge": "Neu",
+    "logOut": "Abmelden",
+    "theme": "Design",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeAuto": "Auto",
+    "themeSystem": "System",
+    "colorScheme": "Farbschema",
+    "notifications": "Benachrichtigungen",
+    "notificationsUnread": "Benachrichtigungen ({{count}} ungelesen)"
+  },
+  "breadcrumb": {
+    "admin": "Admin"
+  },
+  "people": "Personen",
+  "create": "Erstellen",
+  "toasts": {
+    "themeUpdated": "Design-Einstellung gespeichert.",
+    "themeUpdateFailed": "Design-Einstellung konnte nicht gespeichert werden."
+  }
+}

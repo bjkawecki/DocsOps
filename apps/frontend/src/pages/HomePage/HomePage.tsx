@@ -1,6 +1,7 @@
 import './HomePage.css';
 import { Alert, Box, Loader, Text } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useMe } from '../../hooks/useMe.js';
 import {
@@ -34,6 +35,7 @@ function parseKindParam(raw: string | null): PulseItemKind | null {
  * Explore + illustration always follow the feed (fill when empty, footer when not).
  */
 export function HomePage() {
+  const { t } = useTranslation(['documents', 'common']);
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: me } = useMe();
   const activeKind = parseKindParam(searchParams.get('kind'));
@@ -142,8 +144,8 @@ export function HomePage() {
       ) : null}
       {!useMock && isError ? (
         <div className="pulse-home-column">
-          <Alert color="red" title="Could not load pulse">
-            {error instanceof Error ? error.message : 'Unknown error'}
+          <Alert color="red" title={t('documents:home.loadError')}>
+            {error instanceof Error ? error.message : t('common:errors.generic')}
           </Alert>
         </div>
       ) : null}
@@ -164,7 +166,7 @@ export function HomePage() {
             {feedEmpty && activeKind ? (
               <div className="pulse-home-column">
                 <Text size="sm" c="dimmed">
-                  No items in this category.
+                  {t('documents:home.categoryEmpty')}
                 </Text>
               </div>
             ) : null}

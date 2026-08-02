@@ -14,6 +14,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo, useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
@@ -109,12 +110,13 @@ function parseStoredPageSize(): number {
  * No tab area per §7.
  */
 export function CatalogPage() {
+  const { t } = useTranslation(['documents', 'common']);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useSetAppShellBreadcrumbs([
     {
       key: 'catalog',
-      label: 'Catalog',
+      label: t('documents:catalog.title'),
       icon: <IconListSearch size={14} stroke={1.5} />,
     },
   ]);
@@ -285,14 +287,14 @@ export function CatalogPage() {
           <Group gap="md" wrap="wrap" align="flex-end">
             <TextInput
               label="Search"
-              placeholder="Search by title or content"
+              placeholder={t('documents:catalog.searchPlaceholder')}
               value={search}
               onChange={(e) => setFilter('search', e.currentTarget.value)}
               style={{ minWidth: 200 }}
             />
             <Select
               label="Context type"
-              placeholder="All"
+              placeholder={t('documents:catalog.allTypes')}
               data={[
                 { value: '', label: 'All' },
                 { value: 'process', label: 'Process' },
@@ -323,7 +325,7 @@ export function CatalogPage() {
             />
             <MultiSelect
               label="Tags"
-              placeholder="Search or select tags"
+              placeholder={t('documents:catalog.tagsPlaceholder')}
               data={tagOptions}
               value={tagIds}
               onChange={(v) => setFilter('tagIds', v)}
@@ -336,7 +338,7 @@ export function CatalogPage() {
               {data != null ? `${data.total} document${data.total !== 1 ? 's' : ''}` : '–'}
             </Text>
             <Select
-              label="Per page"
+              label={t('documents:catalog.perPage')}
               data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
               value={String(limit)}
               onChange={(v) => v && setLimit(parseInt(v, 10))}
@@ -364,7 +366,7 @@ export function CatalogPage() {
                 <Table.Tr>
                   <Table.Td colSpan={8}>
                     <Text size="sm" c="dimmed">
-                      Loading…
+                      {t('documents:catalog.loading')}
                     </Text>
                   </Table.Td>
                 </Table.Tr>
@@ -373,7 +375,7 @@ export function CatalogPage() {
                 <Table.Tr>
                   <Table.Td colSpan={8}>
                     <Text size="sm" c="red">
-                      Failed to load documents.
+                      {t('documents:catalog.loadFailed')}
                     </Text>
                   </Table.Td>
                 </Table.Tr>
@@ -382,7 +384,7 @@ export function CatalogPage() {
                 <Table.Tr>
                   <Table.Td colSpan={8}>
                     <Text size="sm" c="dimmed">
-                      No documents match the filters.
+                      {t('documents:catalog.empty')}
                     </Text>
                   </Table.Td>
                 </Table.Tr>

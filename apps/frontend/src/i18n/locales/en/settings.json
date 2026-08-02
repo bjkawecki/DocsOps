@@ -1,0 +1,41 @@
+{
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "themeDescription": "Light, dark, or match the system.",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeAuto": "Auto",
+    "readingFontSans": "Sans",
+    "readingFontSerif": "Serif",
+    "pinSidebar": "Pin sidebar",
+    "pinSidebarDescription": "Start with the sidebar expanded on desktop. You can still collapse it anytime. On mobile the sidebar stays an overlay.",
+    "primaryColor": "Primary color",
+    "primaryColorDescription": "Accent color for buttons and highlights.",
+    "textSize": "Text size",
+    "textSizeDescription": "Scales the interface and document reading size.",
+    "readingFont": "Document reading font",
+    "readingFontDescription": "Font used when reading documents.",
+    "locale": "Interface language",
+    "localeDescription": "Language for the user interface.",
+    "localeEn": "English",
+    "localeDe": "Deutsch",
+    "toasts": {
+      "themeSaved": "Theme preference saved.",
+      "sidebarPinned": "Sidebar is pinned.",
+      "sidebarUnpinned": "Sidebar can be collapsed.",
+      "primaryColorSaved": "Primary color saved.",
+      "textSizeSaved": "Text size saved.",
+      "readingFontSaved": "Reading font saved.",
+      "localeSaved": "Interface language saved.",
+      "saveFailed": "Could not save preference."
+    }
+  },
+  "tabs": {
+    "general": "General",
+    "account": "Account",
+    "notifications": "Notifications",
+    "storage": "Storage",
+    "pulse": "Pulse"
+  }
+}

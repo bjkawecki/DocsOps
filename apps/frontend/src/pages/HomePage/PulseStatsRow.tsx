@@ -1,5 +1,6 @@
 import { ActionIcon, Button, Group, Text, Tooltip, useMantineTheme } from '@mantine/core';
 import { IconCircleCheck, IconX } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import type { PulseItemKind, PulseStats } from '../../hooks/useMePulse.js';
 
 export type PulseStatKey =
@@ -13,28 +14,34 @@ export type PulseStatKey =
 const STAT_DEFS: Array<{
   key: PulseStatKey;
   kind: PulseItemKind;
-  shortLabel: string;
+  labelKey:
+    | 'home.filters.drafts'
+    | 'home.filters.reviews'
+    | 'home.filters.decided'
+    | 'home.filters.new'
+    | 'home.filters.updated'
+    | 'home.filters.comments';
   last24hKey?: keyof PulseStats;
 }> = [
-  { key: 'openDrafts', kind: 'draft-open', shortLabel: 'Drafts' },
-  { key: 'reviewsAwaiting', kind: 'review-awaiting', shortLabel: 'Reviews' },
-  { key: 'reviewsDecidedUnread', kind: 'review-decided', shortLabel: 'Decided' },
+  { key: 'openDrafts', kind: 'draft-open', labelKey: 'home.filters.drafts' },
+  { key: 'reviewsAwaiting', kind: 'review-awaiting', labelKey: 'home.filters.reviews' },
+  { key: 'reviewsDecidedUnread', kind: 'review-decided', labelKey: 'home.filters.decided' },
   {
     key: 'newDocuments',
     kind: 'document-new',
-    shortLabel: 'New',
+    labelKey: 'home.filters.new',
     last24hKey: 'newDocumentsLast24h',
   },
   {
     key: 'updatedDocuments',
     kind: 'document-updated',
-    shortLabel: 'Updated',
+    labelKey: 'home.filters.updated',
     last24hKey: 'updatedDocumentsLast24h',
   },
   {
     key: 'comments',
     kind: 'document-comments',
-    shortLabel: 'Comments',
+    labelKey: 'home.filters.comments',
     last24hKey: 'commentsLast24h',
   },
 ];
@@ -50,11 +57,13 @@ function sumUpdates(stats: PulseStats): number {
   );
 }
 
-function timeGreeting(now: Date = new Date()): string {
+function timeGreetingKey(
+  now: Date = new Date()
+): 'home.goodMorning' | 'home.goodAfternoon' | 'home.goodEvening' {
   const h = now.getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'home.goodMorning';
+  if (h < 18) return 'home.goodAfternoon';
+  return 'home.goodEvening';
 }
 
 /** True if the string looks like an email (not a display name). */
@@ -73,14 +82,6 @@ function displayFirstName(fullName: string | undefined | null): string | null {
   return first;
 }
 
-function updatesStatusLine(updateCount: number): string {
-  if (updateCount === 0) {
-    return "You're all caught up.";
-  }
-  const itemsLabel = updateCount === 1 ? '1 item' : `${updateCount} items`;
-  return `Catch up when you're ready · ${itemsLabel}`;
-}
-
 type Props = {
   stats: PulseStats;
   activeKind: PulseItemKind | null;
@@ -93,12 +94,20 @@ type Props = {
  * Soft greeting + updates status; xs outline/filled filter buttons in accent color.
  */
 export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Props) {
+  const { t } = useTranslation('documents');
   const { primaryColor } = useMantineTheme();
   const updateCount = sumUpdates(stats);
   const firstName = displayFirstName(userName);
-  const greet = timeGreeting();
-  const greetingText = firstName ? `${greet}, ${firstName}` : greet;
-  const statusText = updatesStatusLine(updateCount);
+  const greet = t(timeGreetingKey());
+  const greetingText = firstName
+    ? t('home.greeting', { greeting: greet, name: firstName })
+    : t('home.greetingFallback', { greeting: greet });
+  const statusText =
+    updateCount === 0
+      ? t('home.caughtUp')
+      : updateCount === 1
+        ? t('home.catchUpOne')
+        : t('home.catchUpMany', { count: updateCount });
   const allCaughtUp = updateCount === 0;
 
   const visibleDefs = STAT_DEFS.filter((d) => stats[d.key] > 0 || activeKind === d.kind);
@@ -120,7 +129,7 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
           </Text>
         </div>
       </div>
-      <Group gap="sm" wrap="wrap" role="toolbar" aria-label="Pulse filters">
+      <Group gap="sm" wrap="wrap" role="toolbar" aria-label={t('home.filters.aria')}>
         {visibleDefs.map((def) => {
           const count = stats[def.key];
           const last24h = def.last24hKey != null ? stats[def.last24hKey] : null;
@@ -148,7 +157,7 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
                 onClick={() => onSelectKind(active ? null : def.kind)}
                 aria-pressed={active}
               >
-                {def.shortLabel}: {count}
+                {t(def.labelKey)}: {count}
               </Button>
             </Tooltip>
           );
@@ -159,7 +168,7 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
             variant="subtle"
             color="gray"
             onClick={() => onSelectKind(null)}
-            aria-label="Clear filter"
+            aria-label={t('home.filters.clear')}
           >
             <IconX size={16} stroke={1.75} />
           </ActionIcon>

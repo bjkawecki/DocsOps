@@ -69,7 +69,7 @@ module.exports = tseslint.config(
     },
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'apps/*/scripts/**/*.mjs'],
     languageOptions: {
       globals: {
         process: 'readonly',

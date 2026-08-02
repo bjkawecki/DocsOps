@@ -1,0 +1,35 @@
+{
+  "catalog": {
+    "title": "Catalog",
+    "searchPlaceholder": "Search by title or content",
+    "empty": "No documents match the filters.",
+    "perPage": "Per page",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load documents.",
+    "allTypes": "All",
+    "tagsPlaceholder": "Search or select tags"
+  },
+  "home": {
+    "greeting": "{{greeting}}, {{name}}",
+    "greetingFallback": "{{greeting}}",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "pulseEmpty": "No pulse items right now.",
+    "categoryEmpty": "No items in this category.",
+    "loadError": "Could not load pulse",
+    "caughtUp": "You're all caught up.",
+    "catchUpOne": "Catch up when you're ready · 1 item",
+    "catchUpMany": "Catch up when you're ready · {{count}} items",
+    "filters": {
+      "aria": "Pulse filters",
+      "clear": "Clear filter",
+      "drafts": "Drafts",
+      "reviews": "Reviews",
+      "decided": "Decided",
+      "new": "New",
+      "updated": "Updated",
+      "comments": "Comments"
+    }
+  }
+}

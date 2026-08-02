@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Text,
@@ -49,6 +50,7 @@ function formatBytes(n: number): string {
 }
 
 export function AdminCompanyTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -245,10 +247,10 @@ export function AdminCompanyTab() {
   const chromeActions = useMemo(
     () => (
       <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
-        Create company
+        {t('actions.createCompany')}
       </Button>
     ),
-    [openCreate]
+    [openCreate, t]
   );
   useSetAppShellBreadcrumbActions(chromeActions, 'admin-company-create');
 
@@ -310,7 +312,12 @@ export function AdminCompanyTab() {
         </Table>
       )}
 
-      <Modal opened={createOpened} onClose={closeCreate} title="Create company" size="sm">
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t('actions.createCompany')}
+        size="sm"
+      >
         <CompanyForm
           initialName=""
           onSubmit={(name) => createCompany.mutate(name)}

@@ -1,10 +1,10 @@
 export type LoginRedirectReason = 'auth_required' | 'session_expired';
 
-export type LoginErrorDisplay = {
-  title: string;
-  message: string;
-  /** Optional second line in the inline alert. */
-  hint?: string;
+export type LoginErrorDisplayKeys = {
+  titleKey: string;
+  messageKey: string;
+  hintKey?: string;
+  messageParams?: Record<string, string>;
 };
 
 function isNetworkError(raw: string): boolean {
@@ -16,56 +16,57 @@ function isNetworkError(raw: string): boolean {
 }
 
 /** Shown when redirecting to /login with an actionable reason (e.g. session expired). */
-export function getLoginRedirectErrorDisplay(reason: LoginRedirectReason): LoginErrorDisplay {
+export function getLoginRedirectErrorKeys(reason: LoginRedirectReason): LoginErrorDisplayKeys {
   if (reason === 'session_expired') {
     return {
-      title: 'Session expired',
-      message: 'Please log in again to continue.',
+      titleKey: 'errors.sessionExpiredTitle',
+      messageKey: 'errors.sessionExpiredMessage',
     };
   }
   return {
-    title: 'Sign in required',
-    message: 'Log in to access this page.',
+    titleKey: 'errors.signInRequiredTitle',
+    messageKey: 'errors.signInRequiredMessage',
   };
 }
 
-/** User-facing copy for login failures. */
-export function getLoginErrorDisplay(err: unknown): LoginErrorDisplay {
+/** User-facing i18n keys for login failures. */
+export function getLoginErrorKeys(err: unknown): LoginErrorDisplayKeys {
   const raw = err instanceof Error ? err.message : String(err);
 
   if (isNetworkError(raw)) {
     return {
-      title: 'Login failed',
-      message: 'Cannot reach the server.',
+      titleKey: 'errors.loginFailedTitle',
+      messageKey: 'errors.networkMessage',
     };
   }
 
   if (raw === 'Invalid credentials') {
     return {
-      title: 'Login failed',
-      message: 'Email or password is incorrect.',
+      titleKey: 'errors.loginFailedTitle',
+      messageKey: 'errors.invalidCredentialsMessage',
     };
   }
 
   if (raw === 'Session not established') {
     return {
-      title: 'Login failed',
-      message: 'Your credentials were accepted, but no session was created.',
-      hint: 'The browser may not be storing cookies (e.g. HTTP with Secure cookies). Contact IT if this persists.',
+      titleKey: 'errors.loginFailedTitle',
+      messageKey: 'errors.sessionNotEstablishedMessage',
+      hintKey: 'errors.sessionNotEstablishedHint',
     };
   }
 
   const httpMatch = /^HTTP_(\d+)$/.exec(raw);
   if (httpMatch) {
     return {
-      title: 'Login failed',
-      message: `Server error (${httpMatch[1]}).`,
-      hint: 'Contact IT with this code if the problem continues.',
+      titleKey: 'errors.loginFailedTitle',
+      messageKey: 'errors.httpMessage',
+      messageParams: { status: httpMatch[1] ?? '' },
+      hintKey: 'errors.httpHint',
     };
   }
 
   return {
-    title: 'Login failed',
-    message: 'Something went wrong.',
+    titleKey: 'errors.loginFailedTitle',
+    messageKey: 'errors.genericMessage',
   };
 }

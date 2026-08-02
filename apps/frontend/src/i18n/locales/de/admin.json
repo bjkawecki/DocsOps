@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "organisation": "Organisation",
+    "operations": "Betrieb",
+    "data": "Daten",
+    "platform": "Plattform",
+    "users": "Nutzer",
+    "teams": "Teams",
+    "departments": "Abteilungen",
+    "company": "Firma",
+    "jobs": "Jobs",
+    "scheduler": "Zeitplaner",
+    "backup": "Backup",
+    "migration": "Migration",
+    "system": "System",
+    "mail": "E-Mail",
+    "broadcast": "Broadcast"
+  },
+  "actions": {
+    "createUser": "Nutzer anlegen",
+    "createTeam": "Team anlegen",
+    "createDepartment": "Abteilung anlegen",
+    "createCompany": "Firma anlegen",
+    "createMessage": "Nachricht erstellen",
+    "backupNow": "Jetzt sichern",
+    "backupSettings": "Einstellungen",
+    "exportPlatform": "Plattform exportieren",
+    "importPlatform": "Plattform importieren",
+    "howToUpdate": "Update-Anleitung",
+    "applyUpdate": "Update anwenden",
+    "checkForUpdates": "Nach Updates suchen",
+    "saveMailSettings": "E-Mail-Einstellungen speichern",
+    "sendTestEmail": "Test-E-Mail senden"
+  }
+}

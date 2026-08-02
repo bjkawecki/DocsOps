@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Box, Container, Flex, Paper } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useSetAppShellBreadcrumbs,
   useSetAppShellChromeBar,
@@ -14,6 +15,7 @@ import { ADMIN_DEFAULT_PATH, findAdminNavItem } from './adminNavConfig.js';
 import './AdminPage.css';
 
 export function AdminPage() {
+  const { t } = useTranslation(['shell', 'admin']);
   const location = useLocation();
   const currentItem = findAdminNavItem(location.pathname);
 
@@ -21,7 +23,7 @@ export function AdminPage() {
     const items: AppShellBreadcrumbItem[] = [
       {
         key: 'admin',
-        label: 'Admin',
+        label: t('shell:breadcrumb.admin'),
         to: ADMIN_DEFAULT_PATH,
         icon: <IconSettings size={14} stroke={1.5} />,
       },
@@ -29,11 +31,11 @@ export function AdminPage() {
     if (currentItem != null) {
       items.push({
         key: currentItem.to,
-        label: currentItem.label,
+        label: t(`admin:${currentItem.labelKey}`),
       });
     }
     return items;
-  }, [currentItem]);
+  }, [currentItem, t]);
 
   useSetAppShellBreadcrumbs(breadcrumbs);
   useSetAppShellChromeBar(null);

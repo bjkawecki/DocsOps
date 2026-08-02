@@ -2,7 +2,7 @@
 
 Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
 
-**Status:** Vorgaben festgehalten; Umsetzung noch offen.
+**Status:** Phase 1 umgesetzt (Gerüst, Locale-Wiring, Shell/Login/Settings/Home/Catalog/Admin-Nav+Primary-Actions EN+DE). Weitere Surfaces folgen.
 
 ---
 
@@ -61,9 +61,9 @@ Nach Login gilt die Preference als Wahrheit; vor Login Browser/`?lang=`. Setting
 
 ## 6. Phasen (Umsetzung)
 
-### Phase 1 (vor öffentlicher Demo)
+### Phase 1 (vor öffentlicher Demo) – umgesetzt
 
-Gerüst + Locale-Wiring; danach UI-Texte für:
+Gerüst + Locale-Wiring; UI-Texte für:
 
 - AppShell (Nav, Account-Menü, Chrome)
 - Login / Demo-Login
@@ -84,8 +84,9 @@ Gerüst + Locale-Wiring; danach UI-Texte für:
 ## 7. Pflege & Schutz vor Lücken
 
 - Jeder neue UI-Text: EN-Key anlegen; DE zeitnah oder bewusst TODO (nur unkritische Labels)
-- Nach Gerüst: ESLint gegen Literal-Strings in UI-Ordnern (z. B. `i18next/no-literal-string`) und/oder CI-Check „DE-Keys ⊆ EN-Keys“
-- Review-Checkliste: keine neuen hardcoded Labels ohne `t()`
+- CI/Verify: `pnpm run check:i18n` (`apps/frontend/scripts/check-i18n-keys.mjs`) stellt sicher, dass **DE-Keys ⊆ EN-Keys**
+- ESLint `i18next/no-literal-string` noch **nicht** app-weit (zu laut); Review: neue Phase-1-Dateien nur mit `t()`
+- Review-Checkliste: keine neuen hardcoded Labels ohne `t()` auf bereits migrierten Surfaces
 
 ---
 

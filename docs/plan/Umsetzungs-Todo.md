@@ -380,10 +380,10 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
 
-[ ] **i18n-Gerüst:** `i18next` + `react-i18next`; JSON unter `apps/frontend/src/i18n/locales/{en,de}/`; Namespaces; Fallback EN.
-[ ] **Locale-Wiring:** Preference → `?lang=` → Browser → `en`; Settings „Interface language“ anwenden; Mantine-Dates/`Intl` an Locale koppeln.
-[ ] **Phase 1 UI EN+DE:** Shell, Login/Demo-Login, Settings, häufige Toasts, Home/Catalog-Kern, Admin-Nav + häufige Primary-Actions. Help bleibt EN.
-[ ] **Pflege-Schutz:** ESLint gegen Literal-Strings und/oder CI „DE-Keys ⊆ EN-Keys“; Review-Regel neue UI-Texte nur via Keys.
+[x] **i18n-Gerüst:** `i18next` + `react-i18next`; JSON unter `apps/frontend/src/i18n/locales/{en,de}/`; Namespaces; Fallback EN.
+[x] **Locale-Wiring:** Preference → `?lang=` → Browser → `en`; Settings „Interface language“ anwenden; Mantine-Dates/`Intl` an Locale koppeln.
+[x] **Phase 1 UI EN+DE:** Shell, Login/Demo-Login, Settings, häufige Toasts, Home/Catalog-Kern, Admin-Nav + häufige Primary-Actions. Help bleibt EN.
+[x] **Pflege-Schutz:** ESLint gegen Literal-Strings und/oder CI „DE-Keys ⊆ EN-Keys“; Review-Regel neue UI-Texte nur via Keys.
 
 **Demo-Instanz (`demo.docsops.de`):**
 

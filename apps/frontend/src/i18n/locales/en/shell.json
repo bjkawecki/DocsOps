@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "main": "Main navigation",
+    "home": "Home",
+    "catalog": "Catalog",
+    "personal": "Personal",
+    "shared": "Shared",
+    "approvals": "Approvals",
+    "approvalsTitle": "Open reviews and move requests awaiting a decision",
+    "approvalsAria": "Approvals: open reviews and move requests",
+    "templates": "Templates",
+    "organization": "Organization",
+    "search": "Search",
+    "searchEllipsis": "Search…",
+    "searchAria": "Search documents ({{kbd}})",
+    "searchTooltip": "Search ({{kbd}})",
+    "collapse": "Collapse",
+    "collapseSidebar": "Collapse sidebar",
+    "collapseSidebarAria": "Collapse sidebar to icon rail",
+    "expandSidebar": "Expand sidebar",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "account": {
+    "menu": "Account",
+    "menuAria": "Account menu, {{name}}",
+    "settings": "Settings",
+    "admin": "Admin",
+    "help": "Help",
+    "whatsNew": "What's new",
+    "whatsNewBadge": "New",
+    "logOut": "Log out",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeAuto": "Auto",
+    "themeSystem": "System",
+    "colorScheme": "Color scheme",
+    "notifications": "Notifications",
+    "notificationsUnread": "Notifications ({{count}} unread)"
+  },
+  "breadcrumb": {
+    "admin": "Admin"
+  },
+  "people": "People",
+  "create": "Create",
+  "toasts": {
+    "themeUpdated": "Theme preference saved.",
+    "themeUpdateFailed": "Could not save theme preference."
+  }
+}

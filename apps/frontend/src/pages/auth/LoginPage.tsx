@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, TextInput, PasswordInput, Button, Stack, Text, Paper, Alert } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { fetchMe, meQueryKey } from '../../hooks/useMe';
 import { DocopsLogo } from '../../components/appShell/DocopsLogo';
@@ -9,11 +10,11 @@ import { AppVersionLabel } from '../../components/AppVersionLabel';
 import { AppShellMaintenanceBanner } from '../../components/appShell/AppShellMaintenanceBanner';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus';
 import {
-  getLoginErrorDisplay,
-  getLoginRedirectErrorDisplay,
+  getLoginErrorKeys,
+  getLoginRedirectErrorKeys,
   type LoginRedirectReason,
 } from './loginErrors';
-import { randomLoginTagline } from './loginTaglines';
+import { randomLoginTaglineIndex } from './loginTaglines';
 
 const LOGIN_ERROR_ID = 'login-error';
 
@@ -23,9 +24,10 @@ type LoginLocationState = {
 };
 
 export function LoginPage() {
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loginTagline] = useState(randomLoginTagline);
+  const [taglineIndex] = useState(randomLoginTaglineIndex);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -48,12 +50,15 @@ export function LoginPage() {
     },
   });
 
-  const redirectError =
+  const redirectErrorKeys =
     locationState.loginError === 'session_expired'
-      ? getLoginRedirectErrorDisplay(locationState.loginError)
+      ? getLoginRedirectErrorKeys(locationState.loginError)
       : null;
-  const loginError = login.isError ? getLoginErrorDisplay(login.error) : redirectError;
+  const errorKeys = login.isError ? getLoginErrorKeys(login.error) : redirectErrorKeys;
   const maintenanceQuery = useMaintenanceStatus();
+  const tagline = t(`taglines.${taglineIndex}`, {
+    defaultValue: t('taglines.0'),
+  });
 
   return (
     <Box
@@ -94,7 +99,7 @@ export function LoginPage() {
               </Text>
             </Box>
             <Text size="sm" c="dimmed" ta="center">
-              {loginTagline}
+              {tagline}
             </Text>
           </Stack>
 
@@ -103,12 +108,12 @@ export function LoginPage() {
               e.preventDefault();
               login.mutate();
             }}
-            aria-describedby={loginError ? LOGIN_ERROR_ID : undefined}
+            aria-describedby={errorKeys ? LOGIN_ERROR_ID : undefined}
           >
             <Stack gap="md">
               <TextInput
                 id="login-email"
-                label="Email"
+                label={t('email')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -119,37 +124,37 @@ export function LoginPage() {
               />
               <PasswordInput
                 id="login-password"
-                label="Password"
+                label={t('password')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 disabled={login.isPending}
               />
-              {loginError && (
+              {errorKeys && (
                 <Alert
                   id={LOGIN_ERROR_ID}
                   role="alert"
                   color="red"
                   variant="filled"
-                  title={loginError.title}
+                  title={t(errorKeys.titleKey)}
                 >
-                  {loginError.message}
-                  {loginError.hint ? (
+                  {t(errorKeys.messageKey, errorKeys.messageParams)}
+                  {errorKeys.hintKey ? (
                     <Text size="sm" c="dimmed" mt="xs">
-                      {loginError.hint}
+                      {t(errorKeys.hintKey)}
                     </Text>
                   ) : null}
                 </Alert>
               )}
               <Button type="submit" variant="filled" size="md" loading={login.isPending} fullWidth>
-                Log in
+                {login.isPending ? t('submitting') : t('submit')}
               </Button>
             </Stack>
           </form>
 
           <Text size="xs" c="dimmed" ta="center" mt="lg">
-            Forgot password? Contact your administrator. Need access? Contact IT.
+            {t('accessHint')}
           </Text>
         </Paper>
       </Box>

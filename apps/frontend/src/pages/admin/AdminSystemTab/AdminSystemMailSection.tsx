@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AdminSystemSettings } from 'backend/api-types';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useMe } from '../../../hooks/useMe.js';
@@ -29,6 +30,7 @@ type Props = {
  * Admin Platform → Mail: platform SMTP configuration + send test email.
  */
 export function AdminSystemMailSection({ settings }: Props) {
+  const { t } = useTranslation('admin');
   const { data: me } = useMe();
   const patchMutation = usePatchAdminSystemSettings();
   const testMutation = useSendAdminSmtpTestEmail();
@@ -114,7 +116,7 @@ export function AdminSystemMailSection({ settings }: Props) {
           onClick={() => void handleSaveRef.current()}
           size="xs"
         >
-          Save mail settings
+          {t('actions.saveMailSettings')}
         </Button>
         <Button
           variant="light"
@@ -123,11 +125,11 @@ export function AdminSystemMailSection({ settings }: Props) {
           disabled={testDisabled}
           onClick={() => void handleTestRef.current()}
         >
-          Send test email
+          {t('actions.sendTestEmail')}
         </Button>
       </Group>
     ),
-    [patchMutation.isPending, testMutation.isPending, testDisabled]
+    [patchMutation.isPending, testMutation.isPending, testDisabled, t]
   );
   useSetAppShellBreadcrumbActions(
     chromeActions,
@@ -216,7 +218,7 @@ export function AdminSystemMailSection({ settings }: Props) {
 
         <Stack gap="xs">
           <Text size="sm" fw={500}>
-            Send test email
+            {t('actions.sendTestEmail')}
           </Text>
           <TextInput
             label="Recipient"

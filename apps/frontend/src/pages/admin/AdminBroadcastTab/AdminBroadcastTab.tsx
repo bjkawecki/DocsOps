@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Pagination, Stack } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -39,6 +40,7 @@ const emptyDraft = (): BroadcastDraft => ({
 });
 
 export function AdminBroadcastTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [limit, setLimit] = useState(readInitialLimit);
   const [offset, setOffset] = useState(0);
@@ -122,10 +124,10 @@ export function AdminBroadcastTab() {
           setCreateOpen(true);
         }}
       >
-        Create message
+        {t('actions.createMessage')}
       </Button>
     ),
-    []
+    [t]
   );
   useSetAppShellBreadcrumbActions(chromeActions, 'admin-broadcast-create');
 

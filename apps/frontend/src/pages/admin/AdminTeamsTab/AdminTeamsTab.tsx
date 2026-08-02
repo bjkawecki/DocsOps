@@ -5,6 +5,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Team } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminTeamDeleteModal } from './AdminTeamDeleteModal';
@@ -29,6 +30,7 @@ import type {
 import { CreateTeamForm } from './CreateTeamForm';
 
 export function AdminTeamsTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(null);
@@ -487,10 +489,10 @@ export function AdminTeamsTab() {
         onClick={openCreateTeam}
         disabled={createTeamDisabled}
       >
-        Create team
+        {t('actions.createTeam')}
       </Button>
     ),
-    [createTeamDisabled, openCreateTeam]
+    [createTeamDisabled, openCreateTeam, t]
   );
   useSetAppShellBreadcrumbActions(chromeActions, `admin-teams:${createTeamDisabled}`);
 
@@ -531,7 +533,12 @@ export function AdminTeamsTab() {
         onSelectTeam={setEditingTeam}
       />
 
-      <Modal opened={createTeamOpened} onClose={closeCreateTeam} title="Create team" size="sm">
+      <Modal
+        opened={createTeamOpened}
+        onClose={closeCreateTeam}
+        title={t('actions.createTeam')}
+        size="sm"
+      >
         <CreateTeamForm
           departments={departments}
           onSubmit={(name, departmentId) => createTeam.mutate({ name, departmentId })}

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,6 +24,7 @@ import type {
 } from './adminUsersTypes';
 
 export function AdminUsersTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState<number>(() => {
@@ -260,10 +262,10 @@ export function AdminUsersTab() {
   const chromeActions = useMemo(
     () => (
       <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
-        Create user
+        {t('actions.createUser')}
       </Button>
     ),
-    [openCreate]
+    [openCreate, t]
   );
   useSetAppShellBreadcrumbActions(chromeActions, 'admin-users-create');
 
@@ -358,7 +360,7 @@ export function AdminUsersTab() {
         </Modal>
       )}
 
-      <Modal opened={createOpened} onClose={closeCreate} title="Create user" size="sm">
+      <Modal opened={createOpened} onClose={closeCreate} title={t('actions.createUser')} size="sm">
         <AdminUserCreateForm
           departments={departments}
           onSubmit={(body) => createUser.mutate(body)}

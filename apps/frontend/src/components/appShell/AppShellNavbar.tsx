@@ -7,6 +7,7 @@ import {
   IconClipboardCheck,
   IconTemplate,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { AppShellRoleBasedNav } from './AppShellRoleBasedNav.js';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
 import { AppShellSidebarBrand } from './AppShellSidebarBrand.js';
@@ -38,11 +39,12 @@ export function AppShellNavbar({
   onNavigate,
   onOpenSearch,
 }: Props) {
+  const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
   return (
     <MantineAppShell.Navbar
       id={MAIN_NAV_ID}
-      aria-label="Main navigation"
+      aria-label={t('nav.main')}
       p={0}
       className={`app-shell-navbar${isMiniRail ? ' app-shell-navbar--mini' : ''}`}
     >
@@ -68,7 +70,7 @@ export function AppShellNavbar({
             >
               <AppShellSidebarNavLink
                 to="/"
-                label="Home"
+                label={t('nav.home')}
                 active={isActive('/', s.location.pathname)}
                 leftSection={<IconHome size={20} />}
                 navLinkStyles={s.navLinkStyles}
@@ -77,7 +79,7 @@ export function AppShellNavbar({
               />
               <AppShellSidebarNavLink
                 to="/catalog"
-                label="Catalog"
+                label={t('nav.catalog')}
                 active={isActive('/catalog', s.location.pathname)}
                 leftSection={<IconListSearch size={20} />}
                 navLinkStyles={s.navLinkStyles}
@@ -88,7 +90,7 @@ export function AppShellNavbar({
               {s.canManageDocumentTemplates ? (
                 <AppShellSidebarNavLink
                   to="/templates"
-                  label="Templates"
+                  label={t('nav.templates')}
                   active={isActive('/templates', s.location.pathname)}
                   leftSection={<IconTemplate size={20} />}
                   navLinkStyles={s.navLinkStyles}
@@ -100,7 +102,7 @@ export function AppShellNavbar({
                 <>
                   {!isMiniRail ? (
                     <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
-                      Organization
+                      {t('nav.organization')}
                     </Text>
                   ) : null}
                   <AppShellRoleBasedNav
@@ -131,12 +133,12 @@ export function AppShellNavbar({
               ) : null}
               {!isMiniRail ? (
                 <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
-                  Personal
+                  {t('nav.personal')}
                 </Text>
               ) : null}
               <AppShellSidebarNavLink
                 to="/personal"
-                label="Personal"
+                label={t('nav.personal')}
                 active={isOrgNavActive('/personal', s.location.pathname, navScope, {
                   type: 'personal',
                 })}
@@ -149,9 +151,9 @@ export function AppShellNavbar({
               {s.showApprovalsNav ? (
                 <AppShellSidebarNavLink
                   to="/approvals"
-                  label="Approvals"
-                  title="Open reviews and move requests awaiting a decision"
-                  ariaLabel="Approvals: open reviews and move requests"
+                  label={t('nav.approvals')}
+                  title={t('nav.approvalsTitle')}
+                  ariaLabel={t('nav.approvalsAria')}
                   active={
                     isActive('/approvals', s.location.pathname) ||
                     isActive('/reviews', s.location.pathname)
@@ -165,7 +167,7 @@ export function AppShellNavbar({
               ) : null}
               <AppShellSidebarNavLink
                 to="/shared"
-                label="Shared"
+                label={t('nav.shared')}
                 active={isOrgNavActive('/shared', s.location.pathname, navScope, {
                   type: 'shared',
                 })}

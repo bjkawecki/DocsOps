@@ -9,14 +9,15 @@
   "scripts": {
     "lint": "eslint .",
     "check:permissions": "bash scripts/check-permission-drift.sh",
-    "verify": "pnpm run lint && pnpm run check:permissions && pnpm run format:check && pnpm --filter backend run build && pnpm --filter frontend run build",
+    "check:i18n": "pnpm --filter frontend run check:i18n",
+    "verify": "pnpm run lint && pnpm run check:permissions && pnpm run check:i18n && pnpm run format:check && pnpm --filter backend run build && pnpm --filter frontend run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,ts,tsx,json,md,yml,yaml,css,scss,html}": "prettier --write",
-    "*.{js,ts,tsx}": "eslint --fix"
+    "*.{js,mjs,cjs,ts,tsx,json,md,yml,yaml,css,scss,html}": "prettier --write",
+    "*.{js,mjs,cjs,ts,tsx}": "eslint --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

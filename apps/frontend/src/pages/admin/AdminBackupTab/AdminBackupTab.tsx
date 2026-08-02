@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button, Group, Loader, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -43,6 +44,7 @@ const DEFAULT_AUTO_TZ = 'UTC';
 type CreateBackupResult = { backupRunId: string; jobId: string };
 
 export function AdminBackupTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [settingsInitialTab, setSettingsInitialTab] = useState<BackupSettingsTab>('general');
@@ -482,7 +484,7 @@ export function AdminBackupTab() {
           leftSection={<IconSettings size={14} />}
           onClick={() => openBackupSettings('general')}
         >
-          Settings
+          {t('actions.backupSettings')}
         </Button>
         <Button
           size="xs"
@@ -490,11 +492,11 @@ export function AdminBackupTab() {
           loading={createBackup.isPending}
           disabled={!canBackup}
         >
-          Backup now
+          {t('actions.backupNow')}
         </Button>
       </Group>
     ),
-    [canBackup, createBackup, openBackupSettings, status?.defaultDestinationId]
+    [canBackup, createBackup, openBackupSettings, status?.defaultDestinationId, t]
   );
   useSetAppShellBreadcrumbActions(
     chromeActions,

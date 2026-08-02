@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +14,7 @@ import { getMigrationStatusRefetchIntervalMs } from './migrationRunPolling';
 import { getExportDisabledReason, getImportDisabledReason } from './migrationUiHelpers';
 
 export function AdminMigrationTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [exportOpened, { open: openExport, close: closeExport }] = useDisclosure(false);
   const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
@@ -58,7 +60,7 @@ export function AdminMigrationTab() {
           disabled={!exportDisabled || !exportDisabledReason}
         >
           <Button size="xs" disabled={exportDisabled} onClick={openExport}>
-            Export platform
+            {t('actions.exportPlatform')}
           </Button>
         </Tooltip>
         <Tooltip
@@ -66,7 +68,7 @@ export function AdminMigrationTab() {
           disabled={!importDisabled || !importDisabledReason}
         >
           <Button size="xs" variant="default" disabled={importDisabled} onClick={openImport}>
-            Import platform
+            {t('actions.importPlatform')}
           </Button>
         </Tooltip>
       </Group>
@@ -78,6 +80,7 @@ export function AdminMigrationTab() {
       importDisabledReason,
       openExport,
       openImport,
+      t,
     ]
   );
   useSetAppShellBreadcrumbActions(

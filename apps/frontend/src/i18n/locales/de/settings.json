@@ -1,0 +1,41 @@
+{
+  "appearance": {
+    "title": "Darstellung",
+    "theme": "Design",
+    "themeDescription": "Hell, dunkel oder Systemeinstellung.",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeAuto": "Auto",
+    "readingFontSans": "Sans",
+    "readingFontSerif": "Serif",
+    "pinSidebar": "Seitenleiste anheften",
+    "pinSidebarDescription": "Auf dem Desktop mit ausgeklappter Seitenleiste starten. Einklappen bleibt möglich. Auf Mobilgeräten bleibt die Leiste ein Overlay.",
+    "primaryColor": "Primärfarbe",
+    "primaryColorDescription": "Akzentfarbe für Buttons und Hervorhebungen.",
+    "textSize": "Textgröße",
+    "textSizeDescription": "Skaliert Oberfläche und Dokumentenlesetext.",
+    "readingFont": "Schrift für Dokumente",
+    "readingFontDescription": "Schrift beim Lesen von Dokumenten.",
+    "locale": "Oberflächensprache",
+    "localeDescription": "Sprache der Benutzeroberfläche.",
+    "localeEn": "English",
+    "localeDe": "Deutsch",
+    "toasts": {
+      "themeSaved": "Design-Einstellung gespeichert.",
+      "sidebarPinned": "Seitenleiste ist angeheftet.",
+      "sidebarUnpinned": "Seitenleiste kann eingeklappt werden.",
+      "primaryColorSaved": "Primärfarbe gespeichert.",
+      "textSizeSaved": "Textgröße gespeichert.",
+      "readingFontSaved": "Leseschrift gespeichert.",
+      "localeSaved": "Oberflächensprache gespeichert.",
+      "saveFailed": "Einstellung konnte nicht gespeichert werden."
+    }
+  },
+  "tabs": {
+    "general": "Allgemein",
+    "account": "Konto",
+    "notifications": "Benachrichtigungen",
+    "storage": "Speicher",
+    "pulse": "Pulse"
+  }
+}

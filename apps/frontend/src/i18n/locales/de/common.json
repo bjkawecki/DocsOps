@@ -1,0 +1,20 @@
+{
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "search": "Suchen",
+    "close": "Schließen",
+    "create": "Anlegen",
+    "delete": "Löschen",
+    "retry": "Erneut versuchen"
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen.",
+    "loadFailed": "Daten konnten nicht geladen werden. Seite neu laden oder später erneut versuchen."
+  },
+  "status": {
+    "loading": "Laden…",
+    "active": "Aktiv",
+    "empty": "Hier ist noch nichts."
+  }
+}

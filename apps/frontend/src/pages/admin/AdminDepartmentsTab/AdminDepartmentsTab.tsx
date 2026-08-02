@@ -5,6 +5,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Department } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminDepartmentDeleteModal } from './AdminDepartmentDeleteModal';
@@ -27,6 +28,7 @@ import type {
 import { CreateDepartmentForm } from './CreateDepartmentForm';
 
 export function AdminDepartmentsTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [filterCompanyId, setFilterCompanyId] = useState<string | null>(null);
@@ -347,10 +349,10 @@ export function AdminDepartmentsTab() {
         onClick={openCreate}
         disabled={createDepartmentDisabled}
       >
-        Create department
+        {t('actions.createDepartment')}
       </Button>
     ),
-    [createDepartmentDisabled, openCreate]
+    [createDepartmentDisabled, openCreate, t]
   );
   useSetAppShellBreadcrumbActions(chromeActions, `admin-departments:${createDepartmentDisabled}`);
 
@@ -397,7 +399,12 @@ export function AdminDepartmentsTab() {
         onSelectDepartment={setEditingDepartment}
       />
 
-      <Modal opened={createOpened} onClose={closeCreate} title="Create department" size="sm">
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t('actions.createDepartment')}
+        size="sm"
+      >
         <CreateDepartmentForm
           companies={companies}
           onSubmit={(name, companyId) => createDepartment.mutate({ name, companyId })}

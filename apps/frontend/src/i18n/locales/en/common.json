@@ -1,0 +1,20 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "retry": "Retry"
+  },
+  "errors": {
+    "generic": "Something went wrong.",
+    "loadFailed": "Could not load data. Reload the page or try again later."
+  },
+  "status": {
+    "loading": "Loading…",
+    "active": "Active",
+    "empty": "Nothing here yet."
+  }
+}

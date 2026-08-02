@@ -7,6 +7,8 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppMantineProvider } from './components/system/AppMantineProvider';
 import { COLOR_SCHEME_STORAGE_KEY } from './constants';
+import { LocaleSync } from './i18n/LocaleSync.js';
+import './i18n/i18n.js';
 import '@fontsource-variable/inter/wght.css';
 import '@fontsource/open-sans/400.css';
 import '@fontsource/open-sans/400-italic.css';
@@ -43,6 +45,7 @@ createRoot(document.getElementById('root')!).render(
       <AppMantineProvider colorSchemeManager={colorSchemeManager}>
         <Notifications position="bottom-right" />
         <BrowserRouter>
+          <LocaleSync />
           <App />
         </BrowserRouter>
       </AppMantineProvider>
