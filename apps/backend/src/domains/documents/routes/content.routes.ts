@@ -30,6 +30,7 @@ import {
 } from '../services/lifecycle/documentService.js';
 import { moveDocument } from '../services/lifecycle/documentMoveService.js';
 import { getPendingMoveRequestForDocument } from '../services/lifecycle/documentMoveRequestService.js';
+import { recordDocumentView } from '../services/lifecycle/documentViewService.js';
 import {
   createDocument,
   DocumentTemplateNotFoundError,
@@ -238,6 +239,11 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
             })
           : getPendingMoveRequestForDocument(prisma, userId, documentId),
       ]);
+      try {
+        await recordDocumentView(prisma, userId, documentId);
+      } catch (error) {
+        request.log.warn({ error, documentId, userId }, 'Failed to record document view');
+      }
       return reply.send(
         buildDocumentDetailResponse({
           doc,

@@ -232,7 +232,7 @@ Startseite **Home** (`/`, Sidebar-Label **Home**). Keine Quick Links (redundant 
 [x] **Empty Explore:** Bei leerem Pulse (ohne `?kind=`): dezente theme-farbige Illustration + Explore (bis zu 3 Spalten: Team → Department → Company → Your drafts → Your documents; max. 5 recent Docs/Spalte; nur nicht-leere). API `GET /me/pulse/explore`. Wenn keine Docs: „No documents to explore yet.“
 [x] **Start here:** Ein Start-Dokument pro Team/Department/Company (`startDocumentId`); Scope-Lead setzt/entfernt am Dokument (More-actions). Home: alle lesbaren Start-Docs als Section (Heading analog Explore; Teams → Depts → Companies; `GET /me/pulse/start-here` → `{ items }`). Scope-Overview „Change…“ später.
 
-**Follow-up (nicht umgesetzt):** **Document views** – View-Zähler für Popularität/Explore-Sortierung; Dedup **pro User + Kalendertag**; nur authentifizierte Published-Reads; Analytics optional später.
+[x] **Document views:** View-Zähler für Popularität/Explore-Sortierung; Dedup **pro User + UTC-Kalendertag** (`DocumentView`); Aggregat `Document.viewCount`; Recording bei `GET /documents/:id` für published, nicht-trashed Docs mit Kontext; **Scope-Leads / Context-Write zählen nicht** (`canWriteContext`); Explore `orderBy viewCount desc, publishedAt desc`. Kein UI-Zähler / Retention / Admin-Analytics (später).
 
 **Entfallen auf `/`:** Latest-documents-Block, Pinned-Block, Continue-Block, Suchleiste, View-more-Links, Hero/Tagline, separate Attention-Spalten.
 

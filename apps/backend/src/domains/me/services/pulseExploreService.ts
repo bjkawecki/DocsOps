@@ -70,7 +70,7 @@ async function loadPublishedInScope(
       ],
     },
     select: { id: true, title: true },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: [{ viewCount: 'desc' }, { publishedAt: 'desc' }],
     take: EXPLORE_PER_COLUMN,
   });
   return dedupeExploreItemsById(docs.map((d) => ({ id: d.id, title: d.title })));
@@ -91,7 +91,7 @@ async function loadCreatorDocs(
       ...(excludeDocumentIds.length > 0 ? { id: { notIn: excludeDocumentIds } } : {}),
     },
     select: { id: true, title: true },
-    orderBy: published ? { publishedAt: 'desc' } : { updatedAt: 'desc' },
+    orderBy: published ? [{ viewCount: 'desc' }, { publishedAt: 'desc' }] : { updatedAt: 'desc' },
     take: EXPLORE_PER_COLUMN,
   });
   return dedupeExploreItemsById(docs.map((d) => ({ id: d.id, title: d.title })));

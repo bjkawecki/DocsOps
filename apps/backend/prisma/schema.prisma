@@ -138,6 +138,7 @@ model User {
   documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
   documentMoveRequestsRequested DocumentMoveRequest[] @relation("DocumentMoveRequestedBy")
   documentMoveRequestsDecided   DocumentMoveRequest[] @relation("DocumentMoveDecidedBy")
+  documentViews         DocumentView[]
   sessions              Session[]
   backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
   updateRunsTriggered   UpdateRun[] @relation("UpdateRunTriggeredBy")
@@ -320,8 +321,28 @@ model Document {
   attachments               DocumentAttachment[]
   comments                  DocumentComment[]
   moveRequests              DocumentMoveRequest[]
+  /// Distinct authenticated reader-days (UTC); used for Explore popularity sort.
+  viewCount                 Int                      @default(0)
+  views                     DocumentView[]
 
   @@index([documentTypeKey])
+  @@index([viewCount])
+}
+
+/// One row per authenticated reader per UTC calendar day (popularity dedup).
+model DocumentView {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// UTC calendar date only (@db.Date).
+  viewedOn   DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId, viewedOn])
+  @@index([documentId])
+  @@index([userId])
 }
 
 enum DocumentMoveRequestStatus {
