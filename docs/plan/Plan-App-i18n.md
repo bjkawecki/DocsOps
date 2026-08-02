@@ -1,0 +1,105 @@
+# Plan: App-i18n (EN + DE)
+
+Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
+
+**Status:** Vorgaben festgehalten; Umsetzung noch offen.
+
+---
+
+## 1. Zielbild
+
+- UI der App in **Englisch und Deutsch**
+- **Englisch** ist Quellsprache und Fallback (Keys, fehlende DE-Einträge)
+- Landing (`apps/landing`) bleibt **statisch Deutsch** und **nicht** Teil des App-i18n-Katalogs
+- Help in der App darf vorerst **EN** bleiben (kein Blocker für Demo)
+
+---
+
+## 2. Stack & Dateistruktur
+
+| Entscheidung  | Vorgabe                                                                         |
+| ------------- | ------------------------------------------------------------------------------- |
+| Bibliothek    | `i18next` + `react-i18next`                                                     |
+| Katalogformat | JSON pro Locale und Namespace                                                   |
+| Ablage        | `apps/frontend/src/i18n/locales/{en,de}/<namespace>.json`                       |
+| Provider      | App-weit (nahe Preference-/Theme-Wiring); Login vor Session ebenfalls abgedeckt |
+
+Namespaces (Start): `common`, `shell`, `auth`, `settings`, `admin`, `documents` (weitere nach Bedarf).
+
+---
+
+## 3. Keys & Texte
+
+- Keys **semantisch**, nicht der EN-Satz: z. B. `admin.users.create`, nicht `t('Create user')`
+- Keine Roh-UI-Strings in Komponenten für übersetzbare Labels/Buttons/Toasts/Meldungen
+- Fehlender DE-Key → **EN anzeigen** (kein leerer String, keine stille andere Sprache)
+- User-generierte Inhalte, Routen, API-Pfade, technische IDs und Log-Keys **nicht** übersetzen
+
+---
+
+## 4. Locale-Auflösung
+
+Reihenfolge (fest):
+
+1. Eingeloggt: `userPreferences.locale` (`en` \| `de`) aus Settings
+2. Query `?lang=en` / `?lang=de` (u. a. Landing → Demo)
+3. Browser (`Accept-Language` / `navigator.languages`)
+4. Fallback **`en`**
+
+Nach Login gilt die Preference als Wahrheit; vor Login Browser/`?lang=`. Settings „Interface language“ bleibt die Persistenz (bereits vorhanden).
+
+---
+
+## 5. Backend-Fehler & Formate
+
+- Backend liefert weiterhin stabile **englische** Fehlertexte bzw. Codes
+- Frontend mappt bekannte Codes auf `t('errors…')`; unbekannte Meldungen EN belassen
+- Datums-/Zahlenformat über `Intl` (bzw. dayjs mit Locale) an der **aktiven App-Locale**
+- Mantine (z. B. `DatesProvider`) an dieselbe Locale koppeln
+
+---
+
+## 6. Phasen (Umsetzung)
+
+### Phase 1 (vor öffentlicher Demo)
+
+Gerüst + Locale-Wiring; danach UI-Texte für:
+
+- AppShell (Nav, Account-Menü, Chrome)
+- Login / Demo-Login
+- Settings (Appearance inkl. Language-Label selbst)
+- Häufige Toasts/Dialoge
+- Home / Catalog-Kern
+- Admin-Nav und häufige Admin-Primary-Actions
+
+### Später
+
+- Weitere Surfaces (Dokumente, Reviews, Backup-Texte, …)
+- Help-DE
+- Demo-Seed-Inhalte DE (optional)
+- E-Mail-Templates (wenn SMTP-Texte user-facing)
+
+---
+
+## 7. Pflege & Schutz vor Lücken
+
+- Jeder neue UI-Text: EN-Key anlegen; DE zeitnah oder bewusst TODO (nur unkritische Labels)
+- Nach Gerüst: ESLint gegen Literal-Strings in UI-Ordnern (z. B. `i18next/no-literal-string`) und/oder CI-Check „DE-Keys ⊆ EN-Keys“
+- Review-Checkliste: keine neuen hardcoded Labels ohne `t()`
+
+---
+
+## 8. Explizit nicht
+
+- Strings-as-Keys
+- Soft-Fallback über weitere Sprachen hinaus EN
+- Backend-Responses auf DE umstellen
+- Landing in denselben i18n-Katalog ziehen
+
+---
+
+## 9. Bezug
+
+- Persistenz: `GET/PATCH /api/v1/me/preferences` → `locale`
+- Demo/Landing-Hinweis: [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md)
+- Stack-Hinweis: [Technologie-Stack](Technologie-Stack.md) §3 Frontend

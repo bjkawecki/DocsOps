@@ -27,6 +27,7 @@ Planung und Inhalte für Landing Page, Demo und öffentliche Kommunikation (§19
 | Dokument                                                     | Inhalt                             |
 | ------------------------------------------------------------ | ---------------------------------- |
 | [Plan-Demo-Oeffentlich.md](../plan/Plan-Demo-Oeffentlich.md) | Demo-Instanz, Domains, Rechtliches |
+| [Plan-App-i18n.md](../plan/Plan-App-i18n.md)                 | App EN/DE i18n-Vorgaben            |
 
 ## Landing lokal
 

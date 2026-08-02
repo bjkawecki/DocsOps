@@ -69,19 +69,21 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 
 ## 4. Sprache & i18n
 
+**Detailvorgaben (Stack, Keys, Locale-Reihenfolge, Phasen, Pflege):** [Plan-App-i18n](Plan-App-i18n.md).
+
 ### Getrennte Kanäle (bewusst)
 
-| Bereich                     | Sprache (Start)                                            |
-| --------------------------- | ---------------------------------------------------------- |
-| **Produkt (App)**           | **i18n EN + DE** von Anfang an; Keys/Fallback **Englisch** |
-| **Marketing/Landing**       | zunächst **nur Deutsch**                                   |
-| **README / GitHub**         | Englisch                                                   |
-| **Help in der App**         | EN zuerst oder parallel; nicht blockieren                  |
-| **Impressum / Datenschutz** | Deutsch (auf `.de`-Landing)                                |
+| Bereich                     | Sprache (Start)                                      |
+| --------------------------- | ---------------------------------------------------- |
+| **Produkt (App)**           | **i18n EN + DE**; Keys/Fallback **Englisch**         |
+| **Marketing/Landing**       | zunächst **nur Deutsch** (nicht im App-i18n-Katalog) |
+| **README / GitHub**         | Englisch                                             |
+| **Help in der App**         | EN zuerst; nicht blockieren                          |
+| **Impressum / Datenschutz** | Deutsch (auf `.de`-Landing)                          |
 
 ### App-Locale
 
-- Default: **Browser** (`Accept-Language`) mit Fallback **EN**
+- Reihenfolge: Preference (eingeloggt) → `?lang=` → Browser → Fallback **EN**
 - Persistenz über `userPreferences.locale` (Settings)
 - Landing soll erwähnen: „Die App ist auf Deutsch und Englisch verfügbar“
 - Demo-Link optional mit `?lang=de` / Sprachwahl auf der Landing – vermeidet Sprung DE-Landing → EN-App ohne Hinweis
@@ -89,7 +91,8 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 ### Pflege
 
 - Jeder neuer UI-Text: EN + DE (oder EN + TODO-DE für unwichtige Labels)
-- Landing **nicht** zwingend in App-i18n – statischer DE-Content entkoppelt
+- Landing **nicht** in App-i18n – statischer DE-Content entkoppelt
+- Semantische Keys; Backend-Fehlercodes EN, Mapping im Frontend; Lint/CI gegen Literal-Strings nach Gerüst
 
 ---
 
@@ -192,4 +195,4 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Seed-Sprache (DE vs. EN) für `demo.docsops.de` (bei App-i18n: DE-Seed sinnvoll)
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 
-**Nächster Schritt:** App-i18n EN/DE; parallel Rollen-Entscheidung für Demo; dann Landing-Deploy + Demo-Stack.
+**Nächster Schritt:** App-i18n EN/DE nach [Plan-App-i18n](Plan-App-i18n.md); parallel Rollen-Entscheidung für Demo; dann Landing-Deploy + Demo-Stack.

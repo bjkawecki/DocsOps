@@ -378,9 +378,12 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
 [ ] **Landing Go-live:** Deploy auf `docsops.de`; Impressum/Datenschutz-Platzhalter ersetzen; DNS/Caddy; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
 
-**App-i18n (vor Demo-Deploy):**
+**App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
 
-[ ] **App EN + DE:** i18n-Gerüst (Keys, Fallback EN); `preferences.locale` (Settings „Interface language“ existiert schon) und Browser-Default wirklich anwenden; Shell/Login/häufige UI-Texte EN+DE. Help darf vorerst EN bleiben. **Voraussetzung vor öffentlicher Demo**, damit DE-Landing nicht in eine EN-only-App springt (optional Landing-Hinweis / `?lang=de`).
+[ ] **i18n-Gerüst:** `i18next` + `react-i18next`; JSON unter `apps/frontend/src/i18n/locales/{en,de}/`; Namespaces; Fallback EN.
+[ ] **Locale-Wiring:** Preference → `?lang=` → Browser → `en`; Settings „Interface language“ anwenden; Mantine-Dates/`Intl` an Locale koppeln.
+[ ] **Phase 1 UI EN+DE:** Shell, Login/Demo-Login, Settings, häufige Toasts, Home/Catalog-Kern, Admin-Nav + häufige Primary-Actions. Help bleibt EN.
+[ ] **Pflege-Schutz:** ESLint gegen Literal-Strings und/oder CI „DE-Keys ⊆ EN-Keys“; Review-Regel neue UI-Texte nur via Keys.
 
 **Demo-Instanz (`demo.docsops.de`):**
 
