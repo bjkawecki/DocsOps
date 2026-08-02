@@ -164,7 +164,7 @@ function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComple
         <span className="pulse-feed-row-headline">
           <span className="pulse-feed-row-keyword">{display.keyword}</span>
         </span>
-        <Text className="pulse-feed-row-subject" c="dimmed" lineClamp={1} component="span">
+        <Text className="pulse-feed-row-subject" lineClamp={2} component="span">
           {display.subject}
         </Text>
       </span>

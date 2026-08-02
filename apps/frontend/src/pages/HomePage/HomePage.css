@@ -156,8 +156,9 @@
 }
 
 .pulse-feed-row-subject {
-  font-size: var(--pulse-type-meta);
+  font-size: var(--pulse-type-feed);
   line-height: 1.4;
+  color: color-mix(in srgb, var(--mantine-color-text) 78%, var(--mantine-color-dimmed));
 }
 
 .pulse-feed {
@@ -201,7 +202,7 @@
 .pulse-feed-row {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   column-gap: 14px;
   padding: 14px 16px;
   margin-bottom: 10px;
@@ -253,6 +254,7 @@
   justify-content: center;
   width: 22px;
   height: 22px;
+  margin-top: 2px;
 }
 
 .pulse-feed-row-icon-svg {
@@ -268,24 +270,26 @@
 
 .pulse-feed-row-end {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
   gap: 8px;
   min-width: 0;
 }
 
 .pulse-feed-row-time {
-  width: 7ch;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
   text-align: right;
-  font-size: var(--pulse-type-meta);
-  color: var(--mantine-color-dimmed);
+  font-size: var(--pulse-type-feed);
+  color: color-mix(in srgb, var(--mantine-color-text) 72%, var(--mantine-color-dimmed));
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1.25;
 }
 
 .pulse-feed-row-action {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   min-width: 36px;
   min-height: 36px;
 }
