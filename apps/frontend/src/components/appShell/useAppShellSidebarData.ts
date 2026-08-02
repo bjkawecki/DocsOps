@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- AppShell data hook: nav queries, impersonate, debug reset/reseed */
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';

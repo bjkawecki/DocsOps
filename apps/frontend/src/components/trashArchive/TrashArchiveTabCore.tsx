@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- shared trash/archive table: filters, pagination, bulk restore */
 import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';

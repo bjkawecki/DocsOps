@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- context workspace shell: tabs, trash/archive, create/rename flows */
 import {
   ActionIcon,
   Box,
