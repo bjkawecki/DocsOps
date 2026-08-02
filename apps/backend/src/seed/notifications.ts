@@ -28,10 +28,16 @@ export async function seedHomeDemoNotifications(prisma: PrismaClient): Promise<v
   for (const a of admins) recipientIds.add(a.id);
 
   const companyLead = await prisma.user.findFirst({
-    where: { email: 'user1@example.com', deletedAt: null },
+    where: { email: 'company.lead@demo.docsops.local', deletedAt: null },
     select: { id: true },
   });
   if (companyLead) recipientIds.add(companyLead.id);
+
+  const member = await prisma.user.findFirst({
+    where: { email: 'member@demo.docsops.local', deletedAt: null },
+    select: { id: true },
+  });
+  if (member) recipientIds.add(member.id);
 
   if (recipientIds.size === 0) {
     const fallback = await prisma.user.findFirst({
@@ -69,7 +75,7 @@ export async function seedHomeDemoNotifications(prisma: PrismaClient): Promise<v
         documentId: d2.id,
         documentTitle: d2.title,
         commentId: randomUUID(),
-        commentPreview: 'Seed demo comment for Home Comments section.',
+        commentPreview: 'Demo-Kommentar für die Inbox (Erwähnung).',
         kind: 'mention',
       },
     },
@@ -79,7 +85,7 @@ export async function seedHomeDemoNotifications(prisma: PrismaClient): Promise<v
         documentId: d0.id,
         documentTitle: d0.title,
         commentId: randomUUID(),
-        commentPreview: 'Another seed comment thread reply.',
+        commentPreview: 'Demo-Antwort in einem Kommentar-Thread.',
         kind: 'reply',
       },
     },

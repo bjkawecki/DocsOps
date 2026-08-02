@@ -48,6 +48,18 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Seed                  | nein                                             | ja (CSV bei leerer DB)               |
 | Debug / Impersonation | nein                                             | nein                                 |
 
+**Demo-/Dev-Seed-Logins** (CSV + `create-admin`; Passwort überall `DocsOps1`):
+
+| Rolle           | E-Mail                               | Quelle    |
+| --------------- | ------------------------------------ | --------- |
+| Admin           | `admin@demo.docsops.local`           | `ADMIN_*` |
+| Company Lead    | `company.lead@demo.docsops.local`    | CSV       |
+| Department Lead | `department.lead@demo.docsops.local` | CSV       |
+| Team Lead       | `team.lead@demo.docsops.local`       | CSV       |
+| Member          | `member@demo.docsops.local`          | CSV       |
+
+Org: **Nordlicht Software GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
+
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---

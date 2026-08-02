@@ -12,18 +12,28 @@ type PublishedSeedDocInput = {
   createdById?: string | null;
 };
 
+/** Default body when a scope has no dedicated story sections. */
 const SEED_DOCUMENT_SECTIONS: SeedDocumentBlockSection[] = [
-  { type: 'heading', level: 2, text: 'Überblick' },
+  { type: 'heading', level: 2, text: 'Zweck' },
   {
     type: 'paragraph',
-    text: 'Kurzer Beispieltext für den Seed-Datensatz. Hier steht typischer Fließtext ohne Markdown-Zeichen.',
+    text: 'Dieses Dokument gehört zum Demo-Datensatz von Nordlicht Software GmbH (Software X / Barrierefreiheit). Es zeigt typische Struktur und Lesefluss in DocsOps.',
   },
-  { type: 'heading', level: 3, text: 'Weitere Hinweise' },
+  { type: 'heading', level: 2, text: 'Nächste Schritte' },
   {
     type: 'paragraph',
-    text: 'Zweiter inhaltlicher Absatz mit weiteren Informationen zum Dokument. So wirkt die Seite realistischer.',
+    text: 'Inhalte bei Bedarf anpassen, Reviews anstoßen oder neue Dokumente aus Vorlagen anlegen.',
   },
 ];
+
+function storySections(overview: string, details: string): SeedDocumentBlockSection[] {
+  return [
+    { type: 'heading', level: 2, text: 'Überblick' },
+    { type: 'paragraph', text: overview },
+    { type: 'heading', level: 2, text: 'Details' },
+    { type: 'paragraph', text: details },
+  ];
+}
 
 async function createPublishedSeedDocument(prisma: PrismaClient, input: PublishedSeedDocInput) {
   return prisma.$transaction(async (tx) => {
@@ -56,17 +66,87 @@ async function createPublishedSeedDocument(prisma: PrismaClient, input: Publishe
   });
 }
 
-function seedDocTitle(scopeKey: string, kind: 'process' | 'project'): string {
-  const name = scopeKey.includes(':') ? (scopeKey.split(':')[1]?.trim() ?? '') : '';
-  if (scopeKey.startsWith('company:'))
-    return kind === 'process' ? 'Onboarding Guide' : 'Product Roadmap';
-  if (scopeKey.startsWith('department:')) {
-    if (kind === 'process') return name === 'Sales' ? 'Sales Playbook' : 'Engineering Guidelines';
-    return name === 'Sales' ? 'Q1 Campaign' : 'Release Plan';
+type SeedDocSpec = {
+  title: string;
+  sections: SeedDocumentBlockSection[];
+};
+
+function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec {
+  if (scopeKey.startsWith('company:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Dokumentationsrichtlinie',
+        sections: storySections(
+          'Verbindliche Regeln für interne Dokumentation bei Nordlicht Software: wo Inhalte leben, wer freigibt und wie Lesende Orientierung finden.',
+          'Scope-Leads veröffentlichen; Autoren arbeiten im Lead-Draft mit Vorschlägen. Persönliche Räume bleiben privat, sofern nicht freigegeben.'
+        ),
+      };
+    }
+    return {
+      title: 'Software X – Produktüberblick',
+      sections: storySections(
+        'Software X ist das aktuelle Produktvorhaben. Dieses Dokument fasst Zielbild, Stakeholder und den Stand der Barrierefreiheit zusammen.',
+        'Produktentwicklung und das Team Barrierefreiheit pflegen hier den gemeinsamen Überblick; Detailarbeit liegt in den Team- und Abteilungsdokumenten.'
+      ),
+    };
   }
-  if (scopeKey.startsWith('team:')) return kind === 'process' ? 'Team Wiki' : 'Sprint Planning';
-  if (scopeKey === 'personal:') return kind === 'process' ? 'My Notes' : 'Side Project';
-  return kind === 'process' ? 'Overview' : 'Project Overview';
+  if (scopeKey.startsWith('department:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Release-Checkliste Produktentwicklung',
+        sections: storySections(
+          'Schritte vor einem Release von Software X: Review, Dokumentation, Zugänglichkeit und Übergabe an Support.',
+          'Department Lead bestätigt die Checkliste; Team Barrierefreiheit liefert den A11y-Status vor dem Go-Live.'
+        ),
+      };
+    }
+    return {
+      title: 'Roadmap Q3 – Software X',
+      sections: storySections(
+        'Geplante Lieferungen und Abhängigkeiten für Software X in diesem Quartal, inkl. Barrierefreiheits-Meilensteine.',
+        'Prioritäten werden mit Company Lead abgestimmt; Änderungen erscheinen in der publizierten Version dieses Dokuments.'
+      ),
+    };
+  }
+  if (scopeKey.startsWith('team:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Barrierefreiheit – Arbeitsweise',
+        sections: storySections(
+          'Wie das Team Barrierefreiheit prüft, dokumentiert und Findings an Produktentwicklung übergibt.',
+          'Startpunkt für neue Teammitglieder: Rollen, Tools, Review-Rhythmus und Verweis auf den aktuellen Stand Barrierefreiheit.'
+        ),
+      };
+    }
+    return {
+      title: 'Stand Barrierefreiheit Software X',
+      sections: storySections(
+        'Aktueller Status der Zugänglichkeit von Software X: bekannte Lücken, erledigte Fixes und offene Tickets.',
+        'Team Lead hält dieses Dokument aktuell; Member ergänzen Prüfnotizen. Company- und Department-Leads lesen den Status hier.'
+      ),
+    };
+  }
+  if (scopeKey === 'personal:') {
+    return kind === 'process'
+      ? {
+          title: 'Meine Notizen',
+          sections: storySections(
+            'Persönlicher Arbeitsbereich des Company Leads für Entwürfe und Notizen.',
+            'Nicht für die Organisation sichtbar, außer nach expliziter Freigabe oder Verschiebung in einen Scope-Kontext.'
+          ),
+        }
+      : {
+          title: 'Persönliche Skizze',
+          sections: storySections(
+            'Privates Projekt für Experimente rund um Software X und Dokumentation.',
+            'Kann später in einen Team- oder Abteilungskontext verschoben werden.'
+          ),
+        };
+  }
+  return {
+    title: kind === 'process' ? 'Übersicht' : 'Projektübersicht',
+    sections: SEED_DOCUMENT_SECTIONS,
+  };
 }
 
 /** Mark the scope process doc as Start here for team / department / company. */
@@ -118,9 +198,10 @@ async function seedDocuments(
       where: { id: processId },
       select: { contextId: true, ownerId: true },
     });
+    const spec = seedDocSpec(scopeKey, 'process');
     const doc = await createPublishedSeedDocument(prisma, {
-      title: seedDocTitle(scopeKey, 'process'),
-      sections: SEED_DOCUMENT_SECTIONS,
+      title: spec.title,
+      sections: spec.sections,
       contextId: process.contextId,
     });
     await setStartHereForScope(prisma, masterData, scopeKey, doc.id);
@@ -137,29 +218,12 @@ async function seedDocuments(
       where: { id: projectId },
       select: { contextId: true },
     });
+    const spec = seedDocSpec(scopeKey, 'project');
     await createPublishedSeedDocument(prisma, {
-      title: seedDocTitle(scopeKey, 'project'),
-      sections: SEED_DOCUMENT_SECTIONS,
+      title: spec.title,
+      sections: spec.sections,
       contextId: project.contextId,
     });
-  }
-
-  if (contextData.companyProjectId) {
-    const subcontexts = await prisma.subcontext.findMany({
-      where: { projectId: contextData.companyProjectId },
-      select: { name: true, contextId: true },
-    });
-    const subcontextTitles: Record<string, string> = {
-      Protokolle: 'Meeting Notes',
-      Meilensteine: 'Project Milestones',
-    };
-    for (const sub of subcontexts) {
-      await createPublishedSeedDocument(prisma, {
-        title: subcontextTitles[sub.name] ?? sub.name,
-        sections: SEED_DOCUMENT_SECTIONS,
-        contextId: sub.contextId,
-      });
-    }
   }
 }
 

@@ -2,7 +2,7 @@
 
 Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
 
-**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). Help-DE / Demo-Seed DE / E-Mail-Templates bewusst separat.
+**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). Help-DE / E-Mail-Templates bewusst separat. Demo-Seed-Inhalte DE: schlanker CSV-Seed umgesetzt (siehe Umsetzungs-Todo §19).
 
 ---
 
@@ -98,10 +98,11 @@ Alles, was eingeloggte Nutzer täglich sehen (ohne Admin-Ops-Tiefe):
 ### Bewusst separat (nicht Phasen 2–4)
 
 - Help-DE (Topic-Prosa)
-- Demo-Seed-Inhalte DE (optional)
 - E-Mail-Templates (wenn SMTP-Texte user-facing)
 - Landing (`apps/landing`)
 - Backend-Fehlertexte umstellen; User-generierte Inhalte
+
+Demo-Seed-Inhalte DE: erledigt (schlanker CSV unter `apps/backend/prisma/seed-data/`).
 
 ---
 

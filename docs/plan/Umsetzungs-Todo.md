@@ -387,7 +387,8 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Phase 2 Daily UX EN+DE:** Document Editor/Viewer, Approvals/Reviews, Notifications Inbox, Settings-Resttabs, common-Toasts/Status.
 [x] **Phase 3 Workspace-Rest EN+DE:** Context/Org Workspace, Catalog/Home/Search-Reste, Templates, Trash/Archive/Drafts-Chrome, Scope People, What's-new-Chrome.
 [x] **Phase 4 Admin-Tiefe EN+DE:** Backup, Migration, System/Mail-Detail, Jobs/Scheduler, Org-Forms/Tabellen-Rest.
-[ ] **Help-DE / Demo-Seed DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
+[ ] **Help-DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
+[x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Nordlicht Software GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
 
 **Demo-Instanz (`demo.docsops.de`):**
 
@@ -399,7 +400,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [ ] **Admin in DEMO_MODE eingeschränkt (UI + API):** Mutierende/gefährliche Admin-Routen **serverseitig deaktivieren** (403), nicht nur UI ausblenden – u. a. User anlegen/löschen, Passwort-Reset, Platform-Reset/Reseed, Update-Apply, Backup-Ziele ändern, SMTP ändern, Broadcasts, Migration Import/Export soweit missbrauchsträchtig. Lesende Org-Übersicht ggf. erlaubt (Produktentscheidung in Umsetzung). Nav „Admin“ nur Rest-Funktionen oder Hinweis „Demo – limited admin“.
 [ ] **Reset einmal täglich:** Job/`docsops-demo reset` – DB + Demo-MinIO auf Seed; Banner „Demo resets daily“; Sessions invalidieren.
 [ ] **DEMO_MODE-Zusatz:** kein Mail-Versand, kein Self-Register, Rate Limits, kurze Sessions, Upload-Limits, `robots.txt`/noindex, Disclaimer + Nutzungsbedingungen Demo.
-[ ] **Demo-Seed-Story:** Beispiel IT / Software X / Stand Barrierefreiheit (Accounts der fünf Rollen + Beispiel-Docs).
+[x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); Go-live der Demo-Instanz separat.
 [ ] **Demo online:** DNS `demo.docsops.de`, Monitoring, Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7.
 
 **Reihenfolge:** App-i18n EN/DE → Landing Go-live (optional parallel) → Demo-Ops-Skript + Seed/Rollen-Login + Admin-API-Lockdown + täglicher Reset.
