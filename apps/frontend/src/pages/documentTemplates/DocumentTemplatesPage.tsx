@@ -480,6 +480,7 @@ export function DocumentTemplatesPage() {
                       <Card className="document-page-card" w="100%" padding={0}>
                         <DocumentBlocksPreview
                           doc={buildTemplateTypePreviewDocument(selectedType, {
+                            locale,
                             displayLabel: localizedDocumentTypeLabel(selectedType, locale),
                           })}
                           documentId={`template-type:${selectedType.id}`}

@@ -8,6 +8,7 @@ export type {
   OftenUsedIn,
   BuiltinDocumentType,
 } from './builtinDocumentTemplateTypes.js';
+export { localizeBuiltinDocumentType } from './builtinDocumentTemplateTypes.js';
 
 export const BUILTIN_TYPE_PREFIX = 'builtin:';
 export const CUSTOM_TYPE_PREFIX = 'custom:';

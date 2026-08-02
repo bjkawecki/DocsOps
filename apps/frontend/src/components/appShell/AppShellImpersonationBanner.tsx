@@ -1,5 +1,6 @@
 import { Box, Button, Group, Text } from '@mantine/core';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { Trans, useTranslation } from 'react-i18next';
 import type { MeResponse } from '../../api/me-types.js';
 import { getDisplayRole } from './appShellNavUtils.js';
 
@@ -14,7 +15,13 @@ export function AppShellImpersonationBanner({
   resolvedColorScheme,
   stopImpersonateMutation,
 }: Props) {
+  const { t } = useTranslation('shell');
+
   if (!me?.impersonation?.active) return null;
+
+  const emailPart = me.user.email
+    ? t('debug.impersonationEmailPart', { email: me.user.email })
+    : '';
 
   return (
     <Box
@@ -38,9 +45,17 @@ export function AppShellImpersonationBanner({
     >
       <Group justify="space-between" wrap="nowrap">
         <Text size="sm" c={resolvedColorScheme === 'dark' ? 'gray.3' : 'dark.7'}>
-          Viewing as <strong>{me.user.name}</strong>
-          {me.user.email ? ` (${me.user.email})` : ''}, {getDisplayRole(me)}. You are{' '}
-          {me.impersonation.realUser.name}.
+          <Trans
+            t={t}
+            i18nKey="debug.impersonationViewing"
+            values={{
+              name: me.user.name,
+              emailPart,
+              role: getDisplayRole(me),
+              realName: me.impersonation.realUser.name,
+            }}
+            components={{ strong: <strong /> }}
+          />
         </Text>
         <Button
           variant="filled"
@@ -49,7 +64,7 @@ export function AppShellImpersonationBanner({
           onClick={() => stopImpersonateMutation.mutate()}
           disabled={stopImpersonateMutation.isPending}
         >
-          End
+          {t('debug.impersonationEnd')}
         </Button>
       </Group>
     </Box>

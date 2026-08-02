@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { IconBug } from '@tabler/icons-react';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AdminUser } from './appShellNavUtils.js';
 import { AppShellDebugResetModal } from './AppShellDebugResetModal.js';
@@ -40,6 +41,7 @@ export function AppShellDebugMenu({
   resetPlatformMutation,
   reseedPlatformMutation,
 }: Props) {
+  const { t } = useTranslation('shell');
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [reseedModalOpen, setReseedModalOpen] = useState(false);
   const [pulseMockOn, setPulseMockOn] = useState(() => isPulseMockEnabledInSession());
@@ -71,12 +73,12 @@ export function AppShellDebugMenu({
       >
         <Menu position="bottom-end" shadow="md" width={320}>
           <Menu.Target>
-            <ActionIcon variant="filled" size="md" aria-label="Debug menu" color="grape">
+            <ActionIcon variant="filled" size="md" aria-label={t('debug.menuAria')} color="grape">
               <IconBug size={18} />
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Label>View as user</Menu.Label>
+            <Menu.Label>{t('debug.viewAsUser')}</Menu.Label>
             {adminUsersLoading ? (
               <Menu.Item disabled>
                 <Loader size="xs" />
@@ -84,13 +86,13 @@ export function AppShellDebugMenu({
             ) : adminUsersError ? (
               <Menu.Item disabled>
                 <Text size="sm" c="dimmed">
-                  Failed to load user list.
+                  {t('debug.loadUsersFailed')}
                 </Text>
               </Menu.Item>
             ) : (adminUsers ?? []).length === 0 ? (
               <Menu.Item disabled>
                 <Text size="sm" c="dimmed">
-                  No users available.
+                  {t('debug.noUsers')}
                 </Text>
               </Menu.Item>
             ) : (
@@ -120,12 +122,12 @@ export function AppShellDebugMenu({
             )}
 
             <Menu.Divider />
-            <Menu.Label>Development</Menu.Label>
+            <Menu.Label>{t('debug.development')}</Menu.Label>
             <Menu.Item closeMenuOnClick={false} onClick={togglePulseMock}>
               <Group justify="space-between" wrap="nowrap" gap="sm">
-                <Text size="sm">Pulse mock feed</Text>
+                <Text size="sm">{t('debug.pulseMockFeed')}</Text>
                 <Badge size="xs" variant={pulseMockOn ? 'filled' : 'light'} color="grape">
-                  {pulseMockOn ? 'On' : 'Off'}
+                  {pulseMockOn ? t('debug.on') : t('debug.off')}
                 </Badge>
               </Group>
             </Menu.Item>
@@ -134,13 +136,13 @@ export function AppShellDebugMenu({
               onClick={() => setResetModalOpen(true)}
               disabled={resetPlatformMutation.isPending || reseedPlatformMutation.isPending}
             >
-              Reset platform data
+              {t('debug.resetPlatform')}
             </Menu.Item>
             <Menu.Item
               onClick={() => setReseedModalOpen(true)}
               disabled={resetPlatformMutation.isPending || reseedPlatformMutation.isPending}
             >
-              Re-seed from CSV
+              {t('debug.reseedCsv')}
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>

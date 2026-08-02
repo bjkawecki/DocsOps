@@ -9,11 +9,14 @@ export type DocumentTypeDto = {
   label: string;
   deLabel: string | null;
   whenToUse: string;
+  deWhenToUse: string | null;
   oftenUsedIn: 'process' | 'project' | null;
   documentTypeKey: string;
   defaultTemplateId: string | null;
   exampleTitle: string | null;
+  deExampleTitle: string | null;
   sections: TemplateSection[];
+  deSections: TemplateSection[] | null;
   scope: { type: string; [key: string]: string } | null;
 };
 

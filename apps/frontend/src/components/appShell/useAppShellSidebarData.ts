@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -13,6 +14,7 @@ import { getNavLinkStyles } from './appShellNavUtils.js';
 import { shouldShowOrganizationNav } from '../../lib/organizationNav.js';
 
 export function useAppShellSidebarData() {
+  const { t } = useTranslation(['shell']);
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -130,13 +132,17 @@ export function useAppShellSidebarData() {
       });
       void navigate('/', { replace: true });
       notifications.show({
-        title: 'Ansicht gewechselt',
-        message: 'You are now viewing the app as the selected user.',
+        title: t('shell:debug.toastViewSwitchedTitle'),
+        message: t('shell:debug.toastViewSwitchedBody'),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shell:debug.errorTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -151,13 +157,17 @@ export function useAppShellSidebarData() {
       });
       void navigate('/', { replace: true });
       notifications.show({
-        title: 'Impersonation beendet',
-        message: 'You are now back to your original account.',
+        title: t('shell:debug.toastImpersonationEndedTitle'),
+        message: t('shell:debug.toastImpersonationEndedBody'),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shell:debug.errorTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -173,13 +183,17 @@ export function useAppShellSidebarData() {
     onSuccess: (data) => {
       void queryClient.invalidateQueries();
       notifications.show({
-        title: 'Platform reset complete',
-        message: `Removed ${data.deletedNonAdminUsers} non-admin user(s). Reload recommended.`,
+        title: t('shell:debug.toastResetDoneTitle'),
+        message: t('shell:debug.toastResetDoneBody', { count: data.deletedNonAdminUsers }),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Reset failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shell:debug.toastResetFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -195,13 +209,17 @@ export function useAppShellSidebarData() {
     onSuccess: () => {
       void queryClient.invalidateQueries();
       notifications.show({
-        title: 'Re-seed complete',
-        message: 'CSV seed data loaded. Reload recommended.',
+        title: t('shell:debug.toastReseedDoneTitle'),
+        message: t('shell:debug.toastReseedDoneBody'),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Re-seed failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shell:debug.toastReseedFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 

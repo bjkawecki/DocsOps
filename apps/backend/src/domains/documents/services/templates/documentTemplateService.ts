@@ -9,6 +9,7 @@ import {
   customTypeKey,
   getBuiltinDocumentType,
   listBuiltinDocumentTypes,
+  localizeBuiltinDocumentType,
   parseBuiltinSlug,
   parseCustomTypeId,
   type OftenUsedIn,
@@ -34,11 +35,14 @@ export type DocumentTypePublic = {
   label: string;
   deLabel: string | null;
   whenToUse: string;
+  deWhenToUse: string | null;
   oftenUsedIn: OftenUsedIn | null;
   documentTypeKey: string;
   defaultTemplateId: string | null;
   exampleTitle: string | null;
+  deExampleTitle: string | null;
   sections: TemplateSection[];
+  deSections: TemplateSection[] | null;
   scope: TemplateManageScope | null;
 };
 
@@ -199,11 +203,14 @@ export async function listDocumentTypes(
       label: b.label,
       deLabel: b.deLabel,
       whenToUse: b.whenToUse,
+      deWhenToUse: b.deWhenToUse,
       oftenUsedIn: b.oftenUsedIn,
       documentTypeKey: id,
       defaultTemplateId: builtinTemplateId(b.slug),
       exampleTitle: b.exampleTitle,
+      deExampleTitle: b.deExampleTitle,
       sections: b.sections,
+      deSections: b.deSections,
       scope: null,
     };
   });
@@ -235,12 +242,15 @@ export async function listDocumentTypes(
       label: row.label,
       deLabel: row.deLabel,
       whenToUse: row.whenToUse,
+      deWhenToUse: null,
       oftenUsedIn:
         row.oftenUsedIn === 'process' || row.oftenUsedIn === 'project' ? row.oftenUsedIn : null,
       documentTypeKey: customTypeKey(row.id),
       defaultTemplateId: tmpl?.id ?? null,
       exampleTitle: tmpl?.exampleTitle ?? null,
+      deExampleTitle: null,
       sections,
+      deSections: null,
       scope: scopeFromCustomRow(row),
     };
   });
@@ -277,7 +287,13 @@ export async function listDocumentTemplates(
  */
 export async function resolveTemplateForCreate(
   prisma: PrismaClient,
-  input: { typeId?: string | null; templateId?: string | null; contextId?: string | null }
+  input: {
+    typeId?: string | null;
+    templateId?: string | null;
+    contextId?: string | null;
+    /** User preference locale (`en` | `de`); selects built-in DE catalog fields when `de`. */
+    locale?: string | null;
+  }
 ): Promise<ResolveCreateTemplateResult> {
   const templateId = input.templateId?.trim() || null;
   const typeId = input.typeId?.trim() || null;
@@ -297,10 +313,11 @@ export async function resolveTemplateForCreate(
       if (typeId != null && typeId !== builtinTypeId(builtinSlug)) {
         throw new DocumentTemplateValidationError('templateId does not match typeId');
       }
+      const localized = localizeBuiltinDocumentType(builtin, input.locale);
       return {
         documentTypeKey: builtinTypeId(builtinSlug),
-        exampleTitle: builtin.exampleTitle,
-        draftBlocks: templateSectionsToDraftBlocks(builtin.sections),
+        exampleTitle: localized.exampleTitle,
+        draftBlocks: templateSectionsToDraftBlocks(localized.sections),
       };
     }
 
@@ -461,6 +478,7 @@ export async function createCustomDocumentType(
     label: created.label,
     deLabel: created.deLabel,
     whenToUse: created.whenToUse,
+    deWhenToUse: null,
     oftenUsedIn:
       created.oftenUsedIn === 'process' || created.oftenUsedIn === 'project'
         ? created.oftenUsedIn
@@ -468,7 +486,9 @@ export async function createCustomDocumentType(
     documentTypeKey: customTypeKey(created.id),
     defaultTemplateId: tmpl.id,
     exampleTitle: tmpl.exampleTitle,
+    deExampleTitle: null,
     sections,
+    deSections: null,
     scope: scope.manageScope,
   };
 }
@@ -541,6 +561,7 @@ export async function updateCustomDocumentType(
     label: refreshed.label,
     deLabel: refreshed.deLabel,
     whenToUse: refreshed.whenToUse,
+    deWhenToUse: null,
     oftenUsedIn:
       refreshed.oftenUsedIn === 'process' || refreshed.oftenUsedIn === 'project'
         ? refreshed.oftenUsedIn
@@ -548,7 +569,9 @@ export async function updateCustomDocumentType(
     documentTypeKey: customTypeKey(refreshed.id),
     defaultTemplateId: defaultTmpl.id,
     exampleTitle: defaultTmpl.exampleTitle,
+    deExampleTitle: null,
     sections: parsedSections,
+    deSections: null,
     scope: manageScope,
   };
 }

@@ -1,6 +1,7 @@
 import type { BlockDocumentV0, BlockNodeV0 } from '../../api/document-types.js';
 import { randomId } from '../../lib/randomId.js';
 import type { DocumentTypeDto } from './documentTypeTypes.js';
+import { localizedDocumentTypeContent } from './localizedDocumentTypeLabel.js';
 
 function textNode(text: string): BlockNodeV0 {
   return { id: randomId(), type: 'text', attrs: {}, meta: { text } };
@@ -27,12 +28,13 @@ function heading(level: 1 | 2, text: string): BlockNodeV0 {
  */
 export function buildTemplateTypePreviewDocument(
   type: DocumentTypeDto,
-  options?: { displayLabel?: string }
+  options?: { locale?: string; displayLabel?: string }
 ): BlockDocumentV0 {
-  const title = options?.displayLabel?.trim() || type.label;
-  const blocks: BlockNodeV0[] = [heading(1, title), paragraph(type.whenToUse)];
+  const localized = localizedDocumentTypeContent(type, options?.locale ?? 'en');
+  const title = options?.displayLabel?.trim() || localized.label;
+  const blocks: BlockNodeV0[] = [heading(1, title), paragraph(localized.whenToUse)];
 
-  for (const section of type.sections) {
+  for (const section of localized.sections) {
     blocks.push(heading(2, section.heading));
     const body = section.prompts
       .map((p) => p.trim())

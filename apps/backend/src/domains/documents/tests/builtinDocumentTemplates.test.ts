@@ -43,4 +43,31 @@ describe('builtinDocumentTemplates', () => {
     expect(headings.length).toBe(runbook.sections.length);
     expect(headings[0]?.attrs?.level).toBe(2);
   });
+
+  it('includes German catalog fields for every built-in type', () => {
+    for (const type of BUILTIN_DOCUMENT_TYPES) {
+      expect(type.deLabel.trim().length).toBeGreaterThan(0);
+      expect(type.deWhenToUse.trim().length).toBeGreaterThan(0);
+      expect(type.deExampleTitle.trim().length).toBeGreaterThan(0);
+      expect(type.deSections.length).toBe(type.sections.length);
+      for (const section of type.deSections) {
+        expect(section.heading.trim().length).toBeGreaterThan(0);
+        expect(section.prompts.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('localizeBuiltinDocumentType switches to DE fields', async () => {
+    const { localizeBuiltinDocumentType } =
+      await import('../templates/builtinDocumentTemplateTypes.js');
+    const policy = getBuiltinDocumentType('policy')!;
+    const de = localizeBuiltinDocumentType(policy, 'de');
+    expect(de.label).toBe(policy.deLabel);
+    expect(de.whenToUse).toBe(policy.deWhenToUse);
+    expect(de.exampleTitle).toBe(policy.deExampleTitle);
+    expect(de.sections).toEqual(policy.deSections);
+    const en = localizeBuiltinDocumentType(policy, 'en');
+    expect(en.label).toBe(policy.label);
+    expect(en.sections).toEqual(policy.sections);
+  });
 });

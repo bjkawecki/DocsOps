@@ -32,6 +32,8 @@ export type CreateDocumentInput = {
   typeId?: string | null;
   templateId?: string | null;
   createdById: string;
+  /** User preference locale for built-in template seed language. */
+  locale?: string | null;
 };
 
 export type CreatedDocumentResponse = {
@@ -55,15 +57,30 @@ export type CreatedDocumentResponse = {
 
 /**
  * Create a draft document. Template seeds draftBlocks only when templateId is set.
+ * Built-in template language follows the creator's preference locale when set.
  */
 export async function createDocument(
   prisma: PrismaClient,
   input: CreateDocumentInput
 ): Promise<CreatedDocumentResponse> {
+  let locale = input.locale ?? null;
+  if (locale == null) {
+    const user = await prisma.user.findUnique({
+      where: { id: input.createdById },
+      select: { preferences: true },
+    });
+    const prefs = user?.preferences;
+    if (prefs != null && typeof prefs === 'object' && !Array.isArray(prefs)) {
+      const raw = (prefs as { locale?: unknown }).locale;
+      if (raw === 'en' || raw === 'de') locale = raw;
+    }
+  }
+
   const resolved = await resolveTemplateForCreate(prisma, {
     typeId: input.typeId,
     templateId: input.templateId,
     contextId: input.contextId,
+    locale,
   });
 
   const draftBlocks = resolved.draftBlocks ?? emptyBlockDocumentJson();

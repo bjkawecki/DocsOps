@@ -20,7 +20,11 @@ import {
   type DocumentTypeDto,
   type DocumentTypeSelection,
 } from './documentTypeTypes.js';
-import { localizedDocumentTypeLabel } from './localizedDocumentTypeLabel.js';
+import {
+  localizedDocumentTypeExampleTitle,
+  localizedDocumentTypeLabel,
+  localizedDocumentTypeWhenToUse,
+} from './localizedDocumentTypeLabel.js';
 
 const BLANK_OPTION_VALUE = 'blank';
 const DROPDOWN_MIN_WIDTH = 480;
@@ -174,7 +178,11 @@ export function DocumentTypePicker({
     : previewType
       ? typeLabel(previewType)
       : selectedLabel;
-  const previewBody = previewIsBlank ? blankDescription(mode, t) : (previewType?.whenToUse ?? '');
+  const previewBody = previewIsBlank
+    ? blankDescription(mode, t)
+    : previewType
+      ? localizedDocumentTypeWhenToUse(previewType, i18n.language)
+      : '';
   const typicalContext = typicalContextLabel(previewType, previewIsBlank, t);
   const source = sourceLabel(previewType, previewIsBlank, t);
 
@@ -186,18 +194,19 @@ export function DocumentTypePicker({
     const type =
       typeByOptionValue.get(id) ?? items.find((dt) => dt.id === id || dt.defaultTemplateId === id);
     if (!type) return;
+    const exampleTitle = localizedDocumentTypeExampleTitle(type, i18n.language);
     if (applyTemplateOnSelect && type.defaultTemplateId) {
       onChange({
         templateId: type.defaultTemplateId,
         typeId: type.id,
-        exampleTitle: type.exampleTitle,
+        exampleTitle,
       });
       return;
     }
     onChange({
       templateId: null,
       typeId: type.id,
-      exampleTitle: type.exampleTitle,
+      exampleTitle,
     });
   };
 
