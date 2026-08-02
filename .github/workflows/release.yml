@@ -35,13 +35,14 @@ jobs:
 
       - name: Build and push images (bake, parallel targets)
         uses: docker/bake-action@v6
+        env:
+          # HCL variables in docker-bake.hcl (not bake --set keys)
+          TAG: ${{ github.ref_name }}
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ github.repository_owner }}
         with:
           files: docker-bake.hcl
           push: true
-          set: |
-            TAG=${{ github.ref_name }}
-            REGISTRY=${{ env.REGISTRY }}
-            OWNER=${{ github.repository_owner }}
 
       - name: Report pushed image sizes
         run: |
@@ -61,8 +62,8 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: apps/agent/go.mod
-          cache: true
-          cache-dependency-path: apps/agent/go.sum
+          # Agent module has no go.sum / external deps – caching resolves nothing.
+          cache: false
 
       - name: Build docsops-agent (linux/amd64)
         working-directory: apps/agent
