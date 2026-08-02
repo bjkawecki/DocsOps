@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
+import { isDemoMode } from '../../../config/runtimeMode.js';
 import { notifyNotificationUnreadChanged } from '../../../infrastructure/liveEvents/notificationLiveEvents.js';
 import {
   isNotificationPreferenceEnabled,
@@ -106,6 +107,7 @@ export async function dispatchNotificationEvent(
   let deliveredCount = 0;
   let emailQueuedCount = 0;
   const emailQueueEnabled =
+    !isDemoMode() &&
     (process.env.NOTIFICATION_EMAIL_QUEUE_ENABLED ?? 'false').toLowerCase() === 'true';
 
   for (const user of users) {

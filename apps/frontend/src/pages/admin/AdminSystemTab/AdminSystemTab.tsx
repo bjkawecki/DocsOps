@@ -13,6 +13,7 @@ import { AdminSystemApplyUpdateModal } from './AdminSystemApplyUpdateModal.js';
 import { AdminSystemUpcomingReleasePreview } from './AdminSystemUpcomingReleasePreview.js';
 import { AdminSystemUpdateStepsModal } from './AdminSystemUpdateStepsModal.js';
 import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
+import { AdminSystemMailSection } from './AdminSystemMailSection.js';
 
 export function AdminSystemTab() {
   const statusQuery = useAdminUpdateStatus();
@@ -78,6 +79,7 @@ export function AdminSystemTab() {
           />
           <AdminSystemVersionTable status={status} />
           <AdminSystemUpcomingReleasePreview status={status} />
+          {settingsQuery.data ? <AdminSystemMailSection settings={settingsQuery.data} /> : null}
         </>
       ) : null}
 

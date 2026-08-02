@@ -589,9 +589,20 @@ model BackupSettings {
 
 /// Singleton platform system settings (id = "default").
 model SystemSettings {
-  id                 String   @id @default("default")
-  updateCheckEnabled Boolean  @default(true)
-  updatedAt          DateTime @updatedAt
+  id                      String   @id @default("default")
+  updateCheckEnabled      Boolean  @default(true)
+  /// When true and SMTP fields are complete, notification emails are sent via SMTP.
+  smtpEnabled             Boolean  @default(false)
+  smtpHost                String?
+  smtpPort                Int?
+  /// `none` | `starttls` | `tls`
+  smtpEncryption          String?
+  smtpUsername            String?
+  /// AES-GCM ciphertext via secretBox (`BACKUP_ENCRYPTION_KEY`); never expose in API.
+  smtpPasswordCiphertext  String?
+  smtpFromAddress         String?
+  smtpFromName            String?
+  updatedAt               DateTime @updatedAt
 }
 
 /// External or secondary storage target for backup archives.

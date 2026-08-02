@@ -38,9 +38,23 @@ async function patchAdminSystemSettings(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    throw new Error('Could not update system settings');
+    const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(errBody.error ?? 'Could not update system settings');
   }
   return res.json() as Promise<AdminSystemSettings>;
+}
+
+async function postSmtpTestEmail(body: { to?: string }): Promise<{ ok: true }> {
+  const res = await apiFetch('/api/v1/admin/system/mail/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errBody = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(errBody.error ?? 'Test email failed');
+  }
+  return res.json() as Promise<{ ok: true }>;
 }
 
 async function postCheckForUpdates(): Promise<AdminSystemCheckUpdatesResponse> {
@@ -95,6 +109,12 @@ export function usePatchAdminSystemSettings() {
       queryClient.setQueryData(adminSystemSettingsQueryKey, data);
       void queryClient.invalidateQueries({ queryKey: adminUpdateStatusQueryKey });
     },
+  });
+}
+
+export function useSendAdminSmtpTestEmail() {
+  return useMutation({
+    mutationFn: postSmtpTestEmail,
   });
 }
 

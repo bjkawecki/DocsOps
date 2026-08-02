@@ -32,6 +32,14 @@ export type AdminSystemCheckUpdatesResponse = z.infer<typeof adminSystemCheckUpd
 
 export const adminSystemSettingsSchema = z.object({
   updateCheckEnabled: z.boolean(),
+  smtpEnabled: z.boolean(),
+  smtpHost: z.string().nullable(),
+  smtpPort: z.number().int().nullable(),
+  smtpEncryption: z.enum(['none', 'starttls', 'tls']).nullable(),
+  smtpUsername: z.string().nullable(),
+  smtpPasswordConfigured: z.boolean(),
+  smtpFromAddress: z.string().nullable(),
+  smtpFromName: z.string().nullable(),
   updatedAt: z.iso.datetime(),
 });
 
@@ -39,6 +47,24 @@ export type AdminSystemSettings = z.infer<typeof adminSystemSettingsSchema>;
 
 export const patchAdminSystemSettingsBodySchema = z.object({
   updateCheckEnabled: z.boolean().optional(),
+  smtpEnabled: z.boolean().optional(),
+  smtpHost: z.string().max(255).nullable().optional(),
+  smtpPort: z.number().int().min(1).max(65535).nullable().optional(),
+  smtpEncryption: z.enum(['none', 'starttls', 'tls']).nullable().optional(),
+  smtpUsername: z.string().max(255).nullable().optional(),
+  smtpPassword: z.string().max(512).nullable().optional(),
+  smtpFromAddress: z.string().max(320).nullable().optional(),
+  smtpFromName: z.string().max(255).nullable().optional(),
 });
 
 export type PatchAdminSystemSettingsBody = z.infer<typeof patchAdminSystemSettingsBodySchema>;
+
+export const adminSystemMailTestBodySchema = z.object({
+  to: z.email().optional(),
+});
+
+export type AdminSystemMailTestBody = z.infer<typeof adminSystemMailTestBodySchema>;
+
+export const adminSystemMailTestResponseSchema = z.object({
+  ok: z.literal(true),
+});

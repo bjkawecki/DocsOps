@@ -33,6 +33,7 @@
     "argon2": "^0.44.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0",
+    "nodemailer": "^9.0.3",
     "pg": "^8.13.0",
     "pg-boss": "^12.15.0",
     "ssh2": "^1.17.0",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.16.0",
     "@types/ssh2-sftp-client": "^9.0.6",
     "@types/supertest": "^7.2.0",

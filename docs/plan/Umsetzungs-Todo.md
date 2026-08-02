@@ -151,6 +151,8 @@ Vor Admin umgesetzt, damit Theme (Hell/Dunkel/Auto) früh app-weit gilt. Einstel
 [x] **Organisation-Tab entfernen:** Inhalte auf Tabs Company, Departments, Teams verteilt; es gibt keine Route `/admin/organisation` und keine `AdminOrganisationTab` mehr (nur noch `AdminPage` mit Tabs Users / Teams / Departments / Company).
 [x] **Dev-Feature (Admin): Ansicht „als Nutzer X“** – Admins können die Oberfläche bzw. Daten so sehen, als wären sie ein anderer Nutzer (ohne sich auszuloggen); nur für Admins, z. B. zur Prüfung von Rechten oder Support.
 
+[x] **SMTP / ausgehende E-Mail (Plattform):** Admin konfiguriert den Mail-Server, über den DocsOps Benachrichtigungs-Mails versendet (Outbox + nodemailer). **Ort:** Admin → System → Outgoing email. Felder: Host, Port, Encryption, Username, Passwort (secretBox/`BACKUP_ENCRYPTION_KEY`), From. **Send test email** (Default: Admin-E-Mail). In **`DEMO_MODE`:** kein Versand; PATCH SMTP / Test → 403.
+
 ---
 
 ## 10. Kontexte-Verwaltung (Company Page)
@@ -369,8 +371,31 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ### Demo & öffentliche Präsenz (getrennt von Self-hosted)
 
-[ ] **Demo online** – eigene Instanz, `DEMO_MODE`, Reset: [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md)
-[ ] **Landing + i18n** – statische DE-Landing (`docsops.de`); drei Sections Scope/Kontext/Rechte laut [Landing-Sections-Plan.md](../marketing/Landing-Sections-Plan.md) (Phase A Docs [x], Code B–F offen); App EN/DE optional; Release Notes **§24**
+**Landing (Code `apps/landing` – inhaltlich weitgehend fertig):**
+
+[x] **Landing-App:** Vite + React + Mantine; DE-Copy; Routen `/`, `/philosophie`, `/install`, `/changelog`, `/sponsor`, `/impressum`, `/datenschutz`; Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
+[x] **Modell-Sections:** Scope · Kontext · Rollen · Beispiel (IT / Software X / A11y) laut [Landing-Sections-Plan](../marketing/Landing-Sections-Plan.md) / Positionierung Phasen B–E.
+[x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
+[ ] **Landing Go-live:** Deploy auf `docsops.de`; Impressum/Datenschutz-Platzhalter ersetzen; DNS/Caddy; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
+
+**App-i18n (vor Demo-Deploy):**
+
+[ ] **App EN + DE:** i18n-Gerüst (Keys, Fallback EN); `preferences.locale` (Settings „Interface language“ existiert schon) und Browser-Default wirklich anwenden; Shell/Login/häufige UI-Texte EN+DE. Help darf vorerst EN bleiben. **Voraussetzung vor öffentlicher Demo**, damit DE-Landing nicht in eine EN-only-App springt (optional Landing-Hinweis / `?lang=de`).
+
+**Demo-Instanz (`demo.docsops.de`):**
+
+**Hosting:** Ein VPS möglich: `docsops.de` = statische Landing, `demo.docsops.de` = eigener Compose-Stack (`COMPOSE_PROJECT_NAME=docsops-demo`, eigene Volumes); Landing nicht im Demo-App-Container.
+
+[ ] **Demo-Ops-Skript (`docsops-demo`):** Host-Skript (Bash, Release-Asset / curl), **gegen veröffentlichte GitHub-Releases** (GHCR-Images + Bundle) – kein `main`/lokaler Build. Befehle mind.: `install`, `reinstall`/`reset`, `update`, `status` (optional `logs`). Beim Install/Update: **GitHub-Releases abfragen**, verfügbare Tags listen, Version interaktiv wählen (oder Flag `--version vX.Y.Z`). Nutzt Prod-Compose + `docker-compose.demo.yml`, setzt `DEMO_MODE=true`, Hostname `demo.docsops.de`. Cron ruft täglich `reset` auf.
+[ ] **Eigene Instanz:** isolierter Stack; `DEMO_MODE=true` ([runtimeMode](../../apps/backend/src/config/runtimeMode.ts): Startup-Seed an; **kein** Dev-Debug-Menü / Impersonate).
+[ ] **Demo-Login mit Rollenwahl:** Angepasste Login-Seite in `DEMO_MODE` – **Rollenauswahl** (kein Passwort-Formular nötig bzw. optional daneben), **nicht** Bug-Menü. Mindestens **fünf** Seed-Rollen mit echten Accounts/Rechten: **Admin**, **Company Lead**, **Department Lead**, **Team Lead**, **normaler User** (Team Member). Auswahl loggt als entsprechender Seed-User ein (Session). Landing kann auf Demo-Login verweisen.
+[ ] **Admin in DEMO_MODE eingeschränkt (UI + API):** Mutierende/gefährliche Admin-Routen **serverseitig deaktivieren** (403), nicht nur UI ausblenden – u. a. User anlegen/löschen, Passwort-Reset, Platform-Reset/Reseed, Update-Apply, Backup-Ziele ändern, SMTP ändern, Broadcasts, Migration Import/Export soweit missbrauchsträchtig. Lesende Org-Übersicht ggf. erlaubt (Produktentscheidung in Umsetzung). Nav „Admin“ nur Rest-Funktionen oder Hinweis „Demo – limited admin“.
+[ ] **Reset einmal täglich:** Job/`docsops-demo reset` – DB + Demo-MinIO auf Seed; Banner „Demo resets daily“; Sessions invalidieren.
+[ ] **DEMO_MODE-Zusatz:** kein Mail-Versand, kein Self-Register, Rate Limits, kurze Sessions, Upload-Limits, `robots.txt`/noindex, Disclaimer + Nutzungsbedingungen Demo.
+[ ] **Demo-Seed-Story:** Beispiel IT / Software X / Stand Barrierefreiheit (Accounts der fünf Rollen + Beispiel-Docs).
+[ ] **Demo online:** DNS `demo.docsops.de`, Monitoring, Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7.
+
+**Reihenfolge:** App-i18n EN/DE → Landing Go-live (optional parallel) → Demo-Ops-Skript + Seed/Rollen-Login + Admin-API-Lockdown + täglicher Reset.
 
 **Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 
@@ -378,7 +403,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ## 20. Layout- & UX-Ergänzungen (Phase 2)
 
-[ ] **Optionale öffentliche Seiten (Demo):** Siehe **§19** (Demo & Landing) und [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md).
+[ ] **Optionale öffentliche Seiten (Demo):** Siehe **§19** (Demo-Instanz + Landing Go-live); Landing-Code ist erledigt, Deploy/Demo noch offen.
 [x] **Pin Sidebar:** Sidebar ein-/ausklappbar (Desktop Mini-Rail ~72px oder expanded 260px), Option in Settings („Pin“); Mobile Overlay-Drawer mit Burger.
 [x] **Notifications (Inbox & Navigation):** Erledigt in **§23** (Route `/notifications`, Sidebar, Unread-Zähler). Dieser §20-Punkt diente als Sammelwunsch; Details und weitere Ausbauten nur noch in **§23** pflegen.
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).

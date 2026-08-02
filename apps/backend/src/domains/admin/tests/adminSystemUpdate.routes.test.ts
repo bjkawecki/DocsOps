@@ -271,8 +271,15 @@ describe('Admin system update routes', () => {
       headers: { cookie },
     });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { updateCheckEnabled: boolean; updatedAt: string };
+    const body = res.json() as {
+      updateCheckEnabled: boolean;
+      smtpEnabled: boolean;
+      smtpPasswordConfigured: boolean;
+      updatedAt: string;
+    };
     expect(body.updateCheckEnabled).toBe(true);
+    expect(body.smtpEnabled).toBe(false);
+    expect(body.smtpPasswordConfigured).toBe(false);
     expect(body.updatedAt).toBeTruthy();
   });
 
@@ -305,5 +312,113 @@ describe('Admin system update routes', () => {
       headers: { cookie },
     });
     expect(res.statusCode).toBe(403);
+  });
+
+  it('PATCH SMTP settings stores password ciphertext and does not leak password', async () => {
+    const prevKey = process.env.BACKUP_ENCRYPTION_KEY;
+    process.env.BACKUP_ENCRYPTION_KEY = Buffer.alloc(32, 9).toString('base64');
+    try {
+      const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/admin/system/settings',
+        headers: { cookie },
+        payload: {
+          smtpEnabled: true,
+          smtpHost: 'smtp.example.com',
+          smtpPort: 587,
+          smtpEncryption: 'starttls',
+          smtpUsername: 'docsops',
+          smtpPassword: 'secret-pass',
+          smtpFromAddress: 'noreply@example.com',
+          smtpFromName: 'DocsOps',
+        },
+      });
+      expect(res.statusCode).toBe(200);
+      const body = res.json() as Record<string, unknown>;
+      expect(body.smtpEnabled).toBe(true);
+      expect(body.smtpPasswordConfigured).toBe(true);
+      expect(body).not.toHaveProperty('smtpPassword');
+      expect(body).not.toHaveProperty('smtpPasswordCiphertext');
+
+      const getRes = await app.inject({
+        method: 'GET',
+        url: '/api/v1/admin/system/settings',
+        headers: { cookie },
+      });
+      const getBody = getRes.json() as { smtpPasswordConfigured: boolean; smtpHost: string };
+      expect(getBody.smtpPasswordConfigured).toBe(true);
+      expect(getBody.smtpHost).toBe('smtp.example.com');
+    } finally {
+      if (prevKey === undefined) delete process.env.BACKUP_ENCRYPTION_KEY;
+      else process.env.BACKUP_ENCRYPTION_KEY = prevKey;
+      await prisma.systemSettings.update({
+        where: { id: 'default' },
+        data: {
+          smtpEnabled: false,
+          smtpHost: null,
+          smtpPort: null,
+          smtpEncryption: null,
+          smtpUsername: null,
+          smtpPasswordCiphertext: null,
+          smtpFromAddress: null,
+          smtpFromName: null,
+        },
+      });
+    }
+  });
+
+  it('POST /admin/system/mail/test returns 400 when SMTP not configured', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/admin/system/mail/test',
+      headers: { cookie },
+      payload: {},
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('POST /admin/system/mail/test returns 403 in DEMO_MODE', async () => {
+    const prev = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = 'true';
+    try {
+      const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/admin/system/mail/test',
+        headers: { cookie },
+        payload: { to: 'admin@example.com' },
+      });
+      expect(res.statusCode).toBe(403);
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+  });
+
+  it('PATCH SMTP settings returns 403 in DEMO_MODE', async () => {
+    const prev = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = 'true';
+    try {
+      const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/admin/system/settings',
+        headers: { cookie },
+        payload: {
+          smtpEnabled: true,
+          smtpHost: 'smtp.example.com',
+          smtpPort: 587,
+          smtpEncryption: 'starttls',
+          smtpFromAddress: 'noreply@example.com',
+          smtpPassword: 'secret',
+        },
+      });
+      expect(res.statusCode).toBe(403);
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
   });
 });

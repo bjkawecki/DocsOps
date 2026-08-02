@@ -97,8 +97,19 @@ Empfehlung für DocsOps: **writable + Reset** (z. B. alle 6–24 h).
 
 ### Zugang
 
-- **Shared Credentials** auf der Landing sind branchenüblich – Risiko liegt bei **isolierter Demo**, nicht beim Passwort.
-- Alternative: Button **„Enter demo“** → Backend erzeugt Session für Demo-User (kein Passwort auf der Seite).
+- **Demo-Login mit Rollenwahl** (festgelegt): In `DEMO_MODE` Login-UI mit Auswahl **Admin | Company Lead | Department Lead | Team Lead | User** → Session als Seed-Account. **Kein** Dev-Debug-Menü / Impersonate.
+- Optional zusätzlich sichtbare Demo-Credentials auf der Landing.
+- Alternative später: Button **„Enter demo“** → Default-Rolle (z. B. Team Lead).
+
+### Reset & Ops
+
+- **Täglicher Reset** via Job oder Host-Skript `docsops-demo reset`.
+- **`docsops-demo`:** install / reinstall / update / status gegen **GitHub Releases** (Versionen listen + wählen).
+- UI-Banner: „Demo – resets daily“.
+
+### Admin in DEMO_MODE
+
+- Gefährliche Admin-**Routen serverseitig 403**; UI ausblenden allein reicht nicht.
 
 ### Technische Maßnahmen
 
@@ -165,11 +176,11 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 
 ## 8. Empfohlene Reihenfolge
 
-1. Plattform intern demo-stabil (Seed, Basis-Features)
-2. Statische **DE-Landing** auf `docsops.de`
-3. **Demo-Subdomain** mit Reset + `DEMO_MODE`
-4. App-**i18n** EN/DE (parallel oder kurz danach)
-5. Optional: integrierte Landing per Flag; `docsops.org`-Strategie verfeinern
+1. Plattform intern demo-stabil (Seed, Basis-Features) – weitgehend erreicht
+2. **App-i18n EN + DE** (vor öffentlicher Demo)
+3. Statische **DE-Landing** auf `docsops.de` (Code fertig; Deploy + Legal-Platzhalter)
+4. **Demo-Subdomain** mit Seed-Accounts (Rollen), täglichem Reset, `DEMO_MODE`
+5. Optional: integrierte Landing per Flag; `docsops.org`-Strategie verfeinern; Vergleich/FAQ auf Landing
 
 ---
 
@@ -177,7 +188,8 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 
 - Formulierung Nutzungsbedingungen / Disclaimer (Anwalt)
 - „Enter demo“ vs. sichtbare Demo-Credentials
-- Seed-Sprache (DE vs. EN) für `demo.docsops.de`
+- **Rollen-UX:** Seed-Accounts (A) vs. Demo-Switcher (B) vs. beides – Entscheidung vor Umsetzung
+- Seed-Sprache (DE vs. EN) für `demo.docsops.de` (bei App-i18n: DE-Seed sinnvoll)
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 
-**Nächster Schritt:** Bei Start der Demo-Umsetzung §19 in [Umsetzungs-Todo](Umsetzungs-Todo.md) mit diesem Plan abgleichen.
+**Nächster Schritt:** App-i18n EN/DE; parallel Rollen-Entscheidung für Demo; dann Landing-Deploy + Demo-Stack.
