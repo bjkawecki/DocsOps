@@ -12,8 +12,9 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AdminSystemSettings } from 'backend/api-types';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useMe } from '../../../hooks/useMe.js';
 import {
   usePatchAdminSystemSettings,
@@ -25,7 +26,7 @@ type Props = {
 };
 
 /**
- * Admin System: platform SMTP configuration + send test email.
+ * Admin Platform → Mail: platform SMTP configuration + send test email.
  */
 export function AdminSystemMailSection({ settings }: Props) {
   const { data: me } = useMe();
@@ -98,6 +99,40 @@ export function AdminSystemMailSection({ settings }: Props) {
       });
     }
   };
+
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+  const handleTestRef = useRef(handleTest);
+  handleTestRef.current = handleTest;
+
+  const testDisabled = !settings.smtpEnabled && !smtpEnabled;
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Button
+          loading={patchMutation.isPending}
+          onClick={() => void handleSaveRef.current()}
+          size="xs"
+        >
+          Save mail settings
+        </Button>
+        <Button
+          variant="light"
+          size="xs"
+          loading={testMutation.isPending}
+          disabled={testDisabled}
+          onClick={() => void handleTestRef.current()}
+        >
+          Send test email
+        </Button>
+      </Group>
+    ),
+    [patchMutation.isPending, testMutation.isPending, testDisabled]
+  );
+  useSetAppShellBreadcrumbActions(
+    chromeActions,
+    `admin-mail:${patchMutation.isPending}:${testMutation.isPending}:${testDisabled}`
+  );
 
   return (
     <Paper withBorder p="md" radius="md">
@@ -179,32 +214,16 @@ export function AdminSystemMailSection({ settings }: Props) {
           />
         </Group>
 
-        <Group>
-          <Button loading={patchMutation.isPending} onClick={() => void handleSave()}>
-            Save mail settings
-          </Button>
-        </Group>
-
         <Stack gap="xs">
           <Text size="sm" fw={500}>
             Send test email
           </Text>
-          <Group align="flex-end" grow>
-            <TextInput
-              label="Recipient"
-              description="Defaults to your admin account email"
-              value={testTo}
-              onChange={(e) => setTestTo(e.currentTarget.value)}
-            />
-            <Button
-              variant="light"
-              loading={testMutation.isPending}
-              disabled={!settings.smtpEnabled && !smtpEnabled}
-              onClick={() => void handleTest()}
-            >
-              Send test email
-            </Button>
-          </Group>
+          <TextInput
+            label="Recipient"
+            description="Defaults to your admin account email"
+            value={testTo}
+            onChange={(e) => setTestTo(e.currentTarget.value)}
+          />
         </Stack>
       </Stack>
     </Paper>

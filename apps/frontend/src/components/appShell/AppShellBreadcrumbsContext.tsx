@@ -21,6 +21,9 @@ type BreadcrumbsContextValue = {
   setItems: (items: AppShellBreadcrumbItem[] | null) => void;
   actions: ReactNode | null;
   setActions: (actions: ReactNode | null) => void;
+  /** Replaces the breadcrumb trail + actions row (e.g. Admin primary tabs). */
+  chromeBar: ReactNode | null;
+  setChromeBar: (chrome: ReactNode | null) => void;
 };
 
 const AppShellBreadcrumbsContext = createContext<BreadcrumbsContextValue | null>(null);
@@ -28,15 +31,19 @@ const AppShellBreadcrumbsContext = createContext<BreadcrumbsContextValue | null>
 export function AppShellBreadcrumbsProvider({ children }: { children: ReactNode }) {
   const [items, setItemsState] = useState<AppShellBreadcrumbItem[] | null>(null);
   const [actions, setActionsState] = useState<ReactNode | null>(null);
+  const [chromeBar, setChromeBarState] = useState<ReactNode | null>(null);
   const setItems = useCallback((next: AppShellBreadcrumbItem[] | null) => {
     setItemsState(next);
   }, []);
   const setActions = useCallback((next: ReactNode | null) => {
     setActionsState(next);
   }, []);
+  const setChromeBar = useCallback((next: ReactNode | null) => {
+    setChromeBarState(next);
+  }, []);
   const value = useMemo(
-    () => ({ items, setItems, actions, setActions }),
-    [items, setItems, actions, setActions]
+    () => ({ items, setItems, actions, setActions, chromeBar, setChromeBar }),
+    [items, setItems, actions, setActions, chromeBar, setChromeBar]
   );
   return (
     <AppShellBreadcrumbsContext.Provider value={value}>
@@ -91,10 +98,32 @@ export function useSetAppShellBreadcrumbActions(actions: ReactNode | null, syncK
   }, [setActions]);
 }
 
+/**
+ * Replace the whole meter row under the top bar (no breadcrumbs).
+ * `syncKey` must be stable for the given chrome payload.
+ */
+export function useSetAppShellChromeBar(chrome: ReactNode | null, syncKey = '') {
+  const { setChromeBar } = useBreadcrumbsContext();
+  const chromeRef = useRef(chrome);
+  chromeRef.current = chrome;
+
+  useEffect(() => {
+    setChromeBar(chromeRef.current);
+  }, [syncKey, setChromeBar]);
+
+  useEffect(() => {
+    return () => setChromeBar(null);
+  }, [setChromeBar]);
+}
+
 export function useAppShellBreadcrumbItems(): AppShellBreadcrumbItem[] | null {
   return useBreadcrumbsContext().items;
 }
 
 export function useAppShellBreadcrumbActions(): ReactNode | null {
   return useBreadcrumbsContext().actions;
+}
+
+export function useAppShellChromeBar(): ReactNode | null {
+  return useBreadcrumbsContext().chromeBar;
 }

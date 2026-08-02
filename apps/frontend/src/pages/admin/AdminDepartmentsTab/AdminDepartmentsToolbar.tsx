@@ -10,8 +10,6 @@ export type AdminDepartmentsToolbarProps = {
   filteredDepartmentsCount: number;
   limit: number;
   onLimitChange: (next: number) => void;
-  onOpenCreate: () => void;
-  createDisabled: boolean;
 };
 
 export function AdminDepartmentsToolbar(props: AdminDepartmentsToolbarProps) {
@@ -24,8 +22,6 @@ export function AdminDepartmentsToolbar(props: AdminDepartmentsToolbarProps) {
     filteredDepartmentsCount,
     limit,
     onLimitChange,
-    onOpenCreate,
-    createDisabled,
   } = props;
 
   return (
@@ -41,9 +37,6 @@ export function AdminDepartmentsToolbar(props: AdminDepartmentsToolbarProps) {
       limit={limit}
       onLimitChange={onLimitChange}
       pageSizeLocalStorageKey={DEPARTMENTS_PAGE_SIZE_KEY}
-      createButtonLabel="Create department"
-      onOpenCreate={onOpenCreate}
-      createDisabled={createDisabled}
     />
   );
 }

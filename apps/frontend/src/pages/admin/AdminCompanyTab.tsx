@@ -19,6 +19,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import type { Company } from 'backend/api-types';
 import { CompanyForm } from './AdminCompanyForm';
 import { CompanyPdfBrandingForm } from '../../components/organisation/CompanyPdfBrandingForm.js';
@@ -241,6 +242,16 @@ export function AdminCompanyTab() {
     onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
   });
 
+  const chromeActions = useMemo(
+    () => (
+      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
+        Create company
+      </Button>
+    ),
+    [openCreate]
+  );
+  useSetAppShellBreadcrumbActions(chromeActions, 'admin-company-create');
+
   if (companiesPending) {
     return (
       <Box>
@@ -251,14 +262,6 @@ export function AdminCompanyTab() {
 
   return (
     <Box>
-      {companies.length === 0 && (
-        <Group mb="md" justify="flex-end">
-          <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
-            Create company
-          </Button>
-        </Group>
-      )}
-
       {companies.length === 0 ? (
         <Alert color="blue" mb="md">
           No company set up. Create the company first, then manage company leads.

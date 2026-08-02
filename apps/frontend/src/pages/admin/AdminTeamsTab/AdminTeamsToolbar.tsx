@@ -11,8 +11,6 @@ export type AdminTeamsToolbarProps = {
   filteredTeamsCount: number;
   limit: number;
   onLimitChange: (next: number) => void;
-  onOpenCreate: () => void;
-  createDisabled: boolean;
 };
 
 export function AdminTeamsToolbar(props: AdminTeamsToolbarProps) {
@@ -26,8 +24,6 @@ export function AdminTeamsToolbar(props: AdminTeamsToolbarProps) {
     filteredTeamsCount,
     limit,
     onLimitChange,
-    onOpenCreate,
-    createDisabled,
   } = props;
 
   return (
@@ -44,9 +40,6 @@ export function AdminTeamsToolbar(props: AdminTeamsToolbarProps) {
       limit={limit}
       onLimitChange={onLimitChange}
       pageSizeLocalStorageKey={TEAMS_PAGE_SIZE_KEY}
-      createButtonLabel="Create team"
-      onOpenCreate={onOpenCreate}
-      createDisabled={createDisabled}
     />
   );
 }

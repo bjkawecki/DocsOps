@@ -1,6 +1,9 @@
-import { Alert, Loader, Stack } from '@mantine/core';
+import { useCallback, useMemo } from 'react';
+import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { IconRefresh } from '@tabler/icons-react';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import {
   useAdminSystemSettings,
   useCheckForUpdates,
@@ -13,7 +16,6 @@ import { AdminSystemApplyUpdateModal } from './AdminSystemApplyUpdateModal.js';
 import { AdminSystemUpcomingReleasePreview } from './AdminSystemUpcomingReleasePreview.js';
 import { AdminSystemUpdateStepsModal } from './AdminSystemUpdateStepsModal.js';
 import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
-import { AdminSystemMailSection } from './AdminSystemMailSection.js';
 
 export function AdminSystemTab() {
   const statusQuery = useAdminUpdateStatus();
@@ -24,8 +26,10 @@ export function AdminSystemTab() {
   const [applyOpened, { open: openApply, close: closeApply }] = useDisclosure(false);
   const status = statusQuery.data;
   const checksEnabled = settingsQuery.data?.updateCheckEnabled ?? true;
+  const checkDisabled =
+    statusQuery.isFetching || !checksEnabled || checkMutation.isPending || status == null;
 
-  const handleCheck = async () => {
+  const handleCheck = useCallback(async () => {
     try {
       const result = await checkMutation.mutateAsync();
       if (result.notificationSent) {
@@ -41,7 +45,7 @@ export function AdminSystemTab() {
     } catch {
       notifications.show({ color: 'red', message: 'Update check failed.' });
     }
-  };
+  }, [checkMutation]);
 
   const handleToggleChecks = async (enabled: boolean) => {
     try {
@@ -54,6 +58,50 @@ export function AdminSystemTab() {
       notifications.show({ color: 'red', message: 'Could not update settings.' });
     }
   };
+
+  const canApplyUpdate = status?.canApplyUpdate === true;
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Button size="xs" variant="default" onClick={openSteps} disabled={status == null}>
+          How to update
+        </Button>
+        {canApplyUpdate ? (
+          <Button size="xs" color="orange" onClick={openApply}>
+            Apply update
+          </Button>
+        ) : null}
+        <Tooltip
+          label={!checksEnabled ? 'Enable automatic checks first' : undefined}
+          disabled={checksEnabled}
+        >
+          <Button
+            size="xs"
+            leftSection={<IconRefresh size={14} />}
+            loading={checkMutation.isPending}
+            disabled={checkDisabled}
+            onClick={() => void handleCheck()}
+          >
+            Check for updates
+          </Button>
+        </Tooltip>
+      </Group>
+    ),
+    [
+      canApplyUpdate,
+      checkDisabled,
+      checkMutation.isPending,
+      checksEnabled,
+      handleCheck,
+      openApply,
+      openSteps,
+      status,
+    ]
+  );
+  useSetAppShellBreadcrumbActions(
+    chromeActions,
+    `admin-system:${checksEnabled}:${checkDisabled}:${canApplyUpdate}:${checkMutation.isPending}`
+  );
 
   return (
     <Stack gap="md">
@@ -70,16 +118,10 @@ export function AdminSystemTab() {
             status={status}
             checksEnabled={checksEnabled}
             settingsSaving={patchSettingsMutation.isPending}
-            checkLoading={checkMutation.isPending}
-            statusLoading={statusQuery.isFetching}
             onToggleChecks={(enabled) => void handleToggleChecks(enabled)}
-            onCheckNow={() => void handleCheck()}
-            onViewSteps={openSteps}
-            onApplyUpdate={status.canApplyUpdate ? openApply : undefined}
           />
           <AdminSystemVersionTable status={status} />
           <AdminSystemUpcomingReleasePreview status={status} />
-          {settingsQuery.data ? <AdminSystemMailSection settings={settingsQuery.data} /> : null}
         </>
       ) : null}
 

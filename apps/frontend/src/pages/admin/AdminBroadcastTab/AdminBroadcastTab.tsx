@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Alert, Group, Loader, Pagination, Stack } from '@mantine/core';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Button, Group, Loader, Pagination, Stack } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client.js';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminBroadcastCreateModal } from './AdminBroadcastCreateModal.js';
 import { AdminBroadcastTableSection } from './AdminBroadcastTableSection.js';
 import { AdminBroadcastToolbar } from './AdminBroadcastToolbar.js';
@@ -110,6 +112,23 @@ export function AdminBroadcastTab() {
     if (currentPage > pageCount) setOffset(0);
   }, [currentPage, pageCount]);
 
+  const chromeActions = useMemo(
+    () => (
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={() => {
+          setDraft(emptyDraft());
+          setCreateOpen(true);
+        }}
+      >
+        Create message
+      </Button>
+    ),
+    []
+  );
+  useSetAppShellBreadcrumbActions(chromeActions, 'admin-broadcast-create');
+
   return (
     <Stack gap="md">
       <AdminBroadcastToolbar
@@ -118,10 +137,6 @@ export function AdminBroadcastTab() {
         onLimitChange={(next) => {
           setLimit(next);
           setOffset(0);
-        }}
-        onOpenCreate={() => {
-          setDraft(emptyDraft());
-          setCreateOpen(true);
         }}
       />
 

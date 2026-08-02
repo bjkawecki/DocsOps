@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Alert, Loader, Stack } from '@mantine/core';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminMigrationExportModal } from './AdminMigrationExportModal';
 import { AdminMigrationImportModal } from './AdminMigrationImportModal';
 import { AdminMigrationOverview } from './AdminMigrationOverview';
@@ -49,6 +50,41 @@ export function AdminMigrationTab() {
   const exportDisabled = exportDisabledReason != null;
   const importDisabled = importDisabledReason != null;
 
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Tooltip
+          label={exportDisabledReason ?? ''}
+          disabled={!exportDisabled || !exportDisabledReason}
+        >
+          <Button size="xs" disabled={exportDisabled} onClick={openExport}>
+            Export platform
+          </Button>
+        </Tooltip>
+        <Tooltip
+          label={importDisabledReason ?? ''}
+          disabled={!importDisabled || !importDisabledReason}
+        >
+          <Button size="xs" variant="default" disabled={importDisabled} onClick={openImport}>
+            Import platform
+          </Button>
+        </Tooltip>
+      </Group>
+    ),
+    [
+      exportDisabled,
+      exportDisabledReason,
+      importDisabled,
+      importDisabledReason,
+      openExport,
+      openImport,
+    ]
+  );
+  useSetAppShellBreadcrumbActions(
+    chromeActions,
+    `admin-migration:${exportDisabled}:${importDisabled}`
+  );
+
   return (
     <Stack gap="md">
       {statusQuery.isError ? (
@@ -60,15 +96,7 @@ export function AdminMigrationTab() {
       ) : status ? (
         <>
           <AdminMigrationStatusAlerts status={status} />
-          <AdminMigrationOverview
-            status={status}
-            exportDisabled={exportDisabled}
-            importDisabled={importDisabled}
-            exportDisabledReason={exportDisabledReason}
-            importDisabledReason={importDisabledReason}
-            onExport={openExport}
-            onImport={openImport}
-          />
+          <AdminMigrationOverview status={status} />
         </>
       ) : null}
 
@@ -81,7 +109,6 @@ export function AdminMigrationTab() {
           });
         }}
       />
-
       <AdminMigrationImportModal
         opened={importOpened}
         onClose={() => {

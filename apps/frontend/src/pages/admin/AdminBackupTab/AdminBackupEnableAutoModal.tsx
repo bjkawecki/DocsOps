@@ -15,7 +15,8 @@ export function AdminBackupEnableAutoModal({ opened, onClose, onConfirm, loading
         <Text size="sm">
           Enable daily backups at <strong>03:00 UTC</strong>? The default external destination from
           this tab will be used. You can change the schedule later in{' '}
-          <Link to="/admin/scheduler">Scheduler</Link> (job: <code>maintenance.backup</code>).
+          <Link to="/admin/operations/scheduler">Scheduler</Link> (job:{' '}
+          <code>maintenance.backup</code>).
         </Text>
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader, Stack } from '@mantine/core';
+import { Button, Group, Loader, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { IconSettings } from '@tabler/icons-react';
 import { apiBase, apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { meQueryKey } from '../../../hooks/useMe';
 import { buildDestinationBody, type DestinationFormState } from './adminBackupDestinationForm';
 import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
@@ -171,7 +173,7 @@ export function AdminBackupTab() {
           color: 'green',
           autoClose: 15_000,
         });
-        void navigate('/login', { replace: true, state: { from: '/admin/backup' } });
+        void navigate('/login', { replace: true, state: { from: '/admin/data/backup' } });
       }
     }
   }, [restoresQuery.data?.items, invalidateBackup, navigate, queryClient]);
@@ -464,13 +466,43 @@ export function AdminBackupTab() {
     return inProgress?.status ?? null;
   }, [restoresQuery.data?.items]);
 
-  if (statusQuery.isPending) return <Loader size="sm" />;
-
   const status = statusQuery.data;
-  if (!status) return null;
-
   const canBackup =
-    status.minioAvailable && status.encryptionConfigured && !status.maintenanceActive;
+    status != null &&
+    status.minioAvailable &&
+    status.encryptionConfigured &&
+    !status.maintenanceActive;
+
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Button
+          size="xs"
+          variant="default"
+          leftSection={<IconSettings size={14} />}
+          onClick={() => openBackupSettings('general')}
+        >
+          Settings
+        </Button>
+        <Button
+          size="xs"
+          onClick={() => createBackup.mutate(status?.defaultDestinationId ?? undefined)}
+          loading={createBackup.isPending}
+          disabled={!canBackup}
+        >
+          Backup now
+        </Button>
+      </Group>
+    ),
+    [canBackup, createBackup, openBackupSettings, status?.defaultDestinationId]
+  );
+  useSetAppShellBreadcrumbActions(
+    chromeActions,
+    `admin-backup:${canBackup}:${createBackup.isPending}`
+  );
+
+  if (statusQuery.isPending) return <Loader size="sm" />;
+  if (!status) return null;
 
   const canEnableAuto =
     status.encryptionConfigured && status.defaultDestinationId != null && status.minioAvailable;
@@ -508,11 +540,9 @@ export function AdminBackupTab() {
         status={status}
         destinations={destinations}
         activeJobStatus={showActiveJobStatus}
-        canBackup={canBackup}
         canEnableAuto={canEnableAuto}
         enableBlockReason={enableBlockReason}
         scheduleSaving={patchSchedule.isPending}
-        backupLoading={createBackup.isPending}
         onRetentionChange={(retentionCount) => patchSettings.mutate({ retentionCount })}
         onDefaultDestinationChange={(defaultDestinationId) =>
           patchSettings.mutate({ defaultDestinationId })
@@ -524,8 +554,6 @@ export function AdminBackupTab() {
             patchSchedule.mutate({ enabled: false });
           }
         }}
-        onOpenSettings={() => openBackupSettings('general')}
-        onBackupNow={() => createBackup.mutate(status.defaultDestinationId ?? undefined)}
       />
 
       <AdminBackupHistorySection

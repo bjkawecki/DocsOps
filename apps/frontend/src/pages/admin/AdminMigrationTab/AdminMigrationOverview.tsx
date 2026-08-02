@@ -1,4 +1,4 @@
-import { Button, Group, Text, Tooltip } from '@mantine/core';
+import { Group, Text } from '@mantine/core';
 import {
   formatBytes,
   formatPlatformRunStatus,
@@ -10,12 +10,6 @@ import { triggerPlatformExportDownload } from './migrationUiHelpers';
 
 type Props = {
   status: PlatformMigrationStatus;
-  exportDisabled: boolean;
-  importDisabled: boolean;
-  exportDisabledReason: string | null;
-  importDisabledReason: string | null;
-  onExport: () => void;
-  onImport: () => void;
 };
 
 function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus }) {
@@ -94,43 +88,15 @@ function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus 
   );
 }
 
-export function AdminMigrationOverview({
-  status,
-  exportDisabled,
-  importDisabled,
-  exportDisabledReason,
-  importDisabledReason,
-  onExport,
-  onImport,
-}: Props) {
+export function AdminMigrationOverview({ status }: Props) {
   return (
     <>
-      <Group mb="md" justify="space-between" wrap="wrap" gap="sm" align="center">
-        <Group gap="md" wrap="wrap" align="center">
-          <MigrationInfrastructureBadges
-            minioAvailable={status.minioAvailable}
-            workerConnected={status.workerConnected}
-          />
-          <ExportArchiveCommandHint status={status} />
-        </Group>
-        <Group gap="sm" align="center" wrap="nowrap">
-          <Tooltip
-            label={exportDisabledReason ?? ''}
-            disabled={!exportDisabled || !exportDisabledReason}
-          >
-            <Button size="xs" disabled={exportDisabled} onClick={onExport}>
-              Export platform
-            </Button>
-          </Tooltip>
-          <Tooltip
-            label={importDisabledReason ?? ''}
-            disabled={!importDisabled || !importDisabledReason}
-          >
-            <Button size="xs" variant="default" disabled={importDisabled} onClick={onImport}>
-              Import platform
-            </Button>
-          </Tooltip>
-        </Group>
+      <Group mb="md" justify="flex-start" wrap="wrap" gap="md" align="center">
+        <MigrationInfrastructureBadges
+          minioAvailable={status.minioAvailable}
+          workerConnected={status.workerConnected}
+        />
+        <ExportArchiveCommandHint status={status} />
       </Group>
 
       <PlatformInstanceCountsTable

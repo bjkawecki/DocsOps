@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { meQueryKey, useMe } from '../../../hooks/useMe';
 import { AdminUserCreateForm } from './AdminUserCreateForm';
 import { AdminUserDetailTabs } from './AdminUserDetailTabs';
@@ -255,6 +257,16 @@ export function AdminUsersTab() {
 
   const listError = error instanceof Error ? error : error ? new Error(String(error)) : null;
 
+  const chromeActions = useMemo(
+    () => (
+      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
+        Create user
+      </Button>
+    ),
+    [openCreate]
+  );
+  useSetAppShellBreadcrumbActions(chromeActions, 'admin-users-create');
+
   return (
     <Box>
       <AdminUsersList
@@ -279,7 +291,6 @@ export function AdminUsersTab() {
             /* ignore */
           }
         }}
-        onOpenCreate={openCreate}
         isPending={isPending}
         isError={isError}
         error={listError}

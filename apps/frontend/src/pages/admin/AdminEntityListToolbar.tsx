@@ -1,5 +1,4 @@
-import { Button, Group, Select, Text, TextInput } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
+import { Group, Select, Text, TextInput } from '@mantine/core';
 import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
@@ -18,11 +17,9 @@ export type AdminEntityListToolbarProps = {
   limit: number;
   onLimitChange: (next: number) => void;
   pageSizeLocalStorageKey: string;
-  createButtonLabel: string;
-  onOpenCreate: () => void;
-  createDisabled: boolean;
 };
 
+/** Filters + page size for admin entity lists (primary Create lives in shell chrome). */
 export function AdminEntityListToolbar({
   searchPlaceholder,
   filterText,
@@ -36,9 +33,6 @@ export function AdminEntityListToolbar({
   limit,
   onLimitChange,
   pageSizeLocalStorageKey,
-  createButtonLabel,
-  onOpenCreate,
-  createDisabled,
 }: AdminEntityListToolbarProps) {
   return (
     <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
@@ -79,14 +73,6 @@ export function AdminEntityListToolbar({
           }}
           style={{ width: 100 }}
         />
-        <Button
-          size="xs"
-          leftSection={<IconPlus size={14} />}
-          onClick={onOpenCreate}
-          disabled={createDisabled}
-        >
-          {createButtonLabel}
-        </Button>
       </Group>
     </Group>
   );

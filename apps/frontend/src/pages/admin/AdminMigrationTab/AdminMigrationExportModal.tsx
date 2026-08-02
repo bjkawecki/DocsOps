@@ -114,7 +114,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
           </Text>
           <Alert color="red" variant="filled" title="Not disaster recovery">
             For disaster recovery on the same server, use operational backup on the{' '}
-            <Link to="/admin/backup">Backup</Link> tab instead.
+            <Link to="/admin/data/backup">Backup</Link> tab instead.
           </Alert>
         </Stack>
       );

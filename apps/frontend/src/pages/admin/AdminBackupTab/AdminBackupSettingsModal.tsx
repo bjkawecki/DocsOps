@@ -146,7 +146,7 @@ export function AdminBackupSettingsModal({
                 </Tooltip>
                 {status.autoBackupConfigured ? (
                   <Text size="xs" c="dimmed">
-                    <Link to="/admin/scheduler">Scheduler</Link>
+                    <Link to="/admin/operations/scheduler">Scheduler</Link>
                   </Text>
                 ) : null}
               </Group>

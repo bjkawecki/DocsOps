@@ -1,10 +1,12 @@
-import { Box, Loader, Modal } from '@mantine/core';
+import { Box, Button, Loader, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Department } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminDepartmentDeleteModal } from './AdminDepartmentDeleteModal';
 import { AdminDepartmentEditModal } from './AdminDepartmentEditModal';
 import { AdminDepartmentsTableSection } from './AdminDepartmentsTableSection';
@@ -336,6 +338,22 @@ export function AdminDepartmentsTab() {
     setDepartmentCardEditing(true);
   }, [editingDepartment, leadsForEdit]);
 
+  const createDepartmentDisabled = companies.length === 0;
+  const chromeActions = useMemo(
+    () => (
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreate}
+        disabled={createDepartmentDisabled}
+      >
+        Create department
+      </Button>
+    ),
+    [createDepartmentDisabled, openCreate]
+  );
+  useSetAppShellBreadcrumbActions(chromeActions, `admin-departments:${createDepartmentDisabled}`);
+
   if (companiesPending) {
     return (
       <Box>
@@ -364,8 +382,6 @@ export function AdminDepartmentsTab() {
           setLimit(next);
           setPage(1);
         }}
-        onOpenCreate={openCreate}
-        createDisabled={companies.length === 0}
       />
 
       <AdminDepartmentsTableSection

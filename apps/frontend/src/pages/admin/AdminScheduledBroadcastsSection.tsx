@@ -141,7 +141,7 @@ export function AdminScheduledBroadcastsSection() {
     <Stack gap="sm" mt="xl">
       <Group justify="space-between">
         <Text fw={600}>Scheduled system messages</Text>
-        <Text size="sm" c="dimmed" component={Link} to="/admin/broadcast">
+        <Text size="sm" c="dimmed" component={Link} to="/admin/platform/broadcast">
           Create message
         </Text>
       </Group>
@@ -163,7 +163,7 @@ export function AdminScheduledBroadcastsSection() {
                 <Table.Td colSpan={4}>
                   <Text size="sm" c="dimmed">
                     No scheduled messages. Use{' '}
-                    <Text span component={Link} to="/admin/broadcast">
+                    <Text span component={Link} to="/admin/platform/broadcast">
                       Create message
                     </Text>{' '}
                     and choose &quot;Schedule for later&quot;.

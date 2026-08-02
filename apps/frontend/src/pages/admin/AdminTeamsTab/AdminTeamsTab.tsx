@@ -1,10 +1,12 @@
-import { Box, Modal } from '@mantine/core';
+import { Box, Button, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Team } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminTeamDeleteModal } from './AdminTeamDeleteModal';
 import { AdminTeamEditModal } from './AdminTeamEditModal';
 import { AdminTeamsTableSection } from './AdminTeamsTableSection';
@@ -476,6 +478,22 @@ export function AdminTeamsTab() {
     invalidateAssignments,
   ]);
 
+  const createTeamDisabled = !companyId || departments.length === 0;
+  const chromeActions = useMemo(
+    () => (
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreateTeam}
+        disabled={createTeamDisabled}
+      >
+        Create team
+      </Button>
+    ),
+    [createTeamDisabled, openCreateTeam]
+  );
+  useSetAppShellBreadcrumbActions(chromeActions, `admin-teams:${createTeamDisabled}`);
+
   return (
     <Box>
       <AdminTeamsToolbar
@@ -497,8 +515,6 @@ export function AdminTeamsTab() {
           setLimit(next);
           setPage(1);
         }}
-        onOpenCreate={openCreateTeam}
-        createDisabled={!companyId || departments.length === 0}
       />
 
       <AdminTeamsTableSection

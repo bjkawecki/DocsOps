@@ -34,7 +34,7 @@ export function AdminAppVersionLabel({ isAdmin, isMiniRail = false, ta, pl, fz, 
   );
 
   const versionLabel = (
-    <Link to="/admin/system" className={classes.link}>
+    <Link to="/admin/platform/system" className={classes.link}>
       <Group gap={isMiniRail ? 4 : 8} wrap="nowrap" justify={isMiniRail ? 'center' : 'flex-start'}>
         <AppVersionLabel variant="compact" ta={ta} pl={pl} fz={fz} lh={lh} />
         {isMiniRail ? <span aria-label="Update available">{updateHint}</span> : updateHint}

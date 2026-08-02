@@ -1,17 +1,12 @@
-import { Anchor, Badge, Button, Group, Popover, Switch, Text, Tooltip } from '@mantine/core';
-import { IconExternalLink, IconRefresh } from '@tabler/icons-react';
+import { Anchor, Badge, Group, Popover, Switch, Text } from '@mantine/core';
+import { IconExternalLink } from '@tabler/icons-react';
 import type { AdminSystemUpdateStatus } from 'backend/api-types';
 
 type Props = {
   status: AdminSystemUpdateStatus;
   checksEnabled: boolean;
   settingsSaving: boolean;
-  checkLoading: boolean;
-  statusLoading: boolean;
   onToggleChecks: (enabled: boolean) => void;
-  onCheckNow: () => void;
-  onViewSteps: () => void;
-  onApplyUpdate?: () => void;
 };
 
 function formatCheckedAt(iso: string | null): string | null {
@@ -68,70 +63,37 @@ export function AdminSystemOverviewBar({
   status,
   checksEnabled,
   settingsSaving,
-  checkLoading,
-  statusLoading,
   onToggleChecks,
-  onCheckNow,
-  onViewSteps,
-  onApplyUpdate,
 }: Props) {
   const lastChecked = formatCheckedAt(status.checkedAt);
-  const checkDisabled = statusLoading || !checksEnabled || checkLoading;
 
   return (
-    <Group mb="md" justify="space-between" wrap="wrap" gap="sm" align="center">
-      <Group gap="sm" wrap="wrap" align="center">
-        {statusBadge(status)}
-        <Switch
-          size="sm"
-          label="Automatic checks"
-          checked={checksEnabled}
-          disabled={settingsSaving}
-          onChange={(event) => onToggleChecks(event.currentTarget.checked)}
-        />
-        {lastChecked != null ? (
-          <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-            Last checked {lastChecked}
-          </Text>
-        ) : (
-          <Text size="sm" c="dimmed">
-            Not checked yet
-          </Text>
-        )}
-      </Group>
-
-      <Group gap="sm" align="center" wrap="nowrap">
-        {status.releaseUrl != null && (
-          <Anchor href={status.releaseUrl} target="_blank" rel="noreferrer" size="sm">
-            <Group gap={4} component="span">
-              GitHub release
-              <IconExternalLink size={14} />
-            </Group>
-          </Anchor>
-        )}
-        <Button size="xs" variant="default" onClick={onViewSteps}>
-          How to update
-        </Button>
-        {status.canApplyUpdate && onApplyUpdate != null ? (
-          <Button size="xs" color="orange" onClick={onApplyUpdate}>
-            Apply update
-          </Button>
-        ) : null}
-        <Tooltip
-          label={!checksEnabled ? 'Enable automatic checks first' : undefined}
-          disabled={checksEnabled}
-        >
-          <Button
-            size="xs"
-            leftSection={<IconRefresh size={14} />}
-            loading={checkLoading}
-            disabled={checkDisabled}
-            onClick={onCheckNow}
-          >
-            Check for updates
-          </Button>
-        </Tooltip>
-      </Group>
+    <Group mb="md" justify="flex-start" wrap="wrap" gap="sm" align="center">
+      {statusBadge(status)}
+      <Switch
+        size="sm"
+        label="Automatic checks"
+        checked={checksEnabled}
+        disabled={settingsSaving}
+        onChange={(event) => onToggleChecks(event.currentTarget.checked)}
+      />
+      {lastChecked != null ? (
+        <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+          Last checked {lastChecked}
+        </Text>
+      ) : (
+        <Text size="sm" c="dimmed">
+          Not checked yet
+        </Text>
+      )}
+      {status.releaseUrl != null && (
+        <Anchor href={status.releaseUrl} target="_blank" rel="noreferrer" size="sm">
+          <Group gap={4} component="span">
+            GitHub release
+            <IconExternalLink size={14} />
+          </Group>
+        </Anchor>
+      )}
     </Group>
   );
 }

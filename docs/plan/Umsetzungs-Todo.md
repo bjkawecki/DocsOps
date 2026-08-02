@@ -128,7 +128,7 @@ Vor Admin umgesetzt, damit Theme (Hell/Dunkel/Auto) früh app-weit gilt. Einstel
 
 [x] **Zugang & Struktur**
 [x] Admin-Bereich nur für Nutzer mit `isAdmin` (`AdminGuard.tsx`: Redirect zu `/` für Nicht-Admins; Anzeige erst nach geladenem `useMe`).
-[x] Route `/admin` mit Unterrouten: `/admin/users`, `/admin/teams`, `/admin/departments`, `/admin/company` (Organisation-Tab entfällt; `App.tsx` + `AdminPage.tsx`).
+[x] Route `/admin` mit Content-Sidebar (Primärbereiche Organisation / Operations / Data / Platform als klappbare Sections) und Brotkrumen `Admin → Seite`; Actions rechts in der Shell-Leiste. Seiten unter `/admin/organisation/*`, `/admin/operations/*`, `/admin/data/*`, `/admin/platform/*`. Alte flache Pfade (z. B. `/admin/users`) redirecten. (`App.tsx`, `AdminPage.tsx`, `adminNavConfig.ts`).
 [x] Menüpunkt „Admin“ in der Sidebar nur anzeigen, wenn aktueller Nutzer `isAdmin` (`AppShell.tsx`, Nutzerdaten aus `useMe`).
 [x] **Einheitliches Tab-Design (vier Tabs):** Jeder Tab nutzt dasselbe UX-Muster: **Filter/Suche** (scope-spezifisch), **Liste/Tabelle** aller Einträge, **Create-Button** immer sichtbar und klickbar (Parent z. B. Company/Department im Modal), **Zeile auswählen** → Detailbereich (Members, Leads, Edit, Delete). Company-Tab: Bei nur einer Firma eine **einzelne Karte** (Name, Company leads, Edit); bei mehreren Firmen gleiches Listen-/Filter-Pattern. **Umgesetzt** in `AdminUsersTab`, `AdminTeamsTab`, `AdminDepartmentsTab`, `AdminCompanyTab` (Auswahl öffnet Card/Detail mit Tabs inkl. Zuordnungen wo vorgesehen).
 [x] **Backend: Nutzer-API (neu)**
@@ -151,7 +151,7 @@ Vor Admin umgesetzt, damit Theme (Hell/Dunkel/Auto) früh app-weit gilt. Einstel
 [x] **Organisation-Tab entfernen:** Inhalte auf Tabs Company, Departments, Teams verteilt; es gibt keine Route `/admin/organisation` und keine `AdminOrganisationTab` mehr (nur noch `AdminPage` mit Tabs Users / Teams / Departments / Company).
 [x] **Dev-Feature (Admin): Ansicht „als Nutzer X“** – Admins können die Oberfläche bzw. Daten so sehen, als wären sie ein anderer Nutzer (ohne sich auszuloggen); nur für Admins, z. B. zur Prüfung von Rechten oder Support.
 
-[x] **SMTP / ausgehende E-Mail (Plattform):** Admin konfiguriert den Mail-Server, über den DocsOps Benachrichtigungs-Mails versendet (Outbox + nodemailer). **Ort:** Admin → System → Outgoing email. Felder: Host, Port, Encryption, Username, Passwort (secretBox/`BACKUP_ENCRYPTION_KEY`), From. **Send test email** (Default: Admin-E-Mail). In **`DEMO_MODE`:** kein Versand; PATCH SMTP / Test → 403.
+[x] **SMTP / ausgehende E-Mail (Plattform):** Admin konfiguriert den Mail-Server, über den DocsOps Benachrichtigungs-Mails versendet (Outbox + nodemailer). **Ort:** Admin → Platform → Mail (`/admin/platform/mail`). Felder: Host, Port, Encryption, Username, Passwort (secretBox/`BACKUP_ENCRYPTION_KEY`), From. **Send test email** (Default: Admin-E-Mail). In **`DEMO_MODE`:** kein Versand; PATCH SMTP / Test → 403.
 
 ---
 
@@ -577,7 +577,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Ablauf im Job:** Wartungsmodus → Dump + MinIO-Export → Archiv → **Upload an Admin-Ziel** (falls konfiguriert) → Metadaten → Wartungsmodus aus.
 [x] **Destinations (Admin):** CRUD für Backup-Ziele; Typen v1: `S3_COMPATIBLE`, `SSH` (SFTP); Credentials verschlüsselt (`BACKUP_ENCRYPTION_KEY`); SSRF-Schutz bei URLs.
 [x] **Admin-API:** `GET /api/v1/admin/backups/status`, Settings, Destinations-CRUD; `POST/GET /api/v1/admin/backups`, `GET …/:id/download`; nur `requireAdmin`; Audit-Log.
-[x] **Admin-UI:** `/admin/backup` → Status, Retention, Default-Destination, Destinations, „Create backup“, Historie (Started/Finished, externes Ziel inkl. Typ), Download (API-Proxy); Automatik nur im Backup-Tab, Cron im Scheduler; Tab pollt bei sichtbarem Fenster (schnell bei laufendem Job, sonst ~15 s).
+[x] **Admin-UI:** `/admin/data/backup` → Status, Retention, Default-Destination, Destinations, „Create backup“, Historie (Started/Finished, externes Ziel inkl. Typ), Download (API-Proxy); Automatik nur im Backup-Tab, Cron im Scheduler; Tab pollt bei sichtbarem Fenster (schnell bei laufendem Job, sonst ~15 s).
 [x] **Retention:** `BackupSettings.retentionCount` (UI); Env `BACKUP_RETENTION_COUNT` nur Install-Default; älteste Backups am Ziel und in Metadaten löschen.
 [x] **Scheduler:** Cron-Feintuning im Scheduler-Tab (`maintenance.backup` → „Disaster recovery backup“); **Ein/Aus nur im Backup-Tab**; Scheduler-Zeile ausgegraut bis erstes Auto-Backup dort konfiguriert.
 [x] **Benachrichtigungen:** In-App an alle Admins bei Erfolg/Fehler (`backup-succeeded` / `backup-failed`); Kategorie `system` in Inbox und Einstellungen. _(Webhook bewusst nicht in v1.)_
@@ -602,8 +602,8 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Env & Doku:** `DOCSOPS_UPDATE_GITHUB_REPO` (`owner/repo`, optional) in [Env-und-Config](Env-und-Config.md); ohne Env kein externer Check.
 [x] **API:** `GET /api/v1/admin/system/update-status` – `installedVersion`, `updateCheckEnabled`, `latestVersion`, `updateAvailable`, `releaseUrl`, `checkedAt`, `checkError`; GitHub Releases mit Cache.
 [x] **API (optional):** `POST /api/v1/admin/system/check-updates` – Refresh; bei `latest > installed` In-App an alle Admins (`update-available`, Kategorie `system`).
-[x] **Admin-UI:** Tab **`/admin/system`** – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Tab-Badge wenn Update verfügbar.
-[x] **Notifications:** Formatter + Inbox-Link `/admin/system` für `update-available`.
+[x] **Admin-UI:** Platform → System (`/admin/platform/system`) – installiert vs. latest, „Update available“, Release-Link, Hinweis `scripts/update.sh` (**§19**), Backup-Gate → Link **§25**; Badge wenn Update verfügbar.
+[x] **Notifications:** Formatter + Inbox-Link `/admin/platform/system` für `update-available`.
 [x] **Tests:** Admin-Route (401/403), Mock GitHub-Response, SemVer-Vergleich.
 
 ### Phase 1 – Polish (abgeschlossen)
@@ -611,7 +611,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Default-Repo:** Backend-Fallback `bjkawecki/docs-ops` wenn Env fehlt; Dev-Compose + `.env.example`.
 [x] **Admin-Toggle:** `SystemSettings.updateCheckEnabled`; `GET/PATCH /admin/system/settings`.
 [x] **UI:** Schlanke Status-Card; Modal „View update steps“ mit Backup-Gate; kein Env-/Shell-Text auf Hauptseite.
-[x] **Sidebar:** Update-Badge neben `vX.Y.Z` für Admins (Link `/admin/system`).
+[x] **Sidebar:** Update-Badge neben `vX.Y.Z` für Admins (Link `/admin/platform/system`).
 [x] **Cache:** Default-TTL 24h; Frontend `staleTime` 30 Min.
 [x] **Upcoming release preview:** `content/releases/{version}.md` vom GitHub-Tag; optional `## For operators` (in `/whats-new` gefiltert); Accordion im System-Tab.
 
@@ -644,7 +644,7 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [x] **Export-Service:** Serialisierung über Domänen-Layer; MinIO-Dateien ins Archiv; ohne Sessions/pg-boss/Backup-Metadaten (v1).
 [x] **Import-Service:** Preflight (Format, Version); Import nur in **leere** Instanz; Phasen mit ID-Map; Default **Passwort-Reset** für importierte User.
 [x] **Admin-API:** `POST/GET /api/v1/admin/platform-exports`, `POST /api/v1/admin/platform-imports`, Upload + Status; nur `requireAdmin`.
-[x] **Admin-UI:** Tab **Migration** (`/admin/migration`) – letzter Export-Status, Export-/Import-Wizard (Stepper-Modals, Auto-Download), **keine** Historie-Tabellen. Dev-only: Debug-Menü „Reset platform data“. **Nicht** im Backup-Tab.
+[x] **Admin-UI:** Tab **Migration** (`/admin/data/migration`) – letzter Export-Status, Export-/Import-Wizard (Stepper-Modals, Auto-Download), **keine** Historie-Tabellen. Dev-only: Debug-Menü „Reset platform data“. **Nicht** im Backup-Tab.
 [x] **Wartungsmodus** während Import; danach `search.reindex.full` anstoßen.
 [x] **Benachrichtigungen:** In-App an Admins (`platform-export-succeeded` / `-failed`, `platform-import-succeeded` / `-failed`); Kategorie `system`.
 [x] **Doku:** Abschnitt in Plan-Betrieb §4; Hinweis im [Runbook-Backup-Restore](Runbook-Backup-Restore.md), dass DR-Restore ≠ Plattform-Import.

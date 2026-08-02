@@ -139,7 +139,7 @@ export function AdminSystemUpdateStepsModal({
             <Text size="sm">
               Until one-click update is configured, upgrade on the host via SSH. Create an
               operational backup in{' '}
-              <Text component={Link} to="/admin/backup" fw={500}>
+              <Text component={Link} to="/admin/data/backup" fw={500}>
                 Admin → Backup
               </Text>{' '}
               first.
@@ -150,7 +150,7 @@ export function AdminSystemUpdateStepsModal({
         {agentConfigured ? (
           <Text size="sm" c="dimmed">
             For a manual run, create a backup first in{' '}
-            <Text component={Link} to="/admin/backup" fw={500}>
+            <Text component={Link} to="/admin/data/backup" fw={500}>
               Admin → Backup
             </Text>
             .

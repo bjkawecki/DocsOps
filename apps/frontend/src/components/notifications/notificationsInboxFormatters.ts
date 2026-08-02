@@ -248,13 +248,13 @@ export function notificationDocumentHref(
   payload: Record<string, unknown>
 ): string | null {
   if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-')) {
-    return '/admin/migration';
+    return '/admin/data/migration';
   }
   if (eventType === 'update-available') {
-    return '/admin/system';
+    return '/admin/platform/system';
   }
   if (eventType === 'update-succeeded' || eventType === 'update-failed') {
-    return '/admin/system';
+    return '/admin/platform/system';
   }
   const docId = payloadDocumentId(payload);
   if (docId == null) return null;

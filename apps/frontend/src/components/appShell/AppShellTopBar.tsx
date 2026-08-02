@@ -340,7 +340,7 @@ export function AppShellTopBar({
               {me?.user?.isAdmin && (
                 <Menu.Item
                   component={Link}
-                  to="/admin/users"
+                  to="/admin/organisation/users"
                   leftSection={<IconShield size={14} />}
                   closeMenuOnClick
                 >

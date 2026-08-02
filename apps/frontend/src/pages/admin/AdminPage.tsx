@@ -1,55 +1,57 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Tabs, Text, Title } from '@mantine/core';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Box, Container, Flex, Paper } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
+import { useMemo } from 'react';
+import {
+  useSetAppShellBreadcrumbs,
+  useSetAppShellChromeBar,
+  type AppShellBreadcrumbItem,
+} from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import { AdminContentSidebar } from './AdminContentSidebar.js';
+import { ADMIN_DEFAULT_PATH, findAdminNavItem } from './adminNavConfig.js';
 import './AdminPage.css';
-
-const adminTabs = [
-  { to: '/admin/users', label: 'Users' },
-  { to: '/admin/teams', label: 'Teams' },
-  { to: '/admin/departments', label: 'Departments' },
-  { to: '/admin/company', label: 'Company' },
-  { to: '/admin/jobs', label: 'Jobs' },
-  { to: '/admin/scheduler', label: 'Scheduler' },
-  { to: '/admin/backup', label: 'Backup' },
-  { to: '/admin/migration', label: 'Migration' },
-  { to: '/admin/broadcast', label: 'Broadcast' },
-  { to: '/admin/system', label: 'System' },
-] as const;
 
 export function AdminPage() {
   const location = useLocation();
-  const activeTab =
-    adminTabs.find((t) => location.pathname === t.to || location.pathname.startsWith(t.to + '/'))
-      ?.to ?? '/admin/users';
+  const currentItem = findAdminNavItem(location.pathname);
+
+  const breadcrumbs = useMemo((): AppShellBreadcrumbItem[] => {
+    const items: AppShellBreadcrumbItem[] = [
+      {
+        key: 'admin',
+        label: 'Admin',
+        to: ADMIN_DEFAULT_PATH,
+        icon: <IconSettings size={14} stroke={1.5} />,
+      },
+    ];
+    if (currentItem != null) {
+      items.push({
+        key: currentItem.to,
+        label: currentItem.label,
+      });
+    }
+    return items;
+  }, [currentItem]);
+
+  useSetAppShellBreadcrumbs(breadcrumbs);
+  useSetAppShellChromeBar(null);
+  useSetAppShellNavScope(null);
 
   return (
-    <>
-      <Title order={2} fw={600} mb={4} style={{ fontSize: '1.25rem' }}>
-        Admin
-      </Title>
-      <Text size="sm" c="dimmed" mb="sm">
-        Manage users, teams, departments, and company.
-      </Text>
-      <Tabs
-        value={activeTab}
-        styles={{
-          tab: {
-            textTransform: 'uppercase',
-            fontWeight: 500,
-            fontSize: 'var(--mantine-font-size-xs)',
-            paddingTop: 6,
-            paddingBottom: 6,
-          },
-        }}
-      >
-        <Tabs.List mb="sm">
-          {adminTabs.map((t) => (
-            <Tabs.Tab key={t.to} value={t.to} renderRoot={(props) => <Link to={t.to} {...props} />}>
-              {t.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-        <Outlet />
-      </Tabs>
-    </>
+    <Container fluid maw={1600} px="md" mb="xl">
+      <Paper withBorder={false} p={0} radius="md">
+        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
+          <ContextWorkspaceLeftColumn data-context-sibling-nav>
+            <AdminContentSidebar />
+          </ContextWorkspaceLeftColumn>
+
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }} className="admin-page-content">
+            <Outlet />
+          </Box>
+        </Flex>
+      </Paper>
+    </Container>
   );
 }

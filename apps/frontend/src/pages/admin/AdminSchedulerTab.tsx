@@ -338,8 +338,8 @@ export function AdminSchedulerTab() {
                   ) : null}
                   {backupRowLocked && (
                     <Text size="xs" c="dimmed" mt={4}>
-                      Configure automatic backups in the <Link to="/admin/backup">Backup</Link> tab
-                      first.
+                      Configure automatic backups in the <Link to="/admin/data/backup">Backup</Link>{' '}
+                      tab first.
                     </Text>
                   )}
                 </Table.Td>

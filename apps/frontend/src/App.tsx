@@ -33,6 +33,7 @@ import { AuthGuard } from './components/guards/AuthGuard';
 import { AdminGuard } from './components/guards/AdminGuard';
 import { ThemeFromPreferences } from './components/system/ThemeFromPreferences';
 import { ErrorBoundary } from './components/system/ErrorBoundary';
+import { ADMIN_DEFAULT_PATH, adminLegacyRedirects } from './pages/admin/adminNavConfig.js';
 
 const DocumentPage = lazy(() =>
   import('./pages/document/DocumentPage').then((m) => ({ default: m.DocumentPage }))
@@ -115,6 +116,9 @@ const AdminSystemTab = lazy(() =>
   import('./pages/admin/AdminSystemTab/AdminSystemTab.js').then((m) => ({
     default: m.AdminSystemTab,
   }))
+);
+const AdminMailTab = lazy(() =>
+  import('./pages/admin/AdminMailTab.js').then((m) => ({ default: m.AdminMailTab }))
 );
 
 function RouteFallback() {
@@ -204,17 +208,33 @@ function App() {
                 </AdminGuard>
               }
             >
-              <Route index element={<Navigate to="/admin/users" replace />} />
-              <Route path="users" element={<AdminUsersTab />} />
-              <Route path="teams" element={<AdminTeamsTab />} />
-              <Route path="departments" element={<AdminDepartmentsTab />} />
-              <Route path="company" element={<AdminCompanyTab />} />
-              <Route path="jobs" element={<AdminJobsTab />} />
-              <Route path="scheduler" element={<AdminSchedulerTab />} />
-              <Route path="backup" element={<AdminBackupTab />} />
-              <Route path="migration" element={<AdminMigrationTab />} />
-              <Route path="broadcast" element={<AdminBroadcastTab />} />
-              <Route path="system" element={<AdminSystemTab />} />
+              <Route index element={<Navigate to={ADMIN_DEFAULT_PATH} replace />} />
+              <Route path="organisation">
+                <Route index element={<Navigate to="users" replace />} />
+                <Route path="users" element={<AdminUsersTab />} />
+                <Route path="teams" element={<AdminTeamsTab />} />
+                <Route path="departments" element={<AdminDepartmentsTab />} />
+                <Route path="company" element={<AdminCompanyTab />} />
+              </Route>
+              <Route path="operations">
+                <Route index element={<Navigate to="jobs" replace />} />
+                <Route path="jobs" element={<AdminJobsTab />} />
+                <Route path="scheduler" element={<AdminSchedulerTab />} />
+              </Route>
+              <Route path="data">
+                <Route index element={<Navigate to="backup" replace />} />
+                <Route path="backup" element={<AdminBackupTab />} />
+                <Route path="migration" element={<AdminMigrationTab />} />
+              </Route>
+              <Route path="platform">
+                <Route index element={<Navigate to="system" replace />} />
+                <Route path="system" element={<AdminSystemTab />} />
+                <Route path="mail" element={<AdminMailTab />} />
+                <Route path="broadcast" element={<AdminBroadcastTab />} />
+              </Route>
+              {adminLegacyRedirects.map((r) => (
+                <Route key={r.from} path={r.from} element={<Navigate to={r.to} replace />} />
+              ))}
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Route>

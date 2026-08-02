@@ -11,7 +11,6 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { IconPlus } from '@tabler/icons-react';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
 import type { ListUsersRes, SortByField, SortOrder, UserRow } from './adminUsersTypes';
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './adminUsersConstants';
@@ -25,7 +24,6 @@ type Props = {
   onSearchSubmit: () => void;
   limit: number;
   onLimitChange: (next: number) => void;
-  onOpenCreate: () => void;
   isPending: boolean;
   isError: boolean;
   error: Error | null;
@@ -47,7 +45,6 @@ export function AdminUsersList({
   onSearchSubmit,
   limit,
   onLimitChange,
-  onOpenCreate,
   isPending,
   isError,
   error,
@@ -106,9 +103,6 @@ export function AdminUsersList({
             }}
             style={{ width: 100 }}
           />
-          <Button size="xs" leftSection={<IconPlus size={14} />} onClick={onOpenCreate}>
-            Create user
-          </Button>
         </Group>
       </Group>
 

@@ -4,13 +4,39 @@ import { Link } from 'react-router-dom';
 import {
   useAppShellBreadcrumbActions,
   useAppShellBreadcrumbItems,
+  useAppShellChromeBar,
 } from './AppShellBreadcrumbsContext.js';
 
-/** Meter-style breadcrumb row under the top bar; renders nothing when empty. */
+/** Meter-style chrome row under the top bar; renders nothing when empty. */
 export function AppShellBreadcrumbBar() {
+  const chromeBar = useAppShellChromeBar();
   const items = useAppShellBreadcrumbItems();
   const actions = useAppShellBreadcrumbActions();
   const hasItems = items != null && items.length > 0;
+
+  if (chromeBar != null) {
+    return (
+      <Box mb="lg" className="app-shell-breadcrumb-bar">
+        <Group
+          className="app-shell-breadcrumb-row"
+          justify="space-between"
+          align="center"
+          gap="sm"
+          wrap="nowrap"
+          mb={6}
+        >
+          <Box style={{ flex: 1, minWidth: 0 }}>{chromeBar}</Box>
+          {actions != null ? (
+            <Box className="app-shell-breadcrumb-actions" style={{ flexShrink: 0 }}>
+              {actions}
+            </Box>
+          ) : null}
+        </Group>
+        <Divider />
+      </Box>
+    );
+  }
+
   if (!hasItems && actions == null) return null;
 
   return (

@@ -276,11 +276,11 @@ Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-
 
 ### UI-Platzierung (festgelegt)
 
-| Bereich                                    | Inhalt                                                                                               |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| **Admin → Backup** (`/admin/backup`)       | Operational Backup: Ziele, Schedule-Hinweis, Historie, Download, **Restore aus DR-Archiv** (Phase 2) |
-| **Admin → Migration** (`/admin/migration`) | Letzter Export-Status, Export-/Import-Wizard (Stepper-Modals), kein Historie-Grid                    |
-| **Admin → System** (`/admin/system`, §5)   | Version, Update, Backup-Gate – kein Migrations-Export                                                |
+| Bereich                                                      | Inhalt                                                                                               |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Admin → Data → Backup** (`/admin/data/backup`)             | Operational Backup: Ziele, Schedule-Hinweis, Historie, Download, **Restore aus DR-Archiv** (Phase 2) |
+| **Admin → Data → Migration** (`/admin/data/migration`)       | Letzter Export-Status, Export-/Import-Wizard (Stepper-Modals), kein Historie-Grid                    |
+| **Admin → Platform → System** (`/admin/platform/system`, §5) | Version, Update, Backup-Gate – kein Migrations-Export                                                |
 
 Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“ – zu unscharf; Plattform-Export ist ebenfalls „Daten“).
 
