@@ -59,6 +59,15 @@
     "catchUpOne": "Catch up when you're ready · 1 item",
     "catchUpMany": "Catch up when you're ready · {{count}} items",
     "pulseMarkAsReadAria": "Mark as read",
+    "startHere": {
+      "title": "Start here",
+      "loadError": "Could not load start documents."
+    },
+    "explore": {
+      "title": "Explore documents from your scopes",
+      "loadError": "Could not load suggestions.",
+      "empty": "No documents to explore yet."
+    },
     "filters": {
       "aria": "Pulse filters",
       "clear": "Clear filter",

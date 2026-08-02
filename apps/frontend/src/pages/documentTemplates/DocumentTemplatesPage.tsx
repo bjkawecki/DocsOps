@@ -39,6 +39,7 @@ import type {
 } from '../../components/documents/documentTypeTypes.js';
 import { DocumentBlocksPreview } from '../../components/documents/DocumentBlocksPreview.js';
 import { buildTemplateTypePreviewDocument } from '../../components/documents/buildTemplateTypePreviewDocument.js';
+import { localizedDocumentTypeLabel } from '../../components/documents/localizedDocumentTypeLabel.js';
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe.js';
 import {
@@ -83,7 +84,7 @@ function textToSections(raw: string, defaultPrompt: string): TemplateSection[] {
 }
 
 export function DocumentTemplatesPage() {
-  const { t } = useTranslation(['templates', 'documents', 'shell', 'common']);
+  const { t, i18n } = useTranslation(['templates', 'documents', 'shell', 'common']);
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,6 +96,7 @@ export function DocumentTemplatesPage() {
   const [oftenUsedIn, setOftenUsedIn] = useState<string | null>('process');
   const [scopeType, setScopeType] = useState<string | null>(null);
   const [sectionsText, setSectionsText] = useState(t('templates:newType.defaultSectionsText'));
+  const locale = i18n.language;
 
   const { data: access, isPending: accessPending } = useQuery({
     queryKey: ['document-templates', 'manage-access'],
@@ -315,11 +317,11 @@ export function DocumentTemplatesPage() {
     if (selectedType != null) {
       items.push({
         key: `type:${selectedType.id}`,
-        label: selectedType.label,
+        label: localizedDocumentTypeLabel(selectedType, locale),
       });
     }
     return items;
-  }, [selectedType, t]);
+  }, [locale, selectedType, t]);
 
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(null);
@@ -347,15 +349,15 @@ export function DocumentTemplatesPage() {
 
   const customCount = (types ?? []).filter((t) => t.source === 'custom').length;
 
-  const renderTypeLink = (t: DocumentTypeDto) => (
+  const renderTypeLink = (type: DocumentTypeDto) => (
     <NavLink
-      key={t.id}
+      key={type.id}
       component={Link}
-      to={typeHref(t.id)}
+      to={typeHref(type.id)}
       replace
-      label={t.label}
-      active={selectedType?.id === t.id}
-      aria-current={selectedType?.id === t.id ? 'page' : undefined}
+      label={localizedDocumentTypeLabel(type, locale)}
+      active={selectedType?.id === type.id}
+      aria-current={selectedType?.id === type.id ? 'page' : undefined}
       variant="subtle"
       style={navLinkFullWidth}
     />
@@ -477,7 +479,9 @@ export function DocumentTemplatesPage() {
                       ) : null}
                       <Card className="document-page-card" w="100%" padding={0}>
                         <DocumentBlocksPreview
-                          doc={buildTemplateTypePreviewDocument(selectedType)}
+                          doc={buildTemplateTypePreviewDocument(selectedType, {
+                            displayLabel: localizedDocumentTypeLabel(selectedType, locale),
+                          })}
                           documentId={`template-type:${selectedType.id}`}
                         />
                       </Card>

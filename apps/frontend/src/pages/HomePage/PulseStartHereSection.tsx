@@ -6,6 +6,7 @@ import {
   IconSitemap,
   IconUsersGroup,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useMePulseStartHere, type MePulseStartHereItem } from '../../hooks/useMePulseStartHere.js';
 
@@ -32,6 +33,7 @@ function startHereScopeIcon(scopeType: MePulseStartHereItem['scopeType']) {
  * Start here section for Pulse home (heading + one doc per scope).
  */
 export function PulseStartHereSection({ enabled }: Props) {
+  const { t } = useTranslation(['documents', 'common']);
   const { data, isPending, isError } = useMePulseStartHere(enabled);
   const items = data?.items ?? [];
 
@@ -46,13 +48,13 @@ export function PulseStartHereSection({ enabled }: Props) {
             <IconRocket size={22} stroke={1.5} />
           </span>
           <Text size="lg" fw={400} c="dimmed" className="pulse-explore-heading">
-            Start here
+            {t('documents:home.startHere.title')}
           </Text>
         </div>
         {isPending ? <Loader size="sm" /> : null}
         {isError ? (
           <Text size="sm" c="dimmed">
-            Could not load start documents.
+            {t('documents:home.startHere.loadError')}
           </Text>
         ) : null}
         {!isPending && !isError && items.length > 0 ? (
@@ -72,7 +74,7 @@ export function PulseStartHereSection({ enabled }: Props) {
                   {startHereScopeIcon(item.scopeType)}
                 </span>
                 <span className="pulse-start-here-link-text">
-                  {item.title.trim() || 'Untitled'}
+                  {item.title.trim() || t('common:status.untitled')}
                 </span>
               </Anchor>
             ))}

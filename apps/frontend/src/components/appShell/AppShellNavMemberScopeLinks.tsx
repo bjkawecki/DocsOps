@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import { isOrgNavActive, type AppShellNavLinkStyles } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
@@ -26,6 +27,7 @@ export function AppShellNavMemberScopeLinks({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
   const departmentBadge =
     userDepartmentId !== undefined ? departmentCounts[userDepartmentId] : undefined;
@@ -49,7 +51,7 @@ export function AppShellNavMemberScopeLinks({
     <>
       <AppShellScopeNavLink
         to="/company"
-        label="Company"
+        label={t('nav.company')}
         active={companyActive}
         leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
@@ -59,7 +61,7 @@ export function AppShellNavMemberScopeLinks({
       />
       <AppShellScopeNavLink
         to={userDepartmentId ? `/department/${userDepartmentId}` : '/department'}
-        label="Department"
+        label={t('nav.department')}
         active={departmentActive}
         leftSection={<IconSitemap size={20} />}
         navLinkStyles={navLinkStyles}
@@ -69,7 +71,7 @@ export function AppShellNavMemberScopeLinks({
       />
       <AppShellScopeNavLink
         to={userTeamId ? `/team/${userTeamId}` : '/team'}
-        label="Team"
+        label={t('nav.team')}
         active={teamActive}
         leftSection={<IconUsersGroup size={20} />}
         navLinkStyles={navLinkStyles}

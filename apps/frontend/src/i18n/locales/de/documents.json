@@ -21,13 +21,13 @@
       "updated": "Aktualisiert",
       "created": "Erstellt",
       "name": "Name",
-      "owner": "Owner",
+      "owner": "Besitzer",
       "relevance": "Relevanz"
     },
     "table": {
       "name": "Name",
       "version": "Version",
-      "owner": "Owner",
+      "owner": "Besitzer",
       "tags": "Tags",
       "updated": "Aktualisiert",
       "created": "Erstellt"
@@ -59,6 +59,15 @@
     "catchUpOne": "Hol nach, wenn du soweit bist · 1 Eintrag",
     "catchUpMany": "Hol nach, wenn du soweit bist · {{count}} Einträge",
     "pulseMarkAsReadAria": "Als gelesen markieren",
+    "startHere": {
+      "title": "Hier starten",
+      "loadError": "Startdokumente konnten nicht geladen werden."
+    },
+    "explore": {
+      "title": "Dokumente aus deinen Bereichen entdecken",
+      "loadError": "Vorschläge konnten nicht geladen werden.",
+      "empty": "Noch keine Dokumente zum Entdecken."
+    },
     "filters": {
       "aria": "Pulse-Filter",
       "clear": "Filter löschen",

@@ -6,6 +6,7 @@ import {
   IconSitemap,
   IconUsersGroup,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useMePulseExplore } from '../../hooks/useMePulseExplore.js';
 
@@ -34,6 +35,7 @@ function exploreScopeIcon(columnKey: string) {
  * Explore columns for Pulse home (heading + scope grids).
  */
 export function PulseExploreSection({ enabled, ruled = true }: Props) {
+  const { t } = useTranslation(['documents', 'common']);
   const { data, isPending, isError } = useMePulseExplore(enabled);
   const columns = data?.columns ?? [];
 
@@ -48,18 +50,18 @@ export function PulseExploreSection({ enabled, ruled = true }: Props) {
             <IconCompass size={22} stroke={1.5} />
           </span>
           <Text size="lg" fw={400} c="dimmed" className="pulse-explore-heading">
-            Explore documents from your scopes
+            {t('documents:home.explore.title')}
           </Text>
         </div>
         {isPending ? <Loader size="sm" /> : null}
         {isError ? (
           <Text size="sm" c="dimmed">
-            Could not load suggestions.
+            {t('documents:home.explore.loadError')}
           </Text>
         ) : null}
         {!isPending && !isError && columns.length === 0 ? (
           <Text size="sm" c="dimmed">
-            No documents to explore yet.
+            {t('documents:home.explore.empty')}
           </Text>
         ) : null}
         {!isPending && columns.length > 0 ? (
@@ -85,7 +87,7 @@ export function PulseExploreSection({ enabled, ruled = true }: Props) {
                       className="pulse-explore-link"
                       lineClamp={1}
                     >
-                      {item.title.trim() || 'Untitled'}
+                      {item.title.trim() || t('common:status.untitled')}
                     </Anchor>
                   ))}
                 </Stack>

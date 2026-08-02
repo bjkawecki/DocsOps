@@ -20,6 +20,7 @@ import {
   type DocumentTypeDto,
   type DocumentTypeSelection,
 } from './documentTypeTypes.js';
+import { localizedDocumentTypeLabel } from './localizedDocumentTypeLabel.js';
 
 const BLANK_OPTION_VALUE = 'blank';
 const DROPDOWN_MIN_WIDTH = 480;
@@ -79,7 +80,7 @@ export function DocumentTypePicker({
   applyTemplateOnSelect = true,
   mode = 'create',
 }: Props) {
-  const { t } = useTranslation('documents');
+  const { t, i18n } = useTranslation('documents');
   const isNarrow = useMediaQuery('(max-width: 36em)');
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const combobox = useCombobox({
@@ -94,6 +95,7 @@ export function DocumentTypePicker({
 
   const blankLabel = t('typePicker.noType');
   const helpText = mode === 'create' ? t('typePicker.helpCreate') : t('typePicker.helpMetadata');
+  const typeLabel = (type: DocumentTypeDto) => localizedDocumentTypeLabel(type, i18n.language);
 
   const { data, isPending } = useQuery({
     queryKey: ['document-types', contextId, 'picker'],
@@ -124,7 +126,7 @@ export function DocumentTypePicker({
     ? optionValueForType(selectedType, applyTemplateOnSelect)
     : BLANK_OPTION_VALUE;
 
-  const selectedLabel = selectedType?.label ?? blankLabel;
+  const selectedLabel = selectedType ? typeLabel(selectedType) : blankLabel;
 
   const typeByOptionValue = useMemo(() => {
     const map = new Map<string, DocumentTypeDto>();
@@ -146,7 +148,7 @@ export function DocumentTypePicker({
 
   const toOption = (type: DocumentTypeDto): FlatOption => ({
     value: optionValueForType(type, applyTemplateOnSelect),
-    label: type.label,
+    label: typeLabel(type),
   });
 
   const flatOptions = useMemo((): FlatOption[] => {
@@ -156,8 +158,8 @@ export function DocumentTypePicker({
       ...projectTypes.map(toOption),
       ...customTypes.map(toOption),
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lists + apply flag
-  }, [applyTemplateOnSelect, blankLabel, customTypes, processTypes, projectTypes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lists + apply flag + locale
+  }, [applyTemplateOnSelect, blankLabel, customTypes, i18n.language, processTypes, projectTypes]);
 
   const keyboardKey =
     combobox.dropdownOpened && combobox.selectedOptionIndex >= 0
@@ -167,7 +169,11 @@ export function DocumentTypePicker({
   const previewKey = hoveredKey ?? keyboardKey ?? selectedKey;
   const previewIsBlank = previewKey === BLANK_OPTION_VALUE;
   const previewType = previewIsBlank ? null : (typeByOptionValue.get(previewKey) ?? null);
-  const previewTitle = previewIsBlank ? blankLabel : (previewType?.label ?? selectedLabel);
+  const previewTitle = previewIsBlank
+    ? blankLabel
+    : previewType
+      ? typeLabel(previewType)
+      : selectedLabel;
   const previewBody = previewIsBlank ? blankDescription(mode, t) : (previewType?.whenToUse ?? '');
   const typicalContext = typicalContextLabel(previewType, previewIsBlank, t);
   const source = sourceLabel(previewType, previewIsBlank, t);

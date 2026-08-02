@@ -41,13 +41,21 @@ export type RecentScopeIdentity = Pick<
 
 /**
  * Display label for a preferences `recentItemsByScope` map key.
+ * `fallbacks` localize Personal/Shared/Team/Department/Company when the identity name is missing.
  */
 export function formatRecentScopeLabel(
   scopeKey: string,
-  identity: RecentScopeIdentity | null | undefined
+  identity: RecentScopeIdentity | null | undefined,
+  fallbacks?: {
+    personal?: string;
+    shared?: string;
+    team?: string;
+    department?: string;
+    company?: string;
+  }
 ): string {
-  if (scopeKey === 'personal') return 'Personal';
-  if (scopeKey === 'shared') return 'Shared';
+  if (scopeKey === 'personal') return fallbacks?.personal ?? 'Personal';
+  if (scopeKey === 'shared') return fallbacks?.shared ?? 'Shared';
 
   const colon = scopeKey.indexOf(':');
   if (colon < 0) return scopeKey;
@@ -57,17 +65,17 @@ export function formatRecentScopeLabel(
 
   if (kind === 'team') {
     const team = identity?.teams.find((t) => t.teamId === id);
-    return team?.teamName?.trim() || 'Team';
+    return team?.teamName?.trim() || fallbacks?.team || 'Team';
   }
   if (kind === 'department') {
     const fromDepts = identity?.departments.find((d) => d.id === id);
     if (fromDepts?.name?.trim()) return fromDepts.name.trim();
     const fromLeads = identity?.departmentLeads.find((d) => d.id === id);
-    return fromLeads?.name?.trim() || 'Department';
+    return fromLeads?.name?.trim() || fallbacks?.department || 'Department';
   }
   if (kind === 'company') {
     const company = identity?.companyLeads.find((c) => c.id === id);
-    return company?.name?.trim() || 'Company';
+    return company?.name?.trim() || fallbacks?.company || 'Company';
   }
   return scopeKey;
 }

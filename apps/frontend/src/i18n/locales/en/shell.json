@@ -19,7 +19,19 @@
     "collapseSidebarAria": "Collapse sidebar to icon rail",
     "expandSidebar": "Expand sidebar",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close navigation menu"
+    "closeMenu": "Close navigation menu",
+    "company": "Company",
+    "department": "Department",
+    "departments": "Departments",
+    "team": "Team",
+    "teams": "Teams"
+  },
+  "continueReading": {
+    "title": "Continue reading",
+    "seeAll": "See all",
+    "seeAllAria": "See all continue reading",
+    "scopeMeta": "Scope: {{scope}}",
+    "contextMeta": "Context: {{context}}"
   },
   "account": {
     "menu": "Account",

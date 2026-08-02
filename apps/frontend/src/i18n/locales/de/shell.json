@@ -19,7 +19,19 @@
     "collapseSidebarAria": "Seitenleiste auf Icon-Leiste einklappen",
     "expandSidebar": "Seitenleiste ausklappen",
     "openMenu": "Navigationsmenü öffnen",
-    "closeMenu": "Navigationsmenü schließen"
+    "closeMenu": "Navigationsmenü schließen",
+    "company": "Unternehmen",
+    "department": "Abteilung",
+    "departments": "Abteilungen",
+    "team": "Team",
+    "teams": "Teams"
+  },
+  "continueReading": {
+    "title": "Weiterlesen",
+    "seeAll": "Alle",
+    "seeAllAria": "Alle Weiterlesen-Einträge anzeigen",
+    "scopeMeta": "Bereich: {{scope}}",
+    "contextMeta": "Kontext: {{context}}"
   },
   "account": {
     "menu": "Konto",

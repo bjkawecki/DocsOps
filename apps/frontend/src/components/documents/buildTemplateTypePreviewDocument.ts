@@ -25,8 +25,12 @@ function heading(level: 1 | 2, text: string): BlockNodeV0 {
  *
  * Shape: H1 + lead, then H2 + prose paragraph per section (no lists).
  */
-export function buildTemplateTypePreviewDocument(type: DocumentTypeDto): BlockDocumentV0 {
-  const blocks: BlockNodeV0[] = [heading(1, type.label), paragraph(type.whenToUse)];
+export function buildTemplateTypePreviewDocument(
+  type: DocumentTypeDto,
+  options?: { displayLabel?: string }
+): BlockDocumentV0 {
+  const title = options?.displayLabel?.trim() || type.label;
+  const blocks: BlockNodeV0[] = [heading(1, title), paragraph(type.whenToUse)];
 
   for (const section of type.sections) {
     blocks.push(heading(2, section.heading));

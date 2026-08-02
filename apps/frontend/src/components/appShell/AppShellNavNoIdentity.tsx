@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import { isOrgNavActive, type AppShellNavLinkStyles } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
@@ -18,12 +19,13 @@ export function AppShellNavNoIdentity({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
   return (
     <>
       <AppShellScopeNavLink
         to="/company"
-        label="Company"
+        label={t('nav.company')}
         active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
         leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
@@ -33,7 +35,7 @@ export function AppShellNavNoIdentity({
       />
       <AppShellScopeNavLink
         to="/department"
-        label="Department"
+        label={t('nav.department')}
         active={isOrgNavActive('/department', pathname, navScope, { type: 'department' })}
         leftSection={<IconSitemap size={20} />}
         navLinkStyles={navLinkStyles}
@@ -42,7 +44,7 @@ export function AppShellNavNoIdentity({
       />
       <AppShellScopeNavLink
         to="/team"
-        label="Team"
+        label={t('nav.team')}
         active={isOrgNavActive('/team', pathname, navScope, { type: 'team' })}
         leftSection={<IconUsersGroup size={20} />}
         navLinkStyles={navLinkStyles}

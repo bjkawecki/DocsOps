@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Box, NavLink, Stack, Text } from '@mantine/core';
 import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import type { AppShellNavLinkStyles, DepartmentWithTeams } from './appShellNavUtils.js';
@@ -36,6 +37,7 @@ export function AppShellNavCompanyDepartments({
   isMiniRail = false,
   onNavigate,
 }: Props) {
+  const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
   const singleDeptDocumentCount =
     depts.length === 1 && typeof departmentCounts[depts[0].id] === 'number'
@@ -71,7 +73,7 @@ export function AppShellNavCompanyDepartments({
     <>
       <AppShellScopeNavLink
         to="/company"
-        label="Company"
+        label={t('nav.company')}
         active={companyActive}
         leftSection={<IconBuildingSkyscraper size={20} />}
         navLinkStyles={navLinkStyles}
@@ -80,7 +82,7 @@ export function AppShellNavCompanyDepartments({
         onNavigate={onNavigate}
       />
       <AppShellNavCollapsibleSection
-        label="Departments"
+        label={t('nav.departments')}
         icon={<IconSitemap size={20} style={{ flexShrink: 0 }} />}
         expanded={departmentsSectionExpanded}
         onToggle={() => setDepartmentsSectionExpanded((v) => !v)}
@@ -122,7 +124,7 @@ export function AppShellNavCompanyDepartments({
         </Stack>
       </AppShellNavCollapsibleSection>
       <AppShellNavCollapsibleSection
-        label="Teams"
+        label={t('nav.teams')}
         icon={<IconUsersGroup size={20} style={{ flexShrink: 0 }} />}
         expanded={teamsSectionExpanded}
         onToggle={() => setTeamsSectionExpanded((v) => !v)}
