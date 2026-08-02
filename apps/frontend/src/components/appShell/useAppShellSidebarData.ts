@@ -1,24 +1,21 @@
-/* eslint-disable max-lines -- AppShell data hook: nav queries, impersonate, debug reset/reseed */
 import { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueries, useMutation } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { apiFetch } from '../../api/client';
-import { useMe, meQueryKey } from '../../hooks/useMe';
+import { useMe } from '../../hooks/useMe';
 import { useMeNotificationsUnreadTotal } from '../../hooks/useMeNotificationsUnreadTotal';
 import { useMeReviews } from '../../hooks/useMeReviews';
 import { useMeMoveRequests } from '../../hooks/useMeMoveRequests';
 import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
-import type { AdminUser, DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
+import type { DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
 import { getNavLinkStyles } from './appShellNavUtils.js';
 import { shouldShowOrganizationNav } from '../../lib/organizationNav.js';
+import { useAppShellDebugActions } from './useAppShellDebugActions.js';
 
 export function useAppShellSidebarData() {
-  const { t } = useTranslation(['shell']);
   const location = useLocation();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [expandedDepartmentIds, setExpandedDepartmentIds] = useState<Set<string>>(new Set());
   const [departmentsSectionExpanded, setDepartmentsSectionExpanded] = useState(false);
   const [teamsSectionExpanded, setTeamsSectionExpanded] = useState(false);
@@ -99,130 +96,14 @@ export function useAppShellSidebarData() {
   });
 
   const {
-    data: adminUsersRes,
-    isLoading: adminUsersLoading,
-    isError: adminUsersError,
-  } = useQuery<{
-    items: AdminUser[];
-    total: number;
-  }>({
-    queryKey: ['admin', 'users', 'list'],
-    queryFn: async () => {
-      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
-      if (!res.ok) throw new Error('Failed to load users');
-      return (await res.json()) as { items: AdminUser[]; total: number };
-    },
-    enabled: debugMenuEnabled && showDebugMenu,
-  });
-
-  const impersonateMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      const res = await apiFetch('/api/v1/admin/impersonate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      });
-      if (!res.ok) {
-        const err = (await res.json()) as { error?: string };
-        throw new Error(err.error ?? 'Impersonation failed');
-      }
-    },
-    onSuccess: () => {
-      void queryClient.cancelQueries({ queryKey: meQueryKey }).then(() => {
-        void queryClient.invalidateQueries({ queryKey: meQueryKey });
-      });
-      void navigate('/', { replace: true });
-      notifications.show({
-        title: t('shell:debug.toastViewSwitchedTitle'),
-        message: t('shell:debug.toastViewSwitchedBody'),
-        color: 'green',
-      });
-    },
-    onError: (err: Error) => {
-      notifications.show({
-        title: t('shell:debug.errorTitle'),
-        message: err.message,
-        color: 'red',
-      });
-    },
-  });
-
-  const stopImpersonateMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiFetch('/api/v1/admin/impersonate', { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to end impersonation');
-    },
-    onSuccess: () => {
-      void queryClient.cancelQueries({ queryKey: meQueryKey }).then(() => {
-        void queryClient.invalidateQueries({ queryKey: meQueryKey });
-      });
-      void navigate('/', { replace: true });
-      notifications.show({
-        title: t('shell:debug.toastImpersonationEndedTitle'),
-        message: t('shell:debug.toastImpersonationEndedBody'),
-        color: 'green',
-      });
-    },
-    onError: (err: Error) => {
-      notifications.show({
-        title: t('shell:debug.errorTitle'),
-        message: err.message,
-        color: 'red',
-      });
-    },
-  });
-
-  const resetPlatformMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiFetch('/api/v1/admin/debug/reset-platform', { method: 'POST' });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? 'Platform reset failed');
-      }
-      return res.json() as Promise<{ deletedNonAdminUsers: number }>;
-    },
-    onSuccess: (data) => {
-      void queryClient.invalidateQueries();
-      notifications.show({
-        title: t('shell:debug.toastResetDoneTitle'),
-        message: t('shell:debug.toastResetDoneBody', { count: data.deletedNonAdminUsers }),
-        color: 'green',
-      });
-    },
-    onError: (err: Error) => {
-      notifications.show({
-        title: t('shell:debug.toastResetFailedTitle'),
-        message: err.message,
-        color: 'red',
-      });
-    },
-  });
-
-  const reseedPlatformMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiFetch('/api/v1/admin/debug/reseed-platform', { method: 'POST' });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? 'Re-seed failed');
-      }
-      return res.json() as Promise<{ seeded: true }>;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries();
-      notifications.show({
-        title: t('shell:debug.toastReseedDoneTitle'),
-        message: t('shell:debug.toastReseedDoneBody'),
-        color: 'green',
-      });
-    },
-    onError: (err: Error) => {
-      notifications.show({
-        title: t('shell:debug.toastReseedFailedTitle'),
-        message: err.message,
-        color: 'red',
-      });
-    },
-  });
+    adminUsersRes,
+    adminUsersLoading,
+    adminUsersError,
+    impersonateMutation,
+    stopImpersonateMutation,
+    resetPlatformMutation,
+    reseedPlatformMutation,
+  } = useAppShellDebugActions({ debugMenuEnabled, showDebugMenu });
 
   const logout = useMutation({
     mutationFn: async () => {
@@ -248,11 +129,11 @@ export function useAppShellSidebarData() {
     if (companyDepartments?.items) {
       for (const d of companyDepartments.items) {
         deptIds.push(d.id);
-        for (const t of d.teams ?? []) teamIds.push(t.id);
+        for (const team of d.teams ?? []) teamIds.push(team.id);
       }
     } else if (departmentTeams?.items && departmentId) {
       deptIds.push(departmentId);
-      for (const t of departmentTeams.items) teamIds.push(t.id);
+      for (const team of departmentTeams.items) teamIds.push(team.id);
     } else {
       if (userDepartmentId) deptIds.push(userDepartmentId);
       if (userTeamId) teamIds.push(userTeamId);

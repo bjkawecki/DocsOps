@@ -113,7 +113,7 @@ jobs:
         run: go build -ldflags="-s -w" -o ../../dist/docsops-agent-linux-arm64 ./cmd/docsops-agent
 
       - name: Upload agent binaries
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docsops-agent-binaries
           path: |
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download agent binary
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: docsops-agent-binaries
           path: dist
@@ -136,7 +136,7 @@ jobs:
         run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist
 
       - name: Upload bundle artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: release-bundle
           path: |
@@ -159,7 +159,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download agent binary
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: docsops-agent-binaries
           path: dist
@@ -222,7 +222,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download bundle artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: release-bundle
           path: dist

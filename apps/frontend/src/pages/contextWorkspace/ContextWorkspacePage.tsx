@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- context workspace shell: tabs, trash/archive, create/rename flows */
 import {
   ActionIcon,
   Box,
@@ -7,28 +6,22 @@ import {
   Flex,
   Group,
   Menu,
-  Modal,
   Paper,
   Stack,
   Text,
-  TextInput,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { IconArchive, IconDotsVertical, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
-import { notifyApiErrorResponse } from '../../lib/notifyApiError';
 import {
   deriveOwnerScopeCanManage,
   ownerToScopeForBreadcrumb,
   scopeToLabel,
-  scopeToUrl,
 } from '../../lib/scopeNav';
 import { scopeToKey } from '../../hooks/useRecentItems';
 import { ContentLink } from '../../components/ui/ContentLink';
@@ -38,12 +31,6 @@ import {
   readDocsListLimit,
   readDocsListPage,
 } from '../../components/contexts/ContextDocumentsTable';
-import { NewDraftDocumentModal } from '../../components/contexts/NewDraftDocumentModal';
-import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
-import {
-  BLANK_DOCUMENT_SELECTION,
-  type DocumentTypeSelection,
-} from '../../components/documents/documentTypeTypes.js';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
@@ -61,51 +48,13 @@ import {
 } from './contextPaths.js';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs.js';
 import { useScopeSidebarNav } from './useScopeSidebarNav.js';
-
-type ContextType = 'process' | 'project' | 'subcontext';
-
-type OwnerResponse = {
-  companyId: string | null;
-  departmentId: string | null;
-  teamId: string | null;
-  ownerUserId?: string | null;
-  displayName?: string | null;
-};
-
-type SubcontextSummary = { id: string; name: string; contextId: string };
-type ParentProjectSummary = { id: string; name: string; contextId: string };
-
-type ContextResponse = {
-  id: string;
-  contextType: ContextType;
-  name: string;
-  entityId: string;
-  ownerId?: string;
-  owner: OwnerResponse;
-  canWriteContext?: boolean;
-  subcontexts?: SubcontextSummary[];
-  parentProject?: ParentProjectSummary;
-};
-
-type ContextDocument = {
-  id: string;
-  title: string;
-  updatedAt: string;
-  documentTags: { tag: { id: string; name: string } }[];
-};
-
-/** Base API path for the entity behind a Context (process/project/subcontext mutations). */
-function entityEndpointBase(contextType: ContextType): string {
-  if (contextType === 'process') return '/api/v1/processes';
-  if (contextType === 'project') return '/api/v1/projects';
-  return '/api/v1/subcontexts';
-}
+import { ContextWorkspaceModals } from './ContextWorkspaceModals.js';
+import type { ContextDocument, ContextResponse } from './contextWorkspaceTypes.js';
+import { useContextWorkspaceActions } from './useContextWorkspaceActions.js';
 
 export function ContextWorkspacePage() {
   const { t } = useTranslation(['contexts', 'common']);
   const { contextId } = useParams<{ contextId: string }>();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: me } = useMe();
   const recentActions = useRecentItemsActions();
@@ -114,21 +63,6 @@ export function ContextWorkspacePage() {
   const docsLimit = readDocsListLimit(searchParams);
   const docsOffset = (docsPage - 1) * docsLimit;
 
-  const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
-  const [editName, setEditName] = useState('');
-  const [editLoading, setEditLoading] = useState(false);
-  const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [newDocOpened, { open: openNewDoc, close: closeNewDoc }] = useDisclosure(false);
-  const [newDocTitle, setNewDocTitle] = useState('');
-  const [newDocTagIds, setNewDocTagIds] = useState<string[]>([]);
-  const [newDocTypeSelection, setNewDocTypeSelection] =
-    useState<DocumentTypeSelection>(BLANK_DOCUMENT_SELECTION);
-  const [newDocLoading, setNewDocLoading] = useState(false);
-  const [newSubcontextOpened, { open: openNewSubcontext, close: closeNewSubcontext }] =
-    useDisclosure(false);
-  const [newSubcontextName, setNewSubcontextName] = useState('');
-  const [newSubcontextLoading, setNewSubcontextLoading] = useState(false);
   /** False when the user cleared the sidebar selection (re-click active item). */
   const [contextSelected, setContextSelected] = useState(true);
 
@@ -184,7 +118,7 @@ export function ContextWorkspacePage() {
     },
     enabled: !!data?.ownerId,
   });
-  const tagOptions = (tagsData ?? []).map((t) => ({ value: t.id, label: t.name }));
+  const tagOptions = (tagsData ?? []).map((tag) => ({ value: tag.id, label: tag.name }));
 
   const scope: RecentScope | null = useMemo(
     () => (data ? ownerToScopeForBreadcrumb(data.owner) : null),
@@ -200,6 +134,8 @@ export function ContextWorkspacePage() {
     drafts: sidebarDrafts,
     scopeKey,
   } = useScopeSidebarNav(scope);
+
+  const actions = useContextWorkspaceActions({ contextId, data, scope, scopeKey });
 
   useEffect(() => {
     if (!data || data.id !== contextId || !recentActions) return;
@@ -274,112 +210,18 @@ export function ContextWorkspacePage() {
         }
       : null;
 
-  const invalidateAll = () => {
-    void queryClient.invalidateQueries({ queryKey: ['context', contextId] });
-    void queryClient.invalidateQueries({ queryKey: ['processes', 'siblings', scopeKey] });
-    void queryClient.invalidateQueries({ queryKey: ['projects', 'siblings', scopeKey] });
-  };
-
-  const handleEditClick = () => {
-    if (data) {
-      setEditName(data.name);
-      openEdit();
-    }
-  };
-
-  const handleEditSubmit = async () => {
-    if (!data || !editName.trim()) return;
-    setEditLoading(true);
-    try {
-      const res = await apiFetch(`${entityEndpointBase(data.contextType)}/${data.entityId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ name: editName.trim() }),
-      });
-      if (res.ok) {
-        invalidateAll();
-        closeEdit();
-        notifications.show({
-          title: t('toasts.nameUpdatedTitle'),
-          message: t('toasts.nameUpdatedMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const handleArchive = async () => {
-    if (!data || data.contextType === 'subcontext') return;
-    const res = await apiFetch(`${entityEndpointBase(data.contextType)}/${data.entityId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ archivedAt: new Date().toISOString() }),
-    });
-    if (res.ok) {
-      invalidateAll();
-      void queryClient.invalidateQueries({ queryKey: ['me', 'archive'] });
-      void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
-      notifications.show({
-        title: t('toasts.archivedTitle'),
-        message: t('toasts.archivedMessage'),
-        color: 'green',
-      });
-    } else {
-      void notifyApiErrorResponse(res);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!data) return;
-    setDeleteLoading(true);
-    try {
-      const res = await apiFetch(`${entityEndpointBase(data.contextType)}/${data.entityId}`, {
-        method: 'DELETE',
-      });
-      if (res.status === 204) {
-        invalidateAll();
-        void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
-        closeDelete();
-        const target =
-          data.contextType === 'subcontext' && data.parentProject
-            ? contextUrl(data.parentProject.contextId)
-            : scope
-              ? scopeToUrl(scope)
-              : '/';
-        void navigate(target, { replace: true });
-        notifications.show({
-          title:
-            data.contextType === 'subcontext'
-              ? t('toasts.deletedTitle')
-              : t('toasts.movedToTrashTitle'),
-          message:
-            data.contextType === 'subcontext'
-              ? t('toasts.deletedMessage')
-              : t('toasts.movedToTrashMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
   const breadcrumbActions = useMemo(() => {
     if (!showContextDetail || !data?.canWriteContext) return null;
     return (
       <Group gap="xs">
-        <Button variant="filled" size="sm" onClick={openNewDoc}>
+        <Button variant="filled" size="sm" onClick={actions.openNewDoc}>
           {t('workspace.newDraft')}
         </Button>
         <ActionIcon
           variant="filled"
           size="36"
           aria-label={t('workspace.editContextAriaLabel')}
-          onClick={handleEditClick}
+          onClick={actions.handleEditClick}
         >
           <IconPencil size={18} />
         </ActionIcon>
@@ -398,14 +240,18 @@ export function ContextWorkspacePage() {
               <>
                 <Menu.Item
                   leftSection={<IconArchive size={14} />}
-                  onClick={() => void handleArchive()}
+                  onClick={() => void actions.handleArchive()}
                 >
                   {t('workspace.archive')}
                 </Menu.Item>
                 <Menu.Divider />
               </>
             )}
-            <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={openDelete}>
+            <Menu.Item
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={actions.openDelete}
+            >
               {data.contextType === 'subcontext'
                 ? t('workspace.delete')
                 : t('workspace.moveToTrash')}
@@ -421,8 +267,8 @@ export function ContextWorkspacePage() {
     data?.canWriteContext,
     data?.contextType,
     contextId,
-    openNewDoc,
-    openDelete,
+    actions.openNewDoc,
+    actions.openDelete,
   ]);
 
   useSetAppShellBreadcrumbActions(
@@ -431,62 +277,6 @@ export function ContextWorkspacePage() {
       ? `ctx-actions:${contextId}:${data.contextType}`
       : 'none'
   );
-
-  const handleCreateDocument = async () => {
-    if (!contextId) return;
-    await submitNewContextDocumentDraft({
-      contextId,
-      title: newDocTitle,
-      tagIds: newDocTagIds,
-      typeId: newDocTypeSelection.typeId,
-      templateId: newDocTypeSelection.templateId,
-      queryClient,
-      navigate,
-      setLoading: setNewDocLoading,
-      onSuccessCleanup: () => {
-        closeNewDoc();
-        setNewDocTitle('');
-        setNewDocTagIds([]);
-        setNewDocTypeSelection(BLANK_DOCUMENT_SELECTION);
-      },
-    });
-  };
-
-  const handleCreateSubcontext = async () => {
-    if (!data || data.contextType !== 'project') return;
-    const name = newSubcontextName.trim();
-    if (!name) {
-      notifications.show({
-        title: t('toasts.nameRequiredTitle'),
-        message: t('toasts.nameRequiredMessage'),
-        color: 'yellow',
-      });
-      return;
-    }
-    setNewSubcontextLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/projects/${data.entityId}/subcontexts`, {
-        method: 'POST',
-        body: JSON.stringify({ name }),
-      });
-      if (res.status === 201) {
-        const created = (await res.json()) as { contextId: string };
-        invalidateAll();
-        closeNewSubcontext();
-        setNewSubcontextName('');
-        void navigate(contextUrl(created.contextId));
-        notifications.show({
-          title: t('toasts.subcontextCreatedTitle'),
-          message: t('toasts.subcontextCreatedMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setNewSubcontextLoading(false);
-    }
-  };
 
   if (!contextId) return null;
 
@@ -543,7 +333,7 @@ export function ContextWorkspacePage() {
                     <Group justify="space-between" wrap="nowrap" mb="sm">
                       <SectionLabel>{t('workspace.subcontexts')}</SectionLabel>
                       {data.canWriteContext && (
-                        <Button variant="filled" size="xs" onClick={openNewSubcontext}>
+                        <Button variant="filled" size="xs" onClick={actions.openNewSubcontext}>
                           {t('workspace.createSubcontext')}
                         </Button>
                       )}
@@ -573,96 +363,37 @@ export function ContextWorkspacePage() {
         </Flex>
       </Paper>
 
-      <Modal
-        opened={newSubcontextOpened}
-        onClose={closeNewSubcontext}
-        title={t('modals.createSubcontext.title')}
-        size="sm"
-      >
-        <Stack gap="md">
-          <TextInput
-            label={t('modals.createSubcontext.nameLabel')}
-            value={newSubcontextName}
-            onChange={(e) => setNewSubcontextName(e.currentTarget.value)}
-            placeholder={t('modals.createSubcontext.namePlaceholder')}
-            required
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button variant="default" onClick={closeNewSubcontext}>
-              {t('common:actions.cancel')}
-            </Button>
-            <Button loading={newSubcontextLoading} onClick={() => void handleCreateSubcontext()}>
-              {t('common:actions.create')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <NewDraftDocumentModal
-        opened={newDocOpened}
-        onClose={closeNewDoc}
-        title={newDocTitle}
-        onTitleChange={setNewDocTitle}
+      <ContextWorkspaceModals
+        contextId={contextId}
+        contextType={data.contextType}
         tagOptions={tagOptions}
-        tagIds={newDocTagIds}
-        onTagIdsChange={setNewDocTagIds}
-        contextId={contextId ?? ''}
-        typeSelection={newDocTypeSelection}
-        onTypeSelectionChange={setNewDocTypeSelection}
-        loading={newDocLoading}
-        onSubmit={handleCreateDocument}
+        newSubcontextOpened={actions.newSubcontextOpened}
+        closeNewSubcontext={actions.closeNewSubcontext}
+        newSubcontextName={actions.newSubcontextName}
+        setNewSubcontextName={actions.setNewSubcontextName}
+        newSubcontextLoading={actions.newSubcontextLoading}
+        handleCreateSubcontext={actions.handleCreateSubcontext}
+        newDocOpened={actions.newDocOpened}
+        closeNewDoc={actions.closeNewDoc}
+        newDocTitle={actions.newDocTitle}
+        setNewDocTitle={actions.setNewDocTitle}
+        newDocTagIds={actions.newDocTagIds}
+        setNewDocTagIds={actions.setNewDocTagIds}
+        newDocTypeSelection={actions.newDocTypeSelection}
+        setNewDocTypeSelection={actions.setNewDocTypeSelection}
+        newDocLoading={actions.newDocLoading}
+        handleCreateDocument={actions.handleCreateDocument}
+        editOpened={actions.editOpened}
+        closeEdit={actions.closeEdit}
+        editName={actions.editName}
+        setEditName={actions.setEditName}
+        editLoading={actions.editLoading}
+        handleEditSubmit={actions.handleEditSubmit}
+        deleteOpened={actions.deleteOpened}
+        closeDelete={actions.closeDelete}
+        deleteLoading={actions.deleteLoading}
+        handleDeleteConfirm={actions.handleDeleteConfirm}
       />
-
-      <Modal opened={editOpened} onClose={closeEdit} title={t('modals.editName.title')} size="sm">
-        <Stack gap="md">
-          <TextInput
-            label={t('modals.editName.nameLabel')}
-            value={editName}
-            onChange={(e) => setEditName(e.currentTarget.value)}
-            placeholder={t('modals.editName.namePlaceholder')}
-            required
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button variant="default" onClick={closeEdit}>
-              {t('common:actions.cancel')}
-            </Button>
-            <Button loading={editLoading} onClick={() => void handleEditSubmit()}>
-              {t('common:actions.save')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <Modal
-        opened={deleteOpened}
-        onClose={closeDelete}
-        title={
-          data.contextType === 'subcontext'
-            ? t('modals.deleteSubcontext.title')
-            : t('modals.moveToTrash.title')
-        }
-        centered
-      >
-        <Text size="sm" c="dimmed" mb="md">
-          {data.contextType === 'subcontext'
-            ? t('modals.deleteSubcontext.body')
-            : t('modals.moveToTrash.body')}
-        </Text>
-        <Group justify="flex-end" gap="xs">
-          <Button variant="default" onClick={closeDelete}>
-            {t('common:actions.cancel')}
-          </Button>
-          <Button
-            color="red"
-            loading={deleteLoading}
-            onClick={() => {
-              void handleDeleteConfirm();
-            }}
-          >
-            {data.contextType === 'subcontext' ? t('workspace.delete') : t('workspace.moveToTrash')}
-          </Button>
-        </Group>
-      </Modal>
     </Container>
   );
 }

@@ -115,6 +115,13 @@ Dateien `docker-compose.demo.yml`, `docker-compose.lab.yml` und `Caddyfile.lab` 
 
 **5. Smoke:** http://docsops.local → Demo-CTA → Login mit Seed-Accounts (`DocsOps1`) → Org Musterwerk IT GmbH.
 
+Automatisiert (von einem Host, der beide Namen auflöst):
+
+```bash
+chmod +x scripts/lab/smoke-vm-lab.sh   # im Repo-Checkout
+./scripts/lab/smoke-vm-lab.sh
+```
+
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---

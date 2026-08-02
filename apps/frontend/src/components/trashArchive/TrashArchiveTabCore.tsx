@@ -1,34 +1,19 @@
-/* eslint-disable max-lines -- shared trash/archive table: filters, pagination, bulk restore */
 import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiFetch } from '../../api/client';
-import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
+import { useNavigate } from 'react-router-dom';
 import { formatTableDate } from '../../lib/formatDate';
 import { SortableTableTh } from '../ui/SortableTableTh';
-import type { TrashArchiveItem, TrashArchiveTabBaseProps } from './trashArchiveTypes';
+import type { TrashArchiveTabBaseProps } from './trashArchiveTypes';
+import {
+  itemHref,
+  useTrashArchiveTabState,
+  type TrashArchiveTabVariant,
+} from './useTrashArchiveTabState.js';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
-const DEFAULT_PAGE_SIZE = 10;
 
-type ListResponse = {
-  items: TrashArchiveItem[];
-  total: number;
-  limit: number;
-  offset: number;
-};
-
-function itemHref(item: TrashArchiveItem): string {
-  if (item.type === 'document') return `/documents/${item.id}`;
-  if (item.contextId) return contextUrl(item.contextId);
-  return '#';
-}
-
-export type TrashArchiveTabVariant = 'trash' | 'archive';
+export type { TrashArchiveTabVariant };
 
 export type TrashArchiveTabCoreProps = TrashArchiveTabBaseProps & {
   variant: TrashArchiveTabVariant;
@@ -43,236 +28,12 @@ export function TrashArchiveTabCore({
 }: TrashArchiveTabCoreProps) {
   const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const state = useTrashArchiveTabState({ variant, scope, companyId, departmentId, teamId });
 
-  const searchParamKey = variant === 'trash' ? 'trashSearch' : 'archiveSearch';
-  const limitParamKey = variant === 'trash' ? 'trashLimit' : 'archiveLimit';
-  const defaultSortBy = variant === 'trash' ? 'deletedAt' : 'archivedAt';
-  const dateSortColumn = defaultSortBy;
-
-  const typeFilter = searchParams.get('type') ?? '';
-  const localSearch = searchParams.get(searchParamKey) ?? '';
-  const sortBy = searchParams.get('sortBy') ?? defaultSortBy;
-  const sortOrder = searchParams.get('sortOrder') ?? 'desc';
-  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-  const limitParam = searchParams.get(limitParamKey);
-  const limit = limitParam
-    ? Math.min(100, Math.max(1, parseInt(limitParam, 10) || DEFAULT_PAGE_SIZE))
-    : DEFAULT_PAGE_SIZE;
-  const offset = (page - 1) * limit;
-
-  const params = new URLSearchParams({
-    scope,
-    limit: String(limit),
-    offset: String(offset),
-    sortBy,
-    sortOrder,
-  });
-  if (scope === 'company' && companyId) params.set('companyId', companyId);
-  if (scope === 'department' && departmentId) params.set('departmentId', departmentId);
-  if (scope === 'team' && teamId) params.set('teamId', teamId);
-  if (typeFilter) params.set('type', typeFilter);
-
-  const enabled =
-    scope === 'personal' ||
-    (scope === 'company' && !!companyId) ||
-    (scope === 'department' && !!departmentId) ||
-    (scope === 'team' && !!teamId);
-
-  const querySegment = variant === 'trash' ? 'trash' : 'archive';
-  const apiUrl =
-    variant === 'trash' ? `/api/v1/me/trash?${params}` : `/api/v1/me/archive?${params}`;
-
-  const { data, isPending } = useQuery({
-    queryKey: [
-      'me',
-      querySegment,
-      scope,
-      companyId ?? '',
-      departmentId ?? '',
-      teamId ?? '',
-      params.toString(),
-    ],
-    queryFn: async (): Promise<ListResponse> => {
-      const res = await apiFetch(apiUrl);
-      if (!res.ok) throw new Error(`Failed to load ${querySegment}`);
-      return (await res.json()) as ListResponse;
-    },
-    enabled,
-  });
-
-  const setFilter = useCallback(
-    (key: string, value: string | null) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (value == null || value === '') next.delete(key);
-        else next.set(key, value);
-        next.delete('page');
-        return next;
-      });
-    },
-    [setSearchParams]
-  );
-
-  const setSort = useCallback(
-    (col: string) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        const order = sortBy === col && sortOrder === 'desc' ? 'asc' : 'desc';
-        next.set('sortBy', col);
-        next.set('sortOrder', order);
-        next.delete('page');
-        return next;
-      });
-    },
-    [setSearchParams, sortBy, sortOrder]
-  );
-
-  const setPage = useCallback(
-    (p: number) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (p <= 1) next.delete('page');
-        else next.set('page', String(p));
-        return next;
-      });
-    },
-    [setSearchParams]
-  );
-
-  const setPageSize = useCallback(
-    (value: number) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set(limitParamKey, String(value));
-        next.delete('page');
-        return next;
-      });
-    },
-    [setSearchParams, limitParamKey]
-  );
-
-  const invalidateAfterMutation = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
-    void queryClient.invalidateQueries({ queryKey: ['me', 'archive'] });
-    void queryClient.invalidateQueries({ queryKey: ['me', 'personal-documents'] });
-    void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
-    void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
-    void queryClient.invalidateQueries({ queryKey: ['contexts'] });
-    void queryClient.invalidateQueries({ queryKey: ['processes'] });
-    void queryClient.invalidateQueries({ queryKey: ['projects'] });
-  }, [queryClient]);
-
-  const handleRestore = async (item: TrashArchiveItem) => {
-    let res: Response;
-    if (item.type === 'document') {
-      res = await apiFetch(`/api/v1/documents/${item.id}/restore`, { method: 'POST' });
-    } else if (item.type === 'process') {
-      res = await apiFetch(`/api/v1/processes/${item.id}/restore`, { method: 'POST' });
-    } else {
-      res = await apiFetch(`/api/v1/projects/${item.id}/restore`, { method: 'POST' });
-    }
-    if (res.status === 204) {
-      invalidateAfterMutation();
-      notifications.show({
-        title: t('documents:trashArchive.toasts.restoredTitle'),
-        message: t('documents:trashArchive.toasts.restoredMessage'),
-        color: 'green',
-      });
-    } else {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      notifications.show({
-        title: t('documents:trashArchive.toasts.errorTitle'),
-        message: body?.error ?? res.statusText,
-        color: 'red',
-      });
-    }
-  };
-
-  const handleUnarchive = async (item: TrashArchiveItem) => {
-    let res: Response;
-    if (item.type === 'document') {
-      res = await apiFetch(`/api/v1/documents/${item.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ archivedAt: null }),
-      });
-    } else if (item.type === 'process') {
-      res = await apiFetch(`/api/v1/processes/${item.id}/unarchive`, { method: 'POST' });
-    } else {
-      res = await apiFetch(`/api/v1/projects/${item.id}/unarchive`, { method: 'POST' });
-    }
-    if (res.ok || res.status === 204) {
-      invalidateAfterMutation();
-      notifications.show({
-        title: t('documents:trashArchive.toasts.unarchivedTitle'),
-        message: t('documents:trashArchive.toasts.unarchivedMessage'),
-        color: 'green',
-      });
-    } else {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      notifications.show({
-        title: t('documents:trashArchive.toasts.errorTitle'),
-        message: body?.error ?? res.statusText,
-        color: 'red',
-      });
-    }
-  };
-
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / limit) || 1;
-
-  const sortedItems = useMemo(() => {
-    const list = data?.items ?? [];
-    if (sortBy === 'type') {
-      return [...list].sort((a, b) => {
-        const c = (a.type ?? '').localeCompare(b.type ?? '');
-        return sortOrder === 'asc' ? c : -c;
-      });
-    }
-    if (sortBy === 'contextName') {
-      return [...list].sort((a, b) => {
-        const va = (a.contextName ?? '').toLowerCase();
-        const vb = (b.contextName ?? '').toLowerCase();
-        const c = va.localeCompare(vb);
-        return sortOrder === 'asc' ? c : -c;
-      });
-    }
-    return list;
-  }, [data?.items, sortBy, sortOrder]);
-
-  const searchLower = localSearch.trim().toLowerCase();
-  const filteredItems = useMemo(
-    () =>
-      searchLower
-        ? sortedItems.filter(
-            (item) =>
-              (item.displayTitle ?? '').toLowerCase().includes(searchLower) ||
-              (item.contextName ?? '').toLowerCase().includes(searchLower)
-          )
-        : sortedItems,
-    [sortedItems, searchLower]
-  );
-
-  const isTrash = variant === 'trash';
-  const loadingLabel = t(
-    isTrash ? 'documents:trashArchive.loadingTrash' : 'documents:trashArchive.loadingArchive'
-  );
-  const emptyAllLabel = t(
-    isTrash ? 'documents:trashArchive.emptyAllTrash' : 'documents:trashArchive.emptyAllArchive'
-  );
-  const dateColumnLabel = t(
-    isTrash ? 'documents:trashArchive.dateColumnTrash' : 'documents:trashArchive.dateColumnArchive'
-  );
-
-  const dateValue = (item: TrashArchiveItem) =>
-    variant === 'trash' ? item.deletedAt : item.archivedAt;
-
-  if (isPending) {
+  if (state.isPending) {
     return (
       <Text size="sm" c="dimmed">
-        {loadingLabel}
+        {state.loadingLabel}
       </Text>
     );
   }
@@ -283,8 +44,8 @@ export function TrashArchiveTabCore({
         <TextInput
           label={t('common:actions.search')}
           placeholder={t('documents:trashArchive.searchPlaceholder')}
-          value={localSearch}
-          onChange={(e) => setFilter(searchParamKey, e.currentTarget.value)}
+          value={state.localSearch}
+          onChange={(e) => state.setFilter(state.searchParamKey, e.currentTarget.value)}
           style={{ minWidth: 200 }}
         />
         <Select
@@ -296,24 +57,24 @@ export function TrashArchiveTabCore({
             { value: 'process', label: t('documents:breadcrumbs.process') },
             { value: 'project', label: t('documents:breadcrumbs.project') },
           ]}
-          value={typeFilter || null}
-          onChange={(v) => setFilter('type', v ?? '')}
+          value={state.typeFilter || null}
+          onChange={(v) => state.setFilter('type', v ?? '')}
           clearable
           style={{ minWidth: 140 }}
         />
         <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-          {localSearch.trim()
+          {state.localSearch.trim()
             ? t('documents:trashArchive.itemsOfTotal', {
-                count: total,
-                filtered: filteredItems.length,
+                count: state.total,
+                filtered: state.filteredItems.length,
               })
-            : t('documents:trashArchive.itemsTotal', { count: total })}
+            : t('documents:trashArchive.itemsTotal', { count: state.total })}
         </Text>
         <Select
           label={t('documents:catalog.perPage')}
           data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-          value={String(limit)}
-          onChange={(v) => v && setPageSize(parseInt(v, 10))}
+          value={String(state.limit)}
+          onChange={(v) => v && state.setPageSize(parseInt(v, 10))}
           style={{ width: 90 }}
         />
       </Group>
@@ -324,47 +85,47 @@ export function TrashArchiveTabCore({
             <SortableTableTh
               label={t('documents:trashArchive.typeLabel')}
               column="type"
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort('type')}
+              sortBy={state.sortBy}
+              sortOrder={state.sortOrder}
+              onClick={() => state.setSort('type')}
             />
             <SortableTableTh
               label={t('documents:trashArchive.table.title')}
               column="title"
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort('title')}
+              sortBy={state.sortBy}
+              sortOrder={state.sortOrder}
+              onClick={() => state.setSort('title')}
             />
             <SortableTableTh
               label={t('documents:trashArchive.table.context')}
               column="contextName"
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort('contextName')}
+              sortBy={state.sortBy}
+              sortOrder={state.sortOrder}
+              onClick={() => state.setSort('contextName')}
             />
             <SortableTableTh
-              label={dateColumnLabel}
-              column={dateSortColumn}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort(dateSortColumn)}
+              label={state.dateColumnLabel}
+              column={state.dateSortColumn}
+              sortBy={state.sortBy}
+              sortOrder={state.sortOrder}
+              onClick={() => state.setSort(state.dateSortColumn)}
             />
             <Table.Th>{t('documents:trashArchive.table.actions')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {filteredItems.length === 0 ? (
+          {state.filteredItems.length === 0 ? (
             <Table.Tr>
               <Table.Td colSpan={5}>
                 <Text size="sm" c="dimmed">
-                  {sortedItems.length === 0
-                    ? emptyAllLabel
+                  {state.sortedItems.length === 0
+                    ? state.emptyAllLabel
                     : t('documents:trashArchive.noSearchMatch')}
                 </Text>
               </Table.Td>
             </Table.Tr>
           ) : (
-            filteredItems.map((item) => (
+            state.filteredItems.map((item) => (
               <Table.Tr
                 key={`${item.type}-${item.id}`}
                 data-clickable-table-row
@@ -389,7 +150,9 @@ export function TrashArchiveTabCore({
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm">
-                    {dateValue(item) ? formatTableDate(dateValue(item)!, { withTime: true }) : '–'}
+                    {state.dateValue(item)
+                      ? formatTableDate(state.dateValue(item)!, { withTime: true })
+                      : '–'}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -400,7 +163,7 @@ export function TrashArchiveTabCore({
                       leftSection={<IconRefresh size={14} />}
                       onClick={(e) => {
                         e.stopPropagation();
-                        void handleRestore(item);
+                        void state.handleRestore(item);
                       }}
                     >
                       {t('documents:trashArchive.restore')}
@@ -412,7 +175,7 @@ export function TrashArchiveTabCore({
                       leftSection={<IconArchiveOff size={14} />}
                       onClick={(e) => {
                         e.stopPropagation();
-                        void handleUnarchive(item);
+                        void state.handleUnarchive(item);
                       }}
                     >
                       {t('documents:trashArchive.unarchive')}
@@ -426,7 +189,12 @@ export function TrashArchiveTabCore({
       </Table>
 
       <Group justify="flex-end">
-        <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+        <Pagination
+          total={state.totalPages}
+          value={state.page}
+          onChange={state.setPage}
+          size="sm"
+        />
       </Group>
     </Stack>
   );
