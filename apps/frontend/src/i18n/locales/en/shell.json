@@ -68,7 +68,7 @@
     "themeUpdateFailed": "Could not save theme preference."
   },
   "demo": {
-    "banner": "Demo – data may be reset"
+    "banner": "Demo – data is reset regularly"
   },
   "debug": {
     "menuAria": "Debug menu",

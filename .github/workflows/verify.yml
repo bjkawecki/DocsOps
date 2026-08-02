@@ -49,7 +49,6 @@ jobs:
         run: go test ./...
 
   build:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

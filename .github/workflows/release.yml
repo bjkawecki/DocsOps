@@ -33,48 +33,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push docsops-app
-        uses: docker/build-push-action@v6
+      - name: Build and push images (bake, parallel targets)
+        uses: docker/bake-action@v6
         with:
-          context: .
-          file: apps/backend/Dockerfile
-          target: app
+          files: docker-bake.hcl
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-app:${{ github.ref_name }}
-          cache-from: type=gha,ignore-error=true
-          cache-to: type=gha,mode=max,ignore-error=true
-
-      - name: Build and push docsops-migrate
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/backend/Dockerfile
-          target: migrate
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-migrate:${{ github.ref_name }}
-          cache-from: type=gha,ignore-error=true
-          cache-to: type=gha,mode=max,ignore-error=true
-
-      - name: Build and push docsops-worker
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/backend/Dockerfile
-          target: worker
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-worker:${{ github.ref_name }}
-          cache-from: type=gha,ignore-error=true
-          cache-to: type=gha,mode=max,ignore-error=true
-
-      - name: Build and push docsops-frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/frontend/Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/docsops-frontend:${{ github.ref_name }}
-          cache-from: type=gha,ignore-error=true
-          cache-to: type=gha,mode=max,ignore-error=true
+          set: |
+            TAG=${{ github.ref_name }}
+            REGISTRY=${{ env.REGISTRY }}
+            OWNER=${{ github.repository_owner }}
 
       - name: Report pushed image sizes
         run: |
@@ -94,7 +61,8 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: apps/agent/go.mod
-          cache: false
+          cache: true
+          cache-dependency-path: apps/agent/go.sum
 
       - name: Build docsops-agent (linux/amd64)
         working-directory: apps/agent
@@ -165,7 +133,7 @@ jobs:
             dist/docsops-agent-linux-arm64
 
   install-test:
-    needs: [build-and-push, build-agent]
+    needs: [bundle, build-and-push]
     runs-on: ubuntu-latest
     concurrency:
       group: release-install-test-${{ github.repository }}
@@ -177,32 +145,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Download agent binary
+      - name: Download release bundle
         uses: actions/download-artifact@v7
         with:
-          name: docsops-agent-binaries
+          name: release-bundle
           path: dist
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Build lab Landing (bundle asset)
-        env:
-          VITE_DEMO_URL: http://demo.docsops.local
-          VITE_SITE_URL: http://docsops.local
-        run: |
-          corepack enable
-          pnpm install --frozen-lockfile
-          pnpm --filter landing build
-
-      - name: Build deploy bundle for CI
-        run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist
 
       - name: Remove stale DocsOps volumes (legacy CI project name)
         run: |
