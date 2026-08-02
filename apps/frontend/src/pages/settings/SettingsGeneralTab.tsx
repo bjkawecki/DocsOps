@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { useEffect, useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import { meQueryKey, useMe } from '../../hooks/useMe';
@@ -28,6 +29,7 @@ import {
 } from './settingsLayout.js';
 
 export function SettingsGeneralTab() {
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [deactivateOpened, { open: openDeactivate, close: closeDeactivate }] = useDisclosure(false);
@@ -56,14 +58,18 @@ export function SettingsGeneralTab() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: meQueryKey });
       notifications.show({
-        title: 'Profile updated',
-        message: 'Your profile has been saved.',
+        title: t('general.toasts.profileUpdatedTitle'),
+        message: t('general.toasts.profileUpdatedMessage'),
         color: 'green',
       });
       closeEdit();
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Update failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('general.toasts.updateFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -78,15 +84,19 @@ export function SettingsGeneralTab() {
     onSuccess: async () => {
       closeDeactivate();
       notifications.show({
-        title: 'Account deactivated',
-        message: 'You have been logged out. An administrator can reactivate your account.',
+        title: t('general.toasts.accountDeactivatedTitle'),
+        message: t('general.toasts.accountDeactivatedMessage'),
         color: 'green',
       });
       await apiFetch('/api/v1/auth/logout', { method: 'POST' });
       window.location.href = '/login';
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Deactivation failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('general.toasts.deactivationFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -125,14 +135,14 @@ export function SettingsGeneralTab() {
             <SettingsCardTitle jumpId="profile" />
             <Menu shadow="md" position="bottom-end">
               <Menu.Target>
-                <ActionIcon variant="subtle" size="md" aria-label="Profile actions">
+                <ActionIcon variant="subtle" size="md" aria-label={t('general.profileActionsAria')}>
                   <IconDotsVertical size={18} stroke={3} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item onClick={openEdit}>Edit Profile</Menu.Item>
+                <Menu.Item onClick={openEdit}>{t('general.editProfile')}</Menu.Item>
                 <Menu.Item color="red" onClick={openDeactivate}>
-                  Deactivate
+                  {t('general.deactivate')}
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -143,7 +153,7 @@ export function SettingsGeneralTab() {
             </Text>
             {user.isAdmin && (
               <Text size="sm" c="dimmed">
-                Admin User
+                {t('general.roles.admin')}
               </Text>
             )}
             {user.email != null && user.email !== '' && user.email !== user.name && (
@@ -161,44 +171,55 @@ export function SettingsGeneralTab() {
           <Stack gap={SETTINGS_CARD_ROW_GAP}>
             <div>
               <Text size="sm" fw={500} mb={4}>
-                User Entity
+                {t('general.identity.userEntityLabel')}
               </Text>
               <Text size="sm" c="dimmed">
-                {user.isAdmin ? 'Admin User' : 'User'}
+                {user.isAdmin ? t('general.roles.admin') : t('general.roles.user')}
               </Text>
             </div>
             <div>
               <Text size="sm" fw={500} mb={4}>
-                Ownership Entities
+                {t('general.identity.ownershipEntitiesLabel')}
               </Text>
               {identity.teams.length > 0 ||
               identity.departmentLeads.length > 0 ||
               identity.departmentAuthors.length > 0 ||
               identity.companyLeads?.length > 0 ? (
                 <List size="sm">
-                  {identity.teams.map((t) => (
-                    <List.Item key={t.teamId}>
-                      {t.teamName} ({t.departmentName}) –{' '}
-                      {t.role === 'leader'
-                        ? 'Team Lead'
-                        : t.role === 'author'
-                          ? 'Team Author'
-                          : 'Member'}
+                  {identity.teams.map((team) => (
+                    <List.Item key={team.teamId}>
+                      {t('general.identity.teamRow', {
+                        team: team.teamName,
+                        department: team.departmentName,
+                        role: t(
+                          team.role === 'leader'
+                            ? 'general.identity.teamRoleLeader'
+                            : team.role === 'author'
+                              ? 'general.identity.teamRoleAuthor'
+                              : 'general.identity.teamRoleMember'
+                        ),
+                      })}
                     </List.Item>
                   ))}
                   {identity.departmentLeads.map((d) => (
-                    <List.Item key={d.id}>Department Lead: {d.name}</List.Item>
+                    <List.Item key={d.id}>
+                      {t('general.identity.departmentLeadRow', { name: d.name })}
+                    </List.Item>
                   ))}
                   {identity.departmentAuthors.map((d) => (
-                    <List.Item key={d.id}>Department Author: {d.name}</List.Item>
+                    <List.Item key={d.id}>
+                      {t('general.identity.departmentAuthorRow', { name: d.name })}
+                    </List.Item>
                   ))}
                   {identity.companyLeads?.map((c) => (
-                    <List.Item key={c.id}>Company Lead: {c.name}</List.Item>
+                    <List.Item key={c.id}>
+                      {t('general.identity.companyLeadRow', { name: c.name })}
+                    </List.Item>
                   ))}
                 </List>
               ) : (
                 <Text size="sm" c="dimmed">
-                  –
+                  {t('general.identity.none')}
                 </Text>
               )}
             </div>
@@ -206,11 +227,11 @@ export function SettingsGeneralTab() {
         </Stack>
       </SettingsContentCard>
 
-      <Modal opened={editOpened} onClose={closeEdit} title="Edit profile">
+      <Modal opened={editOpened} onClose={closeEdit} title={t('general.editProfileModal.title')}>
         <form onSubmit={handleSubmitEdit}>
           <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <TextInput
-              label="Display name"
+              label={t('general.editProfileModal.nameLabel')}
               value={name}
               onChange={(e) => setName(e.currentTarget.value)}
               required
@@ -218,31 +239,34 @@ export function SettingsGeneralTab() {
             />
             <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={closeEdit}>
-                Cancel
+                {t('general.editProfileModal.cancel')}
               </Button>
               <Button type="submit" loading={patchMe.isPending}>
-                Save
+                {t('general.editProfileModal.save')}
               </Button>
             </Group>
           </Stack>
         </form>
       </Modal>
 
-      <Modal opened={deactivateOpened} onClose={closeDeactivate} title="Deactivate account">
+      <Modal
+        opened={deactivateOpened}
+        onClose={closeDeactivate}
+        title={t('general.deactivateModal.title')}
+      >
         <Stack gap={SETTINGS_CARD_STACK_GAP}>
           {user.isAdmin ? (
             <Text size="sm" c="dimmed">
-              Administrators cannot deactivate their own account. Please ask another administrator.
+              {t('general.deactivateModal.adminCannotDeactivate')}
             </Text>
           ) : (
             <Text size="sm" c="dimmed">
-              Deactivate account? You will not be able to log in until an administrator reactivates
-              you.
+              {t('general.deactivateModal.confirmMessage')}
             </Text>
           )}
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={closeDeactivate}>
-              Cancel
+              {t('general.deactivateModal.cancel')}
             </Button>
             <Button
               color="red"
@@ -250,7 +274,7 @@ export function SettingsGeneralTab() {
               disabled={user.isAdmin}
               onClick={() => !user.isAdmin && deactivateMe.mutate()}
             >
-              Deactivate
+              {t('general.deactivateModal.confirm')}
             </Button>
           </Group>
         </Stack>

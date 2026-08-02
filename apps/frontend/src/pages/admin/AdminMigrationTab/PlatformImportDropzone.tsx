@@ -1,6 +1,7 @@
 import { Group, Text } from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
 import { IconUpload, IconX } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 const MAX_UPLOAD_LABEL = '2 GB';
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function PlatformImportDropzone({ onFileSelect, disabled = false }: Props) {
+  const { t } = useTranslation('admin');
   return (
     <Dropzone
       onDrop={(files) => {
@@ -34,10 +36,12 @@ export function PlatformImportDropzone({ onFileSelect, disabled = false }: Props
         </Dropzone.Idle>
         <div>
           <Text size="sm" fw={500}>
-            Drop <code>docsops-platform-export-*.tar.zst</code> here or click to browse
+            {t('migration.dropzone.instructionBefore')}{' '}
+            <code>docsops-platform-export-*.tar.zst</code>{' '}
+            {t('migration.dropzone.instructionAfter')}
           </Text>
           <Text size="xs" c="dimmed" mt={4}>
-            Maximum archive size: {MAX_UPLOAD_LABEL}
+            {t('migration.dropzone.maxSize', { size: MAX_UPLOAD_LABEL })}
           </Text>
         </div>
       </Group>

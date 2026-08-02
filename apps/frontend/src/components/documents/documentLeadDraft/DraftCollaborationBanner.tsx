@@ -1,4 +1,5 @@
 import { Alert, Button, Group, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   canPublish: boolean;
@@ -21,16 +22,20 @@ export function DraftCollaborationBanner({
   onLoadLatest,
   onKeepMine,
 }: Props) {
+  const { t } = useTranslation('documents');
   const show = Boolean(remotePending) && (canPublish ? dirty : true);
   if (!show) return null;
 
   return (
-    <Alert color="blue" variant="filled" title="Remote update available">
+    <Alert color="blue" variant="filled" title={t('leadDraft.remoteUpdateTitle')}>
       <Stack gap="xs">
         <Text size="sm">
           {remotePending
-            ? `A newer draft revision (${remotePending.revision}) is available on the server. Your local unsaved changes are kept until you decide.`
-            : `Draft revision ${knownServerRevision} is available on the server (you have ${appliedRevision ?? incomingRevision}). Reload to see the latest content.`}
+            ? t('leadDraft.remotePendingMessage', { revision: remotePending.revision })
+            : t('leadDraft.revisionAvailableMessage', {
+                revision: knownServerRevision,
+                applied: appliedRevision ?? incomingRevision,
+              })}
         </Text>
         <Group gap="xs">
           <Button
@@ -39,11 +44,11 @@ export function DraftCollaborationBanner({
             color="blue"
             onClick={() => void onLoadLatest()}
           >
-            Load latest
+            {t('leadDraft.loadLatest')}
           </Button>
           {remotePending && (
             <Button size="compact-sm" variant="light" color="blue" onClick={onKeepMine}>
-              Keep mine
+              {t('leadDraft.keepMine')}
             </Button>
           )}
         </Group>

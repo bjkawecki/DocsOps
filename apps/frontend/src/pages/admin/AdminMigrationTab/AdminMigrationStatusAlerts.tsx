@@ -1,4 +1,5 @@
 import { Alert } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import {
   type PlatformMigrationStatus,
   formatPlatformImportStatus,
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function AdminMigrationStatusAlerts({ status }: Props) {
+  const { t } = useTranslation('admin');
   const { activeExportRun, activeImportRun, lastExportRun, lastImportRun } = status;
 
   const lastExportFailed = lastExportRun?.status === 'failed' && !activeExportRun;
@@ -20,26 +22,40 @@ export function AdminMigrationStatusAlerts({ status }: Props) {
   return (
     <>
       {!status.minioAvailable ? (
-        <Alert color="red" variant="filled" title="Object storage unavailable">
-          MinIO is not configured or unreachable. Platform export and import require object storage.
+        <Alert
+          color="red"
+          variant="filled"
+          title={t('migration.statusAlerts.storageUnavailableTitle')}
+        >
+          {t('migration.statusAlerts.storageUnavailableMessage')}
         </Alert>
       ) : null}
       {!status.workerConnected ? (
-        <Alert color="red" variant="filled" title="Job worker disconnected">
-          Background export and import jobs need a connected worker. Check Admin → Jobs.
+        <Alert
+          color="red"
+          variant="filled"
+          title={t('migration.statusAlerts.workerDisconnectedTitle')}
+        >
+          {t('migration.statusAlerts.workerDisconnectedMessage')}
         </Alert>
       ) : null}
       {status.maintenanceActive && status.maintenanceReason !== 'platform-import' ? (
-        <Alert color="red" variant="filled" title="Maintenance mode active">
-          Migration actions may be blocked while maintenance is active (
-          {status.maintenanceReason ?? 'unknown'}).
+        <Alert
+          color="red"
+          variant="filled"
+          title={t('migration.statusAlerts.maintenanceActiveTitle')}
+        >
+          {t('migration.statusAlerts.maintenanceActiveMessage', {
+            reason:
+              status.maintenanceReason ?? t('migration.statusAlerts.maintenanceReasonUnknown'),
+          })}
         </Alert>
       ) : null}
       {lastExportFailed && lastExportRun ? (
-        <Alert color="red" variant="filled" title="Export failed">
+        <Alert color="red" variant="filled" title={t('migration.statusAlerts.exportFailedTitle')}>
           <span>
-            {new Date(lastExportRun.createdAt).toLocaleString()} —{' '}
-            {formatPlatformRunStatus(lastExportRun.status, 'export')}
+            {new Date(lastExportRun.createdAt).toLocaleString()} –{' '}
+            {formatPlatformRunStatus(lastExportRun.status, 'export', t)}
           </span>
           {lastExportRun.errorMessage ? (
             <span style={{ display: 'block', marginTop: 4 }}>{lastExportRun.errorMessage}</span>
@@ -47,28 +63,35 @@ export function AdminMigrationStatusAlerts({ status }: Props) {
         </Alert>
       ) : null}
       {lastImportFailed && lastImportRun ? (
-        <Alert color="red" variant="filled" title="Import failed">
+        <Alert color="red" variant="filled" title={t('migration.statusAlerts.importFailedTitle')}>
           <span>
-            {new Date(lastImportRun.createdAt).toLocaleString()} —{' '}
-            {formatPlatformRunStatus(lastImportRun.status, 'import')}
+            {new Date(lastImportRun.createdAt).toLocaleString()} –{' '}
+            {formatPlatformRunStatus(lastImportRun.status, 'import', t)}
           </span>
           {lastImportRun.errorMessage ? (
             <span style={{ display: 'block', marginTop: 4 }}>{lastImportRun.errorMessage}</span>
           ) : null}
           <span style={{ display: 'block', marginTop: 4 }}>
-            Domain data should have been rolled back on this instance. Platform import is only
-            supported on a freshly installed empty instance.
+            {t('migration.statusAlerts.importFailedRollbackHint')}
           </span>
         </Alert>
       ) : null}
       {activeExportRun ? (
-        <Alert color="blue" variant="filled" title="Export in progress">
-          {formatPlatformRunStatus(activeExportRun.status, 'export')}…
+        <Alert
+          color="blue"
+          variant="filled"
+          title={t('migration.statusAlerts.exportInProgressTitle')}
+        >
+          {formatPlatformRunStatus(activeExportRun.status, 'export', t)}…
         </Alert>
       ) : null}
       {activeImportRun ? (
-        <Alert color="blue" variant="filled" title="Import in progress">
-          {formatPlatformImportStatus(activeImportRun.status)}…
+        <Alert
+          color="blue"
+          variant="filled"
+          title={t('migration.statusAlerts.importInProgressTitle')}
+        >
+          {formatPlatformImportStatus(activeImportRun.status, t)}…
         </Alert>
       ) : null}
     </>

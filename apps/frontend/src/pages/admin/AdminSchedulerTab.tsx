@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   Alert,
   Badge,
@@ -16,6 +17,7 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import type { TFunction } from 'i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { getAdminJobLabel } from './adminJobLabels';
@@ -60,15 +62,22 @@ type BackupStatusResponse = {
 const INTERVAL_OPTIONS = ['1', '2', '5', '10', '15', '30', '45', '59'];
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, idx) => String(idx));
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, idx) => String(idx));
-const WEEKDAY_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: '1', label: 'Montag' },
-  { value: '2', label: 'Dienstag' },
-  { value: '3', label: 'Mittwoch' },
-  { value: '4', label: 'Donnerstag' },
-  { value: '5', label: 'Freitag' },
-  { value: '6', label: 'Samstag' },
-  { value: '0', label: 'Sonntag' },
-];
+const WEEKDAY_VALUES = ['1', '2', '3', '4', '5', '6', '0'] as const;
+const WEEKDAY_TRANSLATION_KEYS: Record<(typeof WEEKDAY_VALUES)[number], string> = {
+  '1': 'monday',
+  '2': 'tuesday',
+  '3': 'wednesday',
+  '4': 'thursday',
+  '5': 'friday',
+  '6': 'saturday',
+  '0': 'sunday',
+};
+function buildWeekdayOptions(t: TFunction): Array<{ value: string; label: string }> {
+  return WEEKDAY_VALUES.map((value) => ({
+    value,
+    label: t(`scheduler.cronForm.weekdays.${WEEKDAY_TRANSLATION_KEYS[value]}`),
+  }));
+}
 const DAY_OF_MONTH_OPTIONS = Array.from({ length: 31 }, (_, idx) => String(idx + 1));
 const PRESET_FIELD_WIDTH = 180;
 const SMALL_FIELD_WIDTH = 64;
@@ -187,10 +196,12 @@ function parseCronToForm(cron: string): CronFormState | null {
 }
 
 export function AdminSchedulerTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [cronInputs, setCronInputs] = useState<Record<string, string>>({});
   const [cronMode, setCronMode] = useState<CronMode>('text');
   const [cronFormInputs, setCronFormInputs] = useState<Record<string, CronFormState>>({});
+  const weekdayOptions = useMemo(() => buildWeekdayOptions(t), [t]);
 
   const schedules = useQuery({
     queryKey: ['admin', 'jobs', 'schedules'],
@@ -198,7 +209,7 @@ export function AdminSchedulerTab() {
       const res = await apiFetch('/api/v1/admin/jobs/schedules');
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load schedules');
+        throw new Error(err.error ?? t('scheduler.loadFailedTitle'));
       }
       return (await res.json()) as SchedulesResponse;
     },
@@ -208,7 +219,7 @@ export function AdminSchedulerTab() {
     queryKey: ['admin', 'backups', 'status'],
     queryFn: async (): Promise<BackupStatusResponse> => {
       const res = await apiFetch('/api/v1/admin/backups/status');
-      if (!res.ok) throw new Error('Failed to load backup status');
+      if (!res.ok) throw new Error(t('scheduler.loadFailedTitle'));
       return (await res.json()) as BackupStatusResponse;
     },
   });
@@ -222,13 +233,13 @@ export function AdminSchedulerTab() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Schedule update failed');
+        throw new Error(err.error ?? t('common:errors.generic'));
       }
     },
     onSuccess: () => {
       notifications.show({
-        title: 'Schedule updated',
-        message: 'Scheduler configuration was saved.',
+        title: t('scheduler.toasts.updatedTitle'),
+        message: t('scheduler.toasts.updatedMessage'),
         color: 'green',
       });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs', 'schedules'] });
@@ -236,7 +247,7 @@ export function AdminSchedulerTab() {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'backups', 'status'] });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Error', message: error.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: error.message, color: 'red' });
     },
   });
 
@@ -268,8 +279,8 @@ export function AdminSchedulerTab() {
   if (schedules.isPending || backupStatus.isPending) return <Loader size="sm" />;
   if (schedules.isError) {
     return (
-      <Alert color="red" title="Failed to load scheduler">
-        {schedules.error instanceof Error ? schedules.error.message : 'Unknown error'}
+      <Alert color="red" title={t('scheduler.loadFailedTitle')}>
+        {schedules.error instanceof Error ? schedules.error.message : t('common:errors.generic')}
       </Alert>
     );
   }
@@ -279,12 +290,12 @@ export function AdminSchedulerTab() {
       <Radio.Group
         value={cronMode}
         onChange={(value) => setCronMode(value as CronMode)}
-        label="Cron mode"
+        label={t('scheduler.cronMode.label')}
         mb="md"
       >
         <Group gap="md">
-          <Radio value="text" label="Text" />
-          <Radio value="form" label="Form" />
+          <Radio value="text" label={t('scheduler.cronMode.text')} />
+          <Radio value="form" label={t('scheduler.cronMode.form')} />
         </Group>
       </Radio.Group>
 
@@ -303,11 +314,11 @@ export function AdminSchedulerTab() {
         </colgroup>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Job type</Table.Th>
-            <Table.Th>Enabled</Table.Th>
-            <Table.Th>Cron</Table.Th>
-            <Table.Th>Timezone</Table.Th>
-            <Table.Th>Action</Table.Th>
+            <Table.Th>{t('scheduler.table.jobType')}</Table.Th>
+            <Table.Th>{t('scheduler.table.enabled')}</Table.Th>
+            <Table.Th>{t('scheduler.table.cron')}</Table.Th>
+            <Table.Th>{t('scheduler.table.timezone')}</Table.Th>
+            <Table.Th>{t('scheduler.table.action')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -316,7 +327,7 @@ export function AdminSchedulerTab() {
             const cronValue = cronInputs[name] ?? existing?.cron ?? '';
             const formValue = getOrCreateFormInput(name, cronValue);
             const resolvedCron = resolveCronForJob(name, cronValue);
-            const jobMeta = getAdminJobLabel(name);
+            const jobMeta = getAdminJobLabel(name, t);
             const isBackupJob = name === BACKUP_JOB_NAME;
             const backupConfigured = backupStatus.data?.autoBackupConfigured ?? false;
             const backupRowLocked = isBackupJob && !backupConfigured;
@@ -338,15 +349,22 @@ export function AdminSchedulerTab() {
                   ) : null}
                   {backupRowLocked && (
                     <Text size="xs" c="dimmed" mt={4}>
-                      Configure automatic backups in the <Link to="/admin/data/backup">Backup</Link>{' '}
-                      tab first.
+                      <Trans
+                        i18nKey="scheduler.backupLockedHint"
+                        t={t}
+                        components={{
+                          link: <Link to="/admin/data/backup" />,
+                        }}
+                      />
                     </Text>
                   )}
                 </Table.Td>
                 <Table.Td>
                   {isBackupJob ? (
                     <Badge color={existing ? 'green' : 'gray'} variant="filled">
-                      {existing ? 'Enabled' : 'Disabled'}
+                      {existing
+                        ? t('scheduler.table.enabledBadge')
+                        : t('scheduler.table.disabledBadge')}
                     </Badge>
                   ) : (
                     <Switch
@@ -360,8 +378,8 @@ export function AdminSchedulerTab() {
                         }
                         if (!resolvedCron) {
                           notifications.show({
-                            title: 'Cron required',
-                            message: 'Please enter a valid cron expression first.',
+                            title: t('scheduler.toasts.cronRequiredTitle'),
+                            message: t('scheduler.toasts.cronRequiredMessageEnable'),
                             color: 'yellow',
                           });
                           return;
@@ -383,21 +401,24 @@ export function AdminSchedulerTab() {
                         onChange={(event) =>
                           setCronInputs((prev) => ({ ...prev, [name]: event.currentTarget.value }))
                         }
-                        placeholder="*/5 * * * *"
+                        placeholder={t('scheduler.table.cronPlaceholder')}
                       />
                     ) : (
                       <Box style={{ overflowX: 'auto' }}>
                         <Group gap={6} wrap="nowrap" align="flex-end">
                           <Select
                             size="xs"
-                            label="Preset"
+                            label={t('scheduler.cronForm.presetLabel')}
                             value={formValue.preset}
                             data={[
-                              { value: 'everyMinutes', label: 'Every X minutes' },
-                              { value: 'hourly', label: 'Hourly' },
-                              { value: 'daily', label: 'Daily' },
-                              { value: 'weekly', label: 'Weekly' },
-                              { value: 'monthly', label: 'Monthly' },
+                              {
+                                value: 'everyMinutes',
+                                label: t('scheduler.cronForm.presetEveryMinutes'),
+                              },
+                              { value: 'hourly', label: t('scheduler.cronForm.presetHourly') },
+                              { value: 'daily', label: t('scheduler.cronForm.presetDaily') },
+                              { value: 'weekly', label: t('scheduler.cronForm.presetWeekly') },
+                              { value: 'monthly', label: t('scheduler.cronForm.presetMonthly') },
                             ]}
                             onChange={(value) => {
                               if (!value) return;
@@ -414,7 +435,7 @@ export function AdminSchedulerTab() {
                           />
                           <Select
                             size="xs"
-                            label="Interval"
+                            label={t('scheduler.cronForm.intervalLabel')}
                             value={formValue.intervalMinutes}
                             data={toSelectOptions(INTERVAL_OPTIONS)}
                             onChange={(value) => {
@@ -433,7 +454,7 @@ export function AdminSchedulerTab() {
                           />
                           <Select
                             size="xs"
-                            label="Minute"
+                            label={t('scheduler.cronForm.minuteLabel')}
                             value={formValue.minute}
                             data={toSelectOptions(MINUTE_OPTIONS)}
                             onChange={(value) => {
@@ -452,7 +473,7 @@ export function AdminSchedulerTab() {
                           />
                           <Select
                             size="xs"
-                            label="Hour"
+                            label={t('scheduler.cronForm.hourLabel')}
                             value={formValue.hour}
                             data={toSelectOptions(HOUR_OPTIONS)}
                             onChange={(value) => {
@@ -471,9 +492,9 @@ export function AdminSchedulerTab() {
                           />
                           <Select
                             size="xs"
-                            label="Weekday"
+                            label={t('scheduler.cronForm.weekdayLabel')}
                             value={formValue.weekday}
-                            data={WEEKDAY_OPTIONS}
+                            data={weekdayOptions}
                             onChange={(value) => {
                               if (!value) return;
                               setCronFormInputs((prev) => ({
@@ -490,7 +511,7 @@ export function AdminSchedulerTab() {
                           />
                           <Select
                             size="xs"
-                            label="Day"
+                            label={t('scheduler.cronForm.dayLabel')}
                             value={formValue.dayOfMonth}
                             data={toSelectOptions(DAY_OF_MONTH_OPTIONS)}
                             onChange={(value) => {
@@ -517,7 +538,9 @@ export function AdminSchedulerTab() {
                               textAlign: 'right',
                             }}
                           >
-                            Cron preview: {resolvedCron ?? 'invalid'}
+                            {t('scheduler.cronForm.cronPreview', {
+                              cron: resolvedCron ?? t('scheduler.cronForm.cronPreviewInvalid'),
+                            })}
                           </Text>
                         </Group>
                       </Box>
@@ -529,7 +552,7 @@ export function AdminSchedulerTab() {
                     <Badge variant="filled">{existing.tz}</Badge>
                   ) : (
                     <Text size="sm" c="dimmed">
-                      UTC
+                      {t('scheduler.table.utc')}
                     </Text>
                   )}
                 </Table.Td>
@@ -540,8 +563,8 @@ export function AdminSchedulerTab() {
                     onClick={() => {
                       if (!resolvedCron) {
                         notifications.show({
-                          title: 'Cron required',
-                          message: 'Please provide a valid cron value first.',
+                          title: t('scheduler.toasts.cronRequiredTitle'),
+                          message: t('scheduler.toasts.cronRequiredMessageSave'),
                           color: 'yellow',
                         });
                         return;
@@ -554,7 +577,7 @@ export function AdminSchedulerTab() {
                     }}
                     disabled={controlsDisabled || !resolvedCron || (isBackupJob && !existing)}
                   >
-                    Save
+                    {t('scheduler.table.save')}
                   </Button>
                 </Table.Td>
               </Table.Tr>

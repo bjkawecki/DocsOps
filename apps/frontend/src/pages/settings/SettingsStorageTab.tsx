@@ -1,6 +1,7 @@
 import { Alert, Box, Loader, Select, Stack, Table, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import type { StorageOverviewResponse } from '../../api/storage-types';
 import { SettingsContentCard } from './SettingsContentCard.js';
@@ -27,6 +28,7 @@ type ScopeOption =
   | { value: `company-${string}`; label: string; companyId: string };
 
 export function SettingsStorageTab() {
+  const { t } = useTranslation('settings');
   const { data: me, isPending: mePending } = useMe();
   const [selectedScope, setSelectedScope] = useState<string>('personal');
 
@@ -42,20 +44,20 @@ export function SettingsStorageTab() {
 
   const scopeOptions = useMemo((): ScopeOption[] => {
     if (!me) return [];
-    const opts: ScopeOption[] = [{ value: 'personal', label: 'Personal (my storage)' }];
-    for (const t of me.identity.teams) {
-      if (t.role === 'leader') {
+    const opts: ScopeOption[] = [{ value: 'personal', label: t('storage.scopePersonal') }];
+    for (const team of me.identity.teams) {
+      if (team.role === 'leader') {
         opts.push({
-          value: `team-${t.teamId}`,
-          label: `Team: ${t.teamName}`,
-          teamId: t.teamId,
+          value: `team-${team.teamId}`,
+          label: t('storage.scopeTeam', { name: team.teamName }),
+          teamId: team.teamId,
         });
       }
     }
     for (const d of me.identity.departmentLeads) {
       opts.push({
         value: `department-${d.id}`,
-        label: `Department: ${d.name}`,
+        label: t('storage.scopeDepartment', { name: d.name }),
         departmentId: d.id,
       });
     }
@@ -63,7 +65,7 @@ export function SettingsStorageTab() {
     for (const c of me.identity.companyLeads) {
       opts.push({
         value: `company-${c.id}`,
-        label: `Company: ${c.name}`,
+        label: t('storage.scopeCompany', { name: c.name }),
         companyId: c.id,
       });
     }
@@ -72,14 +74,14 @@ export function SettingsStorageTab() {
         if (!companyIdsAdded.has(c.id)) {
           opts.push({
             value: `company-${c.id}`,
-            label: `Company: ${c.name}`,
+            label: t('storage.scopeCompany', { name: c.name }),
             companyId: c.id,
           });
         }
       }
     }
     return opts;
-  }, [me, companiesData?.items]);
+  }, [me, companiesData?.items, t]);
 
   const queryParams = useMemo(() => {
     if (selectedScope === 'personal') return null;
@@ -134,15 +136,14 @@ export function SettingsStorageTab() {
         <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
           <SettingsCardTitle jumpId="storage" />
           <Text size="xs" c="dimmed">
-            Storage used by document attachments (and PDF exports). Choose a scope to view your
-            usage or, as a lead, your team, department, or company.
+            {t('storage.description')}
           </Text>
         </Stack>
 
         <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
           {scopeOptions.length > 1 ? (
             <Select
-              label="Scope"
+              label={t('storage.scopeLabel')}
               data={scopeOptions.map((o) => ({ value: o.value, label: o.label }))}
               value={selectedScope}
               onChange={(v) => v && setSelectedScope(v)}
@@ -153,21 +154,17 @@ export function SettingsStorageTab() {
           ) : null}
           {storage && !storagePending ? (
             <Text size="sm" c="dimmed">
-              <Text span fw={600} c="var(--mantine-color-text)">
-                {formatBytes(storage.usedBytes)}
-              </Text>
-              {' used · '}
-              <Text span fw={600} c="var(--mantine-color-text)">
-                {storage.attachmentCount}
-              </Text>
-              {' attachment(s)'}
+              {t('storage.usedSummary', {
+                used: formatBytes(storage.usedBytes),
+                count: storage.attachmentCount,
+              })}
             </Text>
           ) : null}
         </Stack>
 
         {isError && (
           <Alert color="red">
-            {error instanceof Error ? error.message : 'Failed to load storage'}
+            {error instanceof Error ? error.message : t('storage.loadFailed')}
           </Alert>
         )}
         {storagePending && <Loader size="sm" />}
@@ -176,8 +173,8 @@ export function SettingsStorageTab() {
             <Table withTableBorder className="dense-list-table" style={{ minWidth: 360 }}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>User</Table.Th>
-                  <Table.Th>Used</Table.Th>
+                  <Table.Th>{t('storage.userHeader')}</Table.Th>
+                  <Table.Th>{t('storage.usedHeader')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>

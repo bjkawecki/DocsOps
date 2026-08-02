@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Button, Group, Stack, Switch, Table, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { Destination } from './adminBackupTypes';
 import type { DestinationFormState } from './adminBackupDestinationForm';
 import { AdminBackupDestinationEditModal } from './AdminBackupDestinationEditModal';
@@ -28,6 +29,7 @@ export function AdminBackupDestinationsPanel({
   onSetDefault,
   onToggleEnabled,
 }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   const [formOpen, setFormOpen] = useState(false);
   const [editDestination, setEditDestination] = useState<Destination | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Destination | null>(null);
@@ -52,20 +54,23 @@ export function AdminBackupDestinationsPanel({
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Text fw={600} size="sm">
-            External destinations
+            {t('backup.destinations.title')}
           </Text>
           <Button size="xs" variant="default" onClick={openCreate}>
-            Add destination
+            {t('backup.destinations.add')}
           </Button>
         </Group>
 
         {deleteTarget ? (
-          <Alert color="red" title={`Delete external destination ${deleteTarget.name}?`}>
+          <Alert
+            color="red"
+            title={t('backup.destinations.deleteConfirmTitle', { name: deleteTarget.name })}
+          >
             <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-              <Text size="sm">This cannot be undone.</Text>
+              <Text size="sm">{t('backup.destinations.deleteConfirmBody')}</Text>
               <Group gap="xs">
                 <Button size="xs" variant="default" onClick={() => setDeleteTarget(null)}>
-                  Cancel
+                  {t('common:actions.cancel')}
                 </Button>
                 <Button
                   size="xs"
@@ -76,7 +81,7 @@ export function AdminBackupDestinationsPanel({
                     setDeleteTarget(null);
                   }}
                 >
-                  Delete
+                  {t('common:actions.delete')}
                 </Button>
               </Group>
             </Group>
@@ -86,10 +91,10 @@ export function AdminBackupDestinationsPanel({
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>Enabled</Table.Th>
-              <Table.Th>Default</Table.Th>
+              <Table.Th>{t('backup.destinations.columnName')}</Table.Th>
+              <Table.Th>{t('backup.destinations.columnType')}</Table.Th>
+              <Table.Th>{t('backup.destinations.columnEnabled')}</Table.Th>
+              <Table.Th>{t('backup.destinations.columnDefault')}</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
@@ -98,7 +103,7 @@ export function AdminBackupDestinationsPanel({
               <Table.Tr>
                 <Table.Td colSpan={5}>
                   <Text size="sm" c="dimmed">
-                    No external destinations configured yet.
+                    {t('backup.destinations.empty')}
                   </Text>
                 </Table.Td>
               </Table.Tr>
@@ -110,7 +115,7 @@ export function AdminBackupDestinationsPanel({
                   <Table.Td>
                     <Switch
                       size="sm"
-                      aria-label={`Enable external destination ${d.name}`}
+                      aria-label={t('backup.destinations.enableAriaLabel', { name: d.name })}
                       checked={d.enabled}
                       disabled={togglingDestinationId === d.id}
                       onChange={(e) => onToggleEnabled(d.id, e.currentTarget.checked)}
@@ -119,7 +124,7 @@ export function AdminBackupDestinationsPanel({
                   <Table.Td>
                     {defaultDestinationId === d.id ? (
                       <Text size="sm" fw={500}>
-                        Default
+                        {t('backup.destinations.default')}
                       </Text>
                     ) : (
                       '–'
@@ -129,11 +134,11 @@ export function AdminBackupDestinationsPanel({
                     <Group gap={4} justify="flex-end" wrap="nowrap">
                       {d.enabled && defaultDestinationId !== d.id ? (
                         <Button size="xs" variant="subtle" onClick={() => onSetDefault(d.id)}>
-                          Set default
+                          {t('backup.destinations.setDefault')}
                         </Button>
                       ) : null}
                       <Button size="xs" variant="subtle" onClick={() => openEdit(d)}>
-                        Edit
+                        {t('backup.destinations.edit')}
                       </Button>
                       <Button
                         size="xs"
@@ -141,7 +146,7 @@ export function AdminBackupDestinationsPanel({
                         color="red"
                         onClick={() => setDeleteTarget(d)}
                       >
-                        Delete
+                        {t('common:actions.delete')}
                       </Button>
                     </Group>
                   </Table.Td>

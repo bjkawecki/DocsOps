@@ -6,6 +6,7 @@
     "close": "Close",
     "create": "Create",
     "delete": "Delete",
+    "edit": "Edit",
     "retry": "Retry"
   },
   "errors": {
@@ -15,6 +16,31 @@
   "status": {
     "loading": "Loading…",
     "active": "Active",
-    "empty": "Nothing here yet."
+    "empty": "Nothing here yet.",
+    "untitled": "Untitled"
+  },
+  "toasts": {
+    "error": "Something went wrong.",
+    "saved": "Saved"
+  },
+  "scopePeople": {
+    "loadFailed": "Failed to load people.",
+    "refreshFailed": "Could not refresh the list.",
+    "noMembersYet": "No members yet.",
+    "noMembers": "No members.",
+    "departmentLeads": "Department leads",
+    "companyLeads": "Company leads",
+    "authors": "Authors",
+    "roleLeadMember": "Lead, Member",
+    "roleLead": "Lead",
+    "roleAuthor": "Author",
+    "roleMember": "Member",
+    "setAsMember": "Set as member",
+    "setAsAuthor": "Set as author",
+    "setAsMemberInTeam": "Member · {{team}}",
+    "peopleOnlineSummary": "{{count}} · {{online}} online",
+    "companySummary": "{{departments}} depts · {{people}} people · {{online}} active",
+    "departmentDetailSummary": "{{teams}} teams · {{people}} people · {{online}} active",
+    "teamDetailSummary": "{{people}} people · {{online}} active"
   }
 }

@@ -1,4 +1,5 @@
 import { Box, Group, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { LeadDraftEditorMode } from '../LeadDraftTiptapEditor.js';
 import { DraftEditingHelpPopover } from './DraftEditingHelpPopover.js';
 import { formatOtherEditorsLabel } from './formatOtherEditorsLabel.js';
@@ -25,14 +26,16 @@ export function DraftSyncMetaBar({
   editorMode,
   otherEditors,
 }: Props) {
-  const presenceLabel = formatOtherEditorsLabel(otherEditors);
+  const { t } = useTranslation('documents');
+  const presenceLabel = formatOtherEditorsLabel(otherEditors, t);
 
   return (
     <Group gap="md" justify="space-between" wrap="wrap" align="center">
       <Group gap="sm" wrap="wrap" align="center">
         <Group gap={6} align="center" wrap="wrap">
           <Text size="sm">
-            <strong>Draft revision:</strong> {appliedRevision ?? incomingRevision}
+            <strong>{t('leadDraft.draftRevisionLabel')}</strong>{' '}
+            {appliedRevision ?? incomingRevision}
           </Text>
           {presenceLabel && (
             <>
@@ -61,13 +64,13 @@ export function DraftSyncMetaBar({
               ·
             </Text>
             <Text size="xs" c="dimmed" component="span">
-              Unsaved changes
+              {t('leadDraft.unsavedChanges')}
             </Text>
           </>
         ) : null}
         {isRevisionStale && !dirty ? (
           <Text size="xs" c="dimmed" component="span">
-            Server revision {knownServerRevision}
+            {t('leadDraft.serverRevision', { revision: knownServerRevision })}
           </Text>
         ) : null}
       </Group>

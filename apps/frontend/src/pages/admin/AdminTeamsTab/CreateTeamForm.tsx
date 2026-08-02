@@ -1,5 +1,6 @@
 import { Button, Group, Select, Stack, TextInput } from '@mantine/core';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Department, Team } from 'backend/api-types';
 
 export type CreateTeamFormProps = {
@@ -10,15 +11,21 @@ export type CreateTeamFormProps = {
 };
 
 export function CreateTeamForm({ departments, onSubmit, onCancel, loading }: CreateTeamFormProps) {
+  const { t } = useTranslation('admin');
   const [name, setName] = useState('');
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }));
   return (
     <Stack>
-      <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <TextInput
+        label={t('shared.name')}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
       <Select
-        label="Department"
-        placeholder="Select department"
+        label={t('shared.department')}
+        placeholder={t('teams.createForm.departmentPlaceholder')}
         data={departmentOptions}
         value={departmentId}
         onChange={(v) => setDepartmentId(v)}
@@ -26,14 +33,14 @@ export function CreateTeamForm({ departments, onSubmit, onCancel, loading }: Cre
       />
       <Group justify="flex-end">
         <Button variant="default" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <Button
           onClick={() => departmentId && onSubmit(name, departmentId)}
           loading={loading}
           disabled={!name.trim() || !departmentId}
         >
-          Create
+          {t('common:actions.create')}
         </Button>
       </Group>
     </Stack>

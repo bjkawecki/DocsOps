@@ -1,3 +1,6 @@
+/** Not a full `TFunction`; matches the shape returned by `useTranslation('admin').t`. */
+export type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
 export type BackupStatus = {
   minioAvailable: boolean;
   workerConnected: boolean;

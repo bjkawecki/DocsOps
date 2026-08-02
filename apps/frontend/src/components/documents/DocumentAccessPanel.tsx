@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { scopeToUrl } from '../../lib/scopeNav';
 
@@ -41,6 +42,7 @@ function scopeAuthorsHref(scope: DocumentScope): string | null {
 }
 
 export function DocumentAccessPanel({ documentId, canEditAccess, documentScope }: Props) {
+  const { t } = useTranslation('documents');
   const queryClient = useQueryClient();
   const [teamReadIds, setTeamReadIds] = useState<string[]>([]);
   const [departmentReadIds, setDepartmentReadIds] = useState<string[]>([]);
@@ -157,12 +159,12 @@ export function DocumentAccessPanel({ documentId, canEditAccess, documentScope }
       await queryClient.invalidateQueries({ queryKey: ['document', documentId] });
       notifications.show({
         color: 'green',
-        message: 'Access rules updated.',
+        message: t('access.updateSuccess'),
       });
     } catch (error) {
       notifications.show({
         color: 'red',
-        message: error instanceof Error ? error.message : 'Could not update access rules.',
+        message: error instanceof Error ? error.message : t('access.updateError'),
       });
     } finally {
       setSaving(false);
@@ -172,14 +174,14 @@ export function DocumentAccessPanel({ documentId, canEditAccess, documentScope }
   if (grantsQuery.isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading access rules...
+        {t('access.loading')}
       </Text>
     );
   }
   if (grantsQuery.isError || !grantsQuery.data) {
     return (
-      <Alert color="red" title="Error">
-        Access rules could not be loaded.
+      <Alert color="red" title={t('access.loadErrorTitle')}>
+        {t('access.loadError')}
       </Alert>
     );
   }
@@ -187,62 +189,64 @@ export function DocumentAccessPanel({ documentId, canEditAccess, documentScope }
   return (
     <Stack gap="md">
       {!canEditAccess && (
-        <Alert color="gray" variant="filled" title="Read-only">
-          You can review access settings but cannot modify them.
+        <Alert color="gray" variant="filled" title={t('access.readOnlyTitle')}>
+          {t('access.readOnlyBody')}
         </Alert>
       )}
 
-      <Alert color="blue" variant="light" title="Authors">
-        Document authors are managed at scope level (team or department), not per document.
+      <Alert color="blue" variant="light" title={t('access.authorsTitle')}>
+        {t('access.authorsBody')}
         {authorsHref ? (
           <>
             {' '}
             <Text component={Link} to={authorsHref} size="sm" fw={500}>
-              Open scope page
+              {t('access.openScopePage')}
             </Text>
           </>
         ) : null}
       </Alert>
 
       {candidatesQuery.isError && (
-        <Alert color="yellow" title="Candidate list unavailable">
-          Cross-scope read candidates could not be loaded.
+        <Alert color="yellow" title={t('access.candidatesUnavailableTitle')}>
+          {t('access.candidatesUnavailableBody')}
         </Alert>
       )}
 
       <Box>
         <MultiSelect
-          label="Team read access"
-          description="Grant read access to external teams outside this document owner scope."
-          placeholder={canEditAccess ? 'Select teams' : 'Read access is read-only'}
+          label={t('access.teamReadLabel')}
+          description={t('access.teamReadDescription')}
+          placeholder={canEditAccess ? t('access.selectTeams') : t('access.readOnlyPlaceholder')}
           data={teamOptions}
           value={teamReadIds}
           onChange={setTeamReadIds}
           searchable
           clearable
           disabled={!canEditAccess || candidatesQuery.isPending}
-          nothingFoundMessage="No matching teams"
+          nothingFoundMessage={t('access.noMatchingTeams')}
         />
       </Box>
 
       <Box>
         <MultiSelect
-          label="Department read access"
-          description="Grant read access to external departments outside this document owner scope."
-          placeholder={canEditAccess ? 'Select departments' : 'Read access is read-only'}
+          label={t('access.departmentReadLabel')}
+          description={t('access.departmentReadDescription')}
+          placeholder={
+            canEditAccess ? t('access.selectDepartments') : t('access.readOnlyPlaceholder')
+          }
           data={departmentOptions}
           value={departmentReadIds}
           onChange={setDepartmentReadIds}
           searchable
           clearable
           disabled={!canEditAccess || candidatesQuery.isPending}
-          nothingFoundMessage="No matching departments"
+          nothingFoundMessage={t('access.noMatchingDepartments')}
         />
       </Box>
 
       <Group justify="flex-end">
         <Button disabled={!canEditAccess || !dirty} loading={saving} onClick={() => void save()}>
-          Save access
+          {t('access.saveAccess')}
         </Button>
       </Group>
     </Stack>

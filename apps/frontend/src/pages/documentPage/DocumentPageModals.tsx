@@ -1,5 +1,6 @@
 import { ActionIcon, Button, Group, Modal, Select, Stack, Text, TextInput } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   deleteOpened: boolean;
@@ -68,15 +69,16 @@ export function DocumentPageModals({
   tags,
   onDeleteTag,
 }: Props) {
+  const { t } = useTranslation('documents');
   return (
     <>
-      <Modal opened={deleteOpened} onClose={closeDelete} title="Move to trash" centered>
+      <Modal opened={deleteOpened} onClose={closeDelete} title={t('modals.deleteTitle')} centered>
         <Text size="sm" c="dimmed" mb="md">
-          This document will be moved to trash (soft delete). Continue?
+          {t('modals.deleteBody')}
         </Text>
         <Group justify="flex-end" gap="xs">
           <Button variant="default" onClick={closeDelete}>
-            Cancel
+            {t('modals.cancel')}
           </Button>
           <Button
             color="red"
@@ -85,7 +87,7 @@ export function DocumentPageModals({
               void onDeleteConfirm();
             }}
           >
-            Move to trash
+            {t('modals.deleteConfirm')}
           </Button>
         </Group>
       </Modal>
@@ -93,16 +95,16 @@ export function DocumentPageModals({
       <Modal
         opened={assignContextOpened}
         onClose={onCloseAssignContext}
-        title="Assign to context"
+        title={t('modals.assignContextTitle')}
         centered
       >
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Choose a process or project to assign this draft to. You can then publish it.
+            {t('modals.assignContextBody')}
           </Text>
           <Select
-            label="Context"
-            placeholder="Select process or project"
+            label={t('modals.contextLabel')}
+            placeholder={t('modals.contextPlaceholder')}
             data={assignContextOptions}
             value={assignContextId}
             onChange={(v) => setAssignContextId(v)}
@@ -110,81 +112,95 @@ export function DocumentPageModals({
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={onCloseAssignContext}>
-              Cancel
+              {t('modals.cancel')}
             </Button>
             <Button
               disabled={!assignContextId}
               loading={assignContextLoading}
               onClick={() => void onAssignContext()}
             >
-              Assign
+              {t('modals.assign')}
             </Button>
           </Group>
         </Stack>
       </Modal>
 
-      <Modal opened={moveContextOpened} onClose={onCloseMoveContext} title="Move document" centered>
+      <Modal
+        opened={moveContextOpened}
+        onClose={onCloseMoveContext}
+        title={t('modals.moveContextTitle')}
+        centered
+      >
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Same owner scope moves immediately. Other scopes create a move request for the target
-            lead. On accept, tags are removed; access grants stay on the document.
+            {t('modals.moveContextBody')}
           </Text>
           <Select
-            label="Target context"
-            placeholder="Select process, project, or subcontext"
+            label={t('modals.targetContextLabel')}
+            placeholder={t('modals.targetContextPlaceholder')}
             data={moveContextOptions.map(({ value, label }) => ({ value, label }))}
             value={moveContextId}
             onChange={(v) => setMoveContextId(v)}
             searchable
-            nothingFoundMessage="No other readable contexts"
+            nothingFoundMessage={t('modals.noOtherContexts')}
           />
           {moveTargetIsCrossOwner ? (
             <TextInput
-              label="Note (optional)"
-              placeholder="Why should this document move?"
+              label={t('modals.noteLabel')}
+              placeholder={t('modals.notePlaceholder')}
               value={moveRequestNote}
               onChange={(e) => setMoveRequestNote(e.currentTarget.value)}
             />
           ) : null}
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={onCloseMoveContext}>
-              Cancel
+              {t('modals.cancel')}
             </Button>
             <Button
               disabled={!moveContextId}
               loading={moveContextLoading}
               onClick={() => void onMoveContext()}
             >
-              {moveTargetIsCrossOwner ? 'Request move' : 'Move'}
+              {moveTargetIsCrossOwner ? t('modals.requestMove') : t('modals.move')}
             </Button>
           </Group>
         </Stack>
       </Modal>
 
-      <Modal opened={createTagOpened} onClose={closeCreateTag} title="Create tag" centered>
+      <Modal
+        opened={createTagOpened}
+        onClose={closeCreateTag}
+        title={t('modals.createTagTitle')}
+        centered
+      >
         <Stack gap="md">
           <TextInput
-            label="Tag name"
+            label={t('modals.tagNameLabel')}
             value={newTagName}
             onChange={(e) => setNewTagName(e.currentTarget.value)}
             onKeyDown={(e) => e.key === 'Enter' && void onCreateTag()}
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={closeCreateTag}>
-              Cancel
+              {t('modals.cancel')}
             </Button>
             <Button loading={createTagLoading} onClick={() => void onCreateTag()}>
-              Create
+              {t('modals.create')}
             </Button>
           </Group>
         </Stack>
       </Modal>
 
-      <Modal opened={manageTagsOpened} onClose={closeManageTags} title="Manage tags" centered>
+      <Modal
+        opened={manageTagsOpened}
+        onClose={closeManageTags}
+        title={t('modals.manageTagsTitle')}
+        centered
+      >
         <Stack gap="xs">
           {tags.length === 0 ? (
             <Text size="sm" c="dimmed">
-              No tags yet. Create one when editing a document.
+              {t('modals.noTagsYet')}
             </Text>
           ) : (
             tags.map((tag) => (
@@ -195,7 +211,7 @@ export function DocumentPageModals({
                   color="red"
                   size="sm"
                   onClick={() => void onDeleteTag(tag.id)}
-                  aria-label={`Delete tag ${tag.name}`}
+                  aria-label={t('modals.deleteTagAria', { name: tag.name })}
                 >
                   <IconTrash size={14} />
                 </ActionIcon>

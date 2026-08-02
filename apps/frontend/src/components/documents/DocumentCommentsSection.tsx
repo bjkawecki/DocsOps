@@ -6,6 +6,7 @@ import {
 } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import { collectMentionUserIdsFromComments } from './documentComments/documentCommentMentionUtils.js';
 import { DocumentCommentsListBody } from './documentComments/DocumentCommentsListBody.js';
@@ -35,6 +36,7 @@ export function DocumentCommentsSection({
   headings,
   layout = 'rail',
 }: DocumentCommentsSectionProps) {
+  const { t } = useTranslation('documents');
   const { primaryColor } = useMantineTheme();
   const [newText, setNewText] = useState('');
   const [anchorSlug, setAnchorSlug] = useState<string | null>(null);
@@ -172,7 +174,7 @@ export function DocumentCommentsSection({
           size="md"
           onClick={togglePanel}
           aria-expanded={panelOpen}
-          aria-label={panelOpen ? 'Collapse comments' : 'Expand comments'}
+          aria-label={panelOpen ? t('comments.collapse') : t('comments.expand')}
         >
           {panelOpen ? (
             <IconLayoutSidebarRightCollapse
@@ -244,7 +246,7 @@ export function DocumentCommentsSection({
                     )}
                   </Group>
                   <Text id="document-comments-heading" size="sm" fw={500}>
-                    Comments
+                    {t('comments.heading')}
                   </Text>
                 </Group>
                 <Box style={{ paddingLeft: 28 }}>

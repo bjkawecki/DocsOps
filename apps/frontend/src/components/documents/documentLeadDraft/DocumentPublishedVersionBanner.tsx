@@ -1,4 +1,5 @@
 import { Anchor, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   currentVersion: number;
@@ -14,10 +15,11 @@ export function DocumentPublishedVersionHint({
   onReload,
   onFilledAlert = false,
 }: Props) {
+  const { t } = useTranslation('documents');
   const textColor = onFilledAlert ? 'white' : 'dimmed';
   return (
     <Text size="sm" c={textColor} component="span">
-      v{currentVersion} published (viewing v{acknowledgedVersion}).{' '}
+      {t('leadDraft.publishedHint', { current: currentVersion, acknowledged: acknowledgedVersion })}{' '}
       <Anchor
         component="button"
         type="button"
@@ -26,7 +28,7 @@ export function DocumentPublishedVersionHint({
         underline="always"
         onClick={onReload}
       >
-        Reload
+        {t('leadDraft.reload')}
       </Anchor>
     </Text>
   );

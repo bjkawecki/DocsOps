@@ -1,4 +1,4 @@
-import type { RestoreRun } from './adminBackupTypes';
+import type { RestoreRun, TranslateFn } from './adminBackupTypes';
 
 const IN_PROGRESS_RESTORE_STATUSES = new Set([
   'queued',
@@ -16,12 +16,31 @@ export function isInProgressRestoreStatus(status: string): boolean {
   return IN_PROGRESS_RESTORE_STATUSES.has(status);
 }
 
-export function formatRestoreSource(run: RestoreRun): string {
+export function formatRestoreSource(run: RestoreRun, t: TranslateFn): string {
   if (run.source === 'history' && run.backupRun) {
-    return `Backup ${new Date(run.backupRun.createdAt).toLocaleString()}`;
+    return t('backup.restoreSource.fromBackup', {
+      date: new Date(run.backupRun.createdAt).toLocaleString(),
+    });
   }
-  if (run.source === 'upload') return 'Uploaded archive';
+  if (run.source === 'upload') return t('backup.restoreSource.uploadedArchive');
   return run.source;
+}
+
+export function formatRestoreStatusLabel(status: string, t: TranslateFn): string {
+  switch (status) {
+    case 'queued':
+      return t('backup.restoreStatus.queued');
+    case 'running':
+      return t('backup.restoreStatus.running');
+    case 'validating':
+      return t('backup.restoreStatus.validating');
+    case 'restoring_db':
+      return t('backup.restoreStatus.restoringDb');
+    case 'restoring_minio':
+      return t('backup.restoreStatus.restoringMinio');
+    default:
+      return status;
+  }
 }
 
 export const RESTORE_SUPERSEDED_ERROR = 'Run was superseded by disaster recovery restore';

@@ -19,6 +19,7 @@ import { notifications } from '@mantine/notifications';
 import { IconTemplate } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
 import {
@@ -58,7 +59,7 @@ const navLinkFullWidth = {
   width: '100%',
 } as const;
 
-function textToSections(raw: string): TemplateSection[] {
+function textToSections(raw: string, defaultPrompt: string): TemplateSection[] {
   const blocks = raw
     .split(/\n\s*\n/)
     .map((b) => b.trim())
@@ -76,12 +77,13 @@ function textToSections(raw: string): TemplateSection[] {
       .slice(1)
       .map((l) => l.replace(/^[-*•]\s*/, '').trim())
       .filter(Boolean);
-    sections.push({ heading, prompts: prompts.length > 0 ? prompts : ['Describe this section.'] });
+    sections.push({ heading, prompts: prompts.length > 0 ? prompts : [defaultPrompt] });
   }
   return sections;
 }
 
 export function DocumentTemplatesPage() {
+  const { t } = useTranslation(['templates', 'documents', 'shell', 'common']);
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -92,9 +94,7 @@ export function DocumentTemplatesPage() {
   const [exampleTitle, setExampleTitle] = useState('');
   const [oftenUsedIn, setOftenUsedIn] = useState<string | null>('process');
   const [scopeType, setScopeType] = useState<string | null>(null);
-  const [sectionsText, setSectionsText] = useState(
-    'Purpose\n- What is this document for?\n\nDetails\n- Fill in the details.'
-  );
+  const [sectionsText, setSectionsText] = useState(t('templates:newType.defaultSectionsText'));
 
   const { data: access, isPending: accessPending } = useQuery({
     queryKey: ['document-templates', 'manage-access'],
@@ -184,25 +184,36 @@ export function DocumentTemplatesPage() {
     const departmentLeads = me?.identity?.departmentLeads ?? [];
     const teamLeads = (me?.identity?.teams ?? []).filter((t) => t.role === 'leader');
     const opts: { value: string; label: string }[] = [];
-    if (me?.user?.isAdmin) opts.push({ value: 'platform', label: 'Platform (all scopes)' });
+    if (me?.user?.isAdmin) {
+      opts.push({ value: 'platform', label: t('templates:newType.scopePlatform') });
+    }
     for (const c of companyLeads) {
-      opts.push({ value: `company:${c.id}`, label: `Company: ${c.name}` });
+      opts.push({
+        value: `company:${c.id}`,
+        label: t('templates:newType.scopeCompany', { name: c.name }),
+      });
     }
     for (const d of departmentLeads) {
-      opts.push({ value: `department:${d.id}`, label: `Department: ${d.name}` });
+      opts.push({
+        value: `department:${d.id}`,
+        label: t('templates:newType.scopeDepartment', { name: d.name }),
+      });
     }
-    for (const t of teamLeads) {
-      opts.push({ value: `team:${t.teamId}`, label: `Team: ${t.teamName}` });
+    for (const lead of teamLeads) {
+      opts.push({
+        value: `team:${lead.teamId}`,
+        label: t('templates:newType.scopeTeam', { name: lead.teamName }),
+      });
     }
     return opts;
-  }, [me]);
+  }, [me, t]);
 
   const effectiveScopeType = scopeType ?? scopeOptions[0]?.value ?? 'platform';
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const sections = textToSections(sectionsText);
-      if (sections.length === 0) throw new Error('Add at least one section');
+      const sections = textToSections(sectionsText, t('templates:newType.defaultSectionPrompt'));
+      if (sections.length === 0) throw new Error(t('templates:newType.missingSection'));
       let parsedScopeType: 'platform' | 'company' | 'department' | 'team' = 'platform';
       let parsedScopeId: string | null = null;
       const scopeValue = effectiveScopeType;
@@ -246,9 +257,18 @@ export function DocumentTemplatesPage() {
       setExampleTitle('');
       setSourceFilter('custom');
       selectType(created.id);
-      notifications.show({ title: 'Type created', message: 'Custom type saved.', color: 'green' });
+      notifications.show({
+        title: t('templates:toasts.createdTitle'),
+        message: t('templates:toasts.createdMessage'),
+        color: 'green',
+      });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('templates:toasts.errorTitle'),
+        message: e.message,
+        color: 'red',
+      }),
   });
 
   const deleteMutation = useMutation({
@@ -270,19 +290,24 @@ export function DocumentTemplatesPage() {
         { replace: true }
       );
       notifications.show({
-        title: 'Type deleted',
-        message: 'Custom type removed.',
+        title: t('templates:toasts.deletedTitle'),
+        message: t('templates:toasts.deletedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('templates:toasts.errorTitle'),
+        message: e.message,
+        color: 'red',
+      }),
   });
 
   const breadcrumbItems = useMemo((): AppShellBreadcrumbItem[] => {
     const items: AppShellBreadcrumbItem[] = [
       {
         key: 'templates',
-        label: 'Templates',
+        label: t('shell:nav.templates'),
         icon: <IconTemplate size={14} stroke={1.5} />,
         to: '/templates',
       },
@@ -294,7 +319,7 @@ export function DocumentTemplatesPage() {
       });
     }
     return items;
-  }, [selectedType]);
+  }, [selectedType, t]);
 
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(null);
@@ -302,17 +327,17 @@ export function DocumentTemplatesPage() {
   const breadcrumbActions = useMemo(
     () => (
       <Button size="sm" onClick={openCreate}>
-        New custom type
+        {t('templates:newType.action')}
       </Button>
     ),
-    [openCreate]
+    [openCreate, t]
   );
   useSetAppShellBreadcrumbActions(breadcrumbActions, 'templates-new-custom');
 
   if (accessPending) {
     return (
       <Container py="xl">
-        <Text c="dimmed">Loading…</Text>
+        <Text c="dimmed">{t('common:status.loading')}</Text>
       </Container>
     );
   }
@@ -354,27 +379,27 @@ export function DocumentTemplatesPage() {
               <ContextWorkspaceLeftColumn data-context-sibling-nav>
                 <ContentCardWrapper fullHeight={false}>
                   <Stack gap="sm" w="100%">
-                    <SectionLabel>Types</SectionLabel>
+                    <SectionLabel>{t('templates:sidebar.typesHeading')}</SectionLabel>
                     <SegmentedControl
                       size="xs"
                       fullWidth
                       value={sourceFilter}
                       onChange={(v) => setSourceFilter(v as SourceFilter)}
                       data={[
-                        { label: 'All', value: 'all' },
-                        { label: 'Built-in', value: 'builtin' },
-                        { label: 'Custom', value: 'custom' },
+                        { label: t('documents:catalog.allTypes'), value: 'all' },
+                        { label: t('documents:typePicker.sourceBuiltin'), value: 'builtin' },
+                        { label: t('documents:typePicker.sourceCustom'), value: 'custom' },
                       ]}
                     />
                     {isPending ? (
                       <Text size="sm" c="dimmed">
-                        Loading…
+                        {t('common:status.loading')}
                       </Text>
                     ) : filteredTypes.length === 0 ? (
                       <Text size="sm" c="dimmed">
                         {sourceFilter === 'custom' && customCount === 0
-                          ? 'No custom types yet.'
-                          : 'No types match this filter.'}
+                          ? t('templates:sidebar.noCustomTypes')
+                          : t('templates:sidebar.noTypesMatch')}
                       </Text>
                     ) : (
                       <Stack
@@ -382,21 +407,30 @@ export function DocumentTemplatesPage() {
                         gap="sm"
                         align="stretch"
                         w="100%"
-                        aria-label="Document types"
+                        aria-label={t('templates:sidebar.documentTypesAria')}
                       >
                         {showGroupHeadings && processTypes.length > 0 ? (
-                          <TemplatesSidebarGroup sectionId="templates:process" label="Process">
+                          <TemplatesSidebarGroup
+                            sectionId="templates:process"
+                            label={t('documents:typePicker.groupProcess')}
+                          >
                             {processTypes.map(renderTypeLink)}
                           </TemplatesSidebarGroup>
                         ) : null}
                         {showGroupHeadings && projectTypes.length > 0 ? (
-                          <TemplatesSidebarGroup sectionId="templates:project" label="Project">
+                          <TemplatesSidebarGroup
+                            sectionId="templates:project"
+                            label={t('documents:typePicker.groupProject')}
+                          >
                             {projectTypes.map(renderTypeLink)}
                           </TemplatesSidebarGroup>
                         ) : null}
                         {customTypesInFilter.length > 0 ? (
                           showGroupHeadings ? (
-                            <TemplatesSidebarGroup sectionId="templates:custom" label="Custom">
+                            <TemplatesSidebarGroup
+                              sectionId="templates:custom"
+                              label={t('documents:typePicker.groupCustom')}
+                            >
                               {customTypesInFilter.map(renderTypeLink)}
                             </TemplatesSidebarGroup>
                           ) : (
@@ -424,7 +458,7 @@ export function DocumentTemplatesPage() {
                 <Box className="document-page-scroll">
                   {selectedType == null ? (
                     <Text size="sm" c="dimmed">
-                      Select a type to view details.
+                      {t('templates:detail.selectPrompt')}
                     </Text>
                   ) : (
                     <Stack gap="md" align="stretch" w="100%">
@@ -437,7 +471,7 @@ export function DocumentTemplatesPage() {
                             loading={deleteMutation.isPending}
                             onClick={() => deleteMutation.mutate(selectedType.id)}
                           >
-                            Delete
+                            {t('templates:detail.delete')}
                           </Button>
                         </Group>
                       ) : null}
@@ -469,46 +503,51 @@ export function DocumentTemplatesPage() {
         </Container>
       </Box>
 
-      <Modal opened={createOpened} onClose={closeCreate} title="New custom type" size="lg">
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t('templates:newType.modalTitle')}
+        size="lg"
+      >
         <Stack gap="sm">
           <TextInput
-            label="Label"
+            label={t('templates:newType.labelField')}
             value={label}
             onChange={(e) => setLabel(e.currentTarget.value)}
             required
           />
           <Textarea
-            label="When to use"
+            label={t('templates:newType.whenToUseField')}
             value={whenToUse}
             onChange={(e) => setWhenToUse(e.currentTarget.value)}
             minRows={2}
             required
           />
           <TextInput
-            label="Example title"
+            label={t('templates:newType.exampleTitleField')}
             value={exampleTitle}
             onChange={(e) => setExampleTitle(e.currentTarget.value)}
           />
           <Select
-            label="Often used in"
+            label={t('templates:newType.oftenUsedInField')}
             data={[
-              { value: 'process', label: 'Process' },
-              { value: 'project', label: 'Project' },
+              { value: 'process', label: t('documents:typePicker.groupProcess') },
+              { value: 'project', label: t('documents:typePicker.groupProject') },
             ]}
             value={oftenUsedIn}
             onChange={setOftenUsedIn}
             clearable
           />
           <Select
-            label="Scope"
+            label={t('templates:newType.scopeField')}
             data={scopeOptions}
             value={effectiveScopeType}
             onChange={setScopeType}
             required
           />
           <Textarea
-            label="Sections"
-            description="Blank line between sections. First line = heading, following lines = prompts (- item)."
+            label={t('templates:newType.sectionsField')}
+            description={t('templates:newType.sectionsDescription')}
             value={sectionsText}
             onChange={(e) => setSectionsText(e.currentTarget.value)}
             minRows={8}
@@ -516,14 +555,14 @@ export function DocumentTemplatesPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={closeCreate}>
-              Cancel
+              {t('templates:newType.cancel')}
             </Button>
             <Button
               loading={createMutation.isPending}
               disabled={!label.trim() || !whenToUse.trim()}
               onClick={() => createMutation.mutate()}
             >
-              Create
+              {t('templates:newType.create')}
             </Button>
           </Group>
         </Stack>

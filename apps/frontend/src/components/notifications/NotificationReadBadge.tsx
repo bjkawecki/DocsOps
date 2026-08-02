@@ -1,7 +1,9 @@
 import { Badge, Box } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 
 /** Read status chip with vertically centered dot + label. */
 export function NotificationReadBadge() {
+  const { t } = useTranslation('notifications');
   return (
     <Badge
       size="xs"
@@ -32,7 +34,7 @@ export function NotificationReadBadge() {
         label: { lineHeight: 1 },
       }}
     >
-      Read
+      {t('detail.read')}
     </Badge>
   );
 }

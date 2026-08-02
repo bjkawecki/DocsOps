@@ -3,6 +3,7 @@ import { Badge, Card, Collapse, Group, Stack, Text, Title, UnstyledButton } from
 import { IconCalendar, IconChevronDown, IconPackage } from '@tabler/icons-react';
 import type { ReleaseDetailResponse } from 'backend/api-types';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 import remarkGfm from 'remark-gfm';
 import { formatReleaseDate } from './formatReleaseDate.js';
 import { releaseMarkdownComponents } from './releaseMarkdownComponents.js';
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function WhatsNewReleaseCard({ release, isLatest, defaultExpanded = false }: Props) {
+  const { t } = useTranslation('shell');
   const [opened, setOpened] = useState(defaultExpanded);
   const hasBody = release.markdown.trim().length > 0;
 
@@ -69,7 +71,7 @@ export function WhatsNewReleaseCard({ release, isLatest, defaultExpanded = false
                 </Group>
                 {isLatest && (
                   <Badge variant="light" color="violet" style={{ flexShrink: 0 }}>
-                    Latest
+                    {t('shell:whatsNew.latestBadge')}
                   </Badge>
                 )}
               </Group>

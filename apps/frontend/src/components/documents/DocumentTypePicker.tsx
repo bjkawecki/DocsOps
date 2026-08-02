@@ -13,6 +13,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import {
   BLANK_DOCUMENT_SELECTION,
@@ -21,7 +22,6 @@ import {
 } from './documentTypeTypes.js';
 
 const BLANK_OPTION_VALUE = 'blank';
-const BLANK_LABEL = 'No type';
 const DROPDOWN_MIN_WIDTH = 480;
 
 const hoverOptionStyle: CSSProperties = {
@@ -43,23 +43,33 @@ function optionValueForType(type: DocumentTypeDto, applyTemplateOnSelect: boolea
   return applyTemplateOnSelect && type.defaultTemplateId ? type.defaultTemplateId : type.id;
 }
 
-function blankDescription(mode: 'create' | 'metadata'): string {
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+function blankDescription(mode: 'create' | 'metadata', t: TranslateFn): string {
   return mode === 'create'
-    ? 'No document type. You can set a type later without changing content.'
-    : 'No document type. Changing the type later updates metadata only.';
+    ? t('typePicker.blankDescriptionCreate')
+    : t('typePicker.blankDescriptionMetadata');
 }
 
-function typicalContextLabel(type: DocumentTypeDto | null, isBlank: boolean): string | null {
+function typicalContextLabel(
+  type: DocumentTypeDto | null,
+  isBlank: boolean,
+  t: TranslateFn
+): string | null {
   if (isBlank || type == null) return null;
-  if (type.oftenUsedIn === 'process') return 'Typical context: Process';
-  if (type.oftenUsedIn === 'project') return 'Typical context: Project';
+  if (type.oftenUsedIn === 'process') return t('typePicker.typicalContextProcess');
+  if (type.oftenUsedIn === 'project') return t('typePicker.typicalContextProject');
   return null;
 }
 
-function sourceLabel(type: DocumentTypeDto | null, isBlank: boolean): string | null {
+function sourceLabel(
+  type: DocumentTypeDto | null,
+  isBlank: boolean,
+  t: TranslateFn
+): string | null {
   if (isBlank) return null;
   if (type == null) return null;
-  return type.source === 'custom' ? 'Custom' : 'Built-in';
+  return type.source === 'custom' ? t('typePicker.sourceCustom') : t('typePicker.sourceBuiltin');
 }
 
 export function DocumentTypePicker({
@@ -69,6 +79,7 @@ export function DocumentTypePicker({
   applyTemplateOnSelect = true,
   mode = 'create',
 }: Props) {
+  const { t } = useTranslation('documents');
   const isNarrow = useMediaQuery('(max-width: 36em)');
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const combobox = useCombobox({
@@ -81,10 +92,8 @@ export function DocumentTypePicker({
     },
   });
 
-  const helpText =
-    mode === 'create'
-      ? 'A type with template inserts a starter outline. You can leave this blank and set a type later without changing content.'
-      : 'Changing the type updates metadata only. Document content is not modified.';
+  const blankLabel = t('typePicker.noType');
+  const helpText = mode === 'create' ? t('typePicker.helpCreate') : t('typePicker.helpMetadata');
 
   const { data, isPending } = useQuery({
     queryKey: ['document-types', contextId, 'picker'],
@@ -104,9 +113,9 @@ export function DocumentTypePicker({
     if (value.typeId == null && value.templateId == null) return null;
     return (
       items.find(
-        (t) =>
-          t.id === value.typeId ||
-          (value.templateId != null && t.defaultTemplateId === value.templateId)
+        (dt) =>
+          dt.id === value.typeId ||
+          (value.templateId != null && dt.defaultTemplateId === value.templateId)
       ) ?? null
     );
   }, [items, value.templateId, value.typeId]);
@@ -115,7 +124,7 @@ export function DocumentTypePicker({
     ? optionValueForType(selectedType, applyTemplateOnSelect)
     : BLANK_OPTION_VALUE;
 
-  const selectedLabel = selectedType?.label ?? BLANK_LABEL;
+  const selectedLabel = selectedType?.label ?? blankLabel;
 
   const typeByOptionValue = useMemo(() => {
     const map = new Map<string, DocumentTypeDto>();
@@ -126,14 +135,14 @@ export function DocumentTypePicker({
   }, [applyTemplateOnSelect, items]);
 
   const processTypes = useMemo(
-    () => items.filter((t) => t.source === 'builtin' && t.oftenUsedIn === 'process'),
+    () => items.filter((dt) => dt.source === 'builtin' && dt.oftenUsedIn === 'process'),
     [items]
   );
   const projectTypes = useMemo(
-    () => items.filter((t) => t.source === 'builtin' && t.oftenUsedIn === 'project'),
+    () => items.filter((dt) => dt.source === 'builtin' && dt.oftenUsedIn === 'project'),
     [items]
   );
-  const customTypes = useMemo(() => items.filter((t) => t.source === 'custom'), [items]);
+  const customTypes = useMemo(() => items.filter((dt) => dt.source === 'custom'), [items]);
 
   const toOption = (type: DocumentTypeDto): FlatOption => ({
     value: optionValueForType(type, applyTemplateOnSelect),
@@ -142,13 +151,13 @@ export function DocumentTypePicker({
 
   const flatOptions = useMemo((): FlatOption[] => {
     return [
-      { value: BLANK_OPTION_VALUE, label: BLANK_LABEL },
+      { value: BLANK_OPTION_VALUE, label: blankLabel },
       ...processTypes.map(toOption),
       ...projectTypes.map(toOption),
       ...customTypes.map(toOption),
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps -- lists + apply flag
-  }, [applyTemplateOnSelect, customTypes, processTypes, projectTypes]);
+  }, [applyTemplateOnSelect, blankLabel, customTypes, processTypes, projectTypes]);
 
   const keyboardKey =
     combobox.dropdownOpened && combobox.selectedOptionIndex >= 0
@@ -158,10 +167,10 @@ export function DocumentTypePicker({
   const previewKey = hoveredKey ?? keyboardKey ?? selectedKey;
   const previewIsBlank = previewKey === BLANK_OPTION_VALUE;
   const previewType = previewIsBlank ? null : (typeByOptionValue.get(previewKey) ?? null);
-  const previewTitle = previewIsBlank ? BLANK_LABEL : (previewType?.label ?? selectedLabel);
-  const previewBody = previewIsBlank ? blankDescription(mode) : (previewType?.whenToUse ?? '');
-  const typicalContext = typicalContextLabel(previewType, previewIsBlank);
-  const source = sourceLabel(previewType, previewIsBlank);
+  const previewTitle = previewIsBlank ? blankLabel : (previewType?.label ?? selectedLabel);
+  const previewBody = previewIsBlank ? blankDescription(mode, t) : (previewType?.whenToUse ?? '');
+  const typicalContext = typicalContextLabel(previewType, previewIsBlank, t);
+  const source = sourceLabel(previewType, previewIsBlank, t);
 
   const applySelection = (id: string) => {
     if (id === BLANK_OPTION_VALUE) {
@@ -169,7 +178,7 @@ export function DocumentTypePicker({
       return;
     }
     const type =
-      typeByOptionValue.get(id) ?? items.find((t) => t.id === id || t.defaultTemplateId === id);
+      typeByOptionValue.get(id) ?? items.find((dt) => dt.id === id || dt.defaultTemplateId === id);
     if (!type) return;
     if (applyTemplateOnSelect && type.defaultTemplateId) {
       onChange({
@@ -221,20 +230,20 @@ export function DocumentTypePicker({
       <ScrollArea.Autosize mah={isNarrow ? 220 : 320} type="scroll" style={{ width: '100%' }}>
         <Combobox.Options>
           <Stack gap={4} p={4}>
-            {renderOption({ value: BLANK_OPTION_VALUE, label: BLANK_LABEL })}
+            {renderOption({ value: BLANK_OPTION_VALUE, label: blankLabel })}
             {processTypes.length > 0 ? (
-              <Combobox.Group label="Process">
-                {processTypes.map((t) => renderOption(toOption(t)))}
+              <Combobox.Group label={t('typePicker.groupProcess')}>
+                {processTypes.map((dt) => renderOption(toOption(dt)))}
               </Combobox.Group>
             ) : null}
             {projectTypes.length > 0 ? (
-              <Combobox.Group label="Project">
-                {projectTypes.map((t) => renderOption(toOption(t)))}
+              <Combobox.Group label={t('typePicker.groupProject')}>
+                {projectTypes.map((dt) => renderOption(toOption(dt)))}
               </Combobox.Group>
             ) : null}
             {customTypes.length > 0 ? (
-              <Combobox.Group label="Custom">
-                {customTypes.map((t) => renderOption(toOption(t)))}
+              <Combobox.Group label={t('typePicker.groupCustom')}>
+                {customTypes.map((dt) => renderOption(toOption(dt)))}
               </Combobox.Group>
             ) : null}
           </Stack>
@@ -275,7 +284,7 @@ export function DocumentTypePicker({
   if (isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading document types…
+        {t('typePicker.loading')}
       </Text>
     );
   }
@@ -284,7 +293,7 @@ export function DocumentTypePicker({
     <Stack gap="xs">
       <Group gap={6} align="center">
         <Text size="sm" fw={500}>
-          Document type
+          {t('typePicker.label')}
         </Text>
         <Tooltip label={helpText} multiline maw={280} withArrow position="top-start">
           <Box
@@ -313,7 +322,7 @@ export function DocumentTypePicker({
             rightSectionPointerEvents="none"
             onClick={() => combobox.toggleDropdown()}
             w="100%"
-            aria-label="Document type"
+            aria-label={t('typePicker.label')}
           >
             <Text size="sm" truncate style={{ textAlign: 'left' }}>
               {selectedLabel}

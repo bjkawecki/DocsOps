@@ -1,4 +1,5 @@
 import { Button, Group, Modal, Stack } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { Destination } from './adminBackupTypes';
 import type { DestinationFormState } from './adminBackupDestinationForm';
 import {
@@ -21,13 +22,18 @@ export function AdminBackupDestinationEditModal({
   onClose,
   onSave,
 }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   const isEdit = destination != null;
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={isEdit ? `Edit ${destination.name}` : 'New external destination'}
+      title={
+        isEdit
+          ? t('backup.destinations.editModal.editTitle', { name: destination.name })
+          : t('backup.destinations.editModal.createTitle')
+      }
       size="lg"
     >
       <Stack gap="md">
@@ -42,10 +48,10 @@ export function AdminBackupDestinationEditModal({
         />
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button type="submit" form={BACKUP_DESTINATION_FORM_ID} loading={saving}>
-            {isEdit ? 'Save' : 'Create'}
+            {isEdit ? t('common:actions.save') : t('common:actions.create')}
           </Button>
         </Group>
       </Stack>

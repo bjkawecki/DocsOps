@@ -1,5 +1,6 @@
 import { Box, Container, Flex, Paper, Text } from '@mantine/core';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { ArchiveTabContent, TrashTabContent } from '../../components/trashArchive';
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
@@ -39,6 +40,7 @@ export function ScopeTrashArchivePage({
   departmentId,
   teamId,
 }: Props) {
+  const { t } = useTranslation(['contexts', 'common']);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
@@ -46,10 +48,10 @@ export function ScopeTrashArchivePage({
     return [
       {
         key: kind,
-        label: kind === 'trash' ? 'Trash' : 'Archive',
+        label: kind === 'trash' ? t('sidebar.trash') : t('sidebar.archive'),
       },
     ];
-  }, [kind]);
+  }, [kind, t]);
   useRegisterScopePageChrome(navScope, scopeLabel, null, trailSuffix);
 
   const trashArchive = {
@@ -65,7 +67,7 @@ export function ScopeTrashArchivePage({
   if (isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('common:status.loading')}
       </Text>
     );
   }

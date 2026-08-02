@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
@@ -29,6 +30,7 @@ import {
 } from './pdfExportNotification';
 
 export function useDocumentPage() {
+  const { t } = useTranslation(['documents', 'common']);
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -299,8 +301,8 @@ export function useDocumentPage() {
         void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
         closeDelete();
         notifications.show({
-          title: 'Moved to trash',
-          message: 'Document can be restored from the Trash tab.',
+          title: t('documentPage.toasts.movedToTrashTitle'),
+          message: t('documentPage.toasts.movedToTrashMessage'),
           color: 'green',
         });
         const scope = data?.scope;
@@ -324,8 +326,8 @@ export function useDocumentPage() {
     if (res.ok) {
       invalidateDocumentArchivedTransitionCaches(queryClient, documentId, data?.contextId);
       notifications.show({
-        title: 'Archived',
-        message: 'Document was archived.',
+        title: t('documentPage.toasts.archivedTitle'),
+        message: t('documentPage.toasts.archivedMessage'),
         color: 'green',
       });
       const scope = data?.scope;
@@ -346,8 +348,8 @@ export function useDocumentPage() {
     if (res.ok) {
       invalidateDocumentArchivedTransitionCaches(queryClient, documentId, data?.contextId);
       notifications.show({
-        title: 'Unarchived',
-        message: 'Document was restored to active.',
+        title: t('documentPage.toasts.unarchivedTitle'),
+        message: t('documentPage.toasts.unarchivedMessage'),
         color: 'green',
       });
     } else {
@@ -393,8 +395,8 @@ export function useDocumentPage() {
       setEditInitialSnapshot(null);
       clearEditUrlParams();
       notifications.show({
-        title: 'Saved',
-        message: 'Document metadata updated.',
+        title: t('common:toasts.saved'),
+        message: t('documentPage.toasts.savedMessage'),
         color: 'green',
       });
     } finally {
@@ -410,6 +412,7 @@ export function useDocumentPage() {
     editTitle,
     editTypeId,
     queryClient,
+    t,
   ]);
 
   const handleEditClick = () => {
@@ -442,7 +445,7 @@ export function useDocumentPage() {
         editTypeId !== editInitialSnapshot.typeId);
     const dirty = dirtyMetadata || leadDraftDirty;
     if (dirty) {
-      const ok = window.confirm('Unsaved progress may be lost. Cancel editing anyway?');
+      const ok = window.confirm(t('documentPage.confirmDiscardChanges'));
       if (!ok) return;
     }
     setMode('view');
@@ -474,8 +477,12 @@ export function useDocumentPage() {
         clearEditUrlParams();
         const isRepublish = Boolean(data?.publishedAt);
         notifications.show({
-          title: isRepublish ? 'Published changes' : 'Published',
-          message: isRepublish ? 'A new published version was created.' : 'Document was published.',
+          title: isRepublish
+            ? t('documentPage.toasts.publishedChangesTitle')
+            : t('documentPage.toasts.publishedTitle'),
+          message: isRepublish
+            ? t('documentPage.toasts.publishedChangesMessage')
+            : t('documentPage.toasts.publishedMessage'),
           color: 'green',
         });
       } else {
@@ -510,8 +517,8 @@ export function useDocumentPage() {
         void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
         void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
         notifications.show({
-          title: 'Context assigned',
-          message: 'You can now publish the draft.',
+          title: t('documentPage.toasts.contextAssignedTitle'),
+          message: t('documentPage.toasts.contextAssignedMessage'),
           color: 'green',
         });
       } else {
@@ -573,10 +580,12 @@ export function useDocumentPage() {
         void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
         void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
         notifications.show({
-          title: isRequest ? 'Move requested' : 'Document moved',
+          title: isRequest
+            ? t('documentPage.toasts.moveRequestedTitle')
+            : t('documentPage.toasts.movedTitle'),
           message: isRequest
-            ? 'The target lead can accept or reject the request under Approvals.'
-            : 'The document is now in the selected context.',
+            ? t('documentPage.toasts.moveRequestedMessage')
+            : t('documentPage.toasts.movedMessage'),
           color: 'green',
         });
       } else {
@@ -607,16 +616,16 @@ export function useDocumentPage() {
         notifications.show({
           title:
             action === 'accept'
-              ? 'Move accepted'
+              ? t('documentPage.toasts.moveAcceptedTitle')
               : action === 'reject'
-                ? 'Move rejected'
-                : 'Move request withdrawn',
+                ? t('documentPage.toasts.moveRejectedTitle')
+                : t('documentPage.toasts.moveWithdrawnTitle'),
           message:
             action === 'accept'
-              ? 'The document is now in the target context.'
+              ? t('documentPage.toasts.moveAcceptedMessage')
               : action === 'reject'
-                ? 'The document stays in its current context.'
-                : 'The target lead was notified.',
+                ? t('documentPage.toasts.moveRejectedMessage')
+                : t('documentPage.toasts.moveWithdrawnMessage'),
           color: 'green',
         });
       } else {
@@ -644,14 +653,14 @@ export function useDocumentPage() {
         setNewTagName('');
         closeCreateTag();
         notifications.show({
-          title: 'Tag created',
+          title: t('documentPage.toasts.tagCreatedTitle'),
           message: tag.name,
           color: 'green',
         });
       } else if (res.status === 409) {
         void notifyApiErrorResponse(res, {
-          title: 'Tag exists',
-          defaultMessage: 'A tag with this name already exists.',
+          title: t('documentPage.toasts.tagExistsTitle'),
+          defaultMessage: t('documentPage.toasts.tagExistsMessage'),
           color: 'yellow',
         });
       } else {
@@ -670,14 +679,14 @@ export function useDocumentPage() {
       if (!res.ok) {
         if (res.status === 503) {
           void notifyApiErrorResponse(res, {
-            title: 'PDF export currently delayed',
-            defaultMessage: 'Queue/worker is currently unavailable. Please try again shortly.',
+            title: t('documentPage.toasts.pdfExportDelayedTitle'),
+            defaultMessage: t('documentPage.toasts.pdfExportDelayedMessage'),
             color: 'yellow',
           });
           return;
         }
         void notifyApiErrorResponse(res, {
-          title: 'PDF export could not be started',
+          title: t('documentPage.toasts.pdfExportFailedTitle'),
         });
         return;
       }
@@ -696,7 +705,11 @@ export function useDocumentPage() {
       if (contextOwnerId)
         void queryClient.invalidateQueries({ queryKey: ['tags', contextOwnerId] });
       setEditTagIds((prev) => prev.filter((id) => id !== tagId));
-      notifications.show({ title: 'Tag deleted', message: 'Tag was removed.', color: 'green' });
+      notifications.show({
+        title: t('documentPage.toasts.tagDeletedTitle'),
+        message: t('documentPage.toasts.tagDeletedMessage'),
+        color: 'green',
+      });
     }
   };
 

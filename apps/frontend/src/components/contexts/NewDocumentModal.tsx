@@ -11,6 +11,7 @@ import {
 } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { notifications } from '@mantine/notifications';
@@ -58,6 +59,7 @@ export function NewDocumentModal({
   onSuccess,
   allowNoContext = false,
 }: NewDocumentModalProps) {
+  const { t } = useTranslation(['contexts', 'common']);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<DraftMode>('in_context');
@@ -107,8 +109,14 @@ export function NewDocumentModal({
   const projects = projectsData ?? [];
   const tags = tagsData ?? [];
   const contextOptions = [
-    ...processes.map((p) => ({ value: p.contextId, label: `Process: ${p.name}` })),
-    ...projects.map((p) => ({ value: p.contextId, label: `Project: ${p.name}` })),
+    ...processes.map((p) => ({
+      value: p.contextId,
+      label: t('modals.newDocument.processOptionLabel', { name: p.name }),
+    })),
+    ...projects.map((p) => ({
+      value: p.contextId,
+      label: t('modals.newDocument.projectOptionLabel', { name: p.name }),
+    })),
   ];
   const tagOptions = tags.map((t) => ({ value: t.id, label: t.name }));
 
@@ -165,15 +173,15 @@ export function NewDocumentModal({
         onSuccess?.();
         handleClose();
         notifications.show({
-          title: 'Draft created',
-          message: 'Redirecting to draft.',
+          title: t('toasts.draftCreatedTitle'),
+          message: t('toasts.draftCreatedMessage'),
           color: 'green',
         });
         void navigate(`/documents/${doc.id}?mode=edit&tab=draft`);
       } else {
         const errBody = (await res.json().catch(() => ({}))) as { error?: string };
         notifications.show({
-          title: 'Error',
+          title: t('toasts.errorTitle'),
           message: errBody?.error ?? res.statusText,
           color: 'red',
         });
@@ -184,26 +192,26 @@ export function NewDocumentModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title="New draft" size="lg">
+    <Modal opened={opened} onClose={handleClose} title={t('modals.newDocument.title')} size="lg">
       <Stack gap="md">
         {allowNoContext && (
           <Radio.Group
-            label="Create draft"
+            label={t('modals.newDocument.createDraftLabel')}
             value={mode}
             onChange={(v) => setMode(v as DraftMode)}
-            description="Without context: draft stays ungrouped until you assign a context."
+            description={t('modals.newDocument.createDraftDescription')}
           >
             <Stack gap="xs" mt="xs">
-              <Radio value="in_context" label="In a context (Process or Project)" />
-              <Radio value="no_context" label="Without context (ungrouped draft)" />
+              <Radio value="in_context" label={t('modals.newDocument.inContextOption')} />
+              <Radio value="no_context" label={t('modals.newDocument.noContextOption')} />
             </Stack>
           </Radio.Group>
         )}
         {!noContext && (
           <>
             <Select
-              label="Context (Process or Project)"
-              placeholder="Select context"
+              label={t('modals.newDocument.contextLabel')}
+              placeholder={t('modals.newDocument.contextPlaceholder')}
               data={contextOptions}
               value={contextId}
               onChange={(v) => setContextId(v)}
@@ -211,14 +219,14 @@ export function NewDocumentModal({
             />
             {contextOptions.length === 0 && (
               <Text size="sm" c="dimmed">
-                No processes or projects in this scope. Create a process or project first.
+                {t('modals.newDocument.noContextsHint')}
               </Text>
             )}
           </>
         )}
         <TextInput
-          label="Title"
-          placeholder="Draft title"
+          label={t('modals.newDocument.titleLabel')}
+          placeholder={t('modals.newDocument.titlePlaceholder')}
           value={title}
           onChange={(e) => setTitle(e.currentTarget.value)}
           required
@@ -232,21 +240,21 @@ export function NewDocumentModal({
         />
         {!noContext && (
           <MultiSelect
-            label="Tags"
+            label={t('modals.newDocument.tagsLabel')}
             data={tagOptions}
             value={tagIds}
             onChange={setTagIds}
-            placeholder="Select tags"
+            placeholder={t('modals.newDocument.tagsPlaceholder')}
             searchable
             clearable
           />
         )}
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={handleClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button disabled={!canSubmit} loading={loading} onClick={() => void handleSubmit()}>
-            Create
+            {t('common:actions.create')}
           </Button>
         </Group>
       </Stack>

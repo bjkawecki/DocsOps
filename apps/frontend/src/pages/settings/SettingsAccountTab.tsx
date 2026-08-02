@@ -13,6 +13,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import { meQueryKey, useMe } from '../../hooks/useMe';
@@ -26,6 +27,7 @@ import { SettingsCardTitle } from './SettingsCardTitle.js';
 const MIN_PASSWORD_LENGTH = 8;
 
 export function SettingsAccountTab() {
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
   const [changeEmailOpened, { open: openChangeEmail, close: closeChangeEmail }] =
     useDisclosure(false);
@@ -63,8 +65,8 @@ export function SettingsAccountTab() {
       void queryClient.invalidateQueries({ queryKey: meQueryKey });
       if (variables.newPassword !== undefined) {
         notifications.show({
-          title: 'Password updated',
-          message: 'Your password has been changed.',
+          title: t('account.toasts.passwordUpdatedTitle'),
+          message: t('account.toasts.passwordUpdatedMessage'),
           color: 'green',
         });
         closeChangePassword();
@@ -74,8 +76,8 @@ export function SettingsAccountTab() {
       }
       if (variables.email !== undefined) {
         notifications.show({
-          title: 'Email updated',
-          message: 'Your email has been updated.',
+          title: t('account.toasts.emailUpdatedTitle'),
+          message: t('account.toasts.emailUpdatedMessage'),
           color: 'green',
         });
         closeChangeEmail();
@@ -84,7 +86,11 @@ export function SettingsAccountTab() {
       }
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Update failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('account.toasts.updateFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -98,16 +104,16 @@ export function SettingsAccountTab() {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       notifications.show({
-        title: 'Passwords do not match',
-        message: 'Please confirm your new password.',
+        title: t('account.toasts.passwordMismatchTitle'),
+        message: t('account.toasts.passwordMismatchMessage'),
         color: 'red',
       });
       return;
     }
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
       notifications.show({
-        title: 'Password too short',
-        message: `At least ${MIN_PASSWORD_LENGTH} characters required.`,
+        title: t('account.toasts.passwordTooShortTitle'),
+        message: t('account.toasts.passwordTooShortMessage', { count: MIN_PASSWORD_LENGTH }),
         color: 'red',
       });
       return;
@@ -145,7 +151,7 @@ export function SettingsAccountTab() {
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
             <SettingsCardTitle jumpId="email" />
             <Button variant="default" size="xs" onClick={openChangeEmail} disabled={!hasLocalLogin}>
-              Change email
+              {t('account.changeEmail')}
             </Button>
           </Group>
           <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
@@ -153,9 +159,7 @@ export function SettingsAccountTab() {
               {hasLocalLogin ? (user.email ?? '–') : '–'}
             </Text>
             <Text size="xs" c="dimmed">
-              {hasLocalLogin
-                ? 'Your login email. You need your current password to change it.'
-                : 'Managed by SSO. Cannot be changed here.'}
+              {hasLocalLogin ? t('account.loginEmailDescription') : t('account.ssoManagedEmail')}
             </Text>
           </Stack>
         </Stack>
@@ -171,7 +175,7 @@ export function SettingsAccountTab() {
               onClick={openChangePassword}
               disabled={!hasLocalLogin}
             >
-              Change password
+              {t('account.changePassword')}
             </Button>
           </Group>
           <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
@@ -180,18 +184,22 @@ export function SettingsAccountTab() {
             </Text>
             <Text size="xs" c="dimmed">
               {hasLocalLogin
-                ? 'Change your password. You will need your current password.'
-                : 'Managed by SSO. Cannot be changed here.'}
+                ? t('account.changePasswordDescription')
+                : t('account.ssoManagedPassword')}
             </Text>
           </Stack>
         </Stack>
       </SettingsContentCard>
 
-      <Modal opened={changeEmailOpened} onClose={closeChangeEmail} title="Change email">
+      <Modal
+        opened={changeEmailOpened}
+        onClose={closeChangeEmail}
+        title={t('account.changeEmailModal.title')}
+      >
         <form onSubmit={handleSubmitChangeEmail}>
           <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <TextInput
-              label="New email"
+              label={t('account.changeEmailModal.newEmailLabel')}
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.currentTarget.value)}
@@ -199,42 +207,48 @@ export function SettingsAccountTab() {
               placeholder="you@example.com"
             />
             <PasswordInput
-              label="Current password"
+              label={t('account.changeEmailModal.currentPasswordLabel')}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.currentTarget.value)}
               required
             />
             <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={closeChangeEmail}>
-                Cancel
+                {t('account.changeEmailModal.cancel')}
               </Button>
               <Button type="submit" loading={patchAccount.isPending}>
-                Save
+                {t('account.changeEmailModal.save')}
               </Button>
             </Group>
           </Stack>
         </form>
       </Modal>
 
-      <Modal opened={changePasswordOpened} onClose={closeChangePassword} title="Change password">
+      <Modal
+        opened={changePasswordOpened}
+        onClose={closeChangePassword}
+        title={t('account.changePasswordModal.title')}
+      >
         <form onSubmit={handleSubmitChangePassword}>
           <Stack gap={SETTINGS_CARD_STACK_GAP}>
             <PasswordInput
-              label="Current password"
+              label={t('account.changePasswordModal.currentPasswordLabel')}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.currentTarget.value)}
               required
             />
             <PasswordInput
-              label="New password"
+              label={t('account.changePasswordModal.newPasswordLabel')}
               value={newPassword}
               onChange={(e) => setNewPassword(e.currentTarget.value)}
               required
               minLength={MIN_PASSWORD_LENGTH}
-              description={`At least ${MIN_PASSWORD_LENGTH} characters`}
+              description={t('account.changePasswordModal.newPasswordDescription', {
+                count: MIN_PASSWORD_LENGTH,
+              })}
             />
             <PasswordInput
-              label="Confirm new password"
+              label={t('account.changePasswordModal.confirmPasswordLabel')}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.currentTarget.value)}
               required
@@ -242,10 +256,10 @@ export function SettingsAccountTab() {
             />
             <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={closeChangePassword}>
-                Cancel
+                {t('account.changePasswordModal.cancel')}
               </Button>
               <Button type="submit" loading={patchAccount.isPending}>
-                Save
+                {t('account.changePasswordModal.save')}
               </Button>
             </Group>
           </Stack>

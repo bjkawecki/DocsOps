@@ -1,21 +1,24 @@
 import { describe, expect, it } from 'vitest';
+import i18n from '../../../i18n/i18n.js';
 import {
   agentPhaseStepIndex,
   formatAgentPhaseLabel,
   isRestartPhase,
   updateProgressStepIndex,
-  UPDATE_PROGRESS_STEPS,
+  UPDATE_PROGRESS_STEP_COUNT,
 } from './updateProgressSteps.js';
+
+const t = i18n.getFixedT('en', 'admin');
 
 describe('formatAgentPhaseLabel', () => {
   it('maps known agent phases to readable labels', () => {
-    expect(formatAgentPhaseLabel('compose_up')).toBe('Restarting containers');
-    expect(formatAgentPhaseLabel('wait_health')).toBe('Waiting for health check');
+    expect(formatAgentPhaseLabel('compose_up', t)).toBe('Restarting containers');
+    expect(formatAgentPhaseLabel('wait_health', t)).toBe('Waiting for health check');
   });
 
   it('returns null for empty phase', () => {
-    expect(formatAgentPhaseLabel(null)).toBeNull();
-    expect(formatAgentPhaseLabel('')).toBeNull();
+    expect(formatAgentPhaseLabel(null, t)).toBeNull();
+    expect(formatAgentPhaseLabel('', t)).toBeNull();
   });
 });
 
@@ -29,7 +32,7 @@ describe('isRestartPhase', () => {
 
 describe('updateProgressStepIndex', () => {
   it('returns full step count for succeeded', () => {
-    expect(updateProgressStepIndex('succeeded')).toBe(UPDATE_PROGRESS_STEPS.length);
+    expect(updateProgressStepIndex('succeeded')).toBe(UPDATE_PROGRESS_STEP_COUNT);
   });
 
   it('maps applying to apply step', () => {

@@ -1,18 +1,20 @@
 import { Button, Group, Stack, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function DocumentPageErrorView() {
+  const { t } = useTranslation('documents');
   return (
     <Stack gap="md">
       <Text size="sm" c="red">
-        Document not found or access denied.
+        {t('documentPage.notFound')}
       </Text>
       <Group gap="xs">
         <Button variant="filled" size="sm" component={Link} to="/catalog">
-          Back to Catalog
+          {t('documentPage.backToCatalog')}
         </Button>
         <Button variant="subtle" size="sm" component={Link} to="/">
-          Dashboard
+          {t('documentPage.dashboard')}
         </Button>
       </Group>
     </Stack>

@@ -1,4 +1,5 @@
 import { Button, Group } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   onCancel?: () => void;
@@ -17,7 +18,7 @@ type Props = {
 
 export function MigrationWizardFooter({
   onCancel,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   showBack = false,
   onBack,
   showPrimary = false,
@@ -29,6 +30,7 @@ export function MigrationWizardFooter({
   secondaryLabel,
   onSecondary,
 }: Props) {
+  const { t } = useTranslation('admin');
   return (
     <Group
       justify="flex-end"
@@ -38,12 +40,12 @@ export function MigrationWizardFooter({
     >
       {onCancel ? (
         <Button variant="default" onClick={onCancel}>
-          {cancelLabel}
+          {cancelLabel ?? t('migration.footer.cancel')}
         </Button>
       ) : null}
       {showBack && onBack ? (
         <Button variant="default" onClick={onBack}>
-          Back
+          {t('migration.footer.back')}
         </Button>
       ) : null}
       {secondaryLabel && onSecondary ? (

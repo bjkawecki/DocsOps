@@ -1,6 +1,7 @@
 import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 
 const NAME_MAX_LENGTH = 255;
@@ -23,6 +24,7 @@ export function EditContextNameModal({
   currentName,
   onSuccess,
 }: EditContextNameModalProps) {
+  const { t } = useTranslation(['contexts', 'common']);
   const [name, setName] = useState(currentName);
   const [loading, setLoading] = useState(false);
 
@@ -47,14 +49,14 @@ export function EditContextNameModal({
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         notifications.show({
-          title: 'Error',
+          title: t('toasts.errorTitle'),
           message: data?.error ?? res.statusText,
           color: 'red',
         });
       }
     } catch (e) {
       notifications.show({
-        title: 'Error',
+        title: t('toasts.errorTitle'),
         message: e instanceof Error ? e.message : 'Network error',
         color: 'red',
       });
@@ -64,11 +66,11 @@ export function EditContextNameModal({
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Edit name" size="sm">
+    <Modal opened={opened} onClose={onClose} title={t('modals.editName.title')} size="sm">
       <Stack gap="md">
         <TextInput
-          label="Name"
-          placeholder="Context name"
+          label={t('modals.editName.nameLabel')}
+          placeholder={t('modals.editName.namePlaceholder')}
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
           maxLength={NAME_MAX_LENGTH}
@@ -76,7 +78,7 @@ export function EditContextNameModal({
         />
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={onClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button
             disabled={!canSubmit}
@@ -85,7 +87,7 @@ export function EditContextNameModal({
               void handleSubmit();
             }}
           >
-            Save
+            {t('common:actions.save')}
           </Button>
         </Group>
       </Stack>

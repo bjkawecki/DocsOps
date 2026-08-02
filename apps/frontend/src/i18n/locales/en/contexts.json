@@ -1,0 +1,154 @@
+{
+  "sidebar": {
+    "processes": "Processes",
+    "processesEmpty": "No processes yet.",
+    "projects": "Projects",
+    "projectsEmpty": "No projects yet.",
+    "drafts": "Drafts",
+    "mostRead": "Most read",
+    "trash": "Trash",
+    "archive": "Archive",
+    "collapseSubcontexts": "Collapse subcontexts",
+    "expandSubcontexts": "Expand subcontexts"
+  },
+  "switcher": {
+    "ariaLabel": "Switch context",
+    "selectContext": "Select context",
+    "processes": "Processes",
+    "processesEmpty": "No processes yet.",
+    "projects": "Projects",
+    "projectsEmpty": "No projects yet."
+  },
+  "scopeKind": {
+    "personal": "Personal",
+    "company": "Company",
+    "department": "Department",
+    "team": "Team"
+  },
+  "workspace": {
+    "overviewFallback": "Overview",
+    "contextNotFound": "Context not found.",
+    "selectPrompt": "Select a process or project to view documents.",
+    "newDraft": "New draft",
+    "editContextAriaLabel": "Edit context",
+    "moreActionsAriaLabel": "More actions",
+    "archive": "Archive",
+    "moveToTrash": "Move to trash",
+    "delete": "Delete",
+    "subcontexts": "Subcontexts",
+    "createSubcontext": "Create subcontext",
+    "noSubcontexts": "No subcontexts yet."
+  },
+  "entry": {
+    "emptyTitle": "No processes or projects yet",
+    "emptyBodyCanManage": "Create a process or project to get started, or a draft document.",
+    "emptyBodyReadOnly": "There are no processes or projects in this scope yet."
+  },
+  "createMenu": {
+    "draft": "Draft",
+    "ariaLabel": "Create process or project",
+    "process": "Process",
+    "project": "Project"
+  },
+  "routePages": {
+    "noCompany": "No company available."
+  },
+  "documentsTable": {
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search by name",
+    "perPageLabel": "Per page",
+    "titleColumn": "Title",
+    "tagsColumn": "Tags",
+    "lastUpdatedColumn": "Last updated",
+    "emptyDefault": "No documents yet.",
+    "emptySearch": "No documents match the search.",
+    "count_one": "{{count}} document",
+    "count_other": "{{count}} documents",
+    "countFiltered_one": "{{filtered}} of {{count}} document",
+    "countFiltered_other": "{{filtered}} of {{count}} documents"
+  },
+  "recentItems": {
+    "title": "Recently viewed",
+    "empty": "The list fills as you browse contexts and documents."
+  },
+  "card": {
+    "viewMore": "View more",
+    "documentCount_one": "{{count}} document",
+    "documentCount_other": "{{count}} documents",
+    "subcontexts": "Subcontexts"
+  },
+  "modals": {
+    "createSubcontext": {
+      "title": "Create subcontext",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. meeting notes, milestones"
+    },
+    "editName": {
+      "title": "Edit name",
+      "nameLabel": "Name",
+      "namePlaceholder": "Context name"
+    },
+    "deleteSubcontext": {
+      "title": "Delete subcontext",
+      "body": "This subcontext and its documents will be permanently deleted. Continue?"
+    },
+    "moveToTrash": {
+      "title": "Move to trash",
+      "body": "This context and its documents will be moved to trash. You can restore them from the Trash tab."
+    },
+    "newContext": {
+      "titleDefault": "New context",
+      "processTitle": "New process",
+      "processDescription": "Recurring workflows and processes",
+      "projectTitle": "New project",
+      "projectDescription": "Time-limited initiatives",
+      "scopeLabel": "Scope",
+      "typeLabel": "Type (required)",
+      "nameLabel": "Name",
+      "namePlaceholder": "Context name"
+    },
+    "newDraftDocument": {
+      "title": "New draft",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Draft title",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Select tags"
+    },
+    "newDocument": {
+      "title": "New draft",
+      "createDraftLabel": "Create draft",
+      "createDraftDescription": "Without context: draft stays ungrouped until you assign a context.",
+      "inContextOption": "In a context (Process or Project)",
+      "noContextOption": "Without context (ungrouped draft)",
+      "contextLabel": "Context (Process or Project)",
+      "contextPlaceholder": "Select context",
+      "noContextsHint": "No processes or projects in this scope. Create a process or project first.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Draft title",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Select tags",
+      "processOptionLabel": "Process: {{name}}",
+      "projectOptionLabel": "Project: {{name}}"
+    }
+  },
+  "toasts": {
+    "nameUpdatedTitle": "Saved",
+    "nameUpdatedMessage": "Name was updated.",
+    "archivedTitle": "Archived",
+    "archivedMessage": "Context was archived.",
+    "deletedTitle": "Deleted",
+    "deletedMessage": "The subcontext was permanently deleted.",
+    "movedToTrashTitle": "Moved to trash",
+    "movedToTrashMessage": "You can restore it from the Trash tab.",
+    "subcontextCreatedTitle": "Subcontext created",
+    "subcontextCreatedMessage": "The subcontext was added.",
+    "nameRequiredTitle": "Name required",
+    "nameRequiredMessage": "Please enter a name for the subcontext.",
+    "contextCreatedTitle": "Context created",
+    "processCreatedMessage": "Process was created.",
+    "projectCreatedMessage": "Project was created.",
+    "draftCreatedTitle": "Draft created",
+    "draftCreatedMessage": "Redirecting to draft.",
+    "errorTitle": "Error"
+  }
+}

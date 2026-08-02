@@ -1,4 +1,5 @@
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -9,21 +10,32 @@ type Props = {
 };
 
 export function AdminBackupEnableAutoModal({ opened, onClose, onConfirm, loading }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   return (
-    <Modal opened={opened} onClose={onClose} title="Enable automatic backups" size="sm">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('backup.autoBackup.enableModal.title')}
+      size="sm"
+    >
       <Stack gap="md">
         <Text size="sm">
-          Enable daily backups at <strong>03:00 UTC</strong>? The default external destination from
-          this tab will be used. You can change the schedule later in{' '}
-          <Link to="/admin/operations/scheduler">Scheduler</Link> (job:{' '}
-          <code>maintenance.backup</code>).
+          <Trans
+            t={t}
+            i18nKey="backup.autoBackup.enableModal.body"
+            components={{
+              strong: <strong />,
+              schedulerLink: <Link to="/admin/operations/scheduler" />,
+              code: <code />,
+            }}
+          />
         </Text>
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button loading={loading} onClick={onConfirm}>
-            Enable
+            {t('backup.autoBackup.enableModal.confirm')}
           </Button>
         </Group>
       </Stack>

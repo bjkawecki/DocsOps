@@ -31,5 +31,1083 @@
     "checkForUpdates": "Check for updates",
     "saveMailSettings": "Save mail settings",
     "sendTestEmail": "Send test email"
+  },
+  "shared": {
+    "perPage": "Per page",
+    "name": "Name",
+    "company": "Company",
+    "department": "Department",
+    "lead": "Lead",
+    "leadOptionalNone": "None",
+    "overview": "Overview",
+    "manage": "Manage",
+    "manageHint": "Sensitive actions. Use with care.",
+    "stats": "Stats",
+    "storage": "Storage",
+    "documents": "Documents",
+    "processes": "Processes",
+    "projects": "Projects",
+    "teams": "Teams",
+    "members": "Members",
+    "noCompanySetup": "No company set up. Create a company in the Company tab first.",
+    "statusDeactivated": "Deactivated",
+    "notAvailable": "n/a",
+    "errorTitle": "Error"
+  },
+  "roles": {
+    "user": "User",
+    "teamAuthor": "Team Author",
+    "teamLead": "Team Lead",
+    "departmentAuthor": "Department Author",
+    "departmentLead": "Department Lead",
+    "companyLead": "Company Lead",
+    "admin": "Admin",
+    "member": "Member",
+    "author": "Author",
+    "lead": "Lead"
+  },
+  "jobs": {
+    "loadFailedTitle": "Failed to load admin jobs",
+    "filters": {
+      "stateLabel": "State",
+      "all": "All",
+      "jobTypeLabel": "Job type",
+      "searchLabel": "Search",
+      "searchPlaceholder": "id, payload, queue name",
+      "perPageLabel": "Per page",
+      "pollingLabel": "Refresh (s)",
+      "pollingOff": "Off"
+    },
+    "status": {
+      "workerOk": "Worker OK",
+      "workerDegraded": "Worker degraded",
+      "lastUpdated": "Last updated: {{time}}",
+      "backgroundThrottled": "(Background tab: polling throttled)",
+      "jobCount": "{{count}} job(s)",
+      "relativeNotAvailable": "n/a",
+      "relativeJustNow": "just now",
+      "relativeSecondsAgo": "{{count}}s ago",
+      "relativeMinutesAgo": "{{count}}m ago",
+      "relativeHoursAgo": "{{count}}h ago",
+      "relativeDaysAgo": "{{count}}d ago"
+    },
+    "alerts": {
+      "infrastructureLimitedTitle": "Job infrastructure limited",
+      "healthUnavailable": "Health status currently unreachable. Queue actions were reduced as a precaution.",
+      "queueUnreachable": "Queue is currently unreachable. Retry/Cancel were temporarily disabled.",
+      "workerDisconnected": "Worker is currently not connected. Retry/Cancel were temporarily disabled.",
+      "criticalTitle": "Critical job alerts",
+      "warningTitle": "Job alerts",
+      "metricsLine": "Queue: {{queued}}, Running: {{running}}, Failed (recent/total): {{failedRecent}}/{{failedTotal}}, Oldest queued lag: {{lag}}",
+      "thresholdsLine": "Thresholds: Lag {{lagThreshold}}s, Failed {{failedThreshold}} in {{windowMinutes}}m, Runbook: {{runbook}}",
+      "unavailableTitle": "Job alerts unavailable",
+      "unavailableBody": "Alert metrics could not be loaded. Health and job list keep working.",
+      "queueActionDisabledTitle": "Queue/Worker unavailable, action currently disabled"
+    },
+    "table": {
+      "queue": "Queue",
+      "state": "State",
+      "retry": "Retry",
+      "created": "Created",
+      "actions": "Actions",
+      "empty": "No jobs found.",
+      "retryAction": "Retry",
+      "cancelAction": "Cancel",
+      "deleteAction": "Delete",
+      "deleteConfirm": "Delete this job permanently?"
+    },
+    "toasts": {
+      "retryTitle": "Job retried",
+      "retryMessage": "Retry was triggered.",
+      "cancelTitle": "Job cancelled",
+      "cancelMessage": "Cancellation request was submitted.",
+      "deleteTitle": "Job deleted",
+      "deleteMessage": "Job was removed."
+    },
+    "definitions": {
+      "searchReindexFull": {
+        "label": "Full search reindex",
+        "description": "Rebuilds the search index for all documents."
+      },
+      "maintenanceCleanup": {
+        "label": "Notification cleanup",
+        "description": "Deletes in-app notifications older than the retention window."
+      },
+      "maintenanceBackup": {
+        "label": "Disaster recovery backup",
+        "description": "Full restorable snapshot of database and file storage."
+      }
+    }
+  },
+  "scheduler": {
+    "loadFailedTitle": "Failed to load scheduler",
+    "cronMode": {
+      "label": "Cron mode",
+      "text": "Text",
+      "form": "Form"
+    },
+    "table": {
+      "jobType": "Job type",
+      "enabled": "Enabled",
+      "cron": "Cron",
+      "timezone": "Timezone",
+      "action": "Action",
+      "enabledBadge": "Enabled",
+      "disabledBadge": "Disabled",
+      "save": "Save",
+      "utc": "UTC",
+      "cronPlaceholder": "*/5 * * * *"
+    },
+    "backupLockedHint": "Configure automatic backups in the <link>Backup</link> tab first.",
+    "cronForm": {
+      "presetLabel": "Preset",
+      "presetEveryMinutes": "Every X minutes",
+      "presetHourly": "Hourly",
+      "presetDaily": "Daily",
+      "presetWeekly": "Weekly",
+      "presetMonthly": "Monthly",
+      "intervalLabel": "Interval",
+      "minuteLabel": "Minute",
+      "hourLabel": "Hour",
+      "weekdayLabel": "Weekday",
+      "dayLabel": "Day",
+      "cronPreview": "Cron preview: {{cron}}",
+      "cronPreviewInvalid": "invalid",
+      "weekdays": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "toasts": {
+      "updatedTitle": "Schedule updated",
+      "updatedMessage": "Scheduler configuration was saved.",
+      "cronRequiredTitle": "Cron required",
+      "cronRequiredMessageEnable": "Please enter a valid cron expression first.",
+      "cronRequiredMessageSave": "Please provide a valid cron value first."
+    }
+  },
+  "backup": {
+    "statusAlerts": {
+      "objectStorageUnavailableTitle": "Object storage unavailable",
+      "objectStorageUnavailableBody": "MinIO is not configured or unreachable. Backups require object storage for file export.",
+      "encryptionNotConfiguredTitle": "Encryption not configured",
+      "encryptionNotConfiguredBody": "Set BACKUP_ENCRYPTION_KEY on the server before storing external backup targets. See README for how to generate a key."
+    },
+    "overview": {
+      "minioOk": "MinIO OK",
+      "minioUnavailable": "MinIO unavailable",
+      "workerOk": "Job worker OK",
+      "workerDisconnected": "Job worker disconnected",
+      "retentionTooltip": "Successful backups to keep",
+      "retentionLabel": "Retention",
+      "defaultDestinationLabel": "Default external destination",
+      "autoLabel": "Auto",
+      "notScheduled": "Not scheduled"
+    },
+    "schedulerLink": "Scheduler",
+    "maintenanceActiveTooltip": "Maintenance mode is active",
+    "autoBackup": {
+      "blockReason": {
+        "encryptionKeyMissing": "BACKUP_ENCRYPTION_KEY is not configured",
+        "noDefaultDestination": "Set a default external destination first",
+        "objectStorageUnavailable": "Object storage is unavailable"
+      },
+      "enableModal": {
+        "title": "Enable automatic backups",
+        "body": "Enable daily backups at <strong>03:00 UTC</strong>? The default external destination from this tab will be used. You can change the schedule later in <schedulerLink>Scheduler</schedulerLink> (job: <code>maintenance.backup</code>).",
+        "confirm": "Enable"
+      }
+    },
+    "schedule": {
+      "scheduled": "Scheduled",
+      "everyMinutes": "Every {{minutes}} minutes ({{tz}})",
+      "hourlyAt": "Hourly at :{{minute}} ({{tz}})",
+      "weeklyOn": "Weekly on {{day}} at {{time}} {{tz}}",
+      "dailyAt": "Daily at {{time}} {{tz}}",
+      "monthlyOn": "Monthly on day {{day}} at {{time}} {{tz}}",
+      "rawCron": "{{cron}} ({{tz}})",
+      "weekdays": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      }
+    },
+    "runStatus": {
+      "queued": "Queued",
+      "running": "Running",
+      "uploading": "Uploading",
+      "succeeded": "Succeeded",
+      "failed": "Failed"
+    },
+    "restoreStatus": {
+      "queued": "Queued",
+      "running": "Running",
+      "validating": "Validating",
+      "restoringDb": "Restoring database",
+      "restoringMinio": "Restoring object storage"
+    },
+    "restoreSource": {
+      "fromBackup": "Backup {{date}}",
+      "uploadedArchive": "Uploaded archive"
+    },
+    "triggerSource": {
+      "manual": "Manual",
+      "schedule": "Scheduled",
+      "preUpdate": "Pre-update"
+    },
+    "activeJob": {
+      "restoreInProgressWithStatus": "Disaster recovery restore in progress ({{status}})",
+      "restoreInProgress": "Disaster recovery restore in progress",
+      "backupInProgress": "Backup in progress ({{status}})",
+      "maintenanceInProgress": "Maintenance in progress"
+    },
+    "history": {
+      "count": "{{count}} backup(s)",
+      "columnStarted": "Started",
+      "columnFinished": "Finished",
+      "columnStatus": "Status",
+      "columnTrigger": "Trigger",
+      "columnDestination": "External destination",
+      "columnSize": "Size",
+      "empty": "No backups yet.",
+      "showErrorMessage": "Show error message",
+      "actionsAriaLabel": "Backup actions",
+      "download": "Download",
+      "delete": "Delete",
+      "removeFromHistory": "Remove from history",
+      "localOnly": "Local only"
+    },
+    "destinations": {
+      "title": "External destinations",
+      "validation": {
+        "accessKeyAndSecretRequired": "Access key and secret key are required",
+        "usernameRequired": "Username is required",
+        "passwordRequired": "Password is required",
+        "passwordOrPrivateKeyRequired": "Password or private key is required"
+      },
+      "add": "Add destination",
+      "edit": "Edit",
+      "setDefault": "Set default",
+      "default": "Default",
+      "deleteConfirmTitle": "Delete external destination {{name}}?",
+      "deleteConfirmBody": "This cannot be undone.",
+      "empty": "No external destinations configured yet.",
+      "columnName": "Name",
+      "columnType": "Type",
+      "columnEnabled": "Enabled",
+      "columnDefault": "Default",
+      "enableAriaLabel": "Enable external destination {{name}}",
+      "editModal": {
+        "editTitle": "Edit {{name}}",
+        "createTitle": "New external destination"
+      },
+      "form": {
+        "nameLabel": "Name",
+        "namePlaceholder": "e.g. Production offsite",
+        "typeLabel": "Type",
+        "typeS3": "S3 compatible",
+        "typeSsh": "SSH / SFTP",
+        "typeWebdav": "WebDAV",
+        "secretPlaceholderEdit": "Leave blank to keep current",
+        "s3EndpointLabel": "Endpoint",
+        "s3EndpointPlaceholder": "https://s3.eu-central-1.amazonaws.com",
+        "s3EndpointDescription": "HTTPS URL only (S3, MinIO, Wasabi, …)",
+        "s3BucketLabel": "Bucket",
+        "s3BucketPlaceholder": "docsops-backups",
+        "s3RegionLabel": "Region",
+        "s3RegionPlaceholder": "eu-central-1",
+        "s3RegionDescription": "AWS signing region; inferred from endpoint if left empty",
+        "s3AccessKeyLabel": "Access key",
+        "s3AccessKeyPlaceholder": "AKIAIOSFODNN7EXAMPLE",
+        "s3SecretKeyLabel": "Secret key",
+        "sshHostLabel": "Host",
+        "sshHostPlaceholder": "backup.example.com",
+        "sshPortLabel": "Port",
+        "sshPortPlaceholder": "22",
+        "sshPortDescription": "TCP port for SSH/SFTP (default 22)",
+        "sshPathLabel": "Remote path",
+        "sshPathPlaceholder": "/var/backups/docsops",
+        "sshPathDescription": "Absolute directory on the remote server",
+        "sshUserLabel": "Username",
+        "sshUserPlaceholder": "backup",
+        "sshPasswordLabel": "Password",
+        "sshPasswordDescription": "Required if no private key is provided",
+        "sshPrivateKeyLabel": "Private key (PEM)",
+        "sshPrivateKeyPlaceholder": "-----BEGIN OPENSSH PRIVATE KEY-----",
+        "sshPrivateKeyDescription": "OpenSSH or PEM format; password or key required",
+        "webdavBaseUrlLabel": "Base URL",
+        "webdavBaseUrlPlaceholder": "https://cloud.example.com/remote.php/dav/files/user/backups/",
+        "webdavBaseUrlDescription": "HTTPS WebDAV folder URL (Nextcloud, ownCloud, …)",
+        "webdavRemotePathLabel": "Remote path",
+        "webdavRemotePathPlaceholder": "docsops/prod",
+        "webdavRemotePathDescription": "Optional subfolder under the base URL",
+        "webdavHostHeaderLabel": "Host header",
+        "webdavHostHeaderPlaceholder": "cloud.example.com",
+        "webdavHostHeaderDescription": "Optional. Use when the request URL hostname differs from what the server expects (reverse proxy).",
+        "webdavUsernameLabel": "Username",
+        "webdavUsernamePlaceholder": "backup",
+        "webdavPasswordLabel": "Password"
+      }
+    },
+    "settings": {
+      "title": "Backup settings",
+      "tabGeneral": "General",
+      "tabDestinations": "External destinations",
+      "tabRestore": "Disaster recovery",
+      "general": {
+        "retentionLabel": "Keep successful backups",
+        "retentionDescription": "Number of succeeded backups to retain locally",
+        "defaultDestinationLabel": "Default external destination",
+        "defaultDestinationPlaceholder": "None",
+        "autoLabel": "Automatic backup"
+      }
+    },
+    "restorePanel": {
+      "destructiveTitle": "Destructive operation",
+      "destructiveBody": "This replaces the entire database and MinIO objects. All users must sign in again after restore completes. Secrets from <code>.env</code> are not in the archive.",
+      "sourceLabel": "Restore source",
+      "sourceHistory": "From backup history",
+      "sourceUpload": "Upload archive",
+      "noRestorableBackups": "No backups with a local copy available. Choose upload archive or restore from external storage manually (see Runbook-Backup-Restore).",
+      "selectBackupLabel": "Select backup",
+      "uploadHint": "Upload <code>docsops-backup-*.tar.zst</code> copied from external storage.",
+      "startRestore": "Start restore",
+      "selectArchiveAndStart": "Select archive and start restore",
+      "confirmModal": {
+        "title": "Start restore?",
+        "specificBackup": "backup from {{date}}",
+        "selectedBackupFallback": "the selected backup",
+        "body": "This will replace the <dbEmphasis>entire database</dbEmphasis> and MinIO objects with <backupEmphasis>{{backupLabel}}</backupEmphasis>. Existing data will be overwritten.",
+        "writeBlockedNote": "Write operations are blocked while restore runs."
+      },
+      "uploadModal": {
+        "title": "Upload backup archive",
+        "hint": "Select a <code>docsops-backup-*.tar.zst</code> file from your computer.",
+        "chooseFile": "Choose file",
+        "invalidFile": "Select a docsops-backup-*.tar.zst archive.",
+        "uploadFailed": "Upload failed"
+      }
+    },
+    "deleteModal": {
+      "title": "Delete backup?",
+      "bothCopies": "Remove the local copy from DocsOps and delete this entry from backup history. The archive on the external destination is kept.",
+      "localOnly": "Remove the local copy and delete this entry from backup history. There is no external copy – this backup will no longer be available in DocsOps.",
+      "externalOnly": "Delete this entry from backup history in DocsOps. The archive on the external destination is kept.",
+      "neither": "Delete this entry from backup history in DocsOps. No local or external copy exists."
+    },
+    "deleteFailedModal": {
+      "stuckTitle": "Remove stuck backup run?",
+      "stuckBody": "Remove this backup run from history? Use this only when the job was cancelled or finished without updating status. If the job is still running, deletion will be rejected.",
+      "failedTitle": "Delete failed backup?",
+      "failedBody": "Remove this failed backup run from history? This cannot be undone.",
+      "confirm": "Remove"
+    },
+    "toasts": {
+      "restoreFailedTitle": "Restore failed",
+      "unknownError": "Unknown error",
+      "restoreCompletedTitle": "Restore completed",
+      "restoreCompletedMessage": "Database and object storage were restored. All sessions were invalidated – sign in again to continue.",
+      "backupFailedTitle": "Backup failed",
+      "backupCompletedTitle": "Backup completed",
+      "errorTitle": "Error",
+      "saveSettingsFailed": "Failed to save settings",
+      "loadStatusFailed": "Failed to load backup status",
+      "loadDestinationsFailed": "Failed to load external destinations",
+      "loadRestoresFailed": "Failed to load restores",
+      "loadBackupsFailed": "Failed to load backups",
+      "saveDestinationFailed": "Failed to save external destination",
+      "destinationSavedTitle": "External destination saved",
+      "deleteDestinationFailed": "Failed to delete external destination",
+      "destinationDeletedTitle": "External destination deleted",
+      "updateDestinationFailed": "Failed to update external destination",
+      "updateScheduleFailed": "Failed to update schedule",
+      "scheduleUpdatedTitle": "Schedule updated",
+      "startBackupFailed": "Failed to start backup",
+      "backupStartedTitle": "Backup started",
+      "deleteBackupFailed": "Failed to delete backup",
+      "backupDeletedTitle": "Backup deleted",
+      "startRestoreFailed": "Failed to start restore",
+      "restoreStartedTitle": "Restore started",
+      "deleteBackupRunFailed": "Failed to delete backup run",
+      "backupRunRemovedTitle": "Backup run removed"
+    }
+  },
+  "users": {
+    "list": {
+      "filterAll": "All",
+      "filterActive": "Active",
+      "searchPlaceholder": "Search (name, email)",
+      "countLine": "{{count}} user(s)",
+      "empty": "No users found.",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "teams": "Teams",
+        "departments": "Departments",
+        "status": "Status"
+      }
+    },
+    "detail": {
+      "modalTitle": "User: {{name}}",
+      "tabs": {
+        "overview": "Overview",
+        "documents": "Documents",
+        "account": "Account"
+      },
+      "profile": {
+        "title": "Profile",
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "status": "Status",
+          "userId": "User ID"
+        }
+      },
+      "assignments": {
+        "title": "Assignments",
+        "department": "Department",
+        "role": "Role",
+        "team": "Team"
+      },
+      "usage": {
+        "title": "Usage",
+        "storage": "Storage",
+        "authored": "Authored",
+        "drafts": "Drafts"
+      },
+      "account": {
+        "title": "Account",
+        "hint": "Sensitive account actions. Use with care.",
+        "resetPasswordButton": "Reset password",
+        "resetPasswordHint": "Trigger a password reset. The user will need to set a new password.",
+        "deleteButton": "Delete user",
+        "deleteHintSelf": "You cannot delete your own account.",
+        "deleteHintOther": "Permanently delete this user and all associated data. This cannot be undone."
+      },
+      "documents": {
+        "empty": "No documents (user is not a writer).",
+        "titleHeader": "Title"
+      }
+    },
+    "createForm": {
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "adminLabel": "Administrator",
+      "departmentLabel": "Department",
+      "departmentPlaceholder": "Optional",
+      "teamLabel": "Team",
+      "teamPlaceholderOptional": "Optional",
+      "teamPlaceholderSelectDepartmentFirst": "Select department first",
+      "teamRoleLabel": "Role in team",
+      "teamRoleMember": "Member",
+      "teamRoleLeader": "Team Lead",
+      "departmentLeadSwitchLabel": "Department Lead of this department"
+    },
+    "profileForm": {
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "adminSwitchLabel": "Administrator",
+      "adminLastActiveHint": "At least one active administrator is required.",
+      "companyLeadSwitchLabel": "Company lead",
+      "deactivatedSwitchLabel": "Deactivated",
+      "deactivatedLastActiveHint": "The last administrator cannot be deactivated."
+    },
+    "assignmentsForm": {
+      "platformAdminAlertTitle": "Platform administrator",
+      "platformAdminAlertBody": "Platform administrators cannot have organization assignments. Remove the administrator role first to assign team or department roles.",
+      "hint": "Each user has one organization role. Team lead does not require team membership. Authors must be promoted from team membership.",
+      "teamLabel": "Team",
+      "teamPlaceholder": "Select team",
+      "teamRoleLabel": "Team role",
+      "departmentLeadLabel": "Department (lead)",
+      "departmentLeadDescription": "Department where this user is department lead (optional)",
+      "departmentAuthorLabel": "Department (author)",
+      "departmentAuthorDescription": "Department-wide author role (optional; requires team membership in that department)",
+      "demoteWithoutTeamError": "Cannot demote department author without a team in that department.",
+      "toasts": {
+        "updatedTitle": "Assignments updated",
+        "updatedMessage": "Team and department assignments were saved."
+      }
+    },
+    "resetPasswordModal": {
+      "title": "Reset password",
+      "body": "Trigger a password reset for {{name}}? They will need to set a new password (e.g. via email link or on next login).",
+      "confirmButton": "Reset password",
+      "toasts": {
+        "triggeredTitle": "Password reset triggered",
+        "triggeredMessage": "The user will need to set a new password."
+      }
+    },
+    "deleteModal": {
+      "title": "Delete user",
+      "body": "Permanently delete {{name}}? This cannot be undone. All associated data (contexts, documents, assignments) will be removed.",
+      "confirmButton": "Delete user",
+      "toasts": {
+        "deletedTitle": "User deleted",
+        "deletedMessage": "The user was removed."
+      }
+    },
+    "toasts": {
+      "createdTitle": "User created",
+      "createdMessage": "The user has been created.",
+      "updatedTitle": "User updated",
+      "updatedMessage": "The user has been updated."
+    }
+  },
+  "teams": {
+    "toolbar": {
+      "searchPlaceholder": "Search (team, department)",
+      "departmentPlaceholder": "Department",
+      "countLine": "{{count}} team(s)"
+    },
+    "allDepartmentsOption": "All departments",
+    "table": {
+      "team": "Team",
+      "department": "Department",
+      "lead": "Lead",
+      "members": "Members",
+      "writePermissions": "Write permissions",
+      "emptyNoTeams": "No teams yet. Create a team to get started.",
+      "emptyNoMatch": "No teams match the filter."
+    },
+    "createForm": {
+      "departmentPlaceholder": "Select department"
+    },
+    "editModal": {
+      "title": "Team: {{name}}",
+      "tabs": {
+        "overview": "Overview",
+        "manage": "Manage"
+      },
+      "card": {
+        "title": "Team",
+        "leadPlaceholder": "Select team lead",
+        "membersPlaceholder": "Select team members"
+      },
+      "manage": {
+        "deleteButton": "Delete team"
+      }
+    },
+    "deleteModal": {
+      "title": "Delete team",
+      "body": "Really delete team \"{{name}}\"? This cannot be undone."
+    },
+    "toasts": {
+      "createdTitle": "Team created",
+      "createdMessage": "The team has been created.",
+      "updatedTitle": "Team updated",
+      "updatedMessage": "The team has been updated.",
+      "deletedTitle": "Team deleted",
+      "deletedMessage": "The team has been deleted.",
+      "leaderAddedTitle": "Team leader added",
+      "leaderAddedMessage": "The team leader has been added.",
+      "leaderRemovedTitle": "Team leader removed",
+      "leaderRemovedMessage": "The team leader has been removed.",
+      "memberAddedTitle": "Member added",
+      "memberAddedMessage": "The member has been added to the team.",
+      "memberRemovedTitle": "Member removed",
+      "memberRemovedMessage": "The member has been removed from the team."
+    }
+  },
+  "departments": {
+    "toolbar": {
+      "searchPlaceholder": "Search (department, company)",
+      "companyPlaceholder": "Company",
+      "countLine": "{{count}} department(s)"
+    },
+    "allCompaniesOption": "All companies",
+    "table": {
+      "department": "Department",
+      "company": "Company",
+      "leads": "Leads",
+      "members": "Members",
+      "teams": "Teams",
+      "emptyNoDepartments": "No departments yet. Create a department to get started.",
+      "emptyNoMatch": "No departments match the filter."
+    },
+    "createForm": {
+      "companyPlaceholder": "Select company"
+    },
+    "editModal": {
+      "title": "Department: {{name}}",
+      "tabs": {
+        "overview": "Overview",
+        "manage": "Manage"
+      },
+      "card": {
+        "title": "Department",
+        "leadPlaceholder": "Select department lead"
+      },
+      "manage": {
+        "deleteButton": "Delete department"
+      }
+    },
+    "deleteModal": {
+      "title": "Delete department",
+      "body": "Really delete department \"{{name}}\"? Not possible when teams or dependencies exist."
+    },
+    "toasts": {
+      "createdTitle": "Department created",
+      "createdMessage": "The department has been created.",
+      "updatedTitle": "Department updated",
+      "updatedMessage": "The department has been updated.",
+      "deletedTitle": "Department deleted",
+      "deletedMessage": "The department has been deleted.",
+      "leadAddedTitle": "Department lead added",
+      "leadAddedMessage": "The department lead has been added.",
+      "leadRemovedTitle": "Department lead removed",
+      "leadRemovedMessage": "The department lead has been removed."
+    }
+  },
+  "company": {
+    "noCompanyAlert": "No company set up. Create the company first, then manage company leads.",
+    "table": {
+      "company": "Company",
+      "lead": "Lead"
+    },
+    "editModal": {
+      "title": "Company: {{name}}",
+      "tabs": {
+        "overview": "Overview",
+        "pdfBranding": "PDF branding",
+        "manage": "Manage"
+      },
+      "card": {
+        "title": "Company",
+        "leadPlaceholder": "Select company lead"
+      },
+      "manage": {
+        "deleteButton": "Delete company"
+      }
+    },
+    "deleteModal": {
+      "title": "Delete company",
+      "body": "Really delete company \"{{name}}\"? Not possible when departments exist."
+    },
+    "toasts": {
+      "createdTitle": "Company created",
+      "createdMessage": "The company has been created.",
+      "updatedTitle": "Company updated",
+      "updatedMessage": "The company has been updated.",
+      "deletedTitle": "Company deleted",
+      "deletedMessage": "The company has been deleted.",
+      "leadAddedTitle": "Company lead added",
+      "leadAddedMessage": "The company lead has been added.",
+      "leadRemovedTitle": "Company lead removed",
+      "leadRemovedMessage": "The company lead has been removed."
+    },
+    "userPicker": {
+      "title": "Add company lead",
+      "searchPlaceholder": "Search by name or email",
+      "emptySearch": "No matching users",
+      "emptyAll": "No more users (all already assigned)"
+    },
+    "pdfBranding": {
+      "loading": "Loading PDF branding…",
+      "intro": "Optional company theme for PDF export (logo, primary color, page margins). Empty color or margin fields use the platform default.",
+      "primaryColorLabel": "Primary color",
+      "marginLabel": "Page margin (mm)",
+      "marginDescription": "12\u201340 mm on the sides and bottom; top grows when a logo is set",
+      "logoLabel": "Logo",
+      "noLogo": "No logo uploaded",
+      "positionLeft": "Left header",
+      "positionRight": "Right header",
+      "uploadButton": "Upload PNG/JPEG",
+      "removeButton": "Remove logo",
+      "saveButton": "Save branding",
+      "toasts": {
+        "savedTitle": "PDF branding saved",
+        "savedMessage": "Export theme updated for this company.",
+        "logoUploadedTitle": "Logo uploaded",
+        "logoUploadedMessage": "PDF logo updated.",
+        "logoRemovedTitle": "Logo removed",
+        "logoRemovedMessage": "PDF exports will use the platform default (no logo)."
+      }
+    }
+  },
+  "broadcast": {
+    "toolbar": {
+      "countLine": "{{count}} sent message(s)"
+    },
+    "table": {
+      "sent": "Sent",
+      "title": "Title",
+      "audience": "Audience",
+      "recipients": "Recipients",
+      "empty": "No sent messages yet."
+    },
+    "targets": {
+      "all": "All active users",
+      "admins": "Administrators",
+      "companyLeads": "Company leads",
+      "departmentLeads": "Department leads",
+      "teamLeads": "Team leads",
+      "users": "Selected users"
+    },
+    "createModal": {
+      "title": "Create system message",
+      "intro": "Send immediately or schedule for a future time. Scheduled messages are managed in the Scheduler tab.",
+      "titleLabel": "Title",
+      "messageLabel": "Message",
+      "audienceLabel": "Audience",
+      "usersLabel": "Users",
+      "usersNothingFound": "No users",
+      "deliveryLabel": "Delivery",
+      "deliveryNow": "Send now",
+      "deliveryScheduled": "Schedule for later",
+      "sendAtLabel": "Send at",
+      "sendAtDescription": "Date and time use your browser's local timezone.",
+      "sendAtError": "Choose a date and time in the future."
+    },
+    "toasts": {
+      "scheduledTitle": "Message scheduled",
+      "scheduledMessage": "Manage it in the Scheduler tab.",
+      "sentTitle": "Message sent",
+      "sentMessage": "Delivered to {{count}} user(s).",
+      "createFailedTitle": "Create failed"
+    },
+    "scheduledSection": {
+      "title": "Scheduled system messages",
+      "createLink": "Create message",
+      "table": {
+        "sendAt": "Send at",
+        "title": "Title",
+        "audience": "Audience"
+      },
+      "empty": "No scheduled messages. Use <link>Create message</link> and choose \"Schedule for later\".",
+      "menuActionsAria": "Scheduled message actions",
+      "menuSendNow": "Send now",
+      "menuReschedule": "Reschedule",
+      "menuCancel": "Cancel",
+      "rescheduleModalTitle": "Reschedule message",
+      "toasts": {
+        "cancelledTitle": "Scheduled message cancelled",
+        "cancelFailedTitle": "Cancel failed",
+        "rescheduleUpdatedTitle": "Schedule updated",
+        "rescheduleFailedTitle": "Reschedule failed",
+        "sendFailedTitle": "Send failed",
+        "invalidTimeTitle": "Invalid time",
+        "invalidTimeMessage": "Choose a date and time in the future."
+      }
+    }
+  },
+  "migration": {
+    "loadError": "Failed to load migration status.",
+    "infrastructureBadges": {
+      "minioOk": "MinIO OK",
+      "minioUnavailable": "MinIO unavailable",
+      "workerOk": "Job worker OK",
+      "workerDisconnected": "Job worker disconnected"
+    },
+    "overview": {
+      "exportInProgress": "Export in progress…",
+      "downloadPreviousArchive": "Download previous archive",
+      "downloadExportArchive": "Download export archive",
+      "lastExportStatus": "Last export status: {{status}}.",
+      "noExportArchiveYet": "No export archive yet."
+    },
+    "instanceCounts": {
+      "emptyHint": "Empty and ready for import (fresh instance, no companies or documents).",
+      "columns": {
+        "company": "Company",
+        "departments": "Departments",
+        "teams": "Teams",
+        "users": "Users",
+        "processes": "Processes",
+        "projects": "Projects",
+        "subcontexts": "Subcontexts",
+        "documents": "Documents",
+        "files": "Files"
+      }
+    },
+    "runStats": {
+      "users": "Users",
+      "documents": "Documents",
+      "companies": "Companies",
+      "files": "Files"
+    },
+    "status": {
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "preflightFailed": "Preflight failed",
+      "awaitingConfirm": "Awaiting confirm",
+      "queued": "Queued",
+      "running": "Running",
+      "exporting": "Exporting domain data",
+      "packaging": "Packaging archive",
+      "importPhase": {
+        "importingOrganization": "Importing organization",
+        "importingUsers": "Importing users",
+        "importingOwners": "Importing owners",
+        "importingContexts": "Importing contexts",
+        "importingDocuments": "Importing documents",
+        "importingVersions": "Importing versions",
+        "importingTags": "Importing tags",
+        "importingGrants": "Importing grants",
+        "importingPins": "Importing pins",
+        "importingComments": "Importing comments",
+        "importingFiles": "Importing files"
+      }
+    },
+    "statusAlerts": {
+      "storageUnavailableTitle": "Object storage unavailable",
+      "storageUnavailableMessage": "MinIO is not configured or unreachable. Platform export and import require object storage.",
+      "workerDisconnectedTitle": "Job worker disconnected",
+      "workerDisconnectedMessage": "Background export and import jobs need a connected worker. Check Admin → Jobs.",
+      "maintenanceActiveTitle": "Maintenance mode active",
+      "maintenanceActiveMessage": "Migration actions may be blocked while maintenance is active ({{reason}}).",
+      "maintenanceReasonUnknown": "unknown",
+      "exportFailedTitle": "Export failed",
+      "importFailedTitle": "Import failed",
+      "importFailedRollbackHint": "Domain data should have been rolled back on this instance. Platform import is only supported on a freshly installed empty instance.",
+      "exportInProgressTitle": "Export in progress",
+      "importInProgressTitle": "Import in progress"
+    },
+    "disabledReason": {
+      "loading": "Loading migration status…",
+      "minioUnavailable": "MinIO is unavailable",
+      "workerDisconnected": "Job worker is disconnected",
+      "exportInProgress": "An export is already in progress",
+      "importInProgress": "An import is already in progress",
+      "instanceNotEmpty": "Import is only available on a freshly installed empty instance (no companies or documents).",
+      "maintenanceActive": "Maintenance mode active (platform import)"
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "back": "Back",
+      "close": "Close"
+    },
+    "dropzone": {
+      "instructionBefore": "Drop",
+      "instructionAfter": "here or click to browse",
+      "maxSize": "Maximum archive size: {{size}}"
+    },
+    "phaseList": {
+      "importFailed": "Import failed",
+      "importComplete": "Import complete"
+    },
+    "exportModal": {
+      "title": "Export platform",
+      "steps": {
+        "overview": { "label": "Overview", "description": "What is exported" },
+        "confirm": { "label": "Confirm", "description": "Start export job" },
+        "progress": { "label": "Progress", "description": "Job status" },
+        "done": { "label": "Done", "description": "Download archive" }
+      },
+      "overviewDescriptionBefore": "Creates a",
+      "overviewDescriptionAfter": "archive with organization, users, contexts, documents, grants, tags, pins, comments, and file attachments. Sessions, notifications, and backup metadata are not included.",
+      "notDisasterRecoveryTitle": "Not disaster recovery",
+      "notDisasterRecoveryBefore": "For disaster recovery on the same server, use operational backup on the",
+      "notDisasterRecoveryAfter": "tab instead.",
+      "jobDurationHint": "The export job reads domain data from the database and MinIO. Large instances may take several minutes.",
+      "startingExport": "Starting export…",
+      "packagingHint": "Packaging archive for download…",
+      "completeTitle": "Export complete",
+      "archiveSize": "Archive size: {{size}}",
+      "downloadAutoHint": "The download should start automatically. If not, use Download again below.",
+      "failedTitle": "Export failed",
+      "unknownError": "Unknown error",
+      "continue": "Continue",
+      "startExport": "Start export",
+      "downloadAgain": "Download again",
+      "done": "Done"
+    },
+    "importModal": {
+      "title": "Import platform export",
+      "steps": {
+        "upload": { "label": "Upload & check", "description": "Archive preflight" },
+        "options": { "label": "Options", "description": "Import settings" },
+        "confirm": { "label": "Confirm", "description": "Maintenance warning" },
+        "result": { "label": "Result", "description": "Progress & outcome" }
+      },
+      "uploadErrorTitle": {
+        "serverError": "Server error during upload",
+        "tooLarge": "Upload too large",
+        "invalidArchive": "Invalid export archive",
+        "storageUnavailable": "Storage unavailable",
+        "uploadFailed": "Upload failed"
+      },
+      "freshInstanceTitle": "Fresh empty instance required",
+      "freshInstanceMessage": "Import is only supported on a freshly installed empty instance (no companies or documents). Failed imports on an empty target should roll back automatically.",
+      "remove": "Remove",
+      "uploadingHint": "Uploading and running preflight…",
+      "preflightFailedTitle": "Preflight failed",
+      "preflightWarningsTitle": "Preflight warnings",
+      "preflightPassedHint": "Preflight passed. Continue to options.",
+      "sourceVersion": "Source version: {{version}} · Target: {{target}}",
+      "unknownVersion": "unknown",
+      "transferPasswordHashes": "Transfer password hashes (same APP_VERSION only)",
+      "passwordResetRequired": "Imported users will need to reset their passwords (different app version).",
+      "maintenanceWarning": "Import activates maintenance mode and writes all domain data. The target instance must be empty.",
+      "startingImport": "Starting import…",
+      "completeTitle": "Import complete",
+      "completeMessage": "Platform data has been imported. The sidebar and lists will refresh automatically. Search reindex may still be running.",
+      "failedTitle": "Import failed",
+      "waitingForStatus": "Waiting for import status…",
+      "continue": "Continue",
+      "uploadAndCheck": "Upload and check",
+      "confirmImport": "Confirm import",
+      "goToHome": "Go to home",
+      "done": "Done"
+    }
+  },
+  "system": {
+    "loadError": "Could not load update status. Reload the page or try again later.",
+    "checkForUpdatesTooltip": "Enable automatic checks first",
+    "checkNotifications": {
+      "adminsNotified": "Admins were notified about the available update.",
+      "checkCompleted": "Update check completed.",
+      "upToDate": "DocsOps is up to date.",
+      "checkFailed": "Update check failed."
+    },
+    "toggleChecks": {
+      "enabled": "Automatic update checks enabled.",
+      "disabled": "Automatic update checks disabled.",
+      "saveFailed": "Could not update settings."
+    },
+    "overviewBar": {
+      "checksOff": "Checks off",
+      "checkFailed": "Check failed",
+      "checkFailedTitle": "Update check failed",
+      "upToDate": "Up to date",
+      "automaticChecks": "Automatic checks",
+      "lastChecked": "Last checked {{time}}",
+      "notCheckedYet": "Not checked yet",
+      "githubRelease": "GitHub release"
+    },
+    "versionTable": {
+      "installed": "Installed",
+      "latestRelease": "Latest release",
+      "unknown": "Unknown"
+    },
+    "statusAlerts": {
+      "updateFailedTitle": "Update failed",
+      "updateFailedFallback": "The update could not be completed.",
+      "updateAvailableTitle": "Update available",
+      "updateAvailableMessage": "A newer release is available. Review the steps before upgrading production."
+    },
+    "upcomingRelease": {
+      "title": "What's in v{{version}}?",
+      "loadErrorTitle": "Could not load release notes preview",
+      "viewOnGithub": "View on GitHub",
+      "noPreview": "No release notes preview available.",
+      "viewReleaseOnGithub": "View release on GitHub"
+    },
+    "mail": {
+      "savedMessage": "Mail settings saved.",
+      "saveFailedFallback": "Could not save mail settings.",
+      "testSentMessage": "Test email sent.",
+      "testFailedFallback": "Test email failed.",
+      "sectionTitle": "Outgoing email (SMTP)",
+      "sectionDescription": "Platform mail server for notification emails. Passwords are stored encrypted and never shown again. Send a test email after saving.",
+      "enableSmtp": "Enable SMTP",
+      "host": "Host",
+      "hostPlaceholder": "smtp.example.com",
+      "port": "Port",
+      "encryption": "Encryption",
+      "encryptionNone": "None",
+      "encryptionStarttls": "STARTTLS",
+      "encryptionTls": "TLS",
+      "username": "Username",
+      "password": "Password",
+      "passwordKeepCurrent": "Password (leave blank to keep current)",
+      "fromAddress": "From address",
+      "fromAddressPlaceholder": "noreply@example.com",
+      "fromName": "From name",
+      "fromNamePlaceholder": "DocsOps",
+      "recipient": "Recipient",
+      "recipientDescription": "Defaults to your admin account email"
+    },
+    "updateSteps": {
+      "backup": {
+        "label": "Create operational backup",
+        "detail": "Database and attachments are archived before any files change."
+      },
+      "apply": {
+        "label": "Apply release",
+        "detail": "Download bundle, update configuration, pull images, and restart the stack."
+      },
+      "health": {
+        "label": "Wait for services",
+        "detail": "The stack is restarting. Connection errors are expected."
+      },
+      "reload": {
+        "label": "Reload this page",
+        "detail": "After the stack is healthy, reload to use the new version."
+      }
+    },
+    "agentPhase": {
+      "preflight": "Running preflight checks",
+      "downloadBundle": "Downloading release bundle",
+      "extractBundle": "Extracting release bundle",
+      "patchEnv": "Updating configuration",
+      "pullImages": "Pulling images",
+      "composeUp": "Restarting containers",
+      "waitHealth": "Waiting for health check",
+      "verifyVersion": "Verifying version",
+      "cleanup": "Finishing up",
+      "succeeded": "Update finished on server",
+      "failed": "Update failed"
+    },
+    "elapsed": {
+      "withMinutes": "{{min}} min {{sec}}s",
+      "secondsOnly": "{{sec}}s"
+    },
+    "applyUpdateModal": {
+      "titleFailed": "Update failed",
+      "titleCompleted": "Update completed",
+      "titleUpdating": "Updating DocsOps",
+      "titleDefault": "Apply update",
+      "close": "Close",
+      "upgradedMessage": "DocsOps has been upgraded to {{version}}. Reload this page to use the new version.",
+      "allStepsFinished": "All steps finished.",
+      "reloadPage": "Reload page",
+      "upgradingTo": "Upgrading to {{version}}",
+      "restartingHint": "Services are restarting. Connection errors are expected. Open the update status page in a new tab to monitor progress.",
+      "canCloseHint": "You can close this dialog and keep working. Open the update status page when you want to monitor progress.",
+      "openStatusPage": "Open update status page",
+      "backupAndUpgradeMessage": "A backup will be created automatically, then DocsOps will upgrade to {{tag}}. Write operations are blocked during the update.",
+      "cancel": "Cancel",
+      "startUpdate": "Start update",
+      "startFailedFallback": "Could not start update."
+    },
+    "updateStepsModal": {
+      "title": "How to update (SSH)",
+      "productionHintBefore": "For production, prefer",
+      "productionHintPrimaryLabel": "Apply update",
+      "productionHintAfter": "on this tab (automatic backup, then upgrade). Use the steps below only for manual updates on the host.",
+      "manualUpgradeHintBefore": "Until one-click update is configured, upgrade on the host via SSH. Create an operational backup in",
+      "manualUpgradeHintAfter": "first.",
+      "manualBackupHintBefore": "For a manual run, create a backup first in",
+      "adminBackupLink": "Admin → Backup",
+      "manualUpgradeTitle": "Manual upgrade on the host",
+      "defaultVersionHintBefore": "Without a version argument,",
+      "defaultVersionHintAfter": "delegates to",
+      "defaultVersionHintEnd": "and uses the latest GitHub release.",
+      "pinnedVersionHintBefore": "Latest release:",
+      "pinnedVersionHintPin": "Pin:",
+      "copyCommand": "Copy command",
+      "copied": "Copied",
+      "viewReleaseOnGithub": "View release on GitHub",
+      "close": "Close",
+      "oneClickNotAvailable": "One-click update not available",
+      "missingOnInstance": "Missing on this instance:",
+      "envVarHintSuffix": "in the server environment file",
+      "agentServiceHint": "systemd service running on the host",
+      "productionIncludesAgent": "Production installs include the host agent automatically. If this instance was created before the host-agent release, reinstall from a current release bundle.",
+      "expectedEnvEntries": "Expected env entries:",
+      "checkAgentHealth": "Check agent health on the server:"
+    }
   }
 }

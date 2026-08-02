@@ -1,4 +1,5 @@
 import { Badge, Group, NumberInput, Select, Switch, Text, Tooltip } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { BackupStatus, Destination } from './adminBackupTypes';
 import { formatBackupScheduleLabel } from './backupScheduleLabel';
@@ -26,13 +27,14 @@ export function AdminBackupOverviewBar({
   onDefaultDestinationChange,
   onAutoToggle,
 }: Props) {
+  const { t } = useTranslation('admin');
   const destinationOptions = destinations
     .filter((d) => d.enabled)
     .map((d) => ({ value: d.id, label: d.name }));
 
   const scheduleShortLabel = status.schedule.enabled
-    ? formatBackupScheduleLabel(status.schedule.cron, status.schedule.tz)
-    : 'Not scheduled';
+    ? formatBackupScheduleLabel(status.schedule.cron, status.schedule.tz, t)
+    : t('backup.overview.notScheduled');
   const scheduleDetail =
     status.schedule.enabled && status.schedule.cron
       ? `${status.schedule.cron} (${status.schedule.tz ?? 'UTC'})`
@@ -41,17 +43,21 @@ export function AdminBackupOverviewBar({
   return (
     <Group mb="md" justify="flex-start" wrap="wrap" gap="sm" align="center">
       <Badge color={status.minioAvailable ? 'green' : 'red'} variant="filled">
-        MinIO {status.minioAvailable ? 'OK' : 'unavailable'}
+        {status.minioAvailable
+          ? t('backup.overview.minioOk')
+          : t('backup.overview.minioUnavailable')}
       </Badge>
       <Badge color={status.workerConnected ? 'green' : 'yellow'} variant="filled">
-        Job worker {status.workerConnected ? 'OK' : 'disconnected'}
+        {status.workerConnected
+          ? t('backup.overview.workerOk')
+          : t('backup.overview.workerDisconnected')}
       </Badge>
 
-      <Tooltip label="Successful backups to keep">
+      <Tooltip label={t('backup.overview.retentionTooltip')}>
         <NumberInput
           size="xs"
-          aria-label="Retention"
-          placeholder="Retention"
+          aria-label={t('backup.overview.retentionLabel')}
+          placeholder={t('backup.overview.retentionLabel')}
           min={1}
           max={365}
           value={status.retentionCount}
@@ -64,8 +70,8 @@ export function AdminBackupOverviewBar({
 
       <Select
         size="xs"
-        placeholder="Default external destination"
-        aria-label="Default external destination"
+        placeholder={t('backup.overview.defaultDestinationLabel')}
+        aria-label={t('backup.overview.defaultDestinationLabel')}
         data={destinationOptions}
         clearable
         value={status.defaultDestinationId}
@@ -79,7 +85,7 @@ export function AdminBackupOverviewBar({
       >
         <Switch
           size="sm"
-          label="Auto"
+          label={t('backup.overview.autoLabel')}
           checked={status.schedule.enabled}
           disabled={scheduleSaving || (!status.schedule.enabled && !canEnableAuto)}
           onChange={(e) => onAutoToggle(e.currentTarget.checked)}
@@ -92,7 +98,7 @@ export function AdminBackupOverviewBar({
           {status.autoBackupConfigured ? (
             <>
               {' · '}
-              <Link to="/admin/operations/scheduler">Scheduler</Link>
+              <Link to="/admin/operations/scheduler">{t('backup.schedulerLink')}</Link>
             </>
           ) : null}
         </Text>

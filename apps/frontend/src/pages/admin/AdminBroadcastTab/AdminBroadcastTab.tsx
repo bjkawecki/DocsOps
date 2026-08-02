@@ -53,7 +53,7 @@ export function AdminBroadcastTab() {
       const res = await apiFetch(
         `/api/v1/admin/notifications/broadcasts?status=sent&limit=${limit}&offset=${offset}`
       );
-      if (!res.ok) throw new Error('Failed to load broadcast history');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return res.json() as Promise<{ items: BroadcastHistoryItem[]; total: number }>;
     },
   });
@@ -75,7 +75,7 @@ export function AdminBroadcastTab() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to create message');
+        throw new Error(err.error ?? t('broadcast.toasts.createFailedTitle'));
       }
       return res.json() as Promise<{
         status: 'scheduled' | 'sent';
@@ -89,20 +89,24 @@ export function AdminBroadcastTab() {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'notifications', 'broadcasts'] });
       if (result.status === 'scheduled') {
         notifications.show({
-          title: 'Message scheduled',
-          message: 'Manage it in the Scheduler tab.',
+          title: t('broadcast.toasts.scheduledTitle'),
+          message: t('broadcast.toasts.scheduledMessage'),
           color: 'green',
         });
       } else {
         notifications.show({
-          title: 'Message sent',
-          message: `Delivered to ${result.deliveredCount} user(s).`,
+          title: t('broadcast.toasts.sentTitle'),
+          message: t('broadcast.toasts.sentMessage', { count: result.deliveredCount }),
           color: 'green',
         });
       }
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Create failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('broadcast.toasts.createFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -144,7 +148,9 @@ export function AdminBroadcastTab() {
 
       {historyQuery.isError ? (
         <Alert color="red">
-          {historyQuery.error instanceof Error ? historyQuery.error.message : 'Error'}
+          {historyQuery.error instanceof Error
+            ? historyQuery.error.message
+            : t('shared.errorTitle')}
         </Alert>
       ) : null}
 

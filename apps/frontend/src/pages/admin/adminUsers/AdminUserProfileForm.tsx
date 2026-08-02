@@ -1,5 +1,6 @@
 import { Button, Group, Stack, Switch, TextInput } from '@mantine/core';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { UserRow } from './adminUsersTypes';
 
 type Props = {
@@ -23,6 +24,7 @@ export function AdminUserProfileForm({
   isPending,
   isLastActiveAdmin,
 }: Props) {
+  const { t } = useTranslation('admin');
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email ?? '');
   const [isAdmin, setIsAdmin] = useState(user.isAdmin);
@@ -41,31 +43,34 @@ export function AdminUserProfileForm({
 
   return (
     <Stack gap="sm">
-      <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
       <TextInput
-        label="Email"
+        label={t('users.profileForm.nameLabel')}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
+      <TextInput
+        label={t('users.profileForm.emailLabel')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
       <Switch
-        label="Administrator"
-        description={
-          isLastActiveAdmin ? 'At least one active administrator is required.' : undefined
-        }
+        label={t('users.profileForm.adminSwitchLabel')}
+        description={isLastActiveAdmin ? t('users.profileForm.adminLastActiveHint') : undefined}
         checked={isAdmin}
         onChange={(e) => setIsAdmin(e.currentTarget.checked)}
         disabled={isLastActiveAdmin}
       />
       <Switch
-        label="Company lead"
+        label={t('users.profileForm.companyLeadSwitchLabel')}
         checked={isCompanyLead}
         onChange={(e) => setIsCompanyLead(e.currentTarget.checked)}
       />
       <Switch
-        label="Deactivated"
+        label={t('users.profileForm.deactivatedSwitchLabel')}
         description={
-          isLastActiveAdmin ? 'The last administrator cannot be deactivated.' : undefined
+          isLastActiveAdmin ? t('users.profileForm.deactivatedLastActiveHint') : undefined
         }
         checked={deactivated}
         onChange={(e) => setDeactivated(e.currentTarget.checked)}
@@ -73,10 +78,10 @@ export function AdminUserProfileForm({
       />
       <Group gap="xs" mt="xs">
         <Button size="sm" variant="default" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <Button size="sm" onClick={handleSubmit} loading={isPending} disabled={!name.trim()}>
-          Save
+          {t('common:actions.save')}
         </Button>
       </Group>
     </Stack>

@@ -1,6 +1,7 @@
 import { Badge, Box, Button, Group, ScrollArea, Stack, Table, Text } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import {
@@ -26,6 +27,7 @@ const stickyHeaderTh = {
 };
 
 export function SettingsSecurityTab() {
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
 
   const { data: sessionsData } = useQuery({
@@ -51,8 +53,8 @@ export function SettingsSecurityTab() {
       void queryClient.invalidateQueries({ queryKey: ['me', 'sessions'] });
       if (isCurrent) {
         notifications.show({
-          title: 'Session ended',
-          message: 'You have been logged out.',
+          title: t('security.toasts.sessionEndedTitle'),
+          message: t('security.toasts.sessionEndedMessage'),
           color: 'green',
         });
         void apiFetch('/api/v1/auth/logout', { method: 'POST' }).then(() => {
@@ -60,14 +62,18 @@ export function SettingsSecurityTab() {
         });
       } else {
         notifications.show({
-          title: 'Session revoked',
-          message: 'The session has been ended.',
+          title: t('security.toasts.sessionRevokedTitle'),
+          message: t('security.toasts.sessionRevokedMessage'),
           color: 'green',
         });
       }
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Revoke failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('security.toasts.revokeFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -82,13 +88,17 @@ export function SettingsSecurityTab() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['me', 'sessions'] });
       notifications.show({
-        title: 'Sessions ended',
-        message: 'All other sessions have been revoked.',
+        title: t('security.toasts.sessionsEndedTitle'),
+        message: t('security.toasts.sessionsEndedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Revoke failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('security.toasts.revokeFailedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -102,8 +112,12 @@ export function SettingsSecurityTab() {
         <Table withTableBorder className="dense-list-table" style={{ minWidth: 480 }}>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th style={sessionsScrollable ? stickyHeaderTh : undefined}>Created</Table.Th>
-              <Table.Th style={sessionsScrollable ? stickyHeaderTh : undefined}>Expires</Table.Th>
+              <Table.Th style={sessionsScrollable ? stickyHeaderTh : undefined}>
+                {t('security.createdHeader')}
+              </Table.Th>
+              <Table.Th style={sessionsScrollable ? stickyHeaderTh : undefined}>
+                {t('security.expiresHeader')}
+              </Table.Th>
               <Table.Th style={sessionsScrollable ? stickyHeaderTh : undefined} />
             </Table.Tr>
           </Table.Thead>
@@ -119,7 +133,7 @@ export function SettingsSecurityTab() {
                 <Table.Td>
                   {s.isCurrent ? (
                     <Badge size="sm" variant="filled">
-                      Current session
+                      {t('security.currentSession')}
                     </Badge>
                   ) : (
                     <Button
@@ -129,7 +143,7 @@ export function SettingsSecurityTab() {
                       onClick={() => revokeSession.mutate({ sessionId: s.id, isCurrent: false })}
                       loading={revokeSession.isPending}
                     >
-                      Revoke
+                      {t('security.revoke')}
                     </Button>
                   )}
                 </Table.Td>
@@ -147,7 +161,7 @@ export function SettingsSecurityTab() {
           <Stack gap={SETTINGS_FIELD_LABEL_GAP} style={{ flex: 1, minWidth: 0 }}>
             <SettingsCardTitle jumpId="sessions" />
             <Text size="xs" c="dimmed">
-              Active sessions. Revoke others to log them out.
+              {t('security.description')}
             </Text>
           </Stack>
           {hasOtherSessions ? (
@@ -158,7 +172,7 @@ export function SettingsSecurityTab() {
               onClick={() => revokeAllOtherSessions.mutate()}
               loading={revokeAllOtherSessions.isPending}
             >
-              Revoke all other sessions
+              {t('security.revokeAllOthers')}
             </Button>
           ) : null}
         </Group>
@@ -178,7 +192,7 @@ export function SettingsSecurityTab() {
           )
         ) : (
           <Text size="sm" c="dimmed">
-            No sessions.
+            {t('security.noSessions')}
           </Text>
         )}
       </Stack>

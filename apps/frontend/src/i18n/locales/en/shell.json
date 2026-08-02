@@ -44,6 +44,13 @@
   },
   "people": "People",
   "create": "Create",
+  "whatsNew": {
+    "loadErrorTitle": "Could not load release notes",
+    "loadErrorBody": "Please try again later.",
+    "empty": "No release notes available yet.",
+    "helpLink": "Help & guides →",
+    "latestBadge": "Latest"
+  },
   "toasts": {
     "themeUpdated": "Theme preference saved.",
     "themeUpdateFailed": "Could not save theme preference."

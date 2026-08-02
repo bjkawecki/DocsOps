@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client.js';
 import type { CommentsListResponse } from './documentCommentTypes.js';
 import { commentsInfiniteQueryKey, PAGE_SIZE } from './documentCommentsConstants.js';
@@ -21,6 +22,7 @@ export function useDocumentCommentsData({
   onCreateSuccess,
   onPatchSuccess,
 }: UseDocumentCommentsDataOptions) {
+  const { t } = useTranslation('documents');
   const queryClient = useQueryClient();
   const onCreateSuccessRef = useRef(onCreateSuccess);
   const onPatchSuccessRef = useRef(onPatchSuccess);
@@ -74,7 +76,7 @@ export function useDocumentCommentsData({
       void queryClient.invalidateQueries({ queryKey: commentsInvalidateKey(documentId) });
     },
     onError: (e: Error) => {
-      notifications.show({ title: 'Comment', message: e.message, color: 'red' });
+      notifications.show({ title: t('comments.toastTitle'), message: e.message, color: 'red' });
     },
   });
 
@@ -101,7 +103,7 @@ export function useDocumentCommentsData({
       void queryClient.invalidateQueries({ queryKey: commentsInvalidateKey(documentId) });
     },
     onError: (e: Error) => {
-      notifications.show({ title: 'Comment', message: e.message, color: 'red' });
+      notifications.show({ title: t('comments.toastTitle'), message: e.message, color: 'red' });
     },
   });
 
@@ -119,7 +121,7 @@ export function useDocumentCommentsData({
       void queryClient.invalidateQueries({ queryKey: commentsInvalidateKey(documentId) });
     },
     onError: (e: Error) => {
-      notifications.show({ title: 'Comment', message: e.message, color: 'red' });
+      notifications.show({ title: t('comments.toastTitle'), message: e.message, color: 'red' });
     },
   });
 

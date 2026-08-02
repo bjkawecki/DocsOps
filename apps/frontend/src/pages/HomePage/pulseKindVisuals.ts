@@ -19,31 +19,34 @@ export const PULSE_KIND_ICON: Record<PulseItemKind, TablerIcon> = {
   'document-comments': IconMessageCircle,
 };
 
-export const PULSE_KIND_LABEL: Record<PulseItemKind, string> = {
-  'draft-open': 'Open draft',
-  'review-awaiting': 'Review awaiting',
-  'review-decided': 'Review decided',
-  'document-new': 'New document',
-  'document-updated': 'Updated document',
-  'document-comments': 'Comments',
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+const PULSE_KIND_LABEL_KEY: Record<PulseItemKind, string> = {
+  'draft-open': 'home.pulseKindLabel.draftOpen',
+  'review-awaiting': 'home.pulseKindLabel.reviewAwaiting',
+  'review-decided': 'home.pulseKindLabel.reviewDecided',
+  'document-new': 'home.pulseKindLabel.documentNew',
+  'document-updated': 'home.pulseKindLabel.documentUpdated',
+  'document-comments': 'home.pulseKindLabel.documentComments',
 };
 
 /** Bold category label on feed line 1 (no colon, no quantity). */
-const KEYWORD_BY_KIND: Record<PulseItemKind, string> = {
-  'draft-open': 'Draft unfinished',
-  'review-awaiting': 'Review',
-  'review-decided': 'Merged suggestion',
-  'document-new': 'New Document',
-  'document-updated': 'Updated Document',
-  'document-comments': 'Comments',
+const KEYWORD_KEY_BY_KIND: Record<PulseItemKind, string> = {
+  'draft-open': 'home.pulseKeyword.draftOpen',
+  'review-awaiting': 'home.pulseKeyword.reviewAwaiting',
+  'review-decided': 'home.pulseKeyword.reviewDecided',
+  'document-new': 'home.pulseKeyword.documentNew',
+  'document-updated': 'home.pulseKeyword.documentUpdated',
+  'document-comments': 'home.pulseKeyword.documentComments',
 };
 
 export function pulseKindIcon(kind: PulseItemKind): TablerIcon {
   return PULSE_KIND_ICON[kind] ?? IconFileText;
 }
 
-export function pulseKindLabel(kind: PulseItemKind): string {
-  return PULSE_KIND_LABEL[kind] ?? kind;
+export function pulseKindLabel(kind: PulseItemKind, t: TranslateFn): string {
+  const key = PULSE_KIND_LABEL_KEY[kind];
+  return key ? t(key) : kind;
 }
 
 export type PulseDisplay = {
@@ -55,21 +58,22 @@ export type PulseDisplay = {
   subject: string;
 };
 
-function subjectLine(item: Pick<PulseItem, 'title' | 'meta'>): string {
-  const title = item.title.trim() || 'Untitled';
+function subjectLine(item: Pick<PulseItem, 'title' | 'meta'>, t: TranslateFn): string {
+  const title = item.title.trim() || t('common:status.untitled');
   const parts: string[] = [title];
   const scope = item.meta.scopeName?.trim();
   const ctx = item.meta.contextName?.trim();
-  if (scope) parts.push(`Scope: ${scope}`);
-  if (ctx) parts.push(`Context: ${ctx}`);
+  if (scope) parts.push(t('home.pulseSubject.scope', { scope }));
+  if (ctx) parts.push(t('home.pulseSubject.context', { context: ctx }));
   return parts.join(' · ');
 }
 
-function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>): string {
+function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>, t: TranslateFn): string {
   if (item.kind === 'review-decided' && item.meta.decision === 'rejected') {
-    return 'Rejected suggestion';
+    return t('home.pulseKeyword.reviewRejected');
   }
-  return KEYWORD_BY_KIND[item.kind] ?? 'Update';
+  const key = KEYWORD_KEY_BY_KIND[item.kind];
+  return key ? t(key) : t('home.pulseKeyword.fallback');
 }
 
 /**
@@ -77,11 +81,12 @@ function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>): string {
  * Category never includes colon or quantity (those stay out of the headline).
  */
 export function getPulseDisplay(
-  item: Pick<PulseItem, 'kind' | 'title' | 'body' | 'meta'>
+  item: Pick<PulseItem, 'kind' | 'title' | 'body' | 'meta'>,
+  t: TranslateFn
 ): PulseDisplay {
   return {
-    keyword: categoryKeyword(item),
+    keyword: categoryKeyword(item, t),
     detail: '',
-    subject: subjectLine(item),
+    subject: subjectLine(item, t),
   };
 }

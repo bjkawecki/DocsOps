@@ -1,5 +1,6 @@
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
-import type { BackupRun } from './adminBackupTypes';
+import { useTranslation } from 'react-i18next';
+import type { BackupRun, TranslateFn } from './adminBackupTypes';
 
 type Props = {
   run: BackupRun | null;
@@ -9,33 +10,28 @@ type Props = {
   loading: boolean;
 };
 
-function deleteConfirmMessage(run: BackupRun): string {
+function deleteConfirmMessage(run: BackupRun, t: TranslateFn): string {
   const hasExternal = Boolean(run.remotePath);
   const hasLocal = Boolean(run.localObjectKey);
 
-  if (hasLocal && hasExternal) {
-    return 'Remove the local copy from DocsOps and delete this entry from backup history. The archive on the external destination is kept.';
-  }
-  if (hasLocal && !hasExternal) {
-    return 'Remove the local copy and delete this entry from backup history. There is no external copy – this backup will no longer be available in DocsOps.';
-  }
-  if (!hasLocal && hasExternal) {
-    return 'Delete this entry from backup history in DocsOps. The archive on the external destination is kept.';
-  }
-  return 'Delete this entry from backup history in DocsOps. No local or external copy exists.';
+  if (hasLocal && hasExternal) return t('backup.deleteModal.bothCopies');
+  if (hasLocal && !hasExternal) return t('backup.deleteModal.localOnly');
+  if (!hasLocal && hasExternal) return t('backup.deleteModal.externalOnly');
+  return t('backup.deleteModal.neither');
 }
 
 export function AdminBackupDeleteModal({ run, opened, onClose, onConfirm, loading }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete backup?" size="sm">
+    <Modal opened={opened} onClose={onClose} title={t('backup.deleteModal.title')} size="sm">
       <Stack gap="md">
-        <Text size="sm">{run ? deleteConfirmMessage(run) : ''}</Text>
+        <Text size="sm">{run ? deleteConfirmMessage(run, t) : ''}</Text>
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button color="red" loading={loading} onClick={onConfirm}>
-            Delete
+            {t('common:actions.delete')}
           </Button>
         </Group>
       </Stack>

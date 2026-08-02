@@ -1,3 +1,7 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+
 export type BroadcastTargetKind =
   | 'all'
   | 'admins'
@@ -37,21 +41,37 @@ export type BroadcastDraft = {
   sendAtLocal: string;
 };
 
-export const BROADCAST_TARGET_LABELS: Record<BroadcastTargetKind, string> = {
-  all: 'All active users',
-  admins: 'Administrators',
-  company_leads: 'Company leads',
-  department_leads: 'Department leads',
-  team_leads: 'Team leads',
-  users: 'Selected users',
+const BROADCAST_TARGET_TRANSLATION_KEYS: Record<BroadcastTargetKind, string> = {
+  all: 'all',
+  admins: 'admins',
+  company_leads: 'companyLeads',
+  department_leads: 'departmentLeads',
+  team_leads: 'teamLeads',
+  users: 'users',
 };
 
-export const BROADCAST_TARGET_OPTIONS = (
-  Object.entries(BROADCAST_TARGET_LABELS) as Array<[BroadcastTargetKind, string]>
-).map(([value, label]) => ({ value, label }));
+function buildBroadcastTargetLabel(t: TFunction) {
+  return (targetKind: string): string => {
+    const key = BROADCAST_TARGET_TRANSLATION_KEYS[targetKind as BroadcastTargetKind];
+    return key ? t(`broadcast.targets.${key}`) : targetKind;
+  };
+}
 
-export function broadcastTargetLabel(targetKind: string): string {
-  return BROADCAST_TARGET_LABELS[targetKind as BroadcastTargetKind] ?? targetKind;
+export function useBroadcastTargetLabel(): (targetKind: string) => string {
+  const { t } = useTranslation('admin');
+  return useMemo(() => buildBroadcastTargetLabel(t), [t]);
+}
+
+export function useBroadcastTargetOptions(): Array<{ value: BroadcastTargetKind; label: string }> {
+  const { t } = useTranslation('admin');
+  return useMemo(
+    () =>
+      (Object.keys(BROADCAST_TARGET_TRANSLATION_KEYS) as BroadcastTargetKind[]).map((value) => ({
+        value,
+        label: t(`broadcast.targets.${BROADCAST_TARGET_TRANSLATION_KEYS[value]}`),
+      })),
+    [t]
+  );
 }
 
 export {

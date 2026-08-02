@@ -382,8 +382,12 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] **i18n-Gerüst:** `i18next` + `react-i18next`; JSON unter `apps/frontend/src/i18n/locales/{en,de}/`; Namespaces; Fallback EN.
 [x] **Locale-Wiring:** Preference → `?lang=` → Browser → `en`; Settings „Interface language“ anwenden; Mantine-Dates/`Intl` an Locale koppeln.
-[x] **Phase 1 UI EN+DE:** Shell, Login/Demo-Login, Settings, häufige Toasts, Home/Catalog-Kern, Admin-Nav + häufige Primary-Actions. Help bleibt EN.
-[x] **Pflege-Schutz:** ESLint gegen Literal-Strings und/oder CI „DE-Keys ⊆ EN-Keys“; Review-Regel neue UI-Texte nur via Keys.
+[x] **Phase 1 UI EN+DE:** Shell, Login/Demo-Login, Settings Appearance, häufige Toasts, Home/Catalog-Kern, Admin-Nav + häufige Primary-Actions. Help bleibt EN.
+[x] **Pflege-Schutz:** CI „DE-Keys ⊆ EN-Keys“ (`pnpm run check:i18n`); Review-Regel neue UI-Texte nur via Keys.
+[x] **Phase 2 Daily UX EN+DE:** Document Editor/Viewer, Approvals/Reviews, Notifications Inbox, Settings-Resttabs, common-Toasts/Status.
+[x] **Phase 3 Workspace-Rest EN+DE:** Context/Org Workspace, Catalog/Home/Search-Reste, Templates, Trash/Archive/Drafts-Chrome, Scope People, What's-new-Chrome.
+[x] **Phase 4 Admin-Tiefe EN+DE:** Backup, Migration, System/Mail-Detail, Jobs/Scheduler, Org-Forms/Tabellen-Rest.
+[ ] **Help-DE / Demo-Seed DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
 
 **Demo-Instanz (`demo.docsops.de`):**
 

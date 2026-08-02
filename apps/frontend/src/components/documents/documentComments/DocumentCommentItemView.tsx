@@ -1,5 +1,6 @@
 import { Badge, Box, Button, Group, Select, Stack, Text, Textarea } from '@mantine/core';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import type { DocumentCommentItem } from './documentCommentTypes.js';
 import { headingLabel } from './documentCommentsConstants.js';
 import { formatCommentMentionText } from './documentCommentMentionUtils.js';
@@ -41,6 +42,7 @@ export function DocumentCommentItemView({
   patchMutation,
   deleteMutation,
 }: Props) {
+  const { t } = useTranslation('documents');
   const isAuthor = currentUserId != null && c.authorId === currentUserId;
   const canEdit = isAuthor;
   const showDelete = c.canDelete;
@@ -60,7 +62,7 @@ export function DocumentCommentItemView({
     >
       {rootRemoved ? (
         <Text size="sm" c="dimmed" fs="italic">
-          Dieser Kommentar wurde entfernt.
+          {t('comments.removed')}
         </Text>
       ) : (
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="sm">
@@ -71,14 +73,16 @@ export function DocumentCommentItemView({
               </Text>
               <Text span size="xs" c="dimmed" fw={400}>
                 {new Date(c.createdAt).toLocaleString()}
-                {c.updatedAt !== c.createdAt ? ' · edited' : ''}
+                {c.updatedAt !== c.createdAt ? ` · ${t('comments.edited')}` : ''}
               </Text>
               {c.parentId == null &&
                 c.anchorHeadingId != null &&
                 c.anchorHeadingId !== '' &&
                 headingLabel(headings, c.anchorHeadingId) != null && (
                   <Badge size="xs" variant="filled" color="gray">
-                    Section: {headingLabel(headings, c.anchorHeadingId)}
+                    {t('comments.sectionLabel', {
+                      section: headingLabel(headings, c.anchorHeadingId),
+                    })}
                   </Badge>
                 )}
             </Group>
@@ -93,8 +97,8 @@ export function DocumentCommentItemView({
                 {isRoot && headings.length > 0 && (
                   <Select
                     size="sm"
-                    label="Section (optional)"
-                    placeholder="No section"
+                    label={t('comments.editSectionLabel')}
+                    placeholder={t('comments.noSection')}
                     clearable
                     data={headings.map((h) => ({ value: h.id, label: h.text }))}
                     value={editAnchorSlug}
@@ -122,7 +126,7 @@ export function DocumentCommentItemView({
                     }}
                     loading={patchMutation.isPending}
                   >
-                    Save
+                    {t('comments.save')}
                   </Button>
                   <Button
                     size="xs"
@@ -132,7 +136,7 @@ export function DocumentCommentItemView({
                       setEditAnchorSlug(null);
                     }}
                   >
-                    Cancel
+                    {t('comments.cancel')}
                   </Button>
                 </Group>
               </Stack>
@@ -158,7 +162,7 @@ export function DocumentCommentItemView({
                     );
                   }}
                 >
-                  Edit
+                  {t('comments.edit')}
                 </Button>
               )}
               {showDelete && (
@@ -168,12 +172,12 @@ export function DocumentCommentItemView({
                   color="red"
                   loading={deleteMutation.isPending}
                   onClick={() => {
-                    if (window.confirm('Delete this comment?')) {
+                    if (window.confirm(t('comments.confirmDelete'))) {
                       deleteMutation.mutate(c.id);
                     }
                   }}
                 >
-                  Delete
+                  {t('comments.delete')}
                 </Button>
               )}
             </Group>

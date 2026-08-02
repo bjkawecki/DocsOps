@@ -1,4 +1,5 @@
 import { Group, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import {
   formatBytes,
   formatPlatformRunStatus,
@@ -13,6 +14,7 @@ type Props = {
 };
 
 function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus }) {
+  const { t } = useTranslation('admin');
   const { lastExportRun, activeExportRun } = status;
   const canDownload = lastExportRun?.status === 'succeeded' && lastExportRun.localObjectKey != null;
 
@@ -20,7 +22,7 @@ function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus 
     return (
       <Group gap={6} wrap="wrap" align="center">
         <Text size="sm" c="dimmed">
-          Export in progress…
+          {t('migration.overview.exportInProgress')}
         </Text>
         {canDownload && lastExportRun ? (
           <Text
@@ -37,7 +39,7 @@ function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus 
             }}
             onClick={() => triggerPlatformExportDownload(lastExportRun.id)}
           >
-            Download previous archive
+            {t('migration.overview.downloadPreviousArchive')}
           </Text>
         ) : null}
       </Group>
@@ -67,7 +69,7 @@ function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus 
           }}
           onClick={() => triggerPlatformExportDownload(lastExportRun.id)}
         >
-          Download export archive
+          {t('migration.overview.downloadExportArchive')}
         </Text>
       </Group>
     );
@@ -76,14 +78,16 @@ function ExportArchiveCommandHint({ status }: { status: PlatformMigrationStatus 
   if (lastExportRun && lastExportRun.status !== 'succeeded') {
     return (
       <Text size="sm" c="dimmed">
-        Last export {formatPlatformRunStatus(lastExportRun.status, 'export').toLowerCase()}.
+        {t('migration.overview.lastExportStatus', {
+          status: formatPlatformRunStatus(lastExportRun.status, 'export', t),
+        })}
       </Text>
     );
   }
 
   return (
     <Text size="sm" c="dimmed">
-      No export archive yet.
+      {t('migration.overview.noExportArchiveYet')}
     </Text>
   );
 }

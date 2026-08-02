@@ -17,6 +17,7 @@ import {
 } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconCheck, IconChevronDown, IconCopy, IconExternalLink } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 const modalCodeBlockStyle = {
   whiteSpace: 'pre',
@@ -47,6 +48,7 @@ function OneClickUpdateSetupAlert({
   missingEnvVars: string[];
   modalOpened: boolean;
 }) {
+  const { t } = useTranslation('admin');
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -63,7 +65,7 @@ function OneClickUpdateSetupAlert({
       >
         <Group justify="space-between" wrap="nowrap" gap="xs">
           <Text size="sm" fw={600} c="red">
-            One-click update not available
+            {t('system.updateStepsModal.oneClickNotAvailable')}
           </Text>
           <IconChevronDown
             size={18}
@@ -81,30 +83,29 @@ function OneClickUpdateSetupAlert({
       <Collapse in={expanded}>
         <Stack gap="sm" pt="sm" style={{ minWidth: 0 }}>
           <Text size="sm" fw={500}>
-            Missing on this instance:
+            {t('system.updateStepsModal.missingOnInstance')}
           </Text>
           <List size="sm" spacing="xs">
             {missingEnvVars.map((name) => (
               <List.Item key={name}>
-                <Code>{name}</Code> in the server environment file
+                <Code>{name}</Code> {t('system.updateStepsModal.envVarHintSuffix')}
               </List.Item>
             ))}
             <List.Item>
-              <Code>docsops-agent</Code> systemd service running on the host
+              <Code>docsops-agent</Code> {t('system.updateStepsModal.agentServiceHint')}
             </List.Item>
           </List>
           <Text size="sm" fw={500} mt="xs">
-            Production installs include the host agent automatically. If this instance was created
-            before the host-agent release, reinstall from a current release bundle.
+            {t('system.updateStepsModal.productionIncludesAgent')}
           </Text>
           <Text size="sm" c="dimmed">
-            Expected env entries:
+            {t('system.updateStepsModal.expectedEnvEntries')}
           </Text>
           <Code block w="100%" style={modalCodeBlockStyle}>
             {AGENT_ENV_EXAMPLE}
           </Code>
           <Text size="sm" c="dimmed">
-            Check agent health on the server:
+            {t('system.updateStepsModal.checkAgentHealth')}
           </Text>
           <Code block w="100%" style={modalCodeBlockStyle}>
             {AGENT_STATUS_COMMAND}
@@ -123,51 +124,54 @@ export function AdminSystemUpdateStepsModal({
   agentConfigured = false,
   agentMissingEnvVars = [],
 }: Props) {
+  const { t } = useTranslation('admin');
   const updateCommand = 'sudo /opt/docsops/scripts/update.sh';
 
   return (
-    <Modal opened={opened} onClose={onClose} title="How to update (SSH)" size="md">
+    <Modal opened={opened} onClose={onClose} title={t('system.updateStepsModal.title')} size="md">
       <Stack gap="md">
         {agentConfigured ? (
           <Text size="sm">
-            For production, prefer <strong>Apply update</strong> on this tab (automatic backup, then
-            upgrade). Use the steps below only for manual updates on the host.
+            {t('system.updateStepsModal.productionHintBefore')}{' '}
+            <strong>{t('system.updateStepsModal.productionHintPrimaryLabel')}</strong>{' '}
+            {t('system.updateStepsModal.productionHintAfter')}
           </Text>
         ) : (
           <>
             <OneClickUpdateSetupAlert missingEnvVars={agentMissingEnvVars} modalOpened={opened} />
             <Text size="sm">
-              Until one-click update is configured, upgrade on the host via SSH. Create an
-              operational backup in{' '}
+              {t('system.updateStepsModal.manualUpgradeHintBefore')}{' '}
               <Text component={Link} to="/admin/data/backup" fw={500}>
-                Admin → Backup
+                {t('system.updateStepsModal.adminBackupLink')}
               </Text>{' '}
-              first.
+              {t('system.updateStepsModal.manualUpgradeHintAfter')}
             </Text>
           </>
         )}
 
         {agentConfigured ? (
           <Text size="sm" c="dimmed">
-            For a manual run, create a backup first in{' '}
+            {t('system.updateStepsModal.manualBackupHintBefore')}{' '}
             <Text component={Link} to="/admin/data/backup" fw={500}>
-              Admin → Backup
+              {t('system.updateStepsModal.adminBackupLink')}
             </Text>
             .
           </Text>
         ) : null}
 
         <Text size="sm" fw={500}>
-          Manual upgrade on the host
+          {t('system.updateStepsModal.manualUpgradeTitle')}
         </Text>
         {latestReleaseTag == null ? (
           <Text size="sm" c="dimmed">
-            Without a version argument, <Code>update.sh</Code> delegates to{' '}
-            <Code>docsops-agent</Code> and uses the latest GitHub release.
+            {t('system.updateStepsModal.defaultVersionHintBefore')} <Code>update.sh</Code>{' '}
+            {t('system.updateStepsModal.defaultVersionHintAfter')} <Code>docsops-agent</Code>{' '}
+            {t('system.updateStepsModal.defaultVersionHintEnd')}
           </Text>
         ) : (
           <Text size="sm" c="dimmed">
-            Latest release: <Code>{latestReleaseTag}</Code>. Pin:{' '}
+            {t('system.updateStepsModal.pinnedVersionHintBefore')} <Code>{latestReleaseTag}</Code>.{' '}
+            {t('system.updateStepsModal.pinnedVersionHintPin')}{' '}
             <Code>sudo /opt/docsops/scripts/update.sh {latestReleaseTag}</Code>
           </Text>
         )}
@@ -177,11 +181,22 @@ export function AdminSystemUpdateStepsModal({
           </Code>
           <CopyButton value={updateCommand} timeout={2000}>
             {({ copied, copy }) => (
-              <Tooltip label={copied ? 'Copied' : 'Copy command'} withArrow>
+              <Tooltip
+                label={
+                  copied
+                    ? t('system.updateStepsModal.copied')
+                    : t('system.updateStepsModal.copyCommand')
+                }
+                withArrow
+              >
                 <ActionIcon
                   variant="light"
                   size="lg"
-                  aria-label={copied ? 'Copied' : 'Copy command'}
+                  aria-label={
+                    copied
+                      ? t('system.updateStepsModal.copied')
+                      : t('system.updateStepsModal.copyCommand')
+                  }
                   onClick={copy}
                 >
                   {copied ? <IconCheck size={18} /> : <IconCopy size={18} />}
@@ -194,14 +209,14 @@ export function AdminSystemUpdateStepsModal({
         {releaseUrl != null && (
           <Anchor href={releaseUrl} target="_blank" rel="noreferrer" size="sm">
             <Group gap={4} component="span">
-              View release on GitHub
+              {t('system.updateStepsModal.viewReleaseOnGithub')}
               <IconExternalLink size={14} />
             </Group>
           </Anchor>
         )}
 
         <Group justify="flex-end">
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t('system.updateStepsModal.close')}</Button>
         </Group>
       </Stack>
     </Modal>

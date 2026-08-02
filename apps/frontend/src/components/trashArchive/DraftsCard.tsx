@@ -1,5 +1,6 @@
 import { Box, Card, Group, Stack, Text } from '@mantine/core';
 import { IconPencil } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ViewMoreButton } from '../contexts/cardShared';
 import { useMeDrafts, type MeDraftsScopeParams } from '../../hooks/useMeDrafts';
@@ -37,6 +38,7 @@ export function DraftsCard({
   enabled = true,
   onViewMore,
 }: DraftsCardProps) {
+  const { t } = useTranslation(['documents', 'common']);
   const { data, isPending } = useMeDrafts(scopeParams, { limit, offset: 0, enabled });
 
   const draftDocuments = (data?.draftDocuments ?? []).slice(0, 3);
@@ -50,16 +52,20 @@ export function DraftsCard({
             <Group gap="xs" wrap="nowrap">
               <IconPencil size={18} style={{ flexShrink: 0 }} />
               <Text fw={600} size="md">
-                {data?.total !== undefined ? `Drafts (${data.total})` : 'Drafts'}
+                {data?.total !== undefined
+                  ? t('documents:trashArchive.draftsCard.draftsTitleWithCount', {
+                      count: data.total,
+                    })
+                  : t('documents:trashArchive.draftsCard.draftsTitle')}
               </Text>
             </Group>
             {isPending ? (
               <Text size="sm" c="dimmed">
-                Loading…
+                {t('common:status.loading')}
               </Text>
             ) : !hasDrafts ? (
               <Text size="sm" c="dimmed">
-                No unpublished drafts.
+                {t('documents:trashArchive.draftsCard.empty')}
               </Text>
             ) : (
               <DraftPreviewLinks items={draftDocuments} to={(id) => `/documents/${id}`} />

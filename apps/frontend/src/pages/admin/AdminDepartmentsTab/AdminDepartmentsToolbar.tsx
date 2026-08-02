@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AdminEntityListToolbar } from '../AdminEntityListToolbar';
 import { DEPARTMENTS_PAGE_SIZE_KEY } from './adminDepartmentsTabConstants';
 
@@ -23,17 +24,18 @@ export function AdminDepartmentsToolbar(props: AdminDepartmentsToolbarProps) {
     limit,
     onLimitChange,
   } = props;
+  const { t } = useTranslation('admin');
 
   return (
     <AdminEntityListToolbar
-      searchPlaceholder="Search (department, company)"
+      searchPlaceholder={t('departments.toolbar.searchPlaceholder')}
       filterText={filterText}
       onFilterTextChange={onFilterTextChange}
-      scopeSelectPlaceholder="Company"
+      scopeSelectPlaceholder={t('departments.toolbar.companyPlaceholder')}
       scopeSelectData={companyOptions}
       scopeSelectValue={filterCompanyId}
       onScopeSelectChange={onFilterCompanyIdChange}
-      countLine={`${filteredDepartmentsCount} department(s)`}
+      countLine={t('departments.toolbar.countLine', { count: filteredDepartmentsCount })}
       limit={limit}
       onLimitChange={onLimitChange}
       pageSizeLocalStorageKey={DEPARTMENTS_PAGE_SIZE_KEY}

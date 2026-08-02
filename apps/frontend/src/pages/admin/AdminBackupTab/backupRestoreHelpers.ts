@@ -1,4 +1,6 @@
-import type { BackupRun } from './adminBackupTypes';
+import type { BackupRun, TranslateFn } from './adminBackupTypes';
+import { formatBackupRunStatusLabel } from './backupRunPolling';
+import { formatRestoreStatusLabel } from './restoreRunPolling';
 
 export function listRestorableBackups(runs: BackupRun[] | undefined): BackupRun[] {
   return (runs ?? []).filter((run) => run.status === 'succeeded' && run.localObjectKey != null);
@@ -10,25 +12,32 @@ export function formatBackupRunLabel(run: BackupRun): string {
   return `${when}${size}`;
 }
 
-export function formatActiveJobStatus(args: {
-  maintenanceActive: boolean;
-  maintenanceReason?: string | null;
-  backupRuns?: BackupRun[];
-  restoreStatus?: string | null;
-}): string | null {
+export function formatActiveJobStatus(
+  args: {
+    maintenanceActive: boolean;
+    maintenanceReason?: string | null;
+    backupRuns?: BackupRun[];
+    restoreStatus?: string | null;
+  },
+  t: TranslateFn
+): string | null {
   if (args.maintenanceActive) {
     if (args.maintenanceReason === 'restore') {
       return args.restoreStatus
-        ? `Disaster recovery restore in progress (${args.restoreStatus.replace(/_/g, ' ')})`
-        : 'Disaster recovery restore in progress';
+        ? t('backup.activeJob.restoreInProgressWithStatus', {
+            status: formatRestoreStatusLabel(args.restoreStatus, t),
+          })
+        : t('backup.activeJob.restoreInProgress');
     }
     const inProgressBackup = args.backupRuns?.find((r) =>
       ['queued', 'running', 'uploading'].includes(r.status)
     );
     if (inProgressBackup) {
-      return `Backup in progress (${inProgressBackup.status})`;
+      return t('backup.activeJob.backupInProgress', {
+        status: formatBackupRunStatusLabel(inProgressBackup.status, t),
+      });
     }
-    return 'Maintenance in progress';
+    return t('backup.activeJob.maintenanceInProgress');
   }
   return null;
 }

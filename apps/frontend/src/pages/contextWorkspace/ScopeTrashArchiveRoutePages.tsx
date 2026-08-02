@@ -1,5 +1,6 @@
 import { Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
@@ -8,6 +9,7 @@ import { ScopeTrashArchivePage, type ScopeTrashArchiveKind } from './ScopeTrashA
 export type { ScopeTrashArchiveKind };
 
 export function CompanyTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind }) {
+  const { t } = useTranslation(['contexts', 'common']);
   const { data: me, isPending: mePending } = useMe();
   const isAdmin = me?.user?.isAdmin === true;
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
@@ -43,7 +45,7 @@ export function CompanyTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind 
   if (mePending || (isAdmin && !companyIdFromLead && !companyIdFromTeam && firstCompanyPending)) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('common:status.loading')}
       </Text>
     );
   }
@@ -51,7 +53,7 @@ export function CompanyTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind 
   if (!effectiveCompanyId) {
     return (
       <Text size="sm" c="dimmed">
-        No company available.
+        {t('routePages.noCompany')}
       </Text>
     );
   }
@@ -110,12 +112,13 @@ export function TeamTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind }) 
 }
 
 export function PersonalTrashArchivePage({ kind }: { kind: ScopeTrashArchiveKind }) {
+  const { t } = useTranslation('contexts');
   return (
     <ScopeTrashArchivePage
       navScope={{ type: 'personal' }}
       trashScope="personal"
       kind={kind}
-      scopeLabel="Personal"
+      scopeLabel={t('scopeKind.personal')}
       canManage
     />
   );

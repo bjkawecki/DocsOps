@@ -6,6 +6,7 @@
     "close": "Schließen",
     "create": "Anlegen",
     "delete": "Löschen",
+    "edit": "Bearbeiten",
     "retry": "Erneut versuchen"
   },
   "errors": {
@@ -15,6 +16,31 @@
   "status": {
     "loading": "Laden…",
     "active": "Aktiv",
-    "empty": "Hier ist noch nichts."
+    "empty": "Hier ist noch nichts.",
+    "untitled": "Unbenannt"
+  },
+  "toasts": {
+    "error": "Etwas ist schiefgelaufen.",
+    "saved": "Gespeichert"
+  },
+  "scopePeople": {
+    "loadFailed": "Personen konnten nicht geladen werden.",
+    "refreshFailed": "Liste konnte nicht aktualisiert werden.",
+    "noMembersYet": "Noch keine Mitglieder.",
+    "noMembers": "Keine Mitglieder.",
+    "departmentLeads": "Abteilungsleitung",
+    "companyLeads": "Unternehmensleitung",
+    "authors": "Autoren",
+    "roleLeadMember": "Leitung, Mitglied",
+    "roleLead": "Leitung",
+    "roleAuthor": "Autor",
+    "roleMember": "Mitglied",
+    "setAsMember": "Als Mitglied festlegen",
+    "setAsAuthor": "Als Autor festlegen",
+    "setAsMemberInTeam": "Mitglied · {{team}}",
+    "peopleOnlineSummary": "{{count}} · {{online}} online",
+    "companySummary": "{{departments}} Abteilungen · {{people}} Personen · {{online}} aktiv",
+    "departmentDetailSummary": "{{teams}} Teams · {{people}} Personen · {{online}} aktiv",
+    "teamDetailSummary": "{{people}} Personen · {{online}} aktiv"
   }
 }

@@ -21,11 +21,16 @@ export type DocumentSearchResponse = {
   offset: number;
 };
 
-export function documentSearchContextSubtitle(doc: DocumentSearchItem): string | null {
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+export function documentSearchContextSubtitle(
+  doc: DocumentSearchItem,
+  t: TranslateFn
+): string | null {
   const name = doc.contextName?.trim();
   if (name) return name;
-  if (doc.contextType === 'process') return 'Process';
-  if (doc.contextType === 'project') return 'Project';
-  if (doc.contextType === 'subcontext') return 'Subcontext';
+  if (doc.contextType === 'process') return t('documents:breadcrumbs.process');
+  if (doc.contextType === 'project') return t('documents:breadcrumbs.project');
+  if (doc.contextType === 'subcontext') return t('documents:breadcrumbs.subcontext');
   return null;
 }

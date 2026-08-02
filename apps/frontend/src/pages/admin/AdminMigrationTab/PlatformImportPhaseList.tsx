@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { List, Loader, Text, ThemeIcon } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { formatPlatformImportStatus, getImportPhaseProgress } from './adminMigrationTypes';
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export function PlatformImportPhaseList({ status }: Props) {
+  const { t } = useTranslation('admin');
   const progress = getImportPhaseProgress(status);
 
   return (
@@ -50,7 +52,7 @@ export function PlatformImportPhaseList({ status }: Props) {
               c={isFailed ? 'red' : isCompleted ? 'dimmed' : undefined}
               fw={isCurrent || isFailed ? 500 : undefined}
             >
-              {formatPlatformImportStatus(phase)}
+              {formatPlatformImportStatus(phase, t)}
             </Text>
           </List.Item>
         );
@@ -64,7 +66,7 @@ export function PlatformImportPhaseList({ status }: Props) {
           }
         >
           <Text size="sm" c="red" fw={500}>
-            Import failed
+            {t('migration.phaseList.importFailed')}
           </Text>
         </List.Item>
       ) : null}
@@ -77,7 +79,7 @@ export function PlatformImportPhaseList({ status }: Props) {
           }
         >
           <Text size="sm" fw={500}>
-            Import complete
+            {t('migration.phaseList.importComplete')}
           </Text>
         </List.Item>
       ) : null}

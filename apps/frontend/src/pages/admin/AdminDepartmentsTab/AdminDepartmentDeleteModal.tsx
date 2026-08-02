@@ -1,4 +1,5 @@
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { DepartmentWithCompany } from './adminDepartmentsTabTypes';
 
 export type AdminDepartmentDeleteModalProps = {
@@ -16,20 +17,18 @@ export function AdminDepartmentDeleteModal({
   onConfirmDelete,
   deleteLoading,
 }: AdminDepartmentDeleteModalProps) {
+  const { t } = useTranslation('admin');
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete department" size="sm">
+    <Modal opened={opened} onClose={onClose} title={t('departments.deleteModal.title')} size="sm">
       {department && (
         <Stack>
-          <Text size="sm">
-            Really delete department &quot;{department.name}&quot;? Not possible when teams or
-            dependencies exist.
-          </Text>
+          <Text size="sm">{t('departments.deleteModal.body', { name: department.name })}</Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button color="red" onClick={onConfirmDelete} loading={deleteLoading}>
-              Delete
+              {t('common:actions.delete')}
             </Button>
           </Group>
         </Stack>

@@ -1,13 +1,13 @@
-import { BACKUP_SCHEDULE_PRESETS } from './adminBackupTypes';
+import type { TranslateFn } from './adminBackupTypes';
 
-const WEEKDAYS = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
+const WEEKDAY_KEYS = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
 ] as const;
 
 function pad2(value: string): string {
@@ -16,44 +16,51 @@ function pad2(value: string): string {
 
 export function formatBackupScheduleLabel(
   cron: string | null | undefined,
-  tz: string | null | undefined
+  tz: string | null | undefined,
+  t: TranslateFn
 ): string {
-  if (!cron?.trim()) return 'Scheduled';
+  if (!cron?.trim()) return t('backup.schedule.scheduled');
 
   const normalizedCron = cron.trim();
   const tzLabel = tz?.trim() || 'UTC';
 
-  const preset = BACKUP_SCHEDULE_PRESETS.find(
-    (item) => item.cron === normalizedCron && item.tz === tzLabel
-  );
-  if (preset) return preset.label;
-
   const parts = normalizedCron.split(/\s+/);
-  if (parts.length !== 5) return `${normalizedCron} (${tzLabel})`;
+  if (parts.length !== 5) {
+    return t('backup.schedule.rawCron', { cron: normalizedCron, tz: tzLabel });
+  }
 
   const [minute, hour, dayOfMonth, , weekday] = parts;
 
   const intervalMatch = /^\*\/(\d+)$/.exec(minute);
   if (intervalMatch && hour === '*' && dayOfMonth === '*' && weekday === '*') {
-    return `Every ${intervalMatch[1]} minutes (${tzLabel})`;
+    return t('backup.schedule.everyMinutes', { minutes: intervalMatch[1], tz: tzLabel });
   }
 
   if (hour === '*' && dayOfMonth === '*' && weekday === '*') {
-    return `Hourly at :${pad2(minute)} (${tzLabel})`;
+    return t('backup.schedule.hourlyAt', { minute: pad2(minute), tz: tzLabel });
   }
 
   if (dayOfMonth === '*' && weekday !== '*') {
-    const dow = WEEKDAYS[Number.parseInt(weekday, 10)] ?? weekday;
-    return `Weekly on ${dow} at ${pad2(hour)}:${pad2(minute)} ${tzLabel}`;
+    const dowKey = WEEKDAY_KEYS[Number.parseInt(weekday, 10)];
+    const day = dowKey ? t(`backup.schedule.weekdays.${dowKey}`) : weekday;
+    return t('backup.schedule.weeklyOn', {
+      day,
+      time: `${pad2(hour)}:${pad2(minute)}`,
+      tz: tzLabel,
+    });
   }
 
   if (dayOfMonth === '*' && weekday === '*') {
-    return `Daily at ${pad2(hour)}:${pad2(minute)} ${tzLabel}`;
+    return t('backup.schedule.dailyAt', { time: `${pad2(hour)}:${pad2(minute)}`, tz: tzLabel });
   }
 
   if (dayOfMonth !== '*' && weekday === '*') {
-    return `Monthly on day ${dayOfMonth} at ${pad2(hour)}:${pad2(minute)} ${tzLabel}`;
+    return t('backup.schedule.monthlyOn', {
+      day: dayOfMonth,
+      time: `${pad2(hour)}:${pad2(minute)}`,
+      tz: tzLabel,
+    });
   }
 
-  return `${normalizedCron} (${tzLabel})`;
+  return t('backup.schedule.rawCron', { cron: normalizedCron, tz: tzLabel });
 }

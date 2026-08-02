@@ -1,4 +1,4 @@
-import type { Destination } from './adminBackupTypes';
+import type { Destination, TranslateFn } from './adminBackupTypes';
 
 export type DestinationFormState = {
   name: string;
@@ -85,13 +85,13 @@ export function destinationFormFromDestination(dest: Destination): DestinationFo
   };
 }
 
-export function buildDestinationBody(form: DestinationFormState, isEdit: boolean) {
+export function buildDestinationBody(form: DestinationFormState, isEdit: boolean, t: TranslateFn) {
   if (form.type === 'S3_COMPATIBLE') {
     const credentials: Record<string, string> = {};
     if (form.s3AccessKey) credentials.accessKeyId = form.s3AccessKey;
     if (form.s3SecretKey) credentials.secretAccessKey = form.s3SecretKey;
     if (!isEdit && (!credentials.accessKeyId || !credentials.secretAccessKey)) {
-      throw new Error('Access key and secret key are required');
+      throw new Error(t('backup.destinations.validation.accessKeyAndSecretRequired'));
     }
     const region = form.s3Region.trim();
     return {
@@ -109,8 +109,12 @@ export function buildDestinationBody(form: DestinationFormState, isEdit: boolean
     const credentials: Record<string, string> = {};
     if (form.webdavUsername) credentials.username = form.webdavUsername.trim();
     if (form.webdavPassword) credentials.password = form.webdavPassword;
-    if (!isEdit && !credentials.username) throw new Error('Username is required');
-    if (!isEdit && !credentials.password) throw new Error('Password is required');
+    if (!isEdit && !credentials.username) {
+      throw new Error(t('backup.destinations.validation.usernameRequired'));
+    }
+    if (!isEdit && !credentials.password) {
+      throw new Error(t('backup.destinations.validation.passwordRequired'));
+    }
     const remotePath = form.webdavRemotePath.trim();
     const hostHeader = form.webdavHostHeader.trim();
     return {
@@ -128,9 +132,11 @@ export function buildDestinationBody(form: DestinationFormState, isEdit: boolean
   if (form.sshUser) credentials.username = form.sshUser;
   if (form.sshPassword) credentials.password = form.sshPassword;
   if (form.sshPrivateKey) credentials.privateKey = form.sshPrivateKey;
-  if (!isEdit && !credentials.username) throw new Error('Username is required');
+  if (!isEdit && !credentials.username) {
+    throw new Error(t('backup.destinations.validation.usernameRequired'));
+  }
   if (!isEdit && !credentials.password && !credentials.privateKey) {
-    throw new Error('Password or private key is required');
+    throw new Error(t('backup.destinations.validation.passwordOrPrivateKeyRequired'));
   }
   return {
     name: form.name,

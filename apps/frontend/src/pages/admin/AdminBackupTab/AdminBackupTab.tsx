@@ -9,13 +9,14 @@ import { IconSettings } from '@tabler/icons-react';
 import { apiBase, apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { meQueryKey } from '../../../hooks/useMe';
-import { buildDestinationBody, type DestinationFormState } from './adminBackupDestinationForm';
+import type { DestinationFormState } from './adminBackupDestinationForm';
 import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
 import { AdminBackupHistorySection } from './AdminBackupHistorySection';
 import { AdminBackupOverviewBar } from './AdminBackupOverviewBar';
 import { AdminBackupSettingsModal, type BackupSettingsTab } from './AdminBackupSettingsModal';
 import { AdminBackupStatusAlerts } from './AdminBackupStatusAlerts';
 import { formatActiveJobStatus } from './backupRestoreHelpers';
+import { useAdminBackupSettingsMutations } from './useAdminBackupSettingsMutations';
 import {
   type BackupRun,
   type BackupStatus,
@@ -84,7 +85,7 @@ export function AdminBackupTab() {
     queryKey: ['admin', 'backups', 'status'],
     queryFn: async (): Promise<BackupStatus> => {
       const res = await apiFetch('/api/v1/admin/backups/status');
-      if (!res.ok) throw new Error('Failed to load backup status');
+      if (!res.ok) throw new Error(t('backup.toasts.loadStatusFailed'));
       return (await res.json()) as BackupStatus;
     },
     refetchInterval: (q) => {
@@ -104,7 +105,7 @@ export function AdminBackupTab() {
     queryKey: ['admin', 'backups', 'destinations'],
     queryFn: async () => {
       const res = await apiFetch('/api/v1/admin/backup-destinations');
-      if (!res.ok) throw new Error('Failed to load external destinations');
+      if (!res.ok) throw new Error(t('backup.toasts.loadDestinationsFailed'));
       return (await res.json()) as { items: Destination[] };
     },
   });
@@ -113,7 +114,7 @@ export function AdminBackupTab() {
     queryKey: ['admin', 'restores', 'runs'],
     queryFn: async () => {
       const res = await apiFetch('/api/v1/admin/restores?limit=10&offset=0');
-      if (!res.ok) throw new Error('Failed to load restores');
+      if (!res.ok) throw new Error(t('backup.toasts.loadRestoresFailed'));
       return (await res.json()) as { items: RestoreRun[] };
     },
     refetchInterval: (query) => {
@@ -160,8 +161,8 @@ export function AdminBackupTab() {
       if (run.status === 'failed') {
         if (isSupersededRestoreFailure(run)) continue;
         notifications.show({
-          title: 'Restore failed',
-          message: run.errorMessage ?? 'Unknown error',
+          title: t('backup.toasts.restoreFailedTitle'),
+          message: run.errorMessage ?? t('backup.toasts.unknownError'),
           color: 'red',
           autoClose: 10_000,
         });
@@ -169,22 +170,21 @@ export function AdminBackupTab() {
         invalidateBackup();
         void queryClient.removeQueries({ queryKey: meQueryKey });
         notifications.show({
-          title: 'Restore completed',
-          message:
-            'Database and object storage were restored. All sessions were invalidated – sign in again to continue.',
+          title: t('backup.toasts.restoreCompletedTitle'),
+          message: t('backup.toasts.restoreCompletedMessage'),
           color: 'green',
           autoClose: 15_000,
         });
         void navigate('/login', { replace: true, state: { from: '/admin/data/backup' } });
       }
     }
-  }, [restoresQuery.data?.items, invalidateBackup, navigate, queryClient]);
+  }, [restoresQuery.data?.items, invalidateBackup, navigate, queryClient, t]);
 
   const runsQuery = useQuery({
     queryKey: ['admin', 'backups', 'runs'],
     queryFn: async () => {
       const res = await apiFetch('/api/v1/admin/backups?limit=25&offset=0');
-      if (!res.ok) throw new Error('Failed to load backups');
+      if (!res.ok) throw new Error(t('backup.toasts.loadBackupsFailed'));
       return (await res.json()) as { items: BackupRun[] };
     },
     refetchInterval: (query) =>
@@ -225,133 +225,30 @@ export function AdminBackupTab() {
       if (run.status === 'failed') {
         if (isSupersededMaintenanceFailure(run)) continue;
         notifications.show({
-          title: 'Backup failed',
-          message: run.errorMessage ?? 'Unknown error',
+          title: t('backup.toasts.backupFailedTitle'),
+          message: run.errorMessage ?? t('backup.toasts.unknownError'),
           color: 'red',
           autoClose: 10_000,
         });
       } else {
         notifications.show({
-          title: 'Backup completed',
+          title: t('backup.toasts.backupCompletedTitle'),
           message: '',
           color: 'green',
         });
       }
     }
-  }, [runsQuery.data?.items]);
+  }, [runsQuery.data?.items, t]);
 
-  const patchSettings = useMutation({
-    mutationFn: async (body: { retentionCount?: number; defaultDestinationId?: string | null }) => {
-      const res = await apiFetch('/api/v1/admin/backups/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to save settings');
-      }
-      return res.json() as Promise<unknown>;
-    },
-    onSuccess: () => {
-      invalidateBackup();
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
-  const saveDestination = useMutation({
-    mutationFn: async ({
-      form,
-      destinationId,
-    }: {
-      form: DestinationFormState;
-      destinationId: string | null;
-    }) => {
-      const isEdit = destinationId != null;
-      const body = buildDestinationBody(form, isEdit);
-      const res = await apiFetch(
-        isEdit
-          ? `/api/v1/admin/backup-destinations/${destinationId}`
-          : '/api/v1/admin/backup-destinations',
-        {
-          method: isEdit ? 'PATCH' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        }
-      );
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to save external destination');
-      }
-      return res.json() as Promise<unknown>;
-    },
-    onSuccess: () => {
-      invalidateBackup();
-      notifications.show({ title: 'External destination saved', message: '', color: 'green' });
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
-  const deleteDestinationMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiFetch(`/api/v1/admin/backup-destinations/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete external destination');
-    },
-    onSuccess: () => {
-      invalidateBackup();
-      notifications.show({ title: 'External destination deleted', message: '', color: 'green' });
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
-  const patchDestinationEnabled = useMutation({
-    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
-      const res = await apiFetch(`/api/v1/admin/backup-destinations/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled }),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to update external destination');
-      }
-      return res.json() as Promise<unknown>;
-    },
-    onSuccess: () => {
-      invalidateBackup();
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
-  const patchSchedule = useMutation({
-    mutationFn: async (body: { enabled: boolean; cron?: string; tz?: string }) => {
-      const res = await apiFetch('/api/v1/admin/backups/schedule', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to update schedule');
-      }
-      return res.json() as Promise<unknown>;
-    },
-    onSuccess: () => {
-      invalidateBackup();
-      notifications.show({ title: 'Schedule updated', message: '', color: 'green' });
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
+  const {
+    patchSettings,
+    saveDestination,
+    deleteDestinationMutation,
+    patchDestinationEnabled,
+    patchSchedule,
+    deleteBackup,
+    deleteFailedBackup,
+  } = useAdminBackupSettingsMutations({ t, invalidateBackup });
 
   const createBackup = useMutation({
     mutationFn: async (destinationId?: string) => {
@@ -362,7 +259,7 @@ export function AdminBackupTab() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to start backup');
+        throw new Error(err.error ?? t('backup.toasts.startBackupFailed'));
       }
       return res.json() as Promise<CreateBackupResult>;
     },
@@ -372,10 +269,18 @@ export function AdminBackupTab() {
       setBackupPollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
       invalidateBackup();
       void runsQuery.refetch();
-      notifications.show({ title: 'Backup started', message: '', color: 'blue' });
+      notifications.show({
+        title: t('backup.toasts.backupStartedTitle'),
+        message: '',
+        color: 'blue',
+      });
     },
     onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
+      notifications.show({
+        title: t('backup.toasts.errorTitle'),
+        message: e.message,
+        color: 'red',
+      });
     },
   });
 
@@ -392,23 +297,6 @@ export function AdminBackupTab() {
     window.setTimeout(() => setDownloadingBackupId(null), 1500);
   };
 
-  const deleteBackup = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiFetch(`/api/v1/admin/backups/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to delete backup');
-      }
-    },
-    onSuccess: () => {
-      invalidateBackup();
-      notifications.show({ title: 'Backup deleted', message: '', color: 'green' });
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
   const triggerRestore = useMutation({
     mutationFn: async (backupRunId: string) => {
       const res = await apiFetch(`/api/v1/admin/restores/from-backup/${backupRunId}`, {
@@ -416,7 +304,7 @@ export function AdminBackupTab() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to start restore');
+        throw new Error(err.error ?? t('backup.toasts.startRestoreFailed'));
       }
       return res.json() as Promise<{ restoreRunId: string; jobId: string }>;
     },
@@ -426,27 +314,18 @@ export function AdminBackupTab() {
       setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
       closeSettings();
       invalidateBackup();
-      notifications.show({ title: 'Restore started', message: '', color: 'blue' });
+      notifications.show({
+        title: t('backup.toasts.restoreStartedTitle'),
+        message: '',
+        color: 'blue',
+      });
     },
     onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
-    },
-  });
-
-  const deleteFailedBackup = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiFetch(`/api/v1/admin/backups/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to delete backup run');
-      }
-    },
-    onSuccess: () => {
-      invalidateBackup();
-      notifications.show({ title: 'Backup run removed', message: '', color: 'green' });
-    },
-    onError: (e: Error) => {
-      notifications.show({ title: 'Error', message: e.message, color: 'red' });
+      notifications.show({
+        title: t('backup.toasts.errorTitle'),
+        message: e.message,
+        color: 'red',
+      });
     },
   });
 
@@ -455,7 +334,11 @@ export function AdminBackupTab() {
     restoreRunStatusSnapshot.current.set(restoreRunId, 'queued');
     setRestorePollBoostUntil(Date.now() + BACKUP_POLL_BOOST_MS);
     invalidateBackup();
-    notifications.show({ title: 'Restore started', message: '', color: 'blue' });
+    notifications.show({
+      title: t('backup.toasts.restoreStartedTitle'),
+      message: '',
+      color: 'blue',
+    });
   };
 
   const destinations = useMemo(
@@ -510,28 +393,34 @@ export function AdminBackupTab() {
     status.encryptionConfigured && status.defaultDestinationId != null && status.minioAvailable;
 
   const enableBlockReason = !status.encryptionConfigured
-    ? 'BACKUP_ENCRYPTION_KEY is not configured'
+    ? t('backup.autoBackup.blockReason.encryptionKeyMissing')
     : !status.defaultDestinationId
-      ? 'Set a default external destination first'
+      ? t('backup.autoBackup.blockReason.noDefaultDestination')
       : !status.minioAvailable
-        ? 'Object storage is unavailable'
+        ? t('backup.autoBackup.blockReason.objectStorageUnavailable')
         : null;
 
-  const activeJobStatus = formatActiveJobStatus({
-    maintenanceActive: status.maintenanceActive,
-    maintenanceReason: status.maintenanceReason,
-    backupRuns: runsQuery.data?.items,
-    restoreStatus: activeRestoreStatus,
-  });
+  const activeJobStatus = formatActiveJobStatus(
+    {
+      maintenanceActive: status.maintenanceActive,
+      maintenanceReason: status.maintenanceReason,
+      backupRuns: runsQuery.data?.items,
+      restoreStatus: activeRestoreStatus,
+    },
+    t
+  );
 
   const showActiveJobStatus =
     activeJobStatus ??
     (hasInProgressBackupRun(runsQuery.data?.items)
-      ? formatActiveJobStatus({
-          maintenanceActive: true,
-          maintenanceReason: 'backup',
-          backupRuns: runsQuery.data?.items,
-        })
+      ? formatActiveJobStatus(
+          {
+            maintenanceActive: true,
+            maintenanceReason: 'backup',
+            backupRuns: runsQuery.data?.items,
+          },
+          t
+        )
       : null);
 
   return (
@@ -601,7 +490,7 @@ export function AdminBackupTab() {
             patchSchedule.mutate({ enabled: false });
           }
         }}
-        onSaveDestination={async (form, destinationId) => {
+        onSaveDestination={async (form: DestinationFormState, destinationId) => {
           await saveDestination.mutateAsync({ form, destinationId });
         }}
         onDeleteDestination={(d) => deleteDestinationMutation.mutate(d.id)}

@@ -1,13 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import type { NewContextScope } from './NewContextModal';
-
-const SCOPE_KIND_LABELS: Record<NewContextScope['type'], string> = {
-  personal: 'Personal',
-  company: 'Company',
-  department: 'Department',
-  team: 'Team',
-};
 
 function formatScopeLabel(kind: string, name: string): string {
   return `${kind} · ${name}`;
@@ -22,7 +16,8 @@ export function useNewContextScopeDisplayLabel(
   scope: NewContextScope,
   enabled: boolean
 ): ScopeDisplayLabel {
-  const kind = SCOPE_KIND_LABELS[scope.type];
+  const { t } = useTranslation('contexts');
+  const kind = t(`scopeKind.${scope.type}`);
 
   const companyQuery = useQuery({
     queryKey: ['company', scope.type === 'company' ? scope.companyId : ''],

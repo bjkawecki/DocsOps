@@ -57,7 +57,7 @@ export function AdminUsersTab() {
     queryKey: ['companies'],
     queryFn: async (): Promise<CompaniesRes> => {
       const res = await apiFetch('/api/v1/companies?limit=1');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompaniesRes;
     },
   });
@@ -66,7 +66,7 @@ export function AdminUsersTab() {
     queryKey: ['companies', companyId, 'departments'],
     queryFn: async (): Promise<DepartmentsRes> => {
       const res = await apiFetch(`/api/v1/companies/${companyId}/departments?limit=100`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as DepartmentsRes;
     },
     enabled: !!companyId,
@@ -126,7 +126,7 @@ export function AdminUsersTab() {
         });
         if (!memberRes.ok) {
           const memberErr = (await memberRes.json().catch(() => ({}))) as { error?: string };
-          throw new Error(memberErr.error ?? 'Failed to add team member');
+          throw new Error(memberErr.error ?? t('common:errors.generic'));
         }
         if (teamRole === 'leader') {
           const leaderRes = await apiFetch(`/api/v1/teams/${teamId}/team-leads`, {
@@ -136,7 +136,7 @@ export function AdminUsersTab() {
           });
           if (!leaderRes.ok) {
             const leaderErr = (await leaderRes.json().catch(() => ({}))) as { error?: string };
-            throw new Error(leaderErr.error ?? 'Failed to add team lead');
+            throw new Error(leaderErr.error ?? t('common:errors.generic'));
           }
         }
       }
@@ -148,7 +148,7 @@ export function AdminUsersTab() {
         });
         if (!supRes.ok) {
           const supErr = (await supRes.json().catch(() => ({}))) as { error?: string };
-          throw new Error(supErr.error ?? 'Failed to add department lead');
+          throw new Error(supErr.error ?? t('common:errors.generic'));
         }
       }
       return user;
@@ -156,14 +156,14 @@ export function AdminUsersTab() {
     onSuccess: () => {
       invalidateUsers();
       notifications.show({
-        title: 'User created',
-        message: 'The user has been created.',
+        title: t('users.toasts.createdTitle'),
+        message: t('users.toasts.createdMessage'),
         color: 'green',
       });
       closeCreate();
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
     },
   });
 
@@ -190,13 +190,13 @@ export function AdminUsersTab() {
       invalidateUsers();
       void queryClient.invalidateQueries({ queryKey: meQueryKey });
       notifications.show({
-        title: 'User updated',
-        message: 'The user has been updated.',
+        title: t('users.toasts.updatedTitle'),
+        message: t('users.toasts.updatedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
     },
   });
 
@@ -214,14 +214,14 @@ export function AdminUsersTab() {
     },
     onSuccess: () => {
       notifications.show({
-        title: 'Password reset triggered',
-        message: 'The user will need to set a new password.',
+        title: t('users.resetPasswordModal.toasts.triggeredTitle'),
+        message: t('users.resetPasswordModal.toasts.triggeredMessage'),
         color: 'green',
       });
       setResetPasswordConfirmUser(null);
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
     },
   });
 
@@ -235,8 +235,8 @@ export function AdminUsersTab() {
     },
     onSuccess: () => {
       notifications.show({
-        title: 'User deleted',
-        message: 'The user was removed.',
+        title: t('users.deleteModal.toasts.deletedTitle'),
+        message: t('users.deleteModal.toasts.deletedMessage'),
         color: 'green',
       });
       setDeleteUserConfirmUser(null);
@@ -244,7 +244,7 @@ export function AdminUsersTab() {
       invalidateUsers();
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Error', message: err.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
     },
   });
 
@@ -310,7 +310,7 @@ export function AdminUsersTab() {
         <Modal
           opened
           onClose={() => setDetailUser(null)}
-          title={`User: ${detailUser.name}`}
+          title={t('users.detail.modalTitle', { name: detailUser.name })}
           size="lg"
         >
           <AdminUserDetailTabs
@@ -373,17 +373,16 @@ export function AdminUsersTab() {
         <Modal
           opened
           onClose={() => setResetPasswordConfirmUser(null)}
-          title="Reset password"
+          title={t('users.resetPasswordModal.title')}
           size="sm"
         >
           <Stack gap="md">
             <Text size="sm">
-              Trigger a password reset for {resetPasswordConfirmUser.name}? They will need to set a
-              new password (e.g. via email link or on next login).
+              {t('users.resetPasswordModal.body', { name: resetPasswordConfirmUser.name })}
             </Text>
             <Group justify="flex-end" gap="xs">
               <Button variant="default" onClick={() => setResetPasswordConfirmUser(null)}>
-                Cancel
+                {t('common:actions.cancel')}
               </Button>
               <Button
                 color="red"
@@ -394,7 +393,7 @@ export function AdminUsersTab() {
                 }
                 loading={resetPasswordTrigger.isPending}
               >
-                Reset password
+                {t('users.resetPasswordModal.confirmButton')}
               </Button>
             </Group>
           </Stack>
@@ -402,22 +401,26 @@ export function AdminUsersTab() {
       )}
 
       {deleteUserConfirmUser && (
-        <Modal opened onClose={() => setDeleteUserConfirmUser(null)} title="Delete user" size="sm">
+        <Modal
+          opened
+          onClose={() => setDeleteUserConfirmUser(null)}
+          title={t('users.deleteModal.title')}
+          size="sm"
+        >
           <Stack gap="md">
             <Text size="sm">
-              Permanently delete {deleteUserConfirmUser.name}? This cannot be undone. All associated
-              data (contexts, documents, assignments) will be removed.
+              {t('users.deleteModal.body', { name: deleteUserConfirmUser.name })}
             </Text>
             <Group justify="flex-end" gap="xs">
               <Button variant="default" onClick={() => setDeleteUserConfirmUser(null)}>
-                Cancel
+                {t('common:actions.cancel')}
               </Button>
               <Button
                 color="red"
                 onClick={() => deleteUser.mutate(deleteUserConfirmUser.id)}
                 loading={deleteUser.isPending}
               >
-                Delete user
+                {t('users.deleteModal.confirmButton')}
               </Button>
             </Group>
           </Stack>

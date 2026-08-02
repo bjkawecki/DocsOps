@@ -1,6 +1,7 @@
 import { Alert, Loader, Stack, Switch, Text } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
 import { meQueryKey, useMe } from '../../hooks/useMe';
@@ -19,32 +20,12 @@ type PulsePrefKey =
   | 'showUpdatedDocuments'
   | 'showComments';
 
-const PULSE_SWITCHES: Array<{ key: PulsePrefKey; label: string; description: string }> = [
-  {
-    key: 'showDrafts',
-    label: 'Open drafts',
-    description: 'Your unpublished documents that still need work.',
-  },
-  {
-    key: 'showReviews',
-    label: 'Reviews',
-    description: 'Items awaiting your review and decisions on your requests.',
-  },
-  {
-    key: 'showNewDocuments',
-    label: 'New documents',
-    description: 'Newly published or created documents you can read.',
-  },
-  {
-    key: 'showUpdatedDocuments',
-    label: 'Updated documents',
-    description: 'Published documents with unread updates.',
-  },
-  {
-    key: 'showComments',
-    label: 'Comments',
-    description: 'Unread comment activity on documents.',
-  },
+const PULSE_SWITCH_KEYS: PulsePrefKey[] = [
+  'showDrafts',
+  'showReviews',
+  'showNewDocuments',
+  'showUpdatedDocuments',
+  'showComments',
 ];
 
 function readPulsePref(
@@ -56,6 +37,7 @@ function readPulsePref(
 }
 
 export function SettingsPulseTab() {
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
   const { data: me, isPending: mePending, isError: meError, error: meErr } = useMe();
 
@@ -75,13 +57,17 @@ export function SettingsPulseTab() {
       void queryClient.invalidateQueries({ queryKey: meQueryKey });
       void queryClient.invalidateQueries({ queryKey: ['me', 'pulse'] });
       notifications.show({
-        title: 'Pulse updated',
-        message: 'Your Home pulse preferences were saved.',
+        title: t('pulse.toasts.updatedTitle'),
+        message: t('pulse.toasts.updatedMessage'),
         color: 'green',
       });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Save failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('pulse.toasts.saveFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -95,7 +81,7 @@ export function SettingsPulseTab() {
   if (meError || !me) {
     return (
       <Alert color="red" title="Error">
-        {meErr instanceof Error ? meErr.message : 'Failed to load settings'}
+        {meErr instanceof Error ? meErr.message : t('errors.loadFailed')}
       </Alert>
     );
   }
@@ -108,20 +94,20 @@ export function SettingsPulseTab() {
         <div>
           <SettingsCardTitle jumpId="pulse" />
           <Text size="sm" c="dimmed" mt={4}>
-            Choose what appears on Home. Independent from notification delivery.
+            {t('pulse.description')}
           </Text>
         </div>
         <Stack gap={SETTINGS_CARD_ROW_GAP}>
-          {PULSE_SWITCHES.map((row) => (
+          {PULSE_SWITCH_KEYS.map((key) => (
             <Switch
-              key={row.key}
-              label={row.label}
-              description={row.description}
-              checked={readPulsePref(pulse, row.key)}
+              key={key}
+              label={t(`pulse.switches.${key}.label`)}
+              description={t(`pulse.switches.${key}.description`)}
+              checked={readPulsePref(pulse, key)}
               disabled={patchPreferences.isPending}
               onChange={(e) => {
                 patchPreferences.mutate({
-                  pulseSettings: { [row.key]: e.currentTarget.checked },
+                  pulseSettings: { [key]: e.currentTarget.checked },
                 });
               }}
             />

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActionIcon, Loader, Text, useMantineTheme } from '@mantine/core';
 import { IconCircleCheck } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   isPulseActivityKind,
@@ -32,7 +33,9 @@ type DayGroup = {
   items: PulseItem[];
 };
 
-function groupByDay(items: PulseItem[]): DayGroup[] {
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+function groupByDay(items: PulseItem[], t: TranslateFn): DayGroup[] {
   const groups: DayGroup[] = [];
   for (const item of items) {
     const key = pulseDayKey(item.occurredAt);
@@ -42,7 +45,7 @@ function groupByDay(items: PulseItem[]): DayGroup[] {
     } else {
       groups.push({
         dayKey: key,
-        label: formatPulseDayLabel(item.occurredAt),
+        label: formatPulseDayLabel(item.occurredAt, t),
         items: [item],
       });
     }
@@ -59,6 +62,7 @@ type ItemProps = {
 };
 
 function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComplete }: ItemProps) {
+  const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
   const theme = useMantineTheme();
   const markRead = useMarkPulseItemRead();
@@ -69,7 +73,7 @@ function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComple
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const finishOnce = useRef(false);
-  const display = getPulseDisplay(item);
+  const display = getPulseDisplay(item, t);
 
   const finishDismiss = () => {
     if (finishOnce.current) return;
@@ -165,14 +169,14 @@ function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComple
         </Text>
       </span>
       <span className="pulse-feed-row-end">
-        <span className="pulse-feed-row-time">{formatPulseOccurredAt(item.occurredAt)}</span>
+        <span className="pulse-feed-row-time">{formatPulseOccurredAt(item.occurredAt, t)}</span>
         {showDismiss ? (
           <ActionIcon
             className={`pulse-feed-row-action${blinking ? ' pulse-feed-row-action--blink' : ''}`}
             variant={confirmed ? 'filled' : 'default'}
             color={confirmed ? theme.primaryColor : 'gray'}
             size="md"
-            aria-label="Mark as read"
+            aria-label={t('documents:home.pulseMarkAsReadAria')}
             onClick={onMarkAsRead}
             disabled={!mock && markRead.isPending}
           >
@@ -216,9 +220,10 @@ export function PulseFeed({
   isFetchingNextPage = false,
   onLoadMore,
 }: Props) {
+  const { t } = useTranslation('documents');
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(() => new Set());
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const groups = groupByDay(items);
+  const groups = groupByDay(items, t);
 
   useEffect(() => {
     const el = sentinelRef.current;

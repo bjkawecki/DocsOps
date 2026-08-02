@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, Stack, TextInput, Loader, Text, List, Button } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 
 type AdminUsersRes = { items: { id: string; name: string; email: string | null }[]; total: number };
@@ -18,6 +19,7 @@ export function CompanyUserPickerModal({
   excludeIds: string[];
   loading: boolean;
 }) {
+  const { t } = useTranslation('admin');
   const [search, setSearch] = useState('');
   const { data, isPending } = useQuery({
     queryKey: ['admin', 'users', search],
@@ -25,7 +27,7 @@ export function CompanyUserPickerModal({
       const params = new URLSearchParams({ limit: '50', includeDeactivated: 'false' });
       if (search.trim()) params.set('search', search.trim());
       const res = await apiFetch(`/api/v1/admin/users?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AdminUsersRes;
     },
     enabled: opened,
@@ -33,10 +35,16 @@ export function CompanyUserPickerModal({
   const options = (data?.items ?? []).filter((u) => !excludeIds.includes(u.id));
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Add company lead" size="sm" zIndex={1000}>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('company.userPicker.title')}
+      size="sm"
+      zIndex={1000}
+    >
       <Stack>
         <TextInput
-          placeholder="Search by name or email"
+          placeholder={t('company.userPicker.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
         />
@@ -44,7 +52,7 @@ export function CompanyUserPickerModal({
           <Loader size="sm" />
         ) : options.length === 0 ? (
           <Text size="sm" c="dimmed">
-            {search ? 'No matching users' : 'No more users (all already assigned)'}
+            {search ? t('company.userPicker.emptySearch') : t('company.userPicker.emptyAll')}
           </Text>
         ) : (
           <List size="sm">

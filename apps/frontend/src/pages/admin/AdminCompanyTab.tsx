@@ -63,7 +63,7 @@ export function AdminCompanyTab() {
     queryKey: ['companies'],
     queryFn: async (): Promise<CompaniesRes> => {
       const res = await apiFetch('/api/v1/companies?limit=100');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompaniesRes;
     },
   });
@@ -90,7 +90,7 @@ export function AdminCompanyTab() {
     queryKey: ['companies', editingCompany?.id, 'company-leads'],
     queryFn: async (): Promise<AssignmentListRes> => {
       const res = await apiFetch(`/api/v1/companies/${editingCompany!.id}/company-leads?limit=100`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
     enabled: !!editingCompany?.id,
@@ -101,7 +101,7 @@ export function AdminCompanyTab() {
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
       const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AdminUsersRes;
     },
     enabled: !!editingCompany?.id,
@@ -115,7 +115,7 @@ export function AdminCompanyTab() {
     queryKey: ['admin', 'companies', editingCompany?.id, 'stats'],
     queryFn: async (): Promise<CompanyStatsRes> => {
       const res = await apiFetch(`/api/v1/admin/companies/${editingCompany!.id}/stats`);
-      if (!res.ok) throw new Error('Failed to load stats');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompanyStatsRes;
     },
     enabled: !!editingCompany?.id,
@@ -144,12 +144,13 @@ export function AdminCompanyTab() {
       invalidateCompanies();
       closeCreate();
       notifications.show({
-        title: 'Company created',
-        message: 'The company has been created.',
+        title: t('company.toasts.createdTitle'),
+        message: t('company.toasts.createdMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const updateCompany = useMutation({
@@ -172,12 +173,13 @@ export function AdminCompanyTab() {
       );
       setCompanyCardEditing(false);
       notifications.show({
-        title: 'Company updated',
-        message: 'The company has been updated.',
+        title: t('company.toasts.updatedTitle'),
+        message: t('company.toasts.updatedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const deleteCompany = useMutation({
@@ -192,12 +194,13 @@ export function AdminCompanyTab() {
       invalidateCompanies();
       setDeleteConfirmCompany(null);
       notifications.show({
-        title: 'Company deleted',
-        message: 'The company has been deleted.',
+        title: t('company.toasts.deletedTitle'),
+        message: t('company.toasts.deletedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const addLead = useMutation({
@@ -215,12 +218,13 @@ export function AdminCompanyTab() {
     onSuccess: (_, { companyId }) => {
       invalidateLeads(companyId);
       notifications.show({
-        title: 'Company lead added',
-        message: 'The company lead has been added.',
+        title: t('company.toasts.leadAddedTitle'),
+        message: t('company.toasts.leadAddedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeLead = useMutation({
@@ -236,12 +240,13 @@ export function AdminCompanyTab() {
     onSuccess: (_, { companyId }) => {
       invalidateLeads(companyId);
       notifications.show({
-        title: 'Company lead removed',
-        message: 'The company lead has been removed.',
+        title: t('company.toasts.leadRemovedTitle'),
+        message: t('company.toasts.leadRemovedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const chromeActions = useMemo(
@@ -266,14 +271,14 @@ export function AdminCompanyTab() {
     <Box>
       {companies.length === 0 ? (
         <Alert color="blue" mb="md">
-          No company set up. Create the company first, then manage company leads.
+          {t('company.noCompanyAlert')}
         </Alert>
       ) : (
         <Table withTableBorder withColumnBorders mb="md" className="admin-table-hover">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Company</Table.Th>
-              <Table.Th>Lead</Table.Th>
+              <Table.Th>{t('company.table.company')}</Table.Th>
+              <Table.Th>{t('company.table.lead')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -330,21 +335,21 @@ export function AdminCompanyTab() {
         <Modal
           opened
           onClose={() => setEditingCompany(null)}
-          title={`Company: ${editingCompany.name}`}
+          title={t('company.editModal.title', { name: editingCompany.name })}
           size="lg"
           key={editingCompany.id}
         >
           <Tabs defaultValue="overview">
             <Tabs.List>
-              <Tabs.Tab value="overview">Overview</Tabs.Tab>
-              <Tabs.Tab value="pdf">PDF branding</Tabs.Tab>
-              <Tabs.Tab value="manage">Manage</Tabs.Tab>
+              <Tabs.Tab value="overview">{t('company.editModal.tabs.overview')}</Tabs.Tab>
+              <Tabs.Tab value="pdf">{t('company.editModal.tabs.pdfBranding')}</Tabs.Tab>
+              <Tabs.Tab value="manage">{t('company.editModal.tabs.manage')}</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="overview" pt="md">
               <Card withBorder padding="md">
                 <Group justify="space-between" mb="md">
                   <Text size="sm" fw={600}>
-                    Company
+                    {t('company.editModal.card.title')}
                   </Text>
                   {!companyCardEditing && (
                     <Button
@@ -357,21 +362,21 @@ export function AdminCompanyTab() {
                         setCompanyCardEditing(true);
                       }}
                     >
-                      Edit
+                      {t('common:actions.edit')}
                     </Button>
                   )}
                 </Group>
                 {companyCardEditing ? (
                   <Stack gap="md">
                     <TextInput
-                      label="Name"
+                      label={t('shared.name')}
                       value={editName}
                       onChange={(e) => setEditName(e.currentTarget.value)}
                       required
                     />
                     <Select
-                      label="Lead"
-                      placeholder="Select company lead"
+                      label={t('shared.lead')}
+                      placeholder={t('company.editModal.card.leadPlaceholder')}
                       data={userOptions}
                       value={editLeadId || null}
                       onChange={(v) => setEditLeadId(v ?? '')}
@@ -384,7 +389,7 @@ export function AdminCompanyTab() {
                         variant="default"
                         onClick={() => setCompanyCardEditing(false)}
                       >
-                        Cancel
+                        {t('common:actions.cancel')}
                       </Button>
                       <Button
                         size="sm"
@@ -427,7 +432,7 @@ export function AdminCompanyTab() {
                         }
                         disabled={!editName.trim()}
                       >
-                        Save
+                        {t('common:actions.save')}
                       </Button>
                     </Group>
                   </Stack>
@@ -437,13 +442,13 @@ export function AdminCompanyTab() {
                   <Stack gap="xs">
                     <div>
                       <Text size="xs" c="dimmed">
-                        Name
+                        {t('shared.name')}
                       </Text>
                       <Text size="sm">{editingCompany.name}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Lead
+                        {t('shared.lead')}
                       </Text>
                       <Text size="sm">
                         {leadsForEdit.length === 0 ? '–' : (leadsForEdit[0]?.name ?? '–')}
@@ -454,7 +459,7 @@ export function AdminCompanyTab() {
               </Card>
               <Card withBorder padding="md" mt="md">
                 <Text size="sm" fw={600} mb="xs">
-                  Stats
+                  {t('shared.stats')}
                 </Text>
                 {companyStatsPending ? (
                   <Loader size="sm" />
@@ -462,43 +467,43 @@ export function AdminCompanyTab() {
                   <Group gap="lg">
                     <div>
                       <Text size="xs" c="dimmed">
-                        Storage
+                        {t('shared.storage')}
                       </Text>
                       <Text size="sm">{formatBytes(companyStatsData.storageBytesUsed)}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Departments
+                        {t('nav.departments')}
                       </Text>
                       <Text size="sm">{companyStatsData.departmentCount}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Teams
+                        {t('shared.teams')}
                       </Text>
                       <Text size="sm">{companyStatsData.teamCount}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Members
+                        {t('shared.members')}
                       </Text>
                       <Text size="sm">{companyStatsData.memberCount}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Documents
+                        {t('shared.documents')}
                       </Text>
                       <Text size="sm">{companyStatsData.documentCount}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Processes
+                        {t('shared.processes')}
                       </Text>
                       <Text size="sm">{companyStatsData.processCount}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
-                        Projects
+                        {t('shared.projects')}
                       </Text>
                       <Text size="sm">{companyStatsData.projectCount}</Text>
                     </div>
@@ -514,10 +519,10 @@ export function AdminCompanyTab() {
             <Tabs.Panel value="manage" pt="md">
               <Card withBorder padding="md">
                 <Text size="sm" fw={600} mb="xs">
-                  Manage
+                  {t('shared.manage')}
                 </Text>
                 <Text size="xs" c="dimmed" mb="md">
-                  Sensitive actions. Use with care.
+                  {t('shared.manageHint')}
                 </Text>
                 <Button
                   size="sm"
@@ -527,7 +532,7 @@ export function AdminCompanyTab() {
                   onClick={() => setDeleteConfirmCompany(editingCompany)}
                   loading={deleteCompany.isPending}
                 >
-                  Delete company
+                  {t('company.editModal.manage.deleteButton')}
                 </Button>
               </Card>
             </Tabs.Panel>
@@ -538,25 +543,24 @@ export function AdminCompanyTab() {
       <Modal
         opened={!!deleteConfirmCompany}
         onClose={() => setDeleteConfirmCompany(null)}
-        title="Delete company"
+        title={t('company.deleteModal.title')}
         size="sm"
       >
         {deleteConfirmCompany && (
           <Stack>
             <Text size="sm">
-              Really delete company &quot;{deleteConfirmCompany.name}&quot;? Not possible when
-              departments exist.
+              {t('company.deleteModal.body', { name: deleteConfirmCompany.name })}
             </Text>
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setDeleteConfirmCompany(null)}>
-                Cancel
+                {t('common:actions.cancel')}
               </Button>
               <Button
                 color="red"
                 onClick={() => deleteCompany.mutate(deleteConfirmCompany.id)}
                 loading={deleteCompany.isPending}
               >
-                Delete
+                {t('common:actions.delete')}
               </Button>
             </Group>
           </Stack>

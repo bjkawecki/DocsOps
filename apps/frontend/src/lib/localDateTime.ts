@@ -85,6 +85,6 @@ export function isDatetimeLocalInFuture(value: string, bufferMs = 1000): boolean
   return date.getTime() > Date.now() + bufferMs;
 }
 
-export function sendAtFieldLabel(): string {
-  return `Send at (${userTimezoneLabel()})`;
+export function sendAtFieldLabel(labelPrefix: string): string {
+  return `${labelPrefix} (${userTimezoneLabel()})`;
 }

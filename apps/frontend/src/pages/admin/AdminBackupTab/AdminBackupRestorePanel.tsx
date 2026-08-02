@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Alert, Button, Group, Modal, Radio, Stack, Text, Tooltip } from '@mantine/core';
+import { Trans, useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
 import type { BackupRun } from './adminBackupTypes';
 import { formatBackupRunLabel, listRestorableBackups } from './backupRestoreHelpers';
@@ -23,6 +24,7 @@ export function AdminBackupRestorePanel({
   onRestoreFromBackup,
   onUploadComplete,
 }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   const [source, setSource] = useState<RestoreSource>('history');
   const [selectedBackupId, setSelectedBackupId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -67,7 +69,7 @@ export function AdminBackupRestorePanel({
     if (!file) return;
     setUploadError(null);
     if (!file.name.endsWith('.tar.zst')) {
-      setUploadError('Select a docsops-backup-*.tar.zst archive.');
+      setUploadError(t('backup.restorePanel.uploadModal.invalidFile'));
       return;
     }
     setUploadLoading(true);
@@ -80,45 +82,59 @@ export function AdminBackupRestorePanel({
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Upload failed');
+        throw new Error(err.error ?? t('backup.restorePanel.uploadModal.uploadFailed'));
       }
       const result = (await res.json()) as { restoreRunId: string };
       closeUpload();
       onUploadComplete(result.restoreRunId);
     } catch (e) {
-      setUploadError(e instanceof Error ? e.message : 'Upload failed');
+      setUploadError(
+        e instanceof Error ? e.message : t('backup.restorePanel.uploadModal.uploadFailed')
+      );
     } finally {
       setUploadLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const backupLabel = selectedBackup
+    ? t('backup.restorePanel.confirmModal.specificBackup', {
+        date: new Date(selectedBackup.createdAt).toLocaleString(),
+      })
+    : t('backup.restorePanel.confirmModal.selectedBackupFallback');
+
   return (
     <>
       <Stack gap="md">
-        <Alert color="red" title="Destructive operation" variant="filled">
-          This replaces the entire database and MinIO objects. All users must sign in again after
-          restore completes. Secrets from <code>.env</code> are not in the archive.
+        <Alert color="red" title={t('backup.restorePanel.destructiveTitle')} variant="filled">
+          <Trans
+            t={t}
+            i18nKey="backup.restorePanel.destructiveBody"
+            components={{ code: <code /> }}
+          />
         </Alert>
 
-        <Radio.Group label="Restore source" value={source} onChange={handleSourceChange}>
+        <Radio.Group
+          label={t('backup.restorePanel.sourceLabel')}
+          value={source}
+          onChange={handleSourceChange}
+        >
           <Group gap="lg" mt="xs" wrap="wrap">
-            <Radio value="history" label="From backup history" />
-            <Radio value="upload" label="Upload archive" />
+            <Radio value="history" label={t('backup.restorePanel.sourceHistory')} />
+            <Radio value="upload" label={t('backup.restorePanel.sourceUpload')} />
           </Group>
         </Radio.Group>
 
         {source === 'history' ? (
           restorableBackups.length === 0 ? (
             <Text size="sm" c="dimmed">
-              No backups with a local copy available. Choose upload archive or restore from external
-              storage manually (see Runbook-Backup-Restore).
+              {t('backup.restorePanel.noRestorableBackups')}
             </Text>
           ) : (
             <Radio.Group
               value={selectedBackupId}
               onChange={setSelectedBackupId}
-              label="Select backup"
+              label={t('backup.restorePanel.selectBackupLabel')}
             >
               <Stack gap="xs" mt="xs">
                 {restorableBackups.map((run) => (
@@ -129,17 +145,17 @@ export function AdminBackupRestorePanel({
           )
         ) : (
           <Text size="sm" c="dimmed">
-            Upload <code>docsops-backup-*.tar.zst</code> copied from external storage.
+            <Trans t={t} i18nKey="backup.restorePanel.uploadHint" components={{ code: <code /> }} />
           </Text>
         )}
 
         <Group justify="flex-end" gap="sm">
           <Button variant="default" onClick={onClose}>
-            Close
+            {t('common:actions.close')}
           </Button>
           {source === 'history' ? (
             <Tooltip
-              label={maintenanceActive ? 'Maintenance mode is active' : undefined}
+              label={maintenanceActive ? t('backup.maintenanceActiveTooltip') : undefined}
               disabled={!maintenanceActive}
             >
               <Button
@@ -148,16 +164,16 @@ export function AdminBackupRestorePanel({
                 loading={restoreFromBackupLoading}
                 onClick={handleHistoryStart}
               >
-                Start restore
+                {t('backup.restorePanel.startRestore')}
               </Button>
             </Tooltip>
           ) : (
             <Tooltip
-              label={maintenanceActive ? 'Maintenance mode is active' : undefined}
+              label={maintenanceActive ? t('backup.maintenanceActiveTooltip') : undefined}
               disabled={!maintenanceActive}
             >
               <Button color="red" disabled={maintenanceActive} onClick={() => setUploadOpen(true)}>
-                Select archive and start restore
+                {t('backup.restorePanel.selectArchiveAndStart')}
               </Button>
             </Tooltip>
           )}
@@ -167,22 +183,21 @@ export function AdminBackupRestorePanel({
       <Modal
         opened={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        title="Start restore?"
+        title={t('backup.restorePanel.confirmModal.title')}
         centered
         size="sm"
       >
         <Stack gap="md">
           <Text size="sm">
-            This will replace the <strong>entire database</strong> and MinIO objects with{' '}
-            <strong>
-              {selectedBackup
-                ? `backup from ${new Date(selectedBackup.createdAt).toLocaleString()}`
-                : 'the selected backup'}
-            </strong>
-            . Existing data will be overwritten.
+            <Trans
+              t={t}
+              i18nKey="backup.restorePanel.confirmModal.body"
+              values={{ backupLabel }}
+              components={{ dbEmphasis: <strong />, backupEmphasis: <strong /> }}
+            />
           </Text>
           <Text size="sm" c="dimmed">
-            Write operations are blocked while restore runs.
+            {t('backup.restorePanel.confirmModal.writeBlockedNote')}
           </Text>
           <Group justify="flex-end">
             <Button
@@ -190,19 +205,28 @@ export function AdminBackupRestorePanel({
               onClick={() => setConfirmOpen(false)}
               disabled={restoreFromBackupLoading}
             >
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button color="red" loading={restoreFromBackupLoading} onClick={handleConfirmRestore}>
-              Start restore
+              {t('backup.restorePanel.startRestore')}
             </Button>
           </Group>
         </Stack>
       </Modal>
 
-      <Modal opened={uploadOpen} onClose={closeUpload} title="Upload backup archive" size="sm">
+      <Modal
+        opened={uploadOpen}
+        onClose={closeUpload}
+        title={t('backup.restorePanel.uploadModal.title')}
+        size="sm"
+      >
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Select a <code>docsops-backup-*.tar.zst</code> file from your computer.
+            <Trans
+              t={t}
+              i18nKey="backup.restorePanel.uploadModal.hint"
+              components={{ code: <code /> }}
+            />
           </Text>
           <input
             ref={fileInputRef}
@@ -218,14 +242,14 @@ export function AdminBackupRestorePanel({
           ) : null}
           <Group justify="flex-end">
             <Button variant="default" onClick={closeUpload} disabled={uploadLoading}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button
               color="red"
               loading={uploadLoading}
               onClick={() => fileInputRef.current?.click()}
             >
-              Choose file
+              {t('backup.restorePanel.uploadModal.chooseFile')}
             </Button>
           </Group>
         </Stack>

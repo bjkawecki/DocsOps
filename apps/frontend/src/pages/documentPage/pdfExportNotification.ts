@@ -1,6 +1,11 @@
 import { notifications } from '@mantine/notifications';
 import { createElement } from 'react';
+import i18n from '../../i18n/i18n';
 import type { PdfExportJobStatusResponse } from './documentPageTypes';
+
+/** Not a React component; uses the i18n instance directly instead of the `useTranslation` hook. */
+const t = (key: string, options?: Record<string, unknown>) =>
+  i18n.t(key, { ns: 'documents', ...options });
 
 export function pdfExportNotificationId(documentId: string): string {
   return `pdf-export-${documentId}`;
@@ -12,8 +17,8 @@ export function showPdfExportQueuedNotification(documentId: string): void {
   notifications.show({
     id,
     loading: true,
-    title: 'PDF export queued',
-    message: 'Your document export was queued and will run in the background.',
+    title: t('pdfExport.queuedTitle'),
+    message: t('pdfExport.queuedMessage'),
     color: 'blue',
     autoClose: false,
     withCloseButton: false,
@@ -30,8 +35,8 @@ export function updatePdfExportStatusNotification(
     notifications.update({
       id,
       loading: true,
-      title: 'PDF export queued',
-      message: 'Waiting for the export worker…',
+      title: t('pdfExport.queuedTitle'),
+      message: t('pdfExport.waitingMessage'),
       color: 'blue',
       autoClose: false,
       withCloseButton: false,
@@ -43,8 +48,8 @@ export function updatePdfExportStatusNotification(
     notifications.update({
       id,
       loading: true,
-      title: 'PDF export in progress',
-      message: 'Generating your PDF…',
+      title: t('pdfExport.inProgressTitle'),
+      message: t('pdfExport.generatingMessage'),
       color: 'blue',
       autoClose: false,
       withCloseButton: false,
@@ -57,16 +62,20 @@ export function updatePdfExportStatusNotification(
     notifications.update({
       id,
       loading: false,
-      title: 'PDF export ready',
+      title: t('pdfExport.readyTitle'),
       message:
         downloadUrl != null
           ? createElement(
               'span',
               null,
-              'Your PDF is ready. ',
-              createElement('a', { href: downloadUrl, style: { fontWeight: 500 } }, 'Download PDF')
+              t('pdfExport.readyMessagePrefix'),
+              createElement(
+                'a',
+                { href: downloadUrl, style: { fontWeight: 500 } },
+                t('pdfExport.downloadLink')
+              )
             )
-          : 'Your PDF export finished successfully.',
+          : t('pdfExport.successMessage'),
       color: 'green',
       autoClose: false,
       withCloseButton: true,
@@ -78,8 +87,8 @@ export function updatePdfExportStatusNotification(
     notifications.update({
       id,
       loading: false,
-      title: 'PDF export failed',
-      message: status.error ?? 'Export could not be completed.',
+      title: t('pdfExport.failedTitle'),
+      message: status.error ?? t('pdfExport.failedDefaultMessage'),
       color: 'red',
       autoClose: 10_000,
       withCloseButton: true,
@@ -91,8 +100,8 @@ export function updatePdfExportStatusNotification(
     notifications.update({
       id,
       loading: false,
-      title: 'PDF export cancelled',
-      message: 'The PDF export was cancelled.',
+      title: t('pdfExport.cancelledTitle'),
+      message: t('pdfExport.cancelledMessage'),
       color: 'yellow',
       autoClose: 10_000,
       withCloseButton: true,

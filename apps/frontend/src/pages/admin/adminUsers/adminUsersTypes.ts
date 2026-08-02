@@ -7,6 +7,21 @@ export type UserRole =
   | 'Company Lead'
   | 'Admin';
 
+const USER_ROLE_TRANSLATION_KEYS: Record<UserRole, string> = {
+  User: 'user',
+  'Team Author': 'teamAuthor',
+  'Team Lead': 'teamLead',
+  'Department Author': 'departmentAuthor',
+  'Department Lead': 'departmentLead',
+  'Company Lead': 'companyLead',
+  Admin: 'admin',
+};
+
+/** Maps the backend `UserRole` domain value to its translated display label. */
+export function userRoleLabel(t: (key: string) => string, role: UserRole): string {
+  return t(`roles.${USER_ROLE_TRANSLATION_KEYS[role]}`);
+}
+
 export type UserTeam = {
   id: string;
   name: string;

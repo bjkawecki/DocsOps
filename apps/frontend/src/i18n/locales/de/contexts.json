@@ -1,0 +1,154 @@
+{
+  "sidebar": {
+    "processes": "Prozesse",
+    "processesEmpty": "Noch keine Prozesse.",
+    "projects": "Projekte",
+    "projectsEmpty": "Noch keine Projekte.",
+    "drafts": "Entwürfe",
+    "mostRead": "Meistgelesen",
+    "trash": "Papierkorb",
+    "archive": "Archiv",
+    "collapseSubcontexts": "Unterkontexte einklappen",
+    "expandSubcontexts": "Unterkontexte ausklappen"
+  },
+  "switcher": {
+    "ariaLabel": "Kontext wechseln",
+    "selectContext": "Kontext auswählen",
+    "processes": "Prozesse",
+    "processesEmpty": "Noch keine Prozesse.",
+    "projects": "Projekte",
+    "projectsEmpty": "Noch keine Projekte."
+  },
+  "scopeKind": {
+    "personal": "Persönlich",
+    "company": "Unternehmen",
+    "department": "Abteilung",
+    "team": "Team"
+  },
+  "workspace": {
+    "overviewFallback": "Übersicht",
+    "contextNotFound": "Kontext nicht gefunden.",
+    "selectPrompt": "Wähle einen Prozess oder ein Projekt, um Dokumente anzuzeigen.",
+    "newDraft": "Neuer Entwurf",
+    "editContextAriaLabel": "Kontext bearbeiten",
+    "moreActionsAriaLabel": "Weitere Aktionen",
+    "archive": "Archivieren",
+    "moveToTrash": "In den Papierkorb verschieben",
+    "delete": "Löschen",
+    "subcontexts": "Unterkontexte",
+    "createSubcontext": "Unterkontext anlegen",
+    "noSubcontexts": "Noch keine Unterkontexte."
+  },
+  "entry": {
+    "emptyTitle": "Noch keine Prozesse oder Projekte",
+    "emptyBodyCanManage": "Lege einen Prozess oder ein Projekt an, um zu starten, oder erstelle einen Entwurf.",
+    "emptyBodyReadOnly": "In diesem Bereich gibt es noch keine Prozesse oder Projekte."
+  },
+  "createMenu": {
+    "draft": "Entwurf",
+    "ariaLabel": "Prozess oder Projekt anlegen",
+    "process": "Prozess",
+    "project": "Projekt"
+  },
+  "routePages": {
+    "noCompany": "Kein Unternehmen verfügbar."
+  },
+  "documentsTable": {
+    "searchLabel": "Suchen",
+    "searchPlaceholder": "Nach Namen suchen",
+    "perPageLabel": "Pro Seite",
+    "titleColumn": "Titel",
+    "tagsColumn": "Tags",
+    "lastUpdatedColumn": "Zuletzt aktualisiert",
+    "emptyDefault": "Noch keine Dokumente.",
+    "emptySearch": "Keine Dokumente entsprechen der Suche.",
+    "count_one": "{{count}} Dokument",
+    "count_other": "{{count}} Dokumente",
+    "countFiltered_one": "{{filtered}} von {{count}} Dokument",
+    "countFiltered_other": "{{filtered}} von {{count}} Dokumenten"
+  },
+  "recentItems": {
+    "title": "Zuletzt angesehen",
+    "empty": "Die Liste füllt sich, während du Kontexte und Dokumente besuchst."
+  },
+  "card": {
+    "viewMore": "Mehr anzeigen",
+    "documentCount_one": "{{count}} Dokument",
+    "documentCount_other": "{{count}} Dokumente",
+    "subcontexts": "Unterkontexte"
+  },
+  "modals": {
+    "createSubcontext": {
+      "title": "Unterkontext anlegen",
+      "nameLabel": "Name",
+      "namePlaceholder": "z. B. Meeting-Notizen, Meilensteine"
+    },
+    "editName": {
+      "title": "Name bearbeiten",
+      "nameLabel": "Name",
+      "namePlaceholder": "Kontextname"
+    },
+    "deleteSubcontext": {
+      "title": "Unterkontext löschen",
+      "body": "Dieser Unterkontext und seine Dokumente werden endgültig gelöscht. Fortfahren?"
+    },
+    "moveToTrash": {
+      "title": "In den Papierkorb verschieben",
+      "body": "Dieser Kontext und seine Dokumente werden in den Papierkorb verschoben. Du kannst sie über den Tab Papierkorb wiederherstellen."
+    },
+    "newContext": {
+      "titleDefault": "Neuer Kontext",
+      "processTitle": "Neuer Prozess",
+      "processDescription": "Wiederkehrende Abläufe und Prozesse",
+      "projectTitle": "Neues Projekt",
+      "projectDescription": "Zeitlich begrenzte Vorhaben",
+      "scopeLabel": "Bereich",
+      "typeLabel": "Typ (erforderlich)",
+      "nameLabel": "Name",
+      "namePlaceholder": "Kontextname"
+    },
+    "newDraftDocument": {
+      "title": "Neuer Entwurf",
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Entwurfstitel",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Tags auswählen"
+    },
+    "newDocument": {
+      "title": "Neuer Entwurf",
+      "createDraftLabel": "Entwurf anlegen",
+      "createDraftDescription": "Ohne Kontext: Der Entwurf bleibt ungruppiert, bis du ihm einen Kontext zuweist.",
+      "inContextOption": "In einem Kontext (Prozess oder Projekt)",
+      "noContextOption": "Ohne Kontext (ungruppierter Entwurf)",
+      "contextLabel": "Kontext (Prozess oder Projekt)",
+      "contextPlaceholder": "Kontext auswählen",
+      "noContextsHint": "Keine Prozesse oder Projekte in diesem Bereich. Lege zuerst einen Prozess oder ein Projekt an.",
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Entwurfstitel",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Tags auswählen",
+      "processOptionLabel": "Prozess: {{name}}",
+      "projectOptionLabel": "Projekt: {{name}}"
+    }
+  },
+  "toasts": {
+    "nameUpdatedTitle": "Gespeichert",
+    "nameUpdatedMessage": "Name wurde aktualisiert.",
+    "archivedTitle": "Archiviert",
+    "archivedMessage": "Kontext wurde archiviert.",
+    "deletedTitle": "Gelöscht",
+    "deletedMessage": "Der Unterkontext wurde endgültig gelöscht.",
+    "movedToTrashTitle": "In den Papierkorb verschoben",
+    "movedToTrashMessage": "Du kannst ihn über den Tab Papierkorb wiederherstellen.",
+    "subcontextCreatedTitle": "Unterkontext angelegt",
+    "subcontextCreatedMessage": "Der Unterkontext wurde hinzugefügt.",
+    "nameRequiredTitle": "Name erforderlich",
+    "nameRequiredMessage": "Bitte gib einen Namen für den Unterkontext ein.",
+    "contextCreatedTitle": "Kontext angelegt",
+    "processCreatedMessage": "Prozess wurde angelegt.",
+    "projectCreatedMessage": "Projekt wurde angelegt.",
+    "draftCreatedTitle": "Entwurf angelegt",
+    "draftCreatedMessage": "Weiterleitung zum Entwurf.",
+    "errorTitle": "Fehler"
+  }
+}

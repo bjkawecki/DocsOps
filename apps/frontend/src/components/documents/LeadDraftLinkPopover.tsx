@@ -16,6 +16,7 @@ import type { Editor } from '@tiptap/core';
 import { IconLink } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import { isAllowedEditorLinkHref, isAllowedLinkHref } from '../../lib/blockLinkHref.js';
 import { docsopsDocHrefToken, parseDocsopsDocHrefToken } from '../../lib/docsopsDocLink.js';
@@ -114,6 +115,7 @@ export function LeadDraftLinkPopover({
   disabledReason,
   active,
 }: Props) {
+  const { t } = useTranslation('documents');
   const [opened, setOpened] = useState(false);
   const [mode, setMode] = useState<LinkMode>('url');
   const [href, setHref] = useState('');
@@ -218,7 +220,7 @@ export function LeadDraftLinkPopover({
       variant={active ? 'filled' : 'light'}
       disabled={disabled}
       onClick={() => setOpened((o) => !o)}
-      aria-label="Link"
+      aria-label={t('editorToolbar.link')}
     >
       <IconLink size={16} stroke={1.75} />
     </ActionIcon>
@@ -226,7 +228,7 @@ export function LeadDraftLinkPopover({
 
   return (
     <Tooltip
-      label={disabled && disabledReason ? disabledReason : 'Link'}
+      label={disabled && disabledReason ? disabledReason : t('editorToolbar.link')}
       withArrow
       disabled={opened}
     >
@@ -323,7 +325,7 @@ export function LeadDraftLinkPopover({
                           </Text>
                         ) : null}
                         {(searchData?.items ?? []).map((item) => {
-                          const subtitle = documentSearchContextSubtitle(item);
+                          const subtitle = documentSearchContextSubtitle(item, t);
                           return (
                             <UnstyledButton
                               key={item.id}

@@ -1,6 +1,7 @@
 import { Badge, Box, NavLink, Stack, Text } from '@mantine/core';
 import { IconArrowsExchange, IconClipboardCheck } from '@tabler/icons-react';
 import { useMemo, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
@@ -51,6 +52,7 @@ export function ApprovalsScopeSidebar({
   reviewsCount,
   movesCount,
 }: ApprovalsScopeSidebarProps) {
+  const { t } = useTranslation('approvals');
   const scopeGroups = useMemo(() => {
     const map = new Map<string, { label: string; docs: ApprovalsSidebarDoc[] }>();
     for (const doc of documents) {
@@ -69,11 +71,11 @@ export function ApprovalsScopeSidebar({
   return (
     <ContextWorkspaceLeftColumn data-context-sibling-nav>
       <ContentCardWrapper fullHeight={false}>
-        <Stack gap={4} component="nav" align="stretch" w="100%" aria-label="Approvals navigation">
+        <Stack gap={4} component="nav" align="stretch" w="100%" aria-label={t('nav.ariaLabel')}>
           <NavLink
             component={Link}
             to="/approvals"
-            label="Reviews"
+            label={t('nav.reviews')}
             leftSection={<IconClipboardCheck size={ICON_SIZE} stroke={1.5} />}
             rightSection={countBadge(reviewsCount)}
             active={section === 'reviews'}
@@ -109,7 +111,7 @@ export function ApprovalsScopeSidebar({
           <NavLink
             component={Link}
             to="/approvals?tab=moves"
-            label="Move requests"
+            label={t('nav.moveRequests')}
             leftSection={<IconArrowsExchange size={ICON_SIZE} stroke={1.5} />}
             rightSection={countBadge(movesCount)}
             active={section === 'moves'}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Badge,
@@ -14,6 +15,7 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import type { TFunction } from 'i18next';
 import { apiFetch } from '../../api/client';
 
 type AdminJobRow = {
@@ -93,21 +95,26 @@ function parseStoredNumber(key: string, allowed: readonly number[], fallback: nu
   }
 }
 
-function formatRelativeAge(fromMs: number | null, referenceMs: number = Date.now()): string {
-  if (!fromMs) return 'n/a';
+function formatRelativeAge(
+  t: TFunction,
+  fromMs: number | null,
+  referenceMs: number = Date.now()
+): string {
+  if (!fromMs) return t('jobs.status.relativeNotAvailable');
   const diffMs = referenceMs - fromMs;
-  if (diffMs < 1000) return 'just now';
+  if (diffMs < 1000) return t('jobs.status.relativeJustNow');
   const seconds = Math.max(1, Math.floor(diffMs / 1000));
-  if (seconds < 60) return `vor ${seconds}s`;
+  if (seconds < 60) return t('jobs.status.relativeSecondsAgo', { count: seconds });
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `vor ${minutes}m`;
+  if (minutes < 60) return t('jobs.status.relativeMinutesAgo', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `vor ${hours}h`;
+  if (hours < 24) return t('jobs.status.relativeHoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  return `vor ${days}d`;
+  return t('jobs.status.relativeDaysAgo', { count: days });
 }
 
 export function AdminJobsTab() {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [state, setState] = useState<string>('all');
@@ -168,7 +175,7 @@ export function AdminJobsTab() {
       const res = await apiFetch(`/api/v1/admin/jobs?${jobsQueryString}`);
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load jobs');
+        throw new Error(err.error ?? t('jobs.loadFailedTitle'));
       }
       return (await res.json()) as ListJobsResponse;
     },
@@ -182,7 +189,7 @@ export function AdminJobsTab() {
       const res = await apiFetch('/api/v1/admin/jobs/health', { cache: 'no-store' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load job health');
+        throw new Error(err.error ?? t('jobs.loadFailedTitle'));
       }
       return (await res.json()) as HealthResponse;
     },
@@ -196,7 +203,7 @@ export function AdminJobsTab() {
       const res = await apiFetch('/api/v1/admin/jobs/schedules');
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load schedules');
+        throw new Error(err.error ?? t('scheduler.loadFailedTitle'));
       }
       return (await res.json()) as SchedulesResponse;
     },
@@ -207,7 +214,7 @@ export function AdminJobsTab() {
       const res = await apiFetch('/api/v1/admin/jobs/alerts', { cache: 'no-store' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load job alerts');
+        throw new Error(err.error ?? t('jobs.alerts.unavailableTitle'));
       }
       return (await res.json()) as JobAlertsResponse;
     },
@@ -220,15 +227,19 @@ export function AdminJobsTab() {
       const res = await apiFetch(`/api/v1/admin/jobs/${jobId}/retry`, { method: 'POST' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Retry failed');
+        throw new Error(err.error ?? t('jobs.table.retryAction'));
       }
     },
     onSuccess: () => {
-      notifications.show({ title: 'Job retried', message: 'Retry was triggered.', color: 'green' });
+      notifications.show({
+        title: t('jobs.toasts.retryTitle'),
+        message: t('jobs.toasts.retryMessage'),
+        color: 'green',
+      });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Error', message: error.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: error.message, color: 'red' });
     },
   });
 
@@ -237,19 +248,19 @@ export function AdminJobsTab() {
       const res = await apiFetch(`/api/v1/admin/jobs/${jobId}/cancel`, { method: 'POST' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Cancel failed');
+        throw new Error(err.error ?? t('jobs.table.cancelAction'));
       }
     },
     onSuccess: () => {
       notifications.show({
-        title: 'Job cancelled',
-        message: 'Cancellation request was submitted.',
+        title: t('jobs.toasts.cancelTitle'),
+        message: t('jobs.toasts.cancelMessage'),
         color: 'green',
       });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Error', message: error.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: error.message, color: 'red' });
     },
   });
 
@@ -258,15 +269,19 @@ export function AdminJobsTab() {
       const res = await apiFetch(`/api/v1/admin/jobs/${jobId}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Delete failed');
+        throw new Error(err.error ?? t('jobs.table.deleteAction'));
       }
     },
     onSuccess: () => {
-      notifications.show({ title: 'Job deleted', message: 'Job was removed.', color: 'green' });
+      notifications.show({
+        title: t('jobs.toasts.deleteTitle'),
+        message: t('jobs.toasts.deleteMessage'),
+        color: 'green',
+      });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Error', message: error.message, color: 'red' });
+      notifications.show({ title: t('shared.errorTitle'), message: error.message, color: 'red' });
     },
   });
 
@@ -280,9 +295,9 @@ export function AdminJobsTab() {
         ? jobs.error.message
         : schedules.error instanceof Error
           ? schedules.error.message
-          : 'Unknown error';
+          : t('common:errors.generic');
     return (
-      <Alert color="red" title="Failed to load admin jobs">
+      <Alert color="red" title={t('jobs.loadFailedTitle')}>
         {jobsErrorMessage}
       </Alert>
     );
@@ -292,7 +307,7 @@ export function AdminJobsTab() {
   const lastHealthRefreshMs = health.dataUpdatedAt > 0 ? health.dataUpdatedAt : null;
   const lastHealthRefreshAbsolute = lastHealthRefreshMs
     ? new Date(lastHealthRefreshMs).toLocaleString()
-    : 'n/a';
+    : t('shared.notAvailable');
   const healthUnavailable = health.isError || !health.data;
   const queueReachable = health.data?.queueReachable ?? false;
   const workerConnected = health.data?.workerConnected ?? false;
@@ -308,14 +323,14 @@ export function AdminJobsTab() {
       <Group mb="md" justify="space-between" align="flex-end" wrap="wrap">
         <Group gap="sm" align="flex-end" wrap="wrap">
           <Select
-            label="State"
+            label={t('jobs.filters.stateLabel')}
             value={state}
             onChange={(value) => {
               setState(value ?? 'all');
               setOffset(0);
             }}
             data={[
-              { value: 'all', label: 'All' },
+              { value: 'all', label: t('jobs.filters.all') },
               { value: 'created', label: 'created' },
               { value: 'retry', label: 'retry' },
               { value: 'active', label: 'active' },
@@ -327,14 +342,14 @@ export function AdminJobsTab() {
             style={{ minWidth: 140 }}
           />
           <Select
-            label="Job type"
+            label={t('jobs.filters.jobTypeLabel')}
             value={jobName}
             onChange={(value) => {
               setJobName(value ?? 'all');
               setOffset(0);
             }}
             data={[
-              { value: 'all', label: 'All' },
+              { value: 'all', label: t('jobs.filters.all') },
               ...(schedules.data?.availableJobNames ?? []).map((name) => ({
                 value: name,
                 label: name,
@@ -343,7 +358,7 @@ export function AdminJobsTab() {
             style={{ minWidth: 220 }}
           />
           <TextInput
-            label="Search"
+            label={t('jobs.filters.searchLabel')}
             value={searchInput}
             onChange={(event) => setSearchInput(event.currentTarget.value)}
             onKeyDown={(event) => {
@@ -352,7 +367,7 @@ export function AdminJobsTab() {
                 setOffset(0);
               }
             }}
-            placeholder="id, payload, queue name"
+            placeholder={t('jobs.filters.searchPlaceholder')}
             style={{ minWidth: 220 }}
           />
           <Button
@@ -362,12 +377,12 @@ export function AdminJobsTab() {
               setOffset(0);
             }}
           >
-            Search
+            {t('common:actions.search')}
           </Button>
         </Group>
         <Group gap="sm" align="flex-end" wrap="wrap">
           <Select
-            label="Per page"
+            label={t('jobs.filters.perPageLabel')}
             data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
             value={String(limit)}
             onChange={(value) => {
@@ -383,10 +398,10 @@ export function AdminJobsTab() {
             style={{ width: 100 }}
           />
           <Select
-            label="Aktualisierung (s)"
+            label={t('jobs.filters.pollingLabel')}
             data={POLLING_SECONDS_OPTIONS.map((n) => ({
               value: String(n),
-              label: n === 0 ? 'Off' : String(n),
+              label: n === 0 ? t('jobs.filters.pollingOff') : String(n),
             }))}
             value={String(pollingSeconds)}
             onChange={(value) => {
@@ -408,69 +423,79 @@ export function AdminJobsTab() {
       <Group mb="xs" justify="space-between" align="center" wrap="wrap">
         <Group gap={6} wrap="nowrap" align="center">
           <Badge color={workerConnected ? 'green' : 'yellow'} variant="filled">
-            {workerConnected ? 'Worker OK' : 'Worker degraded'}
+            {workerConnected ? t('jobs.status.workerOk') : t('jobs.status.workerDegraded')}
           </Badge>
-          <Text size="xs" c="dimmed" title={`Zuletzt aktualisiert: ${lastHealthRefreshAbsolute}`}>
-            Zuletzt aktualisiert: {formatRelativeAge(lastHealthRefreshMs, nowMs)}
+          <Text
+            size="xs"
+            c="dimmed"
+            title={t('jobs.status.lastUpdated', { time: lastHealthRefreshAbsolute })}
+          >
+            {t('jobs.status.lastUpdated', {
+              time: formatRelativeAge(t, lastHealthRefreshMs, nowMs),
+            })}
           </Text>
           {!isTabVisible && (
             <Text size="xs" c="dimmed">
-              (Hintergrund-Tab: Polling gedrosselt)
+              {t('jobs.status.backgroundThrottled')}
             </Text>
           )}
         </Group>
         <Text size="sm" c="dimmed">
-          {jobs.data?.total ?? 0} job(s)
+          {t('jobs.status.jobCount', { count: jobs.data?.total ?? 0 })}
         </Text>
       </Group>
 
       {(healthUnavailable || !queueReachable || !workerConnected) && (
-        <Alert color="yellow" mb="md" title="Job-Infrastruktur eingeschränkt">
+        <Alert color="yellow" mb="md" title={t('jobs.alerts.infrastructureLimitedTitle')}>
           {healthUnavailable
-            ? 'Health-Status aktuell nicht erreichbar. Queue-Aktionen wurden vorsorglich reduziert.'
+            ? t('jobs.alerts.healthUnavailable')
             : !queueReachable
-              ? 'Queue ist derzeit nicht erreichbar. Retry/Cancel wurden voruebergehend deaktiviert.'
-              : 'Worker ist derzeit nicht verbunden. Retry/Cancel wurden voruebergehend deaktiviert.'}
+              ? t('jobs.alerts.queueUnreachable')
+              : t('jobs.alerts.workerDisconnected')}
         </Alert>
       )}
       {!alerts.isError && hasAnyAlerts && (
         <Alert
           color={hasCriticalAlerts ? 'red' : 'yellow'}
           mb="md"
-          title={hasCriticalAlerts ? 'Kritische Job-Alerts' : 'Job-Alerts'}
+          title={hasCriticalAlerts ? t('jobs.alerts.criticalTitle') : t('jobs.alerts.warningTitle')}
         >
           <Text size="sm">
             {(alerts.data?.alerts ?? []).map((entry) => entry.message).join(' | ')}
           </Text>
           <Text size="xs" c="dimmed" mt={4}>
-            Queue: {alerts.data?.metrics.queuedCount ?? 0}, Running:{' '}
-            {alerts.data?.metrics.runningCount ?? 0}, Failed (recent/total):{' '}
-            {alerts.data?.metrics.failedRecentCount ?? 0}/
-            {alerts.data?.metrics.failedTotalCount ?? 0}, Oldest queued lag:{' '}
-            {oldestQueuedLag != null ? `${oldestQueuedLag}s` : 'n/a'}
+            {t('jobs.alerts.metricsLine', {
+              queued: alerts.data?.metrics.queuedCount ?? 0,
+              running: alerts.data?.metrics.runningCount ?? 0,
+              failedRecent: alerts.data?.metrics.failedRecentCount ?? 0,
+              failedTotal: alerts.data?.metrics.failedTotalCount ?? 0,
+              lag: oldestQueuedLag != null ? `${oldestQueuedLag}s` : t('shared.notAvailable'),
+            })}
           </Text>
           <Text size="xs" c="dimmed" mt={2}>
-            Schwellwerte: Lag {alerts.data?.thresholds.queuedLagSeconds ?? 0}s, Failed{' '}
-            {alerts.data?.thresholds.failedRecentCount ?? 0} in{' '}
-            {alerts.data?.thresholds.failedRecentWindowMinutes ?? 0}m, Runbook:{' '}
-            {alerts.data?.runbook ?? 'n/a'}
+            {t('jobs.alerts.thresholdsLine', {
+              lagThreshold: alerts.data?.thresholds.queuedLagSeconds ?? 0,
+              failedThreshold: alerts.data?.thresholds.failedRecentCount ?? 0,
+              windowMinutes: alerts.data?.thresholds.failedRecentWindowMinutes ?? 0,
+              runbook: alerts.data?.runbook ?? t('shared.notAvailable'),
+            })}
           </Text>
         </Alert>
       )}
       {alerts.isError && (
-        <Alert color="yellow" mb="md" title="Job-Alerts nicht verfuegbar">
-          Alert-Metriken konnten nicht geladen werden. Health und Jobliste laufen weiterhin.
+        <Alert color="yellow" mb="md" title={t('jobs.alerts.unavailableTitle')}>
+          {t('jobs.alerts.unavailableBody')}
         </Alert>
       )}
 
       <Table withTableBorder withColumnBorders className="admin-table-hover">
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Queue</Table.Th>
-            <Table.Th>State</Table.Th>
-            <Table.Th>Retry</Table.Th>
-            <Table.Th>Created</Table.Th>
-            <Table.Th>Actions</Table.Th>
+            <Table.Th>{t('jobs.table.queue')}</Table.Th>
+            <Table.Th>{t('jobs.table.state')}</Table.Th>
+            <Table.Th>{t('jobs.table.retry')}</Table.Th>
+            <Table.Th>{t('jobs.table.created')}</Table.Th>
+            <Table.Th>{t('jobs.table.actions')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -478,7 +503,7 @@ export function AdminJobsTab() {
             <Table.Tr>
               <Table.Td colSpan={5}>
                 <Text size="sm" c="dimmed">
-                  No jobs found.
+                  {t('jobs.table.empty')}
                 </Text>
               </Table.Td>
             </Table.Tr>
@@ -518,12 +543,10 @@ export function AdminJobsTab() {
                       onClick={() => retryMutation.mutate(job.id)}
                       disabled={retryMutation.isPending || queueActionsDisabled}
                       title={
-                        queueActionsDisabled
-                          ? 'Queue/Worker nicht verfuegbar - Aktion derzeit deaktiviert'
-                          : undefined
+                        queueActionsDisabled ? t('jobs.alerts.queueActionDisabledTitle') : undefined
                       }
                     >
-                      Retry
+                      {t('jobs.table.retryAction')}
                     </Button>
                     <Button
                       size="xs"
@@ -532,25 +555,23 @@ export function AdminJobsTab() {
                       onClick={() => cancelMutation.mutate(job.id)}
                       disabled={cancelMutation.isPending || queueActionsDisabled}
                       title={
-                        queueActionsDisabled
-                          ? 'Queue/Worker nicht verfuegbar - Aktion derzeit deaktiviert'
-                          : undefined
+                        queueActionsDisabled ? t('jobs.alerts.queueActionDisabledTitle') : undefined
                       }
                     >
-                      Cancel
+                      {t('jobs.table.cancelAction')}
                     </Button>
                     <Button
                       size="xs"
                       variant="filled"
                       color="gray"
                       onClick={() => {
-                        const confirmed = window.confirm('Delete this job permanently?');
+                        const confirmed = window.confirm(t('jobs.table.deleteConfirm'));
                         if (!confirmed) return;
                         deleteMutation.mutate(job.id);
                       }}
                       disabled={deleteMutation.isPending}
                     >
-                      Delete
+                      {t('jobs.table.deleteAction')}
                     </Button>
                   </Group>
                 </Table.Td>

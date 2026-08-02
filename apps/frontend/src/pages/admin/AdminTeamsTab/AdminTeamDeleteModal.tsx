@@ -1,4 +1,5 @@
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { TeamWithDept } from './adminTeamsTabTypes';
 
 export type AdminTeamDeleteModalProps = {
@@ -16,17 +17,18 @@ export function AdminTeamDeleteModal({
   onConfirmDelete,
   deleteLoading,
 }: AdminTeamDeleteModalProps) {
+  const { t } = useTranslation('admin');
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete team" size="sm">
+    <Modal opened={opened} onClose={onClose} title={t('teams.deleteModal.title')} size="sm">
       {team && (
         <Stack>
-          <Text size="sm">Really delete team &quot;{team.name}&quot;? This cannot be undone.</Text>
+          <Text size="sm">{t('teams.deleteModal.body', { name: team.name })}</Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button color="red" onClick={onConfirmDelete} loading={deleteLoading}>
-              Delete
+              {t('common:actions.delete')}
             </Button>
           </Group>
         </Stack>

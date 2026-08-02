@@ -1,5 +1,6 @@
 import { Button, Menu } from '@mantine/core';
 import { IconBriefcase, IconChevronDown, IconPlus, IconRoute } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 export interface CreateContextMenuProps {
   /** Opens the new draft document flow. */
@@ -19,6 +20,7 @@ export function CreateContextMenu({
   onCreateProcess,
   onCreateProject,
 }: CreateContextMenuProps) {
+  const { t } = useTranslation('contexts');
   return (
     <Button.Group>
       <Button
@@ -27,20 +29,20 @@ export function CreateContextMenu({
         leftSection={<IconPlus size={16} />}
         onClick={onCreateDraft}
       >
-        Draft
+        {t('createMenu.draft')}
       </Button>
       <Menu position="bottom-end" shadow="md" withinPortal>
         <Menu.Target>
-          <Button variant="filled" size="sm" px="xs" aria-label="Create process or project">
+          <Button variant="filled" size="sm" px="xs" aria-label={t('createMenu.ariaLabel')}>
             <IconChevronDown size={16} />
           </Button>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item leftSection={<IconRoute size={16} />} onClick={onCreateProcess}>
-            Process
+            {t('createMenu.process')}
           </Menu.Item>
           <Menu.Item leftSection={<IconBriefcase size={16} />} onClick={onCreateProject}>
-            Project
+            {t('createMenu.project')}
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

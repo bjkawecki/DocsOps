@@ -12,13 +12,14 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client.js';
 import {
-  BROADCAST_TARGET_OPTIONS,
   defaultFutureDatetimeLocal,
   isDatetimeLocalInFuture,
   minDatetimeLocalNow,
   sendAtFieldLabel,
+  useBroadcastTargetOptions,
   type BroadcastDraft,
   type BroadcastTargetKind,
 } from './adminBroadcastTypes.js';
@@ -40,11 +41,13 @@ export function AdminBroadcastCreateModal({
   onCreate,
   creating,
 }: AdminBroadcastCreateModalProps) {
+  const { t } = useTranslation('admin');
+  const targetOptions = useBroadcastTargetOptions();
   const usersQuery = useQuery({
     queryKey: ['admin', 'users', 'broadcast-picker'] as const,
     queryFn: async () => {
       const res = await apiFetch('/api/v1/admin/users?limit=100&offset=0&includeDeactivated=false');
-      if (!res.ok) throw new Error('Failed to load users');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       const body = (await res.json()) as {
         items: Array<{ id: string; name: string; email: string | null }>;
       };
@@ -69,21 +72,26 @@ export function AdminBroadcastCreateModal({
     scheduledInFuture;
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Create system message" size="lg" centered>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('broadcast.createModal.title')}
+      size="lg"
+      centered
+    >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Send immediately or schedule for a future time. Scheduled messages are managed in the
-          Scheduler tab.
+          {t('broadcast.createModal.intro')}
         </Text>
         <TextInput
-          label="Title"
+          label={t('broadcast.createModal.titleLabel')}
           value={draft.title}
           onChange={(e) => onDraftChange({ ...draft, title: e.currentTarget.value })}
           maxLength={200}
           required
         />
         <Textarea
-          label="Message"
+          label={t('broadcast.createModal.messageLabel')}
           value={draft.message}
           onChange={(e) => onDraftChange({ ...draft, message: e.currentTarget.value })}
           minRows={4}
@@ -91,8 +99,8 @@ export function AdminBroadcastCreateModal({
           required
         />
         <Select
-          label="Audience"
-          data={BROADCAST_TARGET_OPTIONS}
+          label={t('broadcast.createModal.audienceLabel')}
+          data={targetOptions}
           value={draft.targetKind}
           onChange={(v) =>
             onDraftChange({
@@ -107,17 +115,17 @@ export function AdminBroadcastCreateModal({
             <Loader size="sm" />
           ) : (
             <MultiSelect
-              label="Users"
+              label={t('broadcast.createModal.usersLabel')}
               data={userOptions}
               value={draft.userIds}
               onChange={(userIds) => onDraftChange({ ...draft, userIds })}
               searchable
-              nothingFoundMessage="No users"
+              nothingFoundMessage={t('broadcast.createModal.usersNothingFound')}
             />
           )
         ) : null}
         <Radio.Group
-          label="Delivery"
+          label={t('broadcast.createModal.deliveryLabel')}
           value={draft.deliveryMode}
           onChange={(value) =>
             onDraftChange({
@@ -128,28 +136,28 @@ export function AdminBroadcastCreateModal({
           }
         >
           <Group gap="md" mt="xs">
-            <Radio value="now" label="Send now" />
-            <Radio value="scheduled" label="Schedule for later" />
+            <Radio value="now" label={t('broadcast.createModal.deliveryNow')} />
+            <Radio value="scheduled" label={t('broadcast.createModal.deliveryScheduled')} />
           </Group>
         </Radio.Group>
         {draft.deliveryMode === 'scheduled' ? (
           <TextInput
-            label={sendAtFieldLabel()}
-            description="Date and time use your browser's local timezone."
+            label={sendAtFieldLabel(t('broadcast.createModal.sendAtLabel'))}
+            description={t('broadcast.createModal.sendAtDescription')}
             type="datetime-local"
             value={draft.sendAtLocal}
             min={minDatetimeLocalNow()}
             onChange={(e) => onDraftChange({ ...draft, sendAtLocal: e.currentTarget.value })}
             required
-            error={!scheduledInFuture ? 'Choose a date and time in the future.' : undefined}
+            error={!scheduledInFuture ? t('broadcast.createModal.sendAtError') : undefined}
           />
         ) : null}
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button onClick={onCreate} loading={creating} disabled={!canCreate}>
-            Create message
+            {t('actions.createMessage')}
           </Button>
         </Group>
       </Stack>

@@ -11,8 +11,15 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
-import type { ListUsersRes, SortByField, SortOrder, UserRow } from './adminUsersTypes';
+import {
+  userRoleLabel,
+  type ListUsersRes,
+  type SortByField,
+  type SortOrder,
+  type UserRow,
+} from './adminUsersTypes';
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './adminUsersConstants';
 import { formatUserDepartmentsColumn, formatUserTeamsColumn } from './AdminUserAssignmentsDisplay';
 
@@ -57,6 +64,7 @@ export function AdminUsersList({
   onPageChange,
   onEmailClick,
 }: Props) {
+  const { t } = useTranslation('admin');
   return (
     <>
       <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
@@ -64,8 +72,8 @@ export function AdminUsersList({
           <SegmentedControl
             size="xs"
             data={[
-              { label: 'All', value: 'all' },
-              { label: 'Active', value: 'active' },
+              { label: t('users.list.filterAll'), value: 'all' },
+              { label: t('users.list.filterActive'), value: 'active' },
             ]}
             value={includeDeactivated ? 'all' : 'active'}
             onChange={(v) => {
@@ -73,7 +81,7 @@ export function AdminUsersList({
             }}
           />
           <TextInput
-            placeholder="Search (name, email)"
+            placeholder={t('users.list.searchPlaceholder')}
             size="xs"
             value={searchInput}
             onChange={(e) => onSearchInputChange(e.target.value)}
@@ -86,15 +94,15 @@ export function AdminUsersList({
               onSearchSubmit();
             }}
           >
-            Search
+            {t('common:actions.search')}
           </Button>
         </Group>
         <Group gap="sm" align="flex-end">
           <Text size="sm" c="dimmed">
-            {data?.total ?? 0} user(s)
+            {t('users.list.countLine', { count: data?.total ?? 0 })}
           </Text>
           <Select
-            label="Per page"
+            label={t('shared.perPage')}
             data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
             value={String(limit)}
             onChange={(value) => {
@@ -108,7 +116,7 @@ export function AdminUsersList({
 
       {isPending && <Loader size="sm" />}
       {isError && (
-        <Alert color="red" title="Error">
+        <Alert color="red" title={t('shared.errorTitle')}>
           {error?.message}
         </Alert>
       )}
@@ -118,42 +126,42 @@ export function AdminUsersList({
             <Table.Thead>
               <Table.Tr>
                 <AdminUsersSortableTh
-                  label="Name"
+                  label={t('users.list.table.name')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="name"
                   onSort={() => onSortColumn('name')}
                 />
                 <AdminUsersSortableTh
-                  label="Email"
+                  label={t('users.list.table.email')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="email"
                   onSort={() => onSortColumn('email')}
                 />
                 <AdminUsersSortableTh
-                  label="Role"
+                  label={t('users.list.table.role')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="role"
                   onSort={() => onSortColumn('role')}
                 />
                 <AdminUsersSortableTh
-                  label="Teams"
+                  label={t('users.list.table.teams')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="teams"
                   onSort={() => onSortColumn('teams')}
                 />
                 <AdminUsersSortableTh
-                  label="Departments"
+                  label={t('users.list.table.departments')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="departments"
                   onSort={() => onSortColumn('departments')}
                 />
                 <AdminUsersSortableTh
-                  label="Status"
+                  label={t('users.list.table.status')}
                   currentSortBy={sortBy}
                   sortOrder={sortOrder}
                   field="deletedAt"
@@ -188,17 +196,17 @@ export function AdminUsersList({
                       '–'
                     )}
                   </Table.Td>
-                  <Table.Td>{u.role}</Table.Td>
-                  <Table.Td>{formatUserTeamsColumn(u)}</Table.Td>
-                  <Table.Td>{formatUserDepartmentsColumn(u)}</Table.Td>
+                  <Table.Td>{userRoleLabel(t, u.role)}</Table.Td>
+                  <Table.Td>{formatUserTeamsColumn(t, u)}</Table.Td>
+                  <Table.Td>{formatUserDepartmentsColumn(t, u)}</Table.Td>
                   <Table.Td>
                     {u.deletedAt ? (
                       <Badge size="sm" color="gray">
-                        Deactivated
+                        {t('shared.statusDeactivated')}
                       </Badge>
                     ) : (
                       <Badge size="sm" color="green">
-                        Active
+                        {t('common:status.active')}
                       </Badge>
                     )}
                   </Table.Td>
@@ -208,7 +216,7 @@ export function AdminUsersList({
           </Table>
           {data.items.length === 0 && (
             <Alert color="gray" mt="sm">
-              No users found.
+              {t('users.list.empty')}
             </Alert>
           )}
           {totalPages > 1 && (

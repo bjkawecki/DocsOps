@@ -4,6 +4,7 @@ import type {
   UseInfiniteQueryResult,
   UseMutationResult,
 } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import type { DocumentCommentItem, CommentsListResponse } from './documentCommentTypes.js';
 import { DocumentCommentItemView } from './DocumentCommentItemView.js';
 import { DocumentCommentMentionTextarea } from './DocumentCommentMentionTextarea.js';
@@ -72,42 +73,43 @@ export function DocumentCommentsListBody({
   patchMutation,
   deleteMutation,
 }: Props) {
+  const { t } = useTranslation('documents');
   return (
     <>
       {!listQuery.isPending && !listQuery.isError && items.length === 0 && (
         <Text size="sm" c="dimmed" mb="sm">
-          No comments yet.
+          {t('comments.empty')}
         </Text>
       )}
 
       {replyToRootId != null && (
         <Box mb="sm" p="xs" style={{ background: 'var(--mantine-color-default-hover)' }}>
           <Text size="xs" c="dimmed" mb={4}>
-            Reply to thread
+            {t('comments.replyToThread')}
           </Text>
           <DocumentCommentMentionTextarea
             documentId={documentId}
             enabled={panelOpen}
-            placeholder="Write a reply…"
+            placeholder={t('comments.replyPlaceholder')}
             value={replyDraft}
             onChange={setReplyDraft}
             minRows={2}
           />
           <Group justify="flex-end" gap="xs" mt="xs">
             <Button size="xs" variant="default" onClick={() => setReplyToRootId(null)}>
-              Cancel
+              {t('comments.cancel')}
             </Button>
             <Button
               size="xs"
               loading={createMutation.isPending}
               disabled={!replyDraft.trim()}
               onClick={() => {
-                const t = replyDraft.trim();
-                if (!t || replyToRootId == null) return;
-                createMutation.mutate({ text: t, parentId: replyToRootId });
+                const text = replyDraft.trim();
+                if (!text || replyToRootId == null) return;
+                createMutation.mutate({ text, parentId: replyToRootId });
               }}
             >
-              Post reply
+              {t('comments.postReply')}
             </Button>
           </Group>
         </Box>
@@ -118,8 +120,8 @@ export function DocumentCommentsListBody({
           {headings.length > 0 && (
             <Select
               size="sm"
-              label="Attach to section (optional)"
-              placeholder="No section"
+              label={t('comments.attachToSection')}
+              placeholder={t('comments.noSection')}
               clearable
               data={headings.map((h) => ({ value: h.id, label: h.text }))}
               value={anchorSlug}
@@ -129,8 +131,8 @@ export function DocumentCommentsListBody({
           <DocumentCommentMentionTextarea
             documentId={documentId}
             enabled={panelOpen}
-            label="Add a comment"
-            placeholder="Write a comment…"
+            label={t('comments.addComment')}
+            placeholder={t('comments.commentPlaceholder')}
             value={newText}
             onChange={setNewText}
             minRows={2}
@@ -139,16 +141,16 @@ export function DocumentCommentsListBody({
             <Button
               size="sm"
               onClick={() => {
-                const t = newText.trim();
-                if (!t) return;
-                const payload: { text: string; anchorHeadingId?: string } = { text: t };
+                const text = newText.trim();
+                if (!text) return;
+                const payload: { text: string; anchorHeadingId?: string } = { text };
                 if (anchorSlug != null && anchorSlug !== '') payload.anchorHeadingId = anchorSlug;
                 createMutation.mutate(payload);
               }}
               loading={createMutation.isPending}
               disabled={!newText.trim()}
             >
-              Post comment
+              {t('comments.postComment')}
             </Button>
           </Group>
         </Stack>
@@ -156,7 +158,7 @@ export function DocumentCommentsListBody({
 
       {listQuery.isError && (
         <Text size="sm" c="red">
-          {listQuery.error instanceof Error ? listQuery.error.message : 'Failed to load comments'}
+          {listQuery.error instanceof Error ? listQuery.error.message : t('comments.loadFailed')}
         </Text>
       )}
       {listQuery.isPending && (
@@ -213,7 +215,7 @@ export function DocumentCommentsListBody({
                       setReplyDraft('');
                     }}
                   >
-                    Reply
+                    {t('comments.reply')}
                   </Button>
                 </Box>
               )}
@@ -230,7 +232,7 @@ export function DocumentCommentsListBody({
             loading={isFetchingNextPage}
             onClick={() => void listQuery.fetchNextPage()}
           >
-            Load more comments
+            {t('comments.loadMore')}
           </Button>
         </Group>
       )}

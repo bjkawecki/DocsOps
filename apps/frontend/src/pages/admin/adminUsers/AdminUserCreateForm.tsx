@@ -1,5 +1,6 @@
 import { Button, Group, Select, Stack, Switch, TextInput } from '@mantine/core';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CreateUserPayload, DepartmentWithTeams } from './adminUsersTypes';
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending }: Props) {
+  const { t } = useTranslation('admin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,16 +43,21 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
 
   return (
     <Stack>
-      <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
       <TextInput
-        label="Email"
+        label={t('users.createForm.nameLabel')}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
+      <TextInput
+        label={t('users.createForm.emailLabel')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <TextInput
-        label="Password"
+        label={t('users.createForm.passwordLabel')}
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -58,13 +65,13 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
         minLength={8}
       />
       <Switch
-        label="Administrator"
+        label={t('users.createForm.adminLabel')}
         checked={isAdmin}
         onChange={(e) => setIsAdmin(e.currentTarget.checked)}
       />
       <Select
-        label="Department"
-        placeholder="Optional"
+        label={t('users.createForm.departmentLabel')}
+        placeholder={t('users.createForm.departmentPlaceholder')}
         data={departmentOptions}
         value={departmentId}
         onChange={(v) => {
@@ -74,8 +81,12 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
         clearable
       />
       <Select
-        label="Team"
-        placeholder={departmentId ? 'Optional' : 'Select department first'}
+        label={t('users.createForm.teamLabel')}
+        placeholder={
+          departmentId
+            ? t('users.createForm.teamPlaceholderOptional')
+            : t('users.createForm.teamPlaceholderSelectDepartmentFirst')
+        }
         data={teamOptions}
         value={teamId}
         onChange={setTeamId}
@@ -84,10 +95,10 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
       />
       {teamId && (
         <Select
-          label="Role in team"
+          label={t('users.createForm.teamRoleLabel')}
           data={[
-            { value: 'member', label: 'Member' },
-            { value: 'leader', label: 'Team Lead' },
+            { value: 'member', label: t('users.createForm.teamRoleMember') },
+            { value: 'leader', label: t('users.createForm.teamRoleLeader') },
           ]}
           value={teamRole}
           onChange={(v) => v && setTeamRole(v as 'member' | 'leader')}
@@ -95,21 +106,21 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
       )}
       {departmentId && (
         <Switch
-          label="Department Lead of this department"
+          label={t('users.createForm.departmentLeadSwitchLabel')}
           checked={supervisorOfDepartment}
           onChange={(e) => setSupervisorOfDepartment(e.currentTarget.checked)}
         />
       )}
       <Group justify="flex-end" mt="md">
         <Button variant="default" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
           loading={isPending}
           disabled={!name.trim() || !email.trim() || password.length < 8}
         >
-          Create
+          {t('common:actions.create')}
         </Button>
       </Group>
     </Stack>

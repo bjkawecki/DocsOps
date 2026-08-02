@@ -1,5 +1,6 @@
 import { Badge, Group, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import type { DocumentTypeDto } from '../../components/documents/documentTypeTypes.js';
 import type { DocumentResponse } from './documentPageTypes';
@@ -40,6 +41,7 @@ function useDocumentTypeLabel(
  * Version/draft + type + tags + description for the document left column (under TOC).
  */
 export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
+  const { t } = useTranslation('documents');
   const versionNumber = data.currentPublishedVersionNumber;
   const tags = data.documentTags.filter((dt) => dt.tag.name.trim().length > 0);
   const description = data.description?.trim() || null;
@@ -50,14 +52,15 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
 
   let statusLine: string | null = null;
   if (data.publishedAt) {
-    const versionPart = versionNumber != null ? `Version ${versionNumber}` : null;
+    const versionPart =
+      versionNumber != null ? t('sidebar.version', { number: versionNumber }) : null;
     if (versionPart != null && dateLabel != null) {
       statusLine = `${versionPart}, ${dateLabel}`;
     } else {
       statusLine = versionPart ?? dateLabel;
     }
   } else {
-    statusLine = 'Draft';
+    statusLine = t('sidebar.draft');
   }
 
   const hasType =
@@ -68,7 +71,7 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
   return (
     <DocumentChromeCollapsiblePanel
       sectionId="doc-page:details"
-      title="Details"
+      title={t('sidebar.details')}
       defaultOpen={false}
     >
       <Stack gap="sm" w="100%" px={4}>
@@ -80,13 +83,13 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
         {hasType ? (
           <Text size="sm">
             <Text span c="dimmed">
-              Type:{' '}
+              {t('sidebar.type')}{' '}
             </Text>
             {typeLabel ?? data.documentTypeKey}
           </Text>
         ) : null}
         {tags.length > 0 ? (
-          <Group gap={6} wrap="wrap" aria-label="Tags">
+          <Group gap={6} wrap="wrap" aria-label={t('sidebar.tagsAria')}>
             {tags.map((dt) => (
               <Badge
                 key={dt.tag.id}

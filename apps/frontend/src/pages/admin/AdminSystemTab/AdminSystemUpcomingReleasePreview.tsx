@@ -11,6 +11,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { IconChevronDown, IconExternalLink } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import type { AdminSystemUpdateStatus } from 'backend/api-types';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function AdminSystemUpcomingReleasePreview({ status }: Props) {
+  const { t } = useTranslation('admin');
   const [opened, setOpened] = useState(false);
   const version = status.upcomingReleaseNotesVersion;
 
@@ -44,7 +46,7 @@ export function AdminSystemUpcomingReleasePreview({ status }: Props) {
         >
           <Group justify="space-between" wrap="nowrap" gap="xs">
             <Title order={4} m={0}>
-              What&apos;s in v{version}?
+              {t('system.upcomingRelease.title', { version })}
             </Title>
             <IconChevronDown
               size={18}
@@ -62,14 +64,14 @@ export function AdminSystemUpcomingReleasePreview({ status }: Props) {
         <Collapse in={opened}>
           <Stack gap="sm" pt="xs">
             {hasError && (
-              <Alert color="yellow" title="Could not load release notes preview">
+              <Alert color="yellow" title={t('system.upcomingRelease.loadErrorTitle')}>
                 {status.upcomingReleaseNotesError}
                 {status.releaseUrl != null && (
                   <>
                     {' '}
                     <Anchor href={status.releaseUrl} target="_blank" rel="noreferrer" size="sm">
                       <Group gap={4} component="span">
-                        View on GitHub
+                        {t('system.upcomingRelease.viewOnGithub')}
                         <IconExternalLink size={14} />
                       </Group>
                     </Anchor>
@@ -86,12 +88,12 @@ export function AdminSystemUpcomingReleasePreview({ status }: Props) {
 
             {!hasMarkdown && !hasError && (
               <Text size="sm" c="dimmed">
-                No release notes preview available.
+                {t('system.upcomingRelease.noPreview')}
                 {status.releaseUrl != null && (
                   <>
                     {' '}
                     <Anchor href={status.releaseUrl} target="_blank" rel="noreferrer" size="sm">
-                      View release on GitHub
+                      {t('system.upcomingRelease.viewReleaseOnGithub')}
                     </Anchor>
                   </>
                 )}

@@ -44,6 +44,13 @@
   },
   "people": "Personen",
   "create": "Erstellen",
+  "whatsNew": {
+    "loadErrorTitle": "Release-Hinweise konnten nicht geladen werden",
+    "loadErrorBody": "Bitte später erneut versuchen.",
+    "empty": "Noch keine Release-Hinweise verfügbar.",
+    "helpLink": "Hilfe & Anleitungen →",
+    "latestBadge": "Neueste"
+  },
   "toasts": {
     "themeUpdated": "Design-Einstellung gespeichert.",
     "themeUpdateFailed": "Design-Einstellung konnte nicht gespeichert werden."

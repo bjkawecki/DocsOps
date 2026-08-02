@@ -1,4 +1,4 @@
-import type { BackupRun } from './adminBackupTypes';
+import type { BackupRun, TranslateFn } from './adminBackupTypes';
 
 const IN_PROGRESS_BACKUP_STATUSES = new Set(['queued', 'running', 'uploading']);
 
@@ -46,10 +46,40 @@ export function formatDestinationTypeShort(type: 'S3_COMPATIBLE' | 'SSH' | 'WEBD
   return 'WebDAV';
 }
 
-export function formatExternalDestinationLabel(run: BackupRun): string {
+export function formatExternalDestinationLabel(run: BackupRun, t: TranslateFn): string {
   if (run.destination?.name) {
     return `${run.destination.name} (${formatDestinationTypeShort(run.destination.type)})`;
   }
-  if (run.status === 'succeeded') return 'Local only';
+  if (run.status === 'succeeded') return t('backup.history.localOnly');
   return '–';
+}
+
+export function formatBackupRunStatusLabel(status: string, t: TranslateFn): string {
+  switch (status) {
+    case 'queued':
+      return t('backup.runStatus.queued');
+    case 'running':
+      return t('backup.runStatus.running');
+    case 'uploading':
+      return t('backup.runStatus.uploading');
+    case 'succeeded':
+      return t('backup.runStatus.succeeded');
+    case 'failed':
+      return t('backup.runStatus.failed');
+    default:
+      return status;
+  }
+}
+
+export function formatTriggerSourceLabel(source: string, t: TranslateFn): string {
+  switch (source) {
+    case 'manual':
+      return t('backup.triggerSource.manual');
+    case 'schedule':
+      return t('backup.triggerSource.schedule');
+    case 'pre_update':
+      return t('backup.triggerSource.preUpdate');
+    default:
+      return source;
+  }
 }

@@ -1,4 +1,5 @@
 import { Button, Group, Modal, MultiSelect, Stack, TextInput } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { DocumentTypePicker } from '../documents/DocumentTypePicker.js';
 import type { DocumentTypeSelection } from '../documents/documentTypeTypes.js';
 
@@ -31,14 +32,21 @@ export function NewDraftDocumentModal({
   loading,
   onSubmit,
 }: NewDraftDocumentModalProps) {
+  const { t } = useTranslation(['contexts', 'common']);
   return (
-    <Modal opened={opened} onClose={onClose} title="New draft" centered size="lg">
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('modals.newDraftDocument.title')}
+      centered
+      size="lg"
+    >
       <Stack gap="md">
         <TextInput
-          label="Title"
+          label={t('modals.newDraftDocument.titleLabel')}
           value={title}
           onChange={(e) => onTitleChange(e.currentTarget.value)}
-          placeholder="Draft title"
+          placeholder={t('modals.newDraftDocument.titlePlaceholder')}
           required
         />
         <DocumentTypePicker
@@ -49,20 +57,20 @@ export function NewDraftDocumentModal({
           mode="create"
         />
         <MultiSelect
-          label="Tags"
+          label={t('modals.newDraftDocument.tagsLabel')}
           data={tagOptions}
           value={tagIds}
           onChange={onTagIdsChange}
-          placeholder="Select tags"
+          placeholder={t('modals.newDraftDocument.tagsPlaceholder')}
           searchable
           clearable
         />
         <Group justify="flex-end" gap="xs">
           <Button variant="default" onClick={onClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button loading={loading} onClick={() => void onSubmit()}>
-            Create
+            {t('common:actions.create')}
           </Button>
         </Group>
       </Stack>

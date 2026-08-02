@@ -2,7 +2,7 @@
 
 Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
 
-**Status:** Phase 1 umgesetzt (Gerüst, Locale-Wiring, Shell/Login/Settings/Home/Catalog/Admin-Nav+Primary-Actions EN+DE). Weitere Surfaces folgen.
+**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). Help-DE / Demo-Seed DE / E-Mail-Templates bewusst separat.
 
 ---
 
@@ -11,7 +11,7 @@ Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergän
 - UI der App in **Englisch und Deutsch**
 - **Englisch** ist Quellsprache und Fallback (Keys, fehlende DE-Einträge)
 - Landing (`apps/landing`) bleibt **statisch Deutsch** und **nicht** Teil des App-i18n-Katalogs
-- Help in der App darf vorerst **EN** bleiben (kein Blocker für Demo)
+- Help in der App darf vorerst **EN** bleiben (kein Blocker für Demo); Help-DE ist ein eigener späterer Punkt
 
 ---
 
@@ -24,7 +24,7 @@ Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergän
 | Ablage        | `apps/frontend/src/i18n/locales/{en,de}/<namespace>.json`                       |
 | Provider      | App-weit (nahe Preference-/Theme-Wiring); Login vor Session ebenfalls abgedeckt |
 
-Namespaces (Start): `common`, `shell`, `auth`, `settings`, `admin`, `documents` (weitere nach Bedarf).
+Namespaces: `common`, `shell`, `auth`, `settings`, `admin`, `documents`, `approvals`, `notifications`, `contexts`, `templates`.
 
 ---
 
@@ -72,12 +72,36 @@ Gerüst + Locale-Wiring; UI-Texte für:
 - Home / Catalog-Kern
 - Admin-Nav und häufige Admin-Primary-Actions
 
-### Später
+### Phase 2 – Daily UX – umgesetzt
 
-- Weitere Surfaces (Dokumente, Reviews, Backup-Texte, …)
-- Help-DE
+Alles, was eingeloggte Nutzer täglich sehen (ohne Admin-Ops-Tiefe):
+
+- `documents` stark erweitern: Document Editor/Viewer (Toolbar, Lifecycle, Comments, Draft/Suggestions, Modals, Toasts)
+- Approvals / Reviews (`approvals`)
+- Notifications Inbox: Kategorien + Event-Formatter (`notifications` Namespace)
+- Settings-Resttabs (General, Account, Security, Notifications, Pulse, Storage)
+- `common`: Shared Toasts/Status („Error“, „Saved“, „Untitled“, …)
+
+### Phase 3 – Workspace & Restkern – umgesetzt
+
+- Context/Org Workspace (`contexts`): Sidebar, CRUD, New draft/process/project
+- Catalog-/Home-/Search-Reste (Spalten, Pulse-Kind-Labels, Relativzeiten)
+- Templates (`templates`); Trash/Archive/Drafts-Chrome
+- Scope People; What's-new-Chrome (Release-Markdown bleibt EN)
+
+### Phase 4 – Admin-Tiefe – umgesetzt
+
+- Admin Backup komplett (Overview, Destinations, History, Restore, Schedule, Toasts)
+- Migration Export/Import-Wizards + Status/Preflight
+- System-Detail (Update-Steps, Alerts, Mail-Form), Jobs/Scheduler, Org-Forms/Tabellen-Rest (Primary-Actions schon Phase 1)
+
+### Bewusst separat (nicht Phasen 2–4)
+
+- Help-DE (Topic-Prosa)
 - Demo-Seed-Inhalte DE (optional)
 - E-Mail-Templates (wenn SMTP-Texte user-facing)
+- Landing (`apps/landing`)
+- Backend-Fehlertexte umstellen; User-generierte Inhalte
 
 ---
 
@@ -85,8 +109,8 @@ Gerüst + Locale-Wiring; UI-Texte für:
 
 - Jeder neue UI-Text: EN-Key anlegen; DE zeitnah oder bewusst TODO (nur unkritische Labels)
 - CI/Verify: `pnpm run check:i18n` (`apps/frontend/scripts/check-i18n-keys.mjs`) stellt sicher, dass **DE-Keys ⊆ EN-Keys**
-- ESLint `i18next/no-literal-string` noch **nicht** app-weit (zu laut); Review: neue Phase-1-Dateien nur mit `t()`
-- Review-Checkliste: keine neuen hardcoded Labels ohne `t()` auf bereits migrierten Surfaces
+- ESLint `i18next/no-literal-string` noch **nicht** app-weit (zu laut); Review: migrierte Surfaces nur mit `t()`
+- Review-Checkliste: keine neuen hardcoded Labels ohne `t()` auf bereits migrierten Surfaces (Phasen 1–4)
 
 ---
 

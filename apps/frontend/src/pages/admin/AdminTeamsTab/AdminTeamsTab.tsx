@@ -60,7 +60,7 @@ export function AdminTeamsTab() {
     queryKey: ['companies'],
     queryFn: async (): Promise<CompaniesRes> => {
       const res = await apiFetch('/api/v1/companies?limit=100');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompaniesRes;
     },
   });
@@ -71,7 +71,7 @@ export function AdminTeamsTab() {
     queryKey: ['companies', companyId, 'departments'],
     queryFn: async (): Promise<DepartmentsRes> => {
       const res = await apiFetch(`/api/v1/companies/${companyId}/departments?limit=100`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as DepartmentsRes;
     },
     enabled: !!companyId,
@@ -118,7 +118,7 @@ export function AdminTeamsTab() {
     queryKey: ['teams', editingTeam?.id, 'team-leads'],
     queryFn: async (): Promise<AssignmentListRes> => {
       const res = await apiFetch(`/api/v1/teams/${editingTeam!.id}/team-leads?limit=100`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
     enabled: !!editingTeam?.id,
@@ -129,7 +129,7 @@ export function AdminTeamsTab() {
     queryKey: ['admin', 'teams', editingTeam?.id, 'members'],
     queryFn: async (): Promise<AssignmentListRes> => {
       const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/members?limit=500`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
     enabled: !!editingTeam?.id,
@@ -150,7 +150,7 @@ export function AdminTeamsTab() {
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
       const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AdminUsersRes;
     },
     enabled: !!editingTeam?.id,
@@ -164,7 +164,7 @@ export function AdminTeamsTab() {
     queryKey: ['admin', 'teams', editingTeam?.id, 'stats'],
     queryFn: async (): Promise<TeamStatsRes> => {
       const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/stats`);
-      if (!res.ok) throw new Error('Failed to load stats');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as TeamStatsRes;
     },
     enabled: !!editingTeam?.id,
@@ -233,13 +233,13 @@ export function AdminTeamsTab() {
       invalidateDepartments(dept?.companyId ?? companyId);
       closeCreateTeam();
       notifications.show({
-        title: 'Team created',
-        message: 'The team has been created.',
+        title: t('teams.toasts.createdTitle'),
+        message: t('teams.toasts.createdMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const updateTeam = useMutation({
@@ -268,13 +268,13 @@ export function AdminTeamsTab() {
       invalidateDepartments(dept?.companyId ?? companyId);
       setEditingTeam(null);
       notifications.show({
-        title: 'Team updated',
-        message: 'The team has been updated.',
+        title: t('teams.toasts.updatedTitle'),
+        message: t('teams.toasts.updatedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const deleteTeam = useMutation({
@@ -291,13 +291,13 @@ export function AdminTeamsTab() {
       invalidateDepartments(dept?.companyId ?? companyId);
       setDeleteConfirmTeam(null);
       notifications.show({
-        title: 'Team deleted',
-        message: 'The team has been deleted.',
+        title: t('teams.toasts.deletedTitle'),
+        message: t('teams.toasts.deletedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const addLeader = useMutation({
@@ -315,13 +315,13 @@ export function AdminTeamsTab() {
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
       notifications.show({
-        title: 'Team leader added',
-        message: 'The team leader has been added.',
+        title: t('teams.toasts.leaderAddedTitle'),
+        message: t('teams.toasts.leaderAddedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const removeLeader = useMutation({
@@ -337,13 +337,13 @@ export function AdminTeamsTab() {
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
       notifications.show({
-        title: 'Team leader removed',
-        message: 'The team leader has been removed.',
+        title: t('teams.toasts.leaderRemovedTitle'),
+        message: t('teams.toasts.leaderRemovedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const addMember = useMutation({
@@ -361,13 +361,13 @@ export function AdminTeamsTab() {
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
       notifications.show({
-        title: 'Member added',
-        message: 'The member has been added to the team.',
+        title: t('teams.toasts.memberAddedTitle'),
+        message: t('teams.toasts.memberAddedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const removeMember = useMutation({
@@ -383,21 +383,21 @@ export function AdminTeamsTab() {
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
       notifications.show({
-        title: 'Member removed',
-        message: 'The member has been removed from the team.',
+        title: t('teams.toasts.memberRemovedTitle'),
+        message: t('teams.toasts.memberRemovedMessage'),
         color: 'green',
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: 'Error', message: err.message, color: 'red' }),
+      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
   });
 
   const departmentOptions = useMemo(
     () => [
-      { value: '', label: 'All departments' },
+      { value: '', label: t('teams.allDepartmentsOption') },
       ...departments.map((d) => ({ value: d.id, label: d.name })),
     ],
-    [departments]
+    [departments, t]
   );
 
   const handleStartEditCard = useCallback(() => {

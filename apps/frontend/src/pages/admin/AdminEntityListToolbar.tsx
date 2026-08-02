@@ -1,4 +1,5 @@
 import { Group, Select, Text, TextInput } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
@@ -34,6 +35,7 @@ export function AdminEntityListToolbar({
   onLimitChange,
   pageSizeLocalStorageKey,
 }: AdminEntityListToolbarProps) {
+  const { t } = useTranslation('admin');
   return (
     <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
       <Group gap="sm" wrap="wrap">
@@ -59,7 +61,7 @@ export function AdminEntityListToolbar({
           {countLine}
         </Text>
         <Select
-          label="Per page"
+          label={t('shared.perPage')}
           data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
           value={String(limit)}
           onChange={(value) => {

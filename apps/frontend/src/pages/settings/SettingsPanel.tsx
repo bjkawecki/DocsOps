@@ -1,5 +1,6 @@
 import { Box, Flex, NavLink, Stack } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { SettingsAccountTab } from './SettingsAccountTab.js';
 import { SettingsAppearanceTab } from './SettingsAppearanceTab.js';
@@ -13,7 +14,6 @@ import {
   openSettingsSearchParams,
   SETTINGS_CONTENT_MAX_WIDTH,
   SETTINGS_JUMP_IDS,
-  SETTINGS_JUMP_LABELS,
   settingsCardDomId,
   type SettingsJumpId,
 } from './settingsLayout.js';
@@ -76,6 +76,7 @@ function resolveActiveJumpFromScroll(root: HTMLElement): SettingsJumpId | null {
 }
 
 export function SettingsPanel() {
+  const { t } = useTranslation('settings');
   const [searchParams, setSearchParams] = useSearchParams();
   const jumpId = getSettingsJumpId(searchParams);
   const [activeJumpId, setActiveJumpId] = useState<SettingsJumpId>(jumpId);
@@ -198,13 +199,13 @@ export function SettingsPanel() {
         data-context-sibling-nav
         style={{ flexShrink: 0, width: SETTINGS_NAV_WIDTH, minWidth: SETTINGS_NAV_WIDTH }}
       >
-        <Stack component="nav" gap={2} align="stretch" w="100%" aria-label="Settings sections">
+        <Stack component="nav" gap={2} align="stretch" w="100%" aria-label={t('nav.ariaLabel')}>
           {SETTINGS_JUMP_IDS.map((id) => {
             const Icon = SETTINGS_JUMP_ICON_COMPONENTS[id];
             return (
               <NavLink
                 key={id}
-                label={SETTINGS_JUMP_LABELS[id]}
+                label={t(`nav.${id}`)}
                 leftSection={<Icon size={SETTINGS_JUMP_ICON_SIZE} stroke={1.5} />}
                 active={activeJumpId === id}
                 aria-current={activeJumpId === id ? 'true' : undefined}

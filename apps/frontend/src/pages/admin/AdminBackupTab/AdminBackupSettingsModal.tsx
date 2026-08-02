@@ -11,6 +11,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { BackupRun, BackupStatus, Destination } from './adminBackupTypes';
 import type { DestinationFormState } from './adminBackupDestinationForm';
@@ -69,6 +70,7 @@ export function AdminBackupSettingsModal({
   onRestoreFromBackup,
   onRestoreUploadComplete,
 }: Props) {
+  const { t } = useTranslation(['admin', 'common']);
   const [activeTab, setActiveTab] = useState<string | null>(initialTab);
 
   useEffect(() => {
@@ -82,8 +84,8 @@ export function AdminBackupSettingsModal({
     .map((d) => ({ value: d.id, label: d.name }));
 
   const scheduleShortLabel = status.schedule.enabled
-    ? formatBackupScheduleLabel(status.schedule.cron, status.schedule.tz)
-    : 'Not scheduled';
+    ? formatBackupScheduleLabel(status.schedule.cron, status.schedule.tz, t)
+    : t('backup.overview.notScheduled');
   const scheduleDetail =
     status.schedule.enabled && status.schedule.cron
       ? `${status.schedule.cron} (${status.schedule.tz ?? 'UTC'})`
@@ -100,20 +102,20 @@ export function AdminBackupSettingsModal({
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Backup settings" size="lg">
+    <Modal opened={opened} onClose={onClose} title={t('backup.settings.title')} size="lg">
       <Stack gap="md">
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
-            <Tabs.Tab value="general">General</Tabs.Tab>
-            <Tabs.Tab value="destinations">External destinations</Tabs.Tab>
-            <Tabs.Tab value="restore">Disaster recovery</Tabs.Tab>
+            <Tabs.Tab value="general">{t('backup.settings.tabGeneral')}</Tabs.Tab>
+            <Tabs.Tab value="destinations">{t('backup.settings.tabDestinations')}</Tabs.Tab>
+            <Tabs.Tab value="restore">{t('backup.settings.tabRestore')}</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="general" pt="md">
             <Stack gap="md">
               <NumberInput
-                label="Keep successful backups"
-                description="Number of succeeded backups to retain locally"
+                label={t('backup.settings.general.retentionLabel')}
+                description={t('backup.settings.general.retentionDescription')}
                 min={1}
                 max={365}
                 value={status.retentionCount}
@@ -123,8 +125,8 @@ export function AdminBackupSettingsModal({
               />
 
               <Select
-                label="Default external destination"
-                placeholder="None"
+                label={t('backup.settings.general.defaultDestinationLabel')}
+                placeholder={t('backup.settings.general.defaultDestinationPlaceholder')}
                 data={destinationOptions}
                 clearable
                 value={status.defaultDestinationId}
@@ -137,7 +139,7 @@ export function AdminBackupSettingsModal({
                   disabled={!enableBlockReason || status.schedule.enabled}
                 >
                   <Switch
-                    label="Automatic backup"
+                    label={t('backup.settings.general.autoLabel')}
                     description={scheduleDetail ?? scheduleShortLabel}
                     checked={status.schedule.enabled}
                     disabled={scheduleSaving || (!status.schedule.enabled && !canEnableAuto)}
@@ -146,7 +148,7 @@ export function AdminBackupSettingsModal({
                 </Tooltip>
                 {status.autoBackupConfigured ? (
                   <Text size="xs" c="dimmed">
-                    <Link to="/admin/operations/scheduler">Scheduler</Link>
+                    <Link to="/admin/operations/scheduler">{t('backup.schedulerLink')}</Link>
                   </Text>
                 ) : null}
               </Group>
@@ -182,7 +184,7 @@ export function AdminBackupSettingsModal({
         {activeTab !== 'restore' ? (
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose}>
-              Close
+              {t('common:actions.close')}
             </Button>
           </Group>
         ) : null}

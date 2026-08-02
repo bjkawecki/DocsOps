@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Alert, Anchor, Container, Group, Loader, Stack, Text, Title } from '@mantine/core';
 import { IconSparkles } from '@tabler/icons-react';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
@@ -15,6 +16,7 @@ import {
 import { WhatsNewReleaseCard } from './WhatsNewReleaseCard.js';
 
 export function WhatsNewPage() {
+  const { t } = useTranslation('shell');
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const { data: versionData } = useAppVersion();
@@ -72,7 +74,7 @@ export function WhatsNewPage() {
       <Stack gap="lg" mt="md">
         <Group gap="sm" align="center">
           <IconSparkles size={32} stroke={1.5} color="var(--mantine-color-dimmed)" aria-hidden />
-          <Title order={1}>What&apos;s new</Title>
+          <Title order={1}>{t('shell:account.whatsNew')}</Title>
         </Group>
 
         {(listPending || detailsPending) && (
@@ -82,14 +84,14 @@ export function WhatsNewPage() {
         )}
 
         {(listError || detailsError) && (
-          <Alert color="red" title="Could not load release notes">
-            Please try again later.
+          <Alert color="red" title={t('shell:whatsNew.loadErrorTitle')}>
+            {t('shell:whatsNew.loadErrorBody')}
           </Alert>
         )}
 
         {!listPending && !listError && !detailsPending && releases.length === 0 && (
           <Text size="sm" c="dimmed">
-            No release notes available yet.
+            {t('shell:whatsNew.empty')}
           </Text>
         )}
 
@@ -108,7 +110,7 @@ export function WhatsNewPage() {
 
         <Text size="sm" c="dimmed">
           <Anchor component={Link} to="/help/overview" size="sm">
-            Help &amp; guides →
+            {t('shell:whatsNew.helpLink')}
           </Anchor>
         </Text>
       </Stack>

@@ -2,10 +2,18 @@ import { Alert, Button, Group, Select, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { apiFetch } from '../../../api/client';
 import type { DepartmentWithTeams, UserRow, UserTeam } from './adminUsersTypes';
 
 type TeamRole = 'Member' | 'Author' | 'Lead';
+
+function teamRoleLabel(t: TFunction, role: TeamRole): string {
+  if (role === 'Lead') return t('roles.lead');
+  if (role === 'Author') return t('roles.author');
+  return t('roles.member');
+}
 
 type Props = {
   user: UserRow;
@@ -22,12 +30,13 @@ function currentTeamRole(team: UserTeam | undefined): TeamRole {
 }
 
 export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }: Props) {
+  const { t } = useTranslation('admin');
   const isPlatformAdmin = user.isAdmin || user.role === 'Admin';
 
   const allTeams = departments.flatMap((d) =>
-    (d.teams ?? []).map((t) => ({
-      id: t.id,
-      name: t.name,
+    (d.teams ?? []).map((team) => ({
+      id: team.id,
+      name: team.name,
       departmentId: d.id,
       departmentName: d.name,
     }))
@@ -51,7 +60,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const addToTeam = useMutation({
@@ -66,7 +76,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const addTeamLead = useMutation({
@@ -81,7 +92,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeTeamLead = useMutation({
@@ -94,7 +106,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const promoteTeamAuthor = useMutation({
@@ -109,7 +122,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const demoteTeamAuthor = useMutation({
@@ -120,7 +134,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const addDepartmentLead = useMutation({
@@ -135,7 +150,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeDepartmentLead = useMutation({
@@ -149,7 +165,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const promoteDepartmentAuthor = useMutation({
@@ -164,7 +181,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const demoteDepartmentAuthor = useMutation({
@@ -184,7 +202,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         throw new Error(err.error ?? res.statusText);
       }
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeFromTeamSilent = async (tid: string) => {
@@ -225,15 +244,15 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     const dept = departments.find((d) => d.id === departmentId);
     const fallbackTeamId = dept?.teams?.[0]?.id;
     if (!fallbackTeamId) {
-      throw new Error('Cannot demote department author without a team in that department.');
+      throw new Error(t('users.assignmentsForm.demoteWithoutTeamError'));
     }
     await demoteDepartmentAuthor.mutateAsync({ departmentId, targetTeamId: fallbackTeamId });
   };
 
   const handleSave = async () => {
     try {
-      for (const t of user.teams ?? []) {
-        if (t.id !== teamId) await clearTeamAssignment(t);
+      for (const team of user.teams ?? []) {
+        if (team.id !== teamId) await clearTeamAssignment(team);
       }
 
       if (teamId) {
@@ -259,8 +278,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
           if (!existing || existingRole === 'Lead') await addToTeam.mutateAsync(teamId);
         }
       } else {
-        for (const t of user.teams ?? []) {
-          await clearTeamAssignment(t);
+        for (const team of user.teams ?? []) {
+          await clearTeamAssignment(team);
         }
       }
 
@@ -282,8 +301,8 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       }
 
       notifications.show({
-        title: 'Assignments updated',
-        message: 'Team and department assignments were saved.',
+        title: t('users.assignmentsForm.toasts.updatedTitle'),
+        message: t('users.assignmentsForm.toasts.updatedMessage'),
         color: 'green',
       });
       onSave();
@@ -295,13 +314,12 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
   if (isPlatformAdmin) {
     return (
       <Stack gap="sm">
-        <Alert color="blue" title="Platform administrator">
-          Platform administrators cannot have organization assignments. Remove the administrator
-          role first to assign team or department roles.
+        <Alert color="blue" title={t('users.assignmentsForm.platformAdminAlertTitle')}>
+          {t('users.assignmentsForm.platformAdminAlertBody')}
         </Alert>
         <Group gap="xs">
           <Button size="sm" variant="default" onClick={onCancel}>
-            Close
+            {t('common:actions.close')}
           </Button>
         </Group>
       </Stack>
@@ -324,12 +342,11 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
   return (
     <Stack gap="sm">
       <Text size="xs" c="dimmed">
-        Each user has one organization role. Team lead does not require team membership. Authors
-        must be promoted from team membership.
+        {t('users.assignmentsForm.hint')}
       </Text>
       <Select
-        label="Team"
-        placeholder="Select team"
+        label={t('users.assignmentsForm.teamLabel')}
+        placeholder={t('users.assignmentsForm.teamPlaceholder')}
         data={teamOptions}
         value={teamId || null}
         onChange={(v) => setTeamId(v ?? '')}
@@ -337,11 +354,11 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         size="sm"
       />
       <Select
-        label="Team role"
+        label={t('users.assignmentsForm.teamRoleLabel')}
         data={[
-          { value: 'Member', label: 'Member' },
-          { value: 'Author', label: 'Author' },
-          { value: 'Lead', label: 'Lead' },
+          { value: 'Member', label: teamRoleLabel(t, 'Member') },
+          { value: 'Author', label: teamRoleLabel(t, 'Author') },
+          { value: 'Lead', label: teamRoleLabel(t, 'Lead') },
         ]}
         value={teamRole}
         onChange={(v) => v && setTeamRole(v as TeamRole)}
@@ -349,9 +366,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         size="sm"
       />
       <Select
-        label="Department (lead)"
-        placeholder="None"
-        description="Department where this user is department lead (optional)"
+        label={t('users.assignmentsForm.departmentLeadLabel')}
+        placeholder={t('shared.leadOptionalNone')}
+        description={t('users.assignmentsForm.departmentLeadDescription')}
         data={departmentOptions}
         value={departmentLeadId || null}
         onChange={(v) => setDepartmentLeadId(v ?? '')}
@@ -359,9 +376,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         size="sm"
       />
       <Select
-        label="Department (author)"
-        placeholder="None"
-        description="Department-wide author role (optional; requires team membership in that department)"
+        label={t('users.assignmentsForm.departmentAuthorLabel')}
+        placeholder={t('shared.leadOptionalNone')}
+        description={t('users.assignmentsForm.departmentAuthorDescription')}
         data={departmentOptions}
         value={departmentAuthorId || null}
         onChange={(v) => setDepartmentAuthorId(v ?? '')}
@@ -370,7 +387,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       />
       <Group gap="xs" mt="xs">
         <Button size="sm" variant="default" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <Button
           size="sm"
@@ -378,7 +395,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
           loading={isPendingMut}
           disabled={!hasChanges}
         >
-          Save
+          {t('common:actions.save')}
         </Button>
       </Group>
     </Stack>

@@ -3,6 +3,7 @@ import { notifications } from '@mantine/notifications';
 import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
@@ -39,6 +40,7 @@ export function TrashArchiveTabCore({
   departmentId,
   teamId,
 }: TrashArchiveTabCoreProps) {
+  const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -172,11 +174,15 @@ export function TrashArchiveTabCore({
     }
     if (res.status === 204) {
       invalidateAfterMutation();
-      notifications.show({ title: 'Restored', message: 'Item was restored.', color: 'green' });
+      notifications.show({
+        title: t('documents:trashArchive.toasts.restoredTitle'),
+        message: t('documents:trashArchive.toasts.restoredMessage'),
+        color: 'green',
+      });
     } else {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       notifications.show({
-        title: 'Error',
+        title: t('documents:trashArchive.toasts.errorTitle'),
         message: body?.error ?? res.statusText,
         color: 'red',
       });
@@ -199,14 +205,14 @@ export function TrashArchiveTabCore({
     if (res.ok || res.status === 204) {
       invalidateAfterMutation();
       notifications.show({
-        title: 'Unarchived',
-        message: 'Item was restored to active.',
+        title: t('documents:trashArchive.toasts.unarchivedTitle'),
+        message: t('documents:trashArchive.toasts.unarchivedMessage'),
         color: 'green',
       });
     } else {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       notifications.show({
-        title: 'Error',
+        title: t('documents:trashArchive.toasts.errorTitle'),
         message: body?.error ?? res.statusText,
         color: 'red',
       });
@@ -248,9 +254,16 @@ export function TrashArchiveTabCore({
     [sortedItems, searchLower]
   );
 
-  const loadingLabel = variant === 'trash' ? 'Loading trash…' : 'Loading archive…';
-  const emptyAllLabel = variant === 'trash' ? 'No items in trash.' : 'No archived items.';
-  const dateColumnLabel = variant === 'trash' ? 'Deleted at' : 'Archived at';
+  const isTrash = variant === 'trash';
+  const loadingLabel = t(
+    isTrash ? 'documents:trashArchive.loadingTrash' : 'documents:trashArchive.loadingArchive'
+  );
+  const emptyAllLabel = t(
+    isTrash ? 'documents:trashArchive.emptyAllTrash' : 'documents:trashArchive.emptyAllArchive'
+  );
+  const dateColumnLabel = t(
+    isTrash ? 'documents:trashArchive.dateColumnTrash' : 'documents:trashArchive.dateColumnArchive'
+  );
 
   const dateValue = (item: TrashArchiveItem) =>
     variant === 'trash' ? item.deletedAt : item.archivedAt;
@@ -267,20 +280,20 @@ export function TrashArchiveTabCore({
     <Stack gap="md">
       <Group gap="md" wrap="wrap" align="flex-end">
         <TextInput
-          label="Search"
-          placeholder="Search by name"
+          label={t('common:actions.search')}
+          placeholder={t('documents:trashArchive.searchPlaceholder')}
           value={localSearch}
           onChange={(e) => setFilter(searchParamKey, e.currentTarget.value)}
           style={{ minWidth: 200 }}
         />
         <Select
-          label="Type"
-          placeholder="All"
+          label={t('documents:trashArchive.typeLabel')}
+          placeholder={t('documents:catalog.allTypes')}
           data={[
-            { value: '', label: 'All' },
-            { value: 'document', label: 'Document' },
-            { value: 'process', label: 'Process' },
-            { value: 'project', label: 'Project' },
+            { value: '', label: t('documents:catalog.allTypes') },
+            { value: 'document', label: t('documents:trashArchive.typeDocument') },
+            { value: 'process', label: t('documents:breadcrumbs.process') },
+            { value: 'project', label: t('documents:breadcrumbs.project') },
           ]}
           value={typeFilter || null}
           onChange={(v) => setFilter('type', v ?? '')}
@@ -289,11 +302,14 @@ export function TrashArchiveTabCore({
         />
         <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
           {localSearch.trim()
-            ? `${filteredItems.length} of ${total} item${total !== 1 ? 's' : ''}`
-            : `${total} item${total !== 1 ? 's' : ''}`}
+            ? t('documents:trashArchive.itemsOfTotal', {
+                count: total,
+                filtered: filteredItems.length,
+              })
+            : t('documents:trashArchive.itemsTotal', { count: total })}
         </Text>
         <Select
-          label="Per page"
+          label={t('documents:catalog.perPage')}
           data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
           value={String(limit)}
           onChange={(v) => v && setPageSize(parseInt(v, 10))}
@@ -305,21 +321,21 @@ export function TrashArchiveTabCore({
         <Table.Thead>
           <Table.Tr>
             <SortableTableTh
-              label="Type"
+              label={t('documents:trashArchive.typeLabel')}
               column="type"
               sortBy={sortBy}
               sortOrder={sortOrder}
               onClick={() => setSort('type')}
             />
             <SortableTableTh
-              label="Title"
+              label={t('documents:trashArchive.table.title')}
               column="title"
               sortBy={sortBy}
               sortOrder={sortOrder}
               onClick={() => setSort('title')}
             />
             <SortableTableTh
-              label="Context"
+              label={t('documents:trashArchive.table.context')}
               column="contextName"
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -332,7 +348,7 @@ export function TrashArchiveTabCore({
               sortOrder={sortOrder}
               onClick={() => setSort(dateSortColumn)}
             />
-            <Table.Th>Actions</Table.Th>
+            <Table.Th>{t('documents:trashArchive.table.actions')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -340,7 +356,9 @@ export function TrashArchiveTabCore({
             <Table.Tr>
               <Table.Td colSpan={5}>
                 <Text size="sm" c="dimmed">
-                  {sortedItems.length === 0 ? emptyAllLabel : 'No items match the search.'}
+                  {sortedItems.length === 0
+                    ? emptyAllLabel
+                    : t('documents:trashArchive.noSearchMatch')}
                 </Text>
               </Table.Td>
             </Table.Tr>
@@ -384,7 +402,7 @@ export function TrashArchiveTabCore({
                         void handleRestore(item);
                       }}
                     >
-                      Restore
+                      {t('documents:trashArchive.restore')}
                     </Button>
                   ) : (
                     <Button
@@ -396,7 +414,7 @@ export function TrashArchiveTabCore({
                         void handleUnarchive(item);
                       }}
                     >
-                      Unarchive
+                      {t('documents:trashArchive.unarchive')}
                     </Button>
                   )}
                 </Table.Td>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Loader, Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../../api/client';
 import {
@@ -20,18 +21,31 @@ type Props = {
   onClose: () => void;
 };
 
-const EXPORT_WIZARD_STEPS = [
-  { label: 'Overview', description: 'What is exported' },
-  { label: 'Confirm', description: 'Start export job' },
-  { label: 'Progress', description: 'Job status' },
-  { label: 'Done', description: 'Download archive' },
-] as const;
-
 export function AdminMigrationExportModal({ opened, onClose }: Props) {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState(0);
   const [exportRunId, setExportRunId] = useState<string | null>(null);
   const autoDownloadedRef = useRef<string | null>(null);
+
+  const EXPORT_WIZARD_STEPS = [
+    {
+      label: t('migration.exportModal.steps.overview.label'),
+      description: t('migration.exportModal.steps.overview.description'),
+    },
+    {
+      label: t('migration.exportModal.steps.confirm.label'),
+      description: t('migration.exportModal.steps.confirm.description'),
+    },
+    {
+      label: t('migration.exportModal.steps.progress.label'),
+      description: t('migration.exportModal.steps.progress.description'),
+    },
+    {
+      label: t('migration.exportModal.steps.done.label'),
+      description: t('migration.exportModal.steps.done.description'),
+    },
+  ];
 
   const exportRunQuery = useQuery({
     queryKey: ['admin', 'platform-exports', exportRunId],
@@ -84,7 +98,11 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'platform-migration', 'status'] });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Export failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('migration.exportModal.failedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
@@ -108,13 +126,18 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
       return (
         <Stack gap="sm">
           <Text size="sm">
-            Creates a <code>docsops-platform-export-*.tar.zst</code> archive with organization,
-            users, contexts, documents, grants, tags, pins, comments, and file attachments.
-            Sessions, notifications, and backup metadata are not included.
+            {t('migration.exportModal.overviewDescriptionBefore')}{' '}
+            <code>docsops-platform-export-*.tar.zst</code>{' '}
+            {t('migration.exportModal.overviewDescriptionAfter')}
           </Text>
-          <Alert color="red" variant="filled" title="Not disaster recovery">
-            For disaster recovery on the same server, use operational backup on the{' '}
-            <Link to="/admin/data/backup">Backup</Link> tab instead.
+          <Alert
+            color="red"
+            variant="filled"
+            title={t('migration.exportModal.notDisasterRecoveryTitle')}
+          >
+            {t('migration.exportModal.notDisasterRecoveryBefore')}{' '}
+            <Link to="/admin/data/backup">{t('nav.backup')}</Link>{' '}
+            {t('migration.exportModal.notDisasterRecoveryAfter')}
           </Alert>
         </Stack>
       );
@@ -123,8 +146,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     if (activeStep === 1) {
       return (
         <Alert color="blue" variant="light">
-          The export job reads domain data from the database and MinIO. Large instances may take
-          several minutes.
+          {t('migration.exportModal.jobDurationHint')}
         </Alert>
       );
     }
@@ -134,11 +156,13 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
         <Stack gap="sm" align="center">
           <Loader size="sm" />
           <Text size="sm">
-            {exportRun ? formatPlatformExportStatus(exportRun.status) : 'Starting export…'}
+            {exportRun
+              ? formatPlatformExportStatus(exportRun.status, t)
+              : t('migration.exportModal.startingExport')}
           </Text>
           {exportRun?.status === 'packaging' ? (
             <Text size="xs" c="dimmed">
-              Packaging archive for download…
+              {t('migration.exportModal.packagingHint')}
             </Text>
           ) : null}
         </Stack>
@@ -149,19 +173,19 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
       if (exportRun.status === 'succeeded') {
         return (
           <Stack gap="sm">
-            <Alert color="green" variant="filled" title="Export complete">
-              Archive size: {formatBytes(exportRun.sizeBytes)}
+            <Alert color="green" variant="filled" title={t('migration.exportModal.completeTitle')}>
+              {t('migration.exportModal.archiveSize', { size: formatBytes(exportRun.sizeBytes) })}
             </Alert>
             <Text size="sm" c="dimmed">
-              The download should start automatically. If not, use Download again below.
+              {t('migration.exportModal.downloadAutoHint')}
             </Text>
           </Stack>
         );
       }
 
       return (
-        <Alert color="red" title="Export failed">
-          {exportRun.errorMessage ?? 'Unknown error'}
+        <Alert color="red" title={t('migration.exportModal.failedTitle')}>
+          {exportRun.errorMessage ?? t('migration.exportModal.unknownError')}
         </Alert>
       );
     }
@@ -175,7 +199,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
         <MigrationWizardFooter
           onCancel={handleClose}
           showPrimary
-          primaryLabel="Continue"
+          primaryLabel={t('migration.exportModal.continue')}
           onPrimary={() => setActiveStep(1)}
         />
       );
@@ -188,7 +212,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
           showBack
           onBack={() => setActiveStep(0)}
           showPrimary
-          primaryLabel="Start export"
+          primaryLabel={t('migration.exportModal.startExport')}
           onPrimary={() => exportMutation.mutate()}
           primaryLoading={exportMutation.isPending}
         />
@@ -198,17 +222,19 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     if (activeStep === 3 && exportRun?.status === 'succeeded') {
       return (
         <MigrationWizardFooter
-          secondaryLabel="Download again"
+          secondaryLabel={t('migration.exportModal.downloadAgain')}
           onSecondary={() => triggerPlatformExportDownload(exportRun.id)}
           showPrimary
-          primaryLabel="Done"
+          primaryLabel={t('migration.exportModal.done')}
           onPrimary={handleClose}
         />
       );
     }
 
     if (activeStep === 3 && exportRun?.status === 'failed') {
-      return <MigrationWizardFooter onCancel={handleClose} cancelLabel="Close" />;
+      return (
+        <MigrationWizardFooter onCancel={handleClose} cancelLabel={t('migration.footer.close')} />
+      );
     }
 
     return null;
@@ -218,15 +244,11 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Export platform"
+      title={t('migration.exportModal.title')}
       size="xl"
       closeOnClickOutside={activeStep < 2}
     >
-      <MigrationWizardLayout
-        activeStep={activeStep}
-        steps={[...EXPORT_WIZARD_STEPS]}
-        footer={footer}
-      >
+      <MigrationWizardLayout activeStep={activeStep} steps={EXPORT_WIZARD_STEPS} footer={footer}>
         {stepContent}
       </MigrationWizardLayout>
     </Modal>

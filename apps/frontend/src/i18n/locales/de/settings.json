@@ -1,4 +1,7 @@
 {
+  "errors": {
+    "loadFailed": "Einstellungen konnten nicht geladen werden"
+  },
   "appearance": {
     "title": "Darstellung",
     "theme": "Design",
@@ -37,5 +40,180 @@
     "notifications": "Benachrichtigungen",
     "storage": "Speicher",
     "pulse": "Pulse"
+  },
+  "nav": {
+    "ariaLabel": "Einstellungsbereiche",
+    "profile": "Profil",
+    "identity": "DocsOps Identität",
+    "appearance": "Darstellung",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "sessions": "Sitzungen",
+    "storage": "Speicher",
+    "pulse": "Pulse",
+    "notifications-in-app": "In der App",
+    "notifications-email": "E-Mail-Benachrichtigungen"
+  },
+  "general": {
+    "profileActionsAria": "Profilaktionen",
+    "editProfile": "Profil bearbeiten",
+    "deactivate": "Deaktivieren",
+    "roles": {
+      "admin": "Administrator",
+      "user": "Benutzer"
+    },
+    "identity": {
+      "userEntityLabel": "Benutzer-Entität",
+      "ownershipEntitiesLabel": "Zugehörige Entitäten",
+      "none": "–",
+      "teamRoleLeader": "Team-Lead",
+      "teamRoleAuthor": "Team-Autor",
+      "teamRoleMember": "Mitglied",
+      "teamRow": "{{team}} ({{department}}) – {{role}}",
+      "departmentLeadRow": "Abteilungsleitung: {{name}}",
+      "departmentAuthorRow": "Abteilungsautor: {{name}}",
+      "companyLeadRow": "Unternehmensleitung: {{name}}"
+    },
+    "editProfileModal": {
+      "title": "Profil bearbeiten",
+      "nameLabel": "Anzeigename",
+      "cancel": "Abbrechen",
+      "save": "Speichern"
+    },
+    "deactivateModal": {
+      "title": "Konto deaktivieren",
+      "adminCannotDeactivate": "Administratoren können ihr eigenes Konto nicht deaktivieren. Bitte einen anderen Administrator bitten.",
+      "confirmMessage": "Konto deaktivieren? Sie können sich erst wieder anmelden, wenn ein Administrator Ihr Konto reaktiviert.",
+      "cancel": "Abbrechen",
+      "confirm": "Deaktivieren"
+    },
+    "toasts": {
+      "profileUpdatedTitle": "Profil aktualisiert",
+      "profileUpdatedMessage": "Ihr Profil wurde gespeichert.",
+      "updateFailedTitle": "Aktualisierung fehlgeschlagen",
+      "accountDeactivatedTitle": "Konto deaktiviert",
+      "accountDeactivatedMessage": "Sie wurden abgemeldet. Ein Administrator kann Ihr Konto reaktivieren.",
+      "deactivationFailedTitle": "Deaktivierung fehlgeschlagen"
+    }
+  },
+  "account": {
+    "changeEmail": "E-Mail ändern",
+    "changePassword": "Passwort ändern",
+    "loginEmailDescription": "Ihre Anmelde-E-Mail. Zum Ändern benötigen Sie Ihr aktuelles Passwort.",
+    "ssoManagedEmail": "Wird über SSO verwaltet. Kann hier nicht geändert werden.",
+    "changePasswordDescription": "Passwort ändern. Sie benötigen Ihr aktuelles Passwort.",
+    "ssoManagedPassword": "Wird über SSO verwaltet. Kann hier nicht geändert werden.",
+    "changeEmailModal": {
+      "title": "E-Mail ändern",
+      "newEmailLabel": "Neue E-Mail",
+      "currentPasswordLabel": "Aktuelles Passwort",
+      "cancel": "Abbrechen",
+      "save": "Speichern"
+    },
+    "changePasswordModal": {
+      "title": "Passwort ändern",
+      "currentPasswordLabel": "Aktuelles Passwort",
+      "newPasswordLabel": "Neues Passwort",
+      "newPasswordDescription": "Mindestens {{count}} Zeichen",
+      "confirmPasswordLabel": "Neues Passwort bestätigen",
+      "cancel": "Abbrechen",
+      "save": "Speichern"
+    },
+    "toasts": {
+      "passwordUpdatedTitle": "Passwort aktualisiert",
+      "passwordUpdatedMessage": "Ihr Passwort wurde geändert.",
+      "emailUpdatedTitle": "E-Mail aktualisiert",
+      "emailUpdatedMessage": "Ihre E-Mail wurde aktualisiert.",
+      "updateFailedTitle": "Aktualisierung fehlgeschlagen",
+      "passwordMismatchTitle": "Passwörter stimmen nicht überein",
+      "passwordMismatchMessage": "Bitte bestätigen Sie Ihr neues Passwort.",
+      "passwordTooShortTitle": "Passwort zu kurz",
+      "passwordTooShortMessage": "Mindestens {{count}} Zeichen erforderlich."
+    }
+  },
+  "security": {
+    "description": "Aktive Sitzungen. Andere widerrufen, um sie abzumelden.",
+    "revokeAllOthers": "Alle anderen Sitzungen widerrufen",
+    "currentSession": "Aktuelle Sitzung",
+    "revoke": "Widerrufen",
+    "createdHeader": "Erstellt",
+    "expiresHeader": "Läuft ab",
+    "noSessions": "Keine Sitzungen.",
+    "toasts": {
+      "sessionEndedTitle": "Sitzung beendet",
+      "sessionEndedMessage": "Sie wurden abgemeldet.",
+      "sessionRevokedTitle": "Sitzung widerrufen",
+      "sessionRevokedMessage": "Die Sitzung wurde beendet.",
+      "revokeFailedTitle": "Widerruf fehlgeschlagen",
+      "sessionsEndedTitle": "Sitzungen beendet",
+      "sessionsEndedMessage": "Alle anderen Sitzungen wurden widerrufen."
+    }
+  },
+  "storage": {
+    "description": "Speicherplatz für Dokumentanhänge (und PDF-Exporte). Wählen Sie einen Bereich, um Ihre Nutzung oder – als Leitung – die Ihres Teams, Ihrer Abteilung oder Ihres Unternehmens zu sehen.",
+    "scopeLabel": "Bereich",
+    "scopePersonal": "Persönlich (mein Speicher)",
+    "scopeTeam": "Team: {{name}}",
+    "scopeDepartment": "Abteilung: {{name}}",
+    "scopeCompany": "Unternehmen: {{name}}",
+    "usedSummary": "{{used}} genutzt \u00b7 {{count}} Anhang/Anhänge",
+    "userHeader": "Benutzer",
+    "usedHeader": "Genutzt",
+    "loadFailed": "Speicherdaten konnten nicht geladen werden"
+  },
+  "pulse": {
+    "description": "Legen Sie fest, was auf der Startseite erscheint. Unabhängig von der Benachrichtigungszustellung.",
+    "switches": {
+      "showDrafts": {
+        "label": "Offene Entwürfe",
+        "description": "Ihre unveröffentlichten Dokumente, an denen noch gearbeitet werden muss."
+      },
+      "showReviews": {
+        "label": "Reviews",
+        "description": "Elemente, die auf Ihre Prüfung warten, und Entscheidungen zu Ihren Anfragen."
+      },
+      "showNewDocuments": {
+        "label": "Neue Dokumente",
+        "description": "Neu veröffentlichte oder erstellte Dokumente, die Sie lesen können."
+      },
+      "showUpdatedDocuments": {
+        "label": "Aktualisierte Dokumente",
+        "description": "Veröffentlichte Dokumente mit ungelesenen Aktualisierungen."
+      },
+      "showComments": {
+        "label": "Kommentare",
+        "description": "Ungelesene Kommentaraktivität auf Dokumenten."
+      }
+    },
+    "toasts": {
+      "updatedTitle": "Pulse aktualisiert",
+      "updatedMessage": "Ihre Pulse-Einstellungen für die Startseite wurden gespeichert.",
+      "saveFailedTitle": "Speichern fehlgeschlagen"
+    }
+  },
+  "notifications": {
+    "openInbox": "Posteingang öffnen",
+    "labels": {
+      "documentChanges": "Dokumentänderungen",
+      "comments": "Kommentare",
+      "draftRequests": "Entwurfsanfragen",
+      "reminders": "Erinnerungen",
+      "organization": "Organisation",
+      "announcements": "Ankündigungen",
+      "operations": "Betrieb"
+    },
+    "descriptions": {
+      "documentChanges": "umfasst Veröffentlichung, sichtbare Aktualisierungen veröffentlichter Dokumente, Archivieren/Papierkorb/Wiederherstellen sowie Änderungen an Freigaben (Berechtigungen).",
+      "comments": "umfasst Erwähnungen und Diskussionen zu Dokumenten.",
+      "draftRequests": "umfasst den Review-Workflow.",
+      "organization": "umfasst Teammitgliedschaft und Leitungsrollen.",
+      "announcements": "umfasst Admin-Rundmeldungen.",
+      "reminders": "ist für zukünftige Nutzung reserviert."
+    },
+    "toasts": {
+      "updatedTitle": "Benachrichtigungen aktualisiert",
+      "updatedMessage": "Ihre Benachrichtigungseinstellungen wurden gespeichert.",
+      "saveFailedTitle": "Speichern fehlgeschlagen"
+    }
   }
 }

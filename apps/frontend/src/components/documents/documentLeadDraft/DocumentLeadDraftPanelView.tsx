@@ -1,5 +1,6 @@
 import { Alert, Box, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LeadDraftTiptapEditor } from '../LeadDraftTiptapEditor.js';
 import { DraftCollaborationBanner } from './DraftCollaborationBanner.js';
 import { DraftSyncMetaBar } from './DraftSyncMetaBar.js';
@@ -36,6 +37,7 @@ export function DocumentLeadDraftPanelView({
   currentUserName,
   documentId,
 }: DocumentLeadDraftPanelViewProps) {
+  const { t } = useTranslation('documents');
   const authorNameById = useMemo(() => {
     const map: Record<string, string> = {};
     for (const editor of otherEditors) {
@@ -74,22 +76,20 @@ export function DocumentLeadDraftPanelView({
       />
       {sessionLoading && (
         <Text size="xs" c="dimmed">
-          Loading session…
+          {t('leadDraft.loadingSession')}
         </Text>
       )}
       {canEdit && draftLooksEmpty && publishedFallbackAvailable && (
-        <Alert color="yellow" title="Draft is currently empty">
+        <Alert color="yellow" title={t('leadDraft.draftEmptyTitle')}>
           <Stack gap="xs">
-            <Text size="sm">
-              The shared draft has no visible text, but a published version with content exists.
-            </Text>
+            <Text size="sm">{t('leadDraft.draftEmptyBody')}</Text>
             <Group gap="xs">
               <Button
                 size="xs"
                 variant="filled"
                 onClick={() => void handleResetDraftFromPublished()}
               >
-                Reset draft to published
+                {t('leadDraft.resetToPublished')}
               </Button>
             </Group>
           </Stack>
@@ -134,14 +134,14 @@ export function DocumentLeadDraftPanelView({
               setRawJsonOpened(true);
             }}
           >
-            View raw JSON
+            {t('leadDraft.viewRawJson')}
           </Button>
         </Group>
       )}
       <Modal
         opened={rawJsonOpened}
         onClose={() => setRawJsonOpened(false)}
-        title="Raw draft JSON"
+        title={t('leadDraft.rawJsonTitle')}
         centered
         size="xl"
       >

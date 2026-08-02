@@ -1,11 +1,13 @@
 import { Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { ScopeMostReadPage } from './ScopeMostReadPage.js';
 
 export function CompanyMostReadPage() {
+  const { t } = useTranslation(['contexts', 'common']);
   const { data: me, isPending: mePending } = useMe();
   const isAdmin = me?.user?.isAdmin === true;
   const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
@@ -41,7 +43,7 @@ export function CompanyMostReadPage() {
   if (mePending || (isAdmin && !companyIdFromLead && !companyIdFromTeam && firstCompanyPending)) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('common:status.loading')}
       </Text>
     );
   }
@@ -49,7 +51,7 @@ export function CompanyMostReadPage() {
   if (!effectiveCompanyId) {
     return (
       <Text size="sm" c="dimmed">
-        No company available.
+        {t('routePages.noCompany')}
       </Text>
     );
   }
@@ -105,11 +107,12 @@ export function TeamMostReadPage() {
 }
 
 export function PersonalMostReadPage() {
+  const { t } = useTranslation('contexts');
   return (
     <ScopeMostReadPage
       navScope={{ type: 'personal' }}
       listScope="personal"
-      scopeLabel="Personal"
+      scopeLabel={t('scopeKind.personal')}
       canManage
     />
   );

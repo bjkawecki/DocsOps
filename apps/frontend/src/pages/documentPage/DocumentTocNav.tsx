@@ -1,5 +1,6 @@
 import { Stack, Text, UnstyledButton } from '@mantine/core';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DocumentChromeCollapsiblePanel } from './DocumentChromeCollapsiblePanel.js';
 
 type DocumentTocNavProps = {
@@ -27,6 +28,7 @@ function scrollHeadingIntoView(id: string) {
 
 /** Collapsible TOC; same row style as more-documents, plus numbering/indent. */
 export function DocumentTocNav({ numberedHeadings }: DocumentTocNavProps) {
+  const { t } = useTranslation('documents');
   const minLevel = useMemo(() => {
     if (numberedHeadings.length === 0) return 1;
     return Math.min(...numberedHeadings.map((h) => Math.max(h.level, 1)));
@@ -35,11 +37,15 @@ export function DocumentTocNav({ numberedHeadings }: DocumentTocNavProps) {
   if (numberedHeadings.length === 0) return null;
 
   return (
-    <DocumentChromeCollapsiblePanel sectionId="doc-page:toc" title="Contents" defaultOpen>
+    <DocumentChromeCollapsiblePanel
+      sectionId="doc-page:toc"
+      title={t('sidebar.contents')}
+      defaultOpen
+    >
       <Stack
         component="nav"
         gap={4}
-        aria-label="Table of contents"
+        aria-label={t('sidebar.tableOfContents')}
         style={{ maxHeight: 220, overflow: 'auto' }}
       >
         {numberedHeadings.map((h) => {

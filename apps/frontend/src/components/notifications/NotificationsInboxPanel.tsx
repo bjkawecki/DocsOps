@@ -13,6 +13,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
@@ -64,6 +65,7 @@ export function NotificationsInboxPanel({
   onCanMarkAllChange,
   onTotalChange,
 }: NotificationsInboxPanelProps) {
+  const { t } = useTranslation('notifications');
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
@@ -90,7 +92,7 @@ export function NotificationsInboxPanel({
       const res = await apiFetch(notificationsUrl);
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load notifications');
+        throw new Error(err.error ?? t('inbox.loadFailed'));
       }
       const data = (await res.json()) as NotificationsResponse;
       return {
@@ -116,14 +118,18 @@ export function NotificationsInboxPanel({
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to mark notification as read');
+        throw new Error(err.error ?? t('toasts.markReadFailed'));
       }
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['me', 'notifications'] });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Update failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('toasts.updateFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -150,7 +156,7 @@ export function NotificationsInboxPanel({
 
   const pageSizeSelect = (
     <Select
-      aria-label="Per page"
+      aria-label={t('inbox.perPage')}
       data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
       value={String(limit)}
       onChange={(v) => {
@@ -171,7 +177,7 @@ export function NotificationsInboxPanel({
         <Alert color="red">
           {notificationsQuery.error instanceof Error
             ? notificationsQuery.error.message
-            : 'Failed to load notifications'}
+            : t('inbox.loadFailed')}
         </Alert>
       )}
       {listReady && (
@@ -180,9 +186,11 @@ export function NotificationsInboxPanel({
             <Table withTableBorder className="dense-list-table" style={{ minWidth: 640 }}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th style={{ width: '28%' }}>Event</Table.Th>
-                  <Table.Th>Document</Table.Th>
-                  <Table.Th style={{ width: '18%', whiteSpace: 'nowrap' }}>When</Table.Th>
+                  <Table.Th style={{ width: '28%' }}>{t('inbox.table.event')}</Table.Th>
+                  <Table.Th>{t('inbox.table.document')}</Table.Th>
+                  <Table.Th style={{ width: '18%', whiteSpace: 'nowrap' }}>
+                    {t('inbox.table.when')}
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -190,14 +198,14 @@ export function NotificationsInboxPanel({
                   <Table.Tr>
                     <Table.Td colSpan={3}>
                       <Text size="sm" c="dimmed">
-                        No notifications
+                        {t('inbox.empty')}
                       </Text>
                     </Table.Td>
                   </Table.Tr>
                 ) : (
                   notificationItems.map((item) => {
                     const docHref = notificationDocumentHref(item.eventType, item.payload);
-                    const detail = secondaryDetail(item.eventType, item.payload);
+                    const detail = secondaryDetail(t, item.eventType, item.payload);
                     const unread = item.readAt == null;
                     const itemCategory = eventTypeToCategory(item.eventType);
                     return (
@@ -220,7 +228,7 @@ export function NotificationsInboxPanel({
                             </Box>
                             <Group gap="xs" wrap="nowrap" align="center">
                               <Text size="sm" c="dimmed" fw={600} lineClamp={2}>
-                                {eventHeadline(item.eventType)}
+                                {eventHeadline(t, item.eventType)}
                               </Text>
                               {!unread && <NotificationReadBadge />}
                             </Group>
@@ -239,11 +247,11 @@ export function NotificationsInboxPanel({
                                 lineClamp={2}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {documentDisplayTitle(item)}
+                                {documentDisplayTitle(t, item)}
                               </Anchor>
                             ) : (
                               <Text fw={600} size="sm" lineClamp={2}>
-                                {documentDisplayTitle(item)}
+                                {documentDisplayTitle(t, item)}
                               </Text>
                             )}
                             {detail != null && (
@@ -268,7 +276,7 @@ export function NotificationsInboxPanel({
           <Group justify="flex-end" align="center" gap="md" wrap="wrap">
             <Group gap="xs" wrap="nowrap" align="center">
               <Text size="xs" c="dimmed">
-                Per page
+                {t('inbox.perPage')}
               </Text>
               {pageSizeSelect}
             </Group>

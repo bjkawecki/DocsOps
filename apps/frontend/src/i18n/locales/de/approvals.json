@@ -1,0 +1,48 @@
+{
+  "breadcrumb": "Genehmigungen",
+  "loading": "Laden…",
+  "nav": {
+    "ariaLabel": "Genehmigungen-Navigation",
+    "reviews": "Reviews",
+    "moveRequests": "Verschiebeanfragen"
+  },
+  "reviews": {
+    "table": {
+      "document": "Dokument",
+      "scope": "Bereich",
+      "pending": "Ausstehend",
+      "authors": "Autoren",
+      "lastSuggestion": "Letzter Vorschlag"
+    },
+    "empty": "Keine Dokumente mit ausstehenden Vorschlägen in deinen Bereichen.",
+    "loadFailed": "Reviews konnten nicht geladen werden.",
+    "otherScope": "Sonstige",
+    "untitledDocument": "Ohne Titel"
+  },
+  "moves": {
+    "inbound": "Eingehend",
+    "outbound": "Ausgehend",
+    "table": {
+      "document": "Dokument",
+      "from": "Von",
+      "to": "Nach",
+      "requested": "Angefragt",
+      "actions": "Aktionen"
+    },
+    "requestedBy": "von {{name}}",
+    "inboundEmpty": "Keine eingehenden Verschiebeanfragen, die auf deine Entscheidung warten.",
+    "outboundEmpty": "Keine ausgehenden Verschiebeanfragen, die du zurückziehen kannst.",
+    "inboundLoadFailed": "Eingehende Verschiebeanfragen konnten nicht geladen werden.",
+    "outboundLoadFailed": "Ausgehende Verschiebeanfragen konnten nicht geladen werden.",
+    "actions": {
+      "accept": "Annehmen",
+      "reject": "Ablehnen",
+      "withdraw": "Anfrage zurückziehen"
+    },
+    "toasts": {
+      "accepted": "Verschiebung angenommen",
+      "rejected": "Verschiebung abgelehnt",
+      "withdrawn": "Verschiebeanfrage zurückgezogen"
+    }
+  }
+}

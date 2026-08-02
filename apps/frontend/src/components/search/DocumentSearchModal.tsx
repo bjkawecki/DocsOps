@@ -12,6 +12,7 @@ import {
   Title,
 } from '@mantine/core';
 import { IconFileText } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
@@ -57,6 +58,7 @@ export function DocumentSearchModal({
   searchData,
   goToCatalogFromModal,
 }: DocumentSearchModalProps) {
+  const { t } = useTranslation('documents');
   return (
     <Modal
       opened={opened}
@@ -64,10 +66,10 @@ export function DocumentSearchModal({
       title={
         <Stack gap={4}>
           <Title order={3} fz="lg" fw={600}>
-            Document search
+            {t('documents:search.title')}
           </Title>
           <Text size="xs" c="dimmed">
-            Top results, up to {DOCUMENT_SEARCH_MODAL_LIMIT} in this dialog
+            {t('documents:search.subtitle', { limit: DOCUMENT_SEARCH_MODAL_LIMIT })}
           </Text>
         </Stack>
       }
@@ -115,26 +117,29 @@ export function DocumentSearchModal({
             ref={modalSearchInputRef}
             value={modalSearch}
             onChange={(e) => setModalSearch(e.currentTarget.value)}
-            placeholder="Search documents…"
+            placeholder={t('documents:search.placeholder')}
             leftSection={<SearchIcon />}
-            aria-label="Search query"
+            aria-label={t('documents:search.queryAria')}
           />
           {debouncedModalSearch.length > 0 &&
             debouncedModalSearch.length < DOCUMENT_SEARCH_MIN_CHARS && (
               <Text size="sm" c="dimmed" mt="xs">
-                Enter at least {DOCUMENT_SEARCH_MIN_CHARS} characters.
+                {t('documents:search.minChars', { count: DOCUMENT_SEARCH_MIN_CHARS })}
               </Text>
             )}
           {searchInputReadyForQuery && (
             <Text size="xs" c="dimmed" mt="xs" lh={1.4}>
               {showSearchSpinner
                 ? searchDebouncePending
-                  ? 'Updating query…'
-                  : 'Searching…'
+                  ? t('documents:search.updatingQuery')
+                  : t('documents:search.searching')
                 : searchError
                   ? null
                   : searchData != null
-                    ? `${searchData.total} hits · up to ${DOCUMENT_SEARCH_MODAL_LIMIT} here`
+                    ? t('documents:search.hitsCount', {
+                        total: searchData.total,
+                        limit: DOCUMENT_SEARCH_MODAL_LIMIT,
+                      })
                     : null}
             </Text>
           )}
@@ -152,7 +157,7 @@ export function DocumentSearchModal({
         >
           {searchEnabled && searchError && !showSearchSpinner && (
             <Text size="sm" c="red" mb="sm">
-              Search failed. Try again in Catalog or try again later.
+              {t('documents:search.failed')}
             </Text>
           )}
           {searchEnabled && (
@@ -168,13 +173,13 @@ export function DocumentSearchModal({
                 searchData.items.length === 0 &&
                 !showSearchSpinner && (
                   <Text size="sm" c="dimmed">
-                    No results. The search index may lag behind Catalog data.
+                    {t('documents:search.empty')}
                   </Text>
                 )}
               {!searchError && searchData && searchData.items.length > 0 && (
                 <Stack component="ul" gap="sm" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                   {searchData.items.map((doc) => {
-                    const subtitle = documentSearchContextSubtitle(doc);
+                    const subtitle = documentSearchContextSubtitle(doc, t);
                     const showSnippet = (doc.snippet?.trim() ?? '') !== '';
                     const showMeta = subtitle != null || doc.contextType != null;
                     return (
@@ -245,7 +250,7 @@ export function DocumentSearchModal({
           }}
         >
           <Button variant="filled" onClick={goToCatalogFromModal} fullWidth>
-            View in Catalog
+            {t('documents:search.viewInCatalog')}
           </Button>
         </Box>
       </Box>

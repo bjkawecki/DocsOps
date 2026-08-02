@@ -2,6 +2,7 @@ import { Button, Group, Modal, Radio, Select, Stack, Text, TextInput } from '@ma
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import { useNewContextScopeDisplayLabel } from './useNewContextScopeDisplayLabel';
@@ -23,17 +24,6 @@ export interface NewContextModalProps {
 
 const NAME_MAX_LENGTH = 255;
 
-const TYPE_LABELS: Record<'process' | 'project', { title: string; description: string }> = {
-  process: {
-    title: 'New process',
-    description: 'Recurring workflows and processes',
-  },
-  project: {
-    title: 'New project',
-    description: 'Time-limited initiatives',
-  },
-};
-
 export function NewContextModal({
   opened,
   onClose,
@@ -41,6 +31,7 @@ export function NewContextModal({
   onSuccess,
   initialType,
 }: NewContextModalProps) {
+  const { t } = useTranslation(['contexts', 'common']);
   const navigate = useNavigate();
   const [selectedType, setSelectedType] = useState<'process' | 'project' | null>(
     initialType ?? null
@@ -99,8 +90,11 @@ export function NewContextModal({
       if (res.status === 201) {
         const created = (await res.json()) as { contextId: string };
         notifications.show({
-          title: 'Context created',
-          message: selectedType === 'process' ? 'Process was created.' : 'Project was created.',
+          title: t('toasts.contextCreatedTitle'),
+          message:
+            selectedType === 'process'
+              ? t('toasts.processCreatedMessage')
+              : t('toasts.projectCreatedMessage'),
           color: 'green',
         });
         onSuccess?.();
@@ -109,14 +103,14 @@ export function NewContextModal({
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         notifications.show({
-          title: 'Error',
+          title: t('toasts.errorTitle'),
           message: data?.error ?? res.statusText,
           color: 'red',
         });
       }
     } catch (e) {
       notifications.show({
-        title: 'Error',
+        title: t('toasts.errorTitle'),
         message: e instanceof Error ? e.message : 'Network error',
         color: 'red',
       });
@@ -125,21 +119,30 @@ export function NewContextModal({
     }
   };
 
+  const typeTitle = (type: 'process' | 'project') =>
+    type === 'process' ? t('modals.newContext.processTitle') : t('modals.newContext.projectTitle');
+  const typeDescription = (type: 'process' | 'project') =>
+    type === 'process'
+      ? t('modals.newContext.processDescription')
+      : t('modals.newContext.projectDescription');
+
   const modalTitle =
-    typeLocked && initialType != null ? TYPE_LABELS[initialType].title : 'New context';
+    typeLocked && initialType != null
+      ? typeTitle(initialType)
+      : t('modals.newContext.titleDefault');
 
   return (
     <Modal opened={opened} onClose={handleClose} title={modalTitle} size="sm">
       <Stack gap="md">
         <Select
-          label="Scope"
+          label={t('modals.newContext.scopeLabel')}
           data={
             scopeDisplay.label !== ''
               ? [{ value: scopeDisplay.label, label: scopeDisplay.label }]
               : []
           }
           value={scopeDisplay.label !== '' ? scopeDisplay.label : null}
-          placeholder={scopeDisplay.isPending ? 'Loading…' : undefined}
+          placeholder={scopeDisplay.isPending ? t('common:status.loading') : undefined}
           readOnly
           searchable={false}
           allowDeselect={false}
@@ -148,12 +151,12 @@ export function NewContextModal({
 
         {typeLocked && initialType != null ? (
           <Text size="sm" c="dimmed">
-            {TYPE_LABELS[initialType].description}
+            {typeDescription(initialType)}
           </Text>
         ) : (
           <div>
             <Text size="sm" fw={500} mb="xs">
-              Type (required)
+              {t('modals.newContext.typeLabel')}
             </Text>
             <Radio.Group
               value={selectedType ?? ''}
@@ -162,10 +165,14 @@ export function NewContextModal({
               <Stack gap="xs">
                 <Radio
                   value="process"
-                  label="Process"
-                  description="Recurring workflows and processes"
+                  label={t('createMenu.process')}
+                  description={typeDescription('process')}
                 />
-                <Radio value="project" label="Project" description="Time-limited initiatives" />
+                <Radio
+                  value="project"
+                  label={t('createMenu.project')}
+                  description={typeDescription('project')}
+                />
               </Stack>
             </Radio.Group>
           </div>
@@ -173,8 +180,8 @@ export function NewContextModal({
 
         {selectedType != null && (
           <TextInput
-            label="Name"
-            placeholder="Context name"
+            label={t('modals.newContext.nameLabel')}
+            placeholder={t('modals.newContext.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
             maxLength={NAME_MAX_LENGTH}
@@ -185,7 +192,7 @@ export function NewContextModal({
 
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={handleClose}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button
             disabled={!canSubmit}
@@ -194,7 +201,7 @@ export function NewContextModal({
               void handleSubmit();
             }}
           >
-            Create
+            {t('common:actions.create')}
           </Button>
         </Group>
       </Stack>

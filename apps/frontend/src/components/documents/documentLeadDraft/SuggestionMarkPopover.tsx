@@ -1,4 +1,5 @@
 import { Button, Group, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { SuggestionHoverTarget } from '../../../tiptap/suggestionHoverExtension.js';
 import type { SuggestionMutationAction } from './useDraftSuggestionMutations.js';
 
@@ -26,11 +27,13 @@ export function SuggestionMarkPopover({
   onMouseEnter,
   onMouseLeave,
 }: Props) {
+  const { t } = useTranslation('documents');
   if (!target) return null;
 
-  const authorName = authorNameById[target.authorId] ?? 'Unknown';
+  const authorName = authorNameById[target.authorId] ?? t('leadDraft.unknownAuthor');
   const isOwn = currentUserId === target.authorId;
-  const kindLabel = target.kind === 'insert' ? 'Suggested addition' : 'Suggested deletion';
+  const kindLabel =
+    target.kind === 'insert' ? t('leadDraft.suggestedAddition') : t('leadDraft.suggestedDeletion');
   const bridgeLeft = target.anchorRect.right;
   const popoverLeft = target.anchorRect.right + HOVER_GAP + HOVER_BRIDGE_WIDTH;
   const top = target.anchorRect.top + target.anchorRect.height / 2;
@@ -71,7 +74,9 @@ export function SuggestionMarkPopover({
       >
         <Group gap="xs" wrap="nowrap" align="center">
           <Text size="xs" c="dimmed" style={{ flex: 1 }}>
-            {isOwn ? `Your ${target.kind}` : `${authorName} · ${kindLabel}`}
+            {isOwn
+              ? t('leadDraft.yourSuggestion', { kind: target.kind })
+              : `${authorName} · ${kindLabel}`}
           </Text>
           {canPublish && (
             <>
@@ -82,7 +87,7 @@ export function SuggestionMarkPopover({
                 loading={isPending}
                 onClick={() => onAction('accept', target.suggestionId)}
               >
-                Accept
+                {t('leadDraft.accept')}
               </Button>
               <Button
                 size="compact-xs"
@@ -91,7 +96,7 @@ export function SuggestionMarkPopover({
                 loading={isPending}
                 onClick={() => onAction('decline', target.suggestionId)}
               >
-                Decline
+                {t('leadDraft.decline')}
               </Button>
             </>
           )}
@@ -102,7 +107,7 @@ export function SuggestionMarkPopover({
               loading={isPending}
               onClick={() => onAction('withdraw', target.suggestionId)}
             >
-              Withdraw
+              {t('leadDraft.withdraw')}
             </Button>
           )}
         </Group>

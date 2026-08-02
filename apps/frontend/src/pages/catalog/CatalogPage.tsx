@@ -286,19 +286,19 @@ export function CatalogPage() {
         <Box className="catalog-sticky-filters">
           <Group gap="md" wrap="wrap" align="flex-end">
             <TextInput
-              label="Search"
+              label={t('documents:catalog.searchLabel')}
               placeholder={t('documents:catalog.searchPlaceholder')}
               value={search}
               onChange={(e) => setFilter('search', e.currentTarget.value)}
               style={{ minWidth: 200 }}
             />
             <Select
-              label="Context type"
+              label={t('documents:catalog.contextTypeLabel')}
               placeholder={t('documents:catalog.allTypes')}
               data={[
-                { value: '', label: 'All' },
-                { value: 'process', label: 'Process' },
-                { value: 'project', label: 'Project' },
+                { value: '', label: t('documents:catalog.allTypes') },
+                { value: 'process', label: t('documents:breadcrumbs.process') },
+                { value: 'project', label: t('documents:breadcrumbs.project') },
               ]}
               value={contextType || null}
               onChange={(v) => setFilter('contextType', v ?? '')}
@@ -306,15 +306,15 @@ export function CatalogPage() {
               style={{ minWidth: 140 }}
             />
             <Select
-              label="Sort by"
+              label={t('documents:catalog.sortByLabel')}
               data={[
-                { value: 'updatedAt', label: 'Updated' },
-                { value: 'createdAt', label: 'Created' },
-                { value: 'title', label: 'Name' },
-                { value: 'ownerDisplay', label: 'Owner' },
-                { value: 'contextType', label: 'Context type' },
-                { value: 'contextName', label: 'Context' },
-                { value: 'relevance', label: 'Relevance' },
+                { value: 'updatedAt', label: t('documents:catalog.sortOptions.updated') },
+                { value: 'createdAt', label: t('documents:catalog.sortOptions.created') },
+                { value: 'title', label: t('documents:catalog.sortOptions.name') },
+                { value: 'ownerDisplay', label: t('documents:catalog.sortOptions.owner') },
+                { value: 'contextType', label: t('documents:catalog.contextTypeLabel') },
+                { value: 'contextName', label: t('documents:catalog.context') },
+                { value: 'relevance', label: t('documents:catalog.sortOptions.relevance') },
               ]}
               value={sortBy}
               onChange={(value) => {
@@ -324,18 +324,18 @@ export function CatalogPage() {
               style={{ minWidth: 150 }}
             />
             <MultiSelect
-              label="Tags"
+              label={t('documents:catalog.tagsLabel')}
               placeholder={t('documents:catalog.tagsPlaceholder')}
               data={tagOptions}
               value={tagIds}
               onChange={(v) => setFilter('tagIds', v)}
               clearable
               searchable
-              nothingFoundMessage="No tags match"
+              nothingFoundMessage={t('documents:catalog.noTagsMatch')}
               style={{ minWidth: 200 }}
             />
             <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-              {data != null ? `${data.total} document${data.total !== 1 ? 's' : ''}` : '–'}
+              {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
             </Text>
             <Select
               label={t('documents:catalog.perPage')}
@@ -351,14 +351,14 @@ export function CatalogPage() {
           <Table withTableBorder className="catalog-table-hover dense-list-table">
             <Table.Thead>
               <Table.Tr>
-                <ThSort column="title" label="Name" sticky />
-                <Table.Th>Version</Table.Th>
-                <ThSort column="ownerDisplay" label="Owner" />
-                <ThSort column="contextType" label="Context type" />
-                <ThSort column="contextName" label="Context" />
-                <Table.Th>Tags</Table.Th>
-                <ThSort column="updatedAt" label="Updated" />
-                <ThSort column="createdAt" label="Created" />
+                <ThSort column="title" label={t('documents:catalog.table.name')} sticky />
+                <Table.Th>{t('documents:catalog.table.version')}</Table.Th>
+                <ThSort column="ownerDisplay" label={t('documents:catalog.table.owner')} />
+                <ThSort column="contextType" label={t('documents:catalog.contextTypeLabel')} />
+                <ThSort column="contextName" label={t('documents:catalog.context')} />
+                <Table.Th>{t('documents:catalog.table.tags')}</Table.Th>
+                <ThSort column="updatedAt" label={t('documents:catalog.table.updated')} />
+                <ThSort column="createdAt" label={t('documents:catalog.table.created')} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -409,7 +409,7 @@ export function CatalogPage() {
                       <Text size="sm">
                         {doc.currentPublishedVersionNumber != null
                           ? `v${doc.currentPublishedVersionNumber}`
-                          : 'Draft'}
+                          : t('documents:catalog.draftVersion')}
                       </Text>
                     </Table.Td>
                     <Table.Td>
@@ -431,10 +431,10 @@ export function CatalogPage() {
                     <Table.Td>
                       <Text size="sm">
                         {doc.contextType === 'process'
-                          ? 'Process'
+                          ? t('documents:breadcrumbs.process')
                           : doc.contextType === 'subcontext'
-                            ? 'Subcontext'
-                            : 'Project'}
+                            ? t('documents:breadcrumbs.subcontext')
+                            : t('documents:breadcrumbs.project')}
                       </Text>
                     </Table.Td>
                     <Table.Td>

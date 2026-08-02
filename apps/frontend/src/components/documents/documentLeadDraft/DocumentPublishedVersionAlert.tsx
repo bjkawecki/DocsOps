@@ -1,4 +1,5 @@
 import { Alert } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { DocumentPublishedVersionHint } from './DocumentPublishedVersionBanner.js';
 
 type Props = {
@@ -15,10 +16,11 @@ export function DocumentPublishedVersionAlert({
   acknowledgedVersion,
   onReload,
 }: Props) {
+  const { t } = useTranslation('documents');
   if (!show) return null;
 
   return (
-    <Alert color="blue" variant="filled" title="New published version">
+    <Alert color="blue" variant="filled" title={t('leadDraft.newPublishedVersionTitle')}>
       <DocumentPublishedVersionHint
         currentVersion={currentVersion}
         acknowledgedVersion={acknowledgedVersion}

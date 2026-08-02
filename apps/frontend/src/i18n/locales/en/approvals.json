@@ -1,0 +1,48 @@
+{
+  "breadcrumb": "Approvals",
+  "loading": "Loading…",
+  "nav": {
+    "ariaLabel": "Approvals navigation",
+    "reviews": "Reviews",
+    "moveRequests": "Move requests"
+  },
+  "reviews": {
+    "table": {
+      "document": "Document",
+      "scope": "Scope",
+      "pending": "Pending",
+      "authors": "Authors",
+      "lastSuggestion": "Last suggestion"
+    },
+    "empty": "No documents with pending suggestions in your scopes.",
+    "loadFailed": "Could not load reviews.",
+    "otherScope": "Other",
+    "untitledDocument": "Untitled"
+  },
+  "moves": {
+    "inbound": "Inbound",
+    "outbound": "Outbound",
+    "table": {
+      "document": "Document",
+      "from": "From",
+      "to": "To",
+      "requested": "Requested",
+      "actions": "Actions"
+    },
+    "requestedBy": "by {{name}}",
+    "inboundEmpty": "No inbound move requests awaiting your decision.",
+    "outboundEmpty": "No outbound move requests you can withdraw.",
+    "inboundLoadFailed": "Could not load inbound move requests.",
+    "outboundLoadFailed": "Could not load outbound move requests.",
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "withdraw": "Withdraw request"
+    },
+    "toasts": {
+      "accepted": "Move accepted",
+      "rejected": "Move rejected",
+      "withdrawn": "Move request withdrawn"
+    }
+  }
+}

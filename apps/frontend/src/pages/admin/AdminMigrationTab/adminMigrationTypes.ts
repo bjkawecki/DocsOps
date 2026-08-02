@@ -74,6 +74,8 @@ export type PlatformMigrationStatus = {
   lastImportRun: PlatformImportRun | null;
 };
 
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
 export const IN_PROGRESS_PLATFORM_EXPORT_STATUSES = ['queued', 'running', 'packaging'] as const;
 
 export const IN_PROGRESS_PLATFORM_IMPORT_STATUSES = [
@@ -106,14 +108,32 @@ export function isFailedPlatformImportStatus(status: string): boolean {
   return (FAILED_PLATFORM_IMPORT_STATUSES as readonly string[]).includes(status);
 }
 
-export function formatPlatformImportStatus(status: string): string {
-  return status.replace(/^importing_/, 'Importing ').replace(/_/g, ' ');
+const IMPORT_STATUS_KEYS: Record<string, string> = {
+  queued: 'migration.status.queued',
+  running: 'migration.status.running',
+  importing_organization: 'migration.status.importPhase.importingOrganization',
+  importing_users: 'migration.status.importPhase.importingUsers',
+  importing_owners: 'migration.status.importPhase.importingOwners',
+  importing_contexts: 'migration.status.importPhase.importingContexts',
+  importing_documents: 'migration.status.importPhase.importingDocuments',
+  importing_versions: 'migration.status.importPhase.importingVersions',
+  importing_tags: 'migration.status.importPhase.importingTags',
+  importing_grants: 'migration.status.importPhase.importingGrants',
+  importing_pins: 'migration.status.importPhase.importingPins',
+  importing_comments: 'migration.status.importPhase.importingComments',
+  importing_files: 'migration.status.importPhase.importingFiles',
+};
+
+export function formatPlatformImportStatus(status: string, t: TranslateFn): string {
+  const key = IMPORT_STATUS_KEYS[status];
+  if (key) return t(key);
+  return status.replace(/^importing_/, '').replace(/_/g, ' ');
 }
 
-export function formatPlatformExportStatus(status: string): string {
-  if (status === 'packaging') return 'Packaging archive';
-  if (status === 'running') return 'Exporting domain data';
-  if (status === 'queued') return 'Queued';
+export function formatPlatformExportStatus(status: string, t: TranslateFn): string {
+  if (status === 'packaging') return t('migration.status.packaging');
+  if (status === 'running') return t('migration.status.exporting');
+  if (status === 'queued') return t('migration.status.queued');
   return status;
 }
 
@@ -165,13 +185,17 @@ export function getImportPhaseProgress(status: string): ImportPhaseProgress {
   };
 }
 
-export function formatPlatformRunStatus(status: string, kind: 'export' | 'import'): string {
-  if (status === 'succeeded') return 'Succeeded';
-  if (status === 'failed') return 'Failed';
-  if (status === 'preflight_failed') return 'Preflight failed';
-  if (status === 'awaiting_confirm') return 'Awaiting confirm';
-  if (kind === 'export') return formatPlatformExportStatus(status);
-  return formatPlatformImportStatus(status);
+export function formatPlatformRunStatus(
+  status: string,
+  kind: 'export' | 'import',
+  t: TranslateFn
+): string {
+  if (status === 'succeeded') return t('migration.status.succeeded');
+  if (status === 'failed') return t('migration.status.failed');
+  if (status === 'preflight_failed') return t('migration.status.preflightFailed');
+  if (status === 'awaiting_confirm') return t('migration.status.awaitingConfirm');
+  if (kind === 'export') return formatPlatformExportStatus(status, t);
+  return formatPlatformImportStatus(status, t);
 }
 
 export function getPlatformRunStatusColor(status: string): string {
@@ -196,7 +220,7 @@ export type MigrationRunCounts = {
 export type PlatformInstanceCounts = PlatformMigrationStatus['instanceCounts'];
 
 export function formatBytes(sizeBytes: number | null | undefined): string {
-  if (sizeBytes == null) return '—';
+  if (sizeBytes == null) return '–';
   if (sizeBytes < 1024) return `${sizeBytes} B`;
   if (sizeBytes < 1024 * 1024) return `${Math.round(sizeBytes / 1024)} KB`;
   return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;

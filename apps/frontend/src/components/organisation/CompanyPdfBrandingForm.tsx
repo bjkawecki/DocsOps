@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 
 export type CompanyPdfBrandingDto = {
@@ -26,6 +27,7 @@ type Props = {
 };
 
 export function CompanyPdfBrandingForm({ companyId }: Props) {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const resetRef = useRef<() => void>(null);
   const [primaryColor, setPrimaryColor] = useState('#1c7ed6');
@@ -37,7 +39,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
     queryKey: ['companies', companyId, 'pdf-branding'],
     queryFn: async (): Promise<CompanyPdfBrandingDto> => {
       const res = await apiFetch(`/api/v1/companies/${companyId}/pdf-branding`);
-      if (!res.ok) throw new Error('Failed to load PDF branding');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompanyPdfBrandingDto;
     },
   });
@@ -92,12 +94,13 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['companies', companyId, 'pdf-branding'] });
       notifications.show({
-        title: 'PDF branding saved',
-        message: 'Export theme updated for this company.',
+        title: t('company.pdfBranding.toasts.savedTitle'),
+        message: t('company.pdfBranding.toasts.savedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const uploadLogo = useMutation({
@@ -119,12 +122,13 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
       void queryClient.invalidateQueries({ queryKey: ['companies', companyId, 'pdf-branding'] });
       resetRef.current?.();
       notifications.show({
-        title: 'Logo uploaded',
-        message: 'PDF logo updated.',
+        title: t('company.pdfBranding.toasts.logoUploadedTitle'),
+        message: t('company.pdfBranding.toasts.logoUploadedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeLogo = useMutation({
@@ -139,18 +143,19 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['companies', companyId, 'pdf-branding'] });
       notifications.show({
-        title: 'Logo removed',
-        message: 'PDF exports will use the platform default (no logo).',
+        title: t('company.pdfBranding.toasts.logoRemovedTitle'),
+        message: t('company.pdfBranding.toasts.logoRemovedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   if (isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading PDF branding…
+        {t('company.pdfBranding.loading')}
       </Text>
     );
   }
@@ -158,19 +163,18 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
   return (
     <Stack gap="sm">
       <Text size="sm" c="dimmed">
-        Optional company theme for PDF export (logo, primary color, page margins). Empty color or
-        margin fields use the platform default.
+        {t('company.pdfBranding.intro')}
       </Text>
       <ColorInput
-        label="Primary color"
+        label={t('company.pdfBranding.primaryColorLabel')}
         format="hex"
         value={primaryColor}
         onChange={setPrimaryColor}
         swatches={['#1c7ed6', '#2f9e44', '#e03131', '#7048e8', '#212529']}
       />
       <NumberInput
-        label="Page margin (mm)"
-        description="12–40 mm on the sides and bottom; top grows when a logo is set"
+        label={t('company.pdfBranding.marginLabel')}
+        description={t('company.pdfBranding.marginDescription')}
         min={12}
         max={40}
         value={marginMm}
@@ -178,21 +182,21 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
       />
       <Stack gap={6}>
         <Text size="sm" fw={500}>
-          Logo
+          {t('company.pdfBranding.logoLabel')}
         </Text>
         {logoPreviewUrl ? (
           <Image src={logoPreviewUrl} alt="PDF logo" maw={180} fit="contain" />
         ) : (
           <Text size="xs" c="dimmed">
-            No logo uploaded
+            {t('company.pdfBranding.noLogo')}
           </Text>
         )}
         <SegmentedControl
           value={logoPosition}
           onChange={(value) => setLogoPosition(value as 'left' | 'right')}
           data={[
-            { label: 'Left header', value: 'left' },
-            { label: 'Right header', value: 'right' },
+            { label: t('company.pdfBranding.positionLeft'), value: 'left' },
+            { label: t('company.pdfBranding.positionRight'), value: 'right' },
           ]}
         />
         <Group gap="xs">
@@ -205,7 +209,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
           >
             {(props) => (
               <Button {...props} size="xs" variant="light" loading={uploadLogo.isPending}>
-                Upload PNG/JPEG
+                {t('company.pdfBranding.uploadButton')}
               </Button>
             )}
           </FileButton>
@@ -217,13 +221,13 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
             loading={removeLogo.isPending}
             onClick={() => removeLogo.mutate()}
           >
-            Remove logo
+            {t('company.pdfBranding.removeButton')}
           </Button>
         </Group>
       </Stack>
       <Group justify="flex-end">
         <Button onClick={() => saveBranding.mutate()} loading={saveBranding.isPending}>
-          Save branding
+          {t('company.pdfBranding.saveButton')}
         </Button>
       </Group>
     </Stack>

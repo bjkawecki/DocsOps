@@ -1,4 +1,5 @@
 import { SimpleGrid, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { MigrationRunCounts } from './adminMigrationTypes';
 
 type Props = {
@@ -19,15 +20,17 @@ function StatCell({ label, value }: { label: string; value: number }) {
 }
 
 export function MigrationRunStatsGrid({ counts }: Props) {
+  const { t } = useTranslation('admin');
   if (!counts) return null;
 
-  const thirdLabel = counts.companies != null ? 'Companies' : 'Files';
+  const thirdLabel =
+    counts.companies != null ? t('migration.runStats.companies') : t('migration.runStats.files');
   const thirdValue = counts.companies ?? counts.attachmentFiles ?? 0;
 
   return (
     <SimpleGrid cols={3} spacing="sm">
-      <StatCell label="Users" value={counts.users ?? 0} />
-      <StatCell label="Documents" value={counts.documents ?? 0} />
+      <StatCell label={t('migration.runStats.users')} value={counts.users ?? 0} />
+      <StatCell label={t('migration.runStats.documents')} value={counts.documents ?? 0} />
       <StatCell label={thirdLabel} value={thirdValue} />
     </SimpleGrid>
   );

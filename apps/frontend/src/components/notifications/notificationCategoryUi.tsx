@@ -8,6 +8,7 @@ import {
   IconMessageCircle,
   IconSpeakerphone,
 } from '@tabler/icons-react';
+import type { TFunction } from 'i18next';
 import type { MeNotificationCategory } from './meNotificationTypes.js';
 
 const DOCUMENT_EVENT_TYPES = new Set([
@@ -64,24 +65,18 @@ const ORG_EVENT_TYPES = new Set([
 
 export type NotificationCategoryNavItem = {
   value: MeNotificationCategory;
-  label: string;
-  description?: string;
   adminOnly?: boolean;
 };
 
+/** Category order + admin gating; labels/descriptions come from the `notifications` i18n namespace. */
 export const NOTIFICATION_CATEGORY_NAV: NotificationCategoryNavItem[] = [
-  { value: 'all', label: 'All' },
-  { value: 'documents', label: 'Documents', description: 'Publish, updates, archive, …' },
-  { value: 'comments', label: 'Comments', description: 'Mentions and discussion' },
-  { value: 'reviews', label: 'Reviews', description: 'Draft requests' },
-  { value: 'announcements', label: 'Announcements', description: 'Admin broadcasts' },
-  {
-    value: 'operations',
-    label: 'Operations',
-    description: 'Backups and migration jobs',
-    adminOnly: true,
-  },
-  { value: 'org', label: 'Organization', description: 'Roles and membership' },
+  { value: 'all' },
+  { value: 'documents' },
+  { value: 'comments' },
+  { value: 'reviews' },
+  { value: 'announcements' },
+  { value: 'operations', adminOnly: true },
+  { value: 'org' },
 ];
 
 /** Maps a notification event type to its inbox category (mirrors backend filters). */
@@ -95,8 +90,18 @@ export function eventTypeToCategory(eventType: string): Exclude<MeNotificationCa
   return 'documents';
 }
 
-export function categoryDescription(category: MeNotificationCategory): string | undefined {
-  return NOTIFICATION_CATEGORY_NAV.find((item) => item.value === category)?.description;
+export function categoryLabel(t: TFunction, category: MeNotificationCategory): string {
+  return t(`notifications:categories.${category}.label`);
+}
+
+export function categoryDescription(
+  t: TFunction,
+  category: MeNotificationCategory
+): string | undefined {
+  const description = t(`notifications:categories.${category}.description`, {
+    defaultValue: '',
+  });
+  return description !== '' ? description : undefined;
 }
 
 /** Icon for an inbox category (sidebar + table). */

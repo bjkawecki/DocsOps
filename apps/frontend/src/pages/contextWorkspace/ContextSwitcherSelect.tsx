@@ -12,6 +12,7 @@ import {
 import { IconBriefcase, IconChevronDown, IconChevronRight, IconRoute } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import { scopeToKey } from '../../hooks/useRecentItems.js';
@@ -121,6 +122,7 @@ function DropdownCollapsibleSection({
  * Changing selection leaves the document and opens the chosen context workspace.
  */
 export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitcherSelectProps) {
+  const { t } = useTranslation(['contexts', 'common']);
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
@@ -214,7 +216,7 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
           onClick={() => combobox.toggleDropdown()}
           disabled={disabled}
           w="100%"
-          aria-label="Switch context"
+          aria-label={t('switcher.ariaLabel')}
         >
           <Text
             size="sm"
@@ -222,7 +224,9 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
             c={selectedLabel ? undefined : 'dimmed'}
             style={{ textAlign: 'left' }}
           >
-            {loading && !selectedLabel ? 'Loading…' : (selectedLabel ?? 'Select context')}
+            {loading && !selectedLabel
+              ? t('common:status.loading')
+              : (selectedLabel ?? t('switcher.selectContext'))}
           </Text>
         </InputBase>
       </Combobox.Target>
@@ -233,13 +237,13 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
             <Stack gap="xs" p={4}>
               <DropdownCollapsibleSection
                 sectionId="switcher:processes"
-                label="Processes"
+                label={t('switcher.processes')}
                 icon={<IconRoute size={16} stroke={1.5} />}
                 defaultOpen
               >
                 {processes.length === 0 ? (
                   <Text size="sm" c="dimmed" px="xs">
-                    No processes yet.
+                    {t('switcher.processesEmpty')}
                   </Text>
                 ) : (
                   processes.map(renderContextOption)
@@ -248,13 +252,13 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
 
               <DropdownCollapsibleSection
                 sectionId="switcher:projects"
-                label="Projects"
+                label={t('switcher.projects')}
                 icon={<IconBriefcase size={16} stroke={1.5} />}
                 defaultOpen
               >
                 {projects.length === 0 ? (
                   <Text size="sm" c="dimmed" px="xs">
-                    No projects yet.
+                    {t('switcher.projectsEmpty')}
                   </Text>
                 ) : (
                   projects.map(renderContextOption)

@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { IconLock, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client';
@@ -54,6 +55,7 @@ export function AdminUserDetailTabs({
   onAssignmentsChange,
   updateUserPending,
 }: Props) {
+  const { t } = useTranslation('admin');
   const [documentsPage, setDocumentsPage] = useState(0);
   const [profileEditing, setProfileEditing] = useState(false);
   const [assignmentsEditing, setAssignmentsEditing] = useState(false);
@@ -97,9 +99,9 @@ export function AdminUserDetailTabs({
   return (
     <Tabs defaultValue="details">
       <Tabs.List>
-        <Tabs.Tab value="details">Overview</Tabs.Tab>
-        <Tabs.Tab value="documents">Documents</Tabs.Tab>
-        <Tabs.Tab value="danger">Account</Tabs.Tab>
+        <Tabs.Tab value="details">{t('users.detail.tabs.overview')}</Tabs.Tab>
+        <Tabs.Tab value="documents">{t('users.detail.tabs.documents')}</Tabs.Tab>
+        <Tabs.Tab value="danger">{t('users.detail.tabs.account')}</Tabs.Tab>
       </Tabs.List>
 
       <Tabs.Panel value="details" pt="md">
@@ -107,7 +109,7 @@ export function AdminUserDetailTabs({
           <Card withBorder padding="md">
             <Group justify="space-between" mb="xs">
               <Text size="sm" fw={600}>
-                Profile
+                {t('users.detail.profile.title')}
               </Text>
               {!profileEditing && (
                 <Button
@@ -116,7 +118,7 @@ export function AdminUserDetailTabs({
                   leftSection={<IconPencil size={14} />}
                   onClick={() => setProfileEditing(true)}
                 >
-                  Edit
+                  {t('common:actions.edit')}
                 </Button>
               )}
             </Group>
@@ -135,45 +137,45 @@ export function AdminUserDetailTabs({
               <Stack gap="xs">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Name
+                    {t('users.detail.profile.fields.name')}
                   </Text>
                   <Text size="sm">{user.name}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Email
+                    {t('users.detail.profile.fields.email')}
                   </Text>
                   <Text size="sm">{user.email ?? '–'}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Status
+                    {t('users.detail.profile.fields.status')}
                   </Text>
                   <Group gap="xs" mt={4}>
                     {user.deletedAt ? (
                       <Badge size="sm" color="gray">
-                        Deactivated
+                        {t('shared.statusDeactivated')}
                       </Badge>
                     ) : (
                       <Badge size="sm" color="green">
-                        Active
+                        {t('common:status.active')}
                       </Badge>
                     )}
                     {user.role === 'Company Lead' && (
                       <Badge size="sm" color="violet" variant="filled">
-                        Company lead
+                        {t('roles.companyLead')}
                       </Badge>
                     )}
                     {user.isAdmin && (
                       <Badge size="sm" color="blue" variant="filled">
-                        Admin
+                        {t('roles.admin')}
                       </Badge>
                     )}
                   </Group>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    User ID
+                    {t('users.detail.profile.fields.userId')}
                   </Text>
                   <Text size="sm" style={{ wordBreak: 'break-all' }}>
                     {user.id}
@@ -185,7 +187,7 @@ export function AdminUserDetailTabs({
           <Card withBorder padding="md">
             <Group justify="space-between" mb="xs">
               <Text size="sm" fw={600}>
-                Assignments
+                {t('users.detail.assignments.title')}
               </Text>
               {!assignmentsEditing && (
                 <Button
@@ -194,7 +196,7 @@ export function AdminUserDetailTabs({
                   leftSection={<IconPencil size={14} />}
                   onClick={() => setAssignmentsEditing(true)}
                 >
-                  Edit
+                  {t('common:actions.edit')}
                 </Button>
               )}
             </Group>
@@ -214,7 +216,7 @@ export function AdminUserDetailTabs({
           </Card>
           <Card withBorder padding="md">
             <Text size="sm" fw={600} mb="xs">
-              Usage
+              {t('users.detail.usage.title')}
             </Text>
             {statsPending ? (
               <Loader size="sm" />
@@ -222,19 +224,19 @@ export function AdminUserDetailTabs({
               <Group gap="lg">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Storage
+                    {t('users.detail.usage.storage')}
                   </Text>
                   <Text size="sm">{formatBytes(statsData.storageBytesUsed)}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Authored
+                    {t('users.detail.usage.authored')}
                   </Text>
                   <Text size="sm">{statsData.documentsAsWriterCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Drafts
+                    {t('users.detail.usage.drafts')}
                   </Text>
                   <Text size="sm">{statsData.draftsCount}</Text>
                 </div>
@@ -247,10 +249,10 @@ export function AdminUserDetailTabs({
       <Tabs.Panel value="danger" pt="md">
         <Card withBorder padding="md">
           <Text size="sm" fw={600} mb="xs">
-            Account
+            {t('users.detail.account.title')}
           </Text>
           <Text size="xs" c="dimmed" mb="md">
-            Sensitive account actions. Use with care.
+            {t('users.detail.account.hint')}
           </Text>
           <Stack gap="md">
             {!user.deletedAt && (
@@ -262,10 +264,10 @@ export function AdminUserDetailTabs({
                   leftSection={<IconLock size={14} />}
                   onClick={onResetPassword}
                 >
-                  Reset password
+                  {t('users.detail.account.resetPasswordButton')}
                 </Button>
                 <Text size="xs" c="dimmed">
-                  Trigger a password reset. The user will need to set a new password.
+                  {t('users.detail.account.resetPasswordHint')}
                 </Text>
               </Group>
             )}
@@ -278,12 +280,12 @@ export function AdminUserDetailTabs({
                 onClick={onDeleteUser}
                 disabled={currentUserId === user.id}
               >
-                Delete user
+                {t('users.detail.account.deleteButton')}
               </Button>
               <Text size="xs" c="dimmed">
                 {currentUserId === user.id
-                  ? 'You cannot delete your own account.'
-                  : 'Permanently delete this user and all associated data. This cannot be undone.'}
+                  ? t('users.detail.account.deleteHintSelf')
+                  : t('users.detail.account.deleteHintOther')}
               </Text>
             </Group>
           </Stack>
@@ -297,14 +299,14 @@ export function AdminUserDetailTabs({
           <Stack gap="sm">
             {docsData.items.length === 0 ? (
               <Text size="sm" c="dimmed">
-                No documents (user is not a writer).
+                {t('users.detail.documents.empty')}
               </Text>
             ) : (
               <>
                 <Table withTableBorder className="admin-table-hover dense-list-table">
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Title</Table.Th>
+                      <Table.Th>{t('users.detail.documents.titleHeader')}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>

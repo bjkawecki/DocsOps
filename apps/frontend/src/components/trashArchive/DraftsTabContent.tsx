@@ -1,5 +1,6 @@
 import { Card, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   useMeDrafts,
@@ -27,6 +28,7 @@ export function DraftsTabContent({
   offset: offsetProp,
   enabled = true,
 }: DraftsTabContentProps) {
+  const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const sortBy = (searchParams.get('draftsSortBy') ?? 'updatedAt') as DraftsSortBy;
@@ -134,7 +136,7 @@ export function DraftsTabContent({
     return (
       <Card withBorder padding="md">
         <Text size="sm" c="dimmed">
-          Loading drafts…
+          {t('documents:trashArchive.draftsTab.loading')}
         </Text>
       </Card>
     );
@@ -148,14 +150,14 @@ export function DraftsTabContent({
       {useUrlPagination && (
         <Group gap="md" wrap="wrap" align="flex-end">
           <TextInput
-            label="Search"
-            placeholder="Search by name"
+            label={t('common:actions.search')}
+            placeholder={t('documents:trashArchive.searchPlaceholder')}
             value={draftsSearch}
             onChange={(e) => setDraftsFilter('draftsSearch', e.currentTarget.value)}
             style={{ minWidth: 200 }}
           />
           <Select
-            label="Page size"
+            label={t('documents:trashArchive.draftsTab.pageSizeLabel')}
             data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
             value={String(draftsLimit)}
             onChange={(v) => setDraftsLimit(Number(v ?? DRAFTS_PAGE_SIZE))}
@@ -166,7 +168,7 @@ export function DraftsTabContent({
       {filteredDrafts.length === 0 ? (
         <Card withBorder padding="md">
           <Text size="sm" c="dimmed">
-            No unpublished drafts.
+            {t('documents:trashArchive.draftsCard.empty')}
           </Text>
         </Card>
       ) : (
@@ -174,21 +176,21 @@ export function DraftsTabContent({
           <Table.Thead>
             <Table.Tr>
               <SortableTableTh
-                label="Title"
+                label={t('documents:trashArchive.draftsTab.table.title')}
                 column="title"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onClick={() => setSort('title')}
               />
               <SortableTableTh
-                label="Scope"
+                label={t('documents:trashArchive.draftsTab.table.scope')}
                 column="scopeName"
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onClick={() => setSort('scopeName')}
               />
               <SortableTableTh
-                label="Updated"
+                label={t('documents:trashArchive.draftsTab.table.updated')}
                 column="updatedAt"
                 sortBy={sortBy}
                 sortOrder={sortOrder}

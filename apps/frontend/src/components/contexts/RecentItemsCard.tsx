@@ -1,6 +1,7 @@
 import { Group, Stack, Text } from '@mantine/core';
 import { IconBriefcase, IconFileText, IconRoute } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { RecentItem, RecentItemType } from '../../hooks/useRecentItems';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import { ContentLink } from '../ui/ContentLink';
@@ -31,11 +32,12 @@ export interface RecentItemsCardProps {
  * Uses SectionCard for consistent design with context cards.
  */
 export function RecentItemsCard({ items, titleIcon, viewMoreHref }: RecentItemsCardProps) {
+  const { t } = useTranslation('contexts');
   return (
-    <SectionCard title="Recently viewed" titleIcon={titleIcon} viewMoreHref={viewMoreHref}>
+    <SectionCard title={t('recentItems.title')} titleIcon={titleIcon} viewMoreHref={viewMoreHref}>
       {items.length === 0 ? (
         <Text size="sm" c="dimmed">
-          The list fills as you browse contexts and documents.
+          {t('recentItems.empty')}
         </Text>
       ) : (
         <Stack gap={4} align="flex-start">

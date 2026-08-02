@@ -1,47 +1,8 @@
+import type { TFunction } from 'i18next';
 import type { NotificationItem } from './meNotificationTypes.js';
 
-export function eventHeadline(eventType: string): string {
-  const labels: Record<string, string> = {
-    'document-created': 'Document created',
-    'document-updated': 'Document updated',
-    'document-deleted': 'Document moved to trash',
-    'document-published': 'Document published',
-    'document-archived': 'Document archived',
-    'document-restored': 'Document restored',
-    'document-moved': 'Document moved',
-    'document-move-requested': 'Document move requested',
-    'document-move-accepted': 'Document move accepted',
-    'document-move-rejected': 'Document move rejected',
-    'document-move-withdrawn': 'Document move withdrawn',
-    'document-grants-changed': 'Document access changed',
-    'document-comment-created': 'New comment on document',
-    'draft-request-submitted': 'Review request submitted',
-    'draft-request-merged': 'Review request merged',
-    'draft-request-rejected': 'Review request rejected',
-    'backup-succeeded': 'Backup completed successfully',
-    'backup-failed': 'Backup failed',
-    'backup-restore-succeeded': 'Restore completed successfully',
-    'backup-restore-failed': 'Restore failed',
-    'platform-export-succeeded': 'Platform export completed',
-    'platform-export-failed': 'Platform export failed',
-    'platform-import-succeeded': 'Platform import completed',
-    'platform-import-failed': 'Platform import failed',
-    'update-available': 'Software update available',
-    'update-succeeded': 'Software update completed',
-    'update-failed': 'Software update failed',
-    'admin-broadcast': 'System message',
-    'team-member-added': 'Added to team',
-    'team-member-removed': 'Removed from team',
-    'team-lead-assigned': 'Team lead role assigned',
-    'team-lead-removed': 'Team lead role removed',
-    'department-lead-assigned': 'Department lead role assigned',
-    'department-lead-removed': 'Department lead role removed',
-    'company-lead-assigned': 'Company lead role assigned',
-    'company-lead-removed': 'Company lead role removed',
-    'admin-granted': 'Administrator access granted',
-    'admin-revoked': 'Administrator access revoked',
-  };
-  return labels[eventType] ?? eventType.replace(/-/g, ' ');
+export function eventHeadline(t: TFunction, eventType: string): string {
+  return t(`notifications:eventTypes.${eventType}`, { defaultValue: eventType.replace(/-/g, ' ') });
 }
 
 export function payloadDocumentId(payload: Record<string, unknown>): string | null {
@@ -65,13 +26,15 @@ function orgScopeLabel(payload: Record<string, unknown>): string | null {
 }
 
 export function secondaryDetail(
+  t: TFunction,
   eventType: string,
   payload: Record<string, unknown>
 ): string | null {
-  return notificationBodyText(eventType, payload, { preview: true });
+  return notificationBodyText(t, eventType, payload, { preview: true });
 }
 
 export function notificationBodyText(
+  t: TFunction,
   eventType: string,
   payload: Record<string, unknown>,
   options?: { preview?: boolean }
@@ -81,10 +44,18 @@ export function notificationBodyText(
     preview && text.length > max ? `${text.slice(0, max)}…` : text;
 
   if (eventType === 'admin-broadcast') {
-    const title = typeof payload.title === 'string' ? payload.title : 'System message';
+    const title =
+      typeof payload.title === 'string'
+        ? payload.title
+        : t('notifications:body.adminBroadcastFallbackTitle');
     const message = typeof payload.message === 'string' ? payload.message : '';
     if (message.trim() !== '') {
-      return preview ? `${title}: ${truncate(message, 160)}` : message.trim();
+      return preview
+        ? t('notifications:body.adminBroadcastPreview', {
+            title,
+            message: truncate(message, 160),
+          })
+        : message.trim();
     }
     return title;
   }
@@ -97,66 +68,87 @@ export function notificationBodyText(
     return orgScopeLabel(payload);
   }
 
-  if (eventType === 'admin-granted') return 'You were granted platform administrator access.';
-  if (eventType === 'admin-revoked') return 'Your platform administrator access was revoked.';
+  if (eventType === 'admin-granted') return t('notifications:body.adminGranted');
+  if (eventType === 'admin-revoked') return t('notifications:body.adminRevoked');
 
   if (eventType === 'backup-succeeded') {
     const dest =
       typeof payload.destinationName === 'string' && payload.destinationName.trim() !== ''
         ? payload.destinationName
-        : 'local only';
+        : t('notifications:body.localOnly');
     const size =
       typeof payload.sizeBytes === 'number' ? ` (${Math.round(payload.sizeBytes / 1024)} KB)` : '';
-    return `Operational backup finished${size}. External destination: ${dest}.`;
+    return t('notifications:body.backupSucceeded', { size, destination: dest });
   }
   if (eventType === 'backup-failed') {
-    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    const msg =
+      typeof payload.errorMessage === 'string'
+        ? payload.errorMessage
+        : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
   if (eventType === 'backup-restore-succeeded') {
-    return 'Database and object storage were restored from the backup archive.';
+    return t('notifications:body.backupRestoreSucceeded');
   }
   if (eventType === 'backup-restore-failed') {
-    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    const msg =
+      typeof payload.errorMessage === 'string'
+        ? payload.errorMessage
+        : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
   if (eventType === 'platform-export-succeeded') {
     const count = typeof payload.documentCount === 'number' ? payload.documentCount : null;
     const size =
       typeof payload.sizeBytes === 'number' ? ` (${Math.round(payload.sizeBytes / 1024)} KB)` : '';
-    return `Platform export finished${size}${count != null ? ` · ${count} documents` : ''}.`;
+    const countSuffix =
+      count != null ? t('notifications:body.platformExportDocumentsSuffix', { count }) : '';
+    return t('notifications:body.platformExportSucceeded', { size, countSuffix });
   }
   if (eventType === 'platform-export-failed') {
-    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    const msg =
+      typeof payload.errorMessage === 'string'
+        ? payload.errorMessage
+        : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
   if (eventType === 'platform-import-succeeded') {
     const count = typeof payload.documentCount === 'number' ? payload.documentCount : null;
     return count != null
-      ? `Imported ${count} documents. Search index reindex was queued.`
-      : 'Platform data imported. Search index reindex was queued.';
+      ? t('notifications:body.platformImportSucceededWithCount', { count })
+      : t('notifications:body.platformImportSucceeded');
   }
   if (eventType === 'platform-import-failed') {
-    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    const msg =
+      typeof payload.errorMessage === 'string'
+        ? payload.errorMessage
+        : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
   if (eventType === 'update-available') {
     const latest =
-      typeof payload.latestVersion === 'string' ? payload.latestVersion : 'a newer version';
+      typeof payload.latestVersion === 'string'
+        ? payload.latestVersion
+        : t('notifications:body.newerVersion');
     const installed =
       typeof payload.installedVersion === 'string' ? payload.installedVersion : null;
     if (installed != null) {
-      return `Version ${latest} is available (installed: ${installed}). Open Admin → System for update steps.`;
+      return t('notifications:body.updateAvailableWithInstalled', { latest, installed });
     }
-    return `Version ${latest} is available. Open Admin → System for update steps.`;
+    return t('notifications:body.updateAvailable', { latest });
   }
   if (eventType === 'update-succeeded') {
     const target =
-      typeof payload.targetVersion === 'string' ? payload.targetVersion : 'the latest release';
-    return `DocsOps was upgraded to ${target}.`;
+      typeof payload.targetVersion === 'string'
+        ? payload.targetVersion
+        : t('notifications:body.latestRelease');
+    return t('notifications:body.updateSucceeded', { target });
   }
   if (eventType === 'update-failed') {
-    const msg = typeof payload.errorMessage === 'string' ? payload.errorMessage : 'Unknown error';
+    const msg =
+      typeof payload.errorMessage === 'string'
+        ? payload.errorMessage
+        : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
   if (eventType === 'document-comment-created') {
@@ -164,42 +156,41 @@ export function notificationBodyText(
     const previewText =
       typeof payload.commentPreview === 'string' ? payload.commentPreview.trim() : '';
     if (kind === 'mention') {
-      return previewText !== '' ? truncate(previewText, 120) : 'You were mentioned in a comment.';
-    }
-    if (kind === 'reply') {
       return previewText !== ''
         ? truncate(previewText, 120)
-        : 'Someone replied in a comment thread.';
+        : t('notifications:body.commentMention');
+    }
+    if (kind === 'reply') {
+      return previewText !== '' ? truncate(previewText, 120) : t('notifications:body.commentReply');
     }
     if (previewText !== '') return truncate(previewText, 120);
-    return 'New activity in a comment thread.';
+    return t('notifications:body.commentGeneric');
   }
   if (eventType === 'document-moved') {
-    return 'The document was moved to another context.';
+    return t('notifications:body.documentMoved');
   }
   if (eventType === 'document-move-requested') {
-    return 'A move into your scope is awaiting your decision.';
+    return t('notifications:body.documentMoveRequested');
   }
   if (eventType === 'document-move-accepted') {
-    return 'Your move request was accepted.';
+    return t('notifications:body.documentMoveAccepted');
   }
   if (eventType === 'document-move-rejected') {
-    return 'Your move request was rejected.';
+    return t('notifications:body.documentMoveRejected');
   }
   if (eventType === 'document-move-withdrawn') {
-    return 'A pending move request was withdrawn.';
+    return t('notifications:body.documentMoveWithdrawn');
   }
   const draftId = payloadDraftRequestId(payload);
   if (draftId == null) return null;
-  if (eventType === 'draft-request-submitted') return 'A review request is open for this document.';
-  if (eventType === 'draft-request-merged')
-    return 'Your proposed changes were merged into the published version.';
-  if (eventType === 'draft-request-rejected') return 'Your review request was rejected.';
-  return 'Related to a review request.';
+  if (eventType === 'draft-request-submitted') return t('notifications:body.draftRequestSubmitted');
+  if (eventType === 'draft-request-merged') return t('notifications:body.draftRequestMerged');
+  if (eventType === 'draft-request-rejected') return t('notifications:body.draftRequestRejected');
+  return t('notifications:body.draftRequestGeneric');
 }
 
-export function notificationSourceLabel(item: NotificationItem): string {
-  if (item.eventType === 'admin-broadcast') return 'System message';
+export function notificationSourceLabel(t: TFunction, item: NotificationItem): string {
+  if (item.eventType === 'admin-broadcast') return t('notifications:source.systemMessage');
   if (
     item.eventType.startsWith('team-') ||
     item.eventType.startsWith('department-') ||
@@ -207,40 +198,43 @@ export function notificationSourceLabel(item: NotificationItem): string {
     item.eventType === 'admin-granted' ||
     item.eventType === 'admin-revoked'
   ) {
-    return 'Organization';
+    return t('notifications:source.organization');
   }
-  if (item.eventType.startsWith('backup-')) return 'System';
-  if (item.eventType === 'update-available') return 'System';
-  if (item.eventType === 'update-succeeded' || item.eventType === 'update-failed') return 'System';
-  if (item.eventType.startsWith('platform-')) return 'System';
-  if (item.eventType.startsWith('draft-request-')) return 'Review';
-  if (item.eventType === 'document-comment-created') return 'Comment';
-  if (payloadDocumentId(item.payload) != null) return 'Document';
-  return 'Notification';
+  if (item.eventType.startsWith('backup-')) return t('notifications:source.system');
+  if (item.eventType === 'update-available') return t('notifications:source.system');
+  if (item.eventType === 'update-succeeded' || item.eventType === 'update-failed')
+    return t('notifications:source.system');
+  if (item.eventType.startsWith('platform-')) return t('notifications:source.system');
+  if (item.eventType.startsWith('draft-request-')) return t('notifications:source.review');
+  if (item.eventType === 'document-comment-created') return t('notifications:source.comment');
+  if (payloadDocumentId(item.payload) != null) return t('notifications:source.document');
+  return t('notifications:source.notification');
 }
 
-export function documentDisplayTitle(item: NotificationItem): string {
+export function documentDisplayTitle(t: TFunction, item: NotificationItem): string {
   if (item.eventType === 'admin-broadcast') {
     const title = typeof item.payload.title === 'string' ? item.payload.title : null;
-    return title != null && title.trim() !== '' ? title : 'System message';
+    return title != null && title.trim() !== '' ? title : t('notifications:display.systemMessage');
   }
   const orgLabel = orgScopeLabel(item.payload);
   if (orgLabel != null && item.eventType.startsWith('team-')) return orgLabel;
   if (orgLabel != null && item.eventType.startsWith('department-')) return orgLabel;
   if (orgLabel != null && item.eventType.startsWith('company-')) return orgLabel;
   if (item.eventType === 'admin-granted' || item.eventType === 'admin-revoked') {
-    return 'Platform access';
+    return t('notifications:display.platformAccess');
   }
   if (item.eventType === 'update-available') {
     const latest =
       typeof item.payload.latestVersion === 'string' ? item.payload.latestVersion : null;
-    return latest != null ? `Update ${latest}` : 'Software update';
+    return latest != null
+      ? t('notifications:display.updateVersion', { version: latest })
+      : t('notifications:display.softwareUpdate');
   }
 
   const docId = payloadDocumentId(item.payload);
-  if (docId == null) return 'Activity';
+  if (docId == null) return t('notifications:display.activity');
   if (item.documentTitle != null && item.documentTitle.trim() !== '') return item.documentTitle;
-  return 'Untitled document';
+  return t('notifications:display.untitledDocument');
 }
 
 export function notificationDocumentHref(

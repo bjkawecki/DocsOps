@@ -1,5 +1,7 @@
 import { Anchor, Badge, Group, Popover, Switch, Text } from '@mantine/core';
 import { IconExternalLink } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { AdminSystemUpdateStatus } from 'backend/api-types';
 
 type Props = {
@@ -16,11 +18,11 @@ function formatCheckedAt(iso: string | null): string | null {
   return date.toLocaleString();
 }
 
-function statusBadge(status: AdminSystemUpdateStatus) {
+function statusBadge(status: AdminSystemUpdateStatus, t: TFunction) {
   if (!status.updateCheckEnabled) {
     return (
       <Badge color="gray" variant="filled">
-        Checks off
+        {t('system.overviewBar.checksOff')}
       </Badge>
     );
   }
@@ -35,12 +37,12 @@ function statusBadge(status: AdminSystemUpdateStatus) {
             role="button"
             tabIndex={0}
           >
-            Check failed
+            {t('system.overviewBar.checkFailed')}
           </Badge>
         </Popover.Target>
         <Popover.Dropdown>
           <Text size="sm" fw={600} mb={4}>
-            Update check failed
+            {t('system.overviewBar.checkFailedTitle')}
           </Text>
           <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {status.checkError}
@@ -54,7 +56,7 @@ function statusBadge(status: AdminSystemUpdateStatus) {
   }
   return (
     <Badge color="green" variant="filled">
-      Up to date
+      {t('system.overviewBar.upToDate')}
     </Badge>
   );
 }
@@ -65,31 +67,32 @@ export function AdminSystemOverviewBar({
   settingsSaving,
   onToggleChecks,
 }: Props) {
+  const { t } = useTranslation('admin');
   const lastChecked = formatCheckedAt(status.checkedAt);
 
   return (
     <Group mb="md" justify="flex-start" wrap="wrap" gap="sm" align="center">
-      {statusBadge(status)}
+      {statusBadge(status, t)}
       <Switch
         size="sm"
-        label="Automatic checks"
+        label={t('system.overviewBar.automaticChecks')}
         checked={checksEnabled}
         disabled={settingsSaving}
         onChange={(event) => onToggleChecks(event.currentTarget.checked)}
       />
       {lastChecked != null ? (
         <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-          Last checked {lastChecked}
+          {t('system.overviewBar.lastChecked', { time: lastChecked })}
         </Text>
       ) : (
         <Text size="sm" c="dimmed">
-          Not checked yet
+          {t('system.overviewBar.notCheckedYet')}
         </Text>
       )}
       {status.releaseUrl != null && (
         <Anchor href={status.releaseUrl} target="_blank" rel="noreferrer" size="sm">
           <Group gap={4} component="span">
-            GitHub release
+            {t('system.overviewBar.githubRelease')}
             <IconExternalLink size={14} />
           </Group>
         </Anchor>

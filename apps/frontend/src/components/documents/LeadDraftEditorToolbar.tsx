@@ -21,6 +21,7 @@ import {
   IconTypography,
 } from '@tabler/icons-react';
 import { useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   authorSelectionAllowsInlineFormat,
   toggleAuthorInlineMark,
@@ -42,9 +43,6 @@ type Props = {
   authorId?: string;
   documentId: string;
 };
-
-const AUTHOR_INLINE_DISABLED =
-  'Inline formatting applies only to your suggested text, not existing content.';
 
 const ICON_SIZE = 16;
 
@@ -116,31 +114,33 @@ function HeadingTool({
 }
 
 export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', documentId }: Props) {
+  const { t } = useTranslation('documents');
   const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const authorInlineDisabledReason = t('editorToolbar.inlineFormatDisabled');
 
   const linkControl = (
     <LeadDraftLinkPopover
       editor={editor}
       authorMode={authorMode}
       disabled={inlineDisabled}
-      disabledReason={inlineDisabled ? AUTHOR_INLINE_DISABLED : undefined}
+      disabledReason={inlineDisabled ? authorInlineDisabledReason : undefined}
       active={editor.isActive('link')}
     />
   );
 
   return (
     <div className={classes.row}>
-      <ToolCluster title="Edit">
+      <ToolCluster title={t('editorToolbar.editCluster')}>
         <ToolIcon
-          label="Undo"
+          label={t('editorToolbar.undo')}
           disabled={!editor.can().undo()}
           onClick={() => editor.chain().focus().undo().run()}
         >
           <IconArrowBackUp size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
         <ToolIcon
-          label="Redo"
+          label={t('editorToolbar.redo')}
           disabled={!editor.can().redo()}
           onClick={() => editor.chain().focus().redo().run()}
         >
@@ -148,7 +148,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
         </ToolIcon>
       </ToolCluster>
 
-      <ToolCluster title="Block">
+      <ToolCluster title={t('editorToolbar.blockCluster')}>
         <HeadingTool
           label="H1"
           active={editor.isActive('heading', { level: 1 })}
@@ -165,7 +165,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         />
         <ToolIcon
-          label="Paragraph"
+          label={t('editorToolbar.paragraph')}
           active={editor.isActive('paragraph')}
           onClick={() => editor.chain().focus().setParagraph().run()}
         >
@@ -174,30 +174,30 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
       </ToolCluster>
 
       {!authorMode && (
-        <ToolCluster title="Insert">
+        <ToolCluster title={t('editorToolbar.insertCluster')}>
           <ToolIcon
-            label="Bullet list"
+            label={t('editorToolbar.bulletList')}
             active={editor.isActive('bulletList')}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
             <IconList size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
           <ToolIcon
-            label="Numbered list"
+            label={t('editorToolbar.numberedList')}
             active={editor.isActive('orderedList')}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
             <IconListNumbers size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
           <ToolIcon
-            label="Quote"
+            label={t('editorToolbar.quote')}
             active={editor.isActive('blockquote')}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
           >
             <IconQuote size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
           <ToolIcon
-            label="Callout"
+            label={t('editorToolbar.callout')}
             active={editor.isActive('callout')}
             onClick={() => editor.chain().focus().toggleCallout({ variant: 'info' }).run()}
           >
@@ -206,7 +206,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           {editor.isActive('callout') && (
             <NativeSelect
               size="xs"
-              aria-label="Callout variant"
+              aria-label={t('editorToolbar.calloutVariantAria')}
               w={110}
               data={[...CALLOUT_VARIANT_OPTIONS]}
               value={(() => {
@@ -221,13 +221,13 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
             />
           )}
           <ToolIcon
-            label="Divider"
+            label={t('editorToolbar.divider')}
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
             <IconMinus size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
           <ToolIcon
-            label="Code block"
+            label={t('editorToolbar.codeBlock')}
             active={editor.isActive('codeBlock')}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           >
@@ -236,7 +236,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           {editor.isActive('codeBlock') && (
             <NativeSelect
               size="xs"
-              aria-label="Code language"
+              aria-label={t('editorToolbar.codeLanguageAria')}
               w={130}
               data={CODE_LANGUAGE_OPTIONS.map((o) => ({
                 value: o.value,
@@ -263,14 +263,14 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
             />
           )}
           <ToolIcon
-            label="Mermaid diagram"
+            label={t('editorToolbar.mermaidDiagram')}
             active={editor.isActive('mermaid')}
             onClick={() => editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()}
           >
             <IconChartDots3 size={ICON_SIZE} stroke={1.75} />
           </ToolIcon>
           <ToolIcon
-            label="Image"
+            label={t('editorToolbar.image')}
             active={editor.isActive('image')}
             onClick={() => imageInputRef.current?.click()}
           >
@@ -289,7 +289,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
             }}
           />
           <ToolIcon
-            label="Table"
+            label={t('editorToolbar.table')}
             active={editor.isActive('table')}
             onClick={() =>
               editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
@@ -299,17 +299,20 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           </ToolIcon>
           {editor.isActive('table') && (
             <>
-              <ToolIcon label="Add row" onClick={() => editor.chain().focus().addRowAfter().run()}>
+              <ToolIcon
+                label={t('editorToolbar.addRow')}
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+              >
                 <IconRowInsertBottom size={ICON_SIZE} stroke={1.75} />
               </ToolIcon>
               <ToolIcon
-                label="Add column"
+                label={t('editorToolbar.addColumn')}
                 onClick={() => editor.chain().focus().addColumnAfter().run()}
               >
                 <IconColumnInsertRight size={ICON_SIZE} stroke={1.75} />
               </ToolIcon>
               <ToolIcon
-                label="Delete table"
+                label={t('editorToolbar.deleteTable')}
                 onClick={() => editor.chain().focus().deleteTable().run()}
               >
                 <IconTableOff size={ICON_SIZE} stroke={1.75} />
@@ -319,12 +322,12 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
         </ToolCluster>
       )}
 
-      <ToolCluster title="Format">
+      <ToolCluster title={t('editorToolbar.formatCluster')}>
         <ToolIcon
-          label="Bold"
+          label={t('editorToolbar.bold')}
           active={editor.isActive('bold')}
           disabled={inlineDisabled}
-          disabledReason={AUTHOR_INLINE_DISABLED}
+          disabledReason={authorInlineDisabledReason}
           onClick={() => {
             if (authorMode) {
               toggleAuthorInlineMark(editor, 'bold');
@@ -336,10 +339,10 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           <IconBold size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
         <ToolIcon
-          label="Italic"
+          label={t('editorToolbar.italic')}
           active={editor.isActive('italic')}
           disabled={inlineDisabled}
-          disabledReason={AUTHOR_INLINE_DISABLED}
+          disabledReason={authorInlineDisabledReason}
           onClick={() => {
             if (authorMode) {
               toggleAuthorInlineMark(editor, 'italic');
@@ -351,10 +354,10 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
           <IconItalic size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
         <ToolIcon
-          label="Inline code"
+          label={t('editorToolbar.inlineCode')}
           active={editor.isActive('code')}
           disabled={inlineDisabled}
-          disabledReason={AUTHOR_INLINE_DISABLED}
+          disabledReason={authorInlineDisabledReason}
           onClick={() => {
             if (authorMode) {
               toggleAuthorInlineMark(editor, 'code');

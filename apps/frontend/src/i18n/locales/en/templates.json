@@ -1,0 +1,39 @@
+{
+  "sidebar": {
+    "typesHeading": "Types",
+    "noCustomTypes": "No custom types yet.",
+    "noTypesMatch": "No types match this filter.",
+    "documentTypesAria": "Document types"
+  },
+  "detail": {
+    "selectPrompt": "Select a type to view details.",
+    "delete": "Delete"
+  },
+  "newType": {
+    "action": "New custom type",
+    "modalTitle": "New custom type",
+    "labelField": "Label",
+    "whenToUseField": "When to use",
+    "exampleTitleField": "Example title",
+    "oftenUsedInField": "Often used in",
+    "scopeField": "Scope",
+    "scopePlatform": "Platform (all scopes)",
+    "scopeCompany": "Company: {{name}}",
+    "scopeDepartment": "Department: {{name}}",
+    "scopeTeam": "Team: {{name}}",
+    "sectionsField": "Sections",
+    "sectionsDescription": "Blank line between sections. First line = heading, following lines = prompts (- item).",
+    "defaultSectionsText": "Purpose\n- What is this document for?\n\nDetails\n- Fill in the details.",
+    "defaultSectionPrompt": "Describe this section.",
+    "cancel": "Cancel",
+    "create": "Create",
+    "missingSection": "Add at least one section"
+  },
+  "toasts": {
+    "createdTitle": "Type created",
+    "createdMessage": "Custom type saved.",
+    "deletedTitle": "Type deleted",
+    "deletedMessage": "Custom type removed.",
+    "errorTitle": "Error"
+  }
+}

@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   useSetAppShellBreadcrumbActions,
@@ -27,6 +28,8 @@ import {
   type MeNotificationCategory,
 } from '../../components/notifications/NotificationsInboxPanel';
 import {
+  categoryDescription,
+  categoryLabel,
   NOTIFICATION_CATEGORY_NAV,
   NotificationCategoryIcon,
 } from '../../components/notifications/notificationCategoryUi.js';
@@ -43,6 +46,7 @@ const navLinkFullWidth = {
 } as const;
 
 export function NotificationsPage() {
+  const { t } = useTranslation('notifications');
   const { data: me } = useMe();
   const isAdmin = me?.user.isAdmin === true;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -59,7 +63,7 @@ export function NotificationsPage() {
   useSetAppShellBreadcrumbs([
     {
       key: 'notifications',
-      label: 'Notifications',
+      label: t('breadcrumb'),
       icon: <IconBell size={14} stroke={1.5} />,
     },
   ]);
@@ -80,8 +84,7 @@ export function NotificationsPage() {
     [setSearchParams]
   );
 
-  const totalLabel =
-    listTotal == null ? null : `${listTotal} notification${listTotal !== 1 ? 's' : ''}`;
+  const totalLabel = listTotal == null ? null : t('page.total', { count: listTotal });
 
   const breadcrumbActions = useMemo(
     () => (
@@ -93,7 +96,7 @@ export function NotificationsPage() {
         ) : null}
         <Switch
           size="sm"
-          label="Unread only"
+          label={t('page.unreadOnly')}
           checked={unreadOnly}
           onChange={(event) => {
             handleUnreadOnlyChange(event.currentTarget.checked);
@@ -105,7 +108,7 @@ export function NotificationsPage() {
           onClick={() => markAllAsRead.mutate()}
           disabled={markAllAsRead.isPending || !canMarkAll}
         >
-          Mark all as read
+          {t('page.markAllAsRead')}
         </Button>
       </Group>
     ),
@@ -118,6 +121,7 @@ export function NotificationsPage() {
       markAllAsRead.isPending,
       markAllAsRead.mutate,
       handleUnreadOnlyChange,
+      t,
     ]
   );
 
@@ -148,21 +152,22 @@ export function NotificationsPage() {
         <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
           <ContextWorkspaceLeftColumn data-context-sibling-nav>
             <ContentCardWrapper fullHeight={false}>
-              <SectionLabel mb="sm">Type</SectionLabel>
+              <SectionLabel mb="sm">{t('page.typeLabel')}</SectionLabel>
               <Stack
                 component="nav"
                 gap={2}
                 align="stretch"
                 w="100%"
-                aria-label="Notification categories"
+                aria-label={t('page.categoriesAriaLabel')}
               >
                 {visibleCategories.map((item) => {
+                  const description = categoryDescription(t, item.value);
                   const link = (
                     <NavLink
                       component={Link}
                       to={categoryHref(item.value)}
                       replace
-                      label={item.label}
+                      label={categoryLabel(t, item.value)}
                       leftSection={
                         <NotificationCategoryIcon category={item.value} size={ICON_SIZE} />
                       }
@@ -172,7 +177,7 @@ export function NotificationsPage() {
                       style={navLinkFullWidth}
                     />
                   );
-                  if (item.description == null) {
+                  if (description == null) {
                     return (
                       <Box key={item.value} w="100%">
                         {link}
@@ -182,7 +187,7 @@ export function NotificationsPage() {
                   return (
                     <Tooltip
                       key={item.value}
-                      label={item.description}
+                      label={description}
                       position="right"
                       withArrow
                       openDelay={400}

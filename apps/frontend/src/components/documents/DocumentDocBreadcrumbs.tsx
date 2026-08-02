@@ -8,6 +8,7 @@ import {
   IconUser,
   IconUsersGroup,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
@@ -39,28 +40,30 @@ export type DocumentDocBreadcrumbsProps = {
   linkDocumentTitle?: boolean;
 };
 
-function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+function buildContextMeta(doc: DocumentForDocBreadcrumbs, t: TranslateFn) {
   if (doc.contextId == null) return null;
   const to = contextUrl(doc.contextId);
   if (doc.contextProcessId != null || doc.contextType === 'process') {
-    return { name: doc.contextName ?? 'Process', to, icon: <IconRoute size={14} /> };
+    return { name: doc.contextName ?? t('breadcrumbs.process'), to, icon: <IconRoute size={14} /> };
   }
   if (doc.subcontextId != null || doc.contextType === 'subcontext') {
     return {
-      name: doc.subcontextName ?? doc.contextName ?? 'Subcontext',
+      name: doc.subcontextName ?? doc.contextName ?? t('breadcrumbs.subcontext'),
       to,
       icon: <IconSubtask size={14} />,
     };
   }
   if (doc.contextProjectId != null || doc.contextType === 'project') {
     return {
-      name: doc.contextProjectName ?? doc.contextName ?? 'Project',
+      name: doc.contextProjectName ?? doc.contextName ?? t('breadcrumbs.project'),
       to,
       icon: <IconBriefcase size={14} />,
     };
   }
   return {
-    name: doc.contextName ?? 'Context',
+    name: doc.contextName ?? t('breadcrumbs.context'),
     to,
     icon: <IconRoute size={14} />,
   };
@@ -69,14 +72,16 @@ function buildContextMeta(doc: DocumentForDocBreadcrumbs) {
 export function buildDocumentBreadcrumbItems(
   documentId: string,
   doc: DocumentForDocBreadcrumbs,
+  t: TranslateFn,
   linkDocumentTitle = false
 ): AppShellBreadcrumbItem[] {
   const scope = (doc.scope ?? null) as RecentScope | null;
   const hasNoContext = doc.contextId == null;
-  const contextMeta = buildContextMeta(doc);
+  const contextMeta = buildContextMeta(doc, t);
   const scopeWithName = doc.scope as RecentScope & { name?: string | null };
-  const scopeName = scopeWithName?.name ?? (scope ? scopeToLabel(scope) : 'Overview');
-  const documentTitle = doc.title?.trim() || 'Document';
+  const scopeName =
+    scopeWithName?.name ?? (scope ? scopeToLabel(scope) : t('breadcrumbs.overview'));
+  const documentTitle = doc.title?.trim() || t('breadcrumbs.untitledDocument');
   const ScopeIcon =
     scope?.type === 'company'
       ? IconBuildingSkyscraper
@@ -104,7 +109,7 @@ export function buildDocumentBreadcrumbItems(
     });
   }
   if (hasNoContext) {
-    items.push({ key: 'no-context', label: 'No context' });
+    items.push({ key: 'no-context', label: t('breadcrumbs.noContext') });
   }
   items.push({
     key: 'document',
@@ -123,8 +128,9 @@ export function DocumentDocBreadcrumbs({
   doc,
   linkDocumentTitle = false,
 }: DocumentDocBreadcrumbsProps) {
+  const { t } = useTranslation('documents');
   const items = useMemo(
-    () => buildDocumentBreadcrumbItems(documentId, doc, linkDocumentTitle),
+    () => buildDocumentBreadcrumbItems(documentId, doc, t, linkDocumentTitle),
     // Title/context fields drive the trail; avoid depending on whole `doc` identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by breadcrumb fields
     [
@@ -140,6 +146,7 @@ export function DocumentDocBreadcrumbs({
       doc.subcontextId,
       doc.subcontextName,
       doc.scope,
+      t,
     ]
   );
   useSetAppShellBreadcrumbs(items);

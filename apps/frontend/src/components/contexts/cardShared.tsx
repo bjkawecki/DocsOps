@@ -1,12 +1,14 @@
 import { Box, Button, Card, Group, Stack, Text } from '@mantine/core';
 import { useMantineTheme } from '@mantine/core';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ContentLink } from '../ui/ContentLink';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 
 /** One "View more" control: always the same Link-Button. Dashboard: real link (to). Scope tabs: to="#" + onClick with preventDefault. Same look and hover everywhere. */
 export function ViewMoreButton({ to, onClick }: { to?: string; onClick?: () => void }) {
+  const { t } = useTranslation('contexts');
   const { primaryColor } = useMantineTheme();
   const href = to ?? '#';
   const handleClick = onClick
@@ -25,7 +27,7 @@ export function ViewMoreButton({ to, onClick }: { to?: string; onClick?: () => v
         size="xs"
         onClick={handleClick}
       >
-        View more
+        {t('card.viewMore')}
       </Button>
     </Group>
   );
@@ -129,6 +131,7 @@ export function ScopeCard({
   subcontexts,
   metadata,
 }: ScopeCardProps) {
+  const { t } = useTranslation('contexts');
   const displayTitle = titleCount !== undefined ? `${title} (${titleCount})` : title;
   const isContextListMode =
     children === undefined && (documents !== undefined || subcontexts !== undefined);
@@ -147,7 +150,7 @@ export function ScopeCard({
       <Stack gap="xs">
         {hasMetaLine && (
           <Text size="xs" c="dimmed">
-            {docCount === 1 ? '1 document' : `${docCount} documents`}
+            {t('card.documentCount', { count: docCount })}
           </Text>
         )}
         {documents && documents.length > 0 && (
@@ -166,7 +169,7 @@ export function ScopeCard({
         {subcontexts && subcontexts.length > 0 && (
           <Stack gap={4} mt="sm" align="flex-start">
             <Text size="xs" c="dimmed" fw={500}>
-              Subcontexts
+              {t('card.subcontexts')}
             </Text>
             <Stack gap={4} align="flex-start">
               {subcontexts.map((s) => (

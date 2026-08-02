@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { AdminEntityListToolbar } from '../AdminEntityListToolbar';
 import { TEAMS_PAGE_SIZE_KEY } from './adminTeamsTabConstants';
 
@@ -14,6 +15,7 @@ export type AdminTeamsToolbarProps = {
 };
 
 export function AdminTeamsToolbar(props: AdminTeamsToolbarProps) {
+  const { t } = useTranslation('admin');
   const {
     filterText,
     onFilterTextChange,
@@ -28,15 +30,15 @@ export function AdminTeamsToolbar(props: AdminTeamsToolbarProps) {
 
   return (
     <AdminEntityListToolbar
-      searchPlaceholder="Search (team, department)"
+      searchPlaceholder={t('teams.toolbar.searchPlaceholder')}
       filterText={filterText}
       onFilterTextChange={onFilterTextChange}
-      scopeSelectPlaceholder="Department"
+      scopeSelectPlaceholder={t('teams.toolbar.departmentPlaceholder')}
       scopeSelectData={departmentOptions}
       scopeSelectValue={filterDepartmentId}
       onScopeSelectChange={onFilterDepartmentIdChange}
       scopeSelectDisabled={!companyId}
-      countLine={`${filteredTeamsCount} team(s)`}
+      countLine={t('teams.toolbar.countLine', { count: filteredTeamsCount })}
       limit={limit}
       onLimitChange={onLimitChange}
       pageSizeLocalStorageKey={TEAMS_PAGE_SIZE_KEY}

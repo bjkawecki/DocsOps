@@ -1,5 +1,6 @@
 import { Box, Container, Flex, Paper, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { MostReadListContent } from '../../components/mostRead/MostReadListContent.js';
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
@@ -35,12 +36,13 @@ export function ScopeMostReadPage({
   departmentId,
   teamId,
 }: Props) {
+  const { t } = useTranslation(['contexts', 'common']);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
   const trailSuffix = useMemo((): AppShellBreadcrumbItem[] => {
-    return [{ key: 'most-read', label: 'Most read' }];
-  }, []);
+    return [{ key: 'most-read', label: t('sidebar.mostRead') }];
+  }, [t]);
   useRegisterScopePageChrome(navScope, scopeLabel, null, trailSuffix);
 
   const trashArchive = {
@@ -56,7 +58,7 @@ export function ScopeMostReadPage({
   if (isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('common:status.loading')}
       </Text>
     );
   }
@@ -83,7 +85,7 @@ export function ScopeMostReadPage({
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Stack gap="md">
-              <Title order={3}>Most read</Title>
+              <Title order={3}>{t('sidebar.mostRead')}</Title>
               <MostReadListContent
                 scope={listScope}
                 companyId={companyId}

@@ -18,6 +18,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   IconArchive,
   IconArchiveOff,
@@ -178,8 +179,9 @@ export function DocumentPageLoadedLayout({
   latestPublishedVersion,
   onReloadPublishedContent,
 }: DocumentPageLoadedLayoutProps) {
+  const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
-  const docTitle = mode === 'edit' ? editTitle || 'Untitled' : data.title;
+  const docTitle = mode === 'edit' ? editTitle || t('common:status.untitled') : data.title;
   const hasNoContext = data.contextId == null;
   const canEnterEditMode = data.canWrite || !!data.canPublish;
   const canManageAccess = !!data.canPublish;
@@ -203,7 +205,7 @@ export function DocumentPageLoadedLayout({
         {mode === 'edit' && (
           <>
             <Button variant="default" size="sm" onClick={handleCancelEdit}>
-              Cancel
+              {t('documentPage.toolbar.cancel')}
             </Button>
             <Button
               size="sm"
@@ -213,11 +215,15 @@ export function DocumentPageLoadedLayout({
                 void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave())
               }
             >
-              {editTab === 'draft' ? 'Save draft' : 'Save'}
+              {editTab === 'draft'
+                ? t('documentPage.toolbar.saveDraft')
+                : t('documentPage.toolbar.save')}
             </Button>
             {editTab === 'draft' && leadDraftLastSynced && (
               <Text size="xs" c="dimmed">
-                Last synced {new Date(leadDraftLastSynced).toLocaleTimeString()}
+                {t('documentPage.toolbar.lastSynced', {
+                  time: new Date(leadDraftLastSynced).toLocaleTimeString(),
+                })}
               </Text>
             )}
           </>
@@ -226,7 +232,7 @@ export function DocumentPageLoadedLayout({
           <ActionIcon
             variant="filled"
             size="36"
-            aria-label="Edit document"
+            aria-label={t('documentPage.toolbar.editDocumentAria')}
             onClick={handleEditClick}
           >
             <IconPencil size={18} />
@@ -241,7 +247,9 @@ export function DocumentPageLoadedLayout({
             loading={publishLoading}
             onClick={() => void handlePublish()}
           >
-            {data.publishedAt ? 'Publish changes' : 'Publish'}
+            {data.publishedAt
+              ? t('documentPage.toolbar.publishChanges')
+              : t('documentPage.toolbar.publish')}
           </Button>
         )}
         {mode === 'edit' &&
@@ -249,12 +257,18 @@ export function DocumentPageLoadedLayout({
           !showPublishButton &&
           leadDraftPendingSuggestions > 0 && (
             <Text size="xs" c="dimmed">
-              Resolve {leadDraftPendingSuggestions} pending suggestion(s) before publishing.
+              {t('documentPage.toolbar.resolvePendingSuggestions', {
+                count: leadDraftPendingSuggestions,
+              })}
             </Text>
           )}
         <Menu shadow="md" position="bottom-end">
           <Menu.Target>
-            <ActionIcon variant="default" size="36" aria-label="More actions">
+            <ActionIcon
+              variant="default"
+              size="36"
+              aria-label={t('documentPage.toolbar.moreActionsAria')}
+            >
               <IconDotsVertical size={18} />
             </ActionIcon>
           </Menu.Target>
@@ -264,14 +278,16 @@ export function DocumentPageLoadedLayout({
               to={`/documents/${documentId}/versions`}
               leftSection={<IconHistory size={14} />}
             >
-              History
+              {t('documentPage.menu.history')}
             </Menu.Item>
             <Menu.Item
               leftSection={<IconDownload size={14} />}
               disabled={pdfExportLoading}
               onClick={() => void handleStartPdfExport()}
             >
-              {pdfExportLoading ? 'Queuing PDF export...' : 'Export PDF (async)'}
+              {pdfExportLoading
+                ? t('documentPage.menu.exportingPdf')
+                : t('documentPage.menu.exportPdf')}
             </Menu.Item>
             {pdfExportStatus?.status === 'succeeded' && pdfExportStatus.downloadUrl && (
               <Menu.Item
@@ -281,17 +297,17 @@ export function DocumentPageLoadedLayout({
                 rel="noreferrer"
                 leftSection={<IconDownload size={14} />}
               >
-                Download exported PDF
+                {t('documentPage.menu.downloadPdf')}
               </Menu.Item>
             )}
             {hasNoContext && data.canWrite && (
               <Menu.Item leftSection={<IconTarget size={14} />} onClick={openAssignContext}>
-                Assign to context
+                {t('documentPage.menu.assignContext')}
               </Menu.Item>
             )}
             {!hasNoContext && (data.canMove || data.canRequestMove) && !data.pendingMoveRequest && (
               <Menu.Item leftSection={<IconArrowsExchange size={14} />} onClick={openMoveContext}>
-                Move to context
+                {t('documentPage.menu.moveContext')}
               </Menu.Item>
             )}
             {data.pendingMoveRequest?.canWithdraw && (
@@ -300,7 +316,7 @@ export function DocumentPageLoadedLayout({
                 disabled={moveDecisionLoading}
                 onClick={() => onMoveRequestDecision('withdraw')}
               >
-                Withdraw move request
+                {t('documentPage.menu.withdrawMoveRequest')}
               </Menu.Item>
             )}
             {data.pendingMoveRequest?.canAccept && (
@@ -309,7 +325,7 @@ export function DocumentPageLoadedLayout({
                 disabled={moveDecisionLoading}
                 onClick={() => onMoveRequestDecision('accept')}
               >
-                Accept move request
+                {t('documentPage.menu.acceptMoveRequest')}
               </Menu.Item>
             )}
             {data.pendingMoveRequest?.canReject && (
@@ -318,12 +334,12 @@ export function DocumentPageLoadedLayout({
                 disabled={moveDecisionLoading}
                 onClick={() => onMoveRequestDecision('reject')}
               >
-                Reject move request
+                {t('documentPage.menu.rejectMoveRequest')}
               </Menu.Item>
             )}
             {data.pendingMoveRequest && (
               <Menu.Item component={Link} to="/approvals?tab=moves">
-                Open in Approvals
+                {t('documentPage.menu.openInApprovals')}
               </Menu.Item>
             )}
             {startHereScopes.length > 0 && <Menu.Divider />}
@@ -340,7 +356,7 @@ export function DocumentPageLoadedLayout({
                     })
                   }
                 >
-                  Remove Start here for {scope.scopeName}
+                  {t('documentPage.menu.removeStartHere', { scope: scope.scopeName })}
                 </Menu.Item>
               ) : (
                 <Menu.Item
@@ -354,7 +370,7 @@ export function DocumentPageLoadedLayout({
                     })
                   }
                 >
-                  Set as Start here for {scope.scopeName}
+                  {t('documentPage.menu.setStartHere', { scope: scope.scopeName })}
                 </Menu.Item>
               )
             )}
@@ -363,7 +379,7 @@ export function DocumentPageLoadedLayout({
                 leftSection={<IconArchive size={14} />}
                 onClick={() => void handleArchive()}
               >
-                Archive
+                {t('documentPage.menu.archive')}
               </Menu.Item>
             )}
             {data.canWrite && data.archivedAt && (
@@ -371,13 +387,13 @@ export function DocumentPageLoadedLayout({
                 leftSection={<IconArchiveOff size={14} />}
                 onClick={() => void handleUnarchive()}
               >
-                Unarchive
+                {t('documentPage.menu.unarchive')}
               </Menu.Item>
             )}
             {data.canDelete && <Menu.Divider />}
             {data.canDelete && (
               <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={openDelete}>
-                Move to trash
+                {t('documentPage.menu.moveToTrash')}
               </Menu.Item>
             )}
           </Menu.Dropdown>
@@ -408,6 +424,7 @@ export function DocumentPageLoadedLayout({
     data.publishedAt,
     startHereScopes,
     startHereBusy,
+    t,
   ]);
 
   useSetAppShellBreadcrumbActions(
@@ -495,13 +512,12 @@ export function DocumentPageLoadedLayout({
                             />
                           ) : (
                             <Text size="sm" c="dimmed">
-                              Published blocks do not contain extractable text for this preview.
+                              {t('documentPage.noExtractableText')}
                             </Text>
                           )
                         ) : (
                           <Text size="sm" c="dimmed">
-                            No published block content is available for this view. Open edit mode to
-                            work on the draft, or publish once the document has blocks.
+                            {t('documentPage.noPublishedContent')}
                           </Text>
                         )}
                       </Box>
@@ -531,9 +547,11 @@ export function DocumentPageLoadedLayout({
                       >
                         <Box className="document-page-edit-sticky-stack">
                           <Tabs.List>
-                            <Tabs.Tab value="draft">Draft</Tabs.Tab>
-                            <Tabs.Tab value="metadata">Metadata</Tabs.Tab>
-                            {canManageAccess && <Tabs.Tab value="access">Access</Tabs.Tab>}
+                            <Tabs.Tab value="draft">{t('documentPage.tabs.draft')}</Tabs.Tab>
+                            <Tabs.Tab value="metadata">{t('documentPage.tabs.metadata')}</Tabs.Tab>
+                            {canManageAccess && (
+                              <Tabs.Tab value="access">{t('documentPage.tabs.access')}</Tabs.Tab>
+                            )}
                           </Tabs.List>
                           <Box
                             className="document-page-edit-sticky-chrome-host"
@@ -547,13 +565,10 @@ export function DocumentPageLoadedLayout({
                               <Alert
                                 color="yellow"
                                 mb="md"
-                                title="Draft content is empty"
+                                title={t('documentPage.emptyDraftAlertTitle')}
                                 style={{ flexShrink: 0 }}
                               >
-                                <Text size="sm">
-                                  No block content is currently available for this document. Save
-                                  the draft once to initialize it.
-                                </Text>
+                                <Text size="sm">{t('documentPage.emptyDraftAlertBody')}</Text>
                               </Alert>
                             )}
                           <DocumentLeadDraftPanel
@@ -581,14 +596,14 @@ export function DocumentPageLoadedLayout({
                         >
                           <Stack gap="md">
                             <TextInput
-                              label="Title"
+                              label={t('documentPage.metadataFields.title')}
                               value={editTitle}
                               onChange={(e) => setEditTitle(e.currentTarget.value)}
                               maxLength={500}
                             />
                             <TextInput
-                              label="Description"
-                              placeholder="Short description (optional)"
+                              label={t('documentPage.metadataFields.description')}
+                              placeholder={t('documentPage.metadataFields.descriptionPlaceholder')}
                               value={editDescription}
                               onChange={(e) => setEditDescription(e.currentTarget.value)}
                               maxLength={500}
@@ -602,8 +617,8 @@ export function DocumentPageLoadedLayout({
                             ) : null}
                             <Group align="flex-end" gap="xs">
                               <MultiSelect
-                                label="Tags"
-                                placeholder="Select or add tags"
+                                label={t('documentPage.metadataFields.tags')}
+                                placeholder={t('documentPage.metadataFields.tagsPlaceholder')}
                                 data={tagOptions}
                                 value={editTagIds}
                                 onChange={setEditTagIds}
@@ -612,10 +627,10 @@ export function DocumentPageLoadedLayout({
                                 style={{ flex: 1 }}
                               />
                               <Button variant="filled" size="sm" onClick={openCreateTag}>
-                                Create tag
+                                {t('documentPage.metadataFields.createTag')}
                               </Button>
                               <Button variant="subtle" size="sm" onClick={openManageTags}>
-                                Manage tags
+                                {t('documentPage.metadataFields.manageTags')}
                               </Button>
                             </Group>
                           </Stack>
@@ -650,7 +665,7 @@ export function DocumentPageLoadedLayout({
 
             <Box
               component="aside"
-              aria-label="Comments"
+              aria-label={t('documentPage.commentsAside')}
               className="document-page-comments-aside"
               w={{ base: '100%', lg: 'auto' }}
               style={{ flexShrink: 0 }}

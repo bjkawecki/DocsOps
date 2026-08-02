@@ -81,11 +81,11 @@ export function AdminSystemMailSection({ settings }: Props) {
         smtpFromName: smtpFromName.trim() || null,
       });
       setSmtpPassword('');
-      notifications.show({ color: 'green', message: 'Mail settings saved.' });
+      notifications.show({ color: 'green', message: t('system.mail.savedMessage') });
     } catch (err) {
       notifications.show({
         color: 'red',
-        message: err instanceof Error ? err.message : 'Could not save mail settings.',
+        message: err instanceof Error ? err.message : t('system.mail.saveFailedFallback'),
       });
     }
   };
@@ -93,11 +93,11 @@ export function AdminSystemMailSection({ settings }: Props) {
   const handleTest = async () => {
     try {
       await testMutation.mutateAsync({ to: testTo.trim() || undefined });
-      notifications.show({ color: 'green', message: 'Test email sent.' });
+      notifications.show({ color: 'green', message: t('system.mail.testSentMessage') });
     } catch (err) {
       notifications.show({
         color: 'red',
-        message: err instanceof Error ? err.message : 'Test email failed.',
+        message: err instanceof Error ? err.message : t('system.mail.testFailedFallback'),
       });
     }
   };
@@ -140,28 +140,27 @@ export function AdminSystemMailSection({ settings }: Props) {
     <Paper withBorder p="md" radius="md">
       <Stack gap="md">
         <div>
-          <Title order={4}>Outgoing email (SMTP)</Title>
+          <Title order={4}>{t('system.mail.sectionTitle')}</Title>
           <Text size="sm" c="dimmed">
-            Platform mail server for notification emails. Passwords are stored encrypted and never
-            shown again. Send a test email after saving.
+            {t('system.mail.sectionDescription')}
           </Text>
         </div>
 
         <Switch
-          label="Enable SMTP"
+          label={t('system.mail.enableSmtp')}
           checked={smtpEnabled}
           onChange={(e) => setSmtpEnabled(e.currentTarget.checked)}
         />
 
         <Group grow align="flex-start">
           <TextInput
-            label="Host"
-            placeholder="smtp.example.com"
+            label={t('system.mail.host')}
+            placeholder={t('system.mail.hostPlaceholder')}
             value={smtpHost}
             onChange={(e) => setSmtpHost(e.currentTarget.value)}
           />
           <NumberInput
-            label="Port"
+            label={t('system.mail.port')}
             value={smtpPort}
             onChange={setSmtpPort}
             min={1}
@@ -171,11 +170,11 @@ export function AdminSystemMailSection({ settings }: Props) {
         </Group>
 
         <Select
-          label="Encryption"
+          label={t('system.mail.encryption')}
           data={[
-            { value: 'none', label: 'None' },
-            { value: 'starttls', label: 'STARTTLS' },
-            { value: 'tls', label: 'TLS' },
+            { value: 'none', label: t('system.mail.encryptionNone') },
+            { value: 'starttls', label: t('system.mail.encryptionStarttls') },
+            { value: 'tls', label: t('system.mail.encryptionTls') },
           ]}
           value={smtpEncryption}
           onChange={setSmtpEncryption}
@@ -184,7 +183,7 @@ export function AdminSystemMailSection({ settings }: Props) {
 
         <Group grow align="flex-start">
           <TextInput
-            label="Username"
+            label={t('system.mail.username')}
             value={smtpUsername}
             onChange={(e) => setSmtpUsername(e.currentTarget.value)}
             autoComplete="off"
@@ -192,8 +191,8 @@ export function AdminSystemMailSection({ settings }: Props) {
           <PasswordInput
             label={
               settings.smtpPasswordConfigured
-                ? 'Password (leave blank to keep current)'
-                : 'Password'
+                ? t('system.mail.passwordKeepCurrent')
+                : t('system.mail.password')
             }
             value={smtpPassword}
             onChange={(e) => setSmtpPassword(e.currentTarget.value)}
@@ -203,14 +202,14 @@ export function AdminSystemMailSection({ settings }: Props) {
 
         <Group grow align="flex-start">
           <TextInput
-            label="From address"
-            placeholder="noreply@example.com"
+            label={t('system.mail.fromAddress')}
+            placeholder={t('system.mail.fromAddressPlaceholder')}
             value={smtpFromAddress}
             onChange={(e) => setSmtpFromAddress(e.currentTarget.value)}
           />
           <TextInput
-            label="From name"
-            placeholder="DocsOps"
+            label={t('system.mail.fromName')}
+            placeholder={t('system.mail.fromNamePlaceholder')}
             value={smtpFromName}
             onChange={(e) => setSmtpFromName(e.currentTarget.value)}
           />
@@ -221,8 +220,8 @@ export function AdminSystemMailSection({ settings }: Props) {
             {t('actions.sendTestEmail')}
           </Text>
           <TextInput
-            label="Recipient"
-            description="Defaults to your admin account email"
+            label={t('system.mail.recipient')}
+            description={t('system.mail.recipientDescription')}
             value={testTo}
             onChange={(e) => setTestTo(e.currentTarget.value)}
           />

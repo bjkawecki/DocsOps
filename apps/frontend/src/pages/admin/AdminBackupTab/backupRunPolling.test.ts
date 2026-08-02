@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+import i18n from '../../../i18n/i18n';
 import {
   BACKUP_POLL_BOOST_MS,
   BACKUP_RUN_IDLE_POLL_INTERVAL_MS,
@@ -9,6 +10,9 @@ import {
   shouldPollBackupRuns,
 } from './backupRunPolling';
 import type { BackupRun } from './adminBackupTypes';
+
+const t = (key: string, options?: Record<string, unknown>) =>
+  i18n.t(key, { ns: 'admin', ...options });
 
 const baseRun: BackupRun = {
   id: '1',
@@ -52,23 +56,39 @@ describe('backupRunPolling', () => {
 
   it('formats external destination with type', () => {
     expect(
-      formatExternalDestinationLabel({
-        ...baseRun,
-        destination: { id: 'd1', name: 'AWS prod', type: 'S3_COMPATIBLE' },
-      })
+      formatExternalDestinationLabel(
+        {
+          ...baseRun,
+          destination: { id: 'd1', name: 'AWS prod', type: 'S3_COMPATIBLE' },
+        },
+        t
+      )
     ).toBe('AWS prod (S3)');
     expect(
-      formatExternalDestinationLabel({
-        ...baseRun,
-        destination: { id: 'd2', name: 'Borg host', type: 'SSH' },
-      })
+      formatExternalDestinationLabel(
+        {
+          ...baseRun,
+          destination: { id: 'd2', name: 'Borg host', type: 'SSH' },
+        },
+        t
+      )
     ).toBe('Borg host (SSH)');
     expect(
-      formatExternalDestinationLabel({
-        ...baseRun,
-        destination: { id: 'd3', name: 'Nextcloud', type: 'WEBDAV' },
-      })
+      formatExternalDestinationLabel(
+        {
+          ...baseRun,
+          destination: { id: 'd3', name: 'Nextcloud', type: 'WEBDAV' },
+        },
+        t
+      )
     ).toBe('Nextcloud (WebDAV)');
+  });
+
+  it('falls back to local only label when no external destination exists', () => {
+    expect(formatExternalDestinationLabel({ ...baseRun, status: 'succeeded' }, t)).toBe(
+      'Local only'
+    );
+    expect(formatExternalDestinationLabel({ ...baseRun, status: 'failed' }, t)).toBe('–');
   });
 
   it('uses fast polling while a run is in progress', () => {

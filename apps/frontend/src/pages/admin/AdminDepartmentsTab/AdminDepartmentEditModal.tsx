@@ -11,6 +11,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { formatBytes } from './adminDepartmentsTabFormat';
 import type { DepartmentStatsRes, DepartmentWithCompany } from './adminDepartmentsTabTypes';
 
@@ -55,24 +56,25 @@ export function AdminDepartmentEditModal({
   onRequestDelete,
   deleteFromManageLoading,
 }: AdminDepartmentEditModalProps) {
+  const { t } = useTranslation('admin');
   return (
     <Modal
       opened
       onClose={onClose}
-      title={`Department: ${department.name}`}
+      title={t('departments.editModal.title', { name: department.name })}
       size="lg"
       key={department.id}
     >
       <Tabs defaultValue="overview">
         <Tabs.List>
-          <Tabs.Tab value="overview">Overview</Tabs.Tab>
-          <Tabs.Tab value="manage">Manage</Tabs.Tab>
+          <Tabs.Tab value="overview">{t('departments.editModal.tabs.overview')}</Tabs.Tab>
+          <Tabs.Tab value="manage">{t('departments.editModal.tabs.manage')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="overview" pt="md">
           <Card withBorder padding="md">
             <Group justify="space-between" mb="md">
               <Text size="sm" fw={600}>
-                Department
+                {t('departments.editModal.card.title')}
               </Text>
               {!departmentCardEditing && (
                 <Button
@@ -81,21 +83,21 @@ export function AdminDepartmentEditModal({
                   leftSection={<IconPencil size={14} />}
                   onClick={onStartEditCard}
                 >
-                  Edit
+                  {t('common:actions.edit')}
                 </Button>
               )}
             </Group>
             {departmentCardEditing ? (
               <Stack gap="md">
                 <TextInput
-                  label="Name"
+                  label={t('shared.name')}
                   value={editName}
                   onChange={(e) => setEditName(e.currentTarget.value)}
                   required
                 />
                 <Select
-                  label="Lead"
-                  placeholder="Select department lead"
+                  label={t('shared.lead')}
+                  placeholder={t('departments.editModal.card.leadPlaceholder')}
                   data={userOptions}
                   value={editLeadId || null}
                   onChange={(v) => setEditLeadId(v ?? '')}
@@ -108,7 +110,7 @@ export function AdminDepartmentEditModal({
                     variant="default"
                     onClick={() => setDepartmentCardEditing(false)}
                   >
-                    Cancel
+                    {t('common:actions.cancel')}
                   </Button>
                   <Button
                     size="sm"
@@ -116,7 +118,7 @@ export function AdminDepartmentEditModal({
                     loading={saveLoading}
                     disabled={!editName.trim()}
                   >
-                    Save
+                    {t('common:actions.save')}
                   </Button>
                 </Group>
               </Stack>
@@ -126,13 +128,13 @@ export function AdminDepartmentEditModal({
               <Stack gap="xs">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Name
+                    {t('shared.name')}
                   </Text>
                   <Text size="sm">{department.name}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Lead
+                    {t('shared.lead')}
                   </Text>
                   <Text size="sm">
                     {leadsForEdit.length === 0 ? '–' : (leadsForEdit[0]?.name ?? '–')}
@@ -143,7 +145,7 @@ export function AdminDepartmentEditModal({
           </Card>
           <Card withBorder padding="md" mt="md">
             <Text size="sm" fw={600} mb="xs">
-              Stats
+              {t('shared.stats')}
             </Text>
             {departmentStatsPending ? (
               <Loader size="sm" />
@@ -151,37 +153,37 @@ export function AdminDepartmentEditModal({
               <Group gap="lg">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Storage
+                    {t('shared.storage')}
                   </Text>
                   <Text size="sm">{formatBytes(departmentStatsData.storageBytesUsed)}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Teams
+                    {t('shared.teams')}
                   </Text>
                   <Text size="sm">{departmentStatsData.teamCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Members
+                    {t('shared.members')}
                   </Text>
                   <Text size="sm">{departmentStatsData.memberCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Documents
+                    {t('shared.documents')}
                   </Text>
                   <Text size="sm">{departmentStatsData.documentCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Processes
+                    {t('shared.processes')}
                   </Text>
                   <Text size="sm">{departmentStatsData.processCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Projects
+                    {t('shared.projects')}
                   </Text>
                   <Text size="sm">{departmentStatsData.projectCount}</Text>
                 </div>
@@ -192,10 +194,10 @@ export function AdminDepartmentEditModal({
         <Tabs.Panel value="manage" pt="md">
           <Card withBorder padding="md">
             <Text size="sm" fw={600} mb="xs">
-              Manage
+              {t('shared.manage')}
             </Text>
             <Text size="xs" c="dimmed" mb="md">
-              Sensitive actions. Use with care.
+              {t('shared.manageHint')}
             </Text>
             <Button
               size="sm"
@@ -205,7 +207,7 @@ export function AdminDepartmentEditModal({
               onClick={onRequestDelete}
               loading={deleteFromManageLoading}
             >
-              Delete department
+              {t('departments.editModal.manage.deleteButton')}
             </Button>
           </Card>
         </Tabs.Panel>

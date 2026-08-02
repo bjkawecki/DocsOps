@@ -10,6 +10,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { contextUrl, readSidebarSectionOpen, writeSidebarSectionOpen } from './contextPaths.js';
@@ -136,6 +137,7 @@ function ProjectNavItem({
   activeContextId: string | null;
   onContextNavClick: (contextId: string, event: MouseEvent<HTMLElement>) => void;
 }) {
+  const { t } = useTranslation('contexts');
   const to = contextUrl(project.contextId);
   const subs = project.subcontexts ?? [];
   const hasSubs = subs.length > 0;
@@ -186,7 +188,7 @@ function ProjectNavItem({
         <UnstyledButton
           onClick={toggleSubs}
           aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse subcontexts' : 'Expand subcontexts'}
+          aria-label={expanded ? t('sidebar.collapseSubcontexts') : t('sidebar.expandSubcontexts')}
           className="context-sidebar-peer-header"
           style={{
             display: 'flex',
@@ -238,6 +240,7 @@ export function ScopeContextSidebar({
   onContextNavClick,
   trashArchive = null,
 }: ScopeContextSidebarProps) {
+  const { t } = useTranslation('contexts');
   const { pathname } = useLocation();
 
   return (
@@ -246,13 +249,13 @@ export function ScopeContextSidebar({
         <Stack gap="md" component="nav" align="stretch" w="100%">
           <PeerCollapsibleSection
             sectionId="processes"
-            label="Processes"
+            label={t('sidebar.processes')}
             icon={<IconRoute size={ICON_SIZE} stroke={1.5} />}
             defaultOpen
           >
             {processes.length === 0 ? (
               <Text size="sm" c="dimmed" px="xs">
-                No processes yet.
+                {t('sidebar.processesEmpty')}
               </Text>
             ) : (
               processes.map((p) => {
@@ -275,13 +278,13 @@ export function ScopeContextSidebar({
 
           <PeerCollapsibleSection
             sectionId="projects"
-            label="Projects"
+            label={t('sidebar.projects')}
             icon={<IconBriefcase size={ICON_SIZE} stroke={1.5} />}
             defaultOpen
           >
             {projects.length === 0 ? (
               <Text size="sm" c="dimmed" px="xs">
-                No projects yet.
+                {t('sidebar.projectsEmpty')}
               </Text>
             ) : (
               projects.map((project) => (
@@ -298,7 +301,7 @@ export function ScopeContextSidebar({
           {drafts != null && drafts.length > 0 && (
             <PeerCollapsibleSection
               sectionId="drafts"
-              label="Drafts"
+              label={t('sidebar.drafts')}
               icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}
               defaultOpen={false}
             >
@@ -320,7 +323,7 @@ export function ScopeContextSidebar({
               <NavLink
                 component={Link}
                 to={trashArchive.mostReadTo}
-                label="Most read"
+                label={t('sidebar.mostRead')}
                 leftSection={<IconChartBar size={ICON_SIZE} stroke={1.5} />}
                 active={pathname === trashArchive.mostReadTo}
                 variant="subtle"
@@ -329,7 +332,7 @@ export function ScopeContextSidebar({
               <NavLink
                 component={Link}
                 to={trashArchive.trashTo}
-                label="Trash"
+                label={t('sidebar.trash')}
                 leftSection={<IconTrash size={ICON_SIZE} stroke={1.5} />}
                 active={pathname === trashArchive.trashTo}
                 variant="subtle"
@@ -338,7 +341,7 @@ export function ScopeContextSidebar({
               <NavLink
                 component={Link}
                 to={trashArchive.archiveTo}
-                label="Archive"
+                label={t('sidebar.archive')}
                 leftSection={<IconArchive size={ICON_SIZE} stroke={1.5} />}
                 active={pathname === trashArchive.archiveTo}
                 variant="subtle"

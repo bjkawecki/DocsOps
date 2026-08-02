@@ -13,6 +13,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { IconClipboardCheck } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
@@ -39,15 +40,16 @@ function PendingReviewsTable({
   items: ReviewPendingSuggestionsItem[];
   emptyLabel: string;
 }) {
+  const { t } = useTranslation('approvals');
   return (
     <Table withTableBorder className="dense-list-table">
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Document</Table.Th>
-          <Table.Th>Scope</Table.Th>
-          <Table.Th>Pending</Table.Th>
-          <Table.Th>Authors</Table.Th>
-          <Table.Th>Last suggestion</Table.Th>
+          <Table.Th>{t('reviews.table.document')}</Table.Th>
+          <Table.Th>{t('reviews.table.scope')}</Table.Th>
+          <Table.Th>{t('reviews.table.pending')}</Table.Th>
+          <Table.Th>{t('reviews.table.authors')}</Table.Th>
+          <Table.Th>{t('reviews.table.lastSuggestion')}</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -112,15 +114,16 @@ function MoveRequestsTable({
   onReject: (item: MeMoveRequestItem) => void;
   onWithdraw: (item: MeMoveRequestItem) => void;
 }) {
+  const { t } = useTranslation('approvals');
   return (
     <Table withTableBorder className="dense-list-table">
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Document</Table.Th>
-          <Table.Th>From</Table.Th>
-          <Table.Th>To</Table.Th>
-          <Table.Th>Requested</Table.Th>
-          <Table.Th>Actions</Table.Th>
+          <Table.Th>{t('moves.table.document')}</Table.Th>
+          <Table.Th>{t('moves.table.from')}</Table.Th>
+          <Table.Th>{t('moves.table.to')}</Table.Th>
+          <Table.Th>{t('moves.table.requested')}</Table.Th>
+          <Table.Th>{t('moves.table.actions')}</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -163,7 +166,7 @@ function MoveRequestsTable({
                 <Text size="sm">{formatTableDate(item.createdAt)}</Text>
                 {item.requestedByName ? (
                   <Text size="xs" c="dimmed">
-                    by {item.requestedByName}
+                    {t('moves.requestedBy', { name: item.requestedByName })}
                   </Text>
                 ) : null}
               </Table.Td>
@@ -175,7 +178,7 @@ function MoveRequestsTable({
                       loading={busyId === item.id}
                       onClick={() => onAccept(item)}
                     >
-                      Accept
+                      {t('moves.actions.accept')}
                     </Button>
                   ) : null}
                   {item.canReject ? (
@@ -185,7 +188,7 @@ function MoveRequestsTable({
                       loading={busyId === item.id}
                       onClick={() => onReject(item)}
                     >
-                      Reject
+                      {t('moves.actions.reject')}
                     </Button>
                   ) : null}
                   {item.canWithdraw ? (
@@ -196,7 +199,7 @@ function MoveRequestsTable({
                       loading={busyId === item.id}
                       onClick={() => onWithdraw(item)}
                     >
-                      Withdraw request
+                      {t('moves.actions.withdraw')}
                     </Button>
                   ) : null}
                 </Group>
@@ -211,10 +214,11 @@ function MoveRequestsTable({
 
 /** Approvals hub: Reviews (suggestions) + Move requests via content sidebar. */
 export function ApprovalsPage() {
+  const { t } = useTranslation('approvals');
   useSetAppShellBreadcrumbs([
     {
       key: 'approvals',
-      label: 'Approvals',
+      label: t('breadcrumb'),
       icon: <IconClipboardCheck size={14} stroke={1.5} />,
     },
   ]);
@@ -238,11 +242,11 @@ export function ApprovalsPage() {
     () =>
       (data?.pendingForReview ?? []).map((item) => ({
         id: item.documentId,
-        title: item.documentTitle?.trim() || 'Untitled',
+        title: item.documentTitle?.trim() || t('reviews.untitledDocument'),
         scopeKey: scopeKeyForReview(item),
-        scopeLabel: item.scopeName?.trim() || 'Other',
+        scopeLabel: item.scopeName?.trim() || t('reviews.otherScope'),
       })),
-    [data?.pendingForReview]
+    [data?.pendingForReview, t]
   );
 
   const invalidateMoves = () => {
@@ -297,63 +301,62 @@ export function ApprovalsPage() {
             {section === 'reviews' ? (
               isError ? (
                 <Text size="sm" c="red">
-                  Could not load reviews.
+                  {t('reviews.loadFailed')}
                 </Text>
               ) : isPending ? (
                 <Text size="sm" c="dimmed">
-                  Loading…
+                  {t('loading')}
                 </Text>
               ) : (
-                <PendingReviewsTable
-                  items={pending}
-                  emptyLabel="No documents with pending suggestions in your scopes."
-                />
+                <PendingReviewsTable items={pending} emptyLabel={t('reviews.empty')} />
               )
             ) : (
               <Stack gap="lg">
                 <Box>
                   <Text fw={600} mb="xs">
-                    Inbound
+                    {t('moves.inbound')}
                   </Text>
                   {inbound.isError ? (
                     <Text size="sm" c="red">
-                      Could not load inbound move requests.
+                      {t('moves.inboundLoadFailed')}
                     </Text>
                   ) : inbound.isPending ? (
                     <Text size="sm" c="dimmed">
-                      Loading…
+                      {t('loading')}
                     </Text>
                   ) : (
                     <MoveRequestsTable
                       items={inboundItems}
-                      emptyLabel="No inbound move requests awaiting your decision."
+                      emptyLabel={t('moves.inboundEmpty')}
                       busyId={busyId}
-                      onAccept={(item) => void decide(item, 'accept', 'Move accepted')}
-                      onReject={(item) => void decide(item, 'reject', 'Move rejected')}
+                      onAccept={(item) => void decide(item, 'accept', t('moves.toasts.accepted'))}
+                      onReject={(item) => void decide(item, 'reject', t('moves.toasts.rejected'))}
                       onWithdraw={() => undefined}
                     />
                   )}
                 </Box>
                 <Box>
                   <Text fw={600} mb="xs">
-                    Outbound
+                    {t('moves.outbound')}
                   </Text>
                   {outbound.isError ? (
                     <Text size="sm" c="red">
-                      Could not load outbound move requests.
+                      {t('moves.outboundLoadFailed')}
                     </Text>
                   ) : outbound.isPending ? (
                     <Text size="sm" c="dimmed">
-                      Loading…
+                      {t('loading')}
                     </Text>
                   ) : (
                     <MoveRequestsTable
                       items={outboundItems}
-                      emptyLabel="No outbound move requests you can withdraw."
+                      emptyLabel={t('moves.outboundEmpty')}
                       busyId={busyId}
                       onAccept={() => undefined}
                       onReject={() => undefined}
-                      onWithdraw={(item) => void decide(item, 'withdraw', 'Move request withdrawn')}
+                      onWithdraw={(item) =>
+                        void decide(item, 'withdraw', t('moves.toasts.withdrawn'))
+                      }
                     />
                   )}
                 </Box>

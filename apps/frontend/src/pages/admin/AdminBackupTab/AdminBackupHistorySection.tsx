@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { ActionIcon, Badge, Group, Loader, Menu, Popover, Stack, Table, Text } from '@mantine/core';
 import { IconDotsVertical, IconDownload } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { AdminBackupDeleteFailedModal } from './AdminBackupDeleteFailedModal';
 import { AdminBackupDeleteModal } from './AdminBackupDeleteModal';
 import { BACKUP_STATUS_COLOR, type BackupRun } from './adminBackupTypes';
-import { formatExternalDestinationLabel } from './backupRunPolling';
+import {
+  formatBackupRunStatusLabel,
+  formatExternalDestinationLabel,
+  formatTriggerSourceLabel,
+} from './backupRunPolling';
 import { isSupersededMaintenanceFailure } from './restoreRunPolling';
 
 type Props = {
@@ -30,6 +35,7 @@ export function AdminBackupHistorySection({
   onDeleteRun,
   onOpenDestinationSettings,
 }: Props) {
+  const { t } = useTranslation('admin');
   const items = (runs ?? []).filter((run) => !isSupersededMaintenanceFailure(run));
   const [deleteTarget, setDeleteTarget] = useState<BackupRun | null>(null);
   const [deleteRunTarget, setDeleteRunTarget] = useState<BackupRun | null>(null);
@@ -38,7 +44,7 @@ export function AdminBackupHistorySection({
     <>
       <Group mb="xs" justify="space-between">
         <Text size="sm" c="dimmed">
-          {items.length} backup(s)
+          {t('backup.history.count', { count: items.length })}
         </Text>
       </Group>
       <AdminBackupDeleteModal
@@ -71,12 +77,12 @@ export function AdminBackupHistorySection({
         >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Started</Table.Th>
-              <Table.Th>Finished</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Trigger</Table.Th>
-              <Table.Th>External destination</Table.Th>
-              <Table.Th>Size</Table.Th>
+              <Table.Th>{t('backup.history.columnStarted')}</Table.Th>
+              <Table.Th>{t('backup.history.columnFinished')}</Table.Th>
+              <Table.Th>{t('backup.history.columnStatus')}</Table.Th>
+              <Table.Th>{t('backup.history.columnTrigger')}</Table.Th>
+              <Table.Th>{t('backup.history.columnDestination')}</Table.Th>
+              <Table.Th>{t('backup.history.columnSize')}</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
@@ -85,7 +91,7 @@ export function AdminBackupHistorySection({
               <Table.Tr>
                 <Table.Td colSpan={7}>
                   <Text size="sm" c="dimmed">
-                    No backups yet.
+                    {t('backup.history.empty')}
                   </Text>
                 </Table.Td>
               </Table.Tr>
@@ -103,7 +109,7 @@ export function AdminBackupHistorySection({
                   <Table.Td>
                     <Stack gap={4}>
                       <Badge color={BACKUP_STATUS_COLOR[run.status] ?? 'gray'} variant="filled">
-                        {run.status}
+                        {formatBackupRunStatusLabel(run.status, t)}
                       </Badge>
                       {run.status === 'failed' && run.errorMessage ? (
                         <Popover width={360} position="bottom-start" withArrow shadow="md">
@@ -122,7 +128,7 @@ export function AdminBackupHistorySection({
                                 textAlign: 'left',
                               }}
                             >
-                              Show error message
+                              {t('backup.history.showErrorMessage')}
                             </Text>
                           </Popover.Target>
                           <Popover.Dropdown>
@@ -137,7 +143,7 @@ export function AdminBackupHistorySection({
                       ) : null}
                     </Stack>
                   </Table.Td>
-                  <Table.Td>{run.triggerSource}</Table.Td>
+                  <Table.Td>{formatTriggerSourceLabel(run.triggerSource, t)}</Table.Td>
                   <Table.Td>
                     {run.destination ? (
                       <Text
@@ -155,10 +161,10 @@ export function AdminBackupHistorySection({
                         }}
                         onClick={onOpenDestinationSettings}
                       >
-                        {formatExternalDestinationLabel(run)}
+                        {formatExternalDestinationLabel(run, t)}
                       </Text>
                     ) : (
-                      formatExternalDestinationLabel(run)
+                      formatExternalDestinationLabel(run, t)
                     )}
                   </Table.Td>
                   <Table.Td>
@@ -168,7 +174,10 @@ export function AdminBackupHistorySection({
                     {run.status === 'succeeded' ? (
                       <Menu shadow="md" position="bottom-end">
                         <Menu.Target>
-                          <ActionIcon variant="subtle" aria-label="Backup actions">
+                          <ActionIcon
+                            variant="subtle"
+                            aria-label={t('backup.history.actionsAriaLabel')}
+                          >
                             <IconDotsVertical size={18} />
                           </ActionIcon>
                         </Menu.Target>
@@ -179,11 +188,11 @@ export function AdminBackupHistorySection({
                               disabled={downloadLoading}
                               onClick={() => onDownload(run.id)}
                             >
-                              Download
+                              {t('backup.history.download')}
                             </Menu.Item>
                           ) : null}
                           <Menu.Item color="red" onClick={() => setDeleteTarget(run)}>
-                            Delete
+                            {t('backup.history.delete')}
                           </Menu.Item>
                         </Menu.Dropdown>
                       </Menu>
@@ -193,13 +202,16 @@ export function AdminBackupHistorySection({
                       run.status === 'uploading' ? (
                       <Menu shadow="md" position="bottom-end">
                         <Menu.Target>
-                          <ActionIcon variant="subtle" aria-label="Backup actions">
+                          <ActionIcon
+                            variant="subtle"
+                            aria-label={t('backup.history.actionsAriaLabel')}
+                          >
                             <IconDotsVertical size={18} />
                           </ActionIcon>
                         </Menu.Target>
                         <Menu.Dropdown>
                           <Menu.Item color="red" onClick={() => setDeleteRunTarget(run)}>
-                            Remove from history
+                            {t('backup.history.removeFromHistory')}
                           </Menu.Item>
                         </Menu.Dropdown>
                       </Menu>

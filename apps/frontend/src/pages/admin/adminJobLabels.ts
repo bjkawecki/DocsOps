@@ -1,33 +1,25 @@
+import type { TFunction } from 'i18next';
+
 export type AdminJobLabel = {
   technicalName: string;
   label: string;
   description: string;
 };
 
-export const ADMIN_SCHEDULABLE_JOB_LABELS: Record<string, AdminJobLabel> = {
-  'search.reindex.full': {
-    technicalName: 'search.reindex.full',
-    label: 'Full search reindex',
-    description: 'Rebuilds the search index for all documents.',
-  },
-  'maintenance.cleanup': {
-    technicalName: 'maintenance.cleanup',
-    label: 'Notification cleanup',
-    description: 'Deletes in-app notifications older than the retention window.',
-  },
-  'maintenance.backup': {
-    technicalName: 'maintenance.backup',
-    label: 'Disaster recovery backup',
-    description: 'Full restorable snapshot of database and file storage.',
-  },
+const ADMIN_SCHEDULABLE_JOB_TRANSLATION_KEYS: Record<string, string> = {
+  'search.reindex.full': 'searchReindexFull',
+  'maintenance.cleanup': 'maintenanceCleanup',
+  'maintenance.backup': 'maintenanceBackup',
 };
 
-export function getAdminJobLabel(jobName: string): AdminJobLabel {
-  return (
-    ADMIN_SCHEDULABLE_JOB_LABELS[jobName] ?? {
-      technicalName: jobName,
-      label: jobName,
-      description: '',
-    }
-  );
+export function getAdminJobLabel(jobName: string, t: TFunction): AdminJobLabel {
+  const key = ADMIN_SCHEDULABLE_JOB_TRANSLATION_KEYS[jobName];
+  if (!key) {
+    return { technicalName: jobName, label: jobName, description: '' };
+  }
+  return {
+    technicalName: jobName,
+    label: t(`jobs.definitions.${key}.label`),
+    description: t(`jobs.definitions.${key}.description`),
+  };
 }

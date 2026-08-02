@@ -1,5 +1,6 @@
 import { Badge, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatTableDate } from '../../lib/formatDate';
 import { ContentLink } from '../ui/ContentLink';
@@ -31,7 +32,7 @@ export function readDocsListPage(searchParams: URLSearchParams): number {
 export function ContextDocumentsTable({
   documents,
   total,
-  emptyMessage = 'No documents yet.',
+  emptyMessage,
 }: {
   /** Current server page of documents. */
   documents: ContextDocumentsTableRow[];
@@ -40,6 +41,7 @@ export function ContextDocumentsTable({
   /** Shown when there are no documents at all (not merely search miss). */
   emptyMessage?: string;
 }) {
+  const { t } = useTranslation('contexts');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -130,19 +132,19 @@ export function ContextDocumentsTable({
     <Stack gap="md">
       <Group gap="md" wrap="wrap" align="flex-end">
         <TextInput
-          label="Search"
-          placeholder="Search by name"
+          label={t('documentsTable.searchLabel')}
+          placeholder={t('documentsTable.searchPlaceholder')}
           value={localSearch}
           onChange={(e) => setFilter(SEARCH_KEY, e.currentTarget.value)}
           style={{ minWidth: 200 }}
         />
         <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
           {localSearch.trim()
-            ? `${filteredItems.length} of ${total} document${total !== 1 ? 's' : ''}`
-            : `${total} document${total !== 1 ? 's' : ''}`}
+            ? t('documentsTable.countFiltered', { count: total, filtered: filteredItems.length })
+            : t('documentsTable.count', { count: total })}
         </Text>
         <Select
-          label="Per page"
+          label={t('documentsTable.perPageLabel')}
           data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
           value={String(limit)}
           onChange={(v) => v && setPageSize(parseInt(v, 10))}
@@ -154,15 +156,15 @@ export function ContextDocumentsTable({
         <Table.Thead>
           <Table.Tr>
             <SortableTableTh
-              label="Title"
+              label={t('documentsTable.titleColumn')}
               column="title"
               sortBy={sortBy}
               sortOrder={sortOrder}
               onClick={() => setSort('title')}
             />
-            <Table.Th>Tags</Table.Th>
+            <Table.Th>{t('documentsTable.tagsColumn')}</Table.Th>
             <SortableTableTh
-              label="Last updated"
+              label={t('documentsTable.lastUpdatedColumn')}
               column="updatedAt"
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -175,7 +177,9 @@ export function ContextDocumentsTable({
             <Table.Tr>
               <Table.Td colSpan={3}>
                 <Text size="sm" c="dimmed">
-                  {documents.length === 0 ? emptyMessage : 'No documents match the search.'}
+                  {documents.length === 0
+                    ? (emptyMessage ?? t('documentsTable.emptyDefault'))
+                    : t('documentsTable.emptySearch')}
                 </Text>
               </Table.Td>
             </Table.Tr>

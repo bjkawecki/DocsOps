@@ -47,8 +47,8 @@ export function AdminMigrationTab() {
   });
 
   const status = statusQuery.data;
-  const exportDisabledReason = getExportDisabledReason(status, statusQuery.isLoading);
-  const importDisabledReason = getImportDisabledReason(status, statusQuery.isLoading);
+  const exportDisabledReason = getExportDisabledReason(status, statusQuery.isLoading, t);
+  const importDisabledReason = getImportDisabledReason(status, statusQuery.isLoading, t);
   const exportDisabled = exportDisabledReason != null;
   const importDisabled = importDisabledReason != null;
 
@@ -92,7 +92,7 @@ export function AdminMigrationTab() {
     <Stack gap="md">
       {statusQuery.isError ? (
         <Alert color="red" variant="filled">
-          Failed to load migration status.
+          {t('migration.loadError')}
         </Alert>
       ) : statusQuery.isPending ? (
         <Loader size="sm" />

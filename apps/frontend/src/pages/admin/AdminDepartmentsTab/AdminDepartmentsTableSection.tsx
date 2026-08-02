@@ -1,4 +1,5 @@
 import { Alert, Group, Pagination, Table, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { DepartmentWithCompany } from './adminDepartmentsTabTypes';
 
 export type AdminDepartmentsTableSectionProps = {
@@ -26,20 +27,21 @@ export function AdminDepartmentsTableSection({
   onPageChange,
   onSelectDepartment,
 }: AdminDepartmentsTableSectionProps) {
+  const { t } = useTranslation('admin');
   return (
     <>
       {companiesLength === 0 ? (
-        <Alert color="blue">No company set up. Create a company in the Company tab first.</Alert>
+        <Alert color="blue">{t('shared.noCompanySetup')}</Alert>
       ) : (
         <>
           <Table withTableBorder withColumnBorders mb="md" className="admin-table-hover">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Department</Table.Th>
-                <Table.Th>Company</Table.Th>
-                <Table.Th>Leads</Table.Th>
-                <Table.Th>Members</Table.Th>
-                <Table.Th>Teams</Table.Th>
+                <Table.Th>{t('departments.table.department')}</Table.Th>
+                <Table.Th>{t('departments.table.company')}</Table.Th>
+                <Table.Th>{t('departments.table.leads')}</Table.Th>
+                <Table.Th>{t('departments.table.members')}</Table.Th>
+                <Table.Th>{t('departments.table.teams')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -48,8 +50,8 @@ export function AdminDepartmentsTableSection({
                   <Table.Td colSpan={5}>
                     <Text size="sm" c="dimmed">
                       {allDepartmentsLength === 0
-                        ? 'No departments yet. Create a department to get started.'
-                        : 'No departments match the filter.'}
+                        ? t('departments.table.emptyNoDepartments')
+                        : t('departments.table.emptyNoMatch')}
                     </Text>
                   </Table.Td>
                 </Table.Tr>

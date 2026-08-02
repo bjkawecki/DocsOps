@@ -14,20 +14,23 @@ import {
 import { IconDotsVertical } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
 import {
-  broadcastTargetLabel,
   datetimeLocalToIso,
   formatLocalDateTime,
   isoToDatetimeLocal,
   isDatetimeLocalInFuture,
   minDatetimeLocalNow,
   sendAtFieldLabel,
+  useBroadcastTargetLabel,
   type ScheduledBroadcastItem,
 } from './AdminBroadcastTab/adminBroadcastTypes.js';
 
 export function AdminScheduledBroadcastsSection() {
+  const { t } = useTranslation('admin');
+  const broadcastTargetLabel = useBroadcastTargetLabel();
   const queryClient = useQueryClient();
   const [rescheduleItem, setRescheduleItem] = useState<ScheduledBroadcastItem | null>(null);
   const [sendAtLocal, setSendAtLocal] = useState('');
@@ -36,7 +39,7 @@ export function AdminScheduledBroadcastsSection() {
     queryKey: ['admin', 'notifications', 'broadcasts', 'schedules'] as const,
     queryFn: async () => {
       const res = await apiFetch('/api/v1/admin/notifications/broadcasts/schedules');
-      if (!res.ok) throw new Error('Failed to load scheduled messages');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return res.json() as Promise<{ items: ScheduledBroadcastItem[] }>;
     },
   });
@@ -55,15 +58,23 @@ export function AdminScheduledBroadcastsSection() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to cancel message');
+        throw new Error(err.error ?? t('broadcast.scheduledSection.toasts.cancelFailedTitle'));
       }
     },
     onSuccess: () => {
       invalidate();
-      notifications.show({ title: 'Scheduled message cancelled', message: '', color: 'green' });
+      notifications.show({
+        title: t('broadcast.scheduledSection.toasts.cancelledTitle'),
+        message: '',
+        color: 'green',
+      });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Cancel failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('broadcast.scheduledSection.toasts.cancelFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -76,17 +87,25 @@ export function AdminScheduledBroadcastsSection() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to reschedule message');
+        throw new Error(err.error ?? t('broadcast.scheduledSection.toasts.rescheduleFailedTitle'));
       }
       return res.json() as Promise<{ scheduledAt: string }>;
     },
     onSuccess: () => {
       setRescheduleItem(null);
       invalidate();
-      notifications.show({ title: 'Schedule updated', message: '', color: 'green' });
+      notifications.show({
+        title: t('broadcast.scheduledSection.toasts.rescheduleUpdatedTitle'),
+        message: '',
+        color: 'green',
+      });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Reschedule failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('broadcast.scheduledSection.toasts.rescheduleFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -97,20 +116,24 @@ export function AdminScheduledBroadcastsSection() {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to send message');
+        throw new Error(err.error ?? t('broadcast.scheduledSection.toasts.sendFailedTitle'));
       }
       return res.json() as Promise<{ deliveredCount: number }>;
     },
     onSuccess: (result) => {
       invalidate();
       notifications.show({
-        title: 'Message sent',
-        message: `Delivered to ${result.deliveredCount} user(s).`,
+        title: t('broadcast.toasts.sentTitle'),
+        message: t('broadcast.toasts.sentMessage', { count: result.deliveredCount }),
         color: 'green',
       });
     },
     onError: (error: Error) => {
-      notifications.show({ title: 'Send failed', message: error.message, color: 'red' });
+      notifications.show({
+        title: t('broadcast.scheduledSection.toasts.sendFailedTitle'),
+        message: error.message,
+        color: 'red',
+      });
     },
   });
 
@@ -128,8 +151,8 @@ export function AdminScheduledBroadcastsSection() {
     const sendAt = datetimeLocalToIso(sendAtLocal);
     if (sendAt == null || !isDatetimeLocalInFuture(sendAtLocal)) {
       notifications.show({
-        title: 'Invalid time',
-        message: 'Choose a date and time in the future.',
+        title: t('broadcast.scheduledSection.toasts.invalidTimeTitle'),
+        message: t('broadcast.scheduledSection.toasts.invalidTimeMessage'),
         color: 'yellow',
       });
       return;
@@ -140,9 +163,9 @@ export function AdminScheduledBroadcastsSection() {
   return (
     <Stack gap="sm" mt="xl">
       <Group justify="space-between">
-        <Text fw={600}>Scheduled system messages</Text>
+        <Text fw={600}>{t('broadcast.scheduledSection.title')}</Text>
         <Text size="sm" c="dimmed" component={Link} to="/admin/platform/broadcast">
-          Create message
+          {t('broadcast.scheduledSection.createLink')}
         </Text>
       </Group>
       {schedulesQuery.isPending ? (
@@ -151,9 +174,9 @@ export function AdminScheduledBroadcastsSection() {
         <Table withTableBorder withColumnBorders className="admin-table-hover">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Send at</Table.Th>
-              <Table.Th>Title</Table.Th>
-              <Table.Th>Audience</Table.Th>
+              <Table.Th>{t('broadcast.scheduledSection.table.sendAt')}</Table.Th>
+              <Table.Th>{t('broadcast.scheduledSection.table.title')}</Table.Th>
+              <Table.Th>{t('broadcast.scheduledSection.table.audience')}</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
@@ -162,11 +185,13 @@ export function AdminScheduledBroadcastsSection() {
               <Table.Tr>
                 <Table.Td colSpan={4}>
                   <Text size="sm" c="dimmed">
-                    No scheduled messages. Use{' '}
-                    <Text span component={Link} to="/admin/platform/broadcast">
-                      Create message
-                    </Text>{' '}
-                    and choose &quot;Schedule for later&quot;.
+                    <Trans
+                      i18nKey="broadcast.scheduledSection.empty"
+                      t={t}
+                      components={{
+                        link: <Text span component={Link} to="/admin/platform/broadcast" />,
+                      }}
+                    />
                   </Text>
                 </Table.Td>
               </Table.Tr>
@@ -191,7 +216,10 @@ export function AdminScheduledBroadcastsSection() {
                     <Group justify="flex-end">
                       <Menu position="bottom-end" withinPortal>
                         <Menu.Target>
-                          <ActionIcon variant="subtle" aria-label="Scheduled message actions">
+                          <ActionIcon
+                            variant="subtle"
+                            aria-label={t('broadcast.scheduledSection.menuActionsAria')}
+                          >
                             <IconDotsVertical size={16} />
                           </ActionIcon>
                         </Menu.Target>
@@ -200,17 +228,17 @@ export function AdminScheduledBroadcastsSection() {
                             disabled={pending}
                             onClick={() => sendNowMutation.mutate(item.id)}
                           >
-                            Send now
+                            {t('broadcast.scheduledSection.menuSendNow')}
                           </Menu.Item>
                           <Menu.Item disabled={pending} onClick={() => openReschedule(item)}>
-                            Reschedule
+                            {t('broadcast.scheduledSection.menuReschedule')}
                           </Menu.Item>
                           <Menu.Item
                             color="red"
                             disabled={pending}
                             onClick={() => cancelMutation.mutate(item.id)}
                           >
-                            Cancel
+                            {t('broadcast.scheduledSection.menuCancel')}
                           </Menu.Item>
                         </Menu.Dropdown>
                       </Menu>
@@ -226,7 +254,7 @@ export function AdminScheduledBroadcastsSection() {
       <Modal
         opened={rescheduleItem != null}
         onClose={() => setRescheduleItem(null)}
-        title="Reschedule message"
+        title={t('broadcast.scheduledSection.rescheduleModalTitle')}
         centered
       >
         {rescheduleItem ? (
@@ -235,8 +263,8 @@ export function AdminScheduledBroadcastsSection() {
               {rescheduleItem.title}
             </Text>
             <TextInput
-              label={sendAtFieldLabel()}
-              description="Date and time use your browser's local timezone."
+              label={sendAtFieldLabel(t('broadcast.createModal.sendAtLabel'))}
+              description={t('broadcast.createModal.sendAtDescription')}
               type="datetime-local"
               value={sendAtLocal}
               min={minDatetimeLocalNow()}
@@ -244,10 +272,10 @@ export function AdminScheduledBroadcastsSection() {
             />
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setRescheduleItem(null)}>
-                Cancel
+                {t('common:actions.cancel')}
               </Button>
               <Button loading={rescheduleMutation.isPending} onClick={handleRescheduleSave}>
-                Save
+                {t('common:actions.save')}
               </Button>
             </Group>
           </Stack>

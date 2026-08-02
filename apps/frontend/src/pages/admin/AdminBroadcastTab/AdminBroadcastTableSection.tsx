@@ -1,6 +1,7 @@
 import { Table, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { BroadcastHistoryItem } from './adminBroadcastTypes.js';
-import { broadcastTargetLabel, formatLocalDateTime } from './adminBroadcastTypes.js';
+import { useBroadcastTargetLabel, formatLocalDateTime } from './adminBroadcastTypes.js';
 
 type AdminBroadcastTableSectionProps = {
   items: BroadcastHistoryItem[];
@@ -8,16 +9,18 @@ type AdminBroadcastTableSectionProps = {
 };
 
 export function AdminBroadcastTableSection({ items, loading }: AdminBroadcastTableSectionProps) {
+  const { t } = useTranslation('admin');
+  const broadcastTargetLabel = useBroadcastTargetLabel();
   if (loading) return null;
 
   return (
     <Table withTableBorder withColumnBorders className="admin-table-hover">
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>Sent</Table.Th>
-          <Table.Th>Title</Table.Th>
-          <Table.Th>Audience</Table.Th>
-          <Table.Th>Recipients</Table.Th>
+          <Table.Th>{t('broadcast.table.sent')}</Table.Th>
+          <Table.Th>{t('broadcast.table.title')}</Table.Th>
+          <Table.Th>{t('broadcast.table.audience')}</Table.Th>
+          <Table.Th>{t('broadcast.table.recipients')}</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -25,7 +28,7 @@ export function AdminBroadcastTableSection({ items, loading }: AdminBroadcastTab
           <Table.Tr>
             <Table.Td colSpan={4}>
               <Text size="sm" c="dimmed">
-                No sent messages yet.
+                {t('broadcast.table.empty')}
               </Text>
             </Table.Td>
           </Table.Tr>

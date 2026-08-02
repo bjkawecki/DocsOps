@@ -16,6 +16,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { IconArchive, IconDotsVertical, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
@@ -100,6 +101,7 @@ function entityEndpointBase(contextType: ContextType): string {
 }
 
 export function ContextWorkspacePage() {
+  const { t } = useTranslation(['contexts', 'common']);
   const { contextId } = useParams<{ contextId: string }>();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -189,7 +191,8 @@ export function ContextWorkspacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by owner FK fields
     [data?.owner.companyId, data?.owner.departmentId, data?.owner.teamId, data?.owner.ownerUserId]
   );
-  const scopeName = data?.owner.displayName ?? (scope ? scopeToLabel(scope) : 'Overview');
+  const scopeName =
+    data?.owner.displayName ?? (scope ? scopeToLabel(scope) : t('workspace.overviewFallback'));
   const {
     processes: sidebarProcesses,
     projects: sidebarProjects,
@@ -294,7 +297,11 @@ export function ContextWorkspacePage() {
       if (res.ok) {
         invalidateAll();
         closeEdit();
-        notifications.show({ title: 'Saved', message: 'Name was updated.', color: 'green' });
+        notifications.show({
+          title: t('toasts.nameUpdatedTitle'),
+          message: t('toasts.nameUpdatedMessage'),
+          color: 'green',
+        });
       } else {
         void notifyApiErrorResponse(res);
       }
@@ -313,7 +320,11 @@ export function ContextWorkspacePage() {
       invalidateAll();
       void queryClient.invalidateQueries({ queryKey: ['me', 'archive'] });
       void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
-      notifications.show({ title: 'Archived', message: 'Context was archived.', color: 'green' });
+      notifications.show({
+        title: t('toasts.archivedTitle'),
+        message: t('toasts.archivedMessage'),
+        color: 'green',
+      });
     } else {
       void notifyApiErrorResponse(res);
     }
@@ -338,11 +349,14 @@ export function ContextWorkspacePage() {
               : '/';
         void navigate(target, { replace: true });
         notifications.show({
-          title: data.contextType === 'subcontext' ? 'Deleted' : 'Moved to trash',
+          title:
+            data.contextType === 'subcontext'
+              ? t('toasts.deletedTitle')
+              : t('toasts.movedToTrashTitle'),
           message:
             data.contextType === 'subcontext'
-              ? 'The subcontext was permanently deleted.'
-              : 'You can restore it from the Trash tab.',
+              ? t('toasts.deletedMessage')
+              : t('toasts.movedToTrashMessage'),
           color: 'green',
         });
       } else {
@@ -358,14 +372,23 @@ export function ContextWorkspacePage() {
     return (
       <Group gap="xs">
         <Button variant="filled" size="sm" onClick={openNewDoc}>
-          New draft
+          {t('workspace.newDraft')}
         </Button>
-        <ActionIcon variant="filled" size="36" aria-label="Edit context" onClick={handleEditClick}>
+        <ActionIcon
+          variant="filled"
+          size="36"
+          aria-label={t('workspace.editContextAriaLabel')}
+          onClick={handleEditClick}
+        >
           <IconPencil size={18} />
         </ActionIcon>
         <Menu shadow="md" position="bottom-end">
           <Menu.Target>
-            <ActionIcon variant="default" size="36" aria-label="More actions">
+            <ActionIcon
+              variant="default"
+              size="36"
+              aria-label={t('workspace.moreActionsAriaLabel')}
+            >
               <IconDotsVertical size={18} />
             </ActionIcon>
           </Menu.Target>
@@ -376,13 +399,15 @@ export function ContextWorkspacePage() {
                   leftSection={<IconArchive size={14} />}
                   onClick={() => void handleArchive()}
                 >
-                  Archive
+                  {t('workspace.archive')}
                 </Menu.Item>
                 <Menu.Divider />
               </>
             )}
             <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={openDelete}>
-              {data.contextType === 'subcontext' ? 'Delete' : 'Move to trash'}
+              {data.contextType === 'subcontext'
+                ? t('workspace.delete')
+                : t('workspace.moveToTrash')}
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
@@ -431,8 +456,8 @@ export function ContextWorkspacePage() {
     const name = newSubcontextName.trim();
     if (!name) {
       notifications.show({
-        title: 'Name required',
-        message: 'Please enter a name for the subcontext.',
+        title: t('toasts.nameRequiredTitle'),
+        message: t('toasts.nameRequiredMessage'),
         color: 'yellow',
       });
       return;
@@ -450,8 +475,8 @@ export function ContextWorkspacePage() {
         setNewSubcontextName('');
         void navigate(contextUrl(created.contextId));
         notifications.show({
-          title: 'Subcontext created',
-          message: 'The subcontext was added.',
+          title: t('toasts.subcontextCreatedTitle'),
+          message: t('toasts.subcontextCreatedMessage'),
           color: 'green',
         });
       } else {
@@ -468,14 +493,14 @@ export function ContextWorkspacePage() {
   if (!data && isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('common:status.loading')}
       </Text>
     );
   }
   if (!data || (isError && !contextReady)) {
     return (
       <Text size="sm" c="red">
-        Context not found.
+        {t('workspace.contextNotFound')}
       </Text>
     );
   }
@@ -500,11 +525,11 @@ export function ContextWorkspacePage() {
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             {!contextReady ? (
               <Text size="sm" c="dimmed">
-                Loading…
+                {t('common:status.loading')}
               </Text>
             ) : !contextSelected ? (
               <Text size="sm" c="dimmed">
-                Select a process or project to view documents.
+                {t('workspace.selectPrompt')}
               </Text>
             ) : (
               <Stack gap="xl">
@@ -515,16 +540,16 @@ export function ContextWorkspacePage() {
                 {data.contextType === 'project' && (
                   <Box>
                     <Group justify="space-between" wrap="nowrap" mb="sm">
-                      <SectionLabel>Subcontexts</SectionLabel>
+                      <SectionLabel>{t('workspace.subcontexts')}</SectionLabel>
                       {data.canWriteContext && (
                         <Button variant="filled" size="xs" onClick={openNewSubcontext}>
-                          Create subcontext
+                          {t('workspace.createSubcontext')}
                         </Button>
                       )}
                     </Group>
                     {(data.subcontexts?.length ?? 0) === 0 ? (
                       <Text size="sm" c="dimmed">
-                        No subcontexts yet.
+                        {t('workspace.noSubcontexts')}
                       </Text>
                     ) : (
                       <Stack gap={4}>
@@ -550,23 +575,23 @@ export function ContextWorkspacePage() {
       <Modal
         opened={newSubcontextOpened}
         onClose={closeNewSubcontext}
-        title="Create subcontext"
+        title={t('modals.createSubcontext.title')}
         size="sm"
       >
         <Stack gap="md">
           <TextInput
-            label="Name"
+            label={t('modals.createSubcontext.nameLabel')}
             value={newSubcontextName}
             onChange={(e) => setNewSubcontextName(e.currentTarget.value)}
-            placeholder="e.g. meeting notes, milestones"
+            placeholder={t('modals.createSubcontext.namePlaceholder')}
             required
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={closeNewSubcontext}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button loading={newSubcontextLoading} onClick={() => void handleCreateSubcontext()}>
-              Create
+              {t('common:actions.create')}
             </Button>
           </Group>
         </Stack>
@@ -587,21 +612,21 @@ export function ContextWorkspacePage() {
         onSubmit={handleCreateDocument}
       />
 
-      <Modal opened={editOpened} onClose={closeEdit} title="Edit name" size="sm">
+      <Modal opened={editOpened} onClose={closeEdit} title={t('modals.editName.title')} size="sm">
         <Stack gap="md">
           <TextInput
-            label="Name"
+            label={t('modals.editName.nameLabel')}
             value={editName}
             onChange={(e) => setEditName(e.currentTarget.value)}
-            placeholder="Context name"
+            placeholder={t('modals.editName.namePlaceholder')}
             required
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={closeEdit}>
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <Button loading={editLoading} onClick={() => void handleEditSubmit()}>
-              Save
+              {t('common:actions.save')}
             </Button>
           </Group>
         </Stack>
@@ -610,17 +635,21 @@ export function ContextWorkspacePage() {
       <Modal
         opened={deleteOpened}
         onClose={closeDelete}
-        title={data.contextType === 'subcontext' ? 'Delete subcontext' : 'Move to trash'}
+        title={
+          data.contextType === 'subcontext'
+            ? t('modals.deleteSubcontext.title')
+            : t('modals.moveToTrash.title')
+        }
         centered
       >
         <Text size="sm" c="dimmed" mb="md">
           {data.contextType === 'subcontext'
-            ? 'This subcontext and its documents will be permanently deleted. Continue?'
-            : 'This context and its documents will be moved to trash. You can restore them from the Trash tab.'}
+            ? t('modals.deleteSubcontext.body')
+            : t('modals.moveToTrash.body')}
         </Text>
         <Group justify="flex-end" gap="xs">
           <Button variant="default" onClick={closeDelete}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button
             color="red"
@@ -629,7 +658,7 @@ export function ContextWorkspacePage() {
               void handleDeleteConfirm();
             }}
           >
-            {data.contextType === 'subcontext' ? 'Delete' : 'Move to trash'}
+            {data.contextType === 'subcontext' ? t('workspace.delete') : t('workspace.moveToTrash')}
           </Button>
         </Group>
       </Modal>

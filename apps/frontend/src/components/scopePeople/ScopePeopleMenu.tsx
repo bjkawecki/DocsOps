@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { IconUsers } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ScopePersonRow } from '../../api/scopePeople-types';
 import { useCompanyPeople, useDepartmentPeople, useTeamPeople } from '../../hooks/useScopePeople';
 import {
@@ -42,16 +43,17 @@ type PersonLineProps = {
 };
 
 function PersonLine({ person, actions, actionsDisabled }: PersonLineProps) {
+  const { t } = useTranslation('common');
   const presence = formatPresence(person.isOnline, person.lastActiveAt);
   const roleLabel =
     person.roles?.includes('lead') && person.roles.includes('member')
-      ? 'Lead, Member'
+      ? t('common:scopePeople.roleLeadMember')
       : person.roles?.includes('lead')
-        ? 'Lead'
+        ? t('common:scopePeople.roleLead')
         : person.roles?.includes('author')
-          ? 'Author'
+          ? t('common:scopePeople.roleAuthor')
           : person.roles?.includes('member')
-            ? 'Member'
+            ? t('common:scopePeople.roleMember')
             : null;
   const detail = [roleLabel, presence].filter(Boolean).join(' · ');
 
@@ -99,6 +101,7 @@ export function ScopePeopleMenu({
   enabled = true,
   canManageAuthors = false,
 }: ScopePeopleMenuProps) {
+  const { t } = useTranslation(['common', 'shell']);
   const [opened, setOpened] = useState(false);
 
   const teamQuery = useTeamPeople(scopeId, enabled && scope === 'team');
@@ -123,22 +126,32 @@ export function ScopePeopleMenu({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only when menu opens
   }, [opened, scope, scopeId]);
 
-  const buttonLabel = scope === 'company' ? 'Organization' : 'People';
+  const buttonLabel = scope === 'company' ? t('shell:nav.organization') : t('shell:people');
 
   const summaryText = useMemo(() => {
     if (scope === 'team' && teamQuery.data) {
-      return `${teamQuery.data.total} · ${teamQuery.data.onlineCount} online`;
+      return t('common:scopePeople.peopleOnlineSummary', {
+        count: teamQuery.data.total,
+        online: teamQuery.data.onlineCount,
+      });
     }
     if (scope === 'department' && deptQuery.data) {
       const { peopleCount, onlineCount } = deptQuery.data.summary;
-      return `${peopleCount} · ${onlineCount} online`;
+      return t('common:scopePeople.peopleOnlineSummary', {
+        count: peopleCount,
+        online: onlineCount,
+      });
     }
     if (scope === 'company' && companyQuery.data) {
       const { departmentCount, peopleCount, onlineCount } = companyQuery.data.summary;
-      return `${departmentCount} depts · ${peopleCount} people · ${onlineCount} active`;
+      return t('common:scopePeople.companySummary', {
+        departments: departmentCount,
+        people: peopleCount,
+        online: onlineCount,
+      });
     }
     return null;
-  }, [scope, teamQuery.data, deptQuery.data, companyQuery.data]);
+  }, [scope, teamQuery.data, deptQuery.data, companyQuery.data, t]);
 
   function teamPersonActions(person: ScopePersonRow): PersonAction[] | undefined {
     if (!canManageAuthors) return undefined;
@@ -149,7 +162,7 @@ export function ScopePeopleMenu({
     if (isAuthor) {
       return [
         {
-          label: 'Set as member',
+          label: t('common:scopePeople.setAsMember'),
           onClick: () => void teamAuthorMutations.removeAuthor.mutateAsync(person.id),
         },
       ];
@@ -157,7 +170,7 @@ export function ScopePeopleMenu({
     if (isMember) {
       return [
         {
-          label: 'Set as author',
+          label: t('common:scopePeople.setAsAuthor'),
           onClick: () => void teamAuthorMutations.assignAuthor.mutateAsync(person.id),
         },
       ];
@@ -169,7 +182,7 @@ export function ScopePeopleMenu({
     if (!canManageAuthors) return undefined;
     return [
       {
-        label: 'Set as author',
+        label: t('common:scopePeople.setAsAuthor'),
         onClick: () => void deptAuthorMutations.assignAuthor.mutateAsync(person.id),
       },
     ];
@@ -180,7 +193,10 @@ export function ScopePeopleMenu({
     const teams = deptQuery.data.teams;
     if (teams.length === 0) return undefined;
     return teams.map((team) => ({
-      label: teams.length === 1 ? 'Set as member' : `Member · ${team.name}`,
+      label:
+        teams.length === 1
+          ? t('common:scopePeople.setAsMember')
+          : t('common:scopePeople.setAsMemberInTeam', { team: team.name }),
       onClick: () =>
         void deptAuthorMutations.removeAuthor.mutateAsync({
           userId: person.id,
@@ -191,9 +207,9 @@ export function ScopePeopleMenu({
 
   const listError =
     activeQuery.isError && !activeQuery.data
-      ? 'Failed to load people.'
+      ? t('common:scopePeople.loadFailed')
       : activeQuery.isError && activeQuery.data
-        ? 'Could not refresh the list.'
+        ? t('common:scopePeople.refreshFailed')
         : null;
 
   const dropdown = (
@@ -201,7 +217,7 @@ export function ScopePeopleMenu({
       <Stack gap="sm" p="xs" miw={320}>
         {activeQuery.isPending && !activeQuery.data && (
           <Text size="sm" c="dimmed">
-            Loading…
+            {t('common:status.loading')}
           </Text>
         )}
         {listError ? (
@@ -213,7 +229,7 @@ export function ScopePeopleMenu({
           <>
             {teamQuery.data.items.length === 0 ? (
               <Text size="sm" c="dimmed">
-                No members yet.
+                {t('common:scopePeople.noMembersYet')}
               </Text>
             ) : (
               teamQuery.data.items.map((person) => (
@@ -232,7 +248,7 @@ export function ScopePeopleMenu({
             {deptQuery.data.departmentLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  Department leads
+                  {t('common:scopePeople.departmentLeads')}
                 </Text>
                 {deptQuery.data.departmentLeads.map((person) => (
                   <PersonLine key={person.id} person={person} />
@@ -243,7 +259,7 @@ export function ScopePeopleMenu({
             {(deptQuery.data.departmentAuthors ?? []).length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  Authors
+                  {t('common:scopePeople.authors')}
                 </Text>
                 {(deptQuery.data.departmentAuthors ?? []).map((person) => (
                   <PersonLine
@@ -275,7 +291,7 @@ export function ScopePeopleMenu({
                   ))}
                   {team.teamLeads.length === 0 && team.members.length === 0 && (
                     <Text size="xs" c="dimmed">
-                      No members.
+                      {t('common:scopePeople.noMembers')}
                     </Text>
                   )}
                 </Stack>
@@ -288,7 +304,7 @@ export function ScopePeopleMenu({
             {companyQuery.data.companyLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  Company leads
+                  {t('common:scopePeople.companyLeads')}
                 </Text>
                 {companyQuery.data.companyLeads.map((person) => (
                   <PersonLine key={person.id} person={person} />
@@ -302,7 +318,11 @@ export function ScopePeopleMenu({
                   {dept.name}
                 </Text>
                 <Text size="xs" c="dimmed" mb={4}>
-                  {dept.teamCount} teams · {dept.peopleCount} people · {dept.onlineCount} active
+                  {t('common:scopePeople.departmentDetailSummary', {
+                    teams: dept.teamCount,
+                    people: dept.peopleCount,
+                    online: dept.onlineCount,
+                  })}
                 </Text>
                 {dept.departmentLeads.length > 0 && (
                   <Stack gap="xs" pl="xs" mb="xs">
@@ -314,7 +334,11 @@ export function ScopePeopleMenu({
                 <Stack gap={4} pl="xs">
                   {dept.teams.map((team) => (
                     <Text key={team.id} size="xs" c="dimmed">
-                      {team.name} · {team.peopleCount} people · {team.onlineCount} active
+                      {team.name} ·{' '}
+                      {t('common:scopePeople.teamDetailSummary', {
+                        people: team.peopleCount,
+                        online: team.onlineCount,
+                      })}
                     </Text>
                   ))}
                 </Stack>

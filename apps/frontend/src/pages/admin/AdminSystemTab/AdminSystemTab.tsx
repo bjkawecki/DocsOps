@@ -37,27 +37,30 @@ export function AdminSystemTab() {
       if (result.notificationSent) {
         notifications.show({
           color: 'blue',
-          message: 'Admins were notified about the available update.',
+          message: t('system.checkNotifications.adminsNotified'),
         });
       } else if (result.status.updateAvailable) {
-        notifications.show({ color: 'green', message: 'Update check completed.' });
+        notifications.show({
+          color: 'green',
+          message: t('system.checkNotifications.checkCompleted'),
+        });
       } else {
-        notifications.show({ color: 'green', message: 'DocsOps is up to date.' });
+        notifications.show({ color: 'green', message: t('system.checkNotifications.upToDate') });
       }
     } catch {
-      notifications.show({ color: 'red', message: 'Update check failed.' });
+      notifications.show({ color: 'red', message: t('system.checkNotifications.checkFailed') });
     }
-  }, [checkMutation]);
+  }, [checkMutation, t]);
 
   const handleToggleChecks = async (enabled: boolean) => {
     try {
       await patchSettingsMutation.mutateAsync({ updateCheckEnabled: enabled });
       notifications.show({
         color: 'green',
-        message: enabled ? 'Automatic update checks enabled.' : 'Automatic update checks disabled.',
+        message: enabled ? t('system.toggleChecks.enabled') : t('system.toggleChecks.disabled'),
       });
     } catch {
-      notifications.show({ color: 'red', message: 'Could not update settings.' });
+      notifications.show({ color: 'red', message: t('system.toggleChecks.saveFailed') });
     }
   };
 
@@ -74,7 +77,7 @@ export function AdminSystemTab() {
           </Button>
         ) : null}
         <Tooltip
-          label={!checksEnabled ? 'Enable automatic checks first' : undefined}
+          label={!checksEnabled ? t('system.checkForUpdatesTooltip') : undefined}
           disabled={checksEnabled}
         >
           <Button
@@ -110,7 +113,7 @@ export function AdminSystemTab() {
     <Stack gap="md">
       {statusQuery.isError ? (
         <Alert color="red" variant="filled">
-          Could not load update status. Reload the page or try again later.
+          {t('system.loadError')}
         </Alert>
       ) : statusQuery.isPending || settingsQuery.isPending ? (
         <Loader size="sm" />

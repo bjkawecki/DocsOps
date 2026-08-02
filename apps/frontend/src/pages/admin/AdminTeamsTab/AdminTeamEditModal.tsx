@@ -14,6 +14,7 @@ import {
 } from '@mantine/core';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import type { Department, Team } from 'backend/api-types';
+import { useTranslation } from 'react-i18next';
 import { formatBytes } from './adminTeamsTabFormat';
 import type { AssignmentItem, TeamStatsRes, TeamWithDept } from './adminTeamsTabTypes';
 
@@ -72,18 +73,25 @@ export function AdminTeamEditModal({
   onRequestDelete,
   deleteFromManageLoading,
 }: AdminTeamEditModalProps) {
+  const { t } = useTranslation('admin');
   return (
-    <Modal opened onClose={onClose} title={`Team: ${team.name}`} size="lg" key={team.id}>
+    <Modal
+      opened
+      onClose={onClose}
+      title={t('teams.editModal.title', { name: team.name })}
+      size="lg"
+      key={team.id}
+    >
       <Tabs defaultValue="overview">
         <Tabs.List>
-          <Tabs.Tab value="overview">Overview</Tabs.Tab>
-          <Tabs.Tab value="manage">Manage</Tabs.Tab>
+          <Tabs.Tab value="overview">{t('teams.editModal.tabs.overview')}</Tabs.Tab>
+          <Tabs.Tab value="manage">{t('teams.editModal.tabs.manage')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="overview" pt="md">
           <Card withBorder padding="md">
             <Group justify="space-between" mb="md">
               <Text size="sm" fw={600}>
-                Team
+                {t('teams.editModal.card.title')}
               </Text>
               {!teamCardEditing && (
                 <Button
@@ -92,28 +100,28 @@ export function AdminTeamEditModal({
                   leftSection={<IconPencil size={14} />}
                   onClick={onStartEditCard}
                 >
-                  Edit
+                  {t('common:actions.edit')}
                 </Button>
               )}
             </Group>
             {teamCardEditing ? (
               <Stack gap="md">
                 <TextInput
-                  label="Name"
+                  label={t('shared.name')}
                   value={editName}
                   onChange={(e) => setEditName(e.currentTarget.value)}
                   required
                 />
                 <Select
-                  label="Department"
+                  label={t('shared.department')}
                   data={departments.map((d) => ({ value: d.id, label: d.name }))}
                   value={editDepartmentId}
                   onChange={(v) => v && setEditDepartmentId(v)}
                   required
                 />
                 <Select
-                  label="Lead"
-                  placeholder="Select team lead"
+                  label={t('shared.lead')}
+                  placeholder={t('teams.editModal.card.leadPlaceholder')}
                   data={userOptions}
                   value={editLeadId || null}
                   onChange={(v) => setEditLeadId(v ?? '')}
@@ -121,8 +129,8 @@ export function AdminTeamEditModal({
                   clearable
                 />
                 <MultiSelect
-                  label="Members"
-                  placeholder="Select team members"
+                  label={t('shared.members')}
+                  placeholder={t('teams.editModal.card.membersPlaceholder')}
                   data={userOptions}
                   value={editMemberIds}
                   onChange={setEditMemberIds}
@@ -131,7 +139,7 @@ export function AdminTeamEditModal({
                 />
                 <Group gap="xs">
                   <Button size="sm" variant="default" onClick={() => setTeamCardEditing(false)}>
-                    Cancel
+                    {t('common:actions.cancel')}
                   </Button>
                   <Button
                     size="sm"
@@ -139,7 +147,7 @@ export function AdminTeamEditModal({
                     loading={saveLoading}
                     disabled={!editName.trim() || !editDepartmentId}
                   >
-                    Save
+                    {t('common:actions.save')}
                   </Button>
                 </Group>
               </Stack>
@@ -147,19 +155,19 @@ export function AdminTeamEditModal({
               <Stack gap="xs">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Name
+                    {t('shared.name')}
                   </Text>
                   <Text size="sm">{team.name}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Department
+                    {t('shared.department')}
                   </Text>
                   <Text size="sm">{team.departmentName}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Lead
+                    {t('shared.lead')}
                   </Text>
                   {leadsForEditPending ? (
                     <Loader size="xs" />
@@ -171,7 +179,7 @@ export function AdminTeamEditModal({
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Members
+                    {t('shared.members')}
                   </Text>
                   {membersForEditPending ? (
                     <Loader size="xs" />
@@ -192,7 +200,7 @@ export function AdminTeamEditModal({
           </Card>
           <Card withBorder padding="md" mt="md">
             <Text size="sm" fw={600} mb="xs">
-              Stats
+              {t('shared.stats')}
             </Text>
             {teamStatsPending ? (
               <Loader size="sm" />
@@ -200,31 +208,31 @@ export function AdminTeamEditModal({
               <Group gap="lg">
                 <div>
                   <Text size="xs" c="dimmed">
-                    Storage
+                    {t('shared.storage')}
                   </Text>
                   <Text size="sm">{formatBytes(teamStatsData.storageBytesUsed)}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Members
+                    {t('shared.members')}
                   </Text>
                   <Text size="sm">{teamStatsData.memberCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Documents
+                    {t('shared.documents')}
                   </Text>
                   <Text size="sm">{teamStatsData.documentCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Processes
+                    {t('shared.processes')}
                   </Text>
                   <Text size="sm">{teamStatsData.processCount}</Text>
                 </div>
                 <div>
                   <Text size="xs" c="dimmed">
-                    Projects
+                    {t('shared.projects')}
                   </Text>
                   <Text size="sm">{teamStatsData.projectCount}</Text>
                 </div>
@@ -235,10 +243,10 @@ export function AdminTeamEditModal({
         <Tabs.Panel value="manage" pt="md">
           <Card withBorder padding="md">
             <Text size="sm" fw={600} mb="xs">
-              Manage
+              {t('shared.manage')}
             </Text>
             <Text size="xs" c="dimmed" mb="md">
-              Sensitive actions. Use with care.
+              {t('shared.manageHint')}
             </Text>
             <Button
               size="sm"
@@ -248,7 +256,7 @@ export function AdminTeamEditModal({
               onClick={onRequestDelete}
               loading={deleteFromManageLoading}
             >
-              Delete team
+              {t('teams.editModal.manage.deleteButton')}
             </Button>
           </Card>
         </Tabs.Panel>

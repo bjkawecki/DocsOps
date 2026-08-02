@@ -1,4 +1,7 @@
 {
+  "errors": {
+    "loadFailed": "Failed to load settings"
+  },
   "appearance": {
     "title": "Appearance",
     "theme": "Theme",
@@ -37,5 +40,180 @@
     "notifications": "Notifications",
     "storage": "Storage",
     "pulse": "Pulse"
+  },
+  "nav": {
+    "ariaLabel": "Settings sections",
+    "profile": "Profile",
+    "identity": "DocsOps Identity",
+    "appearance": "Appearance",
+    "email": "Email",
+    "password": "Password",
+    "sessions": "Sessions",
+    "storage": "Storage",
+    "pulse": "Pulse",
+    "notifications-in-app": "In-app",
+    "notifications-email": "Email notifications"
+  },
+  "general": {
+    "profileActionsAria": "Profile actions",
+    "editProfile": "Edit Profile",
+    "deactivate": "Deactivate",
+    "roles": {
+      "admin": "Admin User",
+      "user": "User"
+    },
+    "identity": {
+      "userEntityLabel": "User Entity",
+      "ownershipEntitiesLabel": "Ownership Entities",
+      "none": "–",
+      "teamRoleLeader": "Team Lead",
+      "teamRoleAuthor": "Team Author",
+      "teamRoleMember": "Member",
+      "teamRow": "{{team}} ({{department}}) – {{role}}",
+      "departmentLeadRow": "Department Lead: {{name}}",
+      "departmentAuthorRow": "Department Author: {{name}}",
+      "companyLeadRow": "Company Lead: {{name}}"
+    },
+    "editProfileModal": {
+      "title": "Edit profile",
+      "nameLabel": "Display name",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "deactivateModal": {
+      "title": "Deactivate account",
+      "adminCannotDeactivate": "Administrators cannot deactivate their own account. Please ask another administrator.",
+      "confirmMessage": "Deactivate account? You will not be able to log in until an administrator reactivates you.",
+      "cancel": "Cancel",
+      "confirm": "Deactivate"
+    },
+    "toasts": {
+      "profileUpdatedTitle": "Profile updated",
+      "profileUpdatedMessage": "Your profile has been saved.",
+      "updateFailedTitle": "Update failed",
+      "accountDeactivatedTitle": "Account deactivated",
+      "accountDeactivatedMessage": "You have been logged out. An administrator can reactivate your account.",
+      "deactivationFailedTitle": "Deactivation failed"
+    }
+  },
+  "account": {
+    "changeEmail": "Change email",
+    "changePassword": "Change password",
+    "loginEmailDescription": "Your login email. You need your current password to change it.",
+    "ssoManagedEmail": "Managed by SSO. Cannot be changed here.",
+    "changePasswordDescription": "Change your password. You will need your current password.",
+    "ssoManagedPassword": "Managed by SSO. Cannot be changed here.",
+    "changeEmailModal": {
+      "title": "Change email",
+      "newEmailLabel": "New email",
+      "currentPasswordLabel": "Current password",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "changePasswordModal": {
+      "title": "Change password",
+      "currentPasswordLabel": "Current password",
+      "newPasswordLabel": "New password",
+      "newPasswordDescription": "At least {{count}} characters",
+      "confirmPasswordLabel": "Confirm new password",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "toasts": {
+      "passwordUpdatedTitle": "Password updated",
+      "passwordUpdatedMessage": "Your password has been changed.",
+      "emailUpdatedTitle": "Email updated",
+      "emailUpdatedMessage": "Your email has been updated.",
+      "updateFailedTitle": "Update failed",
+      "passwordMismatchTitle": "Passwords do not match",
+      "passwordMismatchMessage": "Please confirm your new password.",
+      "passwordTooShortTitle": "Password too short",
+      "passwordTooShortMessage": "At least {{count}} characters required."
+    }
+  },
+  "security": {
+    "description": "Active sessions. Revoke others to log them out.",
+    "revokeAllOthers": "Revoke all other sessions",
+    "currentSession": "Current session",
+    "revoke": "Revoke",
+    "createdHeader": "Created",
+    "expiresHeader": "Expires",
+    "noSessions": "No sessions.",
+    "toasts": {
+      "sessionEndedTitle": "Session ended",
+      "sessionEndedMessage": "You have been logged out.",
+      "sessionRevokedTitle": "Session revoked",
+      "sessionRevokedMessage": "The session has been ended.",
+      "revokeFailedTitle": "Revoke failed",
+      "sessionsEndedTitle": "Sessions ended",
+      "sessionsEndedMessage": "All other sessions have been revoked."
+    }
+  },
+  "storage": {
+    "description": "Storage used by document attachments (and PDF exports). Choose a scope to view your usage or, as a lead, your team, department, or company.",
+    "scopeLabel": "Scope",
+    "scopePersonal": "Personal (my storage)",
+    "scopeTeam": "Team: {{name}}",
+    "scopeDepartment": "Department: {{name}}",
+    "scopeCompany": "Company: {{name}}",
+    "usedSummary": "{{used}} used \u00b7 {{count}} attachment(s)",
+    "userHeader": "User",
+    "usedHeader": "Used",
+    "loadFailed": "Failed to load storage"
+  },
+  "pulse": {
+    "description": "Choose what appears on Home. Independent from notification delivery.",
+    "switches": {
+      "showDrafts": {
+        "label": "Open drafts",
+        "description": "Your unpublished documents that still need work."
+      },
+      "showReviews": {
+        "label": "Reviews",
+        "description": "Items awaiting your review and decisions on your requests."
+      },
+      "showNewDocuments": {
+        "label": "New documents",
+        "description": "Newly published or created documents you can read."
+      },
+      "showUpdatedDocuments": {
+        "label": "Updated documents",
+        "description": "Published documents with unread updates."
+      },
+      "showComments": {
+        "label": "Comments",
+        "description": "Unread comment activity on documents."
+      }
+    },
+    "toasts": {
+      "updatedTitle": "Pulse updated",
+      "updatedMessage": "Your Home pulse preferences were saved.",
+      "saveFailedTitle": "Save failed"
+    }
+  },
+  "notifications": {
+    "openInbox": "Open inbox",
+    "labels": {
+      "documentChanges": "Document changes",
+      "comments": "Comments",
+      "draftRequests": "Draft requests",
+      "reminders": "Reminders",
+      "organization": "Organization",
+      "announcements": "Announcements",
+      "operations": "Operations"
+    },
+    "descriptions": {
+      "documentChanges": "covers publish, visible updates to published documents, archive/trash/restore, and sharing changes (grants).",
+      "comments": "covers mentions and discussion on documents.",
+      "draftRequests": "covers the review workflow.",
+      "organization": "covers team membership and lead roles.",
+      "announcements": "covers admin broadcasts.",
+      "reminders": "is reserved for future use."
+    },
+    "toasts": {
+      "updatedTitle": "Notifications updated",
+      "updatedMessage": "Your notification preferences were saved.",
+      "saveFailedTitle": "Save failed"
+    }
   }
 }

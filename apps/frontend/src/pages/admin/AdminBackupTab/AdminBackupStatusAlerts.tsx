@@ -1,4 +1,5 @@
 import { Alert } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { BackupStatus } from './adminBackupTypes';
 
 type Props = {
@@ -6,17 +7,21 @@ type Props = {
 };
 
 export function AdminBackupStatusAlerts({ status }: Props) {
+  const { t } = useTranslation('admin');
   return (
     <>
       {!status.minioAvailable && (
-        <Alert color="red" title="Object storage unavailable">
-          MinIO is not configured or unreachable. Backups require object storage for file export.
+        <Alert color="red" title={t('backup.statusAlerts.objectStorageUnavailableTitle')}>
+          {t('backup.statusAlerts.objectStorageUnavailableBody')}
         </Alert>
       )}
       {!status.encryptionConfigured && (
-        <Alert color="red" variant="filled" title="Encryption not configured">
-          Set BACKUP_ENCRYPTION_KEY on the server before storing external backup targets. See README
-          for how to generate a key.
+        <Alert
+          color="red"
+          variant="filled"
+          title={t('backup.statusAlerts.encryptionNotConfiguredTitle')}
+        >
+          {t('backup.statusAlerts.encryptionNotConfiguredBody')}
         </Alert>
       )}
     </>

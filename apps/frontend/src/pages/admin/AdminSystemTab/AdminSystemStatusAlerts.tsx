@@ -1,4 +1,5 @@
 import { Alert, Code, ScrollArea } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { AdminSystemUpdateStatus } from 'backend/api-types';
 
 type Props = {
@@ -6,9 +7,11 @@ type Props = {
 };
 
 export function AdminSystemStatusAlerts({ status }: Props) {
+  const { t } = useTranslation('admin');
+
   if (status.activeUpdateRun?.status === 'failed') {
     return (
-      <Alert color="red" variant="filled" title="Update failed">
+      <Alert color="red" variant="filled" title={t('system.statusAlerts.updateFailedTitle')}>
         <ScrollArea.Autosize mah={240}>
           <Code
             block
@@ -16,7 +19,7 @@ export function AdminSystemStatusAlerts({ status }: Props) {
             bg="transparent"
             style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
           >
-            {status.activeUpdateRun.errorMessage ?? 'The update could not be completed.'}
+            {status.activeUpdateRun.errorMessage ?? t('system.statusAlerts.updateFailedFallback')}
           </Code>
         </ScrollArea.Autosize>
       </Alert>
@@ -29,8 +32,8 @@ export function AdminSystemStatusAlerts({ status }: Props) {
 
   if (status.updateAvailable) {
     return (
-      <Alert color="blue" variant="filled" title="Update available">
-        A newer release is available. Review the steps before upgrading production.
+      <Alert color="blue" variant="filled" title={t('system.statusAlerts.updateAvailableTitle')}>
+        {t('system.statusAlerts.updateAvailableMessage')}
       </Alert>
     );
   }

@@ -57,7 +57,7 @@ export function AdminDepartmentsTab() {
     queryKey: ['companies'],
     queryFn: async (): Promise<CompaniesRes> => {
       const res = await apiFetch('/api/v1/companies?limit=100');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompaniesRes;
     },
   });
@@ -107,7 +107,7 @@ export function AdminDepartmentsTab() {
           ? `/api/v1/admin/departments/member-counts?ids=${encodeURIComponent(ids)}`
           : '/api/v1/admin/departments/member-counts';
       const res = await apiFetch(url);
-      if (!res.ok) throw new Error('Failed to load member counts');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as MemberCountsRes;
     },
     enabled: departmentIdsForCounts.length > 0,
@@ -120,7 +120,7 @@ export function AdminDepartmentsTab() {
       const res = await apiFetch(
         `/api/v1/departments/${editingDepartment!.id}/department-leads?limit=100`
       );
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
     enabled: !!editingDepartment?.id,
@@ -131,7 +131,7 @@ export function AdminDepartmentsTab() {
     queryKey: ['admin', 'users', 'list'],
     queryFn: async (): Promise<AdminUsersRes> => {
       const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AdminUsersRes;
     },
     enabled: !!editingDepartment?.id,
@@ -145,7 +145,7 @@ export function AdminDepartmentsTab() {
     queryKey: ['admin', 'departments', editingDepartment?.id, 'stats'],
     queryFn: async (): Promise<DepartmentStatsRes> => {
       const res = await apiFetch(`/api/v1/admin/departments/${editingDepartment!.id}/stats`);
-      if (!res.ok) throw new Error('Failed to load stats');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as DepartmentStatsRes;
     },
     enabled: !!editingDepartment?.id,
@@ -181,12 +181,13 @@ export function AdminDepartmentsTab() {
       invalidateCompanies();
       closeCreate();
       notifications.show({
-        title: 'Department created',
-        message: 'The department has been created.',
+        title: t('departments.toasts.createdTitle'),
+        message: t('departments.toasts.createdMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const updateDepartment = useMutation({
@@ -206,12 +207,13 @@ export function AdminDepartmentsTab() {
       invalidateCompanies();
       setEditingDepartment(null);
       notifications.show({
-        title: 'Department updated',
-        message: 'The department has been updated.',
+        title: t('departments.toasts.updatedTitle'),
+        message: t('departments.toasts.updatedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const deleteDepartment = useMutation({
@@ -226,12 +228,13 @@ export function AdminDepartmentsTab() {
       invalidateCompanies();
       setDeleteConfirmDepartment(null);
       notifications.show({
-        title: 'Department deleted',
-        message: 'The department has been deleted.',
+        title: t('departments.toasts.deletedTitle'),
+        message: t('departments.toasts.deletedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const addLead = useMutation({
@@ -249,12 +252,13 @@ export function AdminDepartmentsTab() {
     onSuccess: (_, { departmentId }) => {
       invalidateLeads(departmentId);
       notifications.show({
-        title: 'Department lead added',
-        message: 'The department lead has been added.',
+        title: t('departments.toasts.leadAddedTitle'),
+        message: t('departments.toasts.leadAddedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const removeLead = useMutation({
@@ -270,20 +274,21 @@ export function AdminDepartmentsTab() {
     onSuccess: (_, { departmentId }) => {
       invalidateLeads(departmentId);
       notifications.show({
-        title: 'Department lead removed',
-        message: 'The department lead has been removed.',
+        title: t('departments.toasts.leadRemovedTitle'),
+        message: t('departments.toasts.leadRemovedMessage'),
         color: 'green',
       });
     },
-    onError: (e: Error) => notifications.show({ title: 'Error', message: e.message, color: 'red' }),
+    onError: (e: Error) =>
+      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
   const companyOptions = useMemo(
     () => [
-      { value: '', label: 'All companies' },
+      { value: '', label: t('departments.allCompaniesOption') },
       ...companies.map((c) => ({ value: c.id, label: c.name })),
     ],
-    [companies]
+    [companies, t]
   );
 
   const handleSaveDepartmentCard = useCallback(() => {

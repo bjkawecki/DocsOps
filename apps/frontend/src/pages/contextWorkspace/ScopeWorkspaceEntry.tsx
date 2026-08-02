@@ -2,6 +2,7 @@ import { Box, Center, Loader, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { CreateContextMenu, NewContextModal, NewDocumentModal } from '../../components/contexts';
@@ -39,6 +40,7 @@ export function ScopeWorkspaceEntry({
   scopeLabel,
   canManage = false,
 }: ScopeWorkspaceEntryProps) {
+  const { t } = useTranslation('contexts');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scopeKey = scopeToKey(scope);
@@ -127,11 +129,9 @@ export function ScopeWorkspaceEntry({
   return (
     <Box maw={480}>
       <Stack gap="xs">
-        <Text fw={600}>No processes or projects yet</Text>
+        <Text fw={600}>{t('entry.emptyTitle')}</Text>
         <Text size="sm" c="dimmed">
-          {canManage
-            ? 'Create a process or project to get started, or a draft document.'
-            : 'There are no processes or projects in this scope yet.'}
+          {canManage ? t('entry.emptyBodyCanManage') : t('entry.emptyBodyReadOnly')}
         </Text>
       </Stack>
 

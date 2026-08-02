@@ -1,4 +1,5 @@
 import { Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import type { NotificationItem } from './meNotificationTypes.js';
@@ -26,26 +27,27 @@ export function NotificationDetailModal({
   onMarkRead,
   markReadPending,
 }: NotificationDetailModalProps) {
+  const { t } = useTranslation('notifications');
   if (item == null) return null;
 
   const unread = item.readAt == null;
   const sourceHref = notificationDocumentHref(item.eventType, item.payload);
-  const body = notificationBodyText(item.eventType, item.payload);
+  const body = notificationBodyText(t, item.eventType, item.payload);
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={eventHeadline(item.eventType)}
+      title={eventHeadline(t, item.eventType)}
       size="md"
       centered
     >
       <Stack gap="md">
         <Group gap="xs">
-          <Badge variant="light">{notificationSourceLabel(item)}</Badge>
+          <Badge variant="light">{notificationSourceLabel(t, item)}</Badge>
           {unread ? (
             <Badge color="blue" variant="filled">
-              Unread
+              {t('detail.unread')}
             </Badge>
           ) : (
             <NotificationReadBadge />
@@ -57,7 +59,7 @@ export function NotificationDetailModal({
             {formatLocalDateTime(item.createdAt)}
           </Text>
           <Text fw={600} size="lg">
-            {documentDisplayTitle(item)}
+            {documentDisplayTitle(t, item)}
           </Text>
         </Stack>
 
@@ -70,18 +72,18 @@ export function NotificationDetailModal({
         <Group justify="space-between" mt="sm">
           {unread ? (
             <Button variant="light" loading={markReadPending} onClick={() => onMarkRead(item.id)}>
-              Mark as read
+              {t('detail.markAsRead')}
             </Button>
           ) : (
             <span />
           )}
           {sourceHref != null ? (
             <Button component={Link} to={sourceHref} variant="filled" onClick={onClose}>
-              Open source
+              {t('detail.openSource')}
             </Button>
           ) : (
             <Button variant="default" onClick={onClose}>
-              Close
+              {t('detail.close')}
             </Button>
           )}
         </Group>

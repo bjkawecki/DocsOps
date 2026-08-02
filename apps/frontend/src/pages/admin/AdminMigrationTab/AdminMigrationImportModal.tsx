@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Button,
@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../../api/client';
 import { readApiErrorMessage } from '../../../api/readApiErrorMessage';
@@ -35,25 +36,23 @@ type Props = {
   onClose: () => void;
 };
 
-const IMPORT_WIZARD_STEPS = [
-  { label: 'Upload & check', description: 'Archive preflight' },
-  { label: 'Options', description: 'Import settings' },
-  { label: 'Confirm', description: 'Maintenance warning' },
-  { label: 'Result', description: 'Progress & outcome' },
-] as const;
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
-function uploadErrorTitleFromMessage(message: string): string {
+function uploadErrorTitleFromMessage(message: string, t: TranslateFn): string {
   const lower = message.toLowerCase();
   if (lower.includes('http 5') || lower.includes('server error')) {
-    return 'Server error during upload';
+    return t('migration.importModal.uploadErrorTitle.serverError');
   }
-  if (lower.includes('too large')) return 'Upload too large';
-  if (lower.includes('unpack') || lower.includes('.tar.zst')) return 'Invalid export archive';
-  if (lower.includes('minio')) return 'Storage unavailable';
-  return 'Upload failed';
+  if (lower.includes('too large')) return t('migration.importModal.uploadErrorTitle.tooLarge');
+  if (lower.includes('unpack') || lower.includes('.tar.zst'))
+    return t('migration.importModal.uploadErrorTitle.invalidArchive');
+  if (lower.includes('minio'))
+    return t('migration.importModal.uploadErrorTitle.storageUnavailable');
+  return t('migration.importModal.uploadErrorTitle.uploadFailed');
 }
 
 export function AdminMigrationImportModal({ opened, onClose }: Props) {
+  const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: me } = useMe();
@@ -63,8 +62,29 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
   const [preflight, setPreflight] = useState<PlatformImportPreflight | null>(null);
   const [transferPasswordHashes, setTransferPasswordHashes] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadErrorTitle, setUploadErrorTitle] = useState('Upload failed');
+  const [uploadErrorTitle, setUploadErrorTitle] = useState(
+    t('migration.importModal.uploadErrorTitle.uploadFailed')
+  );
   const refreshedAppCacheForRunIdRef = useRef<string | null>(null);
+
+  const IMPORT_WIZARD_STEPS = [
+    {
+      label: t('migration.importModal.steps.upload.label'),
+      description: t('migration.importModal.steps.upload.description'),
+    },
+    {
+      label: t('migration.importModal.steps.options.label'),
+      description: t('migration.importModal.steps.options.description'),
+    },
+    {
+      label: t('migration.importModal.steps.confirm.label'),
+      description: t('migration.importModal.steps.confirm.description'),
+    },
+    {
+      label: t('migration.importModal.steps.result.label'),
+      description: t('migration.importModal.steps.result.description'),
+    },
+  ];
 
   const importRunQuery = useQuery({
     queryKey: ['admin', 'platform-imports', importRunId],
@@ -112,13 +132,13 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     },
     onSuccess: (data) => {
       setUploadError(null);
-      setUploadErrorTitle('Upload failed');
+      setUploadErrorTitle(t('migration.importModal.uploadErrorTitle.uploadFailed'));
       setImportRunId(data.platformImportRunId);
       setPreflight(data.preflight);
       void queryClient.invalidateQueries({ queryKey: ['admin', 'platform-migration', 'status'] });
     },
     onError: (err: Error) => {
-      setUploadErrorTitle(uploadErrorTitleFromMessage(err.message));
+      setUploadErrorTitle(uploadErrorTitleFromMessage(err.message, t));
       setUploadError(err.message);
       setPreflight(null);
     },
@@ -142,20 +162,24 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'platform-migration', 'status'] });
     },
     onError: (err: Error) => {
-      notifications.show({ title: 'Import failed', message: err.message, color: 'red' });
+      notifications.show({
+        title: t('migration.importModal.failedTitle'),
+        message: err.message,
+        color: 'red',
+      });
     },
   });
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setActiveStep(0);
     setUploadFile(null);
     setImportRunId(null);
     setPreflight(null);
     setTransferPasswordHashes(false);
     setUploadError(null);
-    setUploadErrorTitle('Upload failed');
+    setUploadErrorTitle(t('migration.importModal.uploadErrorTitle.uploadFailed'));
     refreshedAppCacheForRunIdRef.current = null;
-  };
+  }, [t]);
 
   const handleClose = () => {
     resetState();
@@ -164,7 +188,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
 
   useEffect(() => {
     if (!opened) resetState();
-  }, [opened]);
+  }, [opened, resetState]);
 
   const canProceedFromUpload = preflight?.ok === true && !uploadError;
   const preflightFailed = preflight != null && !preflight.ok;
@@ -181,9 +205,8 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     if (activeStep === 0) {
       return (
         <Stack gap="sm">
-          <Alert color="red" variant="filled" title="Fresh empty instance required">
-            Import is only supported on a freshly installed empty instance (no companies or
-            documents). Failed imports on an empty target should roll back automatically.
+          <Alert color="red" variant="filled" title={t('migration.importModal.freshInstanceTitle')}>
+            {t('migration.importModal.freshInstanceMessage')}
           </Alert>
           {!uploadFile ? (
             <PlatformImportDropzone
@@ -212,7 +235,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
                     setImportRunId(null);
                   }}
                 >
-                  Remove
+                  {t('migration.importModal.remove')}
                 </Button>
               </Group>
             </Card>
@@ -220,7 +243,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
           {uploadMutation.isPending ? (
             <Group gap="xs">
               <Loader size="xs" />
-              <Text size="sm">Uploading and running preflight…</Text>
+              <Text size="sm">{t('migration.importModal.uploadingHint')}</Text>
             </Group>
           ) : null}
           {uploadError ? (
@@ -229,7 +252,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
             </Alert>
           ) : null}
           {preflightFailed ? (
-            <Alert color="red" title="Preflight failed">
+            <Alert color="red" title={t('migration.importModal.preflightFailedTitle')}>
               <List size="sm" spacing="xs">
                 {preflight.errors.map((error) => (
                   <List.Item key={error}>{error}</List.Item>
@@ -238,7 +261,11 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
             </Alert>
           ) : null}
           {preflight?.warnings.length ? (
-            <Alert color="red" variant="filled" title="Preflight warnings">
+            <Alert
+              color="red"
+              variant="filled"
+              title={t('migration.importModal.preflightWarningsTitle')}
+            >
               <List size="sm" spacing="xs">
                 {preflight.warnings.map((warning) => (
                   <List.Item key={warning}>{warning}</List.Item>
@@ -248,7 +275,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
           ) : null}
           {canProceedFromUpload ? (
             <Text size="sm" c="dimmed">
-              Preflight passed. Continue to options.
+              {t('migration.importModal.preflightPassedHint')}
             </Text>
           ) : null}
         </Stack>
@@ -259,19 +286,21 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
       return (
         <Stack gap="sm">
           <Text size="sm">
-            Source version: {preflight.sourceAppVersion ?? 'unknown'} · Target:{' '}
-            {preflight.targetAppVersion}
+            {t('migration.importModal.sourceVersion', {
+              version: preflight.sourceAppVersion ?? t('migration.importModal.unknownVersion'),
+              target: preflight.targetAppVersion,
+            })}
           </Text>
           <MigrationRunStatsGrid counts={preflight.counts} />
           {preflight.sameAppVersion ? (
             <Checkbox
-              label="Transfer password hashes (same APP_VERSION only)"
+              label={t('migration.importModal.transferPasswordHashes')}
               checked={transferPasswordHashes}
               onChange={(e) => setTransferPasswordHashes(e.currentTarget.checked)}
             />
           ) : (
             <Text size="sm" c="dimmed">
-              Imported users will need to reset their passwords (different app version).
+              {t('migration.importModal.passwordResetRequired')}
             </Text>
           )}
         </Stack>
@@ -281,8 +310,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     if (activeStep === 2) {
       return (
         <Alert color="red" variant="filled">
-          Import activates maintenance mode and writes all domain data. The target instance must be
-          empty.
+          {t('migration.importModal.maintenanceWarning')}
         </Alert>
       );
     }
@@ -294,7 +322,9 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
             <Group gap="xs">
               <Loader size="sm" />
               <Text size="sm">
-                {importRun ? formatPlatformImportStatus(importRun.status) : 'Starting import…'}
+                {importRun
+                  ? formatPlatformImportStatus(importRun.status, t)
+                  : t('migration.importModal.startingImport')}
               </Text>
             </Group>
             {importRun ? <PlatformImportPhaseList status={importRun.status} /> : null}
@@ -304,16 +334,15 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
 
       if (importRun?.status === 'succeeded') {
         return (
-          <Alert color="green" variant="filled" title="Import complete">
-            Platform data has been imported. The sidebar and lists will refresh automatically.
-            Search reindex may still be running.
+          <Alert color="green" variant="filled" title={t('migration.importModal.completeTitle')}>
+            {t('migration.importModal.completeMessage')}
           </Alert>
         );
       }
 
       if (importRun && isTerminalImportStatus(importRun.status)) {
         return (
-          <Alert color="red" title="Import failed">
+          <Alert color="red" title={t('migration.importModal.failedTitle')}>
             {importRun.errorMessage ?? importRun.status}
           </Alert>
         );
@@ -322,7 +351,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
       return (
         <Group gap="xs">
           <Loader size="sm" />
-          <Text size="sm">Waiting for import status…</Text>
+          <Text size="sm">{t('migration.importModal.waitingForStatus')}</Text>
         </Group>
       );
     }
@@ -336,7 +365,11 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
         <MigrationWizardFooter
           onCancel={handleClose}
           showPrimary
-          primaryLabel={canProceedFromUpload ? 'Continue' : 'Upload and check'}
+          primaryLabel={
+            canProceedFromUpload
+              ? t('migration.importModal.continue')
+              : t('migration.importModal.uploadAndCheck')
+          }
           onPrimary={() => {
             if (canProceedFromUpload) {
               setActiveStep(1);
@@ -357,7 +390,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
           showBack
           onBack={() => setActiveStep(0)}
           showPrimary
-          primaryLabel="Continue"
+          primaryLabel={t('migration.importModal.continue')}
           onPrimary={() => setActiveStep(2)}
         />
       );
@@ -370,7 +403,7 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
           showBack
           onBack={() => setActiveStep(1)}
           showPrimary
-          primaryLabel="Confirm import"
+          primaryLabel={t('migration.importModal.confirmImport')}
           primaryColor="red"
           onPrimary={() => confirmMutation.mutate()}
           primaryLoading={confirmMutation.isPending}
@@ -381,20 +414,22 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     if (activeStep === 3 && importRun?.status === 'succeeded') {
       return (
         <MigrationWizardFooter
-          secondaryLabel="Go to home"
+          secondaryLabel={t('migration.importModal.goToHome')}
           onSecondary={() => {
             handleClose();
             void navigate(postImportHref);
           }}
           showPrimary
-          primaryLabel="Done"
+          primaryLabel={t('migration.importModal.done')}
           onPrimary={handleClose}
         />
       );
     }
 
     if (activeStep === 3 && importRun && isTerminalImportStatus(importRun.status)) {
-      return <MigrationWizardFooter onCancel={handleClose} cancelLabel="Close" />;
+      return (
+        <MigrationWizardFooter onCancel={handleClose} cancelLabel={t('migration.footer.close')} />
+      );
     }
 
     return null;
@@ -404,15 +439,11 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Import platform export"
+      title={t('migration.importModal.title')}
       size="xl"
       closeOnClickOutside={activeStep < 3 && !uploadMutation.isPending}
     >
-      <MigrationWizardLayout
-        activeStep={activeStep}
-        steps={[...IMPORT_WIZARD_STEPS]}
-        footer={footer}
-      >
+      <MigrationWizardLayout activeStep={activeStep} steps={IMPORT_WIZARD_STEPS} footer={footer}>
         {stepContent}
       </MigrationWizardLayout>
     </Modal>
