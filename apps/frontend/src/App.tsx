@@ -20,6 +20,12 @@ import {
   PersonalTrashArchivePage,
   TeamTrashArchivePage,
 } from './pages/contextWorkspace/ScopeTrashArchiveRoutePages';
+import {
+  CompanyMostReadPage,
+  DepartmentMostReadPage,
+  PersonalMostReadPage,
+  TeamMostReadPage,
+} from './pages/contextWorkspace/ScopeMostReadRoutePages';
 import { SettingsRouteRedirect } from './pages/settings/SettingsRouteRedirect';
 import { NotificationsPage } from './pages/account/NotificationsPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';
@@ -143,6 +149,7 @@ function App() {
             <Route path="team/:teamId" element={<TeamContextPage />} />
             <Route path="team/:teamId/trash" element={<TeamTrashArchivePage kind="trash" />} />
             <Route path="team/:teamId/archive" element={<TeamTrashArchivePage kind="archive" />} />
+            <Route path="team/:teamId/most-read" element={<TeamMostReadPage />} />
             <Route path="department" element={<DepartmentRedirectPage />} />
             <Route path="department/:departmentId" element={<DepartmentContextPage />} />
             <Route
@@ -153,12 +160,15 @@ function App() {
               path="department/:departmentId/archive"
               element={<DepartmentTrashArchivePage kind="archive" />}
             />
+            <Route path="department/:departmentId/most-read" element={<DepartmentMostReadPage />} />
             <Route path="company" element={<CompanyPage />} />
             <Route path="company/trash" element={<CompanyTrashArchivePage kind="trash" />} />
             <Route path="company/archive" element={<CompanyTrashArchivePage kind="archive" />} />
+            <Route path="company/most-read" element={<CompanyMostReadPage />} />
             <Route path="personal" element={<PersonalPage />} />
             <Route path="personal/trash" element={<PersonalTrashArchivePage kind="trash" />} />
             <Route path="personal/archive" element={<PersonalTrashArchivePage kind="archive" />} />
+            <Route path="personal/most-read" element={<PersonalMostReadPage />} />
             <Route path="shared" element={<SharedPage />} />
             <Route path="approvals" element={<ApprovalsPage />} />
             <Route path="reviews" element={<Navigate to="/approvals" replace />} />

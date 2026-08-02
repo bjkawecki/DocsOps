@@ -53,6 +53,7 @@ import { ScopeContextSidebar } from './ScopeContextSidebar.js';
 import {
   contextUrl,
   scopeArchiveUrl,
+  scopeMostReadUrl,
   scopeTrashUrl,
   writeLastScopeContextId,
 } from './contextPaths.js';
@@ -262,7 +263,11 @@ export function ContextWorkspacePage() {
   const showTrashArchive = canShowTrashArchiveTabs(me, scopeCanManage);
   const trashArchive =
     showTrashArchive && scope != null
-      ? { trashTo: scopeTrashUrl(scope), archiveTo: scopeArchiveUrl(scope) }
+      ? {
+          trashTo: scopeTrashUrl(scope),
+          archiveTo: scopeArchiveUrl(scope),
+          mostReadTo: scopeMostReadUrl(scope),
+        }
       : null;
 
   const invalidateAll = () => {

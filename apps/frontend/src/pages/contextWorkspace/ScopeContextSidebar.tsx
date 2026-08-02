@@ -2,6 +2,7 @@ import { Box, Collapse, NavLink, Stack, Text, UnstyledButton } from '@mantine/co
 import {
   IconArchive,
   IconBriefcase,
+  IconChartBar,
   IconChevronDown,
   IconChevronRight,
   IconPencil,
@@ -32,6 +33,7 @@ export type SidebarDraftItem = {
 export type SidebarTrashArchiveLinks = {
   trashTo: string;
   archiveTo: string;
+  mostReadTo: string;
 };
 
 type ScopeContextSidebarProps = {
@@ -315,6 +317,15 @@ export function ScopeContextSidebar({
 
           {trashArchive != null && (
             <Stack gap={6} align="stretch" w="100%">
+              <NavLink
+                component={Link}
+                to={trashArchive.mostReadTo}
+                label="Most read"
+                leftSection={<IconChartBar size={ICON_SIZE} stroke={1.5} />}
+                active={pathname === trashArchive.mostReadTo}
+                variant="subtle"
+                style={navLinkFullWidth}
+              />
               <NavLink
                 component={Link}
                 to={trashArchive.trashTo}

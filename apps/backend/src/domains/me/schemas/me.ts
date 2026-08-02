@@ -193,6 +193,32 @@ export const meArchiveQuerySchema = z
   .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
 export type MeArchiveQuery = z.infer<typeof meArchiveQuerySchema>;
 
+/** Query: GET /me/most-read – scope + org ids (no pagination; fixed top-N). */
+export const meMostReadQuerySchema = z
+  .object({
+    scope: z.enum(['personal', 'company', 'department', 'team']),
+    companyId: z.cuid().optional(),
+    departmentId: z.cuid().optional(),
+    teamId: z.cuid().optional(),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeMostReadQuery = z.infer<typeof meMostReadQuerySchema>;
+
+/** Response item: GET /me/most-read. */
+export const meMostReadItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  viewCount: z.number().int().nonnegative(),
+  contextName: z.string(),
+});
+export type MeMostReadItem = z.infer<typeof meMostReadItemSchema>;
+
+/** Response: GET /me/most-read. */
+export const meMostReadResponseSchema = z.object({
+  items: z.array(meMostReadItemSchema),
+});
+export type MeMostReadResponse = z.infer<typeof meMostReadResponseSchema>;
+
 /** Query: GET /me/can-write-in-scope – scope and scope id (company, department, or team). */
 export const meCanWriteInScopeQuerySchema = z
   .object({

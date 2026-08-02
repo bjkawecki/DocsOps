@@ -38,6 +38,10 @@ export function scopeArchiveUrl(scope: RecentScope): string {
   return `${scopeToUrl(scope)}/archive`;
 }
 
+export function scopeMostReadUrl(scope: RecentScope): string {
+  return `${scopeToUrl(scope)}/most-read`;
+}
+
 const LAST_CONTEXT_PREFIX = 'docsops:scope-context:';
 
 export function readLastScopeContextId(scopeKey: string): string | null {

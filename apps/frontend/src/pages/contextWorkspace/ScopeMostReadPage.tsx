@@ -1,7 +1,7 @@
-import { Box, Container, Flex, Paper, Text } from '@mantine/core';
+import { Box, Container, Flex, Paper, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
-import { ArchiveTabContent, TrashTabContent } from '../../components/trashArchive';
+import { MostReadListContent } from '../../components/mostRead/MostReadListContent.js';
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
@@ -13,12 +13,9 @@ import { ScopeContextSidebar } from './ScopeContextSidebar.js';
 import { scopeArchiveUrl, scopeMostReadUrl, scopeTrashUrl } from './contextPaths.js';
 import { useScopeSidebarNav } from './useScopeSidebarNav.js';
 
-export type ScopeTrashArchiveKind = 'trash' | 'archive';
-
 type Props = {
   navScope: RecentScope;
-  trashScope: TrashArchiveScope;
-  kind: ScopeTrashArchiveKind;
+  listScope: TrashArchiveScope;
   scopeLabel?: string;
   canManage: boolean;
   companyId?: string;
@@ -27,12 +24,11 @@ type Props = {
 };
 
 /**
- * Lead-only trash/archive view for a scope – same two-column chrome as the context workspace.
+ * Lead-only most-read view for a scope – same two-column chrome as the context workspace.
  */
-export function ScopeTrashArchivePage({
+export function ScopeMostReadPage({
   navScope,
-  trashScope,
-  kind,
+  listScope,
   scopeLabel,
   canManage,
   companyId,
@@ -43,13 +39,8 @@ export function ScopeTrashArchivePage({
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
   const trailSuffix = useMemo((): AppShellBreadcrumbItem[] => {
-    return [
-      {
-        key: kind,
-        label: kind === 'trash' ? 'Trash' : 'Archive',
-      },
-    ];
-  }, [kind]);
+    return [{ key: 'most-read', label: 'Most read' }];
+  }, []);
   useRegisterScopePageChrome(navScope, scopeLabel, null, trailSuffix);
 
   const trashArchive = {
@@ -59,7 +50,7 @@ export function ScopeTrashArchivePage({
   };
 
   const handleContextNavClick = () => {
-    // Link navigation only; no selection toggle on trash/archive.
+    // Link navigation only; no selection toggle on most-read.
   };
 
   if (isPending) {
@@ -72,8 +63,6 @@ export function ScopeTrashArchivePage({
   if (!allowed) {
     return <Navigate to={scopeToUrl(navScope)} replace />;
   }
-
-  const contentProps = { scope: trashScope, companyId, departmentId, teamId };
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">
@@ -93,11 +82,15 @@ export function ScopeTrashArchivePage({
           />
 
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            {kind === 'trash' ? (
-              <TrashTabContent {...contentProps} />
-            ) : (
-              <ArchiveTabContent {...contentProps} />
-            )}
+            <Stack gap="md">
+              <Title order={3}>Most read</Title>
+              <MostReadListContent
+                scope={listScope}
+                companyId={companyId}
+                departmentId={departmentId}
+                teamId={teamId}
+              />
+            </Stack>
           </Box>
         </Flex>
       </Paper>
