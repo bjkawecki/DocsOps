@@ -195,4 +195,4 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Seed-Sprache: DE-Seed (Musterwerk IT GmbH) für Demo/Lab
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 
-**Nächster Schritt:** Host-Go-live (`docsops-demo` Ops-Skript, täglicher Reset-Cron, DNS `demo.docsops.de` / Landing `docsops.de`). Lokal erledigt: Rollenwahl-Login, Admin-403, Limits/Disclaimer, `pnpm --filter backend demo:reset`.
+**Nächster Schritt:** Öffentlicher Go-live (DNS `demo.docsops.de` / Landing `docsops.de`, Monitoring). Lokal/VM erledigt: `docsops-demo` (install/reset/cron/hosts), Rollenwahl-Login, Admin-403, Limits/Disclaimer, `pnpm --filter backend demo:reset`.

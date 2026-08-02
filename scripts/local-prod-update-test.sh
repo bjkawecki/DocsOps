@@ -110,9 +110,23 @@ build_agent_binary() {
   (cd "${ROOT}/apps/agent" && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o "$out" ./cmd/docsops-agent)
 }
 
+ensure_lab_landing_dist() {
+  if [[ -f "${ROOT}/apps/landing/dist/index.html" ]]; then
+    return 0
+  fi
+  log "Baue lab Landing-Dist …"
+  (
+    cd "$ROOT"
+    VITE_DEMO_URL=http://demo.docsops.local \
+      VITE_SITE_URL=http://docsops.local \
+      pnpm --filter landing build
+  )
+}
+
 build_bundles() {
   local version archive
   build_agent_binary
+  ensure_lab_landing_dist
   export DOCSOPS_AGENT_BINARY="${ROOT}/dist/docsops-agent"
   mkdir -p "$BUNDLE_DIR"
   for version in "$FROM_VERSION" "$TO_VERSION"; do

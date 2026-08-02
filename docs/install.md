@@ -62,73 +62,73 @@ Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barr
 
 ### VM-Lab (Landing + Demo auf einer Ubuntu-VM)
 
-Ziel: Release-naher Stack mit **einem** Caddy auf Port 80 und zwei Hostnamen.
+Ziel: Auf der VM ein Skript ausführen – danach sind Landing und Demo-App lokal erreichbar (ein Caddy auf Port 80, zwei Hostnamen).
 
 | Hostname             | Inhalt                                   |
 | -------------------- | ---------------------------------------- |
 | `docsops.local`      | Statische Landing (`apps/landing` Build) |
 | `demo.docsops.local` | Demo-App (`DEMO_MODE`, CSV-Seed)         |
 
-**1. Client-Hosts** (Laptop/Browser-Host):
+**Ein-Befehl-Setup** (empfohlen):
+
+```bash
+# Auf der VM (Release-Asset docsops-demo oder aus dem Bundle):
+sudo ./docsops-demo install --version v0.1.0
+
+# Mit lokalem Bundle + bereits geladenen Images (kein GHCR-Pull):
+DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.0.tar.gz \
+DOCSOPS_SKIP_IMAGE_PULL=1 \
+  sudo -E ./docsops-demo install --version v0.1.0
+```
+
+Das Skript richtet ein:
+
+- `/opt/docsops` (Bundle inkl. Lab-Compose + Landing-Dist)
+- `/etc/docsops/docsops.env` (`COMPOSE_PROJECT_NAME=docsops-demo`, Demo+Lab-Overlays)
+- `/etc/hosts` auf der VM (`docsops.local` / `demo.docsops.local` → Host-IP)
+- täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset` (Volumes wipe + Seed)
+- CLI unter `/usr/local/bin/docsops-demo` (`status`, `reset`, `update`, `logs`, `uninstall`)
+
+**Client-Hosts** (Laptop/Browser-Host – zusätzlich zur VM):
 
 ```text
 <VM-IP>  docsops.local demo.docsops.local
 ```
 
-**2. Env** `/etc/docsops/docsops.env` (Auszug):
+Die VM-IP zeigt das Install-Skript am Ende an.
+
+**Smoke** (von einem Host, der beide Namen auflöst):
 
 ```bash
-DOCSOPS_VERSION=v0.1.0
-DOCSOPS_IMAGE_PREFIX=ghcr.io/bjkawecki
-COMPOSE_PROJECT_NAME=docsops-demo
-SESSION_SECRET=…           # lang, zufällig
-BACKUP_ENCRYPTION_KEY=…    # 32+ Bytes, Base64 oder wie Prod
-ADMIN_EMAIL=admin@demo.docsops.local
-ADMIN_PASSWORD=DocsOps1
-LANDING_DIST_DIR=/opt/docsops/landing
+./scripts/lab/smoke-vm-lab.sh
+# oder auf der VM nach Install:
+docsops-demo status
 ```
 
-**3. Landing bauen** (auf einer Maschine mit Node/pnpm, z. B. Dev-Host):
+Login: Rollenwahl in `DEMO_MODE`, oder Seed-Accounts mit Passwort `DocsOps1`.
+
+Manuell ohne Ops-Skript (Auszug Env / Compose) – nur falls nötig:
 
 ```bash
-VITE_DEMO_URL=http://demo.docsops.local \
-VITE_SITE_URL=http://docsops.local \
-  make landing-build
-# dist nach VM kopieren:
-rsync -a apps/landing/dist/ user@vm:/opt/docsops/landing/
-```
+# Env /etc/docsops/docsops.env u. a.:
+# COMPOSE_PROJECT_NAME=docsops-demo
+# LANDING_DIST_DIR=/opt/docsops/landing
+# … siehe docsops-demo / write_demo_env_file
 
-**4. Stack starten** (im Bundle-Verzeichnis, z. B. `/opt/docsops`):
-
-```bash
-docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml \
-  -f docker-compose.demo.yml -f docker-compose.lab.yml \
-  pull
 docker compose --env-file /etc/docsops/docsops.env \
   -f docker-compose.yml -f docker-compose.prod.yml \
   -f docker-compose.demo.yml -f docker-compose.lab.yml \
   up -d
 ```
 
-Dateien `docker-compose.demo.yml`, `docker-compose.lab.yml` und `Caddyfile.lab` liegen ab `v0.1.0` im Release-Bundle. Nach einem Retag derselben Version immer `pull` und Container neu anlegen.
-
-**5. Smoke:** http://docsops.local → Demo-CTA → Login (Rollenwahl in `DEMO_MODE`, oder Seed-Accounts mit `DocsOps1`) → Org Musterwerk IT GmbH.
-
-Lokaler Domain-Reset (ohne Host-Ops-Skript), vom Repo:
+Lokaler Domain-Reset ohne Volume-Wipe (Dev-Checkout):
 
 ```bash
 cd apps/backend
 DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
 ```
 
-Automatisiert (von einem Host, der beide Namen auflöst):
-
-```bash
-chmod +x scripts/lab/smoke-vm-lab.sh   # im Repo-Checkout
-./scripts/lab/smoke-vm-lab.sh
-```
-
+Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo reset`
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---

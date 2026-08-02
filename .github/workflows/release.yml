@@ -132,6 +132,24 @@ jobs:
           name: docsops-agent-binaries
           path: dist
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build lab Landing (bundle asset)
+        env:
+          VITE_DEMO_URL: http://demo.docsops.local
+          VITE_SITE_URL: http://docsops.local
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --filter landing build
+
       - name: Build deploy bundle
         run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist
 
@@ -143,6 +161,7 @@ jobs:
             dist/docsops-${{ github.ref_name }}.tar.gz
             dist/install.sh
             dist/uninstall.sh
+            dist/docsops-demo
             dist/docsops-agent-linux-arm64
 
   install-test:
@@ -163,6 +182,24 @@ jobs:
         with:
           name: docsops-agent-binaries
           path: dist
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build lab Landing (bundle asset)
+        env:
+          VITE_DEMO_URL: http://demo.docsops.local
+          VITE_SITE_URL: http://docsops.local
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --filter landing build
 
       - name: Build deploy bundle for CI
         run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist
@@ -234,6 +271,7 @@ jobs:
             dist/docsops-${{ github.ref_name }}.tar.gz
             dist/install.sh
             dist/uninstall.sh
+            dist/docsops-demo
             dist/docsops-agent-linux-arm64
           generate_release_notes: true
         env:

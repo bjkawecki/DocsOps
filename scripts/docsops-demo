@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+# DocsOps demo / local VM lab host CLI.
+# Enter the VM, run: sudo docsops-demo install
+# Then landing (docsops.local) + app (demo.docsops.local) are reachable.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
+DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
+
+_docsops_demo_die() {
+  echo "Fehler: $*" >&2
+  exit 1
+}
+
+_docsops_demo_bootstrap_from_release() {
+  local version archive stage extracted url
+  version="${DOCSOPS_VERSION:-}"
+  if [[ -z "$version" ]]; then
+    version="$(curl -fsSL "https://api.github.com/repos/${DOCSOPS_GITHUB_REPO}/releases/latest" \
+      | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
+  fi
+  [[ -n "$version" ]] || _docsops_demo_die "Kein Release ermittelbar (DOCSOPS_VERSION setzen)."
+  install -d -m 755 "$DOCSOPS_INSTALL_DIR"
+  if [[ -n "${DOCSOPS_BUNDLE_PATH:-}" ]]; then
+    archive="$DOCSOPS_BUNDLE_PATH"
+    [[ -f "$archive" ]] || _docsops_demo_die "DOCSOPS_BUNDLE_PATH fehlt: ${archive}"
+  else
+    url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
+    archive="$(mktemp /tmp/docsops-demo-boot-XXXXXX.tar.gz)"
+    echo "==> Bootstrap: lade ${url}"
+    curl -fsSL -o "$archive" "$url" || _docsops_demo_die "Bundle-Download fehlgeschlagen"
+  fi
+  stage="$(mktemp -d)"
+  tar -xzf "$archive" -C "$stage"
+  extracted=""
+  for item in "$stage"/*; do
+    if [[ -f "${item}/scripts/docsops-demo" ]]; then
+      extracted="$item"
+      break
+    fi
+  done
+  [[ -n "$extracted" ]] || _docsops_demo_die "Ungültiges Bundle (scripts/docsops-demo fehlt)"
+  cp -a "${extracted}/." "${DOCSOPS_INSTALL_DIR}/"
+  echo "$version" >"${DOCSOPS_INSTALL_DIR}/VERSION"
+  [[ -z "${DOCSOPS_BUNDLE_PATH:-}" ]] && rm -f "$archive"
+  rm -rf "$stage"
+  export DOCSOPS_VERSION="$version"
+  exec "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo" "$@"
+}
+
+# When installed to /usr/local/bin, libs live under DOCSOPS_INSTALL_DIR.
+if [[ -f "${SCRIPT_DIR}/install/lib/common.sh" ]]; then
+  # shellcheck source=install/lib/common.sh
+  source "${SCRIPT_DIR}/install/lib/common.sh"
+  # shellcheck source=install/lib/demo.sh
+  source "${SCRIPT_DIR}/install/lib/demo.sh"
+elif [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh" ]]; then
+  # shellcheck source=install/lib/common.sh
+  source "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/common.sh"
+  # shellcheck source=install/lib/demo.sh
+  source "${DOCSOPS_INSTALL_DIR}/scripts/install/lib/demo.sh"
+else
+  _docsops_demo_bootstrap_from_release "$@"
+fi
+
+RECONFIGURE=0
+SKIP_CRON=0
+SKIP_HOSTS=0
+INSTALL_SYSTEMD=0
+VERSION_ARG=""
+
+usage() {
+  cat <<EOF
+Usage: docsops-demo <command> [options]
+
+Local VM lab: Landing + Demo-App on one host (HTTP :80).
+  Landing:  http://docsops.local/
+  Demo-App: http://demo.docsops.local/
+
+Commands:
+  install     Bundle + env + /etc/hosts + landing + compose + daily reset cron
+  reset       Wipe demo volumes and reseed (also used by cron)
+  update      Update to a release (bundle + images), keep demo overlays
+  status      Compose status + health checks
+  logs        Follow compose logs (optional service name)
+  uninstall   Stop stack, remove cron/hosts (optional --keep-data / --keep-config)
+
+Install options:
+  --version vX.Y.Z   Pin release (otherwise list GitHub tags / use VERSION file)
+  --reconfigure      Rewrite /etc/docsops/docsops.env (new secrets)
+  --skip-cron        Do not install /etc/cron.d/docsops-demo
+  --skip-hosts       Do not modify /etc/hosts
+  --install-systemd  Register docsops.service for reboot autostart
+  -h, --help         This help
+
+Environment:
+  DOCSOPS_NON_INTERACTIVE=1   No prompts (defaults: admin@demo.docsops.local / DocsOps1)
+  DOCSOPS_ASSUME_YES=1        Skip backup-key confirmation
+  DOCSOPS_BUNDLE_PATH=…       Local docsops-vX.Y.Z.tar.gz (no GitHub download)
+  DOCSOPS_SKIP_IMAGE_PULL=1   Use images already on the host (docker load)
+  DOCSOPS_LANDING_DIST=…      Path to apps/landing/dist if missing from bundle
+  DOCSOPS_LAB_HOSTS_IP=…      IP written into /etc/hosts (default: primary host IP)
+  DOCSOPS_DEMO_RESET_HOUR=4   Cron hour for daily reset (0–23)
+EOF
+}
+
+parse_install_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --version)
+        VERSION_ARG="${2:-}"
+        [[ -n "$VERSION_ARG" ]] || die "--version braucht ein Argument (vX.Y.Z)"
+        shift 2
+        ;;
+      --version=*)
+        VERSION_ARG="${1#--version=}"
+        shift
+        ;;
+      --reconfigure)
+        RECONFIGURE=1
+        export DOCSOPS_RECONFIGURE=1
+        shift
+        ;;
+      --skip-cron)
+        SKIP_CRON=1
+        shift
+        ;;
+      --skip-hosts)
+        SKIP_HOSTS=1
+        shift
+        ;;
+      --install-systemd)
+        INSTALL_SYSTEMD=1
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *)
+        die "Unbekanntes Argument: $1"
+        ;;
+    esac
+  done
+}
+
+resolve_demo_script_source() {
+  if [[ -f "${SCRIPT_DIR}/docsops-demo" ]]; then
+    echo "${SCRIPT_DIR}/docsops-demo"
+  elif [[ -f "${BASH_SOURCE[0]}" ]]; then
+    readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}"
+  else
+    die "Kann Quellpfad von docsops-demo nicht ermitteln."
+  fi
+}
+
+cmd_install() {
+  parse_install_args "$@"
+  require_root
+
+  local version self_src
+  version="$(prompt_demo_release_version "$VERSION_ARG")"
+  export DOCSOPS_VERSION="$version"
+
+  local stage_total=7
+  if [[ "$SKIP_HOSTS" != "1" ]]; then stage_total=$((stage_total + 1)); fi
+  if [[ "$SKIP_CRON" != "1" ]]; then stage_total=$((stage_total + 1)); fi
+  if [[ "$INSTALL_SYSTEMD" == "1" ]]; then stage_total=$((stage_total + 1)); fi
+  export DOCSOPS_INSTALL_STAGE_TOTAL=$stage_total
+  INSTALL_STAGE_N=0
+
+  install_stage "Release-Bundle"
+  download_demo_release_bundle "$version"
+  resolve_install_dir || die "Bundle unvollständig unter ${DOCSOPS_INSTALL_DIR}"
+
+  install_stage "Voraussetzungen"
+  ensure_docker_compose
+  require_publish_port_free
+
+  install_stage "Konfiguration"
+  if [[ "$RECONFIGURE" == "1" || ! -f "$DOCSOPS_ENV_FILE" ]]; then
+    export DOCSOPS_RECONFIGURE=1
+    export ADMIN_EMAIL="${ADMIN_EMAIL:-admin@demo.docsops.local}"
+    export ADMIN_PASSWORD="${ADMIN_PASSWORD:-DocsOps1}"
+    write_demo_env_file
+  else
+    log "Bestehende Konfiguration: ${DOCSOPS_ENV_FILE}"
+    load_demo_env
+    patch_env_version "$version"
+  fi
+
+  if [[ "$SKIP_HOSTS" != "1" ]]; then
+    install_stage "DNS /etc/hosts"
+    install_lab_hosts
+  fi
+
+  install_stage "Landing"
+  ensure_landing_dist
+
+  install_stage "Docker-Stack (demo + lab)"
+  compose_up_demo
+
+  install_stage "Bereitschaft prüfen"
+  wait_for_health
+
+  install_stage "CLI + Agent"
+  self_src="$(resolve_demo_script_source)"
+  # Prefer copy from install dir after sync
+  if [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo" ]]; then
+    self_src="${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo"
+  fi
+  install_docsops_demo_bin "$self_src"
+  install_agent_binary
+  install_agent_systemd_unit
+
+  if [[ "$SKIP_CRON" != "1" ]]; then
+    install_stage "Täglicher Reset (cron)"
+    install_demo_cron
+  fi
+
+  if [[ "$INSTALL_SYSTEMD" == "1" ]]; then
+    install_stage "systemd Stack-Autostart"
+    install_demo_systemd_unit
+  fi
+
+  print_demo_finish
+}
+
+install_demo_systemd_unit() {
+  cat >/etc/systemd/system/docsops.service <<EOF
+[Unit]
+Description=DocsOps Demo / VM-Lab (Docker Compose)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=${DOCSOPS_INSTALL_DIR}
+EnvironmentFile=${DOCSOPS_ENV_FILE}
+ExecStart=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} up -d
+ExecStop=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl daemon-reload
+  systemctl enable docsops.service
+  log "systemd-Unit docsops.service aktiviert (nutzt COMPOSE_FILE / EXTRA aus Env)"
+}
+
+cmd_reset() {
+  require_root
+  resolve_install_dir || die "Keine Installation unter ${DOCSOPS_INSTALL_DIR}"
+  load_demo_env
+  ensure_landing_dist
+  compose_reset_demo
+  wait_for_health
+  log "Demo-Reset abgeschlossen."
+}
+
+cmd_update() {
+  local version="${1:-}"
+  require_root
+  resolve_install_dir || die "Keine Installation unter ${DOCSOPS_INSTALL_DIR}"
+  load_demo_env
+
+  if [[ "$version" == "-h" || "$version" == "--help" ]]; then
+    usage
+    exit 0
+  fi
+  if [[ "$version" == "--version" ]]; then
+    version="${2:-}"
+  fi
+
+  version="$(prompt_demo_release_version "$version")"
+  export DOCSOPS_VERSION="$version"
+
+  download_demo_release_bundle "$version"
+  patch_env_version "$version"
+  load_demo_env
+  ensure_landing_dist
+  # Refresh landing from new bundle if present
+  if [[ -f "${DOCSOPS_INSTALL_DIR}/landing-dist/index.html" ]]; then
+    rm -rf "${LANDING_DIST_DIR:?}/"*
+    cp -a "${DOCSOPS_INSTALL_DIR}/landing-dist/." "${LANDING_DIST_DIR}/"
+  fi
+  compose_up_demo
+  wait_for_health
+  if [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo" ]]; then
+    install_docsops_demo_bin "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo"
+  fi
+  log "Update auf ${version} abgeschlossen."
+  print_demo_finish
+}
+
+cmd_status() {
+  resolve_install_dir || die "Keine Installation unter ${DOCSOPS_INSTALL_DIR}"
+  load_demo_env
+  compose_stack_setup
+  echo "== Compose =="
+  compose_stack_cmd ps -a || true
+  echo ""
+  echo "== Health =="
+  local landing_host demo_host code
+  landing_host="${DOCSOPS_LAB_LANDING_HOST}"
+  demo_host="${DOCSOPS_LAB_DEMO_HOST}"
+  code="$(curl -s -o /dev/null -w '%{http_code}' "http://${landing_host}/" || true)"
+  echo "landing http://${landing_host}/ → ${code}"
+  code="$(curl -s -o /dev/null -w '%{http_code}' "http://${demo_host}/health" || true)"
+  echo "demo   http://${demo_host}/health → ${code}"
+  code="$(curl -s -o /dev/null -w '%{http_code}' "http://${demo_host}/ready" || true)"
+  echo "demo   http://${demo_host}/ready → ${code}"
+}
+
+cmd_logs() {
+  resolve_install_dir || die "Keine Installation unter ${DOCSOPS_INSTALL_DIR}"
+  load_demo_env
+  compose_stack_setup
+  if [[ $# -gt 0 ]]; then
+    compose_stack_cmd logs -f --tail=100 "$@"
+  else
+    compose_stack_cmd logs -f --tail=100
+  fi
+}
+
+cmd_uninstall() {
+  local keep_data=0 keep_config=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --keep-data) keep_data=1; shift ;;
+      --keep-config) keep_config=1; shift ;;
+      -h | --help) usage; exit 0 ;;
+      *) die "Unbekanntes Argument: $1" ;;
+    esac
+  done
+  require_root
+  if [[ -f "$DOCSOPS_ENV_FILE" ]]; then
+    load_demo_env || true
+  fi
+  if resolve_install_dir 2>/dev/null; then
+    export_demo_compose_env
+    compose_stack_setup || true
+    if [[ "$keep_data" == "1" ]]; then
+      compose_stack_cmd down || true
+    else
+      compose_stack_cmd down -v || true
+    fi
+  fi
+  remove_demo_cron
+  remove_lab_hosts
+  rm -f /usr/local/bin/docsops-demo
+  if [[ "$keep_config" != "1" ]]; then
+    rm -f "$DOCSOPS_ENV_FILE"
+  fi
+  log "Demo-Uninstall fertig (Install-Dir ${DOCSOPS_INSTALL_DIR} bleibt; bei Bedarf manuell löschen)."
+}
+
+main() {
+  local cmd="${1:-}"
+  shift || true
+  case "$cmd" in
+    install) cmd_install "$@" ;;
+    reset | reinstall) cmd_reset "$@" ;;
+    update) cmd_update "$@" ;;
+    status) cmd_status "$@" ;;
+    logs) cmd_logs "$@" ;;
+    uninstall) cmd_uninstall "$@" ;;
+    -h | --help | help | "")
+      usage
+      [[ -n "$cmd" && "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" ]] || exit 0
+      exit 0
+      ;;
+    *)
+      echo "Unbekannter Befehl: ${cmd}" >&2
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
