@@ -120,11 +120,20 @@ export function ContextWorkspacePage() {
   });
   const tagOptions = (tagsData ?? []).map((tag) => ({ value: tag.id, label: tag.name }));
 
+  const ownerCompanyId = data?.owner.companyId ?? null;
+  const ownerDepartmentId = data?.owner.departmentId ?? null;
+  const ownerTeamId = data?.owner.teamId ?? null;
+  const ownerUserId = data?.owner.ownerUserId ?? null;
+
   const scope: RecentScope | null = useMemo(
-    () => (data ? ownerToScopeForBreadcrumb(data.owner) : null),
-    // Owner ids are the identity; avoid new object each render (breaks chrome memo/effects).
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by owner FK fields
-    [data?.owner.companyId, data?.owner.departmentId, data?.owner.teamId, data?.owner.ownerUserId]
+    () =>
+      ownerToScopeForBreadcrumb({
+        companyId: ownerCompanyId,
+        departmentId: ownerDepartmentId,
+        teamId: ownerTeamId,
+        ownerUserId: ownerUserId,
+      }),
+    [ownerCompanyId, ownerDepartmentId, ownerTeamId, ownerUserId]
   );
   const scopeName =
     data?.owner.displayName ?? (scope ? scopeToLabel(scope) : t('workspace.overviewFallback'));
@@ -140,36 +149,27 @@ export function ContextWorkspacePage() {
   useEffect(() => {
     if (!data || data.id !== contextId || !recentActions) return;
     if (data.contextType !== 'process' && data.contextType !== 'project') return;
-    const itemScope = ownerToScopeForBreadcrumb(data.owner);
+    const itemScope = ownerToScopeForBreadcrumb({
+      companyId: ownerCompanyId,
+      departmentId: ownerDepartmentId,
+      teamId: ownerTeamId,
+      ownerUserId: ownerUserId,
+    });
     if (itemScope) {
       recentActions.addRecent({ type: data.contextType, id: data.id, name: data.name }, itemScope);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- owner identity via FK fields below
-  }, [
-    contextId,
-    data?.id,
-    data?.name,
-    data?.contextType,
-    data?.owner.companyId,
-    data?.owner.departmentId,
-    data?.owner.teamId,
-    data?.owner.ownerUserId,
-    recentActions,
-  ]);
+  }, [contextId, data, ownerCompanyId, ownerDepartmentId, ownerTeamId, ownerUserId, recentActions]);
 
   useEffect(() => {
     if (!data || data.id !== contextId) return;
-    const itemScope = ownerToScopeForBreadcrumb(data.owner);
+    const itemScope = ownerToScopeForBreadcrumb({
+      companyId: ownerCompanyId,
+      departmentId: ownerDepartmentId,
+      teamId: ownerTeamId,
+      ownerUserId: ownerUserId,
+    });
     if (itemScope) writeLastScopeContextId(scopeToKey(itemScope), data.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- owner identity via FK fields below
-  }, [
-    contextId,
-    data?.id,
-    data?.owner.companyId,
-    data?.owner.departmentId,
-    data?.owner.teamId,
-    data?.owner.ownerUserId,
-  ]);
+  }, [contextId, data, ownerCompanyId, ownerDepartmentId, ownerTeamId, ownerUserId]);
 
   const contextReady = data != null && data.id === contextId;
   const showContextDetail = contextReady && contextSelected;
@@ -194,8 +194,7 @@ export function ContextWorkspacePage() {
       contextType: data.contextType,
       contextName: data.name,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- scope identity via scopeKey
-  }, [showContextDetail, data, scope, scopeKey, scopeName]);
+  }, [showContextDetail, data, scope, scopeName]);
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
 
@@ -210,9 +209,8 @@ export function ContextWorkspacePage() {
         }
       : null;
 
-  const breadcrumbActions = useMemo(() => {
-    if (!showContextDetail || !data?.canWriteContext) return null;
-    return (
+  const breadcrumbActions =
+    showContextDetail && data?.canWriteContext ? (
       <Group gap="xs">
         <Button variant="filled" size="sm" onClick={actions.openNewDoc}>
           {t('workspace.newDraft')}
@@ -259,17 +257,7 @@ export function ContextWorkspacePage() {
           </Menu.Dropdown>
         </Menu>
       </Group>
-    );
-    // Handlers close over current data; re-sync when write/type/id change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- syncKey drives shell update
-  }, [
-    showContextDetail,
-    data?.canWriteContext,
-    data?.contextType,
-    contextId,
-    actions.openNewDoc,
-    actions.openDelete,
-  ]);
+    ) : null;
 
   useSetAppShellBreadcrumbActions(
     breadcrumbActions,

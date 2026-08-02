@@ -150,20 +150,23 @@ export function DocumentTypePicker({
   );
   const customTypes = useMemo(() => items.filter((dt) => dt.source === 'custom'), [items]);
 
+  const flatOptions = useMemo((): FlatOption[] => {
+    const mapOption = (type: DocumentTypeDto): FlatOption => ({
+      value: optionValueForType(type, applyTemplateOnSelect),
+      label: localizedDocumentTypeLabel(type, i18n.language),
+    });
+    return [
+      { value: BLANK_OPTION_VALUE, label: blankLabel },
+      ...processTypes.map(mapOption),
+      ...projectTypes.map(mapOption),
+      ...customTypes.map(mapOption),
+    ];
+  }, [applyTemplateOnSelect, blankLabel, customTypes, i18n.language, processTypes, projectTypes]);
+
   const toOption = (type: DocumentTypeDto): FlatOption => ({
     value: optionValueForType(type, applyTemplateOnSelect),
     label: typeLabel(type),
   });
-
-  const flatOptions = useMemo((): FlatOption[] => {
-    return [
-      { value: BLANK_OPTION_VALUE, label: blankLabel },
-      ...processTypes.map(toOption),
-      ...projectTypes.map(toOption),
-      ...customTypes.map(toOption),
-    ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- lists + apply flag + locale
-  }, [applyTemplateOnSelect, blankLabel, customTypes, i18n.language, processTypes, projectTypes]);
 
   const keyboardKey =
     combobox.dropdownOpened && combobox.selectedOptionIndex >= 0

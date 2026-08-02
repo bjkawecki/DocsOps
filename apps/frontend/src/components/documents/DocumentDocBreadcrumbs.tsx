@@ -130,9 +130,24 @@ export function DocumentDocBreadcrumbs({
 }: DocumentDocBreadcrumbsProps) {
   const { t } = useTranslation('documents');
   const items = useMemo(
-    () => buildDocumentBreadcrumbItems(documentId, doc, t, linkDocumentTitle),
-    // Title/context fields drive the trail; avoid depending on whole `doc` identity.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by breadcrumb fields
+    () =>
+      buildDocumentBreadcrumbItems(
+        documentId,
+        {
+          title: doc.title,
+          contextId: doc.contextId,
+          contextType: doc.contextType,
+          contextName: doc.contextName,
+          contextProcessId: doc.contextProcessId,
+          contextProjectId: doc.contextProjectId,
+          contextProjectName: doc.contextProjectName,
+          subcontextId: doc.subcontextId,
+          subcontextName: doc.subcontextName,
+          scope: doc.scope,
+        },
+        t,
+        linkDocumentTitle
+      ),
     [
       documentId,
       linkDocumentTitle,

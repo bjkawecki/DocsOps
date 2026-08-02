@@ -121,10 +121,10 @@ export function ScopePeopleMenu({
         ? deptAuthorMutations.isPending
         : false;
 
+  const refetchPeople = activeQuery.refetch;
   useEffect(() => {
-    if (opened) void activeQuery.refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch only when menu opens
-  }, [opened, scope, scopeId]);
+    if (opened) void refetchPeople();
+  }, [opened, scope, scopeId, refetchPeople]);
 
   const buttonLabel = scope === 'company' ? t('shell:nav.organization') : t('shell:people');
 

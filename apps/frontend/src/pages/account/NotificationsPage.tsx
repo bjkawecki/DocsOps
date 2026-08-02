@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -86,43 +86,30 @@ export function NotificationsPage() {
 
   const totalLabel = listTotal == null ? null : t('page.total', { count: listTotal });
 
-  const breadcrumbActions = useMemo(
-    () => (
-      <Group gap="md" wrap="nowrap" align="center">
-        {totalLabel != null ? (
-          <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-            {totalLabel}
-          </Text>
-        ) : null}
-        <Switch
-          size="sm"
-          label={t('page.unreadOnly')}
-          checked={unreadOnly}
-          onChange={(event) => {
-            handleUnreadOnlyChange(event.currentTarget.checked);
-          }}
-        />
-        <Button
-          size="sm"
-          variant="default"
-          onClick={() => markAllAsRead.mutate()}
-          disabled={markAllAsRead.isPending || !canMarkAll}
-        >
-          {t('page.markAllAsRead')}
-        </Button>
-      </Group>
-    ),
-    // mutate identity is stable; syncKey below drives shell refresh
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- unreadOnly + canMarkAll + pending + total
-    [
-      totalLabel,
-      unreadOnly,
-      canMarkAll,
-      markAllAsRead.isPending,
-      markAllAsRead.mutate,
-      handleUnreadOnlyChange,
-      t,
-    ]
+  const breadcrumbActions = (
+    <Group gap="md" wrap="nowrap" align="center">
+      {totalLabel != null ? (
+        <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+          {totalLabel}
+        </Text>
+      ) : null}
+      <Switch
+        size="sm"
+        label={t('page.unreadOnly')}
+        checked={unreadOnly}
+        onChange={(event) => {
+          handleUnreadOnlyChange(event.currentTarget.checked);
+        }}
+      />
+      <Button
+        size="sm"
+        variant="default"
+        onClick={() => markAllAsRead.mutate()}
+        disabled={markAllAsRead.isPending || !canMarkAll}
+      >
+        {t('page.markAllAsRead')}
+      </Button>
+    </Group>
   );
 
   useSetAppShellBreadcrumbActions(

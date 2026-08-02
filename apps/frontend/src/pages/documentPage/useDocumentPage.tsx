@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- document page view-model orchestrates load/edit/move/tags */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,21 +7,17 @@ import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
-import { scopeToUrl } from '../../lib/scopeNav';
 import { useRecentItemsActions } from '../../hooks/useRecentItems';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import { collaborationHintQueryKey } from '../../components/documents/documentLeadDraft/leadDraftQuery.js';
 import type { DocumentCollaborationHint } from '../../hooks/useLiveEvents.js';
-import {
-  invalidateDocumentArchivedTransitionCaches,
-  invalidateDocumentIndexCaches,
-  invalidateMeDraftsAndPersonalDocuments,
-} from './documentQueryInvalidation';
 import { getBlockDocumentHeadingData } from './blockDocumentHeadings';
 import { withHeadingNumbering } from './documentMarkdown';
-import type { DocumentResponse } from './documentPageTypes';
 import { useDocumentPageKeyboardEffects } from './useDocumentPageKeyboardEffects';
 import { useDocumentPageSecondaryQueries } from './useDocumentPageSecondaryQueries';
+import { useDocumentPageEditActions } from './useDocumentPageEditActions';
+import { useDocumentPageContextActions } from './useDocumentPageContextActions';
+import { useDocumentPageLifecycleActions } from './useDocumentPageLifecycleActions';
 import { fetchDocument } from './fetchDocument';
 import {
   showPdfExportQueuedNotification,
@@ -109,21 +104,69 @@ export function useDocumentPage() {
       pdfExportJobId,
     });
 
-  useEffect(() => {
-    if (data) {
-      setEditTitle(data.title);
-      setEditDescription(data.description ?? '');
-      setEditTagIds(data.documentTags.map((dt) => dt.tag.id));
-      const key = data.documentTypeKey;
-      setEditTypeId(
-        key == null || key.length === 0
-          ? null
-          : key.startsWith('custom:')
-            ? key.slice('custom:'.length)
-            : key
-      );
-    }
-  }, [data]);
+  const { handleSave, handleEditClick, handleCancelEdit, handlePublish, hasUnsavedChanges } =
+    useDocumentPageEditActions({
+      documentId,
+      data,
+      queryClient,
+      t,
+      searchParams,
+      setSearchParams,
+      setMode,
+      setEditTab,
+      editTitle,
+      setEditTitle,
+      editDescription,
+      setEditDescription,
+      editTagIds,
+      setEditTagIds,
+      editTypeId,
+      setEditTypeId,
+      editInitialSnapshot,
+      setEditInitialSnapshot,
+      setSaveLoading,
+      setPublishLoading,
+      leadDraftDirty,
+      setLeadDraftDirty,
+      setAckPublishedVersion,
+    });
+
+  const {
+    handleAssignContext,
+    onCloseMoveContext,
+    onCloseAssignContext,
+    moveTargetIsCrossOwner,
+    handleMoveContext,
+    handleMoveRequestDecision,
+  } = useDocumentPageContextActions({
+    documentId,
+    data,
+    contextOwnerId,
+    queryClient,
+    t,
+    assignContextId,
+    setAssignContextId,
+    closeAssignContext,
+    setAssignContextLoading,
+    moveContextId,
+    setMoveContextId,
+    closeMoveContext,
+    moveRequestNote,
+    setMoveRequestNote,
+    moveContextOptions,
+    setMoveContextLoading,
+    setMoveDecisionLoading,
+  });
+
+  const { handleDeleteConfirm, handleArchive, handleUnarchive } = useDocumentPageLifecycleActions({
+    documentId,
+    data,
+    queryClient,
+    t,
+    navigate,
+    setDeleteLoading,
+    closeDelete,
+  });
 
   useEffect(() => {
     if (data?.currentPublishedVersionNumber == null) return;
@@ -161,42 +204,6 @@ export function useDocumentPage() {
       queryClient.removeQueries({ queryKey: collaborationHintQueryKey(documentId) });
     }
   }, [documentId, queryClient]);
-
-  const clearEditUrlParams = useCallback(() => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('mode');
-        next.delete('tab');
-        return next;
-      },
-      { replace: true }
-    );
-  }, [setSearchParams]);
-
-  const syncEditUrlParams = useCallback(
-    (tab: 'draft' | 'metadata' | 'access') => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          next.set('mode', 'edit');
-          next.set('tab', tab);
-          return next;
-        },
-        { replace: true }
-      );
-    },
-    [setSearchParams]
-  );
-
-  useEffect(() => {
-    const urlMode = searchParams.get('mode');
-    const urlTab = searchParams.get('tab');
-    if (urlMode === 'edit') setMode('edit');
-    if (urlTab === 'draft' || urlTab === 'metadata' || urlTab === 'access') {
-      setEditTab(urlTab);
-    }
-  }, [documentId, searchParams]);
 
   useEffect(() => {
     if (data?.title) {
@@ -291,351 +298,6 @@ export function useDocumentPage() {
     draftDiffersFromPublished,
   ]);
 
-  const handleDeleteConfirm = async () => {
-    if (!documentId) return;
-    setDeleteLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/documents/${documentId}`, { method: 'DELETE' });
-      if (res.status === 204) {
-        invalidateDocumentIndexCaches(queryClient, documentId, data?.contextId);
-        void queryClient.invalidateQueries({ queryKey: ['me', 'trash'] });
-        closeDelete();
-        notifications.show({
-          title: t('documentPage.toasts.movedToTrashTitle'),
-          message: t('documentPage.toasts.movedToTrashMessage'),
-          color: 'green',
-        });
-        const scope = data?.scope;
-        const target = scope != null ? scopeToUrl(scope) : '/catalog';
-        void navigate(target, { replace: true });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
-  const handleArchive = async () => {
-    if (!documentId) return;
-    const res = await apiFetch(`/api/v1/documents/${documentId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ archivedAt: new Date().toISOString() }),
-    });
-    if (res.ok) {
-      invalidateDocumentArchivedTransitionCaches(queryClient, documentId, data?.contextId);
-      notifications.show({
-        title: t('documentPage.toasts.archivedTitle'),
-        message: t('documentPage.toasts.archivedMessage'),
-        color: 'green',
-      });
-      const scope = data?.scope;
-      const target = scope != null ? scopeToUrl(scope) : '/catalog';
-      void navigate(target, { replace: true });
-    } else {
-      void notifyApiErrorResponse(res);
-    }
-  };
-
-  const handleUnarchive = async () => {
-    if (!documentId) return;
-    const res = await apiFetch(`/api/v1/documents/${documentId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ archivedAt: null }),
-    });
-    if (res.ok) {
-      invalidateDocumentArchivedTransitionCaches(queryClient, documentId, data?.contextId);
-      notifications.show({
-        title: t('documentPage.toasts.unarchivedTitle'),
-        message: t('documentPage.toasts.unarchivedMessage'),
-        color: 'green',
-      });
-    } else {
-      void notifyApiErrorResponse(res);
-    }
-  };
-
-  const handleSave = useCallback(async () => {
-    if (!documentId || !data) return;
-    setSaveLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/documents/${documentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editTitle.trim() || data.title,
-          ...(editDescription.trim()
-            ? { description: editDescription.trim() }
-            : { description: null }),
-          tagIds: editTagIds,
-        }),
-      });
-      if (!res.ok) {
-        void notifyApiErrorResponse(res);
-        return;
-      }
-
-      const initialTypeId = editInitialSnapshot?.typeId ?? null;
-      if (editTypeId !== initialTypeId) {
-        const typeRes = await apiFetch(`/api/v1/documents/${documentId}/document-type`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ typeId: editTypeId }),
-        });
-        if (!typeRes.ok) {
-          void notifyApiErrorResponse(typeRes);
-          return;
-        }
-      }
-
-      invalidateDocumentIndexCaches(queryClient, documentId, data.contextId);
-      setMode('view');
-      setEditInitialSnapshot(null);
-      clearEditUrlParams();
-      notifications.show({
-        title: t('common:toasts.saved'),
-        message: t('documentPage.toasts.savedMessage'),
-        color: 'green',
-      });
-    } finally {
-      setSaveLoading(false);
-    }
-  }, [
-    clearEditUrlParams,
-    data,
-    documentId,
-    editDescription,
-    editInitialSnapshot?.typeId,
-    editTagIds,
-    editTitle,
-    editTypeId,
-    queryClient,
-    t,
-  ]);
-
-  const handleEditClick = () => {
-    if (!data) return;
-    setEditTab('draft');
-    setLeadDraftDirty(false);
-    const key = data.documentTypeKey;
-    const typeId =
-      key == null || key.length === 0
-        ? null
-        : key.startsWith('custom:')
-          ? key.slice('custom:'.length)
-          : key;
-    setEditInitialSnapshot({
-      title: data.title,
-      description: data.description ?? '',
-      tagIds: data.documentTags.map((dt) => dt.tag.id),
-      typeId,
-    });
-    setMode('edit');
-    syncEditUrlParams('draft');
-  };
-
-  const handleCancelEdit = () => {
-    const dirtyMetadata =
-      editInitialSnapshot != null &&
-      (editTitle !== editInitialSnapshot.title ||
-        editDescription !== editInitialSnapshot.description ||
-        editTagIds.join(',') !== editInitialSnapshot.tagIds.join(',') ||
-        editTypeId !== editInitialSnapshot.typeId);
-    const dirty = dirtyMetadata || leadDraftDirty;
-    if (dirty) {
-      const ok = window.confirm(t('documentPage.confirmDiscardChanges'));
-      if (!ok) return;
-    }
-    setMode('view');
-    setEditInitialSnapshot(null);
-    setLeadDraftDirty(false);
-    clearEditUrlParams();
-  };
-
-  const handlePublish = async () => {
-    if (!documentId) return;
-    setPublishLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/documents/${documentId}/publish`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        const published = (await res.json()) as DocumentResponse;
-        queryClient.setQueryData(['document', documentId], published);
-        const publishedVersion = published.currentPublishedVersionNumber;
-        if (publishedVersion != null) {
-          setAckPublishedVersion(publishedVersion);
-        }
-        invalidateDocumentIndexCaches(queryClient, documentId, data?.contextId);
-        invalidateMeDraftsAndPersonalDocuments(queryClient);
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId, 'lead-draft'] });
-        setMode('view');
-        setEditInitialSnapshot(null);
-        setLeadDraftDirty(false);
-        clearEditUrlParams();
-        const isRepublish = Boolean(data?.publishedAt);
-        notifications.show({
-          title: isRepublish
-            ? t('documentPage.toasts.publishedChangesTitle')
-            : t('documentPage.toasts.publishedTitle'),
-          message: isRepublish
-            ? t('documentPage.toasts.publishedChangesMessage')
-            : t('documentPage.toasts.publishedMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setPublishLoading(false);
-    }
-  };
-
-  const handleAssignContext = async () => {
-    if (!documentId || !assignContextId) return;
-    setAssignContextLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/documents/${documentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contextId: assignContextId }),
-      });
-      if (res.ok) {
-        closeAssignContext();
-        if (data?.contextId)
-          void queryClient.invalidateQueries({
-            queryKey: ['contexts', data.contextId, 'documents'],
-          });
-        if (assignContextId)
-          void queryClient.invalidateQueries({
-            queryKey: ['contexts', assignContextId, 'documents'],
-          });
-        setAssignContextId(null);
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-        void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
-        void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
-        notifications.show({
-          title: t('documentPage.toasts.contextAssignedTitle'),
-          message: t('documentPage.toasts.contextAssignedMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setAssignContextLoading(false);
-    }
-  };
-
-  const onCloseMoveContext = () => {
-    closeMoveContext();
-    setMoveContextId(null);
-    setMoveRequestNote('');
-  };
-
-  const selectedMoveOption = moveContextOptions.find((o) => o.value === moveContextId);
-  const moveTargetIsCrossOwner =
-    selectedMoveOption != null &&
-    contextOwnerId != null &&
-    selectedMoveOption.ownerId != null &&
-    selectedMoveOption.ownerId !== contextOwnerId;
-
-  const handleMoveContext = async () => {
-    if (!documentId || !moveContextId) return;
-    setMoveContextLoading(true);
-    try {
-      const fromContextId = data?.contextId ?? null;
-      const isRequest = moveTargetIsCrossOwner;
-      const res = await apiFetch(
-        isRequest
-          ? `/api/v1/documents/${documentId}/move-requests`
-          : `/api/v1/documents/${documentId}/move`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(
-            isRequest
-              ? {
-                  targetContextId: moveContextId,
-                  note: moveRequestNote.trim() ? moveRequestNote.trim() : null,
-                }
-              : { targetContextId: moveContextId }
-          ),
-        }
-      );
-      if (res.ok) {
-        onCloseMoveContext();
-        if (!isRequest && fromContextId) {
-          void queryClient.invalidateQueries({
-            queryKey: ['contexts', fromContextId, 'documents'],
-          });
-          void queryClient.invalidateQueries({
-            queryKey: ['contexts', moveContextId, 'documents'],
-          });
-        }
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-        void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
-        void queryClient.invalidateQueries({ queryKey: ['me', 'drafts'] });
-        void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
-        notifications.show({
-          title: isRequest
-            ? t('documentPage.toasts.moveRequestedTitle')
-            : t('documentPage.toasts.movedTitle'),
-          message: isRequest
-            ? t('documentPage.toasts.moveRequestedMessage')
-            : t('documentPage.toasts.movedMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setMoveContextLoading(false);
-    }
-  };
-
-  const handleMoveRequestDecision = async (action: 'accept' | 'reject' | 'withdraw') => {
-    const pending = data?.pendingMoveRequest;
-    if (!documentId || !pending) return;
-    setMoveDecisionLoading(true);
-    try {
-      const res = await apiFetch(
-        `/api/v1/documents/${documentId}/move-requests/${pending.id}/${action}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        }
-      );
-      if (res.ok) {
-        void queryClient.invalidateQueries({ queryKey: ['document', documentId] });
-        void queryClient.invalidateQueries({ queryKey: ['catalog-documents'] });
-        void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
-        notifications.show({
-          title:
-            action === 'accept'
-              ? t('documentPage.toasts.moveAcceptedTitle')
-              : action === 'reject'
-                ? t('documentPage.toasts.moveRejectedTitle')
-                : t('documentPage.toasts.moveWithdrawnTitle'),
-          message:
-            action === 'accept'
-              ? t('documentPage.toasts.moveAcceptedMessage')
-              : action === 'reject'
-                ? t('documentPage.toasts.moveRejectedMessage')
-                : t('documentPage.toasts.moveWithdrawnMessage'),
-          color: 'green',
-        });
-      } else {
-        void notifyApiErrorResponse(res);
-      }
-    } finally {
-      setMoveDecisionLoading(false);
-    }
-  };
-
   const handleCreateTag = async () => {
     const name = newTagName.trim();
     if (!name || !contextOwnerId) return;
@@ -720,19 +382,6 @@ export function useDocumentPage() {
     leadDraftPanelRef,
     handleSave,
   });
-
-  const metadataDirty =
-    editInitialSnapshot != null &&
-    (editTitle !== editInitialSnapshot.title ||
-      editDescription !== editInitialSnapshot.description ||
-      editTagIds.join(',') !== editInitialSnapshot.tagIds.join(',') ||
-      editTypeId !== editInitialSnapshot.typeId);
-  const hasUnsavedChanges = metadataDirty || leadDraftDirty;
-
-  const onCloseAssignContext = () => {
-    closeAssignContext();
-    setAssignContextId(null);
-  };
 
   return {
     documentId,

@@ -59,17 +59,19 @@ function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark
   const { setColorScheme } = useMantineColorScheme();
   const lastAppliedRef = useRef<'light' | 'dark' | 'auto' | null>(null);
 
+  // Mantine's setColorScheme identity is unstable; keep latest via ref to avoid light↔auto loops.
+  const setColorSchemeRef = useRef(setColorScheme);
+  setColorSchemeRef.current = setColorScheme;
+
   useEffect(() => {
     if (lastAppliedRef.current === preferredScheme) return;
     lastAppliedRef.current = preferredScheme;
-    setColorScheme(preferredScheme);
+    setColorSchemeRef.current(preferredScheme);
     try {
       window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, preferredScheme);
     } catch {
       // ignore localStorage errors (e.g. private mode)
     }
-    // colorScheme/setColorScheme intentionally omitted: unstable identity caused light↔auto loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when preference changes
   }, [preferredScheme]);
 
   return null;

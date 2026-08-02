@@ -1,5 +1,3 @@
-/* eslint-disable max-lines -- document content CRUD + assign/move/attachments */
-import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import {
   requireAuthPreHandler,
@@ -17,10 +15,6 @@ import {
   DOCUMENT_FOR_PERMISSION_INCLUDE,
 } from '../permissions/index.js';
 import {
-  canWriteContext,
-  getContextOwnerId,
-} from '../../organisation/permissions/contextPermissions.js';
-import {
   deleteDocument,
   updateDocumentMetadata,
   updateDocumentTypeKey,
@@ -28,7 +22,6 @@ import {
   DocumentNotFoundError,
   DocumentBusinessError,
 } from '../services/lifecycle/documentService.js';
-import { moveDocument } from '../services/lifecycle/documentMoveService.js';
 import { getPendingMoveRequestForDocument } from '../services/lifecycle/documentMoveRequestService.js';
 import { recordDocumentView } from '../services/lifecycle/documentViewService.js';
 import {
@@ -46,7 +39,6 @@ import {
   createDocumentBodySchema,
   updateDocumentBodySchema,
   updateDocumentTypeBodySchema,
-  moveDocumentBodySchema,
 } from '../schemas/documents.js';
 import {
   excludeUserIds,
@@ -60,126 +52,15 @@ import {
   patchTouchesReaderVisibleFields,
   readerVisibleContentChanged,
 } from '../services/route-support/documentRouteSupport.js';
-import { requireStorageAndDocumentAttachment } from './document-attachment-route-helpers.js';
 import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
 import { listStartHereOptionsForDocument } from '../../organisation/services/startHereService.js';
-
-const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-
-async function validateContextWriteAccess(
-  prisma: FastifyInstance['prisma'],
-  userId: string,
-  contextId: string,
-  reply: { status: (code: number) => { send: (body: unknown) => unknown } },
-  forbiddenMessage: string
-): Promise<boolean> {
-  const context = await prisma.context.findUnique({
-    where: { id: contextId },
-    select: { id: true },
-  });
-  if (!context) {
-    await reply.status(404).send({ error: 'Context not found' });
-    return false;
-  }
-  const allowed = await canWriteContext(prisma, userId, contextId);
-  if (!allowed) {
-    await reply.status(403).send({ error: forbiddenMessage });
-    return false;
-  }
-  return true;
-}
-
-async function validateTagsForContext(
-  prisma: FastifyInstance['prisma'],
-  contextId: string,
-  tagIds: string[],
-  reply: { status: (code: number) => { send: (body: unknown) => unknown } }
-): Promise<boolean> {
-  if (tagIds.length === 0) return true;
-  const contextOwnerId = await getContextOwnerId(prisma, contextId);
-  if (!contextOwnerId) {
-    await reply
-      .status(400)
-      .send({ error: 'Kontext hat keinen Owner; Tags können nicht zugewiesen werden.' });
-    return false;
-  }
-  const tags = await prisma.tag.findMany({
-    where: { id: { in: tagIds } },
-    select: { id: true, ownerId: true },
-  });
-  const invalid = tags.some((t) => t.ownerId !== contextOwnerId);
-  if (invalid || tags.length !== tagIds.length) {
-    await reply
-      .status(400)
-      .send({ error: 'Ein oder mehrere Tags gehören nicht zum Kontext-Scope.' });
-    return false;
-  }
-  return true;
-}
+import { validateContextWriteAccess, validateTagsForContext } from './content-route-helpers.js';
+import { registerContentAttachmentRoutes } from './contentAttachments.routes.js';
+import { registerContentMoveRoutes } from './contentMove.routes.js';
 
 export const registerContentRoutes = (app: FastifyInstance): void => {
-  app.post<{
-    Params: { documentId: string };
-    Body: Buffer;
-  }>(
-    '/documents/:documentId/attachments',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
-      bodyLimit: MAX_ATTACHMENT_SIZE_BYTES,
-    },
-    async (request, reply) => {
-      const storage = request.server.storage;
-      if (!storage) return reply.status(503).send({ error: 'Storage not available' });
-      const prisma = request.server.prisma;
-      const userId = getEffectiveUserId(request as RequestWithUser);
-      const { documentId } = documentIdParamSchema.parse(request.params);
-      const filename = (request.headers['x-filename'] as string)?.trim();
-      if (!filename) return reply.status(400).send({ error: 'X-Filename header required' });
-      const body = request.body;
-      if (!Buffer.isBuffer(body) || body.length === 0) {
-        return reply.status(400).send({ error: 'Binary body required' });
-      }
-      if (body.length > MAX_ATTACHMENT_SIZE_BYTES) {
-        return reply.status(413).send({ error: 'File too large' });
-      }
-      const contentType = (request.headers['content-type'] as string) ?? undefined;
-      const ext = filename.includes('.') ? filename.split('.').pop()!.toLowerCase() : 'bin';
-      const objectKey = `attachments/${documentId}/${randomUUID()}.${ext}`;
-      await storage.uploadStream(objectKey, body, contentType);
-      const attachment = await prisma.documentAttachment.create({
-        data: {
-          documentId,
-          objectKey,
-          filename,
-          contentType: contentType || null,
-          sizeBytes: body.length,
-          uploadedById: userId,
-        },
-      });
-      return reply.status(201).send({
-        id: attachment.id,
-        documentId: attachment.documentId,
-        filename: attachment.filename,
-        contentType: attachment.contentType,
-        sizeBytes: attachment.sizeBytes,
-        createdAt: attachment.createdAt,
-      });
-    }
-  );
-  app.delete<{ Params: { documentId: string; attachmentId: string } }>(
-    '/documents/:documentId/attachments/:attachmentId',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
-    },
-    async (request, reply) => {
-      const loaded = await requireStorageAndDocumentAttachment(request, reply);
-      if (!loaded) return;
-      const { storage, prisma, attachmentId, attachment } = loaded;
-      await storage.deleteObject(attachment.objectKey);
-      await prisma.documentAttachment.delete({ where: { id: attachmentId } });
-      return reply.status(204).send();
-    }
-  );
+  registerContentAttachmentRoutes(app);
+
   app.get<{ Params: { documentId: string } }>(
     '/documents/:documentId',
     {
@@ -500,123 +381,8 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  app.post(
-    '/documents/:documentId/move',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('writeOrPublish'))],
-    },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const userId = getEffectiveUserId(request as RequestWithUser);
-      const { documentId } = documentIdParamSchema.parse(request.params);
-      const body = moveDocumentBodySchema.parse(request.body);
+  registerContentMoveRoutes(app);
 
-      const sourceDoc = await prisma.document.findUnique({
-        where: { id: documentId },
-        select: { contextId: true, deletedAt: true },
-      });
-      if (!sourceDoc || sourceDoc.deletedAt != null) {
-        return reply.status(404).send({ error: 'Document not found' });
-      }
-      if (sourceDoc.contextId == null) {
-        return reply.status(400).send({
-          error: 'Document has no context; use PATCH to assign a context first',
-        });
-      }
-
-      if (
-        !(await validateContextWriteAccess(
-          prisma,
-          userId,
-          sourceDoc.contextId,
-          reply,
-          'Permission denied to move document from this context'
-        ))
-      ) {
-        return;
-      }
-
-      const [sourceOwnerId, targetOwnerId] = await Promise.all([
-        getContextOwnerId(prisma, sourceDoc.contextId),
-        getContextOwnerId(prisma, body.targetContextId),
-      ]);
-      if (sourceOwnerId == null || targetOwnerId == null) {
-        return reply.status(400).send({ error: 'Context has no owner' });
-      }
-      if (sourceOwnerId !== targetOwnerId) {
-        return reply.status(409).send({
-          error:
-            'Cross-owner move requires a move request; use POST /documents/:documentId/move-requests',
-        });
-      }
-
-      if (
-        !(await validateContextWriteAccess(
-          prisma,
-          userId,
-          body.targetContextId,
-          reply,
-          'Permission denied to move document to this context'
-        ))
-      ) {
-        return;
-      }
-
-      try {
-        const result = await moveDocument(prisma, documentId, body.targetContextId);
-        await enqueueIncrementalReindexForDocumentSafe(request.log, {
-          documentId,
-          contextId: result.toContextId,
-          trigger: 'document-updated',
-          warnMessage: 'Failed to enqueue reindex job after document move',
-        });
-        try {
-          const recipientIds = excludeUserIds(
-            await listUserIdsWhoCanReadOrWriteDocument(prisma, documentId),
-            userId
-          );
-          await enqueueNotificationEvent({
-            eventType: 'document-moved',
-            targetUserIds: recipientIds,
-            payload: {
-              documentId,
-              fromContextId: result.fromContextId,
-              toContextId: result.toContextId,
-              contextId: result.toContextId,
-              movedByUserId: userId,
-            },
-          });
-        } catch (error) {
-          request.log.warn(
-            { error, documentId },
-            'Failed to enqueue notification job after document move'
-          );
-        }
-        request.log.info(
-          {
-            documentId,
-            fromContextId: result.fromContextId,
-            toContextId: result.toContextId,
-            movedByUserId: userId,
-          },
-          'Document moved between contexts'
-        );
-        return reply.send(result.document);
-      } catch (err) {
-        if (err instanceof DocumentNotFoundError) {
-          return reply.status(404).send({ error: 'Document not found' });
-        }
-        if (err instanceof DocumentBusinessError) {
-          const message = err.message;
-          if (message.includes('Cross-owner')) {
-            return reply.status(409).send({ error: message });
-          }
-          return reply.status(400).send({ error: message });
-        }
-        throw err;
-      }
-    }
-  );
   app.delete(
     '/documents/:documentId',
     { preHandler: requireAuthPreHandler },

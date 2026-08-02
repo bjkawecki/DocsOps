@@ -4,7 +4,7 @@ import {
   type BlockNode,
   type BlockSuggestionMeta,
 } from '../blocks/blockSchema.js';
-import { assertNoOverlappingPendingDeletes } from './draftInlineSuggestions.js';
+import { assertNoOverlappingPendingDeletes } from './draftInlineSuggestionOverlap.js';
 
 export class AuthorDraftPatchInvalidError extends Error {
   readonly code = 'AUTHOR_DRAFT_PATCH_INVALID' as const;

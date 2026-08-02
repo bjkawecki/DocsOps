@@ -13,8 +13,8 @@ import {
 } from '@mantine/core';
 import { useMantineColorScheme } from '@mantine/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { notifications } from '@mantine/notifications';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import type {
@@ -57,13 +57,15 @@ export function SettingsAppearanceTab() {
   const { setColorScheme } = useMantineColorScheme();
   const { data, isPending, isError, error } = useMe();
 
+  // Mantine's setColorScheme identity is unstable; keep latest via ref.
+  const setColorSchemeRef = useRef(setColorScheme);
+  setColorSchemeRef.current = setColorScheme;
+
   // Sync Mantine scheme when preference is known (do not force 'auto' while me is loading)
   useEffect(() => {
     const preferred = data?.preferences?.theme;
     if (preferred === undefined) return;
-    setColorScheme(preferred);
-    // setColorScheme from useMantineColorScheme is unstable; sync only on theme change
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+    setColorSchemeRef.current(preferred);
   }, [data?.preferences?.theme]);
 
   const patchPreferences = useMutation({

@@ -20,7 +20,7 @@ type UseContextWorkspaceActionsArgs = {
   contextId: string | undefined;
   data: ContextResponse | undefined;
   scope: RecentScope | null;
-  scopeKey: string;
+  scopeKey: string | null;
 };
 
 export function useContextWorkspaceActions({

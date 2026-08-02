@@ -133,8 +133,7 @@ export function useRegisterScopePageChrome(
       return [{ ...base, to: scopeToUrl(resolved) }, ...trailSuffix];
     }
     return [base];
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- trailSuffix identity via suffixKey
-  }, [scopeKey, label, suffixKey]);
+  }, [scopeKey, label, trailSuffix]);
   useSetAppShellBreadcrumbs(items);
   useSetAppShellNavScope(scope);
   useSetAppShellBreadcrumbActions(
