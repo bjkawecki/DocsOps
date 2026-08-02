@@ -71,9 +71,9 @@ export function PulseExploreSection({ enabled, ruled = true }: Props) {
           >
             {columns.map((col) => (
               <Stack key={col.key} gap={8} className="pulse-explore-col">
-                <Group gap={6} wrap="nowrap" className="pulse-explore-scope-row">
+                <Group gap={6} wrap="nowrap" className="pulse-explore-scope-row" align="flex-start">
                   <span className="pulse-explore-scope-icon">{exploreScopeIcon(col.key)}</span>
-                  <Text size="sm" fw={500} c="dimmed" className="pulse-explore-scope" lineClamp={1}>
+                  <Text size="sm" fw={500} c="dimmed" className="pulse-explore-scope">
                     {col.title}
                   </Text>
                 </Group>
@@ -85,7 +85,6 @@ export function PulseExploreSection({ enabled, ruled = true }: Props) {
                       to={`/documents/${item.id}`}
                       size="md"
                       className="pulse-explore-link"
-                      lineClamp={1}
                     >
                       {item.title.trim() || t('common:status.untitled')}
                     </Anchor>

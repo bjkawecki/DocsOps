@@ -418,7 +418,7 @@
 a.pulse-start-here-link.pulse-explore-link,
 .mantine-Anchor-root.pulse-start-here-link {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .pulse-start-here-link .pulse-explore-scope-icon {
@@ -429,13 +429,13 @@ a.pulse-start-here-link.pulse-explore-link,
   opacity: 0.85;
   line-height: 0;
   flex-shrink: 0;
+  margin-top: 0.2em;
 }
 
 .pulse-start-here-link-text {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
   line-height: 1.35;
 }
 
@@ -701,6 +701,7 @@ a.pulse-start-here-link.pulse-explore-link,
   color: var(--mantine-color-dimmed);
   opacity: 0.7;
   line-height: 0;
+  margin-top: 0.2em;
 }
 
 .pulse-explore-scope {
@@ -708,6 +709,8 @@ a.pulse-start-here-link.pulse-explore-link,
   line-height: 1.35;
   min-width: 0;
   opacity: 0.7;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 a.pulse-explore-link,
@@ -716,6 +719,8 @@ a.pulse-explore-link:visited,
 .mantine-Anchor-root.pulse-explore-link:visited {
   color: var(--mantine-primary-color-filled);
   text-decoration: none;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 a.pulse-explore-link:hover,
