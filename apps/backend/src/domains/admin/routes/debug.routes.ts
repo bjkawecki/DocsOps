@@ -8,6 +8,7 @@ import {
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { resetPlatformDomainData } from '../services/resetPlatformDomainData.js';
 import { reseedPlatformDomainData } from '../services/reseedPlatformDomainData.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 function devDebugForbidden(reply: {
   status: (code: number) => { send: (body: unknown) => unknown };
@@ -31,51 +32,60 @@ function isExpectedDevDebugClientError(message: string): boolean {
 
 const adminDebugRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
-  app.post('/admin/debug/reset-platform', { preHandler: preAdmin }, async (request, reply) => {
-    if (!isPlatformResetEnabled()) {
-      return devDebugForbidden(reply);
-    }
-
-    try {
-      const storage = await initStorage();
-      const result = await resetPlatformDomainData(request.server.prisma, storage);
-      request.log.info(
-        { actorUserId: (request as RequestWithUser).user.id, ...result },
-        'Platform domain data reset'
-      );
-      return reply.send(result);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (isExpectedDevDebugClientError(message)) {
-        const status = message.includes('only available in development') ? 403 : 400;
-        return reply.status(status).send({ error: message });
+  app.post(
+    '/admin/debug/reset-platform',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      if (!isPlatformResetEnabled()) {
+        return devDebugForbidden(reply);
       }
-      throw error;
-    }
-  });
 
-  app.post('/admin/debug/reseed-platform', { preHandler: preAdmin }, async (request, reply) => {
-    if (!isPlatformResetEnabled()) {
-      return devDebugForbidden(reply);
-    }
-
-    try {
-      const result = await reseedPlatformDomainData(request.server.prisma);
-      request.log.info(
-        { actorUserId: (request as RequestWithUser).user.id },
-        'Platform data re-seeded from CSV'
-      );
-      return reply.send(result);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (isExpectedDevDebugClientError(message)) {
-        const status = message.includes('only available in development') ? 403 : 400;
-        return reply.status(status).send({ error: message });
+      try {
+        const storage = await initStorage();
+        const result = await resetPlatformDomainData(request.server.prisma, storage);
+        request.log.info(
+          { actorUserId: (request as RequestWithUser).user.id, ...result },
+          'Platform domain data reset'
+        );
+        return reply.send(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (isExpectedDevDebugClientError(message)) {
+          const status = message.includes('only available in development') ? 403 : 400;
+          return reply.status(status).send({ error: message });
+        }
+        throw error;
       }
-      throw error;
     }
-  });
+  );
+
+  app.post(
+    '/admin/debug/reseed-platform',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      if (!isPlatformResetEnabled()) {
+        return devDebugForbidden(reply);
+      }
+
+      try {
+        const result = await reseedPlatformDomainData(request.server.prisma);
+        request.log.info(
+          { actorUserId: (request as RequestWithUser).user.id },
+          'Platform data re-seeded from CSV'
+        );
+        return reply.send(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (isExpectedDevDebugClientError(message)) {
+          const status = message.includes('only available in development') ? 403 : 400;
+          return reply.status(status).send({ error: message });
+        }
+        throw error;
+      }
+    }
+  );
 
   return Promise.resolve();
 };

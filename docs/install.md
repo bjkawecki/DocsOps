@@ -113,7 +113,14 @@ docker compose --env-file /etc/docsops/docsops.env \
 
 Dateien `docker-compose.demo.yml`, `docker-compose.lab.yml` und `Caddyfile.lab` liegen ab `v0.1.0` im Release-Bundle. Nach einem Retag derselben Version immer `pull` und Container neu anlegen.
 
-**5. Smoke:** http://docsops.local → Demo-CTA → Login mit Seed-Accounts (`DocsOps1`) → Org Musterwerk IT GmbH.
+**5. Smoke:** http://docsops.local → Demo-CTA → Login (Rollenwahl in `DEMO_MODE`, oder Seed-Accounts mit `DocsOps1`) → Org Musterwerk IT GmbH.
+
+Lokaler Domain-Reset (ohne Host-Ops-Skript), vom Repo:
+
+```bash
+cd apps/backend
+DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
+```
 
 Automatisiert (von einem Host, der beide Namen auflöst):
 

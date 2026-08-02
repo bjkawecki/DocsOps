@@ -48,6 +48,29 @@ describe('System routes', () => {
     expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
+  it('GET /api/v1/system/public-config returns demoMode without auth', async () => {
+    const prev = process.env.DEMO_MODE;
+    delete process.env.DEMO_MODE;
+    try {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/system/public-config' });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ demoMode: false });
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+
+    process.env.DEMO_MODE = 'true';
+    try {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/system/public-config' });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ demoMode: true });
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+  });
+
   it('GET /api/v1/releases without session returns 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/releases' });
     expect(res.statusCode).toBe(401);

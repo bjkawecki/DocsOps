@@ -33,9 +33,11 @@ import {
 } from '../services/adminBackupRunService.js';
 import { writeAdminBackupAudit } from '../services/adminBackupAuditService.js';
 import { updateBackupSchedule } from '../services/adminBackupScheduleService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   const writeAuditSafe = async (
     request: RequestWithUser,
@@ -61,7 +63,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     return reply.send(settings);
   });
 
-  app.patch('/admin/backups/settings', { preHandler: preAdmin }, async (request, reply) => {
+  app.patch('/admin/backups/settings', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = patchBackupSettingsBodySchema.parse(request.body);
     try {
       const settings = await updateBackupSettings(request.server.prisma, body);
@@ -81,7 +83,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   });
 
-  app.patch('/admin/backups/schedule', { preHandler: preAdmin }, async (request, reply) => {
+  app.patch('/admin/backups/schedule', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = patchBackupScheduleBodySchema.parse(request.body);
     try {
       const schedule = await updateBackupSchedule(request.server.prisma, body);
@@ -110,32 +112,36 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     return reply.send(result);
   });
 
-  app.post('/admin/backup-destinations', { preHandler: preAdmin }, async (request, reply) => {
-    const body = createBackupDestinationBodySchema.parse(request.body);
-    try {
-      const created = await createBackupDestination(request.server.prisma, body);
-      await writeAuditSafe(request as RequestWithUser, {
-        action: 'destination-create',
-        status: 'success',
-        destinationId: created.id,
-      });
-      return reply.status(201).send(created);
-    } catch (error) {
-      await writeAuditSafe(request as RequestWithUser, {
-        action: 'destination-create',
-        status: 'failed',
-        details: { error: error instanceof Error ? error.message : String(error) },
-      });
-      if (error instanceof Error) {
-        return reply.status(400).send({ error: error.message });
+  app.post(
+    '/admin/backup-destinations',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const body = createBackupDestinationBodySchema.parse(request.body);
+      try {
+        const created = await createBackupDestination(request.server.prisma, body);
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'destination-create',
+          status: 'success',
+          destinationId: created.id,
+        });
+        return reply.status(201).send(created);
+      } catch (error) {
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'destination-create',
+          status: 'failed',
+          details: { error: error instanceof Error ? error.message : String(error) },
+        });
+        if (error instanceof Error) {
+          return reply.status(400).send({ error: error.message });
+        }
+        throw error;
       }
-      throw error;
     }
-  });
+  );
 
   app.patch<{ Params: { id: string } }>(
     '/admin/backup-destinations/:id',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = backupDestinationIdParamSchema.parse(request.params);
       const body = patchBackupDestinationBodySchema.parse(request.body);
@@ -165,7 +171,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete<{ Params: { id: string } }>(
     '/admin/backup-destinations/:id',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = backupDestinationIdParamSchema.parse(request.params);
       const deleted = await deleteBackupDestination(request.server.prisma, id);
@@ -179,7 +185,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   );
 
-  app.post('/admin/backups', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/backups', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = createBackupBodySchema.parse(request.body ?? {});
     const status = await getBackupStatus(request.server.prisma);
     if (!status.minioAvailable) {
@@ -245,7 +251,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete<{ Params: { id: string } }>(
     '/admin/backups/:id',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = backupRunIdParamSchema.parse(request.params);
       try {
@@ -279,7 +285,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete<{ Params: { id: string } }>(
     '/admin/backups/:id/local',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = backupRunIdParamSchema.parse(request.params);
       try {

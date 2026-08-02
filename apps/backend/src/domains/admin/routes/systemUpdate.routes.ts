@@ -5,6 +5,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   adminSystemCheckUpdatesResponseSchema,
   adminSystemMailTestBodySchema,
@@ -43,23 +44,28 @@ function settingsToResponse(settings: Awaited<ReturnType<typeof getSystemSetting
 
 const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   app.get('/admin/system/update-status', { preHandler: preAdmin }, async (request, reply) => {
     const status = await getAdminSystemUpdateStatus(request.server.prisma);
     return reply.send(adminSystemUpdateStatusSchema.parse(status));
   });
 
-  app.post('/admin/system/check-updates', { preHandler: preAdmin }, async (request, reply) => {
-    const result = await checkAdminSystemUpdatesAndNotify(request.server.prisma);
-    return reply.send(adminSystemCheckUpdatesResponseSchema.parse(result));
-  });
+  app.post(
+    '/admin/system/check-updates',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const result = await checkAdminSystemUpdatesAndNotify(request.server.prisma);
+      return reply.send(adminSystemCheckUpdatesResponseSchema.parse(result));
+    }
+  );
 
   app.get('/admin/system/settings', { preHandler: preAdmin }, async (request, reply) => {
     const settings = await getSystemSettings(request.server.prisma);
     return reply.send(settingsToResponse(settings));
   });
 
-  app.patch('/admin/system/settings', { preHandler: preAdmin }, async (request, reply) => {
+  app.patch('/admin/system/settings', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = patchAdminSystemSettingsBodySchema.parse(request.body);
     try {
       const settings = await updateSystemSettings(request.server.prisma, body);
@@ -76,7 +82,7 @@ const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   });
 
-  app.post('/admin/system/mail/test', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/system/mail/test', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = adminSystemMailTestBodySchema.parse(request.body ?? {});
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);

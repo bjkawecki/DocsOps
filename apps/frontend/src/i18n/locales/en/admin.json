@@ -16,6 +16,9 @@
     "mail": "Mail",
     "broadcast": "Broadcast"
   },
+  "demo": {
+    "limitedAdmin": "Demo – limited admin (mutations disabled)"
+  },
   "actions": {
     "createUser": "Create user",
     "createTeam": "Create team",

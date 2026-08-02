@@ -11,13 +11,17 @@ import {
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
 import { AdminContentSidebar } from './AdminContentSidebar.js';
-import { ADMIN_DEFAULT_PATH, findAdminNavItem } from './adminNavConfig.js';
+import { ADMIN_DEFAULT_PATH, findAdminNavItem, getAdminNavGroups } from './adminNavConfig.js';
+import { usePublicConfig } from '../../hooks/usePublicConfig.js';
 import './AdminPage.css';
 
 export function AdminPage() {
   const { t } = useTranslation(['shell', 'admin']);
   const location = useLocation();
-  const currentItem = findAdminNavItem(location.pathname);
+  const { data: publicConfig } = usePublicConfig();
+  const demoMode = publicConfig?.demoMode === true;
+  const navGroups = useMemo(() => getAdminNavGroups(demoMode), [demoMode]);
+  const currentItem = findAdminNavItem(location.pathname, navGroups);
 
   const breadcrumbs = useMemo((): AppShellBreadcrumbItem[] => {
     const items: AppShellBreadcrumbItem[] = [

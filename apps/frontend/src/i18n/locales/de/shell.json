@@ -67,6 +67,9 @@
     "themeUpdated": "Design-Einstellung gespeichert.",
     "themeUpdateFailed": "Design-Einstellung konnte nicht gespeichert werden."
   },
+  "demo": {
+    "banner": "Demo – Daten können zurückgesetzt werden"
+  },
   "debug": {
     "menuAria": "Debug-Menü",
     "viewAsUser": "Als Benutzer anzeigen",

@@ -9,10 +9,17 @@ import {
 import { requireDocumentAccess } from '../permissions/index.js';
 import { documentIdParamSchema } from '../schemas/documents.js';
 import { requireStorageAndDocumentAttachment } from './document-attachment-route-helpers.js';
+import { isDemoMode } from '../../../config/runtimeMode.js';
 
 const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const DEMO_MAX_ATTACHMENT_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+
+function maxAttachmentSizeBytes(): number {
+  return isDemoMode() ? DEMO_MAX_ATTACHMENT_SIZE_BYTES : MAX_ATTACHMENT_SIZE_BYTES;
+}
 
 export function registerContentAttachmentRoutes(app: FastifyInstance): void {
+  const maxBytes = maxAttachmentSizeBytes();
   app.post<{
     Params: { documentId: string };
     Body: Buffer;
@@ -20,7 +27,7 @@ export function registerContentAttachmentRoutes(app: FastifyInstance): void {
     '/documents/:documentId/attachments',
     {
       preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
-      bodyLimit: MAX_ATTACHMENT_SIZE_BYTES,
+      bodyLimit: maxBytes,
     },
     async (request, reply) => {
       const storage = request.server.storage;
@@ -34,7 +41,7 @@ export function registerContentAttachmentRoutes(app: FastifyInstance): void {
       if (!Buffer.isBuffer(body) || body.length === 0) {
         return reply.status(400).send({ error: 'Binary body required' });
       }
-      if (body.length > MAX_ATTACHMENT_SIZE_BYTES) {
+      if (body.length > maxBytes) {
         return reply.status(413).send({ error: 'File too large' });
       }
       const contentType = (request.headers['content-type'] as string) ?? undefined;
@@ -48,6 +55,7 @@ export function registerContentAttachmentRoutes(app: FastifyInstance): void {
           filename,
           contentType: contentType || null,
           sizeBytes: body.length,
+
           uploadedById: userId,
         },
       });

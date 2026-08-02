@@ -1,4 +1,4 @@
-import { Box, NavLink, Stack } from '@mantine/core';
+import { Alert, Box, NavLink, Stack, Text } from '@mantine/core';
 import {
   IconBuildingSkyscraper,
   IconDatabase,
@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { ContentSidebarCollapsibleSection } from '../../components/ui/ContentSidebarCollapsibleSection.js';
-import { adminNavGroups, findAdminNavGroup } from './adminNavConfig.js';
+import { usePublicConfig } from '../../hooks/usePublicConfig.js';
+import { findAdminNavGroup, getAdminNavGroups } from './adminNavConfig.js';
 
 const ICON_SIZE = 16;
 
@@ -19,7 +20,7 @@ const navLinkFullWidth = {
   width: '100%',
 } as const;
 
-function groupIcon(groupId: (typeof adminNavGroups)[number]['id']): ReactNode {
+function groupIcon(groupId: 'organisation' | 'operations' | 'data' | 'platform'): ReactNode {
   if (groupId === 'organisation') {
     return <IconBuildingSkyscraper size={ICON_SIZE} stroke={1.5} />;
   }
@@ -38,14 +39,22 @@ function groupIcon(groupId: (typeof adminNavGroups)[number]['id']): ReactNode {
 export function AdminContentSidebar() {
   const { t } = useTranslation('admin');
   const location = useLocation();
-  const activeGroup = findAdminNavGroup(location.pathname);
+  const { data: publicConfig } = usePublicConfig();
+  const demoMode = publicConfig?.demoMode === true;
+  const navGroups = useMemo(() => getAdminNavGroups(demoMode), [demoMode]);
+  const activeGroup = findAdminNavGroup(location.pathname, navGroups);
 
   const activeGroupIds = useMemo(() => new Set([activeGroup.id]), [activeGroup.id]);
 
   return (
     <ContentCardWrapper fullHeight={false}>
       <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Admin">
-        {adminNavGroups.map((group) => (
+        {demoMode ? (
+          <Alert color="blue" variant="light" p="sm">
+            <Text size="sm">{t('demo.limitedAdmin')}</Text>
+          </Alert>
+        ) : null}
+        {navGroups.map((group) => (
           <ContentSidebarCollapsibleSection
             key={group.id}
             sectionId={`admin:${group.id}`}

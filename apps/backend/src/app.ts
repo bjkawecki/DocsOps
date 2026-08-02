@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError, treeifyError } from 'zod';
 import fastifyCookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
 import { prisma } from './infrastructure/db/prisma.js';
 import { initStorage } from './infrastructure/storage/index.js';
 import { authRoutes } from './domains/auth/routes/index.js';
@@ -58,6 +59,11 @@ export async function buildApp(): Promise<FastifyInstance> {
     disableRequestLogging: shouldDisableHttpRequestLogging,
   });
   await app.register(fastifyCookie, { secret: process.env.SESSION_SECRET });
+  await app.register(rateLimit, {
+    global: false,
+    max: 100,
+    timeWindow: '1 minute',
+  });
   app.decorate('prisma', prisma);
   const storage = await initStorage();
   app.decorate('storage', storage ?? null);

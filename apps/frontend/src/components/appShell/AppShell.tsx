@@ -18,6 +18,7 @@ import { AppShellTopBar } from './AppShellTopBar.js';
 import { AppShellNavbar } from './AppShellNavbar.js';
 import { AppShellSkipLink } from './AppShellSkipLink.js';
 import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus.js';
+import { usePublicConfig } from '../../hooks/usePublicConfig.js';
 import { useUpdateInProgressOverlay } from '../../hooks/useUpdateInProgressOverlay.js';
 import { LiveEventsProvider } from '../../hooks/LiveEventsProvider.js';
 import { useLiveEventsContext } from '../../hooks/liveEventsContext.js';
@@ -41,6 +42,7 @@ type AppShellFrameProps = {
   search: ReturnType<typeof useDocumentSearch>;
   maintenanceStatus: ReturnType<typeof useMaintenanceStatus>['data'];
   updateOverlay: ReturnType<typeof useUpdateInProgressOverlay>;
+  demoMode: boolean;
   onNavigate: () => void;
 };
 
@@ -50,6 +52,7 @@ function AppShellFrame({
   search,
   maintenanceStatus,
   updateOverlay,
+  demoMode,
   onNavigate,
 }: AppShellFrameProps) {
   const { status: liveEventsStatus } = useLiveEventsContext();
@@ -57,6 +60,7 @@ function AppShellFrame({
     updateVisible: updateOverlay.visible,
     maintenanceStatus,
     liveEventsStatus,
+    demoMode,
   });
   const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
   const isContainedReadingPage =
@@ -88,6 +92,7 @@ function AppShellFrame({
                     window.location.reload();
                   }}
                   maintenanceStatus={maintenanceStatus}
+                  demoMode={demoMode}
                 />
               </MantineAppShell.Header>
             ) : null}
@@ -179,6 +184,8 @@ export function AppShell() {
   const isAdmin = s.me?.user?.isAdmin === true;
   const maintenanceQuery = useMaintenanceStatus();
   const maintenanceStatus = maintenanceQuery.data;
+  const { data: publicConfig } = usePublicConfig();
+  const demoMode = publicConfig?.demoMode === true;
   const updateOverlay = useUpdateInProgressOverlay(isAdmin);
   const sidebarPinned = s.me?.preferences?.sidebarPinned ?? false;
   const serverSidebarCollapsed = s.me?.preferences?.sidebarCollapsed;
@@ -190,6 +197,17 @@ export function AppShell() {
       writeSidebarCollapsedPreference(serverSidebarCollapsed);
     }
   }, [serverSidebarCollapsed]);
+
+  useEffect(() => {
+    if (!demoMode) return;
+    let meta = document.querySelector('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'robots');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', 'noindex, nofollow');
+  }, [demoMode]);
 
   const patchSidebarCollapsed = useMutation({
     mutationFn: async (collapsed: boolean) => {
@@ -252,6 +270,7 @@ export function AppShell() {
           search={search}
           maintenanceStatus={maintenanceStatus}
           updateOverlay={updateOverlay}
+          demoMode={demoMode}
           onNavigate={handleNavigate}
         />
       </Box>

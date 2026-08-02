@@ -18,6 +18,7 @@ import {
   triggerRestoreFromUpload,
 } from '../services/adminRestoreRunService.js';
 import { writeAdminBackupAudit } from '../services/adminBackupAuditService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 const adminRestoresRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   const maxUploadBytes = getRestoreUploadMaxBytes();
@@ -26,6 +27,7 @@ const adminRestoresRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
   });
 
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   const writeAuditSafe = async (
     request: RequestWithUser,
@@ -60,7 +62,7 @@ const adminRestoresRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
 
   app.post<{ Params: { backupRunId: string } }>(
     '/admin/restores/from-backup/:backupRunId',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { backupRunId } = restoreFromBackupParamSchema.parse(request.params);
       try {
@@ -99,7 +101,7 @@ const adminRestoresRoutes: FastifyPluginAsync = async (app: FastifyInstance) => 
 
   app.post(
     '/admin/restores/upload',
-    { preHandler: preAdmin, bodyLimit: maxUploadBytes },
+    { preHandler: preAdminMutating, bodyLimit: maxUploadBytes },
     async (request, reply) => {
       const file = await request.file();
       if (!file) {

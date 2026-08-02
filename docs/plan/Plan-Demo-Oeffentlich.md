@@ -195,4 +195,4 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Seed-Sprache: DE-Seed (Musterwerk IT GmbH) für Demo/Lab
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 
-**Nächster Schritt:** Entwicklungs-Release `v0.1.0` retaggen (GHCR + Bundle inkl. Demo/Lab-Compose); VM-Lab nach [install.md](../install.md) (Abschnitt VM-Lab). Danach Demo-Schutz/Rollenwahl und `docsops-demo`-Ops (§19).
+**Nächster Schritt:** Host-Go-live (`docsops-demo` Ops-Skript, täglicher Reset-Cron, DNS `demo.docsops.de` / Landing `docsops.de`). Lokal erledigt: Rollenwahl-Login, Admin-403, Limits/Disclaimer, `pnpm --filter backend demo:reset`.

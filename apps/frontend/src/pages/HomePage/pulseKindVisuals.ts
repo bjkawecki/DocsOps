@@ -58,13 +58,20 @@ export type PulseDisplay = {
   subject: string;
 };
 
-function subjectLine(item: Pick<PulseItem, 'title' | 'meta'>, t: TranslateFn): string {
-  const title = item.title.trim() || t('common:status.untitled');
-  const parts: string[] = [title];
+function subjectLine(
+  item: Pick<PulseItem, 'title' | 'documentId' | 'meta'>,
+  t: TranslateFn
+): string {
+  const raw = item.title.trim();
+  // Never surface document IDs as titles (fallback / untitled docs).
+  const title = raw && raw !== item.documentId ? raw : '';
+  const parts: string[] = [];
+  if (title) parts.push(title);
   const scope = item.meta.scopeName?.trim();
   const ctx = item.meta.contextName?.trim();
   if (scope) parts.push(t('home.pulseSubject.scope', { scope }));
   if (ctx) parts.push(t('home.pulseSubject.context', { context: ctx }));
+  if (parts.length === 0) return t('common:status.untitled');
   return parts.join(' · ');
 }
 
@@ -77,11 +84,11 @@ function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>, t: TranslateFn)
 }
 
 /**
- * Line 1 = category label; line 2 = document · Scope: … · Context: ….
- * Category never includes colon or quantity (those stay out of the headline).
+ * Line 1 = category label; line 2 = optional document title · Scope: … · Context: ….
+ * Document IDs are never shown as titles.
  */
 export function getPulseDisplay(
-  item: Pick<PulseItem, 'kind' | 'title' | 'body' | 'meta'>,
+  item: Pick<PulseItem, 'kind' | 'title' | 'documentId' | 'body' | 'meta'>,
   t: TranslateFn
 ): PulseDisplay {
   return {

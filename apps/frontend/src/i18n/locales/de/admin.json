@@ -16,6 +16,9 @@
     "mail": "E-Mail",
     "broadcast": "Broadcast"
   },
+  "demo": {
+    "limitedAdmin": "Demo – eingeschränkter Admin (Änderungen deaktiviert)"
+  },
   "actions": {
     "createUser": "Nutzer anlegen",
     "createTeam": "Team anlegen",

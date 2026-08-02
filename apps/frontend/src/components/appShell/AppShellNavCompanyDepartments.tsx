@@ -39,10 +39,9 @@ export function AppShellNavCompanyDepartments({
 }: Props) {
   const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
-  const singleDeptDocumentCount =
-    depts.length === 1 && typeof departmentCounts[depts[0].id] === 'number'
-      ? departmentCounts[depts[0].id]
-      : undefined;
+  const singleDept = depts.length === 1 ? depts[0] : undefined;
+  const singleDeptTeams = singleDept?.teams ?? [];
+  const singleTeam = singleDeptTeams.length === 1 ? singleDeptTeams[0] : undefined;
 
   const companyActive = isOrgNavActive('/company', pathname, navScope, { type: 'company' });
 
@@ -81,95 +80,122 @@ export function AppShellNavCompanyDepartments({
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
       />
-      <AppShellNavCollapsibleSection
-        label={t('nav.departments')}
-        icon={<IconSitemap size={20} style={{ flexShrink: 0 }} />}
-        expanded={departmentsSectionExpanded}
-        onToggle={() => setDepartmentsSectionExpanded((v) => !v)}
-        isMiniRail={isMiniRail}
-        menuGroups={[{ items: departmentMenuItems }]}
-        onNavigate={onNavigate}
-        middleSection={
-          singleDeptDocumentCount !== undefined && singleDeptDocumentCount > 0 ? (
-            <Text size="xs" c="var(--mantine-primary-color-filled)" component="span" px={4}>
-              {singleDeptDocumentCount}
-            </Text>
-          ) : null
-        }
-      >
-        <Stack gap={0} pl={0}>
-          {depts.map((dept) => (
-            <NavLink
-              key={dept.id}
-              data-sidebar-link
-              component={Link}
-              to={`/department/${dept.id}`}
-              label={dept.name}
-              active={isOrgNavActive(`/department/${dept.id}`, pathname, navScope, {
-                type: 'department',
-                id: dept.id,
-              })}
-              onClick={onNavigate}
-              rightSection={
-                departmentCounts[dept.id] !== undefined && departmentCounts[dept.id] > 0 ? (
-                  <Text size="xs" c="var(--mantine-primary-color-filled)" component="span">
-                    {departmentCounts[dept.id]}
+      {singleDept ? (
+        <AppShellScopeNavLink
+          to={`/department/${singleDept.id}`}
+          label={t('nav.department')}
+          active={isOrgNavActive(`/department/${singleDept.id}`, pathname, navScope, {
+            type: 'department',
+            id: singleDept.id,
+          })}
+          leftSection={<IconSitemap size={20} />}
+          navLinkStyles={navLinkStyles}
+          badgeCount={departmentCounts[singleDept.id]}
+          isMiniRail={isMiniRail}
+          onNavigate={onNavigate}
+        />
+      ) : (
+        <AppShellNavCollapsibleSection
+          label={t('nav.departments')}
+          icon={<IconSitemap size={20} style={{ flexShrink: 0 }} />}
+          expanded={departmentsSectionExpanded}
+          onToggle={() => setDepartmentsSectionExpanded((v) => !v)}
+          isMiniRail={isMiniRail}
+          menuGroups={[{ items: departmentMenuItems }]}
+          onNavigate={onNavigate}
+        >
+          <Stack gap={0} pl={0}>
+            {depts.map((dept) => (
+              <NavLink
+                key={dept.id}
+                data-sidebar-link
+                component={Link}
+                to={`/department/${dept.id}`}
+                label={dept.name}
+                active={isOrgNavActive(`/department/${dept.id}`, pathname, navScope, {
+                  type: 'department',
+                  id: dept.id,
+                })}
+                onClick={onNavigate}
+                rightSection={
+                  departmentCounts[dept.id] !== undefined && departmentCounts[dept.id] > 0 ? (
+                    <Text size="xs" c="var(--mantine-primary-color-filled)" component="span">
+                      {departmentCounts[dept.id]}
+                    </Text>
+                  ) : null
+                }
+                style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                styles={navLinkStyles}
+              />
+            ))}
+          </Stack>
+        </AppShellNavCollapsibleSection>
+      )}
+      {singleTeam ? (
+        <AppShellScopeNavLink
+          to={`/team/${singleTeam.id}`}
+          label={t('nav.team')}
+          active={isOrgNavActive(`/team/${singleTeam.id}`, pathname, navScope, {
+            type: 'team',
+            id: singleTeam.id,
+          })}
+          leftSection={<IconUsersGroup size={20} />}
+          navLinkStyles={navLinkStyles}
+          badgeCount={teamCounts[singleTeam.id]}
+          isMiniRail={isMiniRail}
+          onNavigate={onNavigate}
+        />
+      ) : (
+        <AppShellNavCollapsibleSection
+          label={t('nav.teams')}
+          icon={<IconUsersGroup size={20} style={{ flexShrink: 0 }} />}
+          expanded={teamsSectionExpanded}
+          onToggle={() => setTeamsSectionExpanded((v) => !v)}
+          isMiniRail={isMiniRail}
+          menuGroups={teamMenuGroups}
+          onNavigate={onNavigate}
+        >
+          <Stack gap={0} pl={0}>
+            {depts.map((dept) => (
+              <Box key={dept.id}>
+                {depts.length > 1 ? (
+                  <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
+                    {dept.name}
                   </Text>
-                ) : null
-              }
-              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-              styles={navLinkStyles}
-            />
-          ))}
-        </Stack>
-      </AppShellNavCollapsibleSection>
-      <AppShellNavCollapsibleSection
-        label={t('nav.teams')}
-        icon={<IconUsersGroup size={20} style={{ flexShrink: 0 }} />}
-        expanded={teamsSectionExpanded}
-        onToggle={() => setTeamsSectionExpanded((v) => !v)}
-        isMiniRail={isMiniRail}
-        menuGroups={teamMenuGroups}
-        onNavigate={onNavigate}
-      >
-        <Stack gap={0} pl={0}>
-          {depts.map((dept) => (
-            <Box key={dept.id}>
-              <Text size="xs" fw={500} c="dimmed" mt="xs" mb={4}>
-                {dept.name}
-              </Text>
-              {(dept.teams ?? []).map((team) => (
-                <NavLink
-                  key={team.id}
-                  data-sidebar-link
-                  component={Link}
-                  to={`/team/${team.id}`}
-                  label={team.name}
-                  active={isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
-                    type: 'team',
-                    id: team.id,
-                  })}
-                  onClick={onNavigate}
-                  rightSection={
-                    teamCounts[team.id] !== undefined && teamCounts[team.id] > 0 ? (
-                      <Text size="xs" c="var(--mantine-primary-color-filled)" component="span">
-                        {teamCounts[team.id]}
-                      </Text>
-                    ) : null
-                  }
-                  pl="sm"
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                  styles={navLinkStyles}
-                />
-              ))}
-            </Box>
-          ))}
-        </Stack>
-      </AppShellNavCollapsibleSection>
+                ) : null}
+                {(dept.teams ?? []).map((team) => (
+                  <NavLink
+                    key={team.id}
+                    data-sidebar-link
+                    component={Link}
+                    to={`/team/${team.id}`}
+                    label={team.name}
+                    active={isOrgNavActive(`/team/${team.id}`, pathname, navScope, {
+                      type: 'team',
+                      id: team.id,
+                    })}
+                    onClick={onNavigate}
+                    rightSection={
+                      teamCounts[team.id] !== undefined && teamCounts[team.id] > 0 ? (
+                        <Text size="xs" c="var(--mantine-primary-color-filled)" component="span">
+                          {teamCounts[team.id]}
+                        </Text>
+                      ) : null
+                    }
+                    pl="sm"
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                    styles={navLinkStyles}
+                  />
+                ))}
+              </Box>
+            ))}
+          </Stack>
+        </AppShellNavCollapsibleSection>
+      )}
     </>
   );
 }

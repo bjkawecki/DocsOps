@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useQueries, useMutation } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -78,11 +78,6 @@ export function useAppShellSidebarData() {
     },
     enabled: !!effectiveCompanyId && (isCompanyLead || isAdmin),
   });
-
-  useEffect(() => {
-    const n = companyDepartments?.items?.length;
-    if (n === 1) setDepartmentsSectionExpanded(true);
-  }, [companyDepartments?.items?.length]);
 
   const { data: departmentTeams } = useQuery<TeamsRes>({
     queryKey: ['departments', departmentId, 'teams'],

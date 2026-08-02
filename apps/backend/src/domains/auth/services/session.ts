@@ -1,10 +1,14 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import { isDemoMode } from '../../../config/runtimeMode.js';
 
 const DEFAULT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 Tage
+const DEMO_DEFAULT_MAX_AGE_SECONDS = 4 * 60 * 60; // 4 Stunden
 
 function getMaxAgeSeconds(): number {
   const env = process.env.SESSION_MAX_AGE_SECONDS;
-  if (env === undefined) return DEFAULT_MAX_AGE_SECONDS;
+  if (env === undefined) {
+    return isDemoMode() ? DEMO_DEFAULT_MAX_AGE_SECONDS : DEFAULT_MAX_AGE_SECONDS;
+  }
   const n = Number.parseInt(env, 10);
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_MAX_AGE_SECONDS;
 }

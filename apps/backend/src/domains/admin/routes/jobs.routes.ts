@@ -32,6 +32,7 @@ import {
   removeAdminJobSchedule,
   upsertAdminJobSchedule,
 } from '../services/index.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   assertBackupScheduleCronUpdateAllowed,
   assertBackupScheduleEnableDisableForbidden,
@@ -42,6 +43,7 @@ const QUEUE_RETRY_AFTER_SECONDS = 15;
 
 const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   const writeAuditSafe = async (
     request: RequestWithUser,
@@ -101,7 +103,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** POST /api/v1/admin/jobs/:jobId/retry – fehlgeschlagenen Job erneut einreihen. */
   app.post<{ Params: { jobId: string } }>(
     '/admin/jobs/:jobId/retry',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { jobId } = adminJobIdParamSchema.parse(request.params);
       const job = await getAdminJobActionRow(request.server.prisma, jobId);
@@ -135,7 +137,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** POST /api/v1/admin/jobs/:jobId/cancel – Job abbrechen (queued/running). */
   app.post<{ Params: { jobId: string } }>(
     '/admin/jobs/:jobId/cancel',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { jobId } = adminJobIdParamSchema.parse(request.params);
       const job = await getAdminJobActionRow(request.server.prisma, jobId);
@@ -167,7 +169,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   );
 
   /** POST /api/v1/admin/jobs/retry-failed – fehlgeschlagene Jobs gebuendelt erneut einreihen. */
-  app.post('/admin/jobs/retry-failed', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/jobs/retry-failed', { preHandler: preAdminMutating }, async (request, reply) => {
     const prisma = request.server.prisma;
     const body = retryFailedJobsBodySchema.parse(request.body ?? {});
     try {
@@ -200,7 +202,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** DELETE /api/v1/admin/jobs/:jobId – Job aus der Queue-Historie entfernen. */
   app.delete<{ Params: { jobId: string } }>(
     '/admin/jobs/:jobId',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { jobId } = adminJobIdParamSchema.parse(request.params);
       const deleted = await deleteAdminJobById(request.server.prisma, jobId);
@@ -238,7 +240,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** PATCH /api/v1/admin/jobs/schedules/:jobName – Scheduler aktivieren/deaktivieren/ändern. */
   app.patch<{ Params: { jobName: string } }>(
     '/admin/jobs/schedules/:jobName',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { jobName } = adminJobNameParamSchema.parse(request.params);
       const body = patchAdminScheduleBodySchema.parse(request.body);

@@ -6,11 +6,13 @@ import {
   startAdminSystemUpdateApply,
 } from '../services/adminSystemUpdateApplyService.js';
 import { getActiveUpdateRun } from '../services/adminUpdateRunService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 const adminUpdatesRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
-  app.post('/admin/updates/apply', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/updates/apply', { preHandler: preAdminMutating }, async (request, reply) => {
     try {
       const result = await startAdminSystemUpdateApply(request.server.prisma, request.user!.id);
       return reply.status(202).send(adminUpdateApplyResponseSchema.parse(result));

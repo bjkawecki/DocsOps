@@ -25,6 +25,7 @@ import {
   requireLocalPasswordUserIdOrRespond,
 } from '../services/adminUsersRouteSupport.js';
 import { listAdminUsers } from '../services/adminUsersListService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   assertCanAssignScopeRole,
   ScopeAssignmentConflictError,
@@ -32,6 +33,7 @@ import {
 
 const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   /** GET /api/v1/admin/users – Nutzerliste (paginiert, Filter, Suche, Sortierung). */
   app.get('/admin/users', { preHandler: preAdmin }, async (request, reply) => {
@@ -111,7 +113,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   );
 
   /** POST /api/v1/admin/users – Nutzer anlegen. */
-  app.post('/admin/users', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/users', { preHandler: preAdminMutating }, async (request, reply) => {
     const body = createUserBodySchema.parse(request.body);
     const existing = await request.server.prisma.user.findUnique({
       where: { email: body.email },
@@ -143,7 +145,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** PATCH /api/v1/admin/users/:userId – Nutzer bearbeiten / Deaktivierung / Reaktivierung. */
   app.patch<{ Params: { userId: string } }>(
     '/admin/users/:userId',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { userId } = userIdParamSchema.parse(request.params);
       const body = updateUserBodySchema.parse(request.body);
@@ -249,7 +251,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** POST /api/v1/admin/users/:userId/reset-password – Admin setzt Passwort. */
   app.post<{ Params: { userId: string } }>(
     '/admin/users/:userId/reset-password',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { userId } = userIdParamSchema.parse(request.params);
       const body = resetPasswordBodySchema.parse(request.body);
@@ -274,7 +276,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** POST /api/v1/admin/users/:userId/reset-password/trigger – Admin löst Passwort-Reset aus (z. B. E-Mail). */
   app.post<{ Params: { userId: string } }>(
     '/admin/users/:userId/reset-password/trigger',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { userId } = userIdParamSchema.parse(request.params);
       const id = await requireLocalPasswordUserIdOrRespond(
@@ -293,7 +295,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   /** DELETE /api/v1/admin/users/:userId – Nutzer endgültig löschen (nur Admin). Irreversibel. */
   app.delete<{ Params: { userId: string } }>(
     '/admin/users/:userId',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { userId } = userIdParamSchema.parse(request.params);
       const currentUserId = (request as RequestWithUser).user.id;

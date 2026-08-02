@@ -20,6 +20,7 @@ import {
 } from '../services/adminPlatformImportRunService.js';
 import { formatPlatformImportUploadError } from '../services/platformImportUploadErrors.js';
 import { writeAdminPlatformMigrationAudit } from '../services/adminPlatformMigrationAuditService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   const maxUploadBytes = getPlatformImportUploadMaxBytesFromEnv();
@@ -28,6 +29,7 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
   });
 
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   const writeAuditSafe = async (
     request: RequestWithUser,
@@ -62,7 +64,7 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
 
   app.post(
     '/admin/platform-imports/upload',
-    { preHandler: preAdmin, bodyLimit: maxUploadBytes },
+    { preHandler: preAdminMutating, bodyLimit: maxUploadBytes },
     async (request, reply) => {
       let filename = 'upload.tar.zst';
       try {
@@ -100,7 +102,7 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
 
   app.post<{ Params: { id: string } }>(
     '/admin/platform-imports/:id/preflight',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = platformImportRunIdParamSchema.parse(request.params);
       try {
@@ -124,7 +126,7 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
 
   app.post<{ Params: { id: string } }>(
     '/admin/platform-imports/:id/confirm',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = platformImportRunIdParamSchema.parse(request.params);
       const body = confirmPlatformImportBodySchema.parse(request.body ?? {});

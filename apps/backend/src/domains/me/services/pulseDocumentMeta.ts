@@ -51,7 +51,7 @@ export async function loadPulseDocumentMeta(
     const scope = getScopeFromOwner(owner);
     map.set(doc.id, {
       id: doc.id,
-      title: doc.title,
+      title: doc.title.trim() === doc.id ? '' : doc.title,
       scopeName: scope.scopeName,
       contextName: doc.context?.displayName?.trim() || null,
       contextTypeLabel: formatPulseContextType(doc.context?.contextType ?? null),
@@ -69,7 +69,7 @@ export function pulseDocMetaOrFallback(
   if (m) return m;
   return {
     id: documentId,
-    title: fallbackTitle?.trim() || documentId,
+    title: fallbackTitle?.trim() || '',
     scopeName: 'Personal',
     contextName: null,
     contextTypeLabel: null,

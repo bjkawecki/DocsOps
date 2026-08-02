@@ -82,7 +82,14 @@ Dabei wird `docker-compose.override.yml` automatisch geladen: Die App (Backend) 
 
 **Kurz:** Vollständiger Stack = `docker compose up`; danach **http://localhost:5000** für App und API (Caddy leitet nach Pfad weiter). Beim Start werden automatisch die Migrationen ausgeführt und – falls in der `.env` `ADMIN_EMAIL` und `ADMIN_PASSWORD` gesetzt sind – ein Admin angelegt (falls noch keiner existiert). Bei leerer DB lädt der Dev-Stack den CSV-Seed (Musterwerk IT GmbH).
 
-**Seed-Logins (Dev/Demo, Passwort `DocsOps1`):** Admin `admin@demo.docsops.local` (via `ADMIN_*` in `.env`); CSV: `company.lead@`, `department.lead@`, `team.lead@`, `member@` jeweils `demo.docsops.local`. Org: Musterwerk IT GmbH → Produktentwicklung → Barrierefreiheit. Nach Reset: Debug-Menü „Re-seed from CSV“ (nur wenn die DB leer an Companies ist). Details: [install.md](install.md) (Production vs. Demo).
+**Seed-Logins (Dev/Demo, Passwort `DocsOps1`):** Admin `admin@demo.docsops.local` (via `ADMIN_*` in `.env`); CSV: `company.lead@`, `department.lead@`, `team.lead@`, `member@` jeweils `demo.docsops.local`. Org: Musterwerk IT GmbH → Produktentwicklung → Barrierefreiheit. Nach Reset: Debug-Menü „Re-seed from CSV“ (nur wenn die DB leer an Companies ist) **oder** CLI:
+
+```bash
+cd apps/backend
+DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
+```
+
+Mit `DEMO_MODE=true` zeigt die Login-Seite eine Rollenwahl (ohne Passwort); mutierende Admin-APIs antworten mit 403. Details: [install.md](install.md) (Production vs. Demo).
 
 **Operational backup:** Vor dem Anlegen von Backup-Destinations `BACKUP_ENCRYPTION_KEY` in `.env` setzen (siehe [README.md](../README.md#operational-backup)). Restore-Prozedur: [Runbook-Backup-Restore.md](plan/Runbook-Backup-Restore.md).
 

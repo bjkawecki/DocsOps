@@ -16,9 +16,11 @@ import {
   triggerPlatformExport,
 } from '../services/adminPlatformExportRunService.js';
 import { writeAdminPlatformMigrationAudit } from '../services/adminPlatformMigrationAuditService.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 
 const adminPlatformExportsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
   const writeAuditSafe = async (
     request: RequestWithUser,
@@ -34,7 +36,7 @@ const adminPlatformExportsRoutes: FastifyPluginAsync = (app: FastifyInstance) =>
     }
   };
 
-  app.post('/admin/platform-exports', { preHandler: preAdmin }, async (request, reply) => {
+  app.post('/admin/platform-exports', { preHandler: preAdminMutating }, async (request, reply) => {
     try {
       const result = await triggerPlatformExport(request.server.prisma, {
         requestedByUserId: (request as RequestWithUser).user.id,
@@ -97,7 +99,7 @@ const adminPlatformExportsRoutes: FastifyPluginAsync = (app: FastifyInstance) =>
 
   app.delete<{ Params: { id: string } }>(
     '/admin/platform-exports/:id',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { id } = platformExportRunIdParamSchema.parse(request.params);
       try {

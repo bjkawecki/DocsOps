@@ -7,3 +7,11 @@ export const loginBodySchema = z.object({
 });
 
 export type LoginBody = z.infer<typeof loginBodySchema>;
+
+export {
+  demoLoginBodySchema,
+  demoLoginRoleSchema,
+  DEMO_SEED_EMAIL_BY_ROLE,
+  type DemoLoginBody,
+  type DemoLoginRole,
+} from './demoLogin.js';

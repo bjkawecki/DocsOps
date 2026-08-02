@@ -60,6 +60,20 @@ export const adminNavGroups = [
   },
 ] as const satisfies readonly AdminNavGroup[];
 
+/** Demo mode: hide mutating admin areas (backup, migration, mail, broadcast). */
+export function getAdminNavGroups(demoMode: boolean): readonly AdminNavGroup[] {
+  if (!demoMode) return adminNavGroups;
+  return adminNavGroups
+    .filter((g) => g.id !== 'data')
+    .map((g) => {
+      if (g.id !== 'platform') return g;
+      return {
+        ...g,
+        items: g.items.filter((item) => item.to === '/admin/platform/system'),
+      };
+    });
+}
+
 /** Legacy flat paths → nested paths (bookmarks / deep links). */
 export const adminLegacyRedirects: ReadonlyArray<{ from: string; to: string }> = [
   { from: 'users', to: '/admin/organisation/users' },
@@ -74,21 +88,27 @@ export const adminLegacyRedirects: ReadonlyArray<{ from: string; to: string }> =
   { from: 'system', to: '/admin/platform/system' },
 ];
 
-export function findAdminNavGroup(pathname: string): (typeof adminNavGroups)[number] {
-  const match = adminNavGroups.find(
+export function findAdminNavGroup(
+  pathname: string,
+  groups: readonly AdminNavGroup[] = adminNavGroups
+): AdminNavGroup {
+  const match = groups.find(
     (g) => pathname === g.basePath || pathname.startsWith(`${g.basePath}/`)
   );
-  return match ?? adminNavGroups[0];
+  return match ?? groups[0] ?? adminNavGroups[0];
 }
 
-export function findAdminNavItem(pathname: string): AdminNavItem | null {
-  for (const group of adminNavGroups) {
+export function findAdminNavItem(
+  pathname: string,
+  groups: readonly AdminNavGroup[] = adminNavGroups
+): AdminNavItem | null {
+  for (const group of groups) {
     const item = group.items.find((i) => pathname === i.to || pathname.startsWith(`${i.to}/`));
     if (item) return item;
   }
   return null;
 }
 
-export function getAdminGroupDefaultPath(group: (typeof adminNavGroups)[number]): string {
+export function getAdminGroupDefaultPath(group: AdminNavGroup): string {
   return group.items[0]?.to ?? ADMIN_DEFAULT_PATH;
 }

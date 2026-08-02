@@ -145,4 +145,68 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     });
     expect(afterRes.statusCode).toBe(401);
   });
+
+  it('POST /api/v1/auth/demo-login without DEMO_MODE → 403', async () => {
+    const prev = process.env.DEMO_MODE;
+    delete process.env.DEMO_MODE;
+    try {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/demo-login',
+        payload: { role: 'admin' },
+      });
+      expect(res.statusCode).toBe(403);
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+  });
+
+  it('POST /api/v1/auth/demo-login invalid role → 400', async () => {
+    const prev = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = 'true';
+    try {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/demo-login',
+        payload: { role: 'superuser' },
+      });
+      expect(res.statusCode).toBe(400);
+    } finally {
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+  });
+
+  it('POST /api/v1/auth/demo-login with DEMO_MODE → 204 + cookie', async () => {
+    const prev = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = 'true';
+    const demoEmail = 'admin@demo.docsops.local';
+    const passwordHash = await hashPassword('DocsOps1');
+    const demoUser = await prisma.user.upsert({
+      where: { email: demoEmail },
+      create: {
+        name: 'Demo Admin',
+        email: demoEmail,
+        passwordHash,
+        isAdmin: true,
+      },
+      update: { passwordHash, isAdmin: true, deletedAt: null },
+    });
+    try {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/demo-login',
+        payload: { role: 'admin' },
+      });
+      expect(res.statusCode).toBe(204);
+      const setCookie = res.headers['set-cookie'];
+      expect(setCookie).toBeDefined();
+      expect(String(setCookie)).toContain(SESSION_COOKIE_NAME);
+    } finally {
+      await prisma.session.deleteMany({ where: { userId: demoUser.id } });
+      if (prev === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prev;
+    }
+  });
 });

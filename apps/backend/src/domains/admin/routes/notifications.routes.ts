@@ -16,6 +16,7 @@ import {
   listAdminBroadcastHistory,
   listScheduledAdminBroadcasts,
 } from '../services/adminBroadcastRepository.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   cancelScheduledAdminBroadcast,
   rescheduleScheduledAdminBroadcast,
@@ -24,24 +25,29 @@ import {
 
 const adminNotificationsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
 
-  app.post('/admin/notifications/broadcast', { preHandler: preAdmin }, async (request, reply) => {
-    const body = adminBroadcastBodySchema.parse(request.body);
-    const actorUserId = getEffectiveUserId(request as RequestWithUser);
-    const sendAt = body.sendAt != null ? new Date(body.sendAt) : null;
-    if (sendAt != null && Number.isNaN(sendAt.getTime())) {
-      return reply.status(400).send({ error: 'Invalid sendAt datetime.' });
+  app.post(
+    '/admin/notifications/broadcast',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const body = adminBroadcastBodySchema.parse(request.body);
+      const actorUserId = getEffectiveUserId(request as RequestWithUser);
+      const sendAt = body.sendAt != null ? new Date(body.sendAt) : null;
+      if (sendAt != null && Number.isNaN(sendAt.getTime())) {
+        return reply.status(400).send({ error: 'Invalid sendAt datetime.' });
+      }
+      const result = await createAdminBroadcast(request.server.prisma, {
+        actorUserId,
+        title: body.title,
+        message: body.message,
+        targetKind: body.targetKind,
+        userIds: body.userIds,
+        sendAt,
+      });
+      return reply.status(201).send(result);
     }
-    const result = await createAdminBroadcast(request.server.prisma, {
-      actorUserId,
-      title: body.title,
-      message: body.message,
-      targetKind: body.targetKind,
-      userIds: body.userIds,
-      sendAt,
-    });
-    return reply.status(201).send(result);
-  });
+  );
 
   app.get('/admin/notifications/broadcasts', { preHandler: preAdmin }, async (request, reply) => {
     const query = adminBroadcastListQuerySchema.parse(request.query);
@@ -90,7 +96,7 @@ const adminNotificationsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.put<{ Params: { broadcastId: string } }>(
     '/admin/notifications/broadcasts/:broadcastId/schedule',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { broadcastId } = adminBroadcastIdParamSchema.parse(request.params);
       const body = adminBroadcastScheduleBodySchema.parse(request.body);
@@ -124,7 +130,7 @@ const adminNotificationsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete<{ Params: { broadcastId: string } }>(
     '/admin/notifications/broadcasts/:broadcastId/schedule',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { broadcastId } = adminBroadcastIdParamSchema.parse(request.params);
       try {
@@ -146,7 +152,7 @@ const adminNotificationsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.post<{ Params: { broadcastId: string } }>(
     '/admin/notifications/broadcasts/:broadcastId/send-now',
-    { preHandler: preAdmin },
+    { preHandler: preAdminMutating },
     async (request, reply) => {
       const { broadcastId } = adminBroadcastIdParamSchema.parse(request.params);
       try {
