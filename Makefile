@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-build-lab landing-preview up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-build-lab landing-build-public landing-preview up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -29,7 +29,8 @@ help:
 	@echo "  make test         Backend-Tests ausführen (Vitest)"
 	@echo "  make landing-dev     Landing Page Dev-Server (http://localhost:5174)"
 	@echo "  make landing-build   Landing Page produktions-Build (apps/landing/dist)"
-	@echo "  make landing-build-lab  Landing für VM-Lab (docsops.local / demo.docsops.local)"
+	@echo "  make landing-build-lab  Landing für VM-Lab → dist-local (docsops.local)"
+	@echo "  make landing-build-public  Landing public → dist-public (docsops.de)"
 	@echo "  make landing-preview Landing Page Build lokal ansehen (nach landing-build)"
 	@echo "  make up           Stack starten (docker compose up -d)"
 	@echo "  make up-fg        Stack starten im Vordergrund (docker compose up)"
@@ -97,7 +98,13 @@ landing-build:
 
 # Lab hostnames for VM demo (docsops.local + demo.docsops.local)
 landing-build-lab:
-	VITE_DEMO_URL=http://demo.docsops.local VITE_SITE_URL=http://docsops.local pnpm --filter landing build
+	VITE_DEMO_URL=http://demo.docsops.local VITE_SITE_URL=http://docsops.local \
+		pnpm --filter landing run build:lab
+
+# Public demo hostnames (docsops.de + demo.docsops.de)
+landing-build-public:
+	VITE_DEMO_URL=https://demo.docsops.de VITE_SITE_URL=https://docsops.de \
+		pnpm --filter landing run build:public
 
 landing-preview:
 	pnpm --filter landing preview

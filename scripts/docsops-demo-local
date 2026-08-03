@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Public demo entrypoint (docsops.de / demo.docsops.de).
-# Safe for: curl …/docsops-demo | sudo bash
+# Local VM lab entrypoint (docsops.local / demo.docsops.local).
+# Safe for: curl …/docsops-demo-local | sudo bash
 set -euo pipefail
-export DOCSOPS_DEMO_PROFILE=public
+export DOCSOPS_DEMO_PROFILE=local
 
 DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
 DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
@@ -60,7 +60,7 @@ _docsops_demo_bootstrap() {
   rm -rf "$stage"
   export DOCSOPS_VERSION="$version"
   export DOCSOPS_DEMO_PROFILE
-  exec "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo" "$@"
+  exec "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo-local" "$@"
 }
 
 _CLI="$(_docsops_demo_find_cli)" || true

@@ -1,0 +1,31 @@
+# Public demo: Landing on docsops.de + demo app on demo.docsops.de (Caddy TLS).
+# Pair with docker-compose.demo.yml (DEMO_MODE) and docker-compose.demo-public.yml.
+#
+# DNS: A/AAAA docsops.de + demo.docsops.de → this host. Firewall: 80 and 443.
+
+docsops.de {
+	root * /srv/landing
+	encode gzip
+	try_files {path} /index.html
+	file_server
+}
+
+demo.docsops.de {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle /api/v1/me/events {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}

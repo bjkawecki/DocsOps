@@ -60,6 +60,43 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 
 Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
 
+### Öffentliche Demo (`docsops.de` / `demo.docsops.de`)
+
+Ziel: VPS mit DNS A/AAAA auf denselben Host; Caddy mit TLS (Ports 80 + 443).
+
+| Hostname          | Inhalt                                   |
+| ----------------- | ---------------------------------------- |
+| `docsops.de`      | Statische Landing (`apps/landing` Build) |
+| `demo.docsops.de` | Demo-App (`DEMO_MODE`, CSV-Seed)         |
+
+**Ein-Befehl-Setup** (empfohlen):
+
+```bash
+# DNS zuerst: A/AAAA docsops.de + demo.docsops.de → VPS-IP. Firewall: 80 und 443.
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo \
+  | sudo bash
+
+# Gepinnt:
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo \
+  | sudo bash -s -- --version v0.1.0
+```
+
+Das Skript richtet ein:
+
+- `/opt/docsops` (Bundle inkl. Public-Compose + Landing-Dist)
+- `/etc/docsops/docsops.env` (`DOCSOPS_DEMO_PROFILE=public`, Demo+Public-Overlays, `SESSION_COOKIE_SECURE=1`)
+- **kein** Server-`/etc/hosts` (öffentliches DNS)
+- täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset`
+- CLI unter `/usr/local/bin/docsops-demo`
+
+**Vor DNS-Propagierung** (kurz Client-Hosts auf dem Laptop):
+
+```text
+<VPS-IP>  docsops.de demo.docsops.de
+```
+
+Bestehende Lab-Installation auf demselben Host besser vorher `docsops-demo-local uninstall` (oder `--reconfigure` nach Uninstall), damit Profile/Caddyfile/Landing nicht vermischt werden.
+
 ### VM-Lab (Landing + Demo auf einer Ubuntu-VM)
 
 Ziel: Auf der VM ein Skript ausführen – danach sind Landing und Demo-App lokal erreichbar (ein Caddy auf Port 80, zwei Hostnamen).
@@ -72,27 +109,27 @@ Ziel: Auf der VM ein Skript ausführen – danach sind Landing und Demo-App loka
 **Ein-Befehl-Setup** (empfohlen):
 
 ```bash
-# Auf der VM (Release-Asset docsops-demo oder aus dem Bundle):
-curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo \
+# Auf der VM (Release-Asset docsops-demo-local oder aus dem Bundle):
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo-local \
   | sudo bash
 
 # Gepinnt:
-curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo \
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo-local \
   | sudo bash -s -- --version v0.1.0
 
 # Mit lokalem Bundle + bereits geladenen Images (kein GHCR-Pull):
 DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.0.tar.gz \
 DOCSOPS_SKIP_IMAGE_PULL=1 \
-  sudo -E ./docsops-demo install --version v0.1.0
+  sudo -E ./scripts/docsops-demo-local install --version v0.1.0
 ```
 
 Das Skript richtet ein:
 
 - `/opt/docsops` (Bundle inkl. Lab-Compose + Landing-Dist)
-- `/etc/docsops/docsops.env` (`COMPOSE_PROJECT_NAME=docsops-demo`, Demo+Lab-Overlays)
+- `/etc/docsops/docsops.env` (`DOCSOPS_DEMO_PROFILE=local`, Demo+Lab-Overlays)
 - `/etc/hosts` auf der VM (`docsops.local` / `demo.docsops.local` → Host-IP)
-- täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset` (Volumes wipe + Seed)
-- CLI unter `/usr/local/bin/docsops-demo` (`status`, `reset`, `update`, `logs`, `uninstall`)
+- täglichen Reset: `/etc/cron.d/docsops-demo-local` → `docsops-demo-local reset` (Volumes wipe + Seed)
+- CLI unter `/usr/local/bin/docsops-demo-local` (`status`, `reset`, `update`, `logs`, `uninstall`)
 
 **Client-Hosts** (Laptop/Browser-Host – zusätzlich zur VM):
 
@@ -107,7 +144,7 @@ Die VM-IP zeigt das Install-Skript am Ende an.
 ```bash
 ./scripts/lab/smoke-vm-lab.sh
 # oder auf der VM nach Install:
-docsops-demo status
+docsops-demo-local status
 ```
 
 Login: Rollenwahl in `DEMO_MODE`, oder Seed-Accounts mit Passwort `DocsOps1`.
@@ -118,7 +155,7 @@ Manuell ohne Ops-Skript (Auszug Env / Compose) – nur falls nötig:
 # Env /etc/docsops/docsops.env u. a.:
 # COMPOSE_PROJECT_NAME=docsops-demo
 # LANDING_DIST_DIR=/opt/docsops/landing
-# … siehe docsops-demo / write_demo_env_file
+# … siehe docsops-demo-local / write_demo_env_file
 
 docker compose --env-file /etc/docsops/docsops.env \
   -f docker-compose.yml -f docker-compose.prod.yml \
@@ -133,7 +170,7 @@ cd apps/backend
 DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
 ```
 
-Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo reset`
+Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo-local reset` (lokal) bzw. `sudo docsops-demo reset` (public).
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---

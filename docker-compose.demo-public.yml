@@ -1,0 +1,26 @@
+# Public demo host: Landing + demo on docsops.de / demo.docsops.de with TLS (:443).
+# Requires docker-compose.demo.yml (DEMO_MODE) and landing dist on the host.
+#
+# Usage:
+#   export LANDING_DIST_DIR=/opt/docsops/landing
+#   docker compose --env-file /etc/docsops/docsops.env \
+#     -f docker-compose.yml -f docker-compose.prod.yml \
+#     -f docker-compose.demo.yml -f docker-compose.demo-public.yml \
+#     up -d
+
+services:
+  caddy:
+    ports:
+      - '443:443'
+    volumes:
+      - ./Caddyfile.demo:/etc/caddy/Caddyfile:ro
+      - ${LANDING_DIST_DIR:-./landing}:/srv/landing:ro
+      - caddy_data:/data
+      - caddy_config:/config
+  app:
+    environment:
+      SESSION_COOKIE_SECURE: '1'
+
+volumes:
+  caddy_data:
+  caddy_config:

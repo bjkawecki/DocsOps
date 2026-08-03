@@ -390,18 +390,19 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [ ] **Help-DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
 [x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Musterwerk IT GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
 
-**Demo-Instanz (VM-Lab lokal; öffentlich `demo.docsops.de` später):**
+**Demo-Instanz (VM-Lab lokal; öffentlich `docsops.de` / `demo.docsops.de`):**
 
-**Hosting:** Lokal: eine VM mit `docsops-demo` (Landing `docsops.local` + App `demo.docsops.local`). Öffentlich später: `docsops.de` = Landing, `demo.docsops.de` = eigener Compose-Stack (`COMPOSE_PROJECT_NAME=docsops-demo`); Landing nicht im Demo-App-Container.
+**Hosting:** Lokal: eine VM mit `docsops-demo-local` (Landing `docsops.local` + App `demo.docsops.local`). Öffentlich: `docsops-demo` auf VPS (`docsops.de` = Landing, `demo.docsops.de` = App, ein Compose-Stack `COMPOSE_PROJECT_NAME=docsops-demo`, TLS via `Caddyfile.demo`).
 
-[x] **Demo-Ops-Skript (`docsops-demo`):** Host-Skript (Bash; Release-Asset + Bundle). Befehle: `install`, `reset`/`reinstall`, `update`, `status`, `logs`, `uninstall`. Install/Update: GitHub-Releases listen/`--version vX.Y.Z`, oder lokales Bundle (`DOCSOPS_BUNDLE_PATH`) / bestehende `/opt/docsops`. Prod-Compose + `docker-compose.demo.yml` + `docker-compose.lab.yml`, `DEMO_MODE`, Lab-Hostnames, `/etc/hosts`, Cron → `reset`. Öffentliche Hostnames `demo.docsops.de` / DNS Go-live: noch offen.
-[ ] **Eigene Instanz (öffentlich):** isolierter Stack auf VPS; siehe Go-live unten. _(Lokal/VM: `docsops-demo install`.)_
+[x] **Demo-Ops-Skript public (`docsops-demo`):** Host-Skript (Bash; Release-Asset + Bundle). Profile `public`: Hosts `docsops.de` / `demo.docsops.de`, Compose `docker-compose.demo.yml` + `docker-compose.demo-public.yml`, Landing `landing-dist-public/`, Ports 80+443, kein Server-`/etc/hosts`, Cron → `docsops-demo reset`.
+[x] **Demo-Ops-Skript local (`docsops-demo-local`):** wie bisher Lab: `.local`-Hosts, `/etc/hosts`, `docker-compose.lab.yml`, `landing-dist-local/`, Port 80, Cron → `docsops-demo-local reset`.
+[ ] **Eigene Instanz (öffentlich, Kunden-Prod):** isolierter Prod-Stack auf VPS ohne `DEMO_MODE`; siehe Go-live / Managed Hosting. _(Demo public: `docsops-demo install`.)_
 [x] **Demo-Login mit Rollenwahl:** Angepasste Login-Seite in `DEMO_MODE` – **Rollenauswahl** (kein Passwort-Formular nötig bzw. optional daneben), **nicht** Bug-Menü. Mindestens **fünf** Seed-Rollen mit echten Accounts/Rechten: **Admin**, **Company Lead**, **Department Lead**, **Team Lead**, **normaler User** (Team Member). Auswahl loggt als entsprechender Seed-User ein (Session). Landing kann auf Demo-Login verweisen.
 [x] **Admin in DEMO_MODE eingeschränkt (UI + API):** Mutierende/gefährliche Admin-Routen **serverseitig deaktivieren** (403), nicht nur UI ausblenden – u. a. User anlegen/löschen, Passwort-Reset, Platform-Reset/Reseed, Update-Apply, Backup-Ziele ändern, SMTP ändern, Broadcasts, Migration Import/Export soweit missbrauchsträchtig. Lesende Org-Übersicht ggf. erlaubt (Produktentscheidung in Umsetzung). Nav „Admin“ nur Rest-Funktionen oder Hinweis „Demo – limited admin“.
-[x] **Reset einmal täglich (VM-Lab):** Cron `/etc/cron.d/docsops-demo` → `docsops-demo reset` (Compose `down -v` + Up, Seed via `DEMO_MODE`). Dev-Checkout: `pnpm --filter backend demo:reset`. Banner „Demo resets daily“ in App.
+[x] **Reset einmal täglich:** Cron `/etc/cron.d/docsops-demo` bzw. `docsops-demo-local` → `… reset` (Compose `down -v` + Up, Seed via `DEMO_MODE`). Dev-Checkout: `pnpm --filter backend demo:reset`. Banner „Demo resets daily“ in App.
 [x] **DEMO_MODE-Zusatz (lokal):** kein Mail-Versand, kein Self-Register, Rate Limits auf Login, kurze Sessions (4 h Default), strengere Upload-Limits, `robots.txt`/noindex, Disclaimer auf Login + App-Banner. Öffentliche Nutzungsbedingungen/Legal auf Landing: noch offen.
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); Go-live der Demo-Instanz separat.
-[ ] **Demo online:** DNS `demo.docsops.de`, Monitoring, Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7.
+[ ] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, Monitoring, Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7.
 
 **Reihenfolge:** App-i18n EN/DE → Landing Go-live (optional parallel) → Demo-Ops-Skript + Seed/Rollen-Login + Admin-API-Lockdown + täglicher Reset.
 
