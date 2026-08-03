@@ -17,7 +17,10 @@ export const demoLoginBodySchema = z.object({
 
 export type DemoLoginBody = z.infer<typeof demoLoginBodySchema>;
 
-/** Fixed seed emails – SSoT aligned with apps/backend/prisma/seed-data/users.csv + ADMIN_EMAIL. */
+/**
+ * Fixed seed emails for non-admin roles (apps/backend/prisma/seed-data/users.csv).
+ * Admin is created via create-admin from ADMIN_EMAIL (default below).
+ */
 export const DEMO_SEED_EMAIL_BY_ROLE: Record<DemoLoginRole, string> = {
   admin: 'admin@demo.docsops.local',
   companyLead: 'company.lead@demo.docsops.local',
@@ -25,3 +28,12 @@ export const DEMO_SEED_EMAIL_BY_ROLE: Record<DemoLoginRole, string> = {
   teamLead: 'team.lead@demo.docsops.local',
   member: 'member@demo.docsops.local',
 };
+
+/** Resolves the login email for a demo role (admin follows ADMIN_EMAIL when set). */
+export function demoSeedEmailForRole(role: DemoLoginRole): string {
+  if (role === 'admin') {
+    const fromEnv = process.env.ADMIN_EMAIL?.trim();
+    if (fromEnv) return fromEnv;
+  }
+  return DEMO_SEED_EMAIL_BY_ROLE[role];
+}

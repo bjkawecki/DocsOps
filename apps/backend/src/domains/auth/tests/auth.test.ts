@@ -209,4 +209,36 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
       else process.env.DEMO_MODE = prev;
     }
   });
+
+  it('POST /api/v1/auth/demo-login admin uses ADMIN_EMAIL when set', async () => {
+    const prevMode = process.env.DEMO_MODE;
+    const prevAdmin = process.env.ADMIN_EMAIL;
+    process.env.DEMO_MODE = 'true';
+    process.env.ADMIN_EMAIL = 'admin@demo.docsops.de';
+    const passwordHash = await hashPassword('DocsOps1');
+    const demoUser = await prisma.user.upsert({
+      where: { email: 'admin@demo.docsops.de' },
+      create: {
+        name: 'Public Demo Admin',
+        email: 'admin@demo.docsops.de',
+        passwordHash,
+        isAdmin: true,
+      },
+      update: { passwordHash, isAdmin: true, deletedAt: null },
+    });
+    try {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/demo-login',
+        payload: { role: 'admin' },
+      });
+      expect(res.statusCode).toBe(204);
+    } finally {
+      await prisma.session.deleteMany({ where: { userId: demoUser.id } });
+      if (prevMode === undefined) delete process.env.DEMO_MODE;
+      else process.env.DEMO_MODE = prevMode;
+      if (prevAdmin === undefined) delete process.env.ADMIN_EMAIL;
+      else process.env.ADMIN_EMAIL = prevAdmin;
+    }
+  });
 });

@@ -23,7 +23,7 @@ apply_demo_profile() {
       DOCSOPS_DEMO_SCRIPT_NAME="docsops-demo"
       DOCSOPS_DEMO_BUNDLE_LANDING="landing-dist-public"
       DOCSOPS_DEMO_SCHEME="https"
-      DOCSOPS_DEMO_ADMIN_EMAIL_DEFAULT="admin@demo.docsops.de"
+      DOCSOPS_DEMO_ADMIN_EMAIL_DEFAULT="admin@demo.docsops.local"
       ;;
     local)
       DOCSOPS_LAB_LANDING_HOST="docsops.local"

@@ -12,6 +12,7 @@ export {
   demoLoginBodySchema,
   demoLoginRoleSchema,
   DEMO_SEED_EMAIL_BY_ROLE,
+  demoSeedEmailForRole,
   type DemoLoginBody,
   type DemoLoginRole,
 } from './demoLogin.js';
