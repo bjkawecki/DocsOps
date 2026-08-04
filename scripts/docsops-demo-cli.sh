@@ -79,6 +79,7 @@ Environment:
   DOCSOPS_NON_INTERACTIVE=1   No prompts
   DOCSOPS_ASSUME_YES=1        Skip backup-key confirmation
   DOCSOPS_BUNDLE_PATH=…       Local docsops-vX.Y.Z.tar.gz (no GitHub download)
+  DOCSOPS_FORCE_BUNDLE=1       Force bundle re-download (update sets this automatically)
   DOCSOPS_SKIP_IMAGE_PULL=1   Use images already on the host (docker load)
   DOCSOPS_LANDING_DIST=…      Path to landing dist if missing from bundle
   DOCSOPS_LAB_HOSTS_IP=…      IP written into /etc/hosts (local; default: primary host IP)
@@ -263,6 +264,8 @@ cmd_update() {
 
   version="$(prompt_demo_release_version "$version")"
   export DOCSOPS_VERSION="$version"
+  # Same-tag retags replace GitHub assets; always refresh the install bundle on update.
+  export DOCSOPS_FORCE_BUNDLE=1
 
   download_demo_release_bundle "$version"
   patch_env_version "$version"

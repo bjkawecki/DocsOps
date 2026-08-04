@@ -423,6 +423,8 @@ download_demo_release_bundle() {
   install -d -m 755 "$DOCSOPS_INSTALL_DIR"
 
   if [[ -z "${DOCSOPS_BUNDLE_PATH:-}" && "${DOCSOPS_FORCE_BUNDLE:-}" != "1" ]]; then
+    # Install convenience only: skip re-download when the same tag is already unpacked.
+    # Updates always set DOCSOPS_FORCE_BUNDLE=1 so same-tag retags refresh Landing/scripts.
     if [[ -f "${DOCSOPS_INSTALL_DIR}/VERSION" && -f "${DOCSOPS_INSTALL_DIR}/docker-compose.demo.yml" ]]; then
       local have
       have="$(tr -d '[:space:]' <"${DOCSOPS_INSTALL_DIR}/VERSION")"
