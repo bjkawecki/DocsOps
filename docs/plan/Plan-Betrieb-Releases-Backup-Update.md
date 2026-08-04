@@ -11,7 +11,7 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 - **Runtime:** Backend liest **nur** `process.env.APP_VERSION`; fehlt der Wert → Fehler (kein Fallback auf andere `package.json`).
 - **Release:** Git-Tag `v0.2.0`, GitHub Release mit **Deploy-Bundle** (`docsops-v0.2.0.tar.gz`: Compose, Caddy, Install-Skripte) und **Container-Images** auf GHCR (`ghcr.io/<owner>/docsops-*:v0.2.0`, public wie Coolify). Production: `pull` + `up -d` – kein Monorepo-Clone, kein lokaler Build. Details: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
 - **Update:** `scripts/update.sh` lädt neues Bundle + Image-Tags, dann `compose pull` + `up -d` (§26).
-- **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) – wird mit der App ausgeliefert.
+- **Release Notes:** Markdown pro Version unter `content/releases/0.2.0.md` plus `content/releases/manifest.json` (Version, Datum, Titel) – wird mit der App ausgeliefert. Root-`.dockerignore` schließt sonst `**/*.md` aus; die Ausnahme `!content/releases/**/*.md` ist Pflicht, sonst fehlen Changelog-Bodies im Image.
 - **Nummer bestimmen:** **manuell beim Release** (bewusst, nicht pro Commit). Ein Release = ein SemVer-Sprung + Release Note + Git-Tag + deploytes Image/Bundle.
 - **SemVer-Kriterien:** **Patch** = Bugfixes/kleine UX; **Minor** = neue Features, rückwärtskompatibel; **Major** = Breaking Changes (Migration, inkompatible API). Während `0.x.y`: API/Betrieb dürfen sich noch ändern.
 - **Kein Auto-Patch pro Commit:** CI-Build-Nummern oder lange Patch-Zahlen (wie bei Enterprise-Software) sind **kein** Ziel – sie dienen dort oft als eindeutige Build-IDs bei tausenden Deployments. DocsOps: seltene, admin-gesteuerte Releases; `APP_VERSION` bleibt kurz und lesbar (`0.2.0`).
@@ -21,7 +21,7 @@ Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **U
 ### Release-Ritual (Checkliste)
 
 1. `version` in Root-`package.json` bumpen (Patch/Minor/Major nach Kriterien oben).
-2. `content/releases/<version>.md` schreiben (Englisch, nutzerrelevante Änderungen). Optional am Ende: Abschnitt `## For operators` (Backup, Env, Migration, Downtime) — wird in `/whats-new` **nicht** angezeigt, Admin → System zeigt die volle Datei als Preview vom GitHub-Tag (§26).
+2. `content/releases/<version>.md` schreiben (Englisch, nutzerrelevante Änderungen). Optional am Ende: Abschnitt `## For operators` (Backup, Env, Migration, Downtime) – wird in `/whats-new` **nicht** angezeigt, Admin → System zeigt die volle Datei als Preview vom GitHub-Tag (§26).
 3. Eintrag in `content/releases/manifest.json`.
 4. `pnpm run lint` + Tests.
 5. Git-Tag `vX.Y.Z`, GitHub Release (Bundle + Images, vgl. **§19**).

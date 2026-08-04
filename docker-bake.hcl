@@ -1,4 +1,4 @@
-# Bake file for DocsOps release images (parallel targets, shared builder cache).
+# Bake file for DocsOps release images (shared builder cache; app writes GHA cache).
 variable "TAG" {
   default = "dev"
 }
@@ -15,12 +15,17 @@ group "default" {
   targets = ["app", "migrate", "worker", "frontend"]
 }
 
+group "remaining" {
+  targets = ["migrate", "worker", "frontend"]
+}
+
 target "app" {
   context    = "."
   dockerfile = "apps/backend/Dockerfile"
   target     = "app"
   tags       = ["${REGISTRY}/${OWNER}/docsops-app:${TAG}"]
   # Shared scope so app/migrate/worker reuse the backend builder layers.
+  # Only app writes cache-to to avoid triple GHA cache uploads on the same scope.
   cache-from = ["type=gha,scope=docsops-backend"]
   cache-to   = ["type=gha,mode=max,scope=docsops-backend"]
 }
@@ -31,7 +36,6 @@ target "migrate" {
   target     = "migrate"
   tags       = ["${REGISTRY}/${OWNER}/docsops-migrate:${TAG}"]
   cache-from = ["type=gha,scope=docsops-backend"]
-  cache-to   = ["type=gha,mode=max,scope=docsops-backend"]
 }
 
 target "worker" {
@@ -40,7 +44,6 @@ target "worker" {
   target     = "worker"
   tags       = ["${REGISTRY}/${OWNER}/docsops-worker:${TAG}"]
   cache-from = ["type=gha,scope=docsops-backend"]
-  cache-to   = ["type=gha,mode=max,scope=docsops-backend"]
 }
 
 target "frontend" {

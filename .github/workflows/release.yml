@@ -33,7 +33,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push images (bake, parallel targets)
+      - name: Build and push app image (fills backend GHA cache)
         uses: docker/bake-action@v6
         env:
           # HCL variables in docker-bake.hcl (not bake --set keys)
@@ -42,6 +42,18 @@ jobs:
           OWNER: ${{ github.repository_owner }}
         with:
           files: docker-bake.hcl
+          targets: app
+          push: true
+
+      - name: Build and push remaining images (app first, then migrate/worker/frontend)
+        uses: docker/bake-action@v6
+        env:
+          TAG: ${{ github.ref_name }}
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ github.repository_owner }}
+        with:
+          files: docker-bake.hcl
+          targets: remaining
           push: true
 
       - name: Report pushed image sizes

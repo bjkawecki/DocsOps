@@ -1,6 +1,7 @@
 #!/bin/sh
 # Install typst binary on Alpine (musl). Not in all Alpine repos – use GitHub release.
-# Expects: tar, xz, and wget or curl (worker/dev Dockerfiles install these before calling).
+# Expects: tar, xz, and wget or curl. Prefer a multi-stage Dockerfile so wget/xz
+# are not left in the final runtime image (see apps/backend/Dockerfile typst-fetch).
 set -eu
 
 TYPST_VERSION="${TYPST_VERSION:-0.13.1}"

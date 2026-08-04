@@ -8,9 +8,12 @@
 docs
 **/*.md
 !apps/**/README.md
+!content/releases/**/*.md
 **/*.test.ts
 **/*.test.tsx
 **/*.spec.ts
 **/*.spec.tsx
 coverage
+**/coverage
+apps/**/dist
 .husky

@@ -50,13 +50,19 @@ ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]
 
+# Fetch typst in a throwaway stage so wget/xz stay out of the worker runtime.
+FROM alpine:3.21 AS typst-fetch
+ARG TYPST_VERSION=0.13.1
+RUN apk add --no-cache wget xz tar
+COPY docker/install-typst-alpine.sh /tmp/install-typst-alpine.sh
+RUN TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
+  && rm /tmp/install-typst-alpine.sh
+
 # Job worker: PDF export (typst) + backup tools
 FROM runtime-base AS worker
-ARG TYPST_VERSION=0.13.1
-COPY docker/install-typst-alpine.sh /tmp/install-typst-alpine.sh
-RUN apk add --no-cache postgresql-client zstd tar wget xz \
-  && TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
-  && rm /tmp/install-typst-alpine.sh
+RUN apk add --no-cache postgresql-client zstd tar
+COPY --from=typst-fetch /usr/local/bin/typst /usr/local/bin/typst
+RUN typst --version
 ENV NODE_ENV=production
 COPY docker/entrypoint-worker-prod.sh /entrypoint-worker.sh
 RUN chmod +x /entrypoint-worker.sh
