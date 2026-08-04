@@ -27,6 +27,7 @@
 | Build   | `make landing-build` → `apps/landing/dist`                                                                    |
 | Env     | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL`, `VITE_SITE_URL`, optional `VITE_SPONSOR_GITHUB_URL` (`.env.example`) |
 | Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
+| SEO     | robots/sitemap (Build), Canonical/OG, FAQ JSON-LD, Prerender – siehe [Landing-SEO.md](./Landing-SEO.md)       |
 
 **Lokal:** `make landing-dev` → http://localhost:5174 · Demo-CTA default `http://localhost:5000`
 
@@ -45,10 +46,11 @@
 5. **Rollen** (`#rollen`) – Titel: Rollenbasierte Zusammenarbeit
 6. **Beispiel** (`#einordnen`)
 7. **Philosophie-Teaser** → `/philosophie`
-8. **Abschluss-CTA** (Demo · Installation · Link Philosophie)
-9. Footer (Version-Badge → `/changelog`)
+8. **FAQ** (`#faq`)
+9. **Abschluss-CTA** (Demo · Installation)
+10. Footer (Version-Badge → `/changelog`)
 
-**Zurückgestellt auf `/`:** Feature-Grid, Vergleichstabelle, FAQ.
+**Zurückgestellt auf `/`:** Feature-Grid, Vergleichstabelle.
 
 ### Routen
 
@@ -84,7 +86,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 - Kein `/vergleich` in Navigation; Abgrenzung indirekt auf `/philosophie`.
 - Tabellendaten bleiben in [vergleich/](./vergleich/) für spätere Head-to-head-Seiten.
-- FAQ-Komponente existiert, Startseiten-Einbindung weiter zurückgestellt.
+- FAQ ist auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
 
 ---
 
@@ -102,15 +104,16 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ### Inhalt
 
-- [x] Modell-Sections, Beispiel, Philosophie-Teaser, Abschluss-CTA
+- [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
 - [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
 - [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
-- [ ] Vergleichstabelle & FAQ reaktivieren (optional)
+- [ ] Vergleichstabelle reaktivieren (optional)
 - [ ] Demo-Seed-Story
 
 ### Technik
 
 - [x] Mobile Navbar, OG-Tags, Hero LCP-Attribute, Version-Badge
+- [x] SEO: robots/sitemap, Canonicals, Prerender, Search-Console-Checkliste ([Landing-SEO.md](./Landing-SEO.md))
 - [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
 - [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 

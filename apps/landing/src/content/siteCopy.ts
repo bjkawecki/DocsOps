@@ -1,4 +1,7 @@
 export const heroCopy = {
+  pageTitle: 'DocsOps – Interne Dokumentation mit Struktur',
+  metaDescription:
+    'DocsOps – Interne Dokumentationsplattform mit Firmenstruktur, Rechten pro Dokument und kontrollierter Zusammenarbeit. Self-hosted, Open Source (MIT).',
   headlineLead: 'Ihr Betriebswissen.',
   headlineQualities: ['Strukturiert', 'Transparent', 'Verbindlich'] as const,
   headlineTail: 'dokumentiert',
@@ -177,7 +180,7 @@ export const comparisonCopy = {
   linkLabel: 'Ausführliche Vergleiche',
 } as const;
 
-/** Startseite zurückgestellt – `FaqSection` */
+/** FAQ on home – `FaqSection` */
 export const faqCopy = {
   title: 'FAQ',
 } as const;
@@ -298,6 +301,8 @@ export const sponsorCopy = {
 
 export const vergleichHubCopy = {
   title: 'Vergleiche',
+  metaDescription:
+    'DocsOps im Vergleich zu anderen Dokumentations- und Wiki-Tools – Head-to-head-Seiten folgen schrittweise.',
   intro:
     'Ausführliche Head-to-head-Vergleiche zu einzelnen Tools folgen schrittweise. Die Startseiten-Tabelle ist vorübergehend zurückgestellt.',
   comingSoon: 'Demnächst',

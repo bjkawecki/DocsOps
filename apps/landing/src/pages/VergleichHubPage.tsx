@@ -1,10 +1,16 @@
 import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core';
+import { LandingHead } from '../components/LandingHead';
 import { vergleichHubItems } from '../content/comparison';
 import { vergleichHubCopy } from '../content/siteCopy';
 
 export function VergleichHubPage() {
   return (
     <Stack gap="xl" py="md">
+      <LandingHead
+        title={`${vergleichHubCopy.title} – DocsOps`}
+        description={vergleichHubCopy.metaDescription}
+        path="/vergleich"
+      />
       <Stack gap="sm" maw={760}>
         <Title order={1}>{vergleichHubCopy.title}</Title>
         <Text c="dimmed" size="lg">

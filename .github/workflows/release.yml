@@ -114,10 +114,12 @@ jobs:
         run: |
           corepack enable
           pnpm install --frozen-lockfile
+          pnpm --filter landing exec playwright install chromium
           VITE_DEMO_URL=http://demo.docsops.local VITE_SITE_URL=http://docsops.local \
             pnpm --filter landing run build:lab
           VITE_DEMO_URL=https://demo.docsops.de VITE_SITE_URL=https://docsops.de \
             pnpm --filter landing run build:public
+          pnpm --filter landing run prerender -- --outDir dist-public
 
       - name: Build deploy bundle
         run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist

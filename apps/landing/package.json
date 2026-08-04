@@ -9,6 +9,7 @@
     "build": "tsc -b && vite build",
     "build:lab": "tsc -b && vite build --outDir dist-local",
     "build:public": "tsc -b && vite build --outDir dist-public",
+    "prerender": "tsx scripts/prerender.ts",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0"
   },
@@ -27,6 +28,8 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.51.0",
+    "tsx": "^4.19.3",
     "typescript": "~5.6.3",
     "vite": "^7.3.1"
   }

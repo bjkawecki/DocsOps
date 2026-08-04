@@ -9,6 +9,7 @@ Planung und Inhalte für Landing Page, Demo und öffentliche Kommunikation (§19
 | **[Positionierung-und-Landing.md](./Positionierung-und-Landing.md)** | **Aktueller Erkenntnisstand** – These, drei Sections, Hero, Sprache |
 | **[Landing-Sections-Plan.md](./Landing-Sections-Plan.md)**           | **Umsetzungsplan** – Organisation · Kontext · Rollen (Phasen A–G)   |
 | [Landing-Page-Plan.md](./Landing-Page-Plan.md)                       | Technik, Routen, Umsetzungsstand `apps/landing`                     |
+| [Landing-SEO.md](./Landing-SEO.md)                                   | robots/sitemap, Canonicals, Prerender, Search Console               |
 | [diagramme/scope-hierarchie.mmd](./diagramme/scope-hierarchie.mmd)   | Mermaid: Scope (2 Departments, Member, User außerhalb)              |
 | [diagramme/kontext-dokument.mmd](./diagramme/kontext-dokument.mmd)   | Mermaid: Kontext → Dokument                                         |
 | [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd)     | Mermaid: Rechte / Rollen & Veröffentlichung                         |
