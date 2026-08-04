@@ -1,4 +1,4 @@
-import { Anchor, Box, Button, Group, Stack, Text, Title } from '@mantine/core';
+import { Box, Button, Group, Stack, Text, Title } from '@mantine/core';
 import { IconServer } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { LandingExternalButton } from '../LandingExternalLink';
@@ -31,14 +31,6 @@ export function FinalCtaSection() {
             {finalCtaCopy.secondaryCta}
           </Button>
         </Group>
-        <Anchor
-          component={Link}
-          to="/philosophie"
-          className="landing-footer-link"
-          underline="always"
-        >
-          {finalCtaCopy.philosophyLink}
-        </Anchor>
       </Stack>
     </Box>
   );

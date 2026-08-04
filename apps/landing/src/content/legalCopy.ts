@@ -10,19 +10,15 @@ export const legalCopy = {
     sections: [
       {
         title: 'Anbieter',
-        paragraphs: ['[FIRMA]', '[ADRESSE]'],
+        paragraphs: ['Björn Kawecki'],
       },
       {
         title: 'Kontakt',
-        paragraphs: ['E-Mail: [E-MAIL]', 'Telefon: [TELEFON] (optional)'],
-      },
-      {
-        title: 'Umsatzsteuer-ID',
-        paragraphs: ['USt-IdNr.: [UST_ID] (falls vorhanden, sonst Absatz entfernen)'],
+        paragraphs: ['E-Mail: post@bjoernkawecki.de', 'Website: https://bjoernkawecki.de'],
       },
       {
         title: 'Verantwortlich für den Inhalt',
-        paragraphs: ['[VERANTWORTLICHER_NAME]', '[ADRESSE]'],
+        paragraphs: ['Björn Kawecki'],
       },
     ] satisfies LegalSection[],
   },
@@ -32,13 +28,17 @@ export const legalCopy = {
     sections: [
       {
         title: 'Verantwortlicher',
-        paragraphs: ['[FIRMA]', '[ADRESSE]', 'E-Mail: [E-MAIL]'],
+        paragraphs: [
+          'Björn Kawecki',
+          'E-Mail: post@bjoernkawecki.de',
+          'Website: https://bjoernkawecki.de',
+        ],
       },
       {
         title: 'Hosting',
         paragraphs: [
-          'Diese Website wird gehostet bei [HOSTING_ANBIETER].',
-          'Adresse des Hosters: [HOSTING_ADRESSE]',
+          'Diese Website wird gehostet bei DigitalOcean, LLC.',
+          'Adresse: 101 Avenue of the Americas, 2nd Floor, New York, NY 10013, USA.',
         ],
       },
       {
@@ -57,7 +57,7 @@ export const legalCopy = {
       {
         title: 'Cookies',
         paragraphs: [
-          'Die statische Marketing-Website setzt keine eigenen Session-Cookies. Externe Links (z. B. Live-Demo, GitHub) unterliegen den Richtlinien der jeweiligen Anbieter.',
+          'Die statische Marketing-Website setzt keine eigenen Session-Cookies. Externe Links (z. B. GitHub) unterliegen den Richtlinien der jeweiligen Anbieter.',
         ],
       },
       {
@@ -69,7 +69,7 @@ export const legalCopy = {
       },
       {
         title: 'Stand',
-        paragraphs: ['[DATUM]'],
+        paragraphs: ['4. August 2026'],
       },
     ] satisfies LegalSection[],
   },

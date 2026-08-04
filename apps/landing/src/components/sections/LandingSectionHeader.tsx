@@ -43,6 +43,8 @@ export function LandingSectionHeader({
   intro,
   introHighlights = [],
 }: LandingSectionHeaderProps) {
+  const paragraphs = intro.split(/\n\n+/);
+
   return (
     <Stack gap="sm" maw={720} mx="auto" w="100%" align="center" className="landing-section-header">
       <Title order={2} className="landing-section-title" mb={0} ta="center">
@@ -54,9 +56,20 @@ export function LandingSectionHeader({
         ) : null}
         {title.after}
       </Title>
-      <Text c="gray.3" ta="center" lh={1.65} size="lg" className="landing-section-intro">
-        {renderIntroWithHighlights(intro, introHighlights)}
-      </Text>
+      <Stack gap="sm" w="100%">
+        {paragraphs.map((paragraph, index) => (
+          <Text
+            key={index}
+            c="gray.3"
+            ta="center"
+            lh={1.65}
+            size="lg"
+            className="landing-section-intro"
+          >
+            {renderIntroWithHighlights(paragraph, introHighlights)}
+          </Text>
+        ))}
+      </Stack>
     </Stack>
   );
 }

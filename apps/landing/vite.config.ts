@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5174,
       host: process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1',
+      fs: {
+        allow: [resolve(landingDir, '../..')],
+      },
     },
   };
 });

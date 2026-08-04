@@ -3,7 +3,12 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { LandingExternalLink } from '../LandingExternalLink';
 import { getAppVersion, getDemoUrl, resolveProjectNavHref } from '../../config/env';
-import { footerCopy, modellNavLinks, projectNavLinks } from '../../content/siteCopy';
+import {
+  authorSiteLink,
+  footerCopy,
+  modellNavLinks,
+  projectNavLinks,
+} from '../../content/siteCopy';
 
 function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -30,8 +35,8 @@ export function Footer() {
     <Box component="footer" className="landing-footer">
       <Container size="lg">
         <Stack gap="xl">
-          <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing="xl">
-            <Stack gap="xs" className="landing-footer-brand-column">
+          <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 5 }} spacing="xl">
+            <Box className="landing-footer-brand-column">
               <Anchor component={Link} to="/" underline="never" className="landing-footer-brand">
                 <Group gap="sm" wrap="nowrap">
                   <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
@@ -40,7 +45,10 @@ export function Footer() {
                   </Text>
                 </Group>
               </Anchor>
-              <Text fw={600} className="landing-footer-heading" mt="sm">
+            </Box>
+
+            <Stack gap="xs">
+              <Text fw={600} className="landing-footer-heading">
                 {footerCopy.productTitle}
               </Text>
               <FooterLink href="/philosophie">{footerCopy.links.philosophie}</FooterLink>
@@ -85,6 +93,13 @@ export function Footer() {
                   </FooterLink>
                 );
               })}
+              <LandingExternalLink
+                href={authorSiteLink.href}
+                className="landing-footer-link"
+                underline="never"
+              >
+                {authorSiteLink.label}
+              </LandingExternalLink>
             </Stack>
 
             <Stack gap="xs">

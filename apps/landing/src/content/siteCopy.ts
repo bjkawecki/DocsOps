@@ -36,7 +36,7 @@ export const scopeCopy = {
     accent: 'Ebenenmodell',
   },
   intro:
-    'In Organisationen hat jeder Nutzer einen Geltungsbereich – Firma, optional Abteilung und Team. DocsOps bildet diese Ebenen nach und leitet daraus Sichtbarkeit und Zugänge ab. So findet jeder die Inhalte, die zu seinem Arbeitsbereich gehören – ohne manuelle Berechtigungslisten pro Seite.',
+    'In Organisationen ist jeder Nutzer in einen hierarchischen Geltungsbereich eingebettet: von der Firma über die Abteilung bis ins Team. DocsOps bildet diese Ebenen nach und leitet daraus Sichtbarkeit und Zugänge ab.',
   introHighlights: ['Bereich', 'Firma', 'Team'],
   diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   scopeLabel: 'Organisation',
@@ -52,11 +52,11 @@ export const scopeCopy = {
   },
   levelDescriptions: {
     company:
-      'Jede Nutzerin und jeder Nutzer ist genau einer Firma zugeordnet – das ist die Wurzel des organisatorischen Geltungsbereichs und gilt immer.',
+      'In jeder DocsOps-Instanz gibt es genau eine Firma als organisatorische Wurzel. Alle Anwender sind ihr zugeordnet und haben dadurch Zugriff auf diesen Bereich.',
     department:
-      'Optional: Zuordnung zu einer Abteilung innerhalb der Firma. Steuert Sichtbarkeit und Verantwortung auf Abteilungsebene – ohne Abteilung bleibt der Nutzer direkt auf Firmenebene.',
-    team: 'Optional: Operatives Team innerhalb einer Abteilung. Die Team-Zuordnung verfeinert den Geltungsbereich – ohne Team bleibt der Nutzer nur der Abteilung bzw. der Firma zugeordnet.',
-    user: 'Persönlicher Geltungsbereich außerhalb der Organisationshierarchie – für private Dokumente und persönliche Kontexte, unabhängig von Firma, Abteilung und Team.',
+      'Abteilungen gliedern die Firma nach fachlicher Zuständigkeit (zum Beispiel IT oder Vertrieb).\n\nIn DocsOps können Sie Anwender genau einer Abteilung zuordnen und erweitern damit deren Zugriff auf Kontexte und Dokumente dieser Abteilung.',
+    team: 'Teams sind die kleinste operative Einheit der Organisation und gehören immer einer Abteilung an.\n\nIn DocsOps können Anwender genau einem Team zugeordnet werden. Dadurch erhalten diese Zugriff auf Kontexte und Dokumente des Teams sowie der übergeordneten Abteilung.',
+    user: 'Jeder Anwender hat einen eigenen Organisationsbereich außerhalb der Firmenstruktur.\n\n Kontexte und Dokumente dort sind nicht über Firma, Abteilung oder Team einsehbar und gehören nur diesem Anwender.',
   },
 } as const;
 
@@ -66,8 +66,8 @@ export const contextCopy = {
     accent: 'Kontext',
   },
   intro:
-    'Selten steht eine Information für sich allein – ein Kontext bündelt zusammengehörige Inhalte innerhalb eines Bereichs. Beim Anlegen eines Dokuments wählen Sie in DocsOps Prozess oder Projekt; eine weitere Kategorie gibt es nicht. So trennen Sie dauerhafte Abläufe von Wissen zu einem Thema oder Vorhaben.',
-  introHighlights: ['Bereich', 'Prozess', 'Projekt'],
+    'Informationen werden erst durch Bündelung zusammengehöriger Inhalte wirksam. DocsOps verlangt daher für jedes Dokument die Zuordnung zu einem Kontext.\n\nDabei ist die grundlegende Unterscheidung festgelegt: Prozess oder Projekt – dauerhafte Abläufe einerseits, Wissen zu einem Thema oder Vorhaben andererseits.',
+  introHighlights: ['Kontext', 'Prozess', 'Projekt'],
   orLabel: 'oder',
   types: {
     process: {
@@ -251,10 +251,9 @@ export const philosophyTeaserCopy = {
 
 export const finalCtaCopy = {
   title: 'DocsOps ausprobieren',
-  body: 'Verstehen Sie das Modell auf der Startseite – vertiefen Sie in der Philosophie – und testen Sie dann Demo oder Installation.',
+  body: 'Verstehen Sie das Modell auf der Startseite – und testen Sie dann Demo oder Installation.',
   primaryCta: 'Live-Demo',
   secondaryCta: 'Installation',
-  philosophyLink: 'Philosophie',
 } as const;
 
 export const installCopy = {
@@ -282,6 +281,11 @@ export const installCopy = {
 export const changelogCopy = {
   title: 'Changelog',
   metaDescription: 'Versionshistorie und Änderungen an DocsOps.',
+  intro:
+    'Versionshistorie von DocsOps. Die Notes stammen aus denselben Release-Dateien wie in der App.',
+  empty: 'Noch keine Release Notes veröffentlicht.',
+  latestBadge: 'Aktuell',
+  noBody: 'Keine ausführlichen Notes für diese Version.',
 } as const;
 
 export const sponsorCopy = {
@@ -311,6 +315,12 @@ export const projectNavLinks = [
   { label: 'Changelog', href: '/changelog', external: false },
   { label: 'Unterstützen', href: '/sponsor', external: false },
 ] as const;
+
+/** Footer-only: personal site of the maintainer. */
+export const authorSiteLink = {
+  label: 'bjoernkawecki.de',
+  href: 'https://bjoernkawecki.de/projects/docs-ops/',
+} as const;
 
 export const footerCopy = {
   productTitle: 'Produkt',

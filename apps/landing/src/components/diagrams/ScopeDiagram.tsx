@@ -1,4 +1,11 @@
-import { Box, Paper, Text } from '@mantine/core';
+import { Box, Group, Paper, Stack, Text, ThemeIcon } from '@mantine/core';
+import {
+  IconBuilding,
+  IconHierarchy2,
+  IconUser,
+  IconUsersGroup,
+  type Icon,
+} from '@tabler/icons-react';
 import {
   ReactFlow,
   useEdgesState,
@@ -44,9 +51,11 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | 
           <Text size="sm" tt="uppercase" fw={700} c="gray.3" lts={0.6} mb="sm">
             {detail.title}
           </Text>
-          <Text size="md" c="gray.2" lh={1.65}>
-            {detail.description}
-          </Text>
+          {detail.description.split(/\n\n+/).map((paragraph, index) => (
+            <Text key={index} size="md" c="gray.2" lh={1.65} mb={index === 0 ? 'sm' : 0}>
+              {paragraph}
+            </Text>
+          ))}
         </>
       ) : (
         <Text size="md" c="gray.4" lh={1.65}>
@@ -57,15 +66,33 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | 
   );
 }
 
-const MOBILE_NODES: ScopeNodeId[] = [
-  'company',
-  'departmentA',
-  'teamA1',
-  'teamA2',
-  'departmentB',
-  'teamB1',
-  'teamB2',
-  'userPersonal',
+type MobileScopeLevel = {
+  title: string;
+  description: string;
+  Icon: Icon;
+};
+
+const MOBILE_SCOPE_LEVELS: MobileScopeLevel[] = [
+  {
+    title: 'Firma',
+    description: 'Gemeinsamer organisatorischer Rahmen.',
+    Icon: IconBuilding,
+  },
+  {
+    title: 'Abteilung',
+    description: 'Verantwortung für ein Fachgebiet oder Produktfeld.',
+    Icon: IconHierarchy2,
+  },
+  {
+    title: 'Team',
+    description: 'Operative Zusammenarbeit im Tagesgeschäft.',
+    Icon: IconUsersGroup,
+  },
+  {
+    title: 'Persönlicher Bereich',
+    description: 'Eigene Inhalte außerhalb der Team-Hierarchie.',
+    Icon: IconUser,
+  },
 ];
 
 function MobileScopeList() {
@@ -77,17 +104,26 @@ function MobileScopeList() {
         withBorder
         bg="dark.7"
       >
+        <Text size="sm" c="gray.3" lh={1.55} mb="md">
+          Sichtbarkeit und Zugänge folgen der Hierarchie von Firma, Abteilung und Team.
+        </Text>
         <Box component="ol" className="landing-scope-mobile-list">
-          {MOBILE_NODES.map((nodeId) => {
-            const detail = getScopeNodeDetail(nodeId);
+          {MOBILE_SCOPE_LEVELS.map(({ title, description, Icon }) => {
             return (
-              <Box component="li" key={nodeId}>
-                <Text size="md" fw={600}>
-                  {detail.title}
-                </Text>
-                <Text size="sm" c="gray.4" mt={4} lh={1.6}>
-                  {detail.description}
-                </Text>
+              <Box component="li" key={title}>
+                <Group align="flex-start" gap="sm" wrap="nowrap">
+                  <ThemeIcon variant="light" color="blue" radius="xl" size={30} mt={2}>
+                    <Icon size={18} stroke={1.8} />
+                  </ThemeIcon>
+                  <Stack gap={2}>
+                    <Text size="md" fw={600} lh={1.35}>
+                      {title}
+                    </Text>
+                    <Text size="sm" c="gray.4" lh={1.55}>
+                      {description}
+                    </Text>
+                  </Stack>
+                </Group>
               </Box>
             );
           })}
