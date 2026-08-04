@@ -27,6 +27,7 @@ export type DocumentPageToolbarActionsProps = {
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   leadDraftLastSynced: string | null;
   leadDraftDirty: boolean;
+  metadataDirty: boolean;
   leadDraftPendingSuggestions: number;
   saveLoading: boolean;
   publishLoading: boolean;
@@ -68,6 +69,7 @@ export function DocumentPageToolbarActions({
   leadDraftPanelRef,
   leadDraftLastSynced,
   leadDraftDirty,
+  metadataDirty,
   leadDraftPendingSuggestions,
   saveLoading,
   publishLoading,
@@ -105,7 +107,11 @@ export function DocumentPageToolbarActions({
           <Button
             size="sm"
             loading={saveLoading}
-            disabled={editTab === 'draft' && !leadDraftDirty}
+            disabled={
+              (editTab === 'draft' && !leadDraftDirty) ||
+              (editTab === 'metadata' && !metadataDirty) ||
+              editTab === 'access'
+            }
             onClick={() =>
               void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave())
             }

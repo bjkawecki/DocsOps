@@ -6,6 +6,7 @@ type Args = {
   mode: 'view' | 'edit';
   editTab: 'draft' | 'metadata' | 'access';
   leadDraftDirty: boolean;
+  metadataDirty: boolean;
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   handleSave: () => Promise<void>;
 };
@@ -14,6 +15,7 @@ export function useDocumentPageKeyboardEffects({
   mode,
   editTab,
   leadDraftDirty,
+  metadataDirty,
   leadDraftPanelRef,
   handleSave,
 }: Args): void {
@@ -25,12 +27,12 @@ export function useDocumentPageKeyboardEffects({
         event.preventDefault();
         if (editTab === 'draft' && leadDraftDirty) {
           void leadDraftPanelRef.current?.saveDraft();
-        } else if (editTab !== 'draft') {
+        } else if (editTab === 'metadata' && metadataDirty) {
           void handleSave();
         }
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [editTab, handleSave, leadDraftDirty, leadDraftPanelRef, mode]);
+  }, [editTab, handleSave, leadDraftDirty, leadDraftPanelRef, metadataDirty, mode]);
 }

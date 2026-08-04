@@ -7,6 +7,7 @@ import {
   DocumentBlocksPreview,
   blockDocumentToPlainPreview,
 } from '../../components/documents/DocumentBlocksPreview';
+import { DocumentReadingTitle } from '../../components/documents/DocumentReadingTitle.js';
 import { DocumentPublishedVersionAlert } from '../../components/documents/documentLeadDraft/DocumentPublishedVersionAlert.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
@@ -49,6 +50,7 @@ export type DocumentPageLoadedLayoutProps = {
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   leadDraftLastSynced: string | null;
   leadDraftDirty: boolean;
+  metadataDirty: boolean;
   hasDraftBlocks: boolean;
   hasPublishedBlocks: boolean;
   showPublishButton: boolean;
@@ -102,6 +104,7 @@ export function DocumentPageLoadedLayout({
   leadDraftPanelRef,
   leadDraftLastSynced,
   leadDraftDirty,
+  metadataDirty,
   hasDraftBlocks,
   hasPublishedBlocks,
   showPublishButton,
@@ -171,6 +174,7 @@ export function DocumentPageLoadedLayout({
       leadDraftPanelRef={leadDraftPanelRef}
       leadDraftLastSynced={leadDraftLastSynced}
       leadDraftDirty={leadDraftDirty}
+      metadataDirty={metadataDirty}
       leadDraftPendingSuggestions={leadDraftPendingSuggestions}
       saveLoading={saveLoading}
       publishLoading={publishLoading}
@@ -198,35 +202,39 @@ export function DocumentPageLoadedLayout({
     />
   );
 
-  useSetAppShellBreadcrumbActions(
-    breadcrumbActions,
-    [
-      'doc-actions',
-      documentId,
-      mode,
-      editTab,
-      leadDraftDirty,
-      leadDraftLastSynced,
-      leadDraftPendingSuggestions,
-      saveLoading,
-      publishLoading,
-      canEnterEditMode,
-      showPublishButton,
-      hasNoContext,
-      pdfExportLoading,
-      pdfExportStatus?.status,
-      pdfExportStatus?.downloadUrl,
-      data.canWrite,
-      data.canMove,
-      data.canPublish,
-      data.archivedAt,
-      data.canDelete,
-      data.publishedAt,
-      moveDecisionLoading,
-      startHereBusy,
-      startHereScopes.map((s) => `${s.scopeType}:${s.scopeId}:${s.isCurrent ? 1 : 0}`).join(','),
-    ].join(':')
-  );
+  const breadcrumbActionsSyncKey = [
+    'doc-actions',
+    documentId,
+    mode,
+    editTab,
+    leadDraftDirty,
+    metadataDirty,
+    // Metadata form values must be in syncKey: chrome actions freeze handleSave closures.
+    editTitle,
+    editDescription,
+    editTagIds.join(','),
+    editTypeId ?? '',
+    leadDraftLastSynced,
+    leadDraftPendingSuggestions,
+    saveLoading,
+    publishLoading,
+    canEnterEditMode,
+    showPublishButton,
+    hasNoContext,
+    pdfExportLoading,
+    pdfExportStatus?.status,
+    pdfExportStatus?.downloadUrl,
+    data.canWrite,
+    data.canMove,
+    data.canPublish,
+    data.archivedAt,
+    data.canDelete,
+    data.publishedAt,
+    moveDecisionLoading,
+    startHereBusy,
+    startHereScopes.map((s) => `${s.scopeType}:${s.scopeId}:${s.isCurrent ? 1 : 0}`).join(','),
+  ].join(':');
+  useSetAppShellBreadcrumbActions(breadcrumbActions, breadcrumbActionsSyncKey);
 
   return (
     <>
@@ -303,16 +311,23 @@ export function DocumentPageLoadedLayout({
                             <DocumentBlocksPreview
                               doc={data.publishedBlocks}
                               documentId={documentId}
+                              documentTitle={data.title}
                             />
                           ) : (
-                            <Text size="sm" c="dimmed">
-                              {t('documentPage.noExtractableText')}
-                            </Text>
+                            <Box mb="md" className="document-content">
+                              <DocumentReadingTitle title={data.title} />
+                              <Text size="sm" c="dimmed">
+                                {t('documentPage.noExtractableText')}
+                              </Text>
+                            </Box>
                           )
                         ) : (
-                          <Text size="sm" c="dimmed">
-                            {t('documentPage.noPublishedContent')}
-                          </Text>
+                          <Box mb="md" className="document-content">
+                            <DocumentReadingTitle title={data.title} />
+                            <Text size="sm" c="dimmed">
+                              {t('documentPage.noPublishedContent')}
+                            </Text>
+                          </Box>
                         )}
                       </Box>
                     </Card>

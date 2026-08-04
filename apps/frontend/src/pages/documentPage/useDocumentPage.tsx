@@ -13,6 +13,7 @@ import { collaborationHintQueryKey } from '../../components/documents/documentLe
 import type { DocumentCollaborationHint } from '../../hooks/useLiveEvents.js';
 import { getBlockDocumentHeadingData } from './blockDocumentHeadings';
 import { withHeadingNumbering } from './documentMarkdown';
+import { DOCUMENT_TITLE_ANCHOR_ID } from '../../components/documents/DocumentReadingTitle.js';
 import { useDocumentPageKeyboardEffects } from './useDocumentPageKeyboardEffects';
 import { useDocumentPageSecondaryQueries } from './useDocumentPageSecondaryQueries';
 import { useDocumentPageEditActions } from './useDocumentPageEditActions';
@@ -104,32 +105,39 @@ export function useDocumentPage() {
       pdfExportJobId,
     });
 
-  const { handleSave, handleEditClick, handleCancelEdit, handlePublish, hasUnsavedChanges } =
-    useDocumentPageEditActions({
-      documentId,
-      data,
-      queryClient,
-      t,
-      searchParams,
-      setSearchParams,
-      setMode,
-      setEditTab,
-      editTitle,
-      setEditTitle,
-      editDescription,
-      setEditDescription,
-      editTagIds,
-      setEditTagIds,
-      editTypeId,
-      setEditTypeId,
-      editInitialSnapshot,
-      setEditInitialSnapshot,
-      setSaveLoading,
-      setPublishLoading,
-      leadDraftDirty,
-      setLeadDraftDirty,
-      setAckPublishedVersion,
-    });
+  const {
+    handleSave,
+    handleEditClick,
+    handleCancelEdit,
+    handlePublish,
+    hasUnsavedChanges,
+    metadataDirty,
+  } = useDocumentPageEditActions({
+    documentId,
+    data,
+    queryClient,
+    t,
+    searchParams,
+    setSearchParams,
+    mode,
+    setMode,
+    setEditTab,
+    editTitle,
+    setEditTitle,
+    editDescription,
+    setEditDescription,
+    editTagIds,
+    setEditTagIds,
+    editTypeId,
+    setEditTypeId,
+    editInitialSnapshot,
+    setEditInitialSnapshot,
+    setSaveLoading,
+    setPublishLoading,
+    leadDraftDirty,
+    setLeadDraftDirty,
+    setAckPublishedVersion,
+  });
 
   const {
     handleAssignContext,
@@ -272,10 +280,12 @@ export function useDocumentPage() {
     updatePdfExportStatusNotification(documentId, pdfExportStatus);
   }, [pdfExportStatus, lastPdfExportStatus, queryClient, documentId]);
 
-  const headings = useMemo(
-    () => getBlockDocumentHeadingData(data?.publishedBlocks ?? null).headings,
-    [data?.publishedBlocks]
-  );
+  const headings = useMemo(() => {
+    const fromBlocks = getBlockDocumentHeadingData(data?.publishedBlocks ?? null).headings;
+    const title = data?.title?.trim();
+    if (!title) return fromBlocks;
+    return [{ level: 1, text: title, id: DOCUMENT_TITLE_ANCHOR_ID }, ...fromBlocks];
+  }, [data?.publishedBlocks, data?.title]);
   const numberedHeadings = useMemo(() => withHeadingNumbering(headings), [headings]);
   const hasDraftBlocks = (data?.blocks?.blocks?.length ?? 0) > 0;
   const hasPublishedBlocks = (data?.publishedBlocks?.blocks?.length ?? 0) > 0;
@@ -379,6 +389,7 @@ export function useDocumentPage() {
     mode,
     editTab,
     leadDraftDirty,
+    metadataDirty,
     leadDraftPanelRef,
     handleSave,
   });
@@ -465,6 +476,7 @@ export function useDocumentPage() {
     handleStartPdfExport,
     handleDeleteTag,
     hasUnsavedChanges,
+    metadataDirty,
     publishedVersionIsStale,
     ackPublishedVersion,
     latestPublishedVersion,

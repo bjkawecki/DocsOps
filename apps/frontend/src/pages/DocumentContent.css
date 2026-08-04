@@ -114,13 +114,16 @@
  * Do not use `.mantine-Title-root:first-child` alone – DocumentBlocksPreview wraps
  * each block in a Box, so every Title would match and lose margin-top (H2s then
  * look closer to the previous paragraph than to their own body).
+ *
+ * When a metadata document H1 precedes the block Stack, the Stack is not
+ * `:first-child` – keep the first body heading's margin-top so H1→H2 has space.
  */
 .document-content > :is(h1, h2, h3, h4, h5, h6, .mantine-Title-root):first-child,
 .document-content
-  > .mantine-Stack-root
+  > .mantine-Stack-root:first-child
   > :first-child:is(h1, h2, h3, h4, h5, h6, .mantine-Title-root),
 .document-content
-  > .mantine-Stack-root
+  > .mantine-Stack-root:first-child
   > :first-child
   :is(h1, h2, h3, h4, h5, h6, .mantine-Title-root):first-child {
   margin-top: 0;

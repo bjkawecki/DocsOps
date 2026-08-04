@@ -149,11 +149,7 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
       </ToolCluster>
 
       <ToolCluster title={t('editorToolbar.blockCluster')}>
-        <HeadingTool
-          label="H1"
-          active={editor.isActive('heading', { level: 1 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        />
+        {/* Document title is metadata (shown as page H1); body structure starts at H2. */}
         <HeadingTool
           label="H2"
           active={editor.isActive('heading', { level: 2 })}

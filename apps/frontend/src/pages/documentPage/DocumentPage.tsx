@@ -48,6 +48,7 @@ export function DocumentPage() {
         leadDraftPanelRef={vm.leadDraftPanelRef}
         leadDraftLastSynced={vm.leadDraftLastSynced}
         leadDraftDirty={vm.leadDraftDirty}
+        metadataDirty={vm.metadataDirty}
         hasDraftBlocks={vm.hasDraftBlocks}
         hasPublishedBlocks={vm.hasPublishedBlocks}
         showPublishButton={vm.showPublishButton}

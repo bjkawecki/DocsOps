@@ -25,6 +25,7 @@ export type UseDocumentPageEditActionsArgs = {
   t: TFunction;
   searchParams: URLSearchParams;
   setSearchParams: SetURLSearchParams;
+  mode: 'view' | 'edit';
   setMode: (mode: 'view' | 'edit') => void;
   setEditTab: (tab: 'draft' | 'metadata' | 'access') => void;
   editTitle: string;
@@ -50,6 +51,20 @@ function documentTypeKeyToTypeId(key: string | null | undefined): string | null 
 }
 
 /** Save/edit/cancel/publish handlers and the edit-mode URL + dirty-state helpers they rely on. */
+function metadataFieldsFromDocument(data: DocumentResponse): {
+  title: string;
+  description: string;
+  tagIds: string[];
+  typeId: string | null;
+} {
+  return {
+    title: data.title,
+    description: data.description ?? '',
+    tagIds: data.documentTags.map((dt) => dt.tag.id),
+    typeId: documentTypeKeyToTypeId(data.documentTypeKey),
+  };
+}
+
 export function useDocumentPageEditActions({
   documentId,
   data,
@@ -57,6 +72,7 @@ export function useDocumentPageEditActions({
   t,
   searchParams,
   setSearchParams,
+  mode,
   setMode,
   setEditTab,
   editTitle,
@@ -75,14 +91,45 @@ export function useDocumentPageEditActions({
   setLeadDraftDirty,
   setAckPublishedVersion,
 }: UseDocumentPageEditActionsArgs) {
+  // Sync metadata form from the document query only outside an active edit session.
+  // Live collaboration refetch must not wipe in-progress title/description/tag edits.
   useEffect(() => {
-    if (data) {
-      setEditTitle(data.title);
-      setEditDescription(data.description ?? '');
-      setEditTagIds(data.documentTags.map((dt) => dt.tag.id));
-      setEditTypeId(documentTypeKeyToTypeId(data.documentTypeKey));
-    }
-  }, [data, setEditDescription, setEditTagIds, setEditTitle, setEditTypeId]);
+    if (!data) return;
+    if (mode === 'edit' && editInitialSnapshot != null) return;
+    const fields = metadataFieldsFromDocument(data);
+    setEditTitle(fields.title);
+    setEditDescription(fields.description);
+    setEditTagIds(fields.tagIds);
+    setEditTypeId(fields.typeId);
+  }, [
+    data,
+    editInitialSnapshot,
+    mode,
+    setEditDescription,
+    setEditTagIds,
+    setEditTitle,
+    setEditTypeId,
+  ]);
+
+  // Deep-link / URL restore into edit: seed the dirty-baseline snapshot once.
+  useEffect(() => {
+    if (mode !== 'edit' || !data || editInitialSnapshot != null) return;
+    const fields = metadataFieldsFromDocument(data);
+    setEditTitle(fields.title);
+    setEditDescription(fields.description);
+    setEditTagIds(fields.tagIds);
+    setEditTypeId(fields.typeId);
+    setEditInitialSnapshot(fields);
+  }, [
+    data,
+    editInitialSnapshot,
+    mode,
+    setEditDescription,
+    setEditInitialSnapshot,
+    setEditTagIds,
+    setEditTitle,
+    setEditTypeId,
+  ]);
 
   const clearEditUrlParams = useCallback(() => {
     setSearchParams(
@@ -124,14 +171,14 @@ export function useDocumentPageEditActions({
     if (!documentId || !data) return;
     setSaveLoading(true);
     try {
+      const nextTitle = editTitle.trim() || data.title;
+      const nextDescription = editDescription.trim() ? editDescription.trim() : null;
       const res = await apiFetch(`/api/v1/documents/${documentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: editTitle.trim() || data.title,
-          ...(editDescription.trim()
-            ? { description: editDescription.trim() }
-            : { description: null }),
+          title: nextTitle,
+          description: nextDescription,
           tagIds: editTagIds,
         }),
       });
@@ -140,7 +187,16 @@ export function useDocumentPageEditActions({
         return;
       }
 
+      const patched = (await res.json()) as {
+        title: string;
+        description: string | null;
+        documentTags?: DocumentResponse['documentTags'];
+        documentTypeKey?: string | null;
+        updatedAt?: string;
+      };
+
       const initialTypeId = editInitialSnapshot?.typeId ?? null;
+      let nextTypeKey = patched.documentTypeKey ?? data.documentTypeKey;
       if (editTypeId !== initialTypeId) {
         const typeRes = await apiFetch(`/api/v1/documents/${documentId}/document-type`, {
           method: 'PATCH',
@@ -151,8 +207,21 @@ export function useDocumentPageEditActions({
           void notifyApiErrorResponse(typeRes);
           return;
         }
+        const typed = (await typeRes.json()) as { documentTypeKey?: string | null };
+        nextTypeKey = typed.documentTypeKey ?? nextTypeKey;
       }
 
+      queryClient.setQueryData(['document', documentId], (prev: DocumentResponse | undefined) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          title: patched.title ?? nextTitle,
+          description: patched.description !== undefined ? patched.description : nextDescription,
+          documentTags: patched.documentTags ?? prev.documentTags,
+          documentTypeKey: nextTypeKey,
+          ...(patched.updatedAt ? { updatedAt: patched.updatedAt } : {}),
+        };
+      });
       invalidateDocumentIndexCaches(queryClient, documentId, data.contextId);
       setMode('view');
       setEditInitialSnapshot(null);
@@ -183,14 +252,14 @@ export function useDocumentPageEditActions({
 
   const handleEditClick = () => {
     if (!data) return;
+    const fields = metadataFieldsFromDocument(data);
     setEditTab('draft');
     setLeadDraftDirty(false);
-    setEditInitialSnapshot({
-      title: data.title,
-      description: data.description ?? '',
-      tagIds: data.documentTags.map((dt) => dt.tag.id),
-      typeId: documentTypeKeyToTypeId(data.documentTypeKey),
-    });
+    setEditTitle(fields.title);
+    setEditDescription(fields.description);
+    setEditTagIds(fields.tagIds);
+    setEditTypeId(fields.typeId);
+    setEditInitialSnapshot(fields);
     setMode('edit');
     syncEditUrlParams('draft');
   };

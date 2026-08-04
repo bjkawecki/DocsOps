@@ -13,6 +13,7 @@ import { DocumentPreviewCodeBlock } from './DocumentPreviewCodeBlock';
 import { DocumentPreviewMermaid } from './DocumentPreviewMermaid';
 import calloutClasses from './DocumentCallout.module.css';
 import { CALLOUT_VARIANT_LABELS } from '../../lib/calloutVariant.js';
+import { DocumentReadingTitle } from './DocumentReadingTitle.js';
 
 /** Label shown in the code block header (inside the chrome), or null if none. */
 function codeBlockLanguageLabel(rawLang: string, normalized: string): string | null {
@@ -315,36 +316,47 @@ export function blockDocumentToPlainPreview(doc: BlockDocument): string {
 type Props = {
   /** Optional section label above the preview; omit on the document page. */
   title?: string;
+  /**
+   * Metadata document title shown as reading H1 (not a block).
+   * Used on the document page reader; omit for template/section previews.
+   */
+  documentTitle?: string;
   doc: BlockDocument | null;
   documentId: string;
 };
 
 /** Lesevorschau aus Blocks – Überschriften inkl. Anker-IDs (TOC / Kommentar-Slugs). */
-export function DocumentBlocksPreview({ title, doc, documentId }: Props) {
-  if (doc == null || doc.blocks.length === 0) return null;
-  const normalizedDoc = ensureUniqueBlockIdsInDocument(doc);
+export function DocumentBlocksPreview({ title, documentTitle, doc, documentId }: Props) {
+  const hasBlocks = doc != null && doc.blocks.length > 0;
+  if (!hasBlocks && documentTitle == null) return null;
+
+  const normalizedDoc = hasBlocks && doc != null ? ensureUniqueBlockIdsInDocument(doc) : null;
   const { anchorIdByBlockNodeId } = getBlockDocumentHeadingData(normalizedDoc);
   const ctx: PreviewCtx = {
     anchorMap: anchorIdByBlockNodeId,
-    figureNumberByBlockId: buildFigureNumberByBlockId(normalizedDoc),
+    figureNumberByBlockId: normalizedDoc ? buildFigureNumberByBlockId(normalizedDoc) : new Map(),
     documentId,
   };
-  const rendered = normalizedDoc.blocks
-    .map((block) => {
-      const el = renderNode(block, ctx);
-      if (el == null) return null;
-      return <Box key={block.id}>{el}</Box>;
-    })
-    .filter((el) => el != null);
-  if (rendered.length === 0) return null;
+  const rendered =
+    normalizedDoc == null
+      ? []
+      : normalizedDoc.blocks
+          .map((block) => {
+            const el = renderNode(block, ctx);
+            if (el == null) return null;
+            return <Box key={block.id}>{el}</Box>;
+          })
+          .filter((el) => el != null);
+  if (rendered.length === 0 && documentTitle == null) return null;
   return (
     <Box mb="md" className="document-content">
+      {documentTitle != null ? <DocumentReadingTitle title={documentTitle} /> : null}
       {title ? (
         <Text size="xs" tt="uppercase" fw={600} c="dimmed" mb="xs">
           {title}
         </Text>
       ) : null}
-      <Stack gap={0}>{rendered}</Stack>
+      {rendered.length > 0 ? <Stack gap={0}>{rendered}</Stack> : null}
     </Box>
   );
 }
