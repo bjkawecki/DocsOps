@@ -29,7 +29,7 @@
 | Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
 | SEO     | robots/sitemap (Build), Canonical/OG, FAQ JSON-LD, Prerender – siehe [Landing-SEO.md](./Landing-SEO.md)       |
 
-**Lokal:** `make landing-dev` → http://localhost:5174 · Demo-CTA default `http://localhost:5000`
+**Lokal:** `make landing-dev` → http://127.0.0.1:5174 (Make setzt `VITE_SITE_URL` / `VITE_DEMO_URL`; siehe Makefile).
 
 ---
 

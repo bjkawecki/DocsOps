@@ -27,11 +27,11 @@ help:
 	@echo "  make build        Backend bauen"
 	@echo "  make start        Backend starten (nach build)"
 	@echo "  make test         Backend-Tests ausführen (Vitest)"
-	@echo "  make landing-dev     Landing Page Dev-Server (http://localhost:5174)"
-	@echo "  make landing-build   Landing Page produktions-Build (apps/landing/dist)"
+	@echo "  make landing-dev     Landing Dev (http://127.0.0.1:5174; setzt VITE_SITE_URL lokal)"
+	@echo "  make landing-build   Landing-Build → apps/landing/dist (lokale VITE_SITE_URL)"
 	@echo "  make landing-build-lab  Landing für VM-Lab → dist-local (docsops.local)"
 	@echo "  make landing-build-public  Landing public → dist-public (docsops.de)"
-	@echo "  make landing-preview Landing Page Build lokal ansehen (nach landing-build)"
+	@echo "  make landing-preview Landing-Build lokal ansehen (nach landing-build)"
 	@echo "  make up           Stack starten (docker compose up -d)"
 	@echo "  make up-fg        Stack starten im Vordergrund (docker compose up)"
 	@echo "  make down         Stack stoppen"
@@ -90,11 +90,17 @@ start:
 test:
 	pnpm --filter backend test
 
+# Local marketing landing (SEO emit needs VITE_SITE_URL; no silent app fallback).
+LANDING_LOCAL_SITE_URL ?= http://127.0.0.1:5174
+LANDING_LOCAL_DEMO_URL ?= http://localhost:5000
+
 landing-dev:
-	pnpm --filter landing dev
+	VITE_DEMO_URL=$(LANDING_LOCAL_DEMO_URL) VITE_SITE_URL=$(LANDING_LOCAL_SITE_URL) \
+		pnpm --filter landing dev
 
 landing-build:
-	pnpm --filter landing build
+	VITE_DEMO_URL=$(LANDING_LOCAL_DEMO_URL) VITE_SITE_URL=$(LANDING_LOCAL_SITE_URL) \
+		pnpm --filter landing build
 
 # Lab hostnames for VM demo (docsops.local + demo.docsops.local)
 landing-build-lab:

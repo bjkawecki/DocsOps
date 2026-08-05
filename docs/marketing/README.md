@@ -34,8 +34,10 @@ Planung und Inhalte für Landing Page, Demo und öffentliche Kommunikation (§19
 
 ```bash
 make landing-dev
+# setzt VITE_SITE_URL=http://127.0.0.1:5174 und VITE_DEMO_URL=http://localhost:5000
+# (überschreibbar: LANDING_LOCAL_SITE_URL / LANDING_LOCAL_DEMO_URL)
 ```
 
-→ http://localhost:5174 · Demo-CTA: `VITE_DEMO_URL` (siehe `apps/landing/.env.example`)
+→ http://127.0.0.1:5174 · Make setzt die Pflicht-Vars (kein `apps/landing/.env` nötig). Lab/Public: `make landing-build-lab` / `landing-build-public`.
 
 Weitere Ziele: `make landing-build`, `make landing-preview`, `make lint-landing`
