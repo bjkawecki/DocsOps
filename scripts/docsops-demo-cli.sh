@@ -197,6 +197,7 @@ cmd_install() {
   install_stage "CLI + Agent"
   self_src="$(resolve_demo_script_source)"
   install_docsops_demo_bin "$self_src"
+  ensure_demo_hook_env
   install_agent_binary
   install_agent_systemd_unit
 
@@ -275,6 +276,9 @@ cmd_update() {
   compose_up_demo
   wait_for_health
   install_docsops_demo_bin "$(resolve_demo_script_source)"
+  ensure_demo_hook_env
+  install_agent_binary
+  install_agent_systemd_unit
   log "Update auf ${version} abgeschlossen."
   print_demo_finish
 }

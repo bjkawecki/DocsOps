@@ -118,10 +118,52 @@ require_demo_ports_free() {
   fi
 }
 
+# Ensure public-demo HTTPS deploy hook env keys exist (idempotent; generates token once).
+ensure_demo_hook_env() {
+  local env_file token newly_created=0
+  demo_is_public || return 0
+  env_file="${DOCSOPS_ENV_FILE}"
+  [[ -f "$env_file" ]] || die "${env_file} fehlt – zuerst installieren."
+
+  if ! grep -q '^DOCSOPS_DEMO_HOOK_ENABLED=' "$env_file"; then
+    echo "DOCSOPS_DEMO_HOOK_ENABLED=1" >>"$env_file"
+  else
+    sed -i 's/^DOCSOPS_DEMO_HOOK_ENABLED=.*/DOCSOPS_DEMO_HOOK_ENABLED=1/' "$env_file"
+  fi
+
+  if ! grep -q '^DOCSOPS_DEMO_CLI=' "$env_file"; then
+    echo "DOCSOPS_DEMO_CLI=/usr/local/bin/docsops-demo" >>"$env_file"
+  fi
+
+  if ! grep -q '^DOCSOPS_DEMO_HOOK_TOKEN=' "$env_file"; then
+    token="$(openssl rand -hex 32)"
+    echo "DOCSOPS_DEMO_HOOK_TOKEN=${token}" >>"$env_file"
+    newly_created=1
+  else
+    token="$(grep '^DOCSOPS_DEMO_HOOK_TOKEN=' "$env_file" | head -1 | cut -d= -f2-)"
+  fi
+
+  export DOCSOPS_DEMO_HOOK_ENABLED=1
+  export DOCSOPS_DEMO_HOOK_TOKEN="$token"
+  export DOCSOPS_DEMO_CLI="${DOCSOPS_DEMO_CLI:-/usr/local/bin/docsops-demo}"
+
+  if [[ "$newly_created" == "1" ]]; then
+    echo ""
+    echo "================================================================"
+    echo " DEMO_DEPLOY_HOOK_TOKEN (einmalig – GitHub Actions Secret setzen)"
+    echo "================================================================"
+    echo "${token}"
+    echo "Secret-Name: DEMO_DEPLOY_HOOK_TOKEN"
+    echo "Hook-URL:    https://docsops.de/hooks/demo-deploy"
+    echo "================================================================"
+    echo ""
+  fi
+}
+
 write_demo_env_file() {
   local session_secret backup_key admin_email admin_password image_prefix version
   local landing_host demo_host landing_dir extra_files compose_file update_github_repo agent_token
-  local health_url session_cookie_secure profile
+  local health_url session_cookie_secure profile demo_hook_token demo_hook_block
   apply_demo_profile
   assert_release_version
   session_secret="$(openssl rand -hex 32)"
@@ -140,8 +182,16 @@ write_demo_env_file() {
   update_github_repo="${DOCSOPS_UPDATE_GITHUB_REPO:-${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}}"
   agent_token="$(openssl rand -hex 32)"
   session_cookie_secure=0
+  demo_hook_block=""
   if demo_is_public; then
     session_cookie_secure=1
+    demo_hook_token="$(openssl rand -hex 32)"
+    demo_hook_block="$(cat <<HOOK
+DOCSOPS_DEMO_HOOK_ENABLED=1
+DOCSOPS_DEMO_HOOK_TOKEN=${demo_hook_token}
+DOCSOPS_DEMO_CLI=/usr/local/bin/docsops-demo
+HOOK
+)"
   fi
 
   install -d -m 700 /etc/docsops
@@ -166,6 +216,7 @@ DOCSOPS_AGENT_INSTALL_DIR=${DOCSOPS_INSTALL_DIR}
 DOCSOPS_AGENT_ENV_FILE=${DOCSOPS_ENV_FILE}
 DOCSOPS_AGENT_HEALTH_URL=${health_url}
 DOCSOPS_EXTRA_COMPOSE_FILES=${extra_files}
+${demo_hook_block}
 LANDING_DIST_DIR=${landing_dir}
 DOCSOPS_LAB_LANDING_HOST=${landing_host}
 DOCSOPS_LAB_DEMO_HOST=${demo_host}
@@ -199,6 +250,16 @@ EOF
   echo "================================================================"
   echo "Gespeichert in: ${DOCSOPS_ENV_FILE}"
   echo ""
+  if demo_is_public; then
+    echo "================================================================"
+    echo " DEMO_DEPLOY_HOOK_TOKEN (GitHub Actions Secret)"
+    echo "================================================================"
+    echo "${demo_hook_token}"
+    echo "Secret-Name: DEMO_DEPLOY_HOOK_TOKEN"
+    echo "Hook-URL:    https://docsops.de/hooks/demo-deploy"
+    echo "================================================================"
+    echo ""
+  fi
   if [[ "${DOCSOPS_NON_INTERACTIVE:-}" != "1" && "${DOCSOPS_ASSUME_YES:-}" != "1" ]]; then
     confirm_backup_key_saved
   fi
@@ -508,6 +569,7 @@ print_demo_finish() {
     echo "  DNS:      A/AAAA für ${DOCSOPS_LAB_LANDING_HOST} und ${DOCSOPS_LAB_DEMO_HOST} → ${ip}"
     echo "  Firewall: Ports 80 und 443"
     echo "  Vor DNS:  Client /etc/hosts: ${ip}  ${DOCSOPS_LAB_LANDING_HOST} ${DOCSOPS_LAB_DEMO_HOST}"
+    echo "  CI-Hook:  ${scheme}://${DOCSOPS_LAB_LANDING_HOST}/hooks/demo-deploy"
   else
     echo "DocsOps Demo / VM-Lab ist bereit."
     echo "  Landing:  ${scheme}://${DOCSOPS_LAB_LANDING_HOST}/"

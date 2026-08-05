@@ -244,35 +244,83 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, SSH update then reset+seed.
-  # Secrets (repository): DEMO_SERVER_HOST, DEMO_SERVER_USER, DEMO_SERVER_SSH_KEY
+  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, HTTPS webhook → update+reset.
+  # Secrets (repository): DEMO_DEPLOY_HOOK_TOKEN (required), DEMO_DEPLOY_HOOK_URL (optional).
   update-demo-server:
     needs: [release]
     runs-on: ubuntu-latest
     steps:
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.1
-        with:
-          ssh-private-key: ${{ secrets.DEMO_SERVER_SSH_KEY }}
-
-      - name: Update and reset public demo
+      - name: Trigger demo deploy webhook
         env:
-          DEMO_HOST: ${{ secrets.DEMO_SERVER_HOST }}
-          DEMO_USER: ${{ secrets.DEMO_SERVER_USER }}
+          HOOK_URL: ${{ secrets.DEMO_DEPLOY_HOOK_URL }}
+          HOOK_TOKEN: ${{ secrets.DEMO_DEPLOY_HOOK_TOKEN }}
           TAG: ${{ github.ref_name }}
+          RUN_ID: gha-${{ github.run_id }}
         run: |
-          set -eux
-          : "${DEMO_HOST:?DEMO_SERVER_HOST secret missing}"
-          : "${DEMO_USER:?DEMO_SERVER_USER secret missing}"
-          # Assets can lag a few seconds after softprops creates the Release.
+          set -euo pipefail
+          : "${HOOK_TOKEN:?DEMO_DEPLOY_HOOK_TOKEN secret missing}"
+          URL="${HOOK_URL:-https://docsops.de/hooks/demo-deploy}"
+
+          post_deploy() {
+            curl -sS -o /tmp/demo-deploy-post.json -w '%{http_code}' \
+              --connect-timeout 15 --max-time 60 \
+              -X POST "$URL" \
+              -H "Authorization: Bearer ${HOOK_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"version\":\"${TAG}\",\"runId\":\"${RUN_ID}\"}"
+          }
+
+          # Assets / agent can lag briefly after softprops creates the Release.
+          code=""
           for i in 1 2 3 4 5; do
-            if ssh -o StrictHostKeyChecking=accept-new \
-              "${DEMO_USER}@${DEMO_HOST}" \
-              "sudo docsops-demo update --version ${TAG} && sudo docsops-demo reset"; then
-              exit 0
+            code="$(post_deploy || true)"
+            if [[ "$code" == "202" || "$code" == "409" ]]; then
+              break
             fi
-            echo "docsops-demo update/reset failed (attempt ${i}/5); retrying in 20s…"
+            echo "POST ${URL} → HTTP ${code} (attempt ${i}/5); body:" >&2
+            cat /tmp/demo-deploy-post.json 2>/dev/null || true
+            echo "retrying in 20s…" >&2
             sleep 20
           done
-          echo "docsops-demo update/reset failed after retries" >&2
+          if [[ "$code" != "202" && "$code" != "409" ]]; then
+            echo "demo-deploy POST failed after retries (HTTP ${code})" >&2
+            cat /tmp/demo-deploy-post.json 2>/dev/null || true
+            exit 1
+          fi
+          echo "demo-deploy accepted (HTTP ${code})"
+
+          # Poll until idle; update+reset can take several minutes.
+          for i in $(seq 1 90); do
+            if ! curl -sS -o /tmp/demo-deploy-status.json \
+              --connect-timeout 15 --max-time 30 \
+              -H "Authorization: Bearer ${HOOK_TOKEN}" \
+              "$URL"; then
+              echo "poll ${i}/90: status request failed (agent may be restarting); retrying…"
+              sleep 10
+              continue
+            fi
+            idle="$(python3 -c 'import json; print(json.load(open("/tmp/demo-deploy-status.json")).get("idle"))')"
+            phase="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("phase") or "")')"
+            err="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("error") or "")')"
+            echo "poll ${i}/90 idle=${idle} phase=${phase}"
+            if [[ "$idle" == "True" || "$idle" == "true" ]]; then
+              if [[ "$phase" == "succeeded" ]]; then
+                echo "demo deploy succeeded"
+                exit 0
+              fi
+              if [[ "$phase" == "failed" ]]; then
+                echo "demo deploy failed: ${err}" >&2
+                cat /tmp/demo-deploy-status.json >&2 || true
+                exit 1
+              fi
+              # Idle without a finished run yet (e.g. right after agent restart) – keep polling briefly.
+              if [[ -z "$phase" ]]; then
+                sleep 10
+                continue
+              fi
+            fi
+            sleep 20
+          done
+          echo "demo deploy timed out waiting for completion" >&2
+          cat /tmp/demo-deploy-status.json >&2 || true
           exit 1

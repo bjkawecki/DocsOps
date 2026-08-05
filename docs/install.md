@@ -89,7 +89,17 @@ Das Skript richtet ein:
 - täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset`
 - CLI unter `/usr/local/bin/docsops-demo`
 
-**CI nach Release:** Der Release-Workflow (`update-demo-server`) führt nach dem GitHub Release per SSH `docsops-demo update --version vX.Y.Z` und danach `docsops-demo reset` aus (frischer CSV-Seed). Dafür Repository-Secrets: `DEMO_SERVER_HOST`, `DEMO_SERVER_USER`, `DEMO_SERVER_SSH_KEY` (Deploy-User mit `NOPASSWD` nur für `/usr/local/bin/docsops-demo`). Manuell: `sudo docsops-demo update --version v0.1.0 && sudo docsops-demo reset`.
+**CI nach Release:** Der Release-Workflow (`update-demo-server`) ruft nach dem GitHub Release den HTTPS-Webhook `https://docsops.de/hooks/demo-deploy` auf. Der Host-Agent führt dann `docsops-demo update --version vX.Y.Z` und `docsops-demo reset` aus (frischer CSV-Seed). Repository-Secret: `DEMO_DEPLOY_HOOK_TOKEN` (Wert aus `/etc/docsops/docsops.env` → `DOCSOPS_DEMO_HOOK_TOKEN`; optional `DEMO_DEPLOY_HOOK_URL` wenn die URL abweicht). Manuell: `sudo docsops-demo update --version v0.1.0 && sudo docsops-demo reset`.
+
+**Einmalig auf bestehendem Public-Demo-Server** (nach dem ersten Release mit Hook-Support, z. B. per Laptop-SSH):
+
+```bash
+sudo docsops-demo update --version v0.1.0
+# Token aus der Ausgabe oder:
+sudo grep DOCSOPS_DEMO_HOOK_TOKEN= /etc/docsops/docsops.env
+```
+
+Token als GitHub Actions Secret `DEMO_DEPLOY_HOOK_TOKEN` setzen. Alte SSH-Secrets (`DEMO_SERVER_*`) werden nicht mehr benötigt.
 
 **Vor DNS-Propagierung** (kurz Client-Hosts auf dem Laptop):
 

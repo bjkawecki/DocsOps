@@ -34,9 +34,15 @@ func main() {
 	}
 
 	orch := &orchestrator.Orchestrator{Config: cfg, Store: store}
-	srv := &api.Server{Token: cfg.Token, Store: store, Orchestrator: orch}
+	srv := &api.Server{
+		Token:           cfg.Token,
+		DemoHookEnabled: cfg.DemoHookEnabled,
+		DemoHookToken:   cfg.DemoHookToken,
+		Store:           store,
+		Orchestrator:    orch,
+	}
 
-	log.Printf("docsops-agent listening on %s", cfg.ListenAddr)
+	log.Printf("docsops-agent listening on %s (demoHook=%v)", cfg.ListenAddr, cfg.DemoHookEnabled)
 	if err := http.ListenAndServe(cfg.ListenAddr, srv.Handler()); err != nil {
 		log.Fatalf("server: %v", err)
 	}

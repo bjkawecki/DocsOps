@@ -617,8 +617,12 @@ WantedBy=multi-user.target
 EOF
   systemctl daemon-reload
   systemctl enable docsops-agent.service
-  systemctl restart docsops-agent.service
-  log "systemd-Unit docsops-agent.service aktiviert (EnvironmentFile=${DOCSOPS_ENV_FILE})"
+  if [[ "${DOCSOPS_SKIP_AGENT_RESTART:-}" == "1" ]]; then
+    log "systemd-Unit docsops-agent.service aktualisiert (Restart übersprungen, DOCSOPS_SKIP_AGENT_RESTART=1)"
+  else
+    systemctl restart docsops-agent.service
+    log "systemd-Unit docsops-agent.service aktiviert (EnvironmentFile=${DOCSOPS_ENV_FILE})"
+  fi
 }
 
 print_finish() {

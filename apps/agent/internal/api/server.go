@@ -11,9 +11,11 @@ import (
 )
 
 type Server struct {
-	Token        string
-	Store        *state.Store
-	Orchestrator *orchestrator.Orchestrator
+	Token           string
+	DemoHookEnabled bool
+	DemoHookToken   string
+	Store           *state.Store
+	Orchestrator    *orchestrator.Orchestrator
 }
 
 func (s *Server) Handler() http.Handler {
@@ -21,6 +23,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/v1/status", s.handleStatus)
 	mux.HandleFunc("/v1/preflight", s.handlePreflight)
 	mux.HandleFunc("/v1/apply", s.handleApply)
+	mux.HandleFunc("/v1/demo-deploy", s.handleDemoDeploy)
 	return mux
 }
 
@@ -100,9 +103,70 @@ func (s *Server) handleApply(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Server) handleDemoDeploy(w http.ResponseWriter, r *http.Request) {
+	if !s.DemoHookEnabled {
+		http.NotFound(w, r)
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		if !s.authorizeHook(r) {
+			s.jsonError(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+		s.writeJSON(w, http.StatusOK, s.Store.Snapshot())
+		return
+	case http.MethodPost:
+		if !s.authorizeHook(r) {
+			s.jsonError(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+		body, err := readJSON(r)
+		if err != nil {
+			s.jsonError(w, http.StatusBadRequest, "invalid json")
+			return
+		}
+		version, _ := body["version"].(string)
+		runID, _ := body["runId"].(string)
+		version = strings.TrimSpace(version)
+		runID = strings.TrimSpace(runID)
+		if version == "" {
+			s.jsonError(w, http.StatusBadRequest, "version required")
+			return
+		}
+		if runID == "" {
+			runID = "demo-deploy"
+		}
+		if err := s.Orchestrator.DemoDeployAsync(runID, version); err != nil {
+			if strings.Contains(err.Error(), "already running") {
+				s.jsonError(w, http.StatusConflict, err.Error())
+				return
+			}
+			s.jsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		s.writeJSON(w, http.StatusAccepted, map[string]any{
+			"accepted": true,
+			"version":  version,
+			"runId":    runID,
+		})
+		return
+	default:
+		s.jsonError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
 func (s *Server) authorize(r *http.Request) bool {
 	header := r.Header.Get("Authorization")
 	return header == "Bearer "+s.Token
+}
+
+func (s *Server) authorizeHook(r *http.Request) bool {
+	if s.DemoHookToken == "" {
+		return false
+	}
+	header := r.Header.Get("Authorization")
+	return header == "Bearer "+s.DemoHookToken
 }
 
 func (s *Server) writeJSON(w http.ResponseWriter, status int, body any) {

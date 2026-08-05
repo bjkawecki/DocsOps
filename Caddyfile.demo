@@ -4,10 +4,18 @@
 # DNS: A/AAAA docsops.de + demo.docsops.de → this host. Firewall: 80 and 443.
 
 docsops.de {
-	root * /srv/landing
-	encode gzip
-	try_files {path} {path}/index.html /index.html
-	file_server
+	# CI deploy hook only (Bearer DOCSOPS_DEMO_HOOK_TOKEN). Do not expose the full agent.
+	handle /hooks/demo-deploy {
+		rewrite * /v1/demo-deploy
+		reverse_proxy 127.0.0.1:8091
+	}
+
+	handle {
+		root * /srv/landing
+		encode gzip
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
 }
 
 demo.docsops.de {
