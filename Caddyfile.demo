@@ -2,6 +2,13 @@
 # Pair with docker-compose.demo.yml (DEMO_MODE) and docker-compose.demo-public.yml.
 #
 # DNS: A/AAAA docsops.de + demo.docsops.de → this host. Firewall: 80 and 443.
+#
+# ACME: keep caddy_data across demo resets (see compose_reset_demo). Email enables
+# ZeroSSL as fallback when Let's Encrypt rate-limits exact-hostname reissues.
+
+{
+	email admin@demo.docsops.de
+}
 
 docsops.de {
 	# CI deploy hook only (Bearer DOCSOPS_DEMO_HOOK_TOKEN). Do not expose the full agent.

@@ -53,6 +53,7 @@ export function Footer() {
               </Text>
               <FooterLink href="/philosophie">{footerCopy.links.philosophie}</FooterLink>
               <FooterLink href="/install">{footerCopy.links.installation}</FooterLink>
+              <FooterLink href="/sponsor">{footerCopy.links.sponsor}</FooterLink>
               <LandingExternalLink href={demoUrl} className="landing-footer-link" underline="never">
                 {footerCopy.links.demo}
               </LandingExternalLink>
@@ -73,26 +74,28 @@ export function Footer() {
               <Text fw={600} className="landing-footer-heading">
                 {footerCopy.projectTitle}
               </Text>
-              {projectNavLinks.map((link) => {
-                const resolved = resolveProjectNavHref(link.href);
-                if (resolved.external) {
+              {projectNavLinks
+                .filter((link) => link.href !== '/sponsor')
+                .map((link) => {
+                  const resolved = resolveProjectNavHref(link.href);
+                  if (resolved.external) {
+                    return (
+                      <LandingExternalLink
+                        key={link.label}
+                        href={resolved.url}
+                        className="landing-footer-link"
+                        underline="never"
+                      >
+                        {link.label}
+                      </LandingExternalLink>
+                    );
+                  }
                   return (
-                    <LandingExternalLink
-                      key={link.label}
-                      href={resolved.url}
-                      className="landing-footer-link"
-                      underline="never"
-                    >
+                    <FooterLink key={link.label} href={resolved.url}>
                       {link.label}
-                    </LandingExternalLink>
+                    </FooterLink>
                   );
-                }
-                return (
-                  <FooterLink key={link.label} href={resolved.url}>
-                    {link.label}
-                  </FooterLink>
-                );
-              })}
+                })}
               <LandingExternalLink
                 href={authorSiteLink.href}
                 className="landing-footer-link"

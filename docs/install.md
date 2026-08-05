@@ -89,7 +89,16 @@ Das Skript richtet ein:
 - täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset`
 - CLI unter `/usr/local/bin/docsops-demo`
 
-**CI nach Release:** Der Release-Workflow (`update-demo-server`) ruft nach dem GitHub Release den HTTPS-Webhook `https://docsops.de/hooks/demo-deploy` auf. Der Host-Agent führt dann `docsops-demo update --version vX.Y.Z` und `docsops-demo reset` aus (frischer CSV-Seed). Repository-Secret: `DEMO_DEPLOY_HOOK_TOKEN` (Wert aus `/etc/docsops/docsops.env` → `DOCSOPS_DEMO_HOOK_TOKEN`; optional `DEMO_DEPLOY_HOOK_URL` wenn die URL abweicht). Manuell: `sudo docsops-demo update --version v0.1.0 && sudo docsops-demo reset`.
+**CI nach Release:** Der Release-Workflow (`update-demo-server`) ruft nach dem GitHub Release den Deploy-Webhook auf. Der Host-Agent führt dann `docsops-demo update --version vX.Y.Z` und `docsops-demo reset` aus (frischer CSV-Seed).
+
+Secrets:
+
+| Secret                   | Pflicht | Bedeutung                                                                                                                                                                                                                                      |
+| ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEMO_DEPLOY_HOOK_TOKEN` | ja      | Wert aus `/etc/docsops/docsops.env` → `DOCSOPS_DEMO_HOOK_TOKEN`                                                                                                                                                                                |
+| `DEMO_DEPLOY_HOOK_URL`   | nein    | Default `https://docsops.de/hooks/demo-deploy` (via Compose-Caddy). **Robuster:** `http://<VPS-IP>:8091/v1/demo-deploy` (direkt Host-Agent, Firewall nur 8091/tcp von GitHub oder mit Token-Auth; umgeht TLS-Ausfälle während `compose down`). |
+
+CI wartet maximal ~10 Minuten (Wall-Clock), mit kurzer Grace nach dem POST. Manuell: `sudo docsops-demo update --version v0.1.0 && sudo docsops-demo reset`.
 
 **Einmalig auf bestehendem Public-Demo-Server** (nach dem ersten Release mit Hook-Support, z. B. per Laptop-SSH):
 
@@ -182,7 +191,7 @@ cd apps/backend
 DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
 ```
 
-Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo-local reset` (lokal) bzw. `sudo docsops-demo reset` (public).
+Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo-local reset` (lokal) bzw. `sudo docsops-demo reset` (public). Löscht nur Postgres-/MinIO-Volumes; **Caddy-TLS-Volumes (`caddy_data` / `caddy_config`) bleiben**, damit Let’s Encrypt nicht bei jedem Reset neue Zertifikate ausstellen muss.
 In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
 
 ---

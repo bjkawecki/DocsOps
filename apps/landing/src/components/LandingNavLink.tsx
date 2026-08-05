@@ -18,6 +18,7 @@ export function LandingNavLink({ to, children, onClick }: LandingNavLinkProps) {
       to={to}
       onClick={onClick}
       className={`landing-nav-link${isActive ? ' landing-nav-link--active' : ''}`}
+      aria-current={isActive ? 'page' : undefined}
       underline="never"
     >
       {children}
@@ -29,11 +30,23 @@ type LandingNavAnchorProps = {
   href: string;
   children: ReactNode;
   onClick?: () => void;
+  active?: boolean;
 };
 
-export function LandingNavAnchor({ href, children, onClick }: LandingNavAnchorProps) {
+export function LandingNavAnchor({
+  href,
+  children,
+  onClick,
+  active = false,
+}: LandingNavAnchorProps) {
   return (
-    <Anchor href={href} onClick={onClick} className="landing-nav-link" underline="never">
+    <Anchor
+      href={href}
+      onClick={onClick}
+      className={`landing-nav-link${active ? ' landing-nav-link--active' : ''}`}
+      aria-current={active ? 'page' : undefined}
+      underline="never"
+    >
       {children}
     </Anchor>
   );

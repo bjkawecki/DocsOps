@@ -11,7 +11,7 @@ import {
   Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getDemoUrl, resolveProjectNavHref } from '../../config/env';
 import { modellNavLinks, navbarCopy, projectNavLinks } from '../../content/siteCopy';
 import { LandingExternalButton, LandingExternalLink } from '../LandingExternalLink';
@@ -21,7 +21,9 @@ const navbarProjectLinks = projectNavLinks;
 
 export function Navbar() {
   const demoUrl = getDemoUrl();
+  const location = useLocation();
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
+  const isHome = location.pathname === '/';
 
   return (
     <>
@@ -48,7 +50,12 @@ export function Navbar() {
             <Group gap="lg" visibleFrom="sm" wrap="nowrap">
               <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
                 <Menu.Target>
-                  <Anchor href="/#scope" className="landing-nav-link" underline="never">
+                  <Anchor
+                    href="/#scope"
+                    className={`landing-nav-link${isHome ? ' landing-nav-link--active' : ''}`}
+                    aria-current={isHome ? 'page' : undefined}
+                    underline="never"
+                  >
                     {navbarCopy.modell}
                   </Anchor>
                 </Menu.Target>

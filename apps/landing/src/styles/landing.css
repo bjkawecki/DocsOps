@@ -209,6 +209,10 @@
   font-weight: 600;
 }
 
+.landing-hero-cta-button .mantine-Button-section {
+  color: inherit;
+}
+
 .landing-hero-preview {
   max-width: 1120px;
   margin-top: 0.25rem;
@@ -451,15 +455,19 @@
   box-shadow: none;
 }
 
+.landing-roles-diagram-mobile {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+}
+
 .landing-roles-diagram-mobile-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-width: 480px;
-  margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .landing-flow-diagram {
@@ -548,6 +556,19 @@
 
 .landing-faq .mantine-Accordion-label {
   font-weight: 600;
+}
+
+.landing-faq-answer {
+  color: var(--mantine-color-gray-2);
+}
+
+.landing-faq-link {
+  color: var(--mantine-color-blue-4);
+  font-weight: 600;
+}
+
+.landing-faq-link:hover {
+  color: var(--mantine-color-blue-3);
 }
 
 /* Scope diagram */
@@ -908,6 +929,38 @@
   backdrop-filter: blur(8px);
 }
 
+.landing-navbar a.landing-nav-link,
+.landing-navbar .landing-nav-link {
+  position: relative;
+  color: var(--mantine-color-gray-4);
+  font-weight: 500;
+  padding-block: 0.2rem;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease;
+  border-bottom: 2px solid transparent;
+}
+
+.landing-navbar a.landing-nav-link:hover,
+.landing-navbar .landing-nav-link:hover {
+  color: var(--mantine-color-gray-0);
+  border-bottom-color: color-mix(in srgb, var(--mantine-color-blue-4) 55%, transparent);
+}
+
+.landing-navbar a.landing-nav-link--active,
+.landing-navbar .landing-nav-link--active,
+.landing-navbar a.landing-nav-link[aria-current='page'] {
+  color: var(--mantine-color-white);
+  font-weight: 600;
+  border-bottom-color: var(--mantine-color-blue-4);
+}
+
+.landing-navbar a.landing-nav-link--active:hover,
+.landing-navbar .landing-nav-link--active:hover {
+  color: var(--mantine-color-white);
+  border-bottom-color: var(--mantine-color-blue-3);
+}
+
 .landing-nav-link {
   color: var(--mantine-color-gray-3);
   transition: color 140ms ease;
@@ -921,6 +974,7 @@ a.landing-nav-link:hover {
 
 .landing-nav-link--active {
   color: var(--mantine-color-white);
+  font-weight: 600;
 }
 
 .landing-nav-link--external .mantine-Group-root {
@@ -1058,6 +1112,13 @@ a.landing-nav-link:hover {
   color: var(--mantine-color-blue-4);
 }
 
+.landing-philosophy-means-heading {
+  font-size: clamp(1.125rem, 2.5vw, 1.35rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
 .landing-philosophy-means-label {
   color: var(--mantine-color-blue-4);
 }
@@ -1067,10 +1128,15 @@ a.landing-nav-link:hover {
   max-width: 960px;
 }
 
+.landing-philosophy-summary-title {
+  margin-bottom: 0;
+}
+
 .landing-philosophy-summary-card {
   height: 100%;
   min-width: 0;
   border-color: var(--mantine-color-dark-5) !important;
+  padding: clamp(1.5rem, 3vw, 2rem) !important;
 }
 
 .landing-philosophy-summary-card--muted {
@@ -1157,4 +1223,100 @@ a.landing-nav-link:hover {
   opacity: 1;
   width: 1.125rem;
   margin-left: 0.25rem;
+}
+
+.landing-sponsor-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.75rem;
+  padding-block: 1.75rem 3rem;
+}
+
+.landing-sponsor-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 34rem;
+  text-align: center;
+}
+
+.landing-sponsor-intro {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--mantine-color-gray-3);
+}
+
+.landing-sponsor-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.landing-sponsor-section-title {
+  margin: 0;
+  font-size: clamp(1.125rem, 2.4vw, 1.3125rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--mantine-color-gray-0);
+}
+
+.landing-sponsor-body {
+  font-size: 0.9875rem;
+  line-height: 1.5;
+  color: var(--mantine-color-gray-2);
+}
+
+.landing-sponsor-why-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-sponsor-why-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.landing-sponsor-why-icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-sponsor-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 28rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--mantine-color-dark-4);
+  text-align: center;
+}
+
+.landing-sponsor-cta-body {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--mantine-color-gray-2);
+}
+
+.landing-sponsor-cta-actions {
+  width: 100%;
 }

@@ -1,4 +1,12 @@
-import { Box, Button, Paper, Text } from '@mantine/core';
+import { Box, Button, Group, Paper, Stack, Text, ThemeIcon } from '@mantine/core';
+import {
+  IconCircleCheck,
+  IconEye,
+  IconFileText,
+  IconPencil,
+  IconShieldCheck,
+  type Icon,
+} from '@tabler/icons-react';
 import { ReactFlow, useEdgesState, useNodesState, type Node } from '@xyflow/react';
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import '@xyflow/react/dist/style.css';
@@ -6,8 +14,6 @@ import { rolesPublicationCopy } from '../../content/siteCopy';
 import { getDiagramNodeDetail } from './rolesDiagramDetails';
 import { buildRolesDiagramGraph, serializeDiagramNodePositions } from './rolesDiagramLayout';
 import { rolesDiagramNodeTypes } from './rolesDiagramNodes';
-
-const ROLE_ORDER = ['lead', 'author', 'member'] as const;
 
 function isDiagramEditMode(): boolean {
   if (!import.meta.env.DEV) return false;
@@ -37,39 +43,41 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: string | null 
   );
 }
 
-function MobileEdgeList() {
-  const { roles, document, edges, transition, scope, nodeDescriptions } = rolesPublicationCopy;
+type MobileRoleLevel = {
+  title: string;
+  description: string;
+  Icon: Icon;
+};
 
-  const roleItems = ROLE_ORDER.flatMap((roleId) =>
-    edges
-      .filter((e) => e.from === roleId)
-      .map((edge) => ({
-        key: `${edge.from}-${edge.label}`,
-        title: roles[roleId],
-        description: nodeDescriptions[roleId],
-        label: edge.label,
-        target: edge.to === 'entwurf' ? document.entwurf : document.version,
-      }))
-  );
+const MOBILE_ROLE_LEVELS: MobileRoleLevel[] = [
+  {
+    title: rolesPublicationCopy.roles.lead,
+    description: 'Qualität und Freigabe; veröffentlicht die verbindliche Version.',
+    Icon: IconShieldCheck,
+  },
+  {
+    title: rolesPublicationCopy.roles.author,
+    description: 'Formuliert inhaltliche Vorschläge im Entwurf.',
+    Icon: IconPencil,
+  },
+  {
+    title: rolesPublicationCopy.roles.member,
+    description: 'Liest die veröffentlichte Version und kann kommentieren.',
+    Icon: IconEye,
+  },
+  {
+    title: rolesPublicationCopy.document.entwurf,
+    description: 'Arbeitsfassung: Änderungen werden vorbereitet und zusammengeführt.',
+    Icon: IconFileText,
+  },
+  {
+    title: 'Veröffentlichte Version',
+    description: 'Verbindliche Fassung für alle mit Leserecht.',
+    Icon: IconCircleCheck,
+  },
+];
 
-  const docItems = [
-    {
-      key: 'entwurf',
-      title: document.entwurf,
-      description: nodeDescriptions.entwurf,
-    },
-    {
-      key: 'transition',
-      title: transition,
-      description: `${document.entwurf} → ${document.version}`,
-    },
-    {
-      key: 'version',
-      title: document.version,
-      description: nodeDescriptions.version,
-    },
-  ];
-
+function MobileRolesList() {
   return (
     <Box className="landing-roles-diagram-mobile" hiddenFrom="sm">
       <Paper
@@ -78,53 +86,25 @@ function MobileEdgeList() {
         withBorder
         bg="dark.7"
       >
-        <Text size="md" tt="uppercase" fw={700} c="gray.2" mb={4} lts={0.6}>
-          {scope.title}
+        <Text size="sm" c="gray.3" lh={1.55} mb="md">
+          Mitwirken und Freigabe sind getrennt: vom Entwurf bis zur verbindlichen Version.
         </Text>
-        <Text size="md" c="gray.3" mb="xs">
-          {scope.hint}
-        </Text>
-        <Text size="sm" c="gray.4" mb="lg">
-          {nodeDescriptions.scope}
-        </Text>
-
-        <Text size="sm" tt="uppercase" fw={700} c="gray.3" mb="sm" lts={0.6}>
-          Rollen
-        </Text>
-        <Box component="ul" className="landing-roles-diagram-mobile-list">
-          {roleItems.map((item) => (
-            <Box component="li" key={item.key}>
-              <Text size="md" fw={600}>
-                {item.title}
-              </Text>
-              <Text size="sm" c="gray.4" mt={2}>
-                {item.description}
-              </Text>
-              <Text size="sm" mt={4}>
-                <Text span c="gray.3">
-                  {item.label}
-                </Text>
-                {' → '}
-                <Text span fw={600}>
-                  {item.target}
-                </Text>
-              </Text>
-            </Box>
-          ))}
-        </Box>
-
-        <Text size="sm" tt="uppercase" fw={700} c="gray.3" mt="lg" mb="sm" lts={0.6}>
-          {document.title}
-        </Text>
-        <Box component="ul" className="landing-roles-diagram-mobile-list">
-          {docItems.map((item) => (
-            <Box component="li" key={item.key}>
-              <Text size="md" fw={600}>
-                {item.title}
-              </Text>
-              <Text size="sm" c="gray.4" mt={2}>
-                {item.description}
-              </Text>
+        <Box component="ol" className="landing-roles-diagram-mobile-list">
+          {MOBILE_ROLE_LEVELS.map(({ title, description, Icon }) => (
+            <Box component="li" key={title}>
+              <Group align="flex-start" gap="sm" wrap="nowrap">
+                <ThemeIcon variant="light" color="blue" radius="xl" size={30} mt={2}>
+                  <Icon size={18} stroke={1.8} />
+                </ThemeIcon>
+                <Stack gap={2}>
+                  <Text size="md" fw={600} lh={1.35}>
+                    {title}
+                  </Text>
+                  <Text size="sm" c="gray.4" lh={1.55}>
+                    {description}
+                  </Text>
+                </Stack>
+              </Group>
             </Box>
           ))}
         </Box>
@@ -187,7 +167,7 @@ export function RolesDocumentDiagram() {
 
   return (
     <>
-      <MobileEdgeList />
+      <MobileRolesList />
 
       {editMode ? <DiagramEditToolbar nodes={nodes} onCopied={() => setCopied(true)} /> : null}
       {copied ? (

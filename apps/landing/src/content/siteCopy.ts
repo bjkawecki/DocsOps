@@ -101,28 +101,25 @@ export const exampleCopy = {
     accent: 'Beispiel',
     after: ': ein Dokument einordnen',
   },
-  intro: 'So finden Sie Geltungsbereich und Kontext, bevor Sie ein Dokument anlegen.',
+  intro: 'Vor dem Anlegen: Geltungsbereich und Kontext festlegen.',
   introHighlights: ['Geltungsbereich', 'Kontext'],
   steps: [
     {
       question: 'Was soll dokumentiert werden?',
-      answer:
-        'Der aktuelle Stand der Barrierefreiheit für Software X – als verbindliche, veröffentlichte Fassung für alle Beteiligten.',
+      answer: 'Aktueller Stand der Barrierefreiheit von Software X.',
     },
     {
       question: 'In welchem Geltungsbereich ist das relevant?',
-      answer:
-        'Das Thema betrifft die Abteilung IT – das entspricht einer Abteilung in unserem Organisationsmodell (wie „Abteilung A“ im Diagramm oben). Dort liegt die Verantwortung für die Software und ihren Produktstand.',
+      answer: 'Abteilung IT: dort liegt die Verantwortung für die Software.',
     },
     {
       question: 'Gehört es in einen Prozess oder ein Projekt?',
       answer:
-        'Der Inhalt beschreibt den Ist-Stand eines Produkts, nicht den dauerhaften Prüfablauf in der Entwicklung. Ein Prozess wie „Barrierefreiheit in der Entwicklung“ würde den Prüfablauf festhalten – hier geht es um den Produktstand. Deshalb wählen wir einen Projekt-Kontext, z. B. „Software X“.',
+        'Nicht der Prüfablauf (Prozess), sondern der Produktstand. Deshalb Projekt-Kontext „Software X“.',
     },
     {
       question: 'Wie heißt das Dokument?',
-      answer:
-        '„Stand Barrierefreiheit“ – angelegt im Projekt-Kontext „Software X“ in der Abteilung IT.',
+      answer: 'Dokument: „Stand Barrierefreiheit“.',
     },
   ],
 } as const;
@@ -134,8 +131,8 @@ export const rolesPublicationCopy = {
     after: ' Zusammenarbeit',
   },
   intro:
-    'Gute Texte sind Teamwork, doch nicht jede Änderung gehört sofort in die verbindliche Fassung. In DocsOps steuern Rollen, wer im Entwurf mitarbeitet und wer veröffentlicht. So entsteht eine verbindliche, veröffentlichte Fassung, zu der Leser in Kommentaren Feedback geben können.',
-  introHighlights: ['Rollen', 'Teamwork', 'Kommentaren'],
+    'Gute Texte sind Teamwork, doch nicht jede Änderung gehört sofort in die verbindliche Fassung. In DocsOps steuern Rollen, wer im Entwurf mitarbeitet und wer veröffentlicht. So entsteht eine verbindliche, veröffentlichte Fassung.',
+  introHighlights: ['Rollen', 'Teamwork', 'Entwurf'],
   diagramClickHint: 'Auf Knoten klicken, um mehr zu erfahren.',
   nodeDescriptions: {
     scope: 'Organisationseinheit, in der Rollen und Dokumente gelten – von der Firma bis zum Team.',
@@ -188,73 +185,73 @@ export const faqCopy = {
 export const philosophieCopy = {
   pageHeadline: 'Unser Ansatz',
   metaDescription:
-    'Warum DocsOps Zusammenarbeit und Veröffentlichung trennt – und wofür der Ansatz gedacht ist.',
-  tagline:
-    'Interne Dokumentation ist Betriebswissen: gepflegt, verantwortet und für Leser verlässlich – nicht nur ein gemeinsamer Speicher.',
+    'Der DocsOps-Ansatz: Dokumentation als Teil des Betriebs, Organisation als Rahmen, Kontext, getrennte Mitwirkung und Veröffentlichung, Verantwortung und Zugriff.',
+  tagline: 'Dokumentation ist Teil des Betriebs, nicht nur dessen Abdruck.',
   narrative: [
-    'Organisationen brauchen einen offiziellen Wissensstand. Nicht jede Notiz ist sofort gültig; nicht jeder Entwurf ist schon der Stand der Firma. DocsOps trennt deshalb Mitwirkung von Veröffentlichung: Beiträge entstehen im Arbeitsmodus, Leser erhalten eine geprüfte, versionierte Fassung.',
-    'Viele Tools optimieren flexible Ablage und offene Zusammenarbeit. DocsOps optimiert Verlässlichkeit und Verantwortung: Wer darf mitwirken, wer gibt frei, welcher Stand gilt – das ist keine Nebenfrage, sondern Teil des Ansatzes. Wie das im Produkt umgesetzt ist, sehen Sie auf der Startseite.',
+    'Unternehmen bestehen aus Abläufen, Regeln, Entscheidungen, Projekten und Dingen, mit denen gearbeitet wird. Dieses Wissen entsteht laufend, verändert sich und wird von vielen Menschen genutzt.',
+    'DocsOps bildet diesen Teil des Unternehmens ab: eine gemeinsame Grundlage dafür, wie ein Unternehmen arbeitet und was dabei gilt. Struktur, Zusammenarbeit und Verbindlichkeit gehören zusammen.',
   ],
-  meansTitle: 'Was das bedeutet',
-  meansSubtitle: 'Grundsätze hinter dem Modell – nicht die Bedienung.',
+  meansTitle: 'Was DocsOps anders macht',
   meansItems: [
     {
-      title: 'Verbindlicher Stand.',
-      description:
-        'Leser sollen sich auf Dokumentation verlassen können – nicht auf den jeweils aktuellen Bearbeitungsstand.',
+      title: 'Die Organisation gibt den Rahmen vor',
+      paragraphs: [
+        'Unternehmen haben Strukturen und Zuständigkeiten. DocsOps nimmt diese Organisation als Rahmen für Dokumentation, ohne die Inhalte vorzuschreiben.',
+      ],
     },
     {
-      title: 'Verantwortung statt Selbstorganisation.',
-      description:
-        'Es gibt einen offiziellen Wissensstand; Freigabe ist ein bewusster Schritt, nicht ein Nebenprodukt des Speicherns.',
+      title: 'Information braucht Kontext',
+      paragraphs: [
+        'Wissen braucht einen festen Bezug im Unternehmen. So bleibt klar, wozu etwas gehört, nicht nur, was geschrieben wurde.',
+      ],
     },
     {
-      title: 'Struktur folgt der Organisation.',
-      description:
-        'Wissen gehört in den Kontext der Firma – nicht in beliebige Ordner, die jede Abteilung neu erfindet.',
+      title: 'Gemeinsam bearbeiten. Verbindlich veröffentlichen.',
+      paragraphs: [
+        'Mitwirkung und Veröffentlichung bleiben getrennt. Erst die freigegebene Fassung ist der Stand, auf den andere ihre Arbeit stützen.',
+      ],
     },
     {
-      title: 'Mitwirkung ohne Sofort-Verbindlichkeit.',
-      description:
-        'Beiträge und Vorschläge sind erwünscht; Veröffentlichung markiert, was ab jetzt gilt.',
-    },
-    {
-      title: 'Dauerhaftes und Vorhaben-Wissen.',
-      description:
-        'Prozesswissen und Projektstand sind verschiedene Dinge – beides braucht klare, haltbare Fassungen.',
-    },
-    {
-      title: 'Self-hosted und Open Source.',
-      description: 'Betriebswissen bleibt unter Ihrer Kontrolle – technisch und organisatorisch.',
+      title: 'Verantwortung ist nicht dasselbe wie Zugriff',
+      paragraphs: [
+        'Zuständigkeit und Leserecht sind verschiedene Dinge. Verantwortung bleibt lokal; Sichtbarkeit in der Organisation kann darüber hinaus reichen.',
+      ],
     },
   ],
-  summaryTitle: 'Kurz gesagt',
-  fitsForTitle: 'DocsOps eignet sich für',
+  visionTitle: 'Unsere Vision',
+  vision: [
+    'Unternehmen sollten nicht davon abhängen, dass jemand weiß, wie es läuft. Was bleibt, gehört zur Organisation selbst: wie wir arbeiten, womit wir arbeiten, was gilt, wer verantwortlich ist.',
+    'DocsOps soll daraus eine nachvollziehbare Abbildung machen: strukturiert genug für Orientierung, offen genug für die eigene Organisation, verbindlich genug zum Arbeiten danach.',
+    'Gute Unternehmensdokumentation beschreibt nicht nur, was ein Unternehmen tut. Sie ist Teil davon, wie es funktioniert.',
+  ],
+  summaryTitle: 'Für wen DocsOps gedacht ist',
+  fitsForTitle: 'DocsOps passt zu Ihnen, wenn Sie',
   fitsFor: [
-    'Organisationen, die internen Wissensstand steuern und absichern wollen',
-    'Unternehmen mit klaren Verantwortlichen für verbindliche Fassungen',
-    'Teams, die Mitwirkung wollen, ohne jeden Entwurf sofort offiziell zu machen',
-    'Betriebe, die Wissen als organisatorisches Gut pflegen – nicht als private Notizen',
-    'Umgebungen mit Qualitäts- oder Compliance-Anforderungen an Dokumentation',
+    'Abläufe und Bestand strukturiert abbilden möchten',
+    'klare Verantwortlichkeiten brauchen',
+    'gemeinsam arbeiten möchten, ohne jeden Entwurf sofort offiziell zu machen',
+    'eine vorgegebene Struktur als Orientierung schätzen',
   ],
-  doesNotFitForTitle: 'DocsOps eignet sich nicht für',
+  doesNotFitForTitle: 'DocsOps ist eher nichts für Sie, wenn Sie',
   doesNotFitFor: [
-    'Reine Brainstorming- oder Notizflächen ohne offiziellen Stand',
-    'Teams, die Struktur und Freigabe vollständig den Nutzenden überlassen wollen',
-    'Szenarien ohne Bedarf an nachvollziehbarem, freigegebenem Wissensstand',
-    'Projekte, die vor allem maximale Gestaltungsfreiheit ohne Leitplanken suchen',
+    'vor allem eine freie Notiz- oder Brainstorming-Fläche suchen',
+    'ohne Organisationsmodell dokumentieren möchten',
+    'maximale Gestaltungsfreiheit wichtiger finden als einen gemeinsamen Rahmen',
   ],
+  ctaBody: 'Genug Haltung. Demo öffnen oder das Projekt unterstützen.',
+  primaryCta: 'Live-Demo',
+  secondaryCta: 'Unterstützen',
 } as const;
 
 export const philosophyTeaserCopy = {
   title: 'Warum so viele Regeln?',
-  body: 'Scope, Kontext und Rollen auf der Startseite zeigen, wie DocsOps arbeitet – hier geht es um den Ansatz dahinter: verbindlicher Wissensstand statt ungebremster Wiki-Fläche.',
+  body: 'Geltungsbereich, Kontext und Rollen können nach viel Aufwand aussehen. Der Ansatz dahinter: Dokumentation ist Teil des Betriebs, nicht nur dessen Abdruck.',
   cta: 'Zur Philosophie',
 } as const;
 
 export const finalCtaCopy = {
   title: 'DocsOps ausprobieren',
-  body: 'Verstehen Sie das Modell auf der Startseite – und testen Sie dann Demo oder Installation.',
+  body: 'Genug erklärt. Jetzt Live-Demo öffnen oder DocsOps selbst installieren.',
   primaryCta: 'Live-Demo',
   secondaryCta: 'Installation',
 } as const;
@@ -296,7 +293,16 @@ export const sponsorCopy = {
   metaDescription:
     'Unterstützen Sie die Entwicklung von DocsOps – Open Source, self-hosted Dokumentationsplattform.',
   intro:
-    'DocsOps ist Open Source (MIT) und wird ohne Abo-Modell betrieben. Freiwillige Unterstützung hilft bei Infrastruktur, Pflege und Weiterentwicklung.',
+    'DocsOps ist Open Source (MIT) und kommt ohne Abo-Modell. Freiwillige Unterstützung hilft bei Infrastruktur, Pflege und Weiterentwicklung.',
+  whyTitle: 'Wofür die Unterstützung da ist',
+  whyItems: [
+    'Hosting und Betrieb der öffentlichen Demo',
+    'Zeit für Fixes, Releases und Dokumentation',
+    'Weiterentwicklung des Modells und der Plattform',
+  ],
+  ctaBody: 'Aktuell hilft am besten ein Stern auf GitHub.',
+  ctaPrimary: 'GitHub Sponsors',
+  ctaStar: 'Stern auf GitHub',
 } as const;
 
 export const vergleichHubCopy = {

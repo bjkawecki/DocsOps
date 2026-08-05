@@ -155,6 +155,7 @@ ensure_demo_hook_env() {
     echo "${token}"
     echo "Secret-Name: DEMO_DEPLOY_HOOK_TOKEN"
     echo "Hook-URL:    https://docsops.de/hooks/demo-deploy"
+    echo "Optional robuster (ohne Caddy): http://<VPS-IP>:8091/v1/demo-deploy"
     echo "================================================================"
     echo ""
   fi
@@ -257,6 +258,7 @@ EOF
     echo "${demo_hook_token}"
     echo "Secret-Name: DEMO_DEPLOY_HOOK_TOKEN"
     echo "Hook-URL:    https://docsops.de/hooks/demo-deploy"
+    echo "Optional robuster (ohne Caddy): http://<VPS-IP>:8091/v1/demo-deploy"
     echo "================================================================"
     echo ""
   fi
@@ -504,7 +506,7 @@ download_demo_release_bundle() {
     url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
     archive="$(mktemp /tmp/docsops-demo-XXXXXX.tar.gz)"
     log "Lade ${url} …"
-    curl -fsSL -o "$archive" "$url" || die "Bundle-Download fehlgeschlagen: ${url}"
+    curl -fsSL --connect-timeout 30 --max-time 300 -o "$archive" "$url" || die "Bundle-Download fehlgeschlagen: ${url}"
   fi
 
   stage="$(mktemp -d)"
@@ -550,8 +552,13 @@ compose_reset_demo() {
   export_demo_compose_env
   ensure_demo_compose_overlay
   compose_stack_setup
-  log "Demo-Reset: Volumes löschen und Stack neu starten …"
-  compose_stack_cmd down -v
+  local project
+  project="${COMPOSE_PROJECT_NAME:-docsops-demo}"
+  log "Demo-Reset: App-Volumes löschen (Caddy-TLS-Volumes bleiben), Stack neu starten …"
+  # Do not use `down -v`: that also wipes caddy_data/caddy_config and forces new LE certs
+  # (hits Let's Encrypt rate limits after a few daily resets).
+  compose_stack_cmd down
+  docker volume rm -f "${project}_postgres_data" "${project}_minio_data" >/dev/null 2>&1 || true
   compose_up_prod
 }
 

@@ -289,20 +289,31 @@ jobs:
           fi
           echo "demo-deploy accepted (HTTP ${code})"
 
-          # Poll until idle; update+reset can take several minutes.
-          for i in $(seq 1 90); do
+          # Wall-clock wait: update+reset typically a few minutes; Caddy TLS flaps mid-deploy.
+          # Prefer DEMO_DEPLOY_HOOK_URL=http://<host>:8091/v1/demo-deploy to bypass Compose Caddy.
+          WAIT_SEC="${DEMO_DEPLOY_WAIT_SEC:-600}"
+          POLL_SEC="${DEMO_DEPLOY_POLL_SEC:-15}"
+          GRACE_SEC="${DEMO_DEPLOY_GRACE_SEC:-45}"
+          deadline=$((SECONDS + WAIT_SEC))
+          echo "waiting up to ${WAIT_SEC}s (grace ${GRACE_SEC}s, poll every ${POLL_SEC}s)…"
+          sleep "$GRACE_SEC"
+
+          poll=0
+          while (( SECONDS < deadline )); do
+            poll=$((poll + 1))
+            remaining=$((deadline - SECONDS))
             if ! curl -sS -o /tmp/demo-deploy-status.json \
-              --connect-timeout 15 --max-time 30 \
+              --connect-timeout 10 --max-time 20 \
               -H "Authorization: Bearer ${HOOK_TOKEN}" \
               "$URL"; then
-              echo "poll ${i}/90: status request failed (agent may be restarting); retrying…"
-              sleep 10
+              echo "poll ${poll} (~${remaining}s left): unreachable (stack/TLS restart); retry…"
+              sleep "$POLL_SEC"
               continue
             fi
             idle="$(python3 -c 'import json; print(json.load(open("/tmp/demo-deploy-status.json")).get("idle"))')"
             phase="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("phase") or "")')"
             err="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("error") or "")')"
-            echo "poll ${i}/90 idle=${idle} phase=${phase}"
+            echo "poll ${poll} (~${remaining}s left) idle=${idle} phase=${phase}"
             if [[ "$idle" == "True" || "$idle" == "true" ]]; then
               if [[ "$phase" == "succeeded" ]]; then
                 echo "demo deploy succeeded"
@@ -313,14 +324,14 @@ jobs:
                 cat /tmp/demo-deploy-status.json >&2 || true
                 exit 1
               fi
-              # Idle without a finished run yet (e.g. right after agent restart) – keep polling briefly.
+              # Idle without a finished run yet (e.g. right after agent restart).
               if [[ -z "$phase" ]]; then
-                sleep 10
+                sleep "$POLL_SEC"
                 continue
               fi
             fi
-            sleep 20
+            sleep "$POLL_SEC"
           done
-          echo "demo deploy timed out waiting for completion" >&2
+          echo "demo deploy timed out after ${WAIT_SEC}s waiting for completion" >&2
           cat /tmp/demo-deploy-status.json >&2 || true
           exit 1

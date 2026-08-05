@@ -1,6 +1,9 @@
-import { Box, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
-import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
+import { Box, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { IconCircleCheck, IconCircleX, IconHeartHandshake } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
+import { LandingExternalButton } from '../components/LandingExternalLink';
 import { LandingHead } from '../components/LandingHead';
+import { getDemoUrl } from '../config/env';
 import { philosophieCopy } from '../content/siteCopy';
 
 function PhilosophyAccentPeriod() {
@@ -21,7 +24,7 @@ function SummaryList({
   const Icon = variant === 'fits' ? IconCircleCheck : IconCircleX;
 
   return (
-    <Stack component="ul" gap="sm" className="landing-philosophy-summary-list" role="list">
+    <Stack component="ul" gap="md" className="landing-philosophy-summary-list" role="list">
       {items.map((item) => (
         <Group
           key={item}
@@ -58,10 +61,12 @@ function SummaryList({
 }
 
 export function PhilosophiePage() {
+  const demoUrl = getDemoUrl();
+
   return (
     <>
       <LandingHead
-        title={`${philosophieCopy.pageHeadline} – DocsOps`}
+        title={`${philosophieCopy.pageHeadline} · DocsOps`}
         description={philosophieCopy.metaDescription}
       />
       <Box className="landing-page landing-philosophy-page">
@@ -85,44 +90,46 @@ export function PhilosophiePage() {
           </Stack>
 
           <Stack gap="xl" className="landing-philosophy-means" w="100%" maw={640}>
-            <Stack gap="xs" align="center">
-              <Title order={2} className="landing-philosophy-section-title">
-                {philosophieCopy.meansTitle}
-                <PhilosophyAccentPeriod />
-              </Title>
-              <Text className="landing-philosophy-section-subtitle" ta="center">
-                {philosophieCopy.meansSubtitle}
-              </Text>
-            </Stack>
+            <Title order={2} className="landing-philosophy-section-title">
+              {philosophieCopy.meansTitle}
+              <PhilosophyAccentPeriod />
+            </Title>
 
-            <Stack gap="lg">
+            <Stack gap={40}>
               {philosophieCopy.meansItems.map((item) => (
-                <Group
-                  key={item.title}
-                  align="flex-start"
-                  wrap="nowrap"
-                  gap="sm"
-                  className="landing-philosophy-means-item"
-                >
-                  <IconCircleCheck
-                    size={22}
-                    stroke={1.75}
-                    className="landing-philosophy-check"
-                    aria-hidden
-                  />
-                  <Text className="landing-philosophy-body" lh={1.65}>
-                    <Text span fw={600} className="landing-philosophy-means-label">
-                      {item.title}
-                    </Text>{' '}
-                    {item.description}
-                  </Text>
-                </Group>
+                <Stack key={item.title} gap="md" className="landing-philosophy-means-item">
+                  <Title order={3} className="landing-philosophy-means-heading">
+                    {item.title}
+                  </Title>
+                  {item.paragraphs.map((paragraph) => (
+                    <Text key={paragraph} className="landing-philosophy-body" lh={1.7}>
+                      {paragraph}
+                    </Text>
+                  ))}
+                </Stack>
               ))}
             </Stack>
           </Stack>
 
-          <Stack gap="lg" className="landing-philosophy-summary" w="100%">
+          <Stack gap="lg" className="landing-philosophy-vision" maw={640} w="100%">
             <Title order={2} className="landing-philosophy-section-title">
+              {philosophieCopy.visionTitle}
+              <PhilosophyAccentPeriod />
+            </Title>
+            <Stack gap="lg">
+              {philosophieCopy.vision.map((paragraph) => (
+                <Text key={paragraph} className="landing-philosophy-body" lh={1.7}>
+                  {paragraph}
+                </Text>
+              ))}
+            </Stack>
+          </Stack>
+
+          <Stack gap={40} className="landing-philosophy-summary" w="100%">
+            <Title
+              order={2}
+              className="landing-philosophy-section-title landing-philosophy-summary-title"
+            >
               {philosophieCopy.summaryTitle}
               <PhilosophyAccentPeriod />
             </Title>
@@ -130,12 +137,12 @@ export function PhilosophiePage() {
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" verticalSpacing="lg">
               <Paper
                 component="section"
-                p="lg"
+                p="xl"
                 withBorder
                 bg="dark.8"
                 className="landing-philosophy-summary-card landing-surface-card"
               >
-                <Stack gap="md">
+                <Stack gap="lg">
                   <Title order={3} className="landing-philosophy-summary-column-title">
                     {philosophieCopy.fitsForTitle}
                   </Title>
@@ -145,12 +152,12 @@ export function PhilosophiePage() {
 
               <Paper
                 component="section"
-                p="lg"
+                p="xl"
                 withBorder
                 bg="dark.8"
                 className="landing-philosophy-summary-card landing-philosophy-summary-card--muted landing-surface-card"
               >
-                <Stack gap="md">
+                <Stack gap="lg">
                   <Title
                     order={3}
                     className="landing-philosophy-summary-column-title landing-philosophy-summary-column-title--muted"
@@ -161,6 +168,26 @@ export function PhilosophiePage() {
                 </Stack>
               </Paper>
             </SimpleGrid>
+          </Stack>
+
+          <Stack gap="lg" align="center" maw={720} w="100%" className="landing-philosophy-cta">
+            <Text ta="center" c="gray.2" lh={1.65}>
+              {philosophieCopy.ctaBody}
+            </Text>
+            <Group justify="center" gap="md" w="100%">
+              <LandingExternalButton href={demoUrl} className="landing-hero-cta-button">
+                {philosophieCopy.primaryCta}
+              </LandingExternalButton>
+              <Button
+                component={Link}
+                to="/sponsor"
+                variant="default"
+                className="landing-hero-cta-button"
+                leftSection={<IconHeartHandshake size={18} color="var(--mantine-color-blue-4)" />}
+              >
+                {philosophieCopy.secondaryCta}
+              </Button>
+            </Group>
           </Stack>
         </Stack>
       </Box>

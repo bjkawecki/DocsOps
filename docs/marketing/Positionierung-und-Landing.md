@@ -157,22 +157,30 @@ Abteilung IT
 
 ## 5. Philosophie-Seite (`/philosophie`)
 
-**Ziel:** Den **Ansatz und die Idee** erklären – **nicht** das Produktmodell wiederholen (das leistet die Startseite mit Scope · Kontext · Rollen). Positiv beginnen, keine Defizit-Formulierungen („bewusst schlank“, „kein Wiki“).
+**Ziel:** Den **Ansatz und die Idee** erklären – **nicht** das Produktmodell wiederholen (das leistet die Startseite mit Scope · Kontext · Rollen). Positiv beginnen; Thema-Rhema (vom Bekannten zum Unbekannten).
 
-**Aufbau (Coolify-inspiriert, zentriert, schmal ~720px):**
+**Aufbau:**
 
-| Block                 | Inhalt                                                                                                                                                |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hero**              | „Unser Ansatz.“ + Tagline (Mission / Idee in einem Satz)                                                                                              |
-| **Erzählung**         | Zwei Absätze: **Warum** offizieller Wissensstand, Trennung Mitwirkung/Veröffentlichung, Verantwortung – Verweis auf Startseite für **Wie** im Produkt |
-| **Was das bedeutet.** | Grundsätze (Checkliste), keine Feature-Liste (kein Firma/Abteilung/Team erneut)                                                                       |
-| **Kurz gesagt.**      | Zielgruppen-Passung als Listen in zwei Karten – Bedarf und Haltung, nicht Produktmechanik                                                             |
+| Block                        | Inhalt                                                                                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hero**                     | „Unser Ansatz.“ + Tagline (Betriebswissen soll nicht nur in Köpfen liegen)                                                                     |
+| **Erzählung**                | Vom Bekannten (Unternehmenswissen) zur Abbildung in DocsOps; Struktur, Zusammenarbeit, Verbindlichkeit                                         |
+| **Was DocsOps anders macht** | Vier Blöcke: Organisation als Rahmen; Information braucht Kontext; gemeinsam bearbeiten / verbindlich veröffentlichen; Verantwortung ≠ Zugriff |
+| **Unsere Vision**            | Abbildung des Unternehmens; Dokumentation als Teil, wie die Organisation funktioniert                                                          |
+| **Für wen**                  | Titel mit DocsOps-Subjekt; Passt / eher nichts                                                                                                 |
+| **CTA**                      | Live-Demo + Zur Startseite                                                                                                                     |
 
-**Copy-Leitlinie „Kurz gesagt“:**
+**Schreibregeln (Copy):** siehe Stichliste unten; SSoT der Seiten-Copy: `apps/landing/src/content/siteCopy.ts` (`philosophieCopy`).
 
-- **Für:** wer steuerbaren, verbindlichen Wissensstand braucht (Listen mit Häkchen, hervorgehobene Karte).
-- **Nicht für:** wer offene Notiz-/Wiki-Freedom ohne offiziellen Stand sucht (grau, zurückgenommen).
-- **Nicht:** Wiederholung von Scope, Kontext, Rollen, Hierarchie-Begriffen – das gehört auf `/`.
+**Schreibregeln:**
+
+1. Haltung/Warum, nicht Startseiten-Modell/Wie.
+2. Mit einer Erklärung/Rahmung beginnen, dann Gedanken entfalten (Thema → Rhema); keine Thesen-Eröffnung ohne Kontext.
+3. Prinzipien darstellen (Inhalt), nicht Meta („Software soll Prinzipien genügen“).
+4. Keine Meta-Hinweise („siehe Startseite“).
+5. Erwartbares Vokabular; kein „Produzenten“; kein „DocsOps verwaltet …“.
+6. Weniger „statt …“; keine Em-Dash-Ketten.
+7. Fit-Titel mit DocsOps als Subjekt.
 
 ---
 

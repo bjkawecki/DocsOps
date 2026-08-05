@@ -107,7 +107,7 @@ download_release_bundle_to_install_dir() {
   bundle_url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
   log "Lade Release-Bundle ${version} …"
   tmpdir="$(mktemp -d)"
-  curl -fsSL "$bundle_url" -o "${tmpdir}/bundle.tar.gz"
+  curl -fsSL --connect-timeout 30 --max-time 300 "$bundle_url" -o "${tmpdir}/bundle.tar.gz"
   tar -xzf "${tmpdir}/bundle.tar.gz" -C "$tmpdir"
   extracted_root="$(find_bundle_root_in_dir "$tmpdir")"
   copy_bundle_root_to_install_dir "$extracted_root"

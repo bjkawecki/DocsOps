@@ -1,36 +1,42 @@
 export type FaqItem = {
   question: string;
   answer: string;
+  /** Terms rendered in accent color within the answer. */
+  highlights?: readonly string[];
+  /** Optional CTA after the answer (e.g. install page). */
+  link?: { to: string; label: string };
 };
 
 export const faqItems: FaqItem[] = [
   {
-    question: 'Für wen ist DocsOps gedacht?',
+    question: 'Passt DocsOps zu meiner Organisation?',
     answer:
-      'Für Organisationen mit Firma-, Abteilungs- und Teamstruktur, Leitungen pro Geltungsbereich und freigegebenem Wissensstand für Leser. Weniger geeignet, wenn ihr vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell braucht.',
+      'Ja, wenn Sie mit Firma, Abteilung und Team, benannten Leitungen und einem freigegebenen Wissensstand arbeiten. Weniger geeignet, wenn Sie vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell brauchen.',
+    highlights: ['Wissensstand', 'Wiki-Fläche'],
   },
   {
-    question: 'Was unterscheidet DocsOps von Confluence oder Docmost?',
+    question: 'Was unterscheidet DocsOps von ähnlichen Programmen?',
     answer:
-      'DocsOps bringt Firma, Abteilung und Team ins Produkt, regelt Rechte pro Dokument und trennt Entwurf von veröffentlichter Leser-Version. Confluence und Docmost setzen stärker auf Spaces und Feature-Masse.',
+      'Andere Lösungen setzen häufig auf Spaces oder Wiki-Seiten: flexible Ablage ohne festes Organisationsmodell, und wer schreiben darf, ändert meist sofort den Stand für alle. DocsOps bildet Firma, Abteilung und Team ab, ordnet Dokumente in Prozess- oder Projekt-Kontexte und trennt Mitwirken von Veröffentlichen: Autoren schlagen vor, die Leitung gibt die verbindliche Fassung frei.',
+    highlights: ['Wiki-Seiten', 'Mitwirken', 'Veröffentlichen'],
   },
   {
-    question: 'Muss DocsOps in der Cloud laufen?',
+    question: 'Wie strukturiert DocsOps mein Wissen?',
     answer:
-      'Nein. DocsOps ist für Self-hosting gedacht – Docker auf eurer Infrastruktur, MIT-Lizenz, volle Datenhoheit.',
+      'Über Kontexte: Prozesse beschreiben dauerhafte Abläufe (wie Sie arbeiten). Projekte bündeln den Ist-Stand zu einem Thema, Produkt oder Vorhaben. Jedes Dokument gehört zu genau einem solchen Kontext.',
+    highlights: ['Prozesse', 'Projekte'],
   },
   {
-    question: 'Wie funktioniert die Zusammenarbeit?',
+    question: 'Wie stellt DocsOps Verbindlichkeit her?',
     answer:
-      'Autoren arbeiten in Entwürfen und reichen Vorschläge ein. Die Leitung des Geltungsbereichs – Team, Abteilung oder Firma – veröffentlicht die Fassung, die Leser sehen.',
+      'Indem Mitwirken und Veröffentlichen getrennt bleiben. Autoren formulieren im Entwurf Vorschläge; die Leitung des Geltungsbereichs nimmt an oder verwirft und veröffentlicht. Leser sehen ausschließlich die freigegebene Version.',
+    highlights: ['Entwurf', 'Leitung', 'freigegebene Version'],
   },
   {
-    question: 'Gibt es eine Live-Demo?',
+    question: 'Wie kann ich DocsOps nutzen – und was kostet es?',
     answer:
-      'Ja – über den Button „Live-Demo“ oben. Die Demo-Instanz läuft separat; produktive Daten gehören nicht hinein.',
-  },
-  {
-    question: 'Ist DocsOps Open Source?',
-    answer: 'Ja, MIT-Lizenz. Quellcode und Install-Anleitung liegen auf GitHub.',
+      'DocsOps ist Open Source unter MIT, kostenlos nutzbar und für Self-hosting auf Ihrer Infrastruktur gedacht. Daten und Betrieb bleiben bei Ihnen.',
+    highlights: ['Open Source', 'Self-hosting'],
+    link: { to: '/install', label: 'Zur Installationsanleitung' },
   },
 ];

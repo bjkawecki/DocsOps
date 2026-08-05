@@ -211,23 +211,37 @@ func (o *Orchestrator) runDemoDeploy(runID, version string) error {
 		return fail("LOCK_FAILED", err.Error())
 	}
 
+	// Whole update (bundle download + compose) – phase name is coarse until CLI reports finer steps.
+	const updateTimeout = 12 * time.Minute
+	const resetTimeout = 10 * time.Minute
+
 	setPhase(state.PhaseDownloadBundle)
-	log(fmt.Sprintf("running: %s update --version %s (skip agent restart)", cli, version))
-	updateCmd := exec.Command(cli, "update", "--version", version)
+	log(fmt.Sprintf("running: %s update --version %s (skip agent restart, timeout %s)", cli, version, updateTimeout))
+	updateCtx, updateCancel := context.WithTimeout(context.Background(), updateTimeout)
+	defer updateCancel()
+	updateCmd := exec.CommandContext(updateCtx, cli, "update", "--version", version)
 	updateCmd.Env = append(os.Environ(), "DOCSOPS_SKIP_AGENT_RESTART=1")
 	updateOut, err := updateCmd.CombinedOutput()
 	if len(updateOut) > 0 {
 		log(string(updateOut))
+	}
+	if updateCtx.Err() == context.DeadlineExceeded {
+		return fail("DEMO_UPDATE_TIMEOUT", fmt.Sprintf("update exceeded %s", updateTimeout))
 	}
 	if err != nil {
 		return fail("DEMO_UPDATE_FAILED", fmt.Sprintf("%v", err))
 	}
 
 	setPhase(state.PhaseComposeUp)
-	log(fmt.Sprintf("running: %s reset", cli))
-	resetOut, err := exec.Command(cli, "reset").CombinedOutput()
+	log(fmt.Sprintf("running: %s reset (timeout %s)", cli, resetTimeout))
+	resetCtx, resetCancel := context.WithTimeout(context.Background(), resetTimeout)
+	defer resetCancel()
+	resetOut, err := exec.CommandContext(resetCtx, cli, "reset").CombinedOutput()
 	if len(resetOut) > 0 {
 		log(string(resetOut))
+	}
+	if resetCtx.Err() == context.DeadlineExceeded {
+		return fail("DEMO_RESET_TIMEOUT", fmt.Sprintf("reset exceeded %s", resetTimeout))
 	}
 	if err != nil {
 		return fail("DEMO_RESET_FAILED", fmt.Sprintf("%v", err))
