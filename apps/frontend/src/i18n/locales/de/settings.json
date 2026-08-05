@@ -44,7 +44,7 @@
   "nav": {
     "ariaLabel": "Einstellungsbereiche",
     "profile": "Profil",
-    "identity": "DocsOps Identität",
+    "identity": "DocsOps-Identität",
     "appearance": "Darstellung",
     "email": "E-Mail",
     "password": "Passwort",
@@ -83,25 +83,25 @@
     "deactivateModal": {
       "title": "Konto deaktivieren",
       "adminCannotDeactivate": "Administratoren können ihr eigenes Konto nicht deaktivieren. Bitte einen anderen Administrator bitten.",
-      "confirmMessage": "Konto deaktivieren? Sie können sich erst wieder anmelden, wenn ein Administrator Ihr Konto reaktiviert.",
+      "confirmMessage": "Konto deaktivieren? Du kannst dich erst wieder anmelden, wenn ein Administrator dein Konto reaktiviert.",
       "cancel": "Abbrechen",
       "confirm": "Deaktivieren"
     },
     "toasts": {
       "profileUpdatedTitle": "Profil aktualisiert",
-      "profileUpdatedMessage": "Ihr Profil wurde gespeichert.",
+      "profileUpdatedMessage": "Dein Profil wurde gespeichert.",
       "updateFailedTitle": "Aktualisierung fehlgeschlagen",
       "accountDeactivatedTitle": "Konto deaktiviert",
-      "accountDeactivatedMessage": "Sie wurden abgemeldet. Ein Administrator kann Ihr Konto reaktivieren.",
+      "accountDeactivatedMessage": "Du wurdest abgemeldet. Ein Administrator kann dein Konto reaktivieren.",
       "deactivationFailedTitle": "Deaktivierung fehlgeschlagen"
     }
   },
   "account": {
     "changeEmail": "E-Mail ändern",
     "changePassword": "Passwort ändern",
-    "loginEmailDescription": "Ihre Anmelde-E-Mail. Zum Ändern benötigen Sie Ihr aktuelles Passwort.",
+    "loginEmailDescription": "Deine Anmelde-E-Mail. Zum Ändern brauchst du dein aktuelles Passwort.",
     "ssoManagedEmail": "Wird über SSO verwaltet. Kann hier nicht geändert werden.",
-    "changePasswordDescription": "Passwort ändern. Sie benötigen Ihr aktuelles Passwort.",
+    "changePasswordDescription": "Passwort ändern. Du brauchst dein aktuelles Passwort.",
     "ssoManagedPassword": "Wird über SSO verwaltet. Kann hier nicht geändert werden.",
     "changeEmailModal": {
       "title": "E-Mail ändern",
@@ -121,12 +121,12 @@
     },
     "toasts": {
       "passwordUpdatedTitle": "Passwort aktualisiert",
-      "passwordUpdatedMessage": "Ihr Passwort wurde geändert.",
+      "passwordUpdatedMessage": "Dein Passwort wurde geändert.",
       "emailUpdatedTitle": "E-Mail aktualisiert",
-      "emailUpdatedMessage": "Ihre E-Mail wurde aktualisiert.",
+      "emailUpdatedMessage": "Deine E-Mail wurde aktualisiert.",
       "updateFailedTitle": "Aktualisierung fehlgeschlagen",
       "passwordMismatchTitle": "Passwörter stimmen nicht überein",
-      "passwordMismatchMessage": "Bitte bestätigen Sie Ihr neues Passwort.",
+      "passwordMismatchMessage": "Bitte bestätige dein neues Passwort.",
       "passwordTooShortTitle": "Passwort zu kurz",
       "passwordTooShortMessage": "Mindestens {{count}} Zeichen erforderlich."
     }
@@ -141,7 +141,7 @@
     "noSessions": "Keine Sitzungen.",
     "toasts": {
       "sessionEndedTitle": "Sitzung beendet",
-      "sessionEndedMessage": "Sie wurden abgemeldet.",
+      "sessionEndedMessage": "Du wurdest abgemeldet.",
       "sessionRevokedTitle": "Sitzung widerrufen",
       "sessionRevokedMessage": "Die Sitzung wurde beendet.",
       "revokeFailedTitle": "Widerruf fehlgeschlagen",
@@ -150,7 +150,7 @@
     }
   },
   "storage": {
-    "description": "Speicherplatz für Dokumentanhänge (und PDF-Exporte). Wählen Sie einen Bereich, um Ihre Nutzung oder – als Leitung – die Ihres Teams, Ihrer Abteilung oder Ihres Unternehmens zu sehen.",
+    "description": "Speicherplatz für Dokumentanhänge (und PDF-Exporte). Wähle einen Bereich, um deine Nutzung oder – als Leitung – die deines Teams, deiner Abteilung oder deines Unternehmens zu sehen.",
     "scopeLabel": "Bereich",
     "scopePersonal": "Persönlich (mein Speicher)",
     "scopeTeam": "Team: {{name}}",
@@ -162,19 +162,19 @@
     "loadFailed": "Speicherdaten konnten nicht geladen werden"
   },
   "pulse": {
-    "description": "Legen Sie fest, was auf der Startseite erscheint. Unabhängig von der Benachrichtigungszustellung.",
+    "description": "Lege fest, was auf der Startseite erscheint. Unabhängig von der Benachrichtigungszustellung.",
     "switches": {
       "showDrafts": {
         "label": "Offene Entwürfe",
-        "description": "Ihre unveröffentlichten Dokumente, an denen noch gearbeitet werden muss."
+        "description": "Deine unveröffentlichten Dokumente, an denen noch gearbeitet werden muss."
       },
       "showReviews": {
         "label": "Reviews",
-        "description": "Elemente, die auf Ihre Prüfung warten, und Entscheidungen zu Ihren Anfragen."
+        "description": "Einträge, die auf deine Prüfung warten, und Entscheidungen zu deinen Anfragen."
       },
       "showNewDocuments": {
         "label": "Neue Dokumente",
-        "description": "Neu veröffentlichte oder erstellte Dokumente, die Sie lesen können."
+        "description": "Neu veröffentlichte oder erstellte Dokumente, die du lesen kannst."
       },
       "showUpdatedDocuments": {
         "label": "Aktualisierte Dokumente",
@@ -187,7 +187,7 @@
     },
     "toasts": {
       "updatedTitle": "Pulse aktualisiert",
-      "updatedMessage": "Ihre Pulse-Einstellungen für die Startseite wurden gespeichert.",
+      "updatedMessage": "Deine Pulse-Einstellungen für die Startseite wurden gespeichert.",
       "saveFailedTitle": "Speichern fehlgeschlagen"
     }
   },
@@ -203,16 +203,16 @@
       "operations": "Betrieb"
     },
     "descriptions": {
-      "documentChanges": "umfasst Veröffentlichung, sichtbare Aktualisierungen veröffentlichter Dokumente, Archivieren/Papierkorb/Wiederherstellen sowie Änderungen an Freigaben (Berechtigungen).",
-      "comments": "umfasst Erwähnungen und Diskussionen zu Dokumenten.",
-      "draftRequests": "umfasst den Review-Workflow.",
-      "organization": "umfasst Teammitgliedschaft und Leitungsrollen.",
-      "announcements": "umfasst Admin-Rundmeldungen.",
-      "reminders": "ist für zukünftige Nutzung reserviert."
+      "documentChanges": "Umfasst Veröffentlichung, sichtbare Aktualisierungen veröffentlichter Dokumente, Archivieren/Papierkorb/Wiederherstellen sowie Änderungen an Freigaben (Berechtigungen).",
+      "comments": "Umfasst Erwähnungen und Diskussionen zu Dokumenten.",
+      "draftRequests": "Umfasst den Prüf-Workflow.",
+      "organization": "Umfasst Teammitgliedschaft und Leitungsrollen.",
+      "announcements": "Umfasst Admin-Rundmeldungen.",
+      "reminders": "Für künftige Nutzung reserviert."
     },
     "toasts": {
       "updatedTitle": "Benachrichtigungen aktualisiert",
-      "updatedMessage": "Ihre Benachrichtigungseinstellungen wurden gespeichert.",
+      "updatedMessage": "Deine Benachrichtigungseinstellungen wurden gespeichert.",
       "saveFailedTitle": "Speichern fehlgeschlagen"
     }
   }

@@ -1,9 +1,9 @@
 {
-  "breadcrumb": "Genehmigungen",
+  "breadcrumb": "Freigaben",
   "loading": "Laden…",
   "nav": {
-    "ariaLabel": "Genehmigungen-Navigation",
-    "reviews": "Reviews",
+    "ariaLabel": "Freigaben-Navigation",
+    "reviews": "Prüfungen",
     "moveRequests": "Verschiebeanfragen"
   },
   "reviews": {
@@ -15,7 +15,7 @@
       "lastSuggestion": "Letzter Vorschlag"
     },
     "empty": "Keine Dokumente mit ausstehenden Vorschlägen in deinen Bereichen.",
-    "loadFailed": "Reviews konnten nicht geladen werden.",
+    "loadFailed": "Prüfungen konnten nicht geladen werden.",
     "otherScope": "Sonstige",
     "untitledDocument": "Ohne Titel"
   },

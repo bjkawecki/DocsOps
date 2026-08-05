@@ -78,7 +78,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
         title: 'Dokumentationsrichtlinie',
         sections: storySections(
           'Verbindliche Regeln für interne Dokumentation bei Musterwerk IT: wo Inhalte leben, wer freigibt und wie Lesende Orientierung finden.',
-          'Scope-Leads veröffentlichen; Autoren arbeiten im Lead-Draft mit Vorschlägen. Persönliche Räume bleiben privat, sofern nicht freigegeben.'
+          'Bereichsleitungen veröffentlichen; Autoren arbeiten im Leitungsentwurf mit Vorschlägen. Persönliche Räume bleiben privat, sofern nicht freigegeben.'
         ),
       };
     }
@@ -96,7 +96,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
         title: 'Release-Checkliste Produktentwicklung',
         sections: storySections(
           'Schritte vor einem Release von Software X: Review, Dokumentation, Zugänglichkeit und Übergabe an Support.',
-          'Department Lead bestätigt die Checkliste; Team Barrierefreiheit liefert den A11y-Status vor dem Go-Live.'
+          'Die Abteilungsleitung bestätigt die Checkliste; das Team Barrierefreiheit liefert den Barrierefreiheits-Status vor dem Go-Live.'
         ),
       };
     }
@@ -104,7 +104,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
       title: 'Roadmap Q3 – Software X',
       sections: storySections(
         'Geplante Lieferungen und Abhängigkeiten für Software X in diesem Quartal, inkl. Barrierefreiheits-Meilensteine.',
-        'Prioritäten werden mit Company Lead abgestimmt; Änderungen erscheinen in der publizierten Version dieses Dokuments.'
+        'Prioritäten werden mit der Unternehmensleitung abgestimmt; Änderungen erscheinen in der veröffentlichten Version dieses Dokuments.'
       ),
     };
   }
@@ -113,7 +113,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
       return {
         title: 'Barrierefreiheit – Arbeitsweise',
         sections: storySections(
-          'Wie das Team Barrierefreiheit prüft, dokumentiert und Findings an Produktentwicklung übergibt.',
+          'Wie das Team Barrierefreiheit prüft, dokumentiert und Ergebnisse an Produktentwicklung übergibt.',
           'Startpunkt für neue Teammitglieder: Rollen, Tools, Review-Rhythmus und Verweis auf den aktuellen Stand Barrierefreiheit.'
         ),
       };
@@ -122,7 +122,7 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
       title: 'Stand Barrierefreiheit Software X',
       sections: storySections(
         'Aktueller Status der Zugänglichkeit von Software X: bekannte Lücken, erledigte Fixes und offene Tickets.',
-        'Team Lead hält dieses Dokument aktuell; Member ergänzen Prüfnotizen. Company- und Department-Leads lesen den Status hier.'
+        'Die Teamleitung hält dieses Dokument aktuell; Mitglieder ergänzen Prüfnotizen. Unternehmens- und Abteilungsleitung lesen den Status hier.'
       ),
     };
   }
@@ -131,8 +131,8 @@ function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec
       ? {
           title: 'Meine Notizen',
           sections: storySections(
-            'Persönlicher Arbeitsbereich des Company Leads für Entwürfe und Notizen.',
-            'Nicht für die Organisation sichtbar, außer nach expliziter Freigabe oder Verschiebung in einen Scope-Kontext.'
+            'Persönlicher Arbeitsbereich der Unternehmensleitung für Entwürfe und Notizen.',
+            'Nicht für die Organisation sichtbar, außer nach expliziter Freigabe oder Verschiebung in einen Bereichskontext.'
           ),
         }
       : {

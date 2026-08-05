@@ -50,23 +50,23 @@
     "greeting": "{{greeting}}, {{name}}",
     "greetingFallback": "{{greeting}}",
     "goodMorning": "Guten Morgen",
-    "goodAfternoon": "Hallo",
+    "goodAfternoon": "Guten Tag",
     "goodEvening": "Guten Abend",
-    "pulseEmpty": "Gerade keine Pulse-Einträge.",
+    "pulseEmpty": "Gerade nichts Neues.",
     "categoryEmpty": "Keine Einträge in dieser Kategorie.",
-    "loadError": "Pulse konnte nicht geladen werden",
-    "caughtUp": "Du bist auf dem Laufenden.",
-    "catchUpOne": "Hol nach, wenn du soweit bist · 1 Eintrag",
-    "catchUpMany": "Hol nach, wenn du soweit bist · {{count}} Einträge",
+    "loadError": "Die Startseite konnte nicht geladen werden",
+    "caughtUp": "Alles erledigt.",
+    "catchUpOne": "1 Eintrag zum Nachlesen",
+    "catchUpMany": "{{count}} Einträge zum Nachlesen",
     "pulseMarkAsReadAria": "Als gelesen markieren",
     "startHere": {
-      "title": "Hier starten",
-      "loadError": "Startdokumente konnten nicht geladen werden."
+      "title": "Einstieg",
+      "loadError": "Einstiegsdokumente konnten nicht geladen werden."
     },
     "explore": {
-      "title": "Dokumente aus deinen Bereichen entdecken",
+      "title": "Dokumente aus deinen Bereichen",
       "loadError": "Vorschläge konnten nicht geladen werden.",
-      "empty": "Noch keine Dokumente zum Entdecken."
+      "empty": "Noch keine Dokumente in deinen Bereichen."
     },
     "filters": {
       "aria": "Pulse-Filter",
@@ -86,25 +86,25 @@
       "hoursAgo": "vor {{count}}h"
     },
     "pulseKeyword": {
-      "draftOpen": "Entwurf unfertig",
-      "reviewAwaiting": "Review",
+      "draftOpen": "Entwurf unvollständig",
+      "reviewAwaiting": "Prüfung",
       "reviewDecided": "Vorschlag übernommen",
       "reviewRejected": "Vorschlag abgelehnt",
       "documentNew": "Neues Dokument",
       "documentUpdated": "Dokument aktualisiert",
       "documentComments": "Kommentare",
-      "fallback": "Update"
+      "fallback": "Aktualisierung"
     },
     "pulseKindLabel": {
       "draftOpen": "Offener Entwurf",
-      "reviewAwaiting": "Review ausstehend",
-      "reviewDecided": "Review entschieden",
+      "reviewAwaiting": "Offene Prüfung",
+      "reviewDecided": "Prüfung abgeschlossen",
       "documentNew": "Neues Dokument",
       "documentUpdated": "Aktualisiertes Dokument",
       "documentComments": "Kommentare"
     },
     "pulseSubject": {
-      "scope": "Scope: {{scope}}",
+      "scope": "Bereich: {{scope}}",
       "context": "Kontext: {{context}}"
     }
   },
@@ -135,8 +135,8 @@
       "acceptMoveRequest": "Verschiebeanfrage annehmen",
       "rejectMoveRequest": "Verschiebeanfrage ablehnen",
       "openInApprovals": "In Freigaben öffnen",
-      "removeStartHere": "„Hier starten“ für {{scope}} entfernen",
-      "setStartHere": "Als „Hier starten“ für {{scope}} festlegen",
+      "removeStartHere": "Einstieg für {{scope}} entfernen",
+      "setStartHere": "Als Einstieg für {{scope}} festlegen",
       "archive": "Archivieren",
       "unarchive": "Aus Archiv holen",
       "moveToTrash": "In den Papierkorb verschieben"
@@ -146,8 +146,8 @@
       "metadata": "Metadaten",
       "access": "Zugriff"
     },
-    "emptyDraftAlertTitle": "Entwurfsinhalt ist leer",
-    "emptyDraftAlertBody": "Für dieses Dokument sind aktuell keine Blockinhalte verfügbar. Den Entwurf einmal speichern, um ihn zu initialisieren.",
+    "emptyDraftAlertTitle": "Entwurf ist leer",
+    "emptyDraftAlertBody": "Für dieses Dokument gibt es noch keinen Inhalt. Speichere den Entwurf einmal, um ihn anzulegen.",
     "noExtractableText": "Die veröffentlichten Blöcke enthalten keinen extrahierbaren Text für diese Vorschau.",
     "noPublishedContent": "Für diese Ansicht ist kein veröffentlichter Blockinhalt verfügbar. Im Bearbeitungsmodus am Entwurf arbeiten oder veröffentlichen, sobald das Dokument Blöcke hat.",
     "metadataFields": {
@@ -167,7 +167,7 @@
       "archivedTitle": "Archiviert",
       "archivedMessage": "Das Dokument wurde archiviert.",
       "unarchivedTitle": "Aus Archiv geholt",
-      "unarchivedMessage": "Das Dokument wurde wieder aktiv gesetzt.",
+      "unarchivedMessage": "Das Dokument wurde wiederhergestellt.",
       "savedMessage": "Dokumentmetadaten wurden aktualisiert.",
       "publishedTitle": "Veröffentlicht",
       "publishedChangesTitle": "Änderungen veröffentlicht",
@@ -189,7 +189,7 @@
       "tagExistsTitle": "Tag existiert bereits",
       "tagExistsMessage": "Ein Tag mit diesem Namen existiert bereits.",
       "tagDeletedTitle": "Tag gelöscht",
-      "tagDeletedMessage": "Das Tag wurde entfernt.",
+      "tagDeletedMessage": "Der Tag wurde entfernt.",
       "pdfExportDelayedTitle": "PDF-Export derzeit verzögert",
       "pdfExportDelayedMessage": "Queue/Worker ist derzeit nicht verfügbar. Bitte in Kürze erneut versuchen.",
       "pdfExportFailedTitle": "PDF-Export konnte nicht gestartet werden"
@@ -205,7 +205,7 @@
     "contextPlaceholder": "Prozess oder Projekt auswählen",
     "assign": "Zuweisen",
     "moveContextTitle": "Dokument verschieben",
-    "moveContextBody": "Innerhalb desselben Owner-Scopes wird sofort verschoben. Bei anderen Scopes wird eine Verschiebeanfrage für die Zielleitung erstellt. Bei Annahme werden Tags entfernt; Zugriffsrechte bleiben am Dokument erhalten.",
+    "moveContextBody": "Innerhalb desselben Bereichs wird sofort verschoben. Bei anderen Bereichen entsteht eine Verschiebeanfrage an die Zielleitung. Bei Annahme werden Tags entfernt; Zugriffsrechte bleiben am Dokument erhalten.",
     "targetContextLabel": "Zielkontext",
     "targetContextPlaceholder": "Prozess, Projekt oder Unterkontext auswählen",
     "noOtherContexts": "Keine weiteren lesbaren Kontexte",
@@ -243,14 +243,14 @@
     "readOnlyTitle": "Nur Lesezugriff",
     "readOnlyBody": "Du kannst die Zugriffseinstellungen einsehen, aber nicht ändern.",
     "authorsTitle": "Autoren",
-    "authorsBody": "Dokumentautoren werden auf Scope-Ebene (Team oder Abteilung) verwaltet, nicht pro Dokument.",
-    "openScopePage": "Scope-Seite öffnen",
+    "authorsBody": "Dokumentautoren werden auf Bereichsebene (Team oder Abteilung) verwaltet, nicht pro Dokument.",
+    "openScopePage": "Bereichsseite öffnen",
     "candidatesUnavailableTitle": "Kandidatenliste nicht verfügbar",
-    "candidatesUnavailableBody": "Scope-übergreifende Lesekandidaten konnten nicht geladen werden.",
+    "candidatesUnavailableBody": "Bereichsübergreifende Lesekandidaten konnten nicht geladen werden.",
     "teamReadLabel": "Lesezugriff für Teams",
-    "teamReadDescription": "Lesezugriff für externe Teams außerhalb des Owner-Scopes dieses Dokuments gewähren.",
+    "teamReadDescription": "Lesezugriff für externe Teams außerhalb des Eigentümerbereichs dieses Dokuments gewähren.",
     "departmentReadLabel": "Lesezugriff für Abteilungen",
-    "departmentReadDescription": "Lesezugriff für externe Abteilungen außerhalb des Owner-Scopes dieses Dokuments gewähren.",
+    "departmentReadDescription": "Lesezugriff für externe Abteilungen außerhalb des Eigentümerbereichs dieses Dokuments gewähren.",
     "selectTeams": "Teams auswählen",
     "selectDepartments": "Abteilungen auswählen",
     "readOnlyPlaceholder": "Lesezugriff ist schreibgeschützt",
@@ -292,16 +292,16 @@
     "publishedHint": "v{{current}} veröffentlicht (angezeigt wird v{{acknowledged}}).",
     "reload": "Neu laden",
     "remoteUpdateTitle": "Neue Version verfügbar",
-    "remotePendingMessage": "Eine neuere Entwurfsrevision ({{revision}}) ist auf dem Server verfügbar. Deine lokalen, ungespeicherten Änderungen bleiben erhalten, bis du dich entscheidest.",
-    "revisionAvailableMessage": "Entwurfsrevision {{revision}} ist auf dem Server verfügbar (du hast {{applied}}). Neu laden, um den aktuellen Inhalt zu sehen.",
+    "remotePendingMessage": "Auf dem Server gibt es eine neuere Entwurfsrevision ({{revision}}). Deine lokalen, ungespeicherten Änderungen bleiben erhalten, bis du dich entscheidest.",
+    "revisionAvailableMessage": "Auf dem Server liegt Entwurfsrevision {{revision}} (du hast {{applied}}). Lade neu, um den aktuellen Inhalt zu sehen.",
     "loadLatest": "Aktuellste laden",
     "keepMine": "Meine behalten",
     "helpAria": "Wie die Entwurfsbearbeitung funktioniert",
     "revisionHelpTitle": "Entwurfsrevision",
     "revisionHelpBody": "Interne Revisionsnummer des geteilten Entwurfs. Sie erhöht sich bei jeder Entwurfsänderung und verhindert versehentliches Überschreiben bei gleichzeitiger Bearbeitung durch mehrere Nutzer.",
     "readOnlyHelpBody": "Du hast nur Lesezugriff auf diesen geteilten Entwurf. Du kannst Inhalte nicht bearbeiten oder Vorschläge einreichen.",
-    "authorHelpBody": "Dies ist der geteilte Leitungsentwurf für deinen Team-Scope. Deine Änderungen werden als Inline-Vorschläge (Einfügen/Löschen-Markierungen) gespeichert. Beim Tippen werden Vorschläge hinzugefügt; die Formatierungsleiste ist im Autorenmodus nicht verfügbar. Entwurf speichern, um Vorschläge zu sichern. Die Scope-Leitung kann sie annehmen oder ablehnen. Nur die Scope-Leitung kann das Dokument veröffentlichen.",
-    "leadHelpBody": "Du bearbeitest den geteilten Leitungsentwurf direkt. Änderungen wirken sich auf den Entwurf für alle mit Zugriff aus. Scope-Autoren können Änderungen als Inline-Vorschläge zur Prüfung vorschlagen. Veröffentlichen nutzen, wenn der Entwurf live gehen soll.",
+    "authorHelpBody": "Das ist der gemeinsame Leitungsentwurf für dein Team. Deine Änderungen werden als Inline-Vorschläge (Einfügen/Löschen) gespeichert. Beim Tippen entstehen Vorschläge; die Formatierungsleiste ist im Autorenmodus nicht verfügbar. Speichere den Entwurf, um Vorschläge zu sichern. Die Bereichsleitung kann sie annehmen oder ablehnen und allein veröffentlichen.",
+    "leadHelpBody": "Du bearbeitest den gemeinsamen Leitungsentwurf direkt. Änderungen gelten für alle mit Zugriff. Autoren im Bereich können Inline-Vorschläge zur Prüfung einreichen. Veröffentliche den Entwurf, wenn er fertig ist.",
     "authorSuggestionsTitle": "Autorenvorschläge",
     "leadEditingTitle": "Leitungsbearbeitung",
     "readOnlyTitle": "Nur-Lese-Entwurf",
@@ -417,7 +417,7 @@
       "restoredTitle": "Wiederhergestellt",
       "restoredMessage": "Der Eintrag wurde wiederhergestellt.",
       "unarchivedTitle": "Aus Archiv geholt",
-      "unarchivedMessage": "Der Eintrag wurde wieder aktiv gesetzt.",
+      "unarchivedMessage": "Der Eintrag wurde wiederhergestellt.",
       "errorTitle": "Fehler"
     },
     "draftsCard": {
@@ -430,7 +430,7 @@
       "pageSizeLabel": "Seitengröße",
       "table": {
         "title": "Titel",
-        "scope": "Scope",
+        "scope": "Bereich",
         "updated": "Aktualisiert"
       }
     }
