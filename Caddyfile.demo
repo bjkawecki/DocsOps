@@ -5,9 +5,10 @@
 
 docsops.de {
 	# CI deploy hook only (Bearer DOCSOPS_DEMO_HOOK_TOKEN). Do not expose the full agent.
+	# Agent runs on the host; from the Caddy container reach it via host-gateway.
 	handle /hooks/demo-deploy {
 		rewrite * /v1/demo-deploy
-		reverse_proxy 127.0.0.1:8091
+		reverse_proxy host.docker.internal:8091
 	}
 
 	handle {

@@ -12,6 +12,8 @@ services:
   caddy:
     ports:
       - '443:443'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ./Caddyfile.demo:/etc/caddy/Caddyfile:ro
       - ${LANDING_DIST_DIR:-./landing}:/srv/landing:ro
