@@ -1060,8 +1060,119 @@ a.landing-nav-link:hover {
   text-align: left;
 }
 
+.landing-subpage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.75rem;
+  padding-block: 1.75rem 3rem;
+}
+
+.landing-subpage-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 34rem;
+  text-align: center;
+}
+
+.landing-subpage-intro {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--mantine-color-gray-3);
+}
+
+.landing-subpage-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.landing-subpage-section-title {
+  margin: 0;
+  font-size: clamp(1.125rem, 2.4vw, 1.3125rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--mantine-color-gray-0);
+}
+
+.landing-subpage-body {
+  margin: 0;
+  font-size: 0.9875rem;
+  line-height: 1.55;
+  color: var(--mantine-color-gray-2);
+  text-align: center;
+  max-width: 32rem;
+}
+
+.landing-subpage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-subpage-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.landing-subpage-list-icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--mantine-color-blue-4);
+}
+
+.landing-subpage-list-item .landing-subpage-body {
+  text-align: left;
+  max-width: none;
+}
+
+.landing-subpage-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 28rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--mantine-color-dark-4);
+  text-align: center;
+}
+
+.landing-subpage-cta--wide {
+  max-width: 36rem;
+}
+
+.landing-subpage-cta-body {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--mantine-color-gray-2);
+}
+
+.landing-subpage-cta-actions {
+  width: 100%;
+}
+
 .landing-install-code {
-  border-color: var(--mantine-color-dark-5);
+  width: 100%;
+  border-color: var(--mantine-color-dark-4) !important;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-dark-8);
 }
 
 .landing-philosophy-page {
@@ -1223,100 +1334,4 @@ a.landing-nav-link:hover {
   opacity: 1;
   width: 1.125rem;
   margin-left: 0.25rem;
-}
-
-.landing-sponsor-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2.75rem;
-  padding-block: 1.75rem 3rem;
-}
-
-.landing-sponsor-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: 34rem;
-  text-align: center;
-}
-
-.landing-sponsor-intro {
-  margin: 0;
-  font-size: 1.0625rem;
-  line-height: 1.6;
-  color: var(--mantine-color-gray-3);
-}
-
-.landing-sponsor-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.landing-sponsor-section-title {
-  margin: 0;
-  font-size: clamp(1.125rem, 2.4vw, 1.3125rem);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  text-align: center;
-  color: var(--mantine-color-gray-0);
-}
-
-.landing-sponsor-body {
-  font-size: 0.9875rem;
-  line-height: 1.5;
-  color: var(--mantine-color-gray-2);
-}
-
-.landing-sponsor-why-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  width: max-content;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.landing-sponsor-why-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
-  margin: 0;
-}
-
-.landing-sponsor-why-icon {
-  flex-shrink: 0;
-  margin-top: 0.15rem;
-  color: var(--mantine-color-blue-4);
-}
-
-.landing-sponsor-cta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  width: 100%;
-  max-width: 28rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--mantine-color-dark-4);
-  text-align: center;
-}
-
-.landing-sponsor-cta-body {
-  margin: 0;
-  font-size: 1.0625rem;
-  line-height: 1.6;
-  color: var(--mantine-color-gray-2);
-}
-
-.landing-sponsor-cta-actions {
-  width: 100%;
 }

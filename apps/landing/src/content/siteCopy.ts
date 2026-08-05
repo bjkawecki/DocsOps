@@ -259,22 +259,17 @@ export const finalCtaCopy = {
 export const installCopy = {
   title: 'Installation',
   metaDescription:
-    'DocsOps self-hosted im Intranet installieren: Voraussetzungen, Standard-Install per curl und Link zur vollständigen Doku.',
+    'DocsOps self-hosted im Intranet: Host-Voraussetzungen, curl-Install und Link zur Installationsdoku.',
   intro:
-    'DocsOps läuft self-hosted in Ihrer Infrastruktur – typisch als Intranet-Installation auf einem Linux-Server mit Docker.',
-  audienceTitle: 'Für wen?',
-  audience:
-    'IT-Teams, die interne Dokumentation on-prem betreiben wollen – ohne SaaS-Abhängigkeit. Standard: HTTP auf Port 80 im Intranet.',
+    'Self-hosted auf einem Linux-Host per Docker Compose. Standard: HTTP hinter Caddy auf Port 80 im Intranet.',
   requirementsTitle: 'Voraussetzungen',
   requirements: [
-    'Linux-Server mit sudo',
-    'Docker (wird bei Bedarf vom Install-Skript eingerichtet)',
-    'Port 80 frei',
-    'Minimum: 4 GB RAM, 20 GB freier Speicherplatz',
+    'Linux-Host mit root-Zugriff',
+    'Docker Engine und Compose-Plugin (Install-Skript installiert sie bei Bedarf)',
+    'Mindestens 4 GB RAM und 20 GB freier Speicher',
   ],
   installTitle: 'Standard-Installation',
-  installHint:
-    'Lädt das neueste Release-Bundle nach /opt/docsops und startet DocsOps auf Port 80. Nur Release-Tags (vX.Y.Z), kein Branch main.',
+  installHint: 'Lädt das aktuelle Release-Bundle nach /opt/docsops, startet den Stack auf Port 80.',
   fullDocsLabel: 'Vollständige Installationsdoku',
 } as const;
 

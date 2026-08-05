@@ -1,7 +1,7 @@
-import { Code, List, Paper, Stack, Text } from '@mantine/core';
-import { LandingExternalLink } from '../components/LandingExternalLink';
+import { Box, Code, Paper, Text, Title } from '@mantine/core';
+import { IconCircleCheck } from '@tabler/icons-react';
+import { LandingExternalButton } from '../components/LandingExternalLink';
 import { LandingHead } from '../components/LandingHead';
-import { LandingPageLayout, LandingPageSection } from '../components/LandingPageLayout';
 import { getInstallDocsUrl, getInstallScriptUrl } from '../config/env';
 import { installCopy } from '../content/siteCopy';
 
@@ -15,54 +15,64 @@ export function InstallPage() {
   return (
     <>
       <LandingHead
-        title={`${installCopy.title} – DocsOps`}
+        title={`${installCopy.title} · DocsOps`}
         description={installCopy.metaDescription}
       />
-      <LandingPageLayout title={installCopy.title} intro={installCopy.intro}>
-        <Stack gap="xl">
-          <LandingPageSection title={installCopy.audienceTitle}>
-            <Text ta="center" c="gray.2" lh={1.65}>
-              {installCopy.audience}
-            </Text>
-          </LandingPageSection>
+      <Box className="landing-page landing-page--narrow landing-subpage">
+        <header className="landing-subpage-hero">
+          <Title order={1} className="landing-page-title">
+            {installCopy.title}
+          </Title>
+          <Text className="landing-subpage-intro">{installCopy.intro}</Text>
+        </header>
 
-          <LandingPageSection title={installCopy.requirementsTitle}>
-            <List spacing="xs" maw={480} mx="auto">
-              {installCopy.requirements.map((item) => (
-                <List.Item key={item}>
-                  <Text c="gray.2">{item}</Text>
-                </List.Item>
-              ))}
-            </List>
-          </LandingPageSection>
+        <section className="landing-subpage-section" aria-labelledby="install-requirements-heading">
+          <Title
+            order={2}
+            id="install-requirements-heading"
+            className="landing-subpage-section-title"
+          >
+            {installCopy.requirementsTitle}
+          </Title>
+          <ul className="landing-subpage-list">
+            {installCopy.requirements.map((item) => (
+              <li key={item} className="landing-subpage-list-item">
+                <IconCircleCheck
+                  size={18}
+                  stroke={1.75}
+                  className="landing-subpage-list-icon"
+                  aria-hidden
+                />
+                <Text component="span" className="landing-subpage-body">
+                  {item}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-          <LandingPageSection title={installCopy.installTitle}>
-            <Stack gap="md" align="center">
-              <Text ta="center" c="gray.3" maw={560} lh={1.65}>
-                {installCopy.installHint}
-              </Text>
-              <Paper
-                p="md"
-                withBorder
-                bg="dark.8"
-                w="100%"
-                maw={640}
-                className="landing-install-code"
-              >
-                <Code block className="landing-install-code-inner">
-                  {command}
-                </Code>
-              </Paper>
-            </Stack>
-          </LandingPageSection>
-
-          <Stack align="center" mt="md">
-            <LandingExternalLink href={installDocsUrl} className="landing-footer-link">
-              {installCopy.fullDocsLabel}
-            </LandingExternalLink>
-          </Stack>
-        </Stack>
-      </LandingPageLayout>
+        <section
+          className="landing-subpage-cta landing-subpage-cta--wide"
+          aria-labelledby="install-command-heading"
+        >
+          <Title order={2} id="install-command-heading" className="landing-subpage-section-title">
+            {installCopy.installTitle}
+          </Title>
+          <Text className="landing-subpage-cta-body">{installCopy.installHint}</Text>
+          <Paper p="md" withBorder className="landing-install-code">
+            <Code block className="landing-install-code-inner">
+              {command}
+            </Code>
+          </Paper>
+          <LandingExternalButton
+            href={installDocsUrl}
+            variant="default"
+            className="landing-hero-cta-button"
+          >
+            {installCopy.fullDocsLabel}
+          </LandingExternalButton>
+        </section>
+      </Box>
     </>
   );
 }

@@ -376,6 +376,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Landing-App:** Vite + React + Mantine; DE-Copy; Routen `/`, `/philosophie`, `/install`, `/changelog`, `/sponsor`, `/impressum`, `/datenschutz`; Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
 [x] **Modell-Sections:** Scope · Kontext · Rollen · Beispiel (IT / Software X / A11y) laut [Landing-Sections-Plan](../marketing/Landing-Sections-Plan.md) / Positionierung Phasen B–E.
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
+[ ] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). Siehe auch §20.
 [ ] **Landing Go-live:** Deploy auf `docsops.de`; Impressum/Datenschutz-Platzhalter ersetzen; DNS/Caddy; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
@@ -417,6 +418,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Notifications (Inbox & Navigation):** Erledigt in **§23** (Route `/notifications`, Sidebar, Unread-Zähler). Dieser §20-Punkt diente als Sammelwunsch; Details und weitere Ausbauten nur noch in **§23** pflegen.
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
+[ ] **Mobile-Review (Landing + App):** Schmale Viewports systematisch prüfen und verbessern – Landing (`apps/landing`, alle Seiten/Sections) und App (`apps/frontend`: Shell, Login/Demo-Login, Home/Catalog/Search, Dokumente, Workspaces, Admin, Settings, Reviews/Notifications). Fokus: Overflow, Touch-Targets, Tabellen/Listen, Diagramme, Modals/Drawers, Abstände. Landing-Detail auch unter §19.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
 [x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.
 

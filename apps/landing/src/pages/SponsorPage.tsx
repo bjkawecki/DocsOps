@@ -15,28 +15,28 @@ export function SponsorPage() {
         title={`${sponsorCopy.title} · DocsOps`}
         description={sponsorCopy.metaDescription}
       />
-      <Box className="landing-page landing-page--narrow landing-sponsor-page">
-        <header className="landing-sponsor-hero">
+      <Box className="landing-page landing-page--narrow landing-subpage">
+        <header className="landing-subpage-hero">
           <Title order={1} className="landing-page-title">
             {sponsorCopy.title}
           </Title>
-          <Text className="landing-sponsor-intro">{sponsorCopy.intro}</Text>
+          <Text className="landing-subpage-intro">{sponsorCopy.intro}</Text>
         </header>
 
-        <section className="landing-sponsor-section" aria-labelledby="sponsor-why-heading">
-          <Title order={2} id="sponsor-why-heading" className="landing-sponsor-section-title">
+        <section className="landing-subpage-section" aria-labelledby="sponsor-why-heading">
+          <Title order={2} id="sponsor-why-heading" className="landing-subpage-section-title">
             {sponsorCopy.whyTitle}
           </Title>
-          <ul className="landing-sponsor-why-list">
+          <ul className="landing-subpage-list">
             {sponsorCopy.whyItems.map((item) => (
-              <li key={item} className="landing-sponsor-why-item">
+              <li key={item} className="landing-subpage-list-item">
                 <IconCircleCheck
                   size={18}
                   stroke={1.75}
-                  className="landing-sponsor-why-icon"
+                  className="landing-subpage-list-icon"
                   aria-hidden
                 />
-                <Text component="span" className="landing-sponsor-body">
+                <Text component="span" className="landing-subpage-body">
                   {item}
                 </Text>
               </li>
@@ -44,9 +44,9 @@ export function SponsorPage() {
           </ul>
         </section>
 
-        <section className="landing-sponsor-cta" aria-label={sponsorCopy.ctaStar}>
-          <Text className="landing-sponsor-cta-body">{sponsorCopy.ctaBody}</Text>
-          <Group justify="center" gap="sm" className="landing-sponsor-cta-actions">
+        <section className="landing-subpage-cta" aria-label={sponsorCopy.ctaStar}>
+          <Text className="landing-subpage-cta-body">{sponsorCopy.ctaBody}</Text>
+          <Group justify="center" gap="sm" className="landing-subpage-cta-actions">
             <LandingExternalButton
               href={githubUrl}
               className="landing-hero-cta-button"
