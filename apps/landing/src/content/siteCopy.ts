@@ -1,7 +1,7 @@
 export const heroCopy = {
-  pageTitle: 'DocsOps – Interne Dokumentation mit Struktur',
+  pageTitle: 'DocsOps – Betriebswissen verbindlich dokumentieren',
   metaDescription:
-    'DocsOps – Interne Dokumentationsplattform mit Firmenstruktur, Rechten pro Dokument und kontrollierter Zusammenarbeit. Self-hosted, Open Source (MIT).',
+    'Internes Wissen übersichtlich pflegen. Feste Org-Struktur statt beliebiger Wiki-Ablage. Rollenbasierte Freigaben. Open Source und zum Selbst-Hosten. Live-Demo ansehen ➔',
   headlineLead: 'Ihr Betriebswissen.',
   headlineQualities: ['Strukturiert', 'Transparent', 'Verbindlich'] as const,
   headlineTail: 'dokumentiert',
