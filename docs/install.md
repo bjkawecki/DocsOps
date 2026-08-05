@@ -89,6 +89,8 @@ Das Skript richtet ein:
 - täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset`
 - CLI unter `/usr/local/bin/docsops-demo`
 
+**CI nach Release:** Der Release-Workflow (`update-demo-server`) führt nach dem GitHub Release per SSH `docsops-demo update --version vX.Y.Z` aus. Dafür Repository-Secrets: `DEMO_SERVER_HOST`, `DEMO_SERVER_USER`, `DEMO_SERVER_SSH_KEY` (Deploy-User mit `NOPASSWD` nur für `/usr/local/bin/docsops-demo`). Manuell weiterhin: `sudo docsops-demo update --version v0.1.0`.
+
 **Vor DNS-Propagierung** (kurz Client-Hosts auf dem Laptop):
 
 ```text

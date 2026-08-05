@@ -240,3 +240,36 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, SSH and run docsops-demo update.
+  # Secrets (repository): DEMO_SERVER_HOST, DEMO_SERVER_USER, DEMO_SERVER_SSH_KEY
+  update-demo-server:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.DEMO_SERVER_SSH_KEY }}
+
+      - name: Update public demo via docsops-demo
+        env:
+          DEMO_HOST: ${{ secrets.DEMO_SERVER_HOST }}
+          DEMO_USER: ${{ secrets.DEMO_SERVER_USER }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eux
+          : "${DEMO_HOST:?DEMO_SERVER_HOST secret missing}"
+          : "${DEMO_USER:?DEMO_SERVER_USER secret missing}"
+          # Assets can lag a few seconds after softprops creates the Release.
+          for i in 1 2 3 4 5; do
+            if ssh -o StrictHostKeyChecking=accept-new \
+              "${DEMO_USER}@${DEMO_HOST}" \
+              "sudo docsops-demo update --version ${TAG}"; then
+              exit 0
+            fi
+            echo "docsops-demo update failed (attempt ${i}/5); retrying in 20s…"
+            sleep 20
+          done
+          echo "docsops-demo update failed after retries" >&2
+          exit 1
