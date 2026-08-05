@@ -1,4 +1,5 @@
 import { buildApp } from '../app.js';
+import { isDemoMode } from '../config/runtimeMode.js';
 import { prisma } from '../infrastructure/db/prisma.js';
 import { runSeedIfNeeded } from '../seed.js';
 import { ensureDefaultBackupDestinationFromEnv } from '../domains/admin/services/adminBackupDestinationBootstrap.js';
@@ -16,6 +17,10 @@ try {
     { err },
     'runSeedIfNeeded fehlgeschlagen – Server startet trotzdem (Migration/DB prüfen)'
   );
+  // Demo depends on CSV seed; fail loud instead of an empty / half-seeded instance.
+  if (isDemoMode()) {
+    throw err;
+  }
 }
 
 try {

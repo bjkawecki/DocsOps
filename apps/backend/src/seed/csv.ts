@@ -4,12 +4,30 @@ import { fileURLToPath } from 'node:url';
 import type { SeedCsvData, SeedRow } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const fromSrc = resolve(__dirname, '../../prisma/seed-data');
-const fromCwd = resolve(process.cwd(), 'prisma/seed-data');
-const SEED_DATA_DIR = existsSync(fromSrc) ? fromSrc : fromCwd;
 
-function parseCsv(path: string): string[][] {
-  const fullPath = resolve(SEED_DATA_DIR, path);
+/**
+ * Resolve seed CSV directory for both tsx (`src/seed`) and compiled (`dist/src/seed`) layouts.
+ */
+function resolveSeedDataDir(): string {
+  const candidates = [
+    resolve(__dirname, '../../../prisma/seed-data'), // dist/src/seed → package root
+    resolve(__dirname, '../../prisma/seed-data'), // src/seed → package root
+    resolve(process.cwd(), 'prisma/seed-data'),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(resolve(dir, 'companies.csv'))) {
+      return dir;
+    }
+  }
+  throw new Error(
+    `Seed CSV directory not found (companies.csv missing). Tried:\n${candidates
+      .map((c) => `  - ${c}`)
+      .join('\n')}`
+  );
+}
+
+function parseCsv(seedDataDir: string, path: string): string[][] {
+  const fullPath = resolve(seedDataDir, path);
   if (!existsSync(fullPath)) return [];
   const content = readFileSync(fullPath, 'utf-8');
   const lines = content
@@ -20,8 +38,8 @@ function parseCsv(path: string): string[][] {
   return lines.map((line) => line.split(',').map((cell) => cell.trim()));
 }
 
-function csvRows(path: string): SeedRow[] {
-  const rows = parseCsv(path);
+function csvRows(seedDataDir: string, path: string): SeedRow[] {
+  const rows = parseCsv(seedDataDir, path);
   if (rows.length < 2) return [];
   const headers = rows[0];
   return rows.slice(1).map((row) => {
@@ -34,17 +52,18 @@ function csvRows(path: string): SeedRow[] {
 }
 
 function loadSeedCsvData(): SeedCsvData {
+  const seedDataDir = resolveSeedDataDir();
   return {
-    companies: csvRows('companies.csv'),
-    departments: csvRows('departments.csv'),
-    teams: csvRows('teams.csv'),
-    users: csvRows('users.csv'),
-    teamMembers: csvRows('team_members.csv'),
-    teamLeaders: csvRows('team_leaders.csv'),
-    teamAuthors: csvRows('team_authors.csv'),
-    departmentLeads: csvRows('department_leads.csv'),
-    companyLeads: csvRows('company_leads.csv'),
+    companies: csvRows(seedDataDir, 'companies.csv'),
+    departments: csvRows(seedDataDir, 'departments.csv'),
+    teams: csvRows(seedDataDir, 'teams.csv'),
+    users: csvRows(seedDataDir, 'users.csv'),
+    teamMembers: csvRows(seedDataDir, 'team_members.csv'),
+    teamLeaders: csvRows(seedDataDir, 'team_leaders.csv'),
+    teamAuthors: csvRows(seedDataDir, 'team_authors.csv'),
+    departmentLeads: csvRows(seedDataDir, 'department_leads.csv'),
+    companyLeads: csvRows(seedDataDir, 'company_leads.csv'),
   };
 }
 
-export { loadSeedCsvData };
+export { loadSeedCsvData, resolveSeedDataDir };

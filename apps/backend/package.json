@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "prisma/seed-data"
   ],
   "exports": {
     "./api-types": "./src/api-types.ts"

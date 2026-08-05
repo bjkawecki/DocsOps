@@ -20,6 +20,9 @@ jobs:
   build-and-push:
     needs: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v6
 
@@ -30,7 +33,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push app image (fills backend GHA cache)
@@ -241,7 +244,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, SSH and run docsops-demo update.
+  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, SSH update then reset+seed.
   # Secrets (repository): DEMO_SERVER_HOST, DEMO_SERVER_USER, DEMO_SERVER_SSH_KEY
   update-demo-server:
     needs: [release]
@@ -252,7 +255,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEMO_SERVER_SSH_KEY }}
 
-      - name: Update public demo via docsops-demo
+      - name: Update and reset public demo
         env:
           DEMO_HOST: ${{ secrets.DEMO_SERVER_HOST }}
           DEMO_USER: ${{ secrets.DEMO_SERVER_USER }}
@@ -265,11 +268,11 @@ jobs:
           for i in 1 2 3 4 5; do
             if ssh -o StrictHostKeyChecking=accept-new \
               "${DEMO_USER}@${DEMO_HOST}" \
-              "sudo docsops-demo update --version ${TAG}"; then
+              "sudo docsops-demo update --version ${TAG} && sudo docsops-demo reset"; then
               exit 0
             fi
-            echo "docsops-demo update failed (attempt ${i}/5); retrying in 20s…"
+            echo "docsops-demo update/reset failed (attempt ${i}/5); retrying in 20s…"
             sleep 20
           done
-          echo "docsops-demo update failed after retries" >&2
+          echo "docsops-demo update/reset failed after retries" >&2
           exit 1
