@@ -179,6 +179,7 @@ export function AppShellTopBar({
         to={to}
         variant={active ? 'light' : 'subtle'}
         size={32}
+        className="app-shell-top-bar-action"
         aria-label={
           badge && hasNotifBadge
             ? t('account.notificationsUnread', { count: unreadNotificationsCount })
@@ -206,13 +207,20 @@ export function AppShellTopBar({
             hiddenFrom="sm"
             opened={mobileOpened}
             onClick={onToggleMobile}
-            size="sm"
+            size="md"
+            className="app-shell-top-bar-burger"
             aria-label={mobileOpened ? t('nav.closeMenu') : t('nav.openMenu')}
             aria-expanded={mobileOpened}
             aria-controls={MAIN_NAV_ID}
           />
         </Group>
-        <Group gap={4} wrap="nowrap" justify="flex-end" style={{ marginLeft: 'auto' }}>
+        <Group
+          gap={8}
+          wrap="nowrap"
+          justify="flex-end"
+          className="app-shell-top-bar-actions"
+          style={{ marginLeft: 'auto' }}
+        >
           {peopleControl != null && (
             <>
               <Box className="app-shell-top-bar-people">{peopleControl}</Box>
@@ -240,6 +248,7 @@ export function AppShellTopBar({
             <ActionIcon
               variant={settingsActive ? 'light' : 'subtle'}
               size={32}
+              className="app-shell-top-bar-action"
               aria-label={t('account.settings')}
               aria-pressed={settingsActive}
               onClick={toggleSettings}

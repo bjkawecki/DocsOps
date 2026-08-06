@@ -67,6 +67,23 @@ describe('useAppShellLayout', () => {
     expect(result.current.mobileOpened).toBe(false);
   });
 
+  it('closes mobile nav on Escape when open', () => {
+    const onSidebarCollapsedChange = vi.fn();
+    const { result } = renderHook(() =>
+      useAppShellLayout('/', false, false, onSidebarCollapsedChange)
+    );
+
+    act(() => {
+      result.current.toggleMobile();
+    });
+    expect(result.current.mobileOpened).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(result.current.mobileOpened).toBe(false);
+  });
+
   it('shows desktop toggle when sidebar is pinned', () => {
     const onSidebarCollapsedChange = vi.fn();
     const { result } = renderHook(() =>

@@ -33,6 +33,17 @@ export function useAppShellLayout(
   }, [pathname, closeMobile]);
 
   useEffect(() => {
+    if (!mobileOpened) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeMobile();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpened, closeMobile]);
+
+  useEffect(() => {
     if (userToggledRef.current) return;
     if (sidebarPinned) {
       expandDesktop();

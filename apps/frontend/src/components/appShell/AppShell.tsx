@@ -107,6 +107,16 @@ function AppShellFrame({
               reseedPlatformMutation={s.reseedPlatformMutation}
             />
 
+            {!layout.isDesktop && layout.mobileOpened ? (
+              <button
+                type="button"
+                className="app-shell-mobile-nav-scrim"
+                aria-hidden
+                tabIndex={-1}
+                onClick={layout.closeMobile}
+              />
+            ) : null}
+
             <AppShellNavbar
               s={s}
               isMiniRail={layout.isMiniRail}
@@ -114,6 +124,8 @@ function AppShellFrame({
               onToggleDesktop={layout.toggleDesktopCollapsed}
               onNavigate={onNavigate}
               onOpenSearch={() => search.openSearch()}
+              showMobileClose={!layout.isDesktop && layout.mobileOpened}
+              onCloseMobile={layout.closeMobile}
             />
 
             <DocumentSearchModal

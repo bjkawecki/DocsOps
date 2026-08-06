@@ -362,6 +362,58 @@ a.document-chrome-nav-link:focus-visible,
   flex-shrink: 0;
 }
 
+/* Mobile (narrow / below sm): taller chrome, larger hit targets, drawer + scrim. */
+@media (max-width: 47.9875em) {
+  .app-shell-navbar,
+  .app-shell-main,
+  .app-shell-main.mantine-AppShell-main,
+  .app-shell-top-bar,
+  .app-shell-navbar-chrome {
+    --app-shell-chrome-height: 52px;
+  }
+
+  /*
+   * Mantine sets navbar width to 100% below the breakpoint; keep a panel width so
+   * the scrim remains visible and clickable beside the drawer.
+   */
+  .mantine-AppShell-root {
+    --app-shell-navbar-width: min(20rem, calc(100vw - 3rem)) !important;
+  }
+
+  .app-shell-mobile-nav-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--mantine-color-dark-9) 55%, transparent);
+  }
+
+  .mantine-AppShell-navbar,
+  .app-shell-navbar {
+    z-index: 200;
+  }
+
+  .app-shell-top-bar-action,
+  .app-shell-top-bar-burger,
+  .app-shell-account-brand-trigger {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .app-shell-account-brand-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-shell-navbar-mobile-close {
+    flex-shrink: 0;
+  }
+}
+
 .app-shell-breadcrumb-bar {
   flex-shrink: 0;
 }

@@ -7,5 +7,13 @@ export const SIDEBAR_MINI_GAP = 6;
 export const MAIN_NAV_ID = 'main-navigation';
 export const MAIN_CONTENT_ID = 'main-content';
 
-/** Mantine `sm` breakpoint – keep in sync with AppShell navbar breakpoint. */
+/**
+ * Responsive tokens (Plan-Mobile-UX):
+ * - narrow: below `sm` (48em) – AppShell overlay nav, max simplification
+ * - compact: below `lg` (75em) – page sidebars/tables use mobile patterns
+ * - wide: from `lg` – desktop two-column / tables
+ */
+/** Mantine `sm` – AppShell navbar breakpoint; above = desktop shell rail. */
 export const DESKTOP_MIN_WIDTH = '(min-width: 48em)';
+/** Mantine `lg` – page content-nav / table breakpoint (Welle 2+). */
+export const WIDE_MIN_WIDTH = '(min-width: 75em)';

@@ -1,14 +1,27 @@
-import { Text } from '@mantine/core';
+import { ActionIcon, Text } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { DocopsLogo } from './DocopsLogo';
+import { MAIN_NAV_ID } from './appShellLayoutConstants.js';
 
 type Props = {
   isMiniRail: boolean;
   resolvedColorScheme: 'light' | 'dark';
   onNavigate: () => void;
+  showMobileClose?: boolean;
+  onCloseMobile?: () => void;
 };
 
-export function AppShellSidebarBrand({ isMiniRail, resolvedColorScheme, onNavigate }: Props) {
+export function AppShellSidebarBrand({
+  isMiniRail,
+  resolvedColorScheme,
+  onNavigate,
+  showMobileClose = false,
+  onCloseMobile,
+}: Props) {
+  const { t } = useTranslation('shell');
+
   if (isMiniRail) {
     return (
       <div className="app-shell-sidebar-brand app-shell-sidebar-brand--mini">
@@ -50,6 +63,19 @@ export function AppShellSidebarBrand({ isMiniRail, resolvedColorScheme, onNaviga
           </Text>
         </Text>
       </Link>
+      {showMobileClose && onCloseMobile ? (
+        <ActionIcon
+          type="button"
+          variant="subtle"
+          size={44}
+          className="app-shell-navbar-mobile-close"
+          aria-label={t('nav.closeMenu')}
+          aria-controls={MAIN_NAV_ID}
+          onClick={onCloseMobile}
+        >
+          <IconX size={22} stroke={1.75} />
+        </ActionIcon>
+      ) : null}
     </div>
   );
 }

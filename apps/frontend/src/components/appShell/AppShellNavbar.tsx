@@ -29,6 +29,8 @@ type Props = {
   onToggleDesktop: () => void;
   onNavigate: () => void;
   onOpenSearch: () => void;
+  showMobileClose?: boolean;
+  onCloseMobile?: () => void;
 };
 
 export function AppShellNavbar({
@@ -38,6 +40,8 @@ export function AppShellNavbar({
   onToggleDesktop,
   onNavigate,
   onOpenSearch,
+  showMobileClose = false,
+  onCloseMobile,
 }: Props) {
   const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
@@ -57,6 +61,8 @@ export function AppShellNavbar({
               isMiniRail={isMiniRail}
               resolvedColorScheme={s.resolvedColorScheme}
               onNavigate={onNavigate}
+              showMobileClose={showMobileClose}
+              onCloseMobile={onCloseMobile}
             />
           </MantineAppShell.Section>
           <MantineAppShell.Section
