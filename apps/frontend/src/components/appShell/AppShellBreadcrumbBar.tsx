@@ -1,11 +1,17 @@
 import { Anchor, Box, Breadcrumbs, Divider, Group, Text } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   useAppShellBreadcrumbActions,
   useAppShellBreadcrumbItems,
   useAppShellChromeBar,
 } from './AppShellBreadcrumbsContext.js';
+
+function BreadcrumbActionsSlot({ actions }: { actions: ReactNode }) {
+  if (actions == null) return null;
+  return <Box className="app-shell-breadcrumb-actions">{actions}</Box>;
+}
 
 /** Meter-style chrome row under the top bar; renders nothing when empty. */
 export function AppShellBreadcrumbBar() {
@@ -22,15 +28,13 @@ export function AppShellBreadcrumbBar() {
           justify="space-between"
           align="center"
           gap="sm"
-          wrap="nowrap"
+          wrap="wrap"
           mb={6}
         >
-          <Box style={{ flex: 1, minWidth: 0 }}>{chromeBar}</Box>
-          {actions != null ? (
-            <Box className="app-shell-breadcrumb-actions" style={{ flexShrink: 0 }}>
-              {actions}
-            </Box>
-          ) : null}
+          <Box className="app-shell-breadcrumb-primary" style={{ flex: 1, minWidth: 0 }}>
+            {chromeBar}
+          </Box>
+          <BreadcrumbActionsSlot actions={actions} />
         </Group>
         <Divider />
       </Box>
@@ -46,11 +50,12 @@ export function AppShellBreadcrumbBar() {
         justify="space-between"
         align="center"
         gap="sm"
-        wrap="nowrap"
+        wrap="wrap"
         mb={6}
       >
         {hasItems ? (
           <Breadcrumbs
+            className="app-shell-breadcrumb-primary"
             separator={<IconChevronRight size={14} color="var(--mantine-color-dimmed)" />}
             style={{ flex: 1, minWidth: 0 }}
           >
@@ -97,11 +102,9 @@ export function AppShellBreadcrumbBar() {
             })}
           </Breadcrumbs>
         ) : (
-          <Box style={{ flex: 1, minWidth: 0 }} />
+          <Box className="app-shell-breadcrumb-primary" style={{ flex: 1, minWidth: 0 }} />
         )}
-        <Box className="app-shell-breadcrumb-actions" style={{ flexShrink: 0 }}>
-          {actions}
-        </Box>
+        <BreadcrumbActionsSlot actions={actions} />
       </Group>
       <Divider />
     </Box>

@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { Box, Container, Flex, Paper } from '@mantine/core';
+import { Box, Container, Paper } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import {
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
-import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { AdminContentSidebar } from './AdminContentSidebar.js';
 import { ADMIN_DEFAULT_PATH, findAdminNavItem, getAdminNavGroups } from './adminNavConfig.js';
 import { usePublicConfig } from '../../hooks/usePublicConfig.js';
@@ -45,18 +45,16 @@ export function AdminPage() {
   useSetAppShellChromeBar(null);
   useSetAppShellNavScope(null);
 
+  const sectionTitle = t('shell:breadcrumb.admin');
+
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
-          <ContextWorkspaceLeftColumn data-context-sibling-nav>
-            <AdminContentSidebar />
-          </ContextWorkspaceLeftColumn>
-
+        <ResponsiveContentNav title={sectionTitle} nav={<AdminContentSidebar />}>
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }} className="admin-page-content">
             <Outlet />
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
     </Container>
   );

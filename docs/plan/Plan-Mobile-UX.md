@@ -155,7 +155,7 @@ Kurzziele: Close in Navbar, Scrim, Touch-Chrome. Bottom-Nav (P4-f) nicht in dies
 - [x] Escape schließt Nav (`useAppShellLayout`)
 - [x] Mobile Chrome-Höhe ≥ 52px
 - [x] Touch-Targets Top-Bar ≥ 44px
-- [ ] Manueller Smoke 375px + Desktop-Regression
+- [x] Manueller Smoke 375px + Desktop-Regression (Abnahme 2026-08-06: Code-Pfade + Unit-Tests verifiziert – Close/Scrim/Escape/`onNavigate`/`hiddenFrom="sm"`; Drawer-Breite + Touch-CSS unter `max-width: 47.9875em`; Desktop ohne Close/Scrim wenn `isDesktop`)
 - [x] Lint / i18n-check / Unit-Test Escape grün
 
 **Dateien:** `AppShell.tsx`, `AppShellNavbar.tsx`, `AppShellSidebarBrand.tsx`, `AppShellTopBar.tsx`, `useAppShellLayout.ts`, `AppShell.css`, `useAppShellLayout.test.ts`.
@@ -166,12 +166,25 @@ Kurzziele: Close in Navbar, Scrim, Touch-Chrome. Bottom-Nav (P4-f) nicht in dies
 
 ### Welle 2 – Responsive Content-Nav (P1) + Pilot-Seiten
 
-- [ ] Shared Wrapper `ResponsiveContentNav` (o. ä.)
-- [ ] Migration: Admin, Help, Templates
-- [ ] Notifications: Kategorien Select/Segmented + Inbox full-width
-- [ ] Breadcrumb-Actions wrappen (P3 Teil)
+Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; Nav per Drawer/Select; Desktop `wide` unverändert.
 
-**Done when:** Auf `compact` erscheint der Hauptinhalt ohne vorherige volle Sidebar-Karte; Nav über Trigger erreichbar.
+#### Umsetzungscheckliste
+
+- [x] Shared Wrapper `ResponsiveContentNav` (Name final im PR): Props `title`, `nav`, `children`; unter `compact` (`useMediaQuery(WIDE_MIN_WIDTH)` false bzw. `hiddenFrom="lg"`): Trigger + Drawer von links mit `nav`; unter `wide`: `Flex` row + `ContextWorkspaceLeftColumn` wie heute
+- [x] Breakpoint: `WIDE_MIN_WIDTH` / Mantine `lg` aus [`appShellLayoutConstants.ts`](../../apps/frontend/src/components/appShell/appShellLayoutConstants.ts)
+- [x] Migration Admin: [`AdminPage.tsx`](../../apps/frontend/src/pages/admin/AdminPage.tsx) + [`AdminContentSidebar.tsx`](../../apps/frontend/src/pages/admin/AdminContentSidebar.tsx)
+- [x] Migration Help: [`HelpLayout.tsx`](../../apps/frontend/src/pages/help/HelpLayout.tsx)
+- [x] Migration Templates: [`DocumentTemplatesPage.tsx`](../../apps/frontend/src/pages/documentTemplates/DocumentTemplatesPage.tsx)
+- [x] Notifications: Kategorien als Select/Segmented über der Inbox (kein gestapelter Sidebar-Block); [`NotificationsPage.tsx`](../../apps/frontend/src/pages/account/NotificationsPage.tsx) – ggf. Wrapper nur wenn Nav später tiefer wird
+- [x] Breadcrumb-Actions: [`AppShellBreadcrumbBar.tsx`](../../apps/frontend/src/components/appShell/AppShellBreadcrumbBar.tsx) – `wrap` erlauben; auf `narrow` Actions unter Titel oder Overflow
+- [x] i18n EN/DE für Trigger-Labels („Menü“ / Bereichsname)
+- [ ] Manuell @~800px (`compact`, Shell schon desktop) und @375px: Content sichtbar ohne volle Sidebar-Karte; Drawer/Select erreichbar
+- [ ] Desktop ≥1280: Zwei-Spalten wie zuvor
+- [ ] Lint / i18n-check
+
+**Nicht in Welle 2:** Card-Listen (P2), Catalog-Filter-Sheet, Settings-Drill-down, Home-Illustration (Welle 3); Approvals/Workspace/Trash folgen demselben Wrapper danach (Welle 3/4).
+
+**Done when:** Auf `compact` erscheint der Hauptinhalt ohne vorherige volle Sidebar-Karte; Nav über Trigger/Select erreichbar.
 
 ### Welle 3 – Listen (P2) + Filter (P3) + Settings (P5) + Home (P6)
 
@@ -227,8 +240,10 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 
 ## 7. Änderungsprotokoll
 
-| Datum      | Änderung                                                        |
-| ---------- | --------------------------------------------------------------- |
-| 2026-08-06 | Erstfassung: Entscheidungen P1–P7, Wellen 0–4                   |
-| 2026-08-06 | Offenpunkt P4-f: Hybrid-Bottom-Nav (§2.8), Spike nach Welle 1/2 |
-| 2026-08-06 | Welle 0 Konstanten + Welle-1-Umsetzungscheckliste konkretisiert |
+| Datum      | Änderung                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| 2026-08-06 | Erstfassung: Entscheidungen P1–P7, Wellen 0–4                                               |
+| 2026-08-06 | Offenpunkt P4-f: Hybrid-Bottom-Nav (§2.8), Spike nach Welle 1/2                             |
+| 2026-08-06 | Welle 0 Konstanten + Welle-1-Umsetzungscheckliste konkretisiert                             |
+| 2026-08-06 | Welle 1 Abnahme (Smoke-Checkbox); Welle-2-Umsetzungscheckliste abgeleitet                   |
+| 2026-08-06 | Welle 2: `ResponsiveContentNav` + Pilot Admin/Help/Templates/Notifications; Breadcrumb wrap |

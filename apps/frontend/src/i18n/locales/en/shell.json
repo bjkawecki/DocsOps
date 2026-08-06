@@ -20,6 +20,8 @@
     "expandSidebar": "Expand sidebar",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
+    "contentNavOpenAria": "Open {{title}} menu",
+    "contentNavCloseAria": "Close {{title}} menu",
     "company": "Company",
     "department": "Department",
     "departments": "Departments",

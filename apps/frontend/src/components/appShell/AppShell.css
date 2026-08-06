@@ -429,6 +429,24 @@ a.document-chrome-nav-link:focus-visible,
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* narrow: actions below title/crumbs so filters do not crush the trail */
+@media (max-width: 47.9875em) {
+  .app-shell-breadcrumb-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-shell-breadcrumb-primary {
+    width: 100%;
+  }
+
+  .app-shell-breadcrumb-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 @media (min-width: 48em) {

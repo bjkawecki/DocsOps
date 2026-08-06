@@ -20,6 +20,8 @@
     "expandSidebar": "Seitenleiste ausklappen",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen",
+    "contentNavOpenAria": "{{title}}-Menü öffnen",
+    "contentNavCloseAria": "{{title}}-Menü schließen",
     "company": "Unternehmen",
     "department": "Abteilung",
     "departments": "Abteilungen",

@@ -40,12 +40,9 @@ import type {
 import { DocumentBlocksPreview } from '../../components/documents/DocumentBlocksPreview.js';
 import { buildTemplateTypePreviewDocument } from '../../components/documents/buildTemplateTypePreviewDocument.js';
 import { localizedDocumentTypeLabel } from '../../components/documents/localizedDocumentTypeLabel.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe.js';
-import {
-  CONTEXT_WORKSPACE_LEFT_WIDTH,
-  ContextWorkspaceLeftColumn,
-} from '../contextWorkspace/contextWorkspaceChrome.js';
 import '../DocumentContent.css';
 import { TemplatesSidebarGroup } from './TemplatesSidebarGroup.js';
 
@@ -363,6 +360,75 @@ export function DocumentTemplatesPage() {
     />
   );
 
+  const sectionTitle = t('shell:nav.templates');
+
+  const nav = (
+    <ContentCardWrapper fullHeight={false}>
+      <Stack gap="sm" w="100%">
+        <SectionLabel>{t('templates:sidebar.typesHeading')}</SectionLabel>
+        <SegmentedControl
+          size="xs"
+          fullWidth
+          value={sourceFilter}
+          onChange={(v) => setSourceFilter(v as SourceFilter)}
+          data={[
+            { label: t('documents:catalog.allTypes'), value: 'all' },
+            { label: t('documents:typePicker.sourceBuiltin'), value: 'builtin' },
+            { label: t('documents:typePicker.sourceCustom'), value: 'custom' },
+          ]}
+        />
+        {isPending ? (
+          <Text size="sm" c="dimmed">
+            {t('common:status.loading')}
+          </Text>
+        ) : filteredTypes.length === 0 ? (
+          <Text size="sm" c="dimmed">
+            {sourceFilter === 'custom' && customCount === 0
+              ? t('templates:sidebar.noCustomTypes')
+              : t('templates:sidebar.noTypesMatch')}
+          </Text>
+        ) : (
+          <Stack
+            component="nav"
+            gap="sm"
+            align="stretch"
+            w="100%"
+            aria-label={t('templates:sidebar.documentTypesAria')}
+          >
+            {showGroupHeadings && processTypes.length > 0 ? (
+              <TemplatesSidebarGroup
+                sectionId="templates:process"
+                label={t('documents:typePicker.groupProcess')}
+              >
+                {processTypes.map(renderTypeLink)}
+              </TemplatesSidebarGroup>
+            ) : null}
+            {showGroupHeadings && projectTypes.length > 0 ? (
+              <TemplatesSidebarGroup
+                sectionId="templates:project"
+                label={t('documents:typePicker.groupProject')}
+              >
+                {projectTypes.map(renderTypeLink)}
+              </TemplatesSidebarGroup>
+            ) : null}
+            {customTypesInFilter.length > 0 ? (
+              showGroupHeadings ? (
+                <TemplatesSidebarGroup
+                  sectionId="templates:custom"
+                  label={t('documents:typePicker.groupCustom')}
+                >
+                  {customTypesInFilter.map(renderTypeLink)}
+                </TemplatesSidebarGroup>
+              ) : (
+                <Stack gap={2}>{customTypesInFilter.map(renderTypeLink)}</Stack>
+              )
+            ) : null}
+          </Stack>
+        )}
+      </Stack>
+    </ContentCardWrapper>
+  );
+
   return (
     <>
       <Box className="document-page-shell">
@@ -371,140 +437,68 @@ export function DocumentTemplatesPage() {
           maw={1600}
           px="md"
           className="document-page-body"
-          style={{ display: 'flex' }}
+          style={{ display: 'block' }}
         >
-          <Box
-            className="document-page-left"
-            w={{ base: '100%', lg: CONTEXT_WORKSPACE_LEFT_WIDTH }}
-          >
-            <Box className="document-page-left-inner">
-              <ContextWorkspaceLeftColumn data-context-sibling-nav>
-                <ContentCardWrapper fullHeight={false}>
-                  <Stack gap="sm" w="100%">
-                    <SectionLabel>{t('templates:sidebar.typesHeading')}</SectionLabel>
-                    <SegmentedControl
-                      size="xs"
-                      fullWidth
-                      value={sourceFilter}
-                      onChange={(v) => setSourceFilter(v as SourceFilter)}
-                      data={[
-                        { label: t('documents:catalog.allTypes'), value: 'all' },
-                        { label: t('documents:typePicker.sourceBuiltin'), value: 'builtin' },
-                        { label: t('documents:typePicker.sourceCustom'), value: 'custom' },
-                      ]}
-                    />
-                    {isPending ? (
+          <ResponsiveContentNav title={sectionTitle} nav={nav}>
+            <Box className="document-page-main">
+              <Flex
+                gap={{ base: 'lg', lg: 'xl' }}
+                direction={{ base: 'column', lg: 'row' }}
+                align={{ base: 'stretch', lg: 'stretch' }}
+                wrap="nowrap"
+                w="100%"
+                style={{ overflow: 'visible' }}
+              >
+                <Box className="document-page-reading">
+                  <Box className="document-page-scroll">
+                    {selectedType == null ? (
                       <Text size="sm" c="dimmed">
-                        {t('common:status.loading')}
-                      </Text>
-                    ) : filteredTypes.length === 0 ? (
-                      <Text size="sm" c="dimmed">
-                        {sourceFilter === 'custom' && customCount === 0
-                          ? t('templates:sidebar.noCustomTypes')
-                          : t('templates:sidebar.noTypesMatch')}
+                        {t('templates:detail.selectPrompt')}
                       </Text>
                     ) : (
-                      <Stack
-                        component="nav"
-                        gap="sm"
-                        align="stretch"
-                        w="100%"
-                        aria-label={t('templates:sidebar.documentTypesAria')}
-                      >
-                        {showGroupHeadings && processTypes.length > 0 ? (
-                          <TemplatesSidebarGroup
-                            sectionId="templates:process"
-                            label={t('documents:typePicker.groupProcess')}
-                          >
-                            {processTypes.map(renderTypeLink)}
-                          </TemplatesSidebarGroup>
-                        ) : null}
-                        {showGroupHeadings && projectTypes.length > 0 ? (
-                          <TemplatesSidebarGroup
-                            sectionId="templates:project"
-                            label={t('documents:typePicker.groupProject')}
-                          >
-                            {projectTypes.map(renderTypeLink)}
-                          </TemplatesSidebarGroup>
-                        ) : null}
-                        {customTypesInFilter.length > 0 ? (
-                          showGroupHeadings ? (
-                            <TemplatesSidebarGroup
-                              sectionId="templates:custom"
-                              label={t('documents:typePicker.groupCustom')}
+                      <Stack gap="md" align="stretch" w="100%">
+                        {selectedType.source === 'custom' ? (
+                          <Group justify="flex-end">
+                            <Button
+                              size="sm"
+                              color="red"
+                              variant="light"
+                              loading={deleteMutation.isPending}
+                              onClick={() => deleteMutation.mutate(selectedType.id)}
                             >
-                              {customTypesInFilter.map(renderTypeLink)}
-                            </TemplatesSidebarGroup>
-                          ) : (
-                            <Stack gap={2}>{customTypesInFilter.map(renderTypeLink)}</Stack>
-                          )
+                              {t('templates:detail.delete')}
+                            </Button>
+                          </Group>
                         ) : null}
+                        <Card className="document-page-card" w="100%" padding={0}>
+                          <DocumentBlocksPreview
+                            doc={buildTemplateTypePreviewDocument(selectedType, {
+                              locale,
+                              displayLabel: localizedDocumentTypeLabel(selectedType, locale),
+                            })}
+                            documentId={`template-type:${selectedType.id}`}
+                          />
+                        </Card>
                       </Stack>
                     )}
-                  </Stack>
-                </ContentCardWrapper>
-              </ContextWorkspaceLeftColumn>
-            </Box>
-          </Box>
-
-          <Box className="document-page-main">
-            <Flex
-              gap={{ base: 'lg', lg: 'xl' }}
-              direction={{ base: 'column', lg: 'row' }}
-              align={{ base: 'stretch', lg: 'stretch' }}
-              wrap="nowrap"
-              w="100%"
-              style={{ overflow: 'visible' }}
-            >
-              <Box className="document-page-reading">
-                <Box className="document-page-scroll">
-                  {selectedType == null ? (
-                    <Text size="sm" c="dimmed">
-                      {t('templates:detail.selectPrompt')}
-                    </Text>
-                  ) : (
-                    <Stack gap="md" align="stretch" w="100%">
-                      {selectedType.source === 'custom' ? (
-                        <Group justify="flex-end">
-                          <Button
-                            size="sm"
-                            color="red"
-                            variant="light"
-                            loading={deleteMutation.isPending}
-                            onClick={() => deleteMutation.mutate(selectedType.id)}
-                          >
-                            {t('templates:detail.delete')}
-                          </Button>
-                        </Group>
-                      ) : null}
-                      <Card className="document-page-card" w="100%" padding={0}>
-                        <DocumentBlocksPreview
-                          doc={buildTemplateTypePreviewDocument(selectedType, {
-                            locale,
-                            displayLabel: localizedDocumentTypeLabel(selectedType, locale),
-                          })}
-                          documentId={`template-type:${selectedType.id}`}
-                        />
-                      </Card>
-                    </Stack>
-                  )}
+                  </Box>
                 </Box>
-              </Box>
 
-              <Box
-                component="aside"
-                aria-hidden
-                className="document-page-comments-aside"
-                visibleFrom="lg"
-                style={{
-                  flexShrink: 0,
-                  width: TEMPLATES_BALANCE_RAIL_WIDTH,
-                  minWidth: TEMPLATES_BALANCE_RAIL_WIDTH,
-                  maxWidth: TEMPLATES_BALANCE_RAIL_WIDTH,
-                }}
-              />
-            </Flex>
-          </Box>
+                <Box
+                  component="aside"
+                  aria-hidden
+                  className="document-page-comments-aside"
+                  visibleFrom="lg"
+                  style={{
+                    flexShrink: 0,
+                    width: TEMPLATES_BALANCE_RAIL_WIDTH,
+                    minWidth: TEMPLATES_BALANCE_RAIL_WIDTH,
+                    maxWidth: TEMPLATES_BALANCE_RAIL_WIDTH,
+                  }}
+                />
+              </Flex>
+            </Box>
+          </ResponsiveContentNav>
         </Container>
       </Box>
 

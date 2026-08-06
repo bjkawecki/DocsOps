@@ -6,15 +6,18 @@ import {
   Group,
   NavLink,
   Paper,
+  Select,
   Stack,
   Switch,
   Text,
   Tooltip,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconBell } from '@tabler/icons-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import {
   useSetAppShellBreadcrumbActions,
   useSetAppShellBreadcrumbs,
@@ -49,6 +52,7 @@ export function NotificationsPage() {
   const { t } = useTranslation('notifications');
   const { data: me } = useMe();
   const isAdmin = me?.user.isAdmin === true;
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [searchParams, setSearchParams] = useSearchParams();
   const [canMarkAll, setCanMarkAll] = useState(false);
   const [listTotal, setListTotal] = useState<number | null>(null);
@@ -84,10 +88,26 @@ export function NotificationsPage() {
     [setSearchParams]
   );
 
+  const handleCategoryChange = useCallback(
+    (next: string | null) => {
+      if (next == null) return;
+      setSearchParams(
+        (prev) => {
+          const p = new URLSearchParams(prev);
+          if (next === 'all') p.delete('category');
+          else p.set('category', next);
+          return p;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
   const totalLabel = listTotal == null ? null : t('page.total', { count: listTotal });
 
   const breadcrumbActions = (
-    <Group gap="md" wrap="nowrap" align="center">
+    <Group gap="md" wrap="wrap" align="center">
       {totalLabel != null ? (
         <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
           {totalLabel}
@@ -133,10 +153,40 @@ export function NotificationsPage() {
     return qs.length > 0 ? `/notifications?${qs}` : '/notifications';
   };
 
+  const inbox = (
+    <NotificationsInboxPanel
+      category={category}
+      unreadOnly={unreadOnly}
+      onCanMarkAllChange={handleCanMarkAllChange}
+      onTotalChange={handleTotalChange}
+    />
+  );
+
+  if (!isWide) {
+    return (
+      <Container fluid maw={1600} px="md" mb="xl">
+        <Stack gap="md">
+          <Select
+            label={t('page.typeLabel')}
+            aria-label={t('page.categoriesAriaLabel')}
+            data={visibleCategories.map((item) => ({
+              value: item.value,
+              label: categoryLabel(t, item.value),
+            }))}
+            value={category}
+            onChange={handleCategoryChange}
+            allowDeselect={false}
+          />
+          {inbox}
+        </Stack>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex direction={{ base: 'column', lg: 'row' }} gap="md" align="flex-start">
+        <Flex direction="row" gap="md" align="flex-start">
           <ContextWorkspaceLeftColumn data-context-sibling-nav>
             <ContentCardWrapper fullHeight={false}>
               <SectionLabel mb="sm">{t('page.typeLabel')}</SectionLabel>
@@ -187,14 +237,7 @@ export function NotificationsPage() {
             </ContentCardWrapper>
           </ContextWorkspaceLeftColumn>
 
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            <NotificationsInboxPanel
-              category={category}
-              unreadOnly={unreadOnly}
-              onCanMarkAllChange={handleCanMarkAllChange}
-              onTotalChange={handleTotalChange}
-            />
-          </Box>
+          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>{inbox}</Box>
         </Flex>
       </Paper>
     </Container>
