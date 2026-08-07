@@ -10,14 +10,17 @@ import {
   Table,
   Text,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
+import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import { useMe } from '../../hooks/useMe.js';
+import { EntityListCard } from '../ui/EntityListCard.js';
 import { NotificationDetailModal } from './NotificationDetailModal.js';
 import { meNotificationsListQueryKey } from './meNotificationQueryParams.js';
 import { eventTypeToCategory, NotificationCategoryIcon } from './notificationCategoryUi.js';
@@ -68,6 +71,7 @@ export function NotificationsInboxPanel({
   const { t } = useTranslation('notifications');
   const queryClient = useQueryClient();
   const { data: me } = useMe();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [page, setPage] = useState(1);
   const [detailItem, setDetailItem] = useState<NotificationItem | null>(null);
@@ -182,97 +186,153 @@ export function NotificationsInboxPanel({
       )}
       {listReady && (
         <>
-          <Box style={{ overflowX: 'auto' }}>
-            <Table withTableBorder className="dense-list-table" style={{ minWidth: 640 }}>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th style={{ width: '28%' }}>{t('inbox.table.event')}</Table.Th>
-                  <Table.Th>{t('inbox.table.document')}</Table.Th>
-                  <Table.Th style={{ width: '18%', whiteSpace: 'nowrap' }}>
-                    {t('inbox.table.when')}
-                  </Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {notificationItems.length === 0 ? (
+          {isWide ? (
+            <Box style={{ overflowX: 'auto' }}>
+              <Table withTableBorder className="dense-list-table" style={{ minWidth: 640 }}>
+                <Table.Thead>
                   <Table.Tr>
-                    <Table.Td colSpan={3}>
-                      <Text size="sm" c="dimmed">
-                        {t('inbox.empty')}
-                      </Text>
-                    </Table.Td>
+                    <Table.Th style={{ width: '28%' }}>{t('inbox.table.event')}</Table.Th>
+                    <Table.Th>{t('inbox.table.document')}</Table.Th>
+                    <Table.Th style={{ width: '18%', whiteSpace: 'nowrap' }}>
+                      {t('inbox.table.when')}
+                    </Table.Th>
                   </Table.Tr>
-                ) : (
-                  notificationItems.map((item) => {
-                    const docHref = notificationDocumentHref(item.eventType, item.payload);
-                    const detail = secondaryDetail(t, item.eventType, item.payload);
-                    const unread = item.readAt == null;
-                    const itemCategory = eventTypeToCategory(item.eventType);
-                    return (
-                      <Table.Tr
-                        key={item.id}
-                        data-clickable-table-row
-                        onClick={() => setDetailItem(item)}
-                        style={{
-                          // Inset shadow keeps table withTableBorder visible under border-collapse
-                          // (a transparent/blue borderLeft on <tr> wins collapse and hides the outer edge).
-                          boxShadow: unread
-                            ? 'inset 3px 0 0 var(--mantine-color-blue-filled)'
-                            : undefined,
-                        }}
-                      >
-                        <Table.Td>
-                          <Group gap="xs" wrap="nowrap" align="center">
-                            <Box c="dimmed" style={{ display: 'flex', alignItems: 'center' }}>
-                              <NotificationCategoryIcon category={itemCategory} size={16} />
-                            </Box>
+                </Table.Thead>
+                <Table.Tbody>
+                  {notificationItems.length === 0 ? (
+                    <Table.Tr>
+                      <Table.Td colSpan={3}>
+                        <Text size="sm" c="dimmed">
+                          {t('inbox.empty')}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ) : (
+                    notificationItems.map((item) => {
+                      const docHref = notificationDocumentHref(item.eventType, item.payload);
+                      const detail = secondaryDetail(t, item.eventType, item.payload);
+                      const unread = item.readAt == null;
+                      const itemCategory = eventTypeToCategory(item.eventType);
+                      return (
+                        <Table.Tr
+                          key={item.id}
+                          data-clickable-table-row
+                          onClick={() => setDetailItem(item)}
+                          style={{
+                            boxShadow: unread
+                              ? 'inset 3px 0 0 var(--mantine-color-blue-filled)'
+                              : undefined,
+                          }}
+                        >
+                          <Table.Td>
                             <Group gap="xs" wrap="nowrap" align="center">
-                              <Text size="sm" c="dimmed" fw={600} lineClamp={2}>
-                                {eventHeadline(t, item.eventType)}
-                              </Text>
-                              {!unread && <NotificationReadBadge />}
+                              <Box c="dimmed" style={{ display: 'flex', alignItems: 'center' }}>
+                                <NotificationCategoryIcon category={itemCategory} size={16} />
+                              </Box>
+                              <Group gap="xs" wrap="nowrap" align="center">
+                                <Text size="sm" c="dimmed" fw={600} lineClamp={2}>
+                                  {eventHeadline(t, item.eventType)}
+                                </Text>
+                                {!unread && <NotificationReadBadge />}
+                              </Group>
                             </Group>
-                          </Group>
-                        </Table.Td>
-                        <Table.Td>
-                          <Stack gap={4}>
-                            {docHref != null ? (
-                              <Anchor
-                                component={Link}
-                                to={docHref}
-                                c="inherit"
-                                underline="hover"
-                                fw={600}
-                                size="sm"
-                                lineClamp={2}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {documentDisplayTitle(t, item)}
-                              </Anchor>
-                            ) : (
-                              <Text fw={600} size="sm" lineClamp={2}>
-                                {documentDisplayTitle(t, item)}
-                              </Text>
-                            )}
-                            {detail != null && (
-                              <Text size="sm" c="dimmed" lineClamp={2}>
-                                {detail}
-                              </Text>
-                            )}
-                          </Stack>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm" c="dimmed">
-                            {formatLocalDateTime(item.createdAt)}
+                          </Table.Td>
+                          <Table.Td>
+                            <Stack gap={4}>
+                              {docHref != null ? (
+                                <Anchor
+                                  component={Link}
+                                  to={docHref}
+                                  c="inherit"
+                                  underline="hover"
+                                  fw={600}
+                                  size="sm"
+                                  lineClamp={2}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {documentDisplayTitle(t, item)}
+                                </Anchor>
+                              ) : (
+                                <Text fw={600} size="sm" lineClamp={2}>
+                                  {documentDisplayTitle(t, item)}
+                                </Text>
+                              )}
+                              {detail != null && (
+                                <Text size="sm" c="dimmed" lineClamp={2}>
+                                  {detail}
+                                </Text>
+                              )}
+                            </Stack>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm" c="dimmed">
+                              {formatLocalDateTime(item.createdAt)}
+                            </Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      );
+                    })
+                  )}
+                </Table.Tbody>
+              </Table>
+            </Box>
+          ) : notificationItems.length === 0 ? (
+            <Text size="sm" c="dimmed">
+              {t('inbox.empty')}
+            </Text>
+          ) : (
+            <Stack gap="sm">
+              {notificationItems.map((item) => {
+                const detail = secondaryDetail(t, item.eventType, item.payload);
+                const unread = item.readAt == null;
+                const itemCategory = eventTypeToCategory(item.eventType);
+                return (
+                  <EntityListCard
+                    key={item.id}
+                    onClick={() => setDetailItem(item)}
+                    leftSection={<NotificationCategoryIcon category={itemCategory} size={16} />}
+                    title={
+                      <Group gap="xs" wrap="nowrap" align="center">
+                        <Text fw={600} size="sm" lineClamp={2}>
+                          {eventHeadline(t, item.eventType)}
+                        </Text>
+                        {!unread && <NotificationReadBadge />}
+                      </Group>
+                    }
+                    meta={
+                      <Stack gap={2}>
+                        <Text size="xs" fw={600} lineClamp={2}>
+                          {documentDisplayTitle(t, item)}
+                        </Text>
+                        {detail != null ? (
+                          <Text size="xs" c="dimmed" lineClamp={2}>
+                            {detail}
                           </Text>
-                        </Table.Td>
-                      </Table.Tr>
-                    );
-                  })
-                )}
-              </Table.Tbody>
-            </Table>
-          </Box>
+                        ) : null}
+                        <Text size="xs" c="dimmed">
+                          {formatLocalDateTime(item.createdAt)}
+                        </Text>
+                      </Stack>
+                    }
+                    rightSection={
+                      unread ? (
+                        <Box
+                          w={8}
+                          h={8}
+                          mt={4}
+                          style={{
+                            borderRadius: '50%',
+                            background: 'var(--mantine-color-blue-filled)',
+                          }}
+                          aria-hidden
+                        />
+                      ) : null
+                    }
+                  />
+                );
+              })}
+            </Stack>
+          )}
           <Group justify="flex-end" align="center" gap="md" wrap="wrap">
             <Group gap="xs" wrap="nowrap" align="center">
               <Text size="xs" c="dimmed">

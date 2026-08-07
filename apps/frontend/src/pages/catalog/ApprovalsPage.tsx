@@ -1,15 +1,5 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Group,
-  Paper,
-  Stack,
-  Table,
-  Text,
-} from '@mantine/core';
+import { Badge, Box, Button, Container, Group, Paper, Stack, Table, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconClipboardCheck } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
@@ -19,7 +9,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { EntityListCard } from '../../components/ui/EntityListCard.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { useMeMoveRequests, type MeMoveRequestItem } from '../../hooks/useMeMoveRequests';
 import { formatTableDate } from '../../lib/formatDate';
@@ -41,6 +34,44 @@ function PendingReviewsTable({
   emptyLabel: string;
 }) {
   const { t } = useTranslation('approvals');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+
+  if (!isWide) {
+    if (items.length === 0) {
+      return (
+        <Text size="sm" c="dimmed">
+          {emptyLabel}
+        </Text>
+      );
+    }
+    return (
+      <Stack gap="sm">
+        {items.map((item) => (
+          <EntityListCard
+            key={item.documentId}
+            to={documentDraftLink(item.documentId)}
+            title={item.documentTitle}
+            meta={
+              <Stack gap={2}>
+                <Text size="xs" c="dimmed">
+                  {item.scopeName}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {item.lastSuggestionAt ? formatTableDate(item.lastSuggestionAt) : '–'}
+                </Text>
+              </Stack>
+            }
+            rightSection={
+              <Badge size="sm" variant="light" color="yellow">
+                {item.pendingSuggestionCount}
+              </Badge>
+            }
+          />
+        ))}
+      </Stack>
+    );
+  }
+
   return (
     <Table withTableBorder className="dense-list-table">
       <Table.Thead>
@@ -115,6 +146,78 @@ function MoveRequestsTable({
   onWithdraw: (item: MeMoveRequestItem) => void;
 }) {
   const { t } = useTranslation('approvals');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+
+  const actionButtons = (item: MeMoveRequestItem) => (
+    <Group gap="xs" wrap="wrap">
+      {item.canAccept ? (
+        <Button size="compact-xs" loading={busyId === item.id} onClick={() => onAccept(item)}>
+          {t('moves.actions.accept')}
+        </Button>
+      ) : null}
+      {item.canReject ? (
+        <Button
+          size="compact-xs"
+          variant="default"
+          loading={busyId === item.id}
+          onClick={() => onReject(item)}
+        >
+          {t('moves.actions.reject')}
+        </Button>
+      ) : null}
+      {item.canWithdraw ? (
+        <Button
+          size="compact-xs"
+          variant="light"
+          color="gray"
+          loading={busyId === item.id}
+          onClick={() => onWithdraw(item)}
+        >
+          {t('moves.actions.withdraw')}
+        </Button>
+      ) : null}
+    </Group>
+  );
+
+  if (!isWide) {
+    if (items.length === 0) {
+      return (
+        <Text size="sm" c="dimmed">
+          {emptyLabel}
+        </Text>
+      );
+    }
+    return (
+      <Stack gap="sm">
+        {items.map((item) => (
+          <EntityListCard
+            key={item.id}
+            title={item.documentTitle}
+            meta={
+              <Stack gap={4}>
+                <Text size="xs" c="dimmed">
+                  {item.fromScopeName} → {item.toScopeName}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {formatTableDate(item.createdAt)}
+                  {item.requestedByName
+                    ? ` · ${t('moves.requestedBy', { name: item.requestedByName })}`
+                    : ''}
+                </Text>
+                {item.note ? (
+                  <Text size="xs" c="dimmed" lineClamp={2}>
+                    {item.note}
+                  </Text>
+                ) : null}
+                {actionButtons(item)}
+              </Stack>
+            }
+          />
+        ))}
+      </Stack>
+    );
+  }
+
   return (
     <Table withTableBorder className="dense-list-table">
       <Table.Thead>
@@ -170,40 +273,7 @@ function MoveRequestsTable({
                   </Text>
                 ) : null}
               </Table.Td>
-              <Table.Td>
-                <Group gap="xs">
-                  {item.canAccept ? (
-                    <Button
-                      size="compact-xs"
-                      loading={busyId === item.id}
-                      onClick={() => onAccept(item)}
-                    >
-                      {t('moves.actions.accept')}
-                    </Button>
-                  ) : null}
-                  {item.canReject ? (
-                    <Button
-                      size="compact-xs"
-                      variant="default"
-                      loading={busyId === item.id}
-                      onClick={() => onReject(item)}
-                    >
-                      {t('moves.actions.reject')}
-                    </Button>
-                  ) : null}
-                  {item.canWithdraw ? (
-                    <Button
-                      size="compact-xs"
-                      variant="light"
-                      color="gray"
-                      loading={busyId === item.id}
-                      onClick={() => onWithdraw(item)}
-                    >
-                      {t('moves.actions.withdraw')}
-                    </Button>
-                  ) : null}
-                </Group>
-              </Table.Td>
+              <Table.Td>{actionButtons(item)}</Table.Td>
             </Table.Tr>
           ))
         )}
@@ -285,18 +355,17 @@ export function ApprovalsPage() {
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
+        <ResponsiveContentNav
+          title={t('breadcrumb')}
+          nav={
+            <ApprovalsScopeSidebar
+              section={section}
+              documents={sidebarDocs}
+              reviewsCount={pending.length}
+              movesCount={movesCount}
+            />
+          }
         >
-          <ApprovalsScopeSidebar
-            section={section}
-            documents={sidebarDocs}
-            reviewsCount={pending.length}
-            movesCount={movesCount}
-          />
-
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             {section === 'reviews' ? (
               isError ? (
@@ -363,7 +432,7 @@ export function ApprovalsPage() {
               </Stack>
             )}
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
     </Container>
   );

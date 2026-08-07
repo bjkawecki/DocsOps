@@ -1,6 +1,7 @@
-import { Box, Container, Flex, Paper, Text } from '@mantine/core';
+import { Box, Container, Paper, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
@@ -10,6 +11,7 @@ import {
   readDocsListPage,
   type ContextDocumentsTableRow,
 } from '../../components/contexts/ContextDocumentsTable';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { SharedScopeSidebar, type SharedSidebarDoc } from './SharedScopeSidebar.js';
 
@@ -50,6 +52,7 @@ function scopeLabelForDoc(doc: SharedDocItem): { scopeKey: string; scopeLabel: s
 
 /** Shared inbox: left scope/doc nav + documents table (same chrome as context workspace). */
 export function SharedPage() {
+  const { t } = useTranslation('shell');
   useRegisterScopePageChrome(SHARED_SCOPE);
   const [searchParams] = useSearchParams();
   const docsPage = readDocsListPage(searchParams);
@@ -115,13 +118,10 @@ export function SharedPage() {
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
+        <ResponsiveContentNav
+          title={t('nav.shared')}
+          nav={<SharedScopeSidebar documents={sidebarDocs} drafts={sidebarDrafts} />}
         >
-          <SharedScopeSidebar documents={sidebarDocs} drafts={sidebarDrafts} />
-
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             {docsPending ? (
               <Text size="sm" c="dimmed">
@@ -135,7 +135,7 @@ export function SharedPage() {
               />
             )}
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
     </Container>
   );

@@ -9,6 +9,9 @@
     "allTypes": "Alle",
     "tagsPlaceholder": "Tags suchen oder auswählen",
     "searchLabel": "Suche",
+    "filterButton": "Filter",
+    "filterDrawerTitle": "Filter",
+    "filtersActive": "{{count}} aktiv",
     "contextTypeLabel": "Kontexttyp",
     "sortByLabel": "Sortieren nach",
     "tagsLabel": "Tags",
@@ -112,6 +115,7 @@
     "notFound": "Dokument nicht gefunden oder kein Zugriff.",
     "backToCatalog": "Zurück zum Katalog",
     "dashboard": "Dashboard",
+    "chromeNavTitle": "Inhalt",
     "toolbar": {
       "cancel": "Abbrechen",
       "save": "Speichern",

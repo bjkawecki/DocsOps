@@ -3,7 +3,6 @@ import { IconPencil, IconShare } from '@tabler/icons-react';
 import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
-import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
 
 export type SharedSidebarDoc = {
   id: string;
@@ -90,48 +89,46 @@ export function SharedScopeSidebar({ documents, drafts }: SharedScopeSidebarProp
   }, [documents]);
 
   return (
-    <ContextWorkspaceLeftColumn data-context-sibling-nav>
-      <ContentCardWrapper fullHeight={false}>
-        <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Shared navigation">
-          {scopeGroups.length === 0 ? (
-            <PeerSection label="Shared" icon={<IconShare size={ICON_SIZE} stroke={1.5} />} />
-          ) : (
-            scopeGroups.map((group) => (
-              <PeerSection
-                key={group.key}
-                label={group.label}
-                icon={<IconShare size={ICON_SIZE} stroke={1.5} />}
-              >
-                {group.docs.map((d) => (
-                  <NavLink
-                    key={d.id}
-                    component={Link}
-                    to={`/documents/${d.id}`}
-                    label={d.title}
-                    variant="subtle"
-                    style={navLinkFullWidth}
-                  />
-                ))}
-              </PeerSection>
-            ))
-          )}
-
-          {drafts.length > 0 && (
-            <PeerSection label="Drafts" icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}>
-              {drafts.map((d) => (
+    <ContentCardWrapper fullHeight={false}>
+      <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Shared navigation">
+        {scopeGroups.length === 0 ? (
+          <PeerSection label="Shared" icon={<IconShare size={ICON_SIZE} stroke={1.5} />} />
+        ) : (
+          scopeGroups.map((group) => (
+            <PeerSection
+              key={group.key}
+              label={group.label}
+              icon={<IconShare size={ICON_SIZE} stroke={1.5} />}
+            >
+              {group.docs.map((d) => (
                 <NavLink
                   key={d.id}
                   component={Link}
-                  to={`/documents/${d.id}?mode=edit&tab=draft`}
+                  to={`/documents/${d.id}`}
                   label={d.title}
                   variant="subtle"
                   style={navLinkFullWidth}
                 />
               ))}
             </PeerSection>
-          )}
-        </Stack>
-      </ContentCardWrapper>
-    </ContextWorkspaceLeftColumn>
+          ))
+        )}
+
+        {drafts.length > 0 && (
+          <PeerSection label="Drafts" icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}>
+            {drafts.map((d) => (
+              <NavLink
+                key={d.id}
+                component={Link}
+                to={`/documents/${d.id}?mode=edit&tab=draft`}
+                label={d.title}
+                variant="subtle"
+                style={navLinkFullWidth}
+              />
+            ))}
+          </PeerSection>
+        )}
+      </Stack>
+    </ContentCardWrapper>
   );
 }

@@ -71,6 +71,9 @@
   max-width: var(--pulse-home-column-max, 720px);
   margin-inline: auto;
   min-width: 0;
+  position: relative;
+  z-index: 1;
+  background-color: var(--mantine-color-body);
 }
 
 .pulse-home-sticky-header {

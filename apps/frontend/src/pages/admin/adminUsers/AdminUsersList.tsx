@@ -7,11 +7,15 @@ import {
   Pagination,
   SegmentedControl,
   Select,
+  Stack,
   Table,
   Text,
   TextInput,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { EntityListCard } from '../../../components/ui/EntityListCard.js';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
 import {
   userRoleLabel,
@@ -65,6 +69,8 @@ export function AdminUsersList({
   onEmailClick,
 }: Props) {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+
   return (
     <>
       <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
@@ -122,85 +128,137 @@ export function AdminUsersList({
       )}
       {data && !isPending && (
         <>
-          <Table withTableBorder className="admin-table-hover dense-list-table">
-            <Table.Thead>
-              <Table.Tr>
-                <AdminUsersSortableTh
-                  label={t('users.list.table.name')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="name"
-                  onSort={() => onSortColumn('name')}
-                />
-                <AdminUsersSortableTh
-                  label={t('users.list.table.email')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="email"
-                  onSort={() => onSortColumn('email')}
-                />
-                <AdminUsersSortableTh
-                  label={t('users.list.table.role')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="role"
-                  onSort={() => onSortColumn('role')}
-                />
-                <AdminUsersSortableTh
-                  label={t('users.list.table.teams')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="teams"
-                  onSort={() => onSortColumn('teams')}
-                />
-                <AdminUsersSortableTh
-                  label={t('users.list.table.departments')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="departments"
-                  onSort={() => onSortColumn('departments')}
-                />
-                <AdminUsersSortableTh
-                  label={t('users.list.table.status')}
-                  currentSortBy={sortBy}
-                  sortOrder={sortOrder}
-                  field="deletedAt"
-                  onSort={() => onSortColumn('deletedAt')}
-                />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
+          {isWide ? (
+            <Table withTableBorder className="admin-table-hover dense-list-table">
+              <Table.Thead>
+                <Table.Tr>
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.name')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="name"
+                    onSort={() => onSortColumn('name')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.email')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="email"
+                    onSort={() => onSortColumn('email')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.role')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="role"
+                    onSort={() => onSortColumn('role')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.teams')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="teams"
+                    onSort={() => onSortColumn('teams')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.departments')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="departments"
+                    onSort={() => onSortColumn('departments')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.status')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="deletedAt"
+                    onSort={() => onSortColumn('deletedAt')}
+                  />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.items.map((u) => (
+                  <Table.Tr key={u.id}>
+                    <Table.Td>{u.name}</Table.Td>
+                    <Table.Td>
+                      {u.email ? (
+                        <Text
+                          component="button"
+                          type="button"
+                          variant="link"
+                          c="var(--mantine-primary-color-4)"
+                          size="sm"
+                          className="admin-link-hover"
+                          style={{
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                          }}
+                          onClick={() => onEmailClick(u)}
+                        >
+                          {u.email}
+                        </Text>
+                      ) : (
+                        '–'
+                      )}
+                    </Table.Td>
+                    <Table.Td>{userRoleLabel(t, u.role)}</Table.Td>
+                    <Table.Td>{formatUserTeamsColumn(t, u)}</Table.Td>
+                    <Table.Td>{formatUserDepartmentsColumn(t, u)}</Table.Td>
+                    <Table.Td>
+                      {u.deletedAt ? (
+                        <Badge size="sm" color="gray">
+                          {t('shared.statusDeactivated')}
+                        </Badge>
+                      ) : (
+                        <Badge size="sm" color="green">
+                          {t('common:status.active')}
+                        </Badge>
+                      )}
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          ) : (
+            <Stack gap="sm">
               {data.items.map((u) => (
-                <Table.Tr key={u.id}>
-                  <Table.Td>{u.name}</Table.Td>
-                  <Table.Td>
-                    {u.email ? (
-                      <Text
-                        component="button"
-                        type="button"
-                        variant="link"
-                        c="var(--mantine-primary-color-4)"
-                        size="sm"
-                        className="admin-link-hover"
-                        style={{
-                          cursor: 'pointer',
-                          background: 'none',
-                          border: 'none',
-                          padding: 0,
-                        }}
-                        onClick={() => onEmailClick(u)}
-                      >
-                        {u.email}
+                <EntityListCard
+                  key={u.id}
+                  title={u.name}
+                  meta={
+                    <Stack gap={2}>
+                      {u.email ? (
+                        <Text
+                          component="button"
+                          type="button"
+                          size="xs"
+                          c="var(--mantine-primary-color-4)"
+                          className="admin-link-hover"
+                          style={{
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            textAlign: 'start',
+                          }}
+                          onClick={() => onEmailClick(u)}
+                        >
+                          {u.email}
+                        </Text>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          –
+                        </Text>
+                      )}
+                      <Text size="xs" c="dimmed">
+                        {userRoleLabel(t, u.role)}
                       </Text>
-                    ) : (
-                      '–'
-                    )}
-                  </Table.Td>
-                  <Table.Td>{userRoleLabel(t, u.role)}</Table.Td>
-                  <Table.Td>{formatUserTeamsColumn(t, u)}</Table.Td>
-                  <Table.Td>{formatUserDepartmentsColumn(t, u)}</Table.Td>
-                  <Table.Td>
-                    {u.deletedAt ? (
+                    </Stack>
+                  }
+                  rightSection={
+                    u.deletedAt ? (
                       <Badge size="sm" color="gray">
                         {t('shared.statusDeactivated')}
                       </Badge>
@@ -208,12 +266,12 @@ export function AdminUsersList({
                       <Badge size="sm" color="green">
                         {t('common:status.active')}
                       </Badge>
-                    )}
-                  </Table.Td>
-                </Table.Tr>
+                    )
+                  }
+                />
               ))}
-            </Table.Tbody>
-          </Table>
+            </Stack>
+          )}
           {data.items.length === 0 && (
             <Alert color="gray" mt="sm">
               {t('users.list.empty')}

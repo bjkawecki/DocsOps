@@ -109,10 +109,11 @@ export function getSettingsSection(searchParams: URLSearchParams): SettingsJumpI
 
 export function openSettingsSearchParams(
   prev: URLSearchParams,
-  jumpId: SettingsJumpId = DEFAULT_SETTINGS_JUMP_ID
+  jumpId?: SettingsJumpId
 ): URLSearchParams {
   const next = new URLSearchParams(prev);
-  next.set(SETTINGS_QUERY_KEY, jumpId);
+  // Empty value = modal open on nav list (compact); omit jump for desktop default profile.
+  next.set(SETTINGS_QUERY_KEY, jumpId ?? '');
   return next;
 }
 

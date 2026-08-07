@@ -1,4 +1,4 @@
-import { Stack } from '@mantine/core';
+import { Box, Stack } from '@mantine/core';
 import { useMePulseStartHere } from '../../hooks/useMePulseStartHere.js';
 import { PulseExploreSection } from './PulseExploreSection.js';
 import { PulseHomeIllustration } from './PulseHomeIllustration.js';
@@ -14,6 +14,7 @@ type Props = {
 /**
  * Explore section + illustration for Pulse home.
  * `fill` = empty feed (viewport fill); `footer` = under a non-empty feed.
+ * Illustration is wide-only (`lg+`) so compact viewports stay readable (Plan-Mobile-UX P6).
  */
 export function PulseExploreBlock({ enabled, layout }: Props) {
   const { data, isPending, isError } = useMePulseStartHere(enabled);
@@ -24,7 +25,9 @@ export function PulseExploreBlock({ enabled, layout }: Props) {
     <Stack gap={0} align="stretch" className={`pulse-explore pulse-explore--${layout}`}>
       <PulseStartHereSection enabled={enabled} />
       <PulseExploreSection enabled={enabled} ruled={!startHereVisible} />
-      <PulseHomeIllustration layout={layout} />
+      <Box visibleFrom="lg">
+        <PulseHomeIllustration layout={layout} />
+      </Box>
     </Stack>
   );
 }

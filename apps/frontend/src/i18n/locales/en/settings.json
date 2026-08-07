@@ -42,6 +42,7 @@
     "pulse": "Pulse"
   },
   "nav": {
+    "backToNav": "Back to settings",
     "ariaLabel": "Settings sections",
     "profile": "Profile",
     "identity": "DocsOps Identity",

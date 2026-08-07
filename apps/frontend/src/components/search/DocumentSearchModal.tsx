@@ -11,10 +11,12 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconFileText } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { RefObject } from 'react';
+import { DESKTOP_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
 import '../../utils/searchSnippetMark.css';
 import { DocumentSearchContextIcon } from './DocumentSearchContextIcon.js';
@@ -59,6 +61,7 @@ export function DocumentSearchModal({
   goToCatalogFromModal,
 }: DocumentSearchModalProps) {
   const { t } = useTranslation('documents');
+  const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
   return (
     <Modal
       opened={opened}
@@ -73,26 +76,44 @@ export function DocumentSearchModal({
           </Text>
         </Stack>
       }
-      centered
+      centered={isDesktop}
+      fullScreen={!isDesktop}
       radius="md"
-      size="lg"
+      size={isDesktop ? 'lg' : '100%'}
       trapFocus
       closeOnEscape
-      styles={{
-        content: {
-          maxHeight: 'min(82dvh, 720px)',
-          display: 'flex',
-          flexDirection: 'column',
-        },
-        body: {
-          flex: 1,
-          minHeight: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 0,
-          overflow: 'hidden',
-        },
-      }}
+      styles={
+        isDesktop
+          ? {
+              content: {
+                maxHeight: 'min(82dvh, 720px)',
+                display: 'flex',
+                flexDirection: 'column',
+              },
+              body: {
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                padding: 0,
+                overflow: 'hidden',
+              },
+            }
+          : {
+              content: {
+                display: 'flex',
+                flexDirection: 'column',
+              },
+              body: {
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                padding: 0,
+                overflow: 'hidden',
+              },
+            }
+      }
     >
       <Box
         style={{
@@ -189,7 +210,7 @@ export function DocumentSearchModal({
                         withBorder
                         p="sm"
                         radius="md"
-                        style={{ minWidth: 0 }}
+                        style={{ minWidth: 0, minHeight: 44 }}
                       >
                         <Stack gap={8}>
                           <Group gap={8} wrap="nowrap" align="flex-start">

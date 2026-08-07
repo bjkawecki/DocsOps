@@ -87,7 +87,16 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
         </Text>
       </Group>
       {items.map((item) => (
-        <Group key={item.id} justify="space-between" gap="md" wrap="nowrap" px={4}>
+        <Group
+          key={item.id}
+          justify="space-between"
+          gap="md"
+          wrap="nowrap"
+          px={4}
+          mih={44}
+          align="center"
+        >
+          {' '}
           <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
             <Anchor component={Link} to={`/documents/${item.id}`} size="sm" fw={500} truncate>
               {item.title}

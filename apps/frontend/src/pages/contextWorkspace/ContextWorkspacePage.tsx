@@ -1,15 +1,4 @@
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Group,
-  Menu,
-  Paper,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { ActionIcon, Box, Button, Container, Group, Menu, Paper, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +27,7 @@ import {
   buildContextBreadcrumbs,
   scopeBreadcrumbItem,
 } from '../../components/appShell/scopeBreadcrumbs.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { ScopeContextSidebar } from './ScopeContextSidebar.js';
 import {
   contextUrl,
@@ -53,7 +43,7 @@ import type { ContextDocument, ContextResponse } from './contextWorkspaceTypes.j
 import { useContextWorkspaceActions } from './useContextWorkspaceActions.js';
 
 export function ContextWorkspacePage() {
-  const { t } = useTranslation(['contexts', 'common']);
+  const { t } = useTranslation(['contexts', 'common', 'shell']);
   const { contextId } = useParams<{ contextId: string }>();
   const [searchParams] = useSearchParams();
   const { data: me } = useMe();
@@ -287,20 +277,19 @@ export function ContextWorkspacePage() {
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
+        <ResponsiveContentNav
+          title={t('shell:nav.organization')}
+          nav={
+            <ScopeContextSidebar
+              processes={sidebarProcesses}
+              projects={sidebarProjects}
+              drafts={sidebarDrafts}
+              activeContextId={contextSelected ? contextId : null}
+              onContextNavClick={handleContextNavClick}
+              trashArchive={trashArchive}
+            />
+          }
         >
-          <ScopeContextSidebar
-            processes={sidebarProcesses}
-            projects={sidebarProjects}
-            drafts={sidebarDrafts}
-            activeContextId={contextSelected ? contextId : null}
-            onContextNavClick={handleContextNavClick}
-            trashArchive={trashArchive}
-          />
-
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             {!contextReady ? (
               <Text size="sm" c="dimmed">
@@ -348,7 +337,7 @@ export function ContextWorkspacePage() {
               </Stack>
             )}
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
 
       <ContextWorkspaceModals

@@ -114,23 +114,13 @@ Andere große Zwei-Spalten-Modals bei Gelegenheit gleich behandeln (kurzer Audit
 
 Desktop-Look der Illustration bleibt erhalten.
 
-### 2.8 Offen: Bottom-Navigation (P4-f) – optional nach Welle 2
+### 2.8 Bottom-Navigation (P4-f) – verworfen
 
-**Status:** valide Option, **noch nicht gewählt**. Welle 1 bleibt Drawer + Close + Touch (§2.2).
+**Status (2026-08-07):** **verworfen**. Kein Hybrid, keine Bottom-Bar.
 
-Klassische Bottom-Bars (3–5 Tabs) passen gut zu flachen Apps. DocsOps hat eine **tiefe, rollenabhängige** Main-Nav (Org-Baum, Persönlich, Weiterlesen, Admin, …). Eine reine Bottom-Bar als Ersatz der Sidebar ist deshalb ungeeignet.
+**Begründung:** DocsOps hat eine tiefe, rollenabhängige Main-Nav. Shell-Drawer (Welle 1) plus Content-Nav-Drawer (Welle 2+) decken Navigation und Content-first ab. Eine dritte Nav-Zone (Bottom-Bar) würde Safe-Area, Debug-FAB und doppelte Active-States verdoppeln ohne klaren Gewinn.
 
-**Falls später gewählt: nur Hybrid**
-
-| Zone                    | Rolle                                                                    |
-| ----------------------- | ------------------------------------------------------------------------ |
-| Bottom-Bar nur `narrow` | 4–5 Primärs, z. B. Start, Katalog, Suche, Benachrichtigungen, Mehr       |
-| „Mehr“                  | öffnet die heutige volle Nav (Drawer)                                    |
-| Top-Bar                 | schlanker (weniger Icon-Cluster); Desktop unverändert linke Sidebar/Rail |
-
-**Abhängigkeiten / Risiken:** Safe-Area und Konflikt mit FAB/Debug-Button; doppelte aktive States (Bottom-Tab vs. Drawer); Zusammenspiel mit Inhalts-Drawern (P1); i18n der Labels.
-
-**Entscheidungspunkt:** Spike **nach** Welle 1 (Shell repariert) und idealerweise nach Welle 2 (Content-Nav), damit nicht drei Nav-Konzepte gleichzeitig entstehen. Ergebnis: übernehmen (Hybrid spezifizieren) oder verwerfen (Notiz hier + Inventar).
+Historischer Optionsraum (nur Dokumentation): Hybrid mit 4–5 Primärs + „Mehr“ → Drawer war die einzige denkbare Variante; nicht umgesetzt.
 
 ---
 
@@ -188,25 +178,31 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 
 ### Welle 3 – Listen (P2) + Filter (P3) + Settings (P5) + Home (P6)
 
-- [ ] Card-Listen: Notifications, Catalog, Admin Nutzer (Pilot)
-- [ ] Catalog-Filter-Sheet
-- [ ] Settings Drill-down im Modal
-- [ ] Home-Illustration mobil entschärfen
-- [ ] Kurzer Audit: weitere Zwei-Spalten-Modals; Approvals/Workspace auf Wrapper umstellen (wenn noch offen)
+- [x] Card-Listen: Notifications, Catalog, Admin Nutzer (Pilot) – `EntityListCard` + `WIDE_MIN_WIDTH`
+- [x] Catalog-Filter-Sheet (Search + Count sichtbar; Rest im Drawer unter compact)
+- [x] Settings Drill-down im Modal (fullscreen + Nav/Content; Deep-Link öffnet Content)
+- [x] Home-Illustration mobil entschärfen (`visibleFrom="lg"` + opaque Feed-Hintergrund)
+- [x] Kurzer Audit: weitere großen App-Modals einspaltig (kein P5); Approvals + Context Workspace auf `ResponsiveContentNav` (Trash/Shared/MostRead → Welle 4)
+- [ ] Manuell @375 / ~800 / ≥1280 Regression
+- [x] Lint / i18n-check
 
 **Done when:** Bild 1, 3, 4, 6, 7-Symptome am Pilot behoben; Templates/Help bereits aus Welle 2 nutzbar.
 
 ### Welle 4 – Restliche App-Flächen + Absicherung
 
-- [ ] Document Reader/Editor (Toolbar, Panels) – eigener Mini-Audit + Fixes
-- [ ] Context/Org Workspace, Trash/Archive, Approvals (Wrapper + Listen wo nötig)
-- [ ] Login / Demo-Login Touch
-- [ ] Search, What's new (kurz)
-- [ ] Regression: Desktop `wide` unverändert nutzbar
-- [ ] Optional: Landing Mobile-Review (§19) als separates Workstream
-- [ ] Optional: Spike Bottom-Nav Hybrid (P4-f, §2.8) – Entscheidung übernehmen/verwerfen
+#### Umsetzungscheckliste
 
-**Done when:** Abdeckungslücken aus Inventar §6 abgearbeitet oder bewusst zurückgestellt (mit Notiz im Inventar).
+- [x] Trash/Archive + MostRead → `ResponsiveContentNav`
+- [x] Shared → `ResponsiveContentNav`
+- [x] Listen-Cards: Trash/Archive, Drafts, ContextDocuments, Approvals (`EntityListCard` + `WIDE_MIN_WIDTH`)
+- [x] Document: Breakpoint `lg` (75em), Chrome via `ResponsiveContentNav` unter compact, Toolbar Touch ≥44px auf narrow
+- [x] Login/Demo Touch-Targets (≥44px)
+- [x] Search Modal narrow fullscreen; What's new Collapse Hit-Area ≥44px
+- [x] P4-f als verworfen dokumentiert (§2.8); Landing unberührt (§19)
+- [ ] Manuell 375 / ~800 / ≥1280 (Abnahme durch Reviewer)
+- [x] Lint / i18n-check (`pnpm run lint`, `pnpm run check:i18n`)
+
+**Done when:** Abdeckungslücken aus Inventar §6 abgearbeitet oder mit Notiz zurückgestellt; Desktop `wide` unverändert nutzbar.
 
 ---
 
@@ -217,7 +213,7 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - Keine vollständige Admin-Pixel-Parität aller Untertabs vor dem Shared-Pattern
 - Kein erzwungenes Help-DE
 - Landing nicht in denselben Merge-Zügen wie App-Shell/Patterns
-- Keine Bottom-Navigation in Welle 1–3, solange P4-f nicht explizit entschieden ist
+- Keine Bottom-Navigation (P4-f verworfen, §2.8)
 
 ---
 
@@ -240,10 +236,12 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 
 ## 7. Änderungsprotokoll
 
-| Datum      | Änderung                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------- |
-| 2026-08-06 | Erstfassung: Entscheidungen P1–P7, Wellen 0–4                                               |
-| 2026-08-06 | Offenpunkt P4-f: Hybrid-Bottom-Nav (§2.8), Spike nach Welle 1/2                             |
-| 2026-08-06 | Welle 0 Konstanten + Welle-1-Umsetzungscheckliste konkretisiert                             |
-| 2026-08-06 | Welle 1 Abnahme (Smoke-Checkbox); Welle-2-Umsetzungscheckliste abgeleitet                   |
-| 2026-08-06 | Welle 2: `ResponsiveContentNav` + Pilot Admin/Help/Templates/Notifications; Breadcrumb wrap |
+| Datum      | Änderung                                                                                                  |
+| ---------- | --------------------------------------------------------------------------------------------------------- |
+| 2026-08-06 | Erstfassung: Entscheidungen P1–P7, Wellen 0–4                                                             |
+| 2026-08-06 | Offenpunkt P4-f: Hybrid-Bottom-Nav (§2.8), Spike nach Welle 1/2                                           |
+| 2026-08-06 | Welle 0 Konstanten + Welle-1-Umsetzungscheckliste konkretisiert                                           |
+| 2026-08-06 | Welle 1 Abnahme (Smoke-Checkbox); Welle-2-Umsetzungscheckliste abgeleitet                                 |
+| 2026-08-06 | Welle 2: `ResponsiveContentNav` + Pilot Admin/Help/Templates/Notifications; Breadcrumb wrap               |
+| 2026-08-07 | Welle 3: Card-Listen, Catalog-Filter, Settings-Drill-down, Home-Illustration, Approvals/Workspace Wrapper |
+| 2026-08-07 | Welle 4: Restflächen Wrapper/Cards/Document/Login/Search; P4-f verworfen                                  |

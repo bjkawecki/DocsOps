@@ -1,6 +1,8 @@
 import {
   Badge,
   Box,
+  Button,
+  Drawer,
   Group,
   Stack,
   Table,
@@ -11,14 +13,23 @@ import {
   Pagination,
   Anchor,
 } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useMemo, useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconFilter,
+  IconListSearch,
+  IconSelector,
+} from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { EntityListCard } from '../../components/ui/EntityListCard.js';
 import { contextUrl } from '../contextWorkspace/contextPaths';
 import { apiFetch } from '../../api/client';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
@@ -112,6 +123,8 @@ function parseStoredPageSize(): number {
 export function CatalogPage() {
   const { t } = useTranslation(['documents', 'common']);
   const [searchParams, setSearchParams] = useSearchParams();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
 
   useSetAppShellBreadcrumbs([
     {
@@ -249,8 +262,78 @@ export function CatalogPage() {
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
   const tagOptions = useMemo(
-    () => (tagsData ?? []).map((t) => ({ value: t.id, label: t.name })),
+    () => (tagsData ?? []).map((tag) => ({ value: tag.id, label: tag.name })),
     [tagsData]
+  );
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (contextType) n += 1;
+    if (tagIds.length > 0) n += 1;
+    if (sortBy !== 'updatedAt' || sortOrder !== 'desc') n += 1;
+    if (limit !== DEFAULT_PAGE_SIZE) n += 1;
+    return n;
+  }, [contextType, tagIds.length, sortBy, sortOrder, limit]);
+
+  const contextTypeLabel = (doc: CatalogDocument) =>
+    doc.contextType === 'process'
+      ? t('documents:breadcrumbs.process')
+      : doc.contextType === 'subcontext'
+        ? t('documents:breadcrumbs.subcontext')
+        : t('documents:breadcrumbs.project');
+
+  const advancedFilters = (
+    <>
+      <Select
+        label={t('documents:catalog.contextTypeLabel')}
+        placeholder={t('documents:catalog.allTypes')}
+        data={[
+          { value: '', label: t('documents:catalog.allTypes') },
+          { value: 'process', label: t('documents:breadcrumbs.process') },
+          { value: 'project', label: t('documents:breadcrumbs.project') },
+        ]}
+        value={contextType || null}
+        onChange={(v) => setFilter('contextType', v ?? '')}
+        clearable
+        style={{ minWidth: 140 }}
+      />
+      <Select
+        label={t('documents:catalog.sortByLabel')}
+        data={[
+          { value: 'updatedAt', label: t('documents:catalog.sortOptions.updated') },
+          { value: 'createdAt', label: t('documents:catalog.sortOptions.created') },
+          { value: 'title', label: t('documents:catalog.sortOptions.name') },
+          { value: 'ownerDisplay', label: t('documents:catalog.sortOptions.owner') },
+          { value: 'contextType', label: t('documents:catalog.contextTypeLabel') },
+          { value: 'contextName', label: t('documents:catalog.context') },
+          { value: 'relevance', label: t('documents:catalog.sortOptions.relevance') },
+        ]}
+        value={sortBy}
+        onChange={(value) => {
+          if (!value) return;
+          setSort(value as SortBy, value === 'relevance' ? 'desc' : undefined);
+        }}
+        style={{ minWidth: 150 }}
+      />
+      <MultiSelect
+        label={t('documents:catalog.tagsLabel')}
+        placeholder={t('documents:catalog.tagsPlaceholder')}
+        data={tagOptions}
+        value={tagIds}
+        onChange={(v) => setFilter('tagIds', v)}
+        clearable
+        searchable
+        nothingFoundMessage={t('documents:catalog.noTagsMatch')}
+        style={{ minWidth: 200 }}
+      />
+      <Select
+        label={t('documents:catalog.perPage')}
+        data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+        value={String(limit)}
+        onChange={(v) => v && setLimit(parseInt(v, 10))}
+        style={{ width: 90 }}
+      />
+    </>
   );
 
   const SortIcon = ({ column }: { column: SortBy }) => {
@@ -284,195 +367,240 @@ export function CatalogPage() {
     <Box>
       <Stack gap="md">
         <Box className="catalog-sticky-filters">
-          <Group gap="md" wrap="wrap" align="flex-end">
-            <TextInput
-              label={t('documents:catalog.searchLabel')}
-              placeholder={t('documents:catalog.searchPlaceholder')}
-              value={search}
-              onChange={(e) => setFilter('search', e.currentTarget.value)}
-              style={{ minWidth: 200 }}
-            />
-            <Select
-              label={t('documents:catalog.contextTypeLabel')}
-              placeholder={t('documents:catalog.allTypes')}
-              data={[
-                { value: '', label: t('documents:catalog.allTypes') },
-                { value: 'process', label: t('documents:breadcrumbs.process') },
-                { value: 'project', label: t('documents:breadcrumbs.project') },
-              ]}
-              value={contextType || null}
-              onChange={(v) => setFilter('contextType', v ?? '')}
-              clearable
-              style={{ minWidth: 140 }}
-            />
-            <Select
-              label={t('documents:catalog.sortByLabel')}
-              data={[
-                { value: 'updatedAt', label: t('documents:catalog.sortOptions.updated') },
-                { value: 'createdAt', label: t('documents:catalog.sortOptions.created') },
-                { value: 'title', label: t('documents:catalog.sortOptions.name') },
-                { value: 'ownerDisplay', label: t('documents:catalog.sortOptions.owner') },
-                { value: 'contextType', label: t('documents:catalog.contextTypeLabel') },
-                { value: 'contextName', label: t('documents:catalog.context') },
-                { value: 'relevance', label: t('documents:catalog.sortOptions.relevance') },
-              ]}
-              value={sortBy}
-              onChange={(value) => {
-                if (!value) return;
-                setSort(value as SortBy, value === 'relevance' ? 'desc' : undefined);
-              }}
-              style={{ minWidth: 150 }}
-            />
-            <MultiSelect
-              label={t('documents:catalog.tagsLabel')}
-              placeholder={t('documents:catalog.tagsPlaceholder')}
-              data={tagOptions}
-              value={tagIds}
-              onChange={(v) => setFilter('tagIds', v)}
-              clearable
-              searchable
-              nothingFoundMessage={t('documents:catalog.noTagsMatch')}
-              style={{ minWidth: 200 }}
-            />
-            <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-              {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
-            </Text>
-            <Select
-              label={t('documents:catalog.perPage')}
-              data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-              value={String(limit)}
-              onChange={(v) => v && setLimit(parseInt(v, 10))}
-              style={{ width: 90 }}
-            />
-          </Group>
+          {isWide ? (
+            <Group gap="md" wrap="wrap" align="flex-end">
+              <TextInput
+                label={t('documents:catalog.searchLabel')}
+                placeholder={t('documents:catalog.searchPlaceholder')}
+                value={search}
+                onChange={(e) => setFilter('search', e.currentTarget.value)}
+                style={{ minWidth: 200 }}
+              />
+              {advancedFilters}
+              <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
+                {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
+              </Text>
+            </Group>
+          ) : (
+            <Stack gap="sm">
+              <TextInput
+                label={t('documents:catalog.searchLabel')}
+                placeholder={t('documents:catalog.searchPlaceholder')}
+                value={search}
+                onChange={(e) => setFilter('search', e.currentTarget.value)}
+              />
+              <Group gap="sm" justify="space-between" align="center" wrap="wrap">
+                <Button
+                  variant="default"
+                  size="sm"
+                  leftSection={<IconFilter size={16} stroke={1.5} />}
+                  onClick={openFilters}
+                >
+                  {t('documents:catalog.filterButton')}
+                  {activeFilterCount > 0
+                    ? ` (${t('documents:catalog.filtersActive', { count: activeFilterCount })})`
+                    : ''}
+                </Button>
+                <Text size="sm" c="dimmed">
+                  {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
+                </Text>
+              </Group>
+              <Drawer
+                opened={filtersOpened}
+                onClose={closeFilters}
+                title={t('documents:catalog.filterDrawerTitle')}
+                position="bottom"
+                size="auto"
+                padding="md"
+              >
+                <Stack gap="md">{advancedFilters}</Stack>
+              </Drawer>
+            </Stack>
+          )}
         </Box>
 
-        <Box className="docsops-search-snippet-mark" style={{ overflowX: 'auto' }}>
-          <Table withTableBorder className="catalog-table-hover dense-list-table">
-            <Table.Thead>
-              <Table.Tr>
-                <ThSort column="title" label={t('documents:catalog.table.name')} sticky />
-                <Table.Th>{t('documents:catalog.table.version')}</Table.Th>
-                <ThSort column="ownerDisplay" label={t('documents:catalog.table.owner')} />
-                <ThSort column="contextType" label={t('documents:catalog.contextTypeLabel')} />
-                <ThSort column="contextName" label={t('documents:catalog.context')} />
-                <Table.Th>{t('documents:catalog.table.tags')}</Table.Th>
-                <ThSort column="updatedAt" label={t('documents:catalog.table.updated')} />
-                <ThSort column="createdAt" label={t('documents:catalog.table.created')} />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {isPending && (
+        {isWide ? (
+          <Box className="docsops-search-snippet-mark" style={{ overflowX: 'auto' }}>
+            <Table withTableBorder className="catalog-table-hover dense-list-table">
+              <Table.Thead>
                 <Table.Tr>
-                  <Table.Td colSpan={8}>
-                    <Text size="sm" c="dimmed">
-                      {t('documents:catalog.loading')}
-                    </Text>
-                  </Table.Td>
+                  <ThSort column="title" label={t('documents:catalog.table.name')} sticky />
+                  <Table.Th>{t('documents:catalog.table.version')}</Table.Th>
+                  <ThSort column="ownerDisplay" label={t('documents:catalog.table.owner')} />
+                  <ThSort column="contextType" label={t('documents:catalog.contextTypeLabel')} />
+                  <ThSort column="contextName" label={t('documents:catalog.context')} />
+                  <Table.Th>{t('documents:catalog.table.tags')}</Table.Th>
+                  <ThSort column="updatedAt" label={t('documents:catalog.table.updated')} />
+                  <ThSort column="createdAt" label={t('documents:catalog.table.created')} />
                 </Table.Tr>
-              )}
-              {!isPending && isError && (
-                <Table.Tr>
-                  <Table.Td colSpan={8}>
-                    <Text size="sm" c="red">
-                      {t('documents:catalog.loadFailed')}
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              )}
-              {!isPending && !isError && data && data.items.length === 0 && (
-                <Table.Tr>
-                  <Table.Td colSpan={8}>
-                    <Text size="sm" c="dimmed">
-                      {t('documents:catalog.empty')}
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              )}
-              {!isPending &&
-                !isError &&
-                data &&
-                data.items.length > 0 &&
-                data.items.map((doc) => (
-                  <Table.Tr key={doc.id}>
-                    <Table.Td className="catalog-table-name-cell">
-                      <Anchor component={Link} to={`/documents/${doc.id}`} size="sm">
-                        {highlightMatch(doc.title || doc.id, search)}
-                      </Anchor>
-                      {search.trim() && doc.searchSnippet ? (
-                        <Text size="xs" c="dimmed" lineClamp={2}>
-                          {renderSearchSnippet(doc.searchSnippet)}
-                        </Text>
-                      ) : null}
+              </Table.Thead>
+              <Table.Tbody>
+                {isPending && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="dimmed">
+                        {t('documents:catalog.loading')}
+                      </Text>
                     </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">
+                  </Table.Tr>
+                )}
+                {!isPending && isError && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="red">
+                        {t('documents:catalog.loadFailed')}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                {!isPending && !isError && data && data.items.length === 0 && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="dimmed">
+                        {t('documents:catalog.empty')}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                {!isPending &&
+                  !isError &&
+                  data &&
+                  data.items.length > 0 &&
+                  data.items.map((doc) => (
+                    <Table.Tr key={doc.id}>
+                      <Table.Td className="catalog-table-name-cell">
+                        <Anchor component={Link} to={`/documents/${doc.id}`} size="sm">
+                          {highlightMatch(doc.title || doc.id, search)}
+                        </Anchor>
+                        {search.trim() && doc.searchSnippet ? (
+                          <Text size="xs" c="dimmed" lineClamp={2}>
+                            {renderSearchSnippet(doc.searchSnippet)}
+                          </Text>
+                        ) : null}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">
+                          {doc.currentPublishedVersionNumber != null
+                            ? `v${doc.currentPublishedVersionNumber}`
+                            : t('documents:catalog.draftVersion')}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        {doc.ownerHref ? (
+                          <Anchor
+                            component={Link}
+                            to={doc.ownerHref}
+                            size="sm"
+                            className="catalog-table-link-style"
+                          >
+                            {doc.ownerDisplay}
+                          </Anchor>
+                        ) : (
+                          <Text size="sm" component="span" className="catalog-table-link-style">
+                            {doc.ownerDisplay}
+                          </Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{contextTypeLabel(doc)}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Anchor
+                          component={Link}
+                          to={contextHref(doc)}
+                          size="sm"
+                          title={doc.contextName}
+                          className="catalog-table-link-style"
+                        >
+                          {doc.contextName || '–'}
+                        </Anchor>
+                      </Table.Td>
+                      <Table.Td>
+                        <Group gap={4}>
+                          {doc.documentTags.map((dt) => (
+                            <Badge key={dt.tag.id} size="sm" variant="filled">
+                              {dt.tag.name}
+                            </Badge>
+                          ))}
+                          {doc.documentTags.length === 0 && (
+                            <Text size="sm" c="dimmed">
+                              –
+                            </Text>
+                          )}
+                        </Group>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{formatDate(doc.updatedAt)}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{formatDate(doc.createdAt)}</Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+              </Table.Tbody>
+            </Table>
+          </Box>
+        ) : (
+          <Stack gap="sm" className="docsops-search-snippet-mark">
+            {isPending ? (
+              <Text size="sm" c="dimmed">
+                {t('documents:catalog.loading')}
+              </Text>
+            ) : isError ? (
+              <Text size="sm" c="red">
+                {t('documents:catalog.loadFailed')}
+              </Text>
+            ) : data && data.items.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                {t('documents:catalog.empty')}
+              </Text>
+            ) : (
+              data?.items.map((doc) => {
+                const tagsPreview = doc.documentTags
+                  .slice(0, 3)
+                  .map((dt) => dt.tag.name)
+                  .join(', ');
+                return (
+                  <EntityListCard
+                    key={doc.id}
+                    to={`/documents/${doc.id}`}
+                    title={
+                      <Text fw={600} size="sm" lineClamp={2}>
+                        {highlightMatch(doc.title || doc.id, search)}
+                      </Text>
+                    }
+                    meta={
+                      <Stack gap={2}>
+                        <Text size="xs" c="dimmed" lineClamp={1}>
+                          {doc.ownerDisplay} · {doc.contextName || '–'} ·{' '}
+                          {formatDate(doc.updatedAt)}
+                        </Text>
+                        {tagsPreview ? (
+                          <Text size="xs" c="dimmed" lineClamp={1}>
+                            {tagsPreview}
+                            {doc.documentTags.length > 3 ? '…' : ''}
+                          </Text>
+                        ) : null}
+                        {search.trim() && doc.searchSnippet ? (
+                          <Text size="xs" c="dimmed" lineClamp={2}>
+                            {renderSearchSnippet(doc.searchSnippet)}
+                          </Text>
+                        ) : null}
+                      </Stack>
+                    }
+                    rightSection={
+                      <Text size="xs" c="dimmed">
                         {doc.currentPublishedVersionNumber != null
                           ? `v${doc.currentPublishedVersionNumber}`
                           : t('documents:catalog.draftVersion')}
                       </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      {doc.ownerHref ? (
-                        <Anchor
-                          component={Link}
-                          to={doc.ownerHref}
-                          size="sm"
-                          className="catalog-table-link-style"
-                        >
-                          {doc.ownerDisplay}
-                        </Anchor>
-                      ) : (
-                        <Text size="sm" component="span" className="catalog-table-link-style">
-                          {doc.ownerDisplay}
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">
-                        {doc.contextType === 'process'
-                          ? t('documents:breadcrumbs.process')
-                          : doc.contextType === 'subcontext'
-                            ? t('documents:breadcrumbs.subcontext')
-                            : t('documents:breadcrumbs.project')}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Anchor
-                        component={Link}
-                        to={contextHref(doc)}
-                        size="sm"
-                        title={doc.contextName}
-                        className="catalog-table-link-style"
-                      >
-                        {doc.contextName || '–'}
-                      </Anchor>
-                    </Table.Td>
-                    <Table.Td>
-                      <Group gap={4}>
-                        {doc.documentTags.map((dt) => (
-                          <Badge key={dt.tag.id} size="sm" variant="filled">
-                            {dt.tag.name}
-                          </Badge>
-                        ))}
-                        {doc.documentTags.length === 0 && (
-                          <Text size="sm" c="dimmed">
-                            –
-                          </Text>
-                        )}
-                      </Group>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{formatDate(doc.updatedAt)}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{formatDate(doc.createdAt)}</Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-            </Table.Tbody>
-          </Table>
-        </Box>
+                    }
+                  />
+                );
+              })
+            )}
+          </Stack>
+        )}
         {!isPending && !isError && data && totalPages > 1 && (
           <Group justify="flex-end">
             <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />

@@ -264,13 +264,15 @@ Home-Illustration (Bild 1); ggf. weitere dekorative Hintergründe auditieren.
 
 Für die spätere Planung zusätzlich prüfen (kurz, gleiche Pattern-Klassen):
 
-- Login / Demo-Login
-- Document Reader + Editor
-- Context-/Org-Workspaces inkl. People
-- Reviews / Approvals (ähnlich Notifications)
-- Search
-- What's new
-- Lange Formulare / Create-Modals
+- [x] Login / Demo-Login – Touch-Targets Welle 4
+- [x] Document Reader + Editor – Content-Nav + `lg`-Breakpoint + Toolbar Touch Welle 4
+- [x] Context-/Org-Workspaces – Wrapper Welle 3/4 (Trash/MostRead/Shared); People unverändert Menu
+- [x] Reviews / Approvals – Nav Welle 3, Cards Welle 4
+- [x] Search – narrow fullscreen Welle 4
+- [x] What's new – Hit-Area Welle 4
+- [ ] Lange Formulare / Create-Modals – **bewusst zurückgestellt** (einspaltig; kein P5-Zwang)
+
+P4-f Bottom-Nav: **verworfen** (siehe Plan §2.8). Landing: separat §19.
 
 ---
 
@@ -304,3 +306,4 @@ Siehe [Plan-Mobile-UX](Plan-Mobile-UX.md): zuerst Shell (P4), dann Content-Nav (
 | 2026-08-06 | Erstfassung aus Screenshots Bild 1–8 + Code-Abgleich; ohne Umsetzungsplan |
 | 2026-08-06 | Verweis auf [Plan-Mobile-UX](Plan-Mobile-UX.md)                           |
 | 2026-08-06 | P4-f Bottom-Nav Hybrid als Offenpunkt (Plan §2.8)                         |
+| 2026-08-07 | §6 Restflächen Welle 4; P4-f verworfen; Create-Modals zurückgestellt      |

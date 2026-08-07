@@ -16,13 +16,20 @@ type ResponsiveContentNavProps = {
   /** Left-column nav content (same tree for drawer and desktop column). */
   nav: ReactNode;
   children: ReactNode;
+  /** Stick left column while scrolling (document chrome). */
+  stickyNav?: boolean;
 };
 
 /**
  * Content-first layout: under `compact` (&lt; lg) nav lives in a left drawer;
  * under `wide` the existing two-column chrome is unchanged.
  */
-export function ResponsiveContentNav({ title, nav, children }: ResponsiveContentNavProps) {
+export function ResponsiveContentNav({
+  title,
+  nav,
+  children,
+  stickyNav = false,
+}: ResponsiveContentNavProps) {
   const { t } = useTranslation('shell');
   const location = useLocation();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
@@ -35,7 +42,9 @@ export function ResponsiveContentNav({ title, nav, children }: ResponsiveContent
   if (isWide) {
     return (
       <Flex direction="row" gap="md" align="flex-start" w="100%">
-        <ContextWorkspaceLeftColumn data-context-sibling-nav>{nav}</ContextWorkspaceLeftColumn>
+        <ContextWorkspaceLeftColumn data-context-sibling-nav sticky={stickyNav}>
+          {nav}
+        </ContextWorkspaceLeftColumn>
         <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>{children}</Box>
       </Flex>
     );

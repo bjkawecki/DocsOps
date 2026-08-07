@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { contextUrl, readSidebarSectionOpen, writeSidebarSectionOpen } from './contextPaths.js';
-import { ContextWorkspaceLeftColumn } from './contextWorkspaceChrome.js';
 
 export type SidebarContextItem = {
   /** Context.id for SPA navigation */
@@ -244,113 +243,111 @@ export function ScopeContextSidebar({
   const { pathname } = useLocation();
 
   return (
-    <ContextWorkspaceLeftColumn data-context-sibling-nav>
-      <ContentCardWrapper fullHeight={false}>
-        <Stack gap="md" component="nav" align="stretch" w="100%">
-          <PeerCollapsibleSection
-            sectionId="processes"
-            label={t('sidebar.processes')}
-            icon={<IconRoute size={ICON_SIZE} stroke={1.5} />}
-            defaultOpen
-          >
-            {processes.length === 0 ? (
-              <Text size="sm" c="dimmed" px="xs">
-                {t('sidebar.processesEmpty')}
-              </Text>
-            ) : (
-              processes.map((p) => {
-                const to = contextUrl(p.contextId);
-                return (
-                  <NavLink
-                    key={p.contextId}
-                    component={Link}
-                    to={to}
-                    label={p.name}
-                    active={activeContextId === p.contextId}
-                    variant="subtle"
-                    style={navLinkFullWidth}
-                    onClick={(e) => onContextNavClick(p.contextId, e)}
-                  />
-                );
-              })
-            )}
-          </PeerCollapsibleSection>
-
-          <PeerCollapsibleSection
-            sectionId="projects"
-            label={t('sidebar.projects')}
-            icon={<IconBriefcase size={ICON_SIZE} stroke={1.5} />}
-            defaultOpen
-          >
-            {projects.length === 0 ? (
-              <Text size="sm" c="dimmed" px="xs">
-                {t('sidebar.projectsEmpty')}
-              </Text>
-            ) : (
-              projects.map((project) => (
-                <ProjectNavItem
-                  key={project.contextId}
-                  project={project}
-                  activeContextId={activeContextId}
-                  onContextNavClick={onContextNavClick}
-                />
-              ))
-            )}
-          </PeerCollapsibleSection>
-
-          {drafts != null && drafts.length > 0 && (
-            <PeerCollapsibleSection
-              sectionId="drafts"
-              label={t('sidebar.drafts')}
-              icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}
-              defaultOpen={false}
-            >
-              {drafts.map((d) => (
+    <ContentCardWrapper fullHeight={false}>
+      <Stack gap="md" component="nav" align="stretch" w="100%">
+        <PeerCollapsibleSection
+          sectionId="processes"
+          label={t('sidebar.processes')}
+          icon={<IconRoute size={ICON_SIZE} stroke={1.5} />}
+          defaultOpen
+        >
+          {processes.length === 0 ? (
+            <Text size="sm" c="dimmed" px="xs">
+              {t('sidebar.processesEmpty')}
+            </Text>
+          ) : (
+            processes.map((p) => {
+              const to = contextUrl(p.contextId);
+              return (
                 <NavLink
-                  key={d.id}
+                  key={p.contextId}
                   component={Link}
-                  to={`/documents/${d.id}`}
-                  label={d.title}
+                  to={to}
+                  label={p.name}
+                  active={activeContextId === p.contextId}
                   variant="subtle"
                   style={navLinkFullWidth}
+                  onClick={(e) => onContextNavClick(p.contextId, e)}
                 />
-              ))}
-            </PeerCollapsibleSection>
+              );
+            })
           )}
+        </PeerCollapsibleSection>
 
-          {trashArchive != null && (
-            <Stack gap={6} align="stretch" w="100%">
-              <NavLink
-                component={Link}
-                to={trashArchive.mostReadTo}
-                label={t('sidebar.mostRead')}
-                leftSection={<IconChartBar size={ICON_SIZE} stroke={1.5} />}
-                active={pathname === trashArchive.mostReadTo}
-                variant="subtle"
-                style={navLinkFullWidth}
+        <PeerCollapsibleSection
+          sectionId="projects"
+          label={t('sidebar.projects')}
+          icon={<IconBriefcase size={ICON_SIZE} stroke={1.5} />}
+          defaultOpen
+        >
+          {projects.length === 0 ? (
+            <Text size="sm" c="dimmed" px="xs">
+              {t('sidebar.projectsEmpty')}
+            </Text>
+          ) : (
+            projects.map((project) => (
+              <ProjectNavItem
+                key={project.contextId}
+                project={project}
+                activeContextId={activeContextId}
+                onContextNavClick={onContextNavClick}
               />
-              <NavLink
-                component={Link}
-                to={trashArchive.trashTo}
-                label={t('sidebar.trash')}
-                leftSection={<IconTrash size={ICON_SIZE} stroke={1.5} />}
-                active={pathname === trashArchive.trashTo}
-                variant="subtle"
-                style={navLinkFullWidth}
-              />
-              <NavLink
-                component={Link}
-                to={trashArchive.archiveTo}
-                label={t('sidebar.archive')}
-                leftSection={<IconArchive size={ICON_SIZE} stroke={1.5} />}
-                active={pathname === trashArchive.archiveTo}
-                variant="subtle"
-                style={navLinkFullWidth}
-              />
-            </Stack>
+            ))
           )}
-        </Stack>
-      </ContentCardWrapper>
-    </ContextWorkspaceLeftColumn>
+        </PeerCollapsibleSection>
+
+        {drafts != null && drafts.length > 0 && (
+          <PeerCollapsibleSection
+            sectionId="drafts"
+            label={t('sidebar.drafts')}
+            icon={<IconPencil size={ICON_SIZE} stroke={1.5} />}
+            defaultOpen={false}
+          >
+            {drafts.map((d) => (
+              <NavLink
+                key={d.id}
+                component={Link}
+                to={`/documents/${d.id}`}
+                label={d.title}
+                variant="subtle"
+                style={navLinkFullWidth}
+              />
+            ))}
+          </PeerCollapsibleSection>
+        )}
+
+        {trashArchive != null && (
+          <Stack gap={6} align="stretch" w="100%">
+            <NavLink
+              component={Link}
+              to={trashArchive.mostReadTo}
+              label={t('sidebar.mostRead')}
+              leftSection={<IconChartBar size={ICON_SIZE} stroke={1.5} />}
+              active={pathname === trashArchive.mostReadTo}
+              variant="subtle"
+              style={navLinkFullWidth}
+            />
+            <NavLink
+              component={Link}
+              to={trashArchive.trashTo}
+              label={t('sidebar.trash')}
+              leftSection={<IconTrash size={ICON_SIZE} stroke={1.5} />}
+              active={pathname === trashArchive.trashTo}
+              variant="subtle"
+              style={navLinkFullWidth}
+            />
+            <NavLink
+              component={Link}
+              to={trashArchive.archiveTo}
+              label={t('sidebar.archive')}
+              leftSection={<IconArchive size={ICON_SIZE} stroke={1.5} />}
+              active={pathname === trashArchive.archiveTo}
+              variant="subtle"
+              style={navLinkFullWidth}
+            />
+          </Stack>
+        )}
+      </Stack>
+    </ContentCardWrapper>
   );
 }

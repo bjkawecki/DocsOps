@@ -1,4 +1,5 @@
 import { ActionIcon, Button, Group, Menu, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { Link } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ import {
   IconFlag,
   IconFlagOff,
 } from '@tabler/icons-react';
+import { DESKTOP_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
 
@@ -96,6 +98,8 @@ export function DocumentPageToolbarActions({
   onClearStartHere,
 }: DocumentPageToolbarActionsProps) {
   const { t } = useTranslation(['documents', 'common']);
+  const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
+  const iconBtnSize = isDesktop ? 36 : 44;
 
   return (
     <Group gap="xs">
@@ -132,7 +136,7 @@ export function DocumentPageToolbarActions({
       {canEnterEditMode && mode === 'view' && (
         <ActionIcon
           variant="filled"
-          size="36"
+          size={iconBtnSize}
           aria-label={t('documentPage.toolbar.editDocumentAria')}
           onClick={handleEditClick}
         >
@@ -167,7 +171,7 @@ export function DocumentPageToolbarActions({
         <Menu.Target>
           <ActionIcon
             variant="default"
-            size="36"
+            size={iconBtnSize}
             aria-label={t('documentPage.toolbar.moreActionsAria')}
           >
             <IconDotsVertical size={18} />

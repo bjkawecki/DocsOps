@@ -13,6 +13,7 @@ import type { DocumentLeadDraftPanelHandle } from '../../components/documents/Do
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import {
   useClearScopeStartDocument,
@@ -20,10 +21,6 @@ import {
 } from '../../hooks/useScopeStartDocument.js';
 import { ContextSwitcherSelect } from '../contextWorkspace/ContextSwitcherSelect.js';
 import { contextUrl } from '../contextWorkspace/contextPaths.js';
-import {
-  CONTEXT_WORKSPACE_LEFT_WIDTH,
-  ContextWorkspaceLeftColumn,
-} from '../contextWorkspace/contextWorkspaceChrome.js';
 import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
 import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
 import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
@@ -240,168 +237,172 @@ export function DocumentPageLoadedLayout({
     <>
       <DocumentDocBreadcrumbs documentId={documentId} doc={breadcrumbDoc} />
 
-      {/* Same inset as ContextWorkspacePage (`Container fluid maw={1600} px="md"`). */}
       <Container
         fluid
         maw={1600}
         px="md"
         className="document-page-body"
-        style={{ display: 'flex' }}
+        style={{ display: 'block' }}
       >
-        <Box className="document-page-left" w={{ base: '100%', lg: CONTEXT_WORKSPACE_LEFT_WIDTH }}>
-          <Box className="document-page-left-inner">
-            <ContextWorkspaceLeftColumn>
-              <Stack gap="md" w="100%">
-                {data.contextId != null && ownerScope != null && (
-                  <ContextSwitcherSelect
-                    owner={ownerScope}
-                    value={data.contextId}
-                    onChange={(nextId) => {
-                      void navigate(contextUrl(nextId));
-                    }}
-                  />
-                )}
-                {numberedHeadings.length > 0 && (
-                  <DocumentTocNav numberedHeadings={numberedHeadings} />
-                )}
-                <DocumentSidebarMeta data={data} />
-                {data.contextId != null && (
-                  <DocumentContextDocsNav
-                    contextId={data.contextId}
-                    currentDocumentId={documentId}
-                    contextType={data.contextType}
-                  />
-                )}
-              </Stack>
-            </ContextWorkspaceLeftColumn>
-          </Box>
-        </Box>
-
-        <Box className="document-page-main">
-          <Flex
-            gap={{ base: 'lg', lg: 'xl' }}
-            direction={{ base: 'column', lg: 'row' }}
-            align={{ base: 'stretch', lg: 'stretch' }}
-            wrap="nowrap"
-            w="100%"
-            style={{ overflow: 'visible' }}
-          >
-            <Box className="document-page-reading">
-              <Box
-                className={
-                  mode === 'edit'
-                    ? 'document-page-scroll document-page-scroll--edit'
-                    : 'document-page-scroll'
-                }
-              >
-                {mode === 'view' ? (
-                  <Stack gap="lg" align="stretch" w="100%">
-                    {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
-                      <DocumentPublishedVersionAlert
-                        show
-                        currentVersion={latestPublishedVersion}
-                        acknowledgedVersion={ackPublishedVersion}
-                        onReload={onReloadPublishedContent}
-                      />
-                    )}
-                    <Card className="document-page-card" w="100%" padding={0}>
-                      <Box style={{ maxWidth: '100%' }}>
-                        {data.publishedBlocks != null && data.publishedBlocks.blocks.length > 0 ? (
-                          publishedPlainFromBlocks ? (
-                            <DocumentBlocksPreview
-                              doc={data.publishedBlocks}
-                              documentId={documentId}
-                              documentTitle={data.title}
-                            />
+        <ResponsiveContentNav
+          title={t('documentPage.chromeNavTitle')}
+          stickyNav
+          nav={
+            <Stack gap="md" w="100%">
+              {data.contextId != null && ownerScope != null && (
+                <ContextSwitcherSelect
+                  owner={ownerScope}
+                  value={data.contextId}
+                  onChange={(nextId) => {
+                    void navigate(contextUrl(nextId));
+                  }}
+                />
+              )}
+              {numberedHeadings.length > 0 && (
+                <DocumentTocNav numberedHeadings={numberedHeadings} />
+              )}
+              <DocumentSidebarMeta data={data} />
+              {data.contextId != null && (
+                <DocumentContextDocsNav
+                  contextId={data.contextId}
+                  currentDocumentId={documentId}
+                  contextType={data.contextType}
+                />
+              )}
+            </Stack>
+          }
+        >
+          <Box className="document-page-main">
+            <Flex
+              gap={{ base: 'lg', lg: 'xl' }}
+              direction={{ base: 'column', lg: 'row' }}
+              align={{ base: 'stretch', lg: 'stretch' }}
+              wrap="nowrap"
+              w="100%"
+              style={{ overflow: 'visible' }}
+            >
+              <Box className="document-page-reading">
+                <Box
+                  className={
+                    mode === 'edit'
+                      ? 'document-page-scroll document-page-scroll--edit'
+                      : 'document-page-scroll'
+                  }
+                >
+                  {mode === 'view' ? (
+                    <Stack gap="lg" align="stretch" w="100%">
+                      {!data.canPublish &&
+                        publishedVersionIsStale &&
+                        ackPublishedVersion != null && (
+                          <DocumentPublishedVersionAlert
+                            show
+                            currentVersion={latestPublishedVersion}
+                            acknowledgedVersion={ackPublishedVersion}
+                            onReload={onReloadPublishedContent}
+                          />
+                        )}
+                      <Card className="document-page-card" w="100%" padding={0}>
+                        <Box style={{ maxWidth: '100%' }}>
+                          {data.publishedBlocks != null &&
+                          data.publishedBlocks.blocks.length > 0 ? (
+                            publishedPlainFromBlocks ? (
+                              <DocumentBlocksPreview
+                                doc={data.publishedBlocks}
+                                documentId={documentId}
+                                documentTitle={data.title}
+                              />
+                            ) : (
+                              <Box mb="md" className="document-content">
+                                <DocumentReadingTitle title={data.title} />
+                                <Text size="sm" c="dimmed">
+                                  {t('documentPage.noExtractableText')}
+                                </Text>
+                              </Box>
+                            )
                           ) : (
                             <Box mb="md" className="document-content">
                               <DocumentReadingTitle title={data.title} />
                               <Text size="sm" c="dimmed">
-                                {t('documentPage.noExtractableText')}
+                                {t('documentPage.noPublishedContent')}
                               </Text>
                             </Box>
-                          )
-                        ) : (
-                          <Box mb="md" className="document-content">
-                            <DocumentReadingTitle title={data.title} />
-                            <Text size="sm" c="dimmed">
-                              {t('documentPage.noPublishedContent')}
-                            </Text>
+                          )}
+                        </Box>
+                      </Card>
+                    </Stack>
+                  ) : (
+                    <Box className="document-page-edit-fill">
+                      {!data.canPublish &&
+                        publishedVersionIsStale &&
+                        ackPublishedVersion != null && (
+                          <Box mb="md" style={{ flexShrink: 0 }}>
+                            <DocumentPublishedVersionAlert
+                              show
+                              currentVersion={latestPublishedVersion}
+                              acknowledgedVersion={ackPublishedVersion}
+                              onReload={onReloadPublishedContent}
+                            />
                           </Box>
                         )}
-                      </Box>
-                    </Card>
-                  </Stack>
-                ) : (
-                  <Box className="document-page-edit-fill">
-                    {!data.canPublish && publishedVersionIsStale && ackPublishedVersion != null && (
-                      <Box mb="md" style={{ flexShrink: 0 }}>
-                        <DocumentPublishedVersionAlert
-                          show
-                          currentVersion={latestPublishedVersion}
-                          acknowledgedVersion={ackPublishedVersion}
-                          onReload={onReloadPublishedContent}
+                      <Card
+                        className="document-page-card document-page-card--edit"
+                        w="100%"
+                        padding={0}
+                      >
+                        <DocumentPageEditPanels
+                          documentId={documentId}
+                          data={data}
+                          editTab={editTab}
+                          setEditTab={setEditTab}
+                          canManageAccess={canManageAccess}
+                          hasDraftBlocks={hasDraftBlocks}
+                          hasPublishedBlocks={hasPublishedBlocks}
+                          leadDraftPanelRef={leadDraftPanelRef}
+                          leadDraftLastSynced={leadDraftLastSynced}
+                          isTabVisible={isTabVisible}
+                          publishedVersionIsStale={publishedVersionIsStale}
+                          latestPublishedVersion={latestPublishedVersion}
+                          ackPublishedVersion={ackPublishedVersion}
+                          onReloadPublishedContent={onReloadPublishedContent}
+                          me={me}
+                          setLeadDraftDirty={setLeadDraftDirty}
+                          setLeadDraftLastSynced={setLeadDraftLastSynced}
+                          setLeadDraftPendingSuggestions={setLeadDraftPendingSuggestions}
+                          editTitle={editTitle}
+                          setEditTitle={setEditTitle}
+                          editDescription={editDescription}
+                          setEditDescription={setEditDescription}
+                          editTypeId={editTypeId}
+                          setEditTypeId={setEditTypeId}
+                          tagOptions={tagOptions}
+                          editTagIds={editTagIds}
+                          setEditTagIds={setEditTagIds}
+                          openCreateTag={openCreateTag}
+                          openManageTags={openManageTags}
                         />
-                      </Box>
-                    )}
-                    <Card
-                      className="document-page-card document-page-card--edit"
-                      w="100%"
-                      padding={0}
-                    >
-                      <DocumentPageEditPanels
-                        documentId={documentId}
-                        data={data}
-                        editTab={editTab}
-                        setEditTab={setEditTab}
-                        canManageAccess={canManageAccess}
-                        hasDraftBlocks={hasDraftBlocks}
-                        hasPublishedBlocks={hasPublishedBlocks}
-                        leadDraftPanelRef={leadDraftPanelRef}
-                        leadDraftLastSynced={leadDraftLastSynced}
-                        isTabVisible={isTabVisible}
-                        publishedVersionIsStale={publishedVersionIsStale}
-                        latestPublishedVersion={latestPublishedVersion}
-                        ackPublishedVersion={ackPublishedVersion}
-                        onReloadPublishedContent={onReloadPublishedContent}
-                        me={me}
-                        setLeadDraftDirty={setLeadDraftDirty}
-                        setLeadDraftLastSynced={setLeadDraftLastSynced}
-                        setLeadDraftPendingSuggestions={setLeadDraftPendingSuggestions}
-                        editTitle={editTitle}
-                        setEditTitle={setEditTitle}
-                        editDescription={editDescription}
-                        setEditDescription={setEditDescription}
-                        editTypeId={editTypeId}
-                        setEditTypeId={setEditTypeId}
-                        tagOptions={tagOptions}
-                        editTagIds={editTagIds}
-                        setEditTagIds={setEditTagIds}
-                        openCreateTag={openCreateTag}
-                        openManageTags={openManageTags}
-                      />
-                    </Card>
-                  </Box>
-                )}
+                      </Card>
+                    </Box>
+                  )}
+                </Box>
               </Box>
-            </Box>
 
-            <Box
-              component="aside"
-              aria-label={t('documentPage.commentsAside')}
-              className="document-page-comments-aside"
-              w={{ base: '100%', lg: 'auto' }}
-              style={{ flexShrink: 0 }}
-            >
-              <DocumentCommentsSection
-                documentId={documentId}
-                currentUserId={me?.user?.id}
-                headings={headings.map(({ id, text }) => ({ id, text }))}
-                layout="rail"
-              />
-            </Box>
-          </Flex>
-        </Box>
+              <Box
+                component="aside"
+                aria-label={t('documentPage.commentsAside')}
+                className="document-page-comments-aside"
+                w={{ base: '100%', lg: 'auto' }}
+                style={{ flexShrink: 0 }}
+              >
+                <DocumentCommentsSection
+                  documentId={documentId}
+                  currentUserId={me?.user?.id}
+                  headings={headings.map(({ id, text }) => ({ id, text }))}
+                  layout="rail"
+                />
+              </Box>
+            </Flex>
+          </Box>
+        </ResponsiveContentNav>
       </Container>
     </>
   );

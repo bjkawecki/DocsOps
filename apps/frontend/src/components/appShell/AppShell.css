@@ -303,7 +303,7 @@ a.document-chrome-nav-link:focus-visible,
   }
 }
 
-@media (min-width: 62em) {
+@media (min-width: 75em) {
   .document-page-body {
     flex-direction: row;
     align-items: flex-start;
@@ -380,9 +380,17 @@ a.document-chrome-nav-link:focus-visible,
     --app-shell-navbar-width: min(20rem, calc(100vw - 3rem)) !important;
   }
 
+  /*
+   * Scrim must not cover the drawer: fixed full-viewport + competing z-index with
+   * Mantine’s navbar stacking context blocked all nav clicks (menu looked dimmed).
+   * Offset to the panel’s right edge instead.
+   */
   .app-shell-mobile-nav-scrim {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: min(20rem, calc(100vw - 3rem));
     z-index: 199;
     margin: 0;
     padding: 0;
@@ -391,9 +399,8 @@ a.document-chrome-nav-link:focus-visible,
     background: color-mix(in srgb, var(--mantine-color-dark-9) 55%, transparent);
   }
 
-  .mantine-AppShell-navbar,
-  .app-shell-navbar {
-    z-index: 200;
+  .mantine-AppShell-navbar {
+    z-index: 200 !important;
   }
 
   .app-shell-top-bar-action,

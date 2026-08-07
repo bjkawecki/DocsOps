@@ -37,7 +37,6 @@ import type { UserPreferences } from '../system/ThemeFromPreferences.js';
 import { useIdentityScopePeopleControl } from '../scopePeople/useIdentityScopePeopleControl.js';
 import {
   closeSettingsSearchParams,
-  DEFAULT_SETTINGS_JUMP_ID,
   isSettingsOpen,
   openSettingsSearchParams,
 } from '../../pages/settings/settingsLayout.js';
@@ -91,9 +90,7 @@ export function AppShellTopBar({
   const toggleSettings = () => {
     setSearchParams(
       (prev) =>
-        isSettingsOpen(prev)
-          ? closeSettingsSearchParams(prev)
-          : openSettingsSearchParams(prev, DEFAULT_SETTINGS_JUMP_ID),
+        isSettingsOpen(prev) ? closeSettingsSearchParams(prev) : openSettingsSearchParams(prev),
       { replace: true }
     );
   };

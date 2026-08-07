@@ -1,13 +1,16 @@
 import { Card, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   useMeDrafts,
   type MeDraftsScopeParams,
   type DraftDocumentItem,
 } from '../../hooks/useMeDrafts';
 import { formatTableDate } from '../../lib/formatDate';
+import { EntityListCard } from '../ui/EntityListCard.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 
 type DraftsSortBy = 'title' | 'scopeName' | 'updatedAt';
@@ -30,6 +33,7 @@ export function DraftsTabContent({
 }: DraftsTabContentProps) {
   const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [searchParams, setSearchParams] = useSearchParams();
   const sortBy = (searchParams.get('draftsSortBy') ?? 'updatedAt') as DraftsSortBy;
   const sortOrder = searchParams.get('draftsSortOrder') ?? 'desc';
@@ -171,7 +175,7 @@ export function DraftsTabContent({
             {t('documents:trashArchive.draftsCard.empty')}
           </Text>
         </Card>
-      ) : (
+      ) : isWide ? (
         <Table striped highlightOnHover withTableBorder className="dense-list-table">
           <Table.Thead>
             <Table.Tr>
@@ -212,6 +216,17 @@ export function DraftsTabContent({
             ))}
           </Table.Tbody>
         </Table>
+      ) : (
+        <Stack gap="sm">
+          {filteredDrafts.map((d) => (
+            <EntityListCard
+              key={d.id}
+              to={`/documents/${d.id}`}
+              title={d.title}
+              meta={`${d.scopeName} · ${formatTableDate(d.updatedAt)}`}
+            />
+          ))}
+        </Stack>
       )}
       {useUrlPagination && totalPages > 1 && (
         <Group justify="center">

@@ -1,7 +1,10 @@
-import { Box, Flex, NavLink, Stack } from '@mantine/core';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Box, Button, Flex, NavLink, Stack } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { SettingsAccountTab } from './SettingsAccountTab.js';
 import { SettingsAppearanceTab } from './SettingsAppearanceTab.js';
 import { SettingsGeneralTab } from './SettingsGeneralTab.js';
@@ -14,6 +17,7 @@ import {
   openSettingsSearchParams,
   SETTINGS_CONTENT_MAX_WIDTH,
   SETTINGS_JUMP_IDS,
+  SETTINGS_QUERY_KEY,
   settingsCardDomId,
   type SettingsJumpId,
 } from './settingsLayout.js';
@@ -54,7 +58,6 @@ function resolveActiveJumpFromScroll(root: HTMLElement): SettingsJumpId | null {
     return lastId;
   }
 
-  // Email notifications (last card) is already the main visible section.
   if (
     lastId != null &&
     last.getBoundingClientRect().top <= rootRect.top + rootRect.height * LAST_CARD_ACTIVE_RATIO
@@ -62,7 +65,6 @@ function resolveActiveJumpFromScroll(root: HTMLElement): SettingsJumpId | null {
     return lastId;
   }
 
-  // Activate when a card’s top crosses ~20% down the pane (not a tight top edge).
   const markerY = rootRect.top + Math.max(24, rootRect.height * 0.2);
   let active: SettingsJumpId | null = null;
   for (const card of cards) {
@@ -75,17 +77,49 @@ function resolveActiveJumpFromScroll(root: HTMLElement): SettingsJumpId | null {
   return active ?? parseJumpIdAttr(cards[0]?.getAttribute('data-settings-card') ?? null);
 }
 
+function SettingsAllSections() {
+  return (
+    <>
+      <SettingsGeneralTab />
+      <SettingsAppearanceTab />
+      <SettingsAccountTab />
+      <SettingsSecurityTab />
+      <SettingsStorageTab />
+      <SettingsPulseTab />
+      <SettingsNotificationsTab />
+    </>
+  );
+}
+
+/** Compact: only the tab that contains the focused jump card. */
+function SettingsFocusedSections({ jumpId }: { jumpId: SettingsJumpId }) {
+  if (jumpId === 'profile' || jumpId === 'identity') return <SettingsGeneralTab />;
+  if (jumpId === 'appearance') return <SettingsAppearanceTab />;
+  if (jumpId === 'email' || jumpId === 'password') return <SettingsAccountTab />;
+  if (jumpId === 'sessions') return <SettingsSecurityTab />;
+  if (jumpId === 'storage') return <SettingsStorageTab />;
+  if (jumpId === 'pulse') return <SettingsPulseTab />;
+  return <SettingsNotificationsTab />;
+}
+
 export function SettingsPanel() {
   const { t } = useTranslation('settings');
   const [searchParams, setSearchParams] = useSearchParams();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const settingsRaw = searchParams.get(SETTINGS_QUERY_KEY);
+  const compactShowContent =
+    !isWide &&
+    settingsRaw != null &&
+    settingsRaw !== '' &&
+    SETTINGS_JUMP_IDS.includes(settingsRaw as SettingsJumpId);
   const jumpId = getSettingsJumpId(searchParams);
   const [activeJumpId, setActiveJumpId] = useState<SettingsJumpId>(jumpId);
   const [endPadPx, setEndPadPx] = useState(240);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const compactFocusRef = useRef<HTMLDivElement | null>(null);
   const ignoreSpyUntilRef = useRef(0);
   const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number | null>(null);
-  /** Jump ids we already scrolled to via nav click – URL sync must not re-scroll. */
   const handledNavJumpRef = useRef<SettingsJumpId | null>(null);
   const lastUrlJumpRef = useRef<SettingsJumpId | null>(null);
 
@@ -117,29 +151,32 @@ export function SettingsPanel() {
       handledNavJumpRef.current = id;
       setActiveJumpId(id);
       setSearchParams(openSettingsSearchParams(searchParams, id), { replace: true });
-      scrollToJump(id, 'smooth');
+      if (isWide) {
+        scrollToJump(id, 'smooth');
+      }
     },
-    [scrollToJump, searchParams, setSearchParams]
+    [isWide, scrollToJump, searchParams, setSearchParams]
   );
 
-  // Enough end padding so the last card can scroll up near the top of the pane.
+  const backToNav = useCallback(() => {
+    setSearchParams(openSettingsSearchParams(searchParams), { replace: true });
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     const root = scrollRef.current;
-    if (root == null) return;
+    if (root == null || !isWide) return;
     const update = () => {
-      // Nearly one viewport of trailing space so the last section can reach the top.
       setEndPadPx(Math.max(240, root.clientHeight - 32));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(root);
     return () => ro.disconnect();
-  }, []);
+  }, [isWide]);
 
-  // Scrollspy: update nav highlight only – never the URL (avoids jank + unexpected query changes).
   useEffect(() => {
     const root = scrollRef.current;
-    if (root == null) return;
+    if (root == null || !isWide) return;
 
     const onScroll = () => {
       if (rafRef.current != null) return;
@@ -157,10 +194,10 @@ export function SettingsPanel() {
       root.removeEventListener('scroll', onScroll);
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [isWide]);
 
-  // Scroll only when the URL jump target changes from open / deep link (not from scrollspy).
   useEffect(() => {
+    if (!isWide) return;
     if (handledNavJumpRef.current === jumpId) {
       handledNavJumpRef.current = null;
       lastUrlJumpRef.current = jumpId;
@@ -176,7 +213,6 @@ export function SettingsPanel() {
       scrollToJump(jumpId, 'auto');
     };
     const frame = requestAnimationFrame(tryScroll);
-    // Retry after loaders → content (card heights change).
     const t1 = window.setTimeout(tryScroll, 100);
     const t2 = window.setTimeout(tryScroll, 300);
     return () => {
@@ -184,13 +220,79 @@ export function SettingsPanel() {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [jumpId, scrollToJump]);
+  }, [isWide, jumpId, scrollToJump]);
 
   useEffect(() => {
     return () => {
       if (settleTimerRef.current != null) clearTimeout(settleTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!compactShowContent) return;
+    setActiveJumpId(jumpId);
+  }, [compactShowContent, jumpId]);
+
+  useLayoutEffect(() => {
+    if (!compactShowContent) return;
+    const root = compactFocusRef.current;
+    if (root == null) return;
+    root.querySelectorAll<HTMLElement>('[data-settings-card]').forEach((el) => {
+      el.style.display = el.getAttribute('data-settings-card') === jumpId ? '' : 'none';
+    });
+  }, [compactShowContent, jumpId]);
+
+  const nav = (
+    <Stack component="nav" gap={2} align="stretch" w="100%" aria-label={t('nav.ariaLabel')}>
+      {SETTINGS_JUMP_IDS.map((id) => {
+        const Icon = SETTINGS_JUMP_ICON_COMPONENTS[id];
+        return (
+          <NavLink
+            key={id}
+            label={t(`nav.${id}`)}
+            leftSection={<Icon size={SETTINGS_JUMP_ICON_SIZE} stroke={1.5} />}
+            active={activeJumpId === id}
+            aria-current={activeJumpId === id ? 'true' : undefined}
+            variant="subtle"
+            style={navLinkFullWidth}
+            onClick={() => selectJump(id)}
+          />
+        );
+      })}
+    </Stack>
+  );
+
+  if (!isWide) {
+    if (!compactShowContent) {
+      return (
+        <Box style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} p={4}>
+          {nav}
+        </Box>
+      );
+    }
+
+    return (
+      <Flex direction="column" gap="sm" h="100%" mih={0} style={{ flex: 1, minHeight: 0 }}>
+        <Button
+          variant="subtle"
+          size="sm"
+          leftSection={<IconArrowLeft size={16} stroke={1.5} />}
+          onClick={backToNav}
+          style={{ alignSelf: 'flex-start' }}
+        >
+          {t('nav.backToNav')}
+        </Button>
+        <Box
+          ref={compactFocusRef}
+          style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: 'auto' }}
+        >
+          <Stack gap="md" maw={SETTINGS_CONTENT_MAX_WIDTH} w="100%">
+            <SettingsFocusedSections jumpId={jumpId} />
+          </Stack>
+        </Box>
+      </Flex>
+    );
+  }
 
   return (
     <Flex gap="md" align="stretch" h="100%" mih={0} style={{ flex: 1, minHeight: 0 }}>
@@ -199,23 +301,7 @@ export function SettingsPanel() {
         data-context-sibling-nav
         style={{ flexShrink: 0, width: SETTINGS_NAV_WIDTH, minWidth: SETTINGS_NAV_WIDTH }}
       >
-        <Stack component="nav" gap={2} align="stretch" w="100%" aria-label={t('nav.ariaLabel')}>
-          {SETTINGS_JUMP_IDS.map((id) => {
-            const Icon = SETTINGS_JUMP_ICON_COMPONENTS[id];
-            return (
-              <NavLink
-                key={id}
-                label={t(`nav.${id}`)}
-                leftSection={<Icon size={SETTINGS_JUMP_ICON_SIZE} stroke={1.5} />}
-                active={activeJumpId === id}
-                aria-current={activeJumpId === id ? 'true' : undefined}
-                variant="subtle"
-                style={navLinkFullWidth}
-                onClick={() => selectJump(id)}
-              />
-            );
-          })}
-        </Stack>
+        {nav}
       </Box>
 
       <Box
@@ -228,13 +314,7 @@ export function SettingsPanel() {
         }}
       >
         <Stack gap="md" maw={SETTINGS_CONTENT_MAX_WIDTH} w="100%" pb={0}>
-          <SettingsGeneralTab />
-          <SettingsAppearanceTab />
-          <SettingsAccountTab />
-          <SettingsSecurityTab />
-          <SettingsStorageTab />
-          <SettingsPulseTab />
-          <SettingsNotificationsTab />
+          <SettingsAllSections />
           <Box h={endPadPx} aria-hidden style={{ flexShrink: 0 }} />
         </Stack>
       </Box>

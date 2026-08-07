@@ -1,4 +1,4 @@
-import { Box, Container, Flex, Paper, Text } from '@mantine/core';
+import { Box, Container, Paper, Text } from '@mantine/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { ArchiveTabContent, TrashTabContent } from '../../components/trashArchiv
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
@@ -40,7 +41,7 @@ export function ScopeTrashArchivePage({
   departmentId,
   teamId,
 }: Props) {
-  const { t } = useTranslation(['contexts', 'common']);
+  const { t } = useTranslation(['contexts', 'common', 'shell']);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
@@ -80,20 +81,19 @@ export function ScopeTrashArchivePage({
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
+        <ResponsiveContentNav
+          title={t('shell:nav.organization')}
+          nav={
+            <ScopeContextSidebar
+              processes={processes}
+              projects={projects}
+              drafts={drafts}
+              activeContextId={null}
+              onContextNavClick={handleContextNavClick}
+              trashArchive={trashArchive}
+            />
+          }
         >
-          <ScopeContextSidebar
-            processes={processes}
-            projects={projects}
-            drafts={drafts}
-            activeContextId={null}
-            onContextNavClick={handleContextNavClick}
-            trashArchive={trashArchive}
-          />
-
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             {kind === 'trash' ? (
               <TrashTabContent {...contentProps} />
@@ -101,7 +101,7 @@ export function ScopeTrashArchivePage({
               <ArchiveTabContent {...contentProps} />
             )}
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
     </Container>
   );

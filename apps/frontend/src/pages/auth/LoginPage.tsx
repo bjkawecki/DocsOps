@@ -153,10 +153,12 @@ export function LoginPage() {
                   <Button
                     key={role}
                     variant="light"
+                    size="md"
                     fullWidth
                     disabled={pending}
                     loading={demoLogin.isPending && demoLogin.variables === role}
                     onClick={() => demoLogin.mutate(role)}
+                    style={{ minHeight: 44 }}
                   >
                     {t(`demo.roles.${role}`)}
                   </Button>
@@ -175,7 +177,13 @@ export function LoginPage() {
               ) : null}
               <UnstyledButton
                 onClick={() => setPasswordOpen((v) => !v)}
-                style={{ fontSize: 'var(--mantine-font-size-sm)' }}
+                style={{
+                  fontSize: 'var(--mantine-font-size-sm)',
+                  minHeight: 44,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  paddingBlock: 8,
+                }}
               >
                 <Text size="sm" c="dimmed" td="underline">
                   {passwordOpen ? t('demo.hidePasswordLogin') : t('demo.showPasswordLogin')}
@@ -235,6 +243,7 @@ export function LoginPage() {
                   size="md"
                   loading={login.isPending}
                   fullWidth
+                  style={{ minHeight: 44 }}
                 >
                   {login.isPending ? t('submitting') : t('submit')}
                 </Button>

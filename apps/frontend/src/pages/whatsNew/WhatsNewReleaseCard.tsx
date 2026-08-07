@@ -38,6 +38,9 @@ export function WhatsNewReleaseCard({ release, isLatest, defaultExpanded = false
             cursor: hasBody ? 'pointer' : 'default',
             textAlign: 'left',
             borderRadius: 'var(--mantine-radius-sm)',
+            minHeight: 44,
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
           <Group align="flex-start" wrap="nowrap" gap="xs">

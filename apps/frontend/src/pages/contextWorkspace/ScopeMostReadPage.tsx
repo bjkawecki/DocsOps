@@ -1,4 +1,4 @@
-import { Box, Container, Flex, Paper, Stack, Text, Title } from '@mantine/core';
+import { Box, Container, Paper, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { MostReadListContent } from '../../components/mostRead/MostReadListConte
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
@@ -36,7 +37,7 @@ export function ScopeMostReadPage({
   departmentId,
   teamId,
 }: Props) {
-  const { t } = useTranslation(['contexts', 'common']);
+  const { t } = useTranslation(['contexts', 'common', 'shell']);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
@@ -69,20 +70,19 @@ export function ScopeMostReadPage({
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 'md', lg: 'lg' }}
-          align="flex-start"
+        <ResponsiveContentNav
+          title={t('shell:nav.organization')}
+          nav={
+            <ScopeContextSidebar
+              processes={processes}
+              projects={projects}
+              drafts={drafts}
+              activeContextId={null}
+              onContextNavClick={handleContextNavClick}
+              trashArchive={trashArchive}
+            />
+          }
         >
-          <ScopeContextSidebar
-            processes={processes}
-            projects={projects}
-            drafts={drafts}
-            activeContextId={null}
-            onContextNavClick={handleContextNavClick}
-            trashArchive={trashArchive}
-          />
-
           <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Stack gap="md">
               <Title order={3}>{t('sidebar.mostRead')}</Title>
@@ -94,7 +94,7 @@ export function ScopeMostReadPage({
               />
             </Stack>
           </Box>
-        </Flex>
+        </ResponsiveContentNav>
       </Paper>
     </Container>
   );

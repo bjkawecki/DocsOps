@@ -1,9 +1,12 @@
 import { Badge, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatTableDate } from '../../lib/formatDate';
 import { ContentLink } from '../ui/ContentLink';
+import { EntityListCard } from '../ui/EntityListCard.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 
 export type ContextDocumentsTableRow = {
@@ -43,6 +46,7 @@ export function ContextDocumentsTable({
 }) {
   const { t } = useTranslation('contexts');
   const navigate = useNavigate();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const localSearch = searchParams.get(SEARCH_KEY) ?? '';
@@ -152,70 +156,107 @@ export function ContextDocumentsTable({
         />
       </Group>
 
-      <Table withTableBorder className="dense-list-table">
-        <Table.Thead>
-          <Table.Tr>
-            <SortableTableTh
-              label={t('documentsTable.titleColumn')}
-              column="title"
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort('title')}
-            />
-            <Table.Th>{t('documentsTable.tagsColumn')}</Table.Th>
-            <SortableTableTh
-              label={t('documentsTable.lastUpdatedColumn')}
-              column="updatedAt"
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onClick={() => setSort('updatedAt')}
-            />
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {filteredItems.length === 0 ? (
+      {isWide ? (
+        <Table withTableBorder className="dense-list-table">
+          <Table.Thead>
             <Table.Tr>
-              <Table.Td colSpan={3}>
-                <Text size="sm" c="dimmed">
-                  {documents.length === 0
-                    ? (emptyMessage ?? t('documentsTable.emptyDefault'))
-                    : t('documentsTable.emptySearch')}
-                </Text>
-              </Table.Td>
+              <SortableTableTh
+                label={t('documentsTable.titleColumn')}
+                column="title"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('title')}
+              />
+              <Table.Th>{t('documentsTable.tagsColumn')}</Table.Th>
+              <SortableTableTh
+                label={t('documentsTable.lastUpdatedColumn')}
+                column="updatedAt"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('updatedAt')}
+              />
             </Table.Tr>
-          ) : (
-            filteredItems.map((doc) => (
-              <Table.Tr
-                key={doc.id}
-                data-clickable-table-row
-                onClick={() => {
-                  void navigate(`/documents/${doc.id}`);
-                }}
-              >
-                <Table.Td>
-                  <ContentLink to={`/documents/${doc.id}`} style={{ fontWeight: 500 }}>
-                    {doc.title}
-                  </ContentLink>
-                </Table.Td>
-                <Table.Td>
-                  <Group gap="xs">
-                    {doc.documentTags.map((dt) => (
-                      <Badge key={dt.tag.id} size="sm" variant="light" color="gray">
-                        {dt.tag.name}
-                      </Badge>
-                    ))}
-                  </Group>
-                </Table.Td>
-                <Table.Td>
+          </Table.Thead>
+          <Table.Tbody>
+            {filteredItems.length === 0 ? (
+              <Table.Tr>
+                <Table.Td colSpan={3}>
                   <Text size="sm" c="dimmed">
-                    {formatTableDate(doc.updatedAt)}
+                    {documents.length === 0
+                      ? (emptyMessage ?? t('documentsTable.emptyDefault'))
+                      : t('documentsTable.emptySearch')}
                   </Text>
                 </Table.Td>
               </Table.Tr>
-            ))
-          )}
-        </Table.Tbody>
-      </Table>
+            ) : (
+              filteredItems.map((doc) => (
+                <Table.Tr
+                  key={doc.id}
+                  data-clickable-table-row
+                  onClick={() => {
+                    void navigate(`/documents/${doc.id}`);
+                  }}
+                >
+                  <Table.Td>
+                    <ContentLink to={`/documents/${doc.id}`} style={{ fontWeight: 500 }}>
+                      {doc.title}
+                    </ContentLink>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      {doc.documentTags.map((dt) => (
+                        <Badge key={dt.tag.id} size="sm" variant="light" color="gray">
+                          {dt.tag.name}
+                        </Badge>
+                      ))}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c="dimmed">
+                      {formatTableDate(doc.updatedAt)}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            )}
+          </Table.Tbody>
+        </Table>
+      ) : filteredItems.length === 0 ? (
+        <Text size="sm" c="dimmed">
+          {documents.length === 0
+            ? (emptyMessage ?? t('documentsTable.emptyDefault'))
+            : t('documentsTable.emptySearch')}
+        </Text>
+      ) : (
+        <Stack gap="sm">
+          {filteredItems.map((doc) => {
+            const tagsPreview = doc.documentTags
+              .slice(0, 3)
+              .map((dt) => dt.tag.name)
+              .join(', ');
+            return (
+              <EntityListCard
+                key={doc.id}
+                to={`/documents/${doc.id}`}
+                title={doc.title}
+                meta={
+                  <Stack gap={2}>
+                    <Text size="xs" c="dimmed">
+                      {formatTableDate(doc.updatedAt)}
+                    </Text>
+                    {tagsPreview ? (
+                      <Text size="xs" c="dimmed" lineClamp={1}>
+                        {tagsPreview}
+                        {doc.documentTags.length > 3 ? '…' : ''}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                }
+              />
+            );
+          })}
+        </Stack>
+      )}
 
       <Group justify="flex-end">
         <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
