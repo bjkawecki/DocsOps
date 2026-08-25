@@ -111,20 +111,6 @@ export function PhilosophiePage() {
             </Stack>
           </Stack>
 
-          <Stack gap="lg" className="landing-philosophy-vision" maw={640} w="100%">
-            <Title order={2} className="landing-philosophy-section-title">
-              {philosophieCopy.visionTitle}
-              <PhilosophyAccentPeriod />
-            </Title>
-            <Stack gap="lg">
-              {philosophieCopy.vision.map((paragraph) => (
-                <Text key={paragraph} className="landing-philosophy-body" lh={1.7}>
-                  {paragraph}
-                </Text>
-              ))}
-            </Stack>
-          </Stack>
-
           <Stack gap={40} className="landing-philosophy-summary" w="100%">
             <Title
               order={2}

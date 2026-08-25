@@ -166,7 +166,6 @@ Abteilung IT
 | **Hero**                     | „Unser Ansatz.“ + Tagline (Betriebswissen soll nicht nur in Köpfen liegen)                                                                     |
 | **Erzählung**                | Vom Bekannten (Unternehmenswissen) zur Abbildung in DocsOps; Struktur, Zusammenarbeit, Verbindlichkeit                                         |
 | **Was DocsOps anders macht** | Vier Blöcke: Organisation als Rahmen; Information braucht Kontext; gemeinsam bearbeiten / verbindlich veröffentlichen; Verantwortung ≠ Zugriff |
-| **Unsere Vision**            | Abbildung des Unternehmens; Dokumentation als Teil, wie die Organisation funktioniert                                                          |
 | **Für wen**                  | Titel mit DocsOps-Subjekt; Passt / eher nichts                                                                                                 |
 | **CTA**                      | Live-Demo + Zur Startseite                                                                                                                     |
 

@@ -218,12 +218,6 @@ export const philosophieCopy = {
       ],
     },
   ],
-  visionTitle: 'Unsere Vision',
-  vision: [
-    'Unternehmen sollten nicht davon abhängen, dass jemand weiß, wie es läuft. Was bleibt, gehört zur Organisation selbst: wie wir arbeiten, womit wir arbeiten, was gilt, wer verantwortlich ist.',
-    'DocsOps soll daraus eine nachvollziehbare Abbildung machen: strukturiert genug für Orientierung, offen genug für die eigene Organisation, verbindlich genug zum Arbeiten danach.',
-    'Gute Unternehmensdokumentation beschreibt nicht nur, was ein Unternehmen tut. Sie ist Teil davon, wie es funktioniert.',
-  ],
   summaryTitle: 'Für wen DocsOps gedacht ist',
   fitsForTitle: 'DocsOps passt zu Ihnen, wenn Sie',
   fitsFor: [
