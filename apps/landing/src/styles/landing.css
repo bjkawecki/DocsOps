@@ -1237,6 +1237,8 @@ a.landing-nav-link:hover {
 .landing-philosophy-summary {
   width: 100%;
   max-width: 960px;
+  /* Extra break after principles – outer Stack gap alone reads too tight */
+  margin-top: 2rem;
 }
 
 .landing-philosophy-summary-title {

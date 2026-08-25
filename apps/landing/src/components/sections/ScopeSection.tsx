@@ -1,7 +1,12 @@
 import { Box, Stack } from '@mantine/core';
-import { ScopeDiagram } from '../diagrams/ScopeDiagram';
+import { lazy, Suspense } from 'react';
 import { scopeCopy } from '../../content/siteCopy';
+import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
+
+const ScopeDiagram = lazy(() =>
+  import('../diagrams/ScopeDiagram').then((m) => ({ default: m.ScopeDiagram })),
+);
 
 export function ScopeSection() {
   return (
@@ -13,7 +18,9 @@ export function ScopeSection() {
           introHighlights={scopeCopy.introHighlights}
         />
 
-        <ScopeDiagram />
+        <Suspense fallback={<LandingRouteFallback />}>
+          <ScopeDiagram />
+        </Suspense>
       </Stack>
     </Box>
   );

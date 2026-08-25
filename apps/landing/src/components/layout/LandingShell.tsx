@@ -1,5 +1,7 @@
 import { Box, Container } from '@mantine/core';
+import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import { LandingRouteFallback } from '../LandingRouteFallback';
 import { ScrollToTop } from '../ScrollToTop';
 import { Footer } from './Footer';
 import { Navbar } from './Navbar';
@@ -10,7 +12,9 @@ export function LandingShell() {
       <ScrollToTop />
       <Navbar />
       <Container size="lg" py="xl" component="main">
-        <Outlet />
+        <Suspense fallback={<LandingRouteFallback />}>
+          <Outlet />
+        </Suspense>
       </Container>
       <Footer />
     </Box>

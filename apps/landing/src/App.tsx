@@ -1,12 +1,24 @@
+import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LandingShell } from './components/layout/LandingShell';
-import { ChangelogPage } from './pages/ChangelogPage';
 import { HomePage } from './pages/HomePage';
-import { InstallPage } from './pages/InstallPage';
-import { LegalPage } from './pages/LegalPage';
-import { PhilosophiePage } from './pages/PhilosophiePage';
-import { SponsorPage } from './pages/SponsorPage';
-import { VergleichHubPage } from './pages/VergleichHubPage';
+
+const PhilosophiePage = lazy(() =>
+  import('./pages/PhilosophiePage').then((m) => ({ default: m.PhilosophiePage })),
+);
+const InstallPage = lazy(() =>
+  import('./pages/InstallPage').then((m) => ({ default: m.InstallPage })),
+);
+const ChangelogPage = lazy(() =>
+  import('./pages/ChangelogPage').then((m) => ({ default: m.ChangelogPage })),
+);
+const SponsorPage = lazy(() =>
+  import('./pages/SponsorPage').then((m) => ({ default: m.SponsorPage })),
+);
+const VergleichHubPage = lazy(() =>
+  import('./pages/VergleichHubPage').then((m) => ({ default: m.VergleichHubPage })),
+);
+const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
 
 export default function App() {
   return (

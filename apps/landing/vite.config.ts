@@ -25,6 +25,18 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
     },
     envDir: landingDir,
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom', 'react-router-dom'],
+            mantine: ['@mantine/core', '@mantine/hooks'],
+            xyflow: ['@xyflow/react'],
+            markdown: ['react-markdown', 'remark-gfm'],
+          },
+        },
+      },
+    },
     server: {
       port: 5174,
       host: process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1',

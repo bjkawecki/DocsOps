@@ -1,7 +1,12 @@
 import { Box, Stack } from '@mantine/core';
-import { RolesDocumentDiagram } from '../diagrams/RolesDocumentDiagram';
+import { lazy, Suspense } from 'react';
 import { rolesPublicationCopy } from '../../content/siteCopy';
+import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
+
+const RolesDocumentDiagram = lazy(() =>
+  import('../diagrams/RolesDocumentDiagram').then((m) => ({ default: m.RolesDocumentDiagram })),
+);
 
 export function RolesPublicationSection() {
   return (
@@ -13,7 +18,9 @@ export function RolesPublicationSection() {
           introHighlights={rolesPublicationCopy.introHighlights}
         />
 
-        <RolesDocumentDiagram />
+        <Suspense fallback={<LandingRouteFallback />}>
+          <RolesDocumentDiagram />
+        </Suspense>
       </Stack>
     </Box>
   );
