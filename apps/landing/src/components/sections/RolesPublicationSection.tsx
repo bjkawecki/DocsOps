@@ -5,7 +5,7 @@ import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
 const RolesDocumentDiagram = lazy(() =>
-  import('../diagrams/RolesDocumentDiagram').then((m) => ({ default: m.RolesDocumentDiagram })),
+  import('../diagrams/RolesDocumentDiagram').then((m) => ({ default: m.RolesDocumentDiagram }))
 );
 
 export function RolesPublicationSection() {

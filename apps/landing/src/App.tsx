@@ -4,19 +4,19 @@ import { LandingShell } from './components/layout/LandingShell';
 import { HomePage } from './pages/HomePage';
 
 const PhilosophiePage = lazy(() =>
-  import('./pages/PhilosophiePage').then((m) => ({ default: m.PhilosophiePage })),
+  import('./pages/PhilosophiePage').then((m) => ({ default: m.PhilosophiePage }))
 );
 const InstallPage = lazy(() =>
-  import('./pages/InstallPage').then((m) => ({ default: m.InstallPage })),
+  import('./pages/InstallPage').then((m) => ({ default: m.InstallPage }))
 );
 const ChangelogPage = lazy(() =>
-  import('./pages/ChangelogPage').then((m) => ({ default: m.ChangelogPage })),
+  import('./pages/ChangelogPage').then((m) => ({ default: m.ChangelogPage }))
 );
 const SponsorPage = lazy(() =>
-  import('./pages/SponsorPage').then((m) => ({ default: m.SponsorPage })),
+  import('./pages/SponsorPage').then((m) => ({ default: m.SponsorPage }))
 );
 const VergleichHubPage = lazy(() =>
-  import('./pages/VergleichHubPage').then((m) => ({ default: m.VergleichHubPage })),
+  import('./pages/VergleichHubPage').then((m) => ({ default: m.VergleichHubPage }))
 );
 const LegalPage = lazy(() => import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })));
 

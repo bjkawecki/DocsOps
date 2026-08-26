@@ -5,7 +5,7 @@ import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
 const ScopeDiagram = lazy(() =>
-  import('../diagrams/ScopeDiagram').then((m) => ({ default: m.ScopeDiagram })),
+  import('../diagrams/ScopeDiagram').then((m) => ({ default: m.ScopeDiagram }))
 );
 
 export function ScopeSection() {
