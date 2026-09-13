@@ -1,4 +1,14 @@
-import { Badge, Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import {
+  Badge,
+  Button,
+  Group,
+  Pagination,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useIntersection, useMediaQuery } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,10 +18,7 @@ import { formatTableDate } from '../../lib/formatDate';
 import { ContentLink } from '../ui/ContentLink';
 import { EntityListCard } from '../ui/EntityListCard.js';
 import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
-import {
-  CompactListCount,
-  useCompactListSearchFab,
-} from '../ui/StickySearchChrome.js';
+import { CompactListCount, useCompactListSearchFab } from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 
 export type ContextDocumentsTableRow = {

@@ -31,7 +31,9 @@ export function PageMobileNavOpenProvider({
   children: ReactNode;
 }) {
   return (
-    <PageMobileNavOpenContext.Provider value={openRef}>{children}</PageMobileNavOpenContext.Provider>
+    <PageMobileNavOpenContext.Provider value={openRef}>
+      {children}
+    </PageMobileNavOpenContext.Provider>
   );
 }
 
@@ -87,10 +89,7 @@ export function PageMobileActionsHost({
     };
   }, []);
 
-  const extraActions = useMemo(
-    () => Object.values(extraByRegistrant).flat(),
-    [extraByRegistrant]
-  );
+  const extraActions = useMemo(() => Object.values(extraByRegistrant).flat(), [extraByRegistrant]);
 
   const actions = useMemo((): PageMobileAction[] => {
     if (isWide) return [];
@@ -140,19 +139,18 @@ export function useCompactContentNavFab(navTitle: string): {
   const { t } = useTranslation('shell');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const compactNavOpenRef = useRef<(() => void) | null>(null);
-  const navFab =
-    !isWide ? (
-      <PageMobileActionBar
-        ariaLabel={t('nav.pageMobileActionsAria')}
-        actions={[
-          buildPageMobileNavAction(
-            navTitle,
-            () => compactNavOpenRef.current?.(),
-            t('nav.contentNavOpenAria', { title: navTitle })
-          ),
-        ]}
-      />
-    ) : null;
+  const navFab = !isWide ? (
+    <PageMobileActionBar
+      ariaLabel={t('nav.pageMobileActionsAria')}
+      actions={[
+        buildPageMobileNavAction(
+          navTitle,
+          () => compactNavOpenRef.current?.(),
+          t('nav.contentNavOpenAria', { title: navTitle })
+        ),
+      ]}
+    />
+  ) : null;
 
   return {
     isWide,

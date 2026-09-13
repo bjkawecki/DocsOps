@@ -76,13 +76,11 @@ export function AdminUserAssignmentsDisplay({ user }: { user: UserRow }) {
   );
 }
 
-export function formatUserTeamsColumn(
-  t: TFunction,
-  roleLabel: RoleLabelFn,
-  user: UserRow
-): string {
+export function formatUserTeamsColumn(t: TFunction, roleLabel: RoleLabelFn, user: UserRow): string {
   if (!user.teams?.length) return '–';
-  return user.teams.map((team) => `${team.name} (${formatTeamRole(t, roleLabel, team)})`).join(', ');
+  return user.teams
+    .map((team) => `${team.name} (${formatTeamRole(t, roleLabel, team)})`)
+    .join(', ');
 }
 
 export function formatUserDepartmentsColumn(

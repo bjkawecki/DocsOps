@@ -124,7 +124,12 @@ export function EntityListCard({
     if (flat) {
       return (
         <Box className={rootClass} w="100%">
-          <UnstyledButton onClick={onClick} w="100%" className="entity-list-card-hit" style={hitStyle}>
+          <UnstyledButton
+            onClick={onClick}
+            w="100%"
+            className="entity-list-card-hit"
+            style={hitStyle}
+          >
             {body}
           </UnstyledButton>
         </Box>

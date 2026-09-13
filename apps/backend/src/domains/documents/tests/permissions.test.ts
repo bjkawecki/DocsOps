@@ -410,7 +410,7 @@ describe('Permissions (canRead, canWrite)', () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
 
-    it('listUserIdsWhoCanReadDocument: recipients pass canRead; writer-only grant excluded', async () => {
+    it('listUserIdsWhoCanReadDocument: recipients pass canRead; department author included via dept grant', async () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
 
       let lastError: unknown;
@@ -426,8 +426,9 @@ describe('Permissions (canRead, canWrite)', () => {
             }
             expect(await canRead(prisma, uid, docProcessId)).toBe(true);
           }
-          expect(await canRead(prisma, writerOnlyUserId, docProcessId)).toBe(false);
-          expect(ids).not.toContain(writerOnlyUserId);
+          // Department author is in the department → matches department Read grant.
+          expect(await canRead(prisma, writerOnlyUserId, docProcessId)).toBe(true);
+          expect(ids).toContain(writerOnlyUserId);
           if (await canRead(prisma, adminId, docProcessId)) {
             expect(ids).toContain(adminId);
           }

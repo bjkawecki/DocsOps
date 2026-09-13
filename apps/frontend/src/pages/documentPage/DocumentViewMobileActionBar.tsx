@@ -91,9 +91,7 @@ export function DocumentViewMobileActionBar({
         disabled={pdfExportLoading}
         onClick={() => void handleStartPdfExport()}
       >
-        {pdfExportLoading
-          ? t('documentPage.menu.exportingPdf')
-          : t('documentPage.menu.exportPdf')}
+        {pdfExportLoading ? t('documentPage.menu.exportingPdf') : t('documentPage.menu.exportPdf')}
       </Menu.Item>
       {pdfExportStatus?.status === 'succeeded' && pdfExportStatus.downloadUrl && (
         <Menu.Item
@@ -155,9 +153,7 @@ export function DocumentViewMobileActionBar({
             key={`${scope.scopeType}:${scope.scopeId}`}
             leftSection={<IconFlagOff size={12} />}
             disabled={startHereBusy}
-            onClick={() =>
-              onClearStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })
-            }
+            onClick={() => onClearStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })}
           >
             {t('documentPage.menu.removeStartHere', { scope: scope.scopeName })}
           </Menu.Item>
@@ -166,9 +162,7 @@ export function DocumentViewMobileActionBar({
             key={`${scope.scopeType}:${scope.scopeId}`}
             leftSection={<IconFlag size={12} />}
             disabled={startHereBusy}
-            onClick={() =>
-              onSetStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })
-            }
+            onClick={() => onSetStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })}
           >
             {t('documentPage.menu.setStartHere', { scope: scope.scopeName })}
           </Menu.Item>
@@ -220,10 +214,5 @@ export function DocumentViewMobileActionBar({
     menu: moreMenu,
   });
 
-  return (
-    <PageMobileActionBar
-      ariaLabel={t('shell:nav.pageMobileActionsAria')}
-      actions={actions}
-    />
-  );
+  return <PageMobileActionBar ariaLabel={t('shell:nav.pageMobileActionsAria')} actions={actions} />;
 }

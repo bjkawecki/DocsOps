@@ -15,6 +15,8 @@ function emptyUser(overrides: Partial<LoadedUser> = {}): LoadedUser {
     leadOfTeams: [],
     departmentLeads: [],
     companyLeads: [],
+    authorOfTeams: [],
+    authorOfDepartments: [],
     ...overrides,
   } as LoadedUser;
 }

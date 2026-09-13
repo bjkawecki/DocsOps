@@ -1,4 +1,15 @@
-import { Box, Button, Card, Container, Flex, Group, NavLink, SegmentedControl, Stack, Text } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Card,
+  Container,
+  Flex,
+  Group,
+  NavLink,
+  SegmentedControl,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconTemplate } from '@tabler/icons-react';

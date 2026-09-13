@@ -88,13 +88,13 @@ Horizontal-Scroll (P2-c) nur als kurzer Fallback, nicht als Zielbild.
 
 ### 2.5 Filter & Actions (P3) – Bilder 3, 6, 7
 
-| Maßnahme           | Detail                                                                             |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| Breadcrumb-Actions | `wrap` erlauben; auf `narrow` Actions unter dem Titel oder in Menu „…“             |
-| Listen-Suche (Compact) | **Search-FAB** toggelt unteres Panel (§2.5.1); Liste bleibt sichtbar        |
-| Catalog-Filter     | Search-FAB-Panel + Filter-FAB → gleiches Bottom-Toggle-Panel (§2.5.1)              |
-| Admin-Toolbar      | Search-FAB-Panel; Primäraktion im FAB-Stack; Scope-Filter im Search-Panel  |
-| Primärbuttons      | Auf `narrow` full-width unter Titel/Breadcrumb, wenn sie mit dem Titel kollidieren |
+| Maßnahme               | Detail                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| Breadcrumb-Actions     | `wrap` erlauben; auf `narrow` Actions unter dem Titel oder in Menu „…“             |
+| Listen-Suche (Compact) | **Search-FAB** toggelt unteres Panel (§2.5.1); Liste bleibt sichtbar               |
+| Catalog-Filter         | Search-FAB-Panel + Filter-FAB → gleiches Bottom-Toggle-Panel (§2.5.1)              |
+| Admin-Toolbar          | Search-FAB-Panel; Primäraktion im FAB-Stack; Scope-Filter im Search-Panel          |
+| Primärbuttons          | Auf `narrow` full-width unter Titel/Breadcrumb, wenn sie mit dem Titel kollidieren |
 
 #### 2.5.1 Listen-Suche / Filter Compact – FAB Toggle-Panel
 
@@ -102,12 +102,12 @@ Horizontal-Scroll (P2-c) nur als kurzer Fallback, nicht als Zielbild.
 
 **Regel (unter `compact` / &lt; `lg`):**
 
-| Ja | Nein |
-| --- | --- |
-| Search-/Filter-Icon im FAB-Stack (§2.9); Toggle-Panel unten; FAB `active` bei offenem Panel oder aktiver Query/Filter | Overlay-Drawer, der die Trefferliste verdeckt |
-| Fokus ins Suchfeld beim Öffnen; Clear im Feld optional; Schließen per zweitem FAB-Tap | Schließen nur über Title-Bar-X |
-| Trefferzahl als schmale Count-Zeile im Content | Dauerhaftes Inline-Suchfeld bzw. Filter-Leiste im Flow |
-| Wide: unverändert Inline-Toolbar | – |
+| Ja                                                                                                                    | Nein                                                   |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Search-/Filter-Icon im FAB-Stack (§2.9); Toggle-Panel unten; FAB `active` bei offenem Panel oder aktiver Query/Filter | Overlay-Drawer, der die Trefferliste verdeckt          |
+| Fokus ins Suchfeld beim Öffnen; Clear im Feld optional; Schließen per zweitem FAB-Tap                                 | Schließen nur über Title-Bar-X                         |
+| Trefferzahl als schmale Count-Zeile im Content                                                                        | Dauerhaftes Inline-Suchfeld bzw. Filter-Leiste im Flow |
+| Wide: unverändert Inline-Toolbar                                                                                      | –                                                      |
 
 **Flächen:** Catalog, Context-/Firmen-Dokumentlisten, Shared, Trash/Archive, Admin-Listen mit Suche.
 
@@ -150,12 +150,12 @@ Historischer Optionsraum (nur Dokumentation): Hybrid mit 4–5 Primärs + „Meh
 
 **Abgrenzung zu §2.8:** Das ist **keine** App-Bottom-Nav. Content-Nav bleibt Drawer von links; nur der **Trigger** (und sonstige Page-Actions) wandert in den Stack.
 
-| Rein in den FAB-Stack | Nicht in den FAB-Stack |
-| --- | --- |
-| Breadcrumb-CTAs (Create / Save / …) | Shell-Top-Bar (Bell, Settings, Help, Burger, Account) |
-| `ResponsiveContentNav`-Trigger | Modal-/Drawer-Footer (Cancel/Create im Dialog) |
+| Rein in den FAB-Stack                                               | Nicht in den FAB-Stack                                    |
+| ------------------------------------------------------------------- | --------------------------------------------------------- |
+| Breadcrumb-CTAs (Create / Save / …)                                 | Shell-Top-Bar (Bell, Settings, Help, Burger, Account)     |
+| `ResponsiveContentNav`-Trigger                                      | Modal-/Drawer-Footer (Cancel/Create im Dialog)            |
 | Primäre Objekt-Aktionen der Seite (z. B. Delete des aktuellen Typs) | Listen-/Tabellen-Zeilenaktionen, Toolbar in Filter-Sheets |
-| Max. ~3 sichtbare Icons; Rest in `⋯`-Menü | Ungebündelte Admin-Toolbars mit vielen Text-Buttons |
+| Max. ~3 sichtbare Icons; Rest in `⋯`-Menü                           | Ungebündelte Admin-Toolbars mit vielen Text-Buttons       |
 
 **Shared Baustein:** [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx) (+ CSS). Position/Größe/`z-index`/Debug-Offset nur dort.
 
@@ -329,15 +329,15 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-08-06 | Welle 2: `ResponsiveContentNav` + Pilot Admin/Help/Templates/Notifications; Breadcrumb wrap               |
 | 2026-08-07 | Welle 3: Card-Listen, Catalog-Filter, Settings-Drill-down, Home-Illustration, Approvals/Workspace Wrapper |
 | 2026-08-07 | Welle 4: Restflächen Wrapper/Cards/Document/Login/Search; P4-f verworfen                                  |
-| 2026-09-13 | Checkbox-Drift: Welle-2 Lint abgehakt; §20 Mobile App vs Landing getrennt                              |
-| 2026-09-13 | §2.9 Page Mobile Actions (FAB); Welle 5; Shared `PageMobileActionBar`; Inventar Umsetzungs-Todo §20   |
-| 2026-09-13 | Welle 5 Code: Shared-Bar, Content-Nav-FABs, Admin/Workspace/Document/Catalog/Notifications Migration |
-| 2026-09-13 | §2.5.1 Sticky-Search: Plan-Ziel ersetzt „Suche immer sichtbar“; Welle 6; kein Search-FAB |
-| 2026-09-13 | §2.5.1 final: Search-FAB → Sheet statt Sticky; Welle 6 Code umgestellt |
-| 2026-09-13 | §2.9 FAB-Farben: semantische Tones (`pageMobileFabTokens`); Dark-Mode light/filled |
-| 2026-09-13 | §2.9 FAB: alle Tones `filled` (nicht halbtransparent über Inhalt) |
-| 2026-09-13 | §2.9 FAB Dark-Mode: dunklere Flächen + helles Icon (nicht pale gray) |
-| 2026-09-13 | §2.5.1 Search-FAB: Bottom-Toggle-Panel statt Overlay-Drawer (Liste sichtbar) |
-| 2026-09-13 | §2.5.1 Filter-FAB: gleiches Bottom-Toggle-Panel wie Suche (Catalog, Trash/Archive) |
-| 2026-09-13 | Shell-Suche: unter narrow aus Main-Sidebar entfernt (Suche über Katalog/Listen-FABs) |
-| 2026-09-13 | Notifications compact: Filter-FAB + CompactListCount (wie Catalog/Trash) |
+| 2026-09-13 | Checkbox-Drift: Welle-2 Lint abgehakt; §20 Mobile App vs Landing getrennt                                 |
+| 2026-09-13 | §2.9 Page Mobile Actions (FAB); Welle 5; Shared `PageMobileActionBar`; Inventar Umsetzungs-Todo §20       |
+| 2026-09-13 | Welle 5 Code: Shared-Bar, Content-Nav-FABs, Admin/Workspace/Document/Catalog/Notifications Migration      |
+| 2026-09-13 | §2.5.1 Sticky-Search: Plan-Ziel ersetzt „Suche immer sichtbar“; Welle 6; kein Search-FAB                  |
+| 2026-09-13 | §2.5.1 final: Search-FAB → Sheet statt Sticky; Welle 6 Code umgestellt                                    |
+| 2026-09-13 | §2.9 FAB-Farben: semantische Tones (`pageMobileFabTokens`); Dark-Mode light/filled                        |
+| 2026-09-13 | §2.9 FAB: alle Tones `filled` (nicht halbtransparent über Inhalt)                                         |
+| 2026-09-13 | §2.9 FAB Dark-Mode: dunklere Flächen + helles Icon (nicht pale gray)                                      |
+| 2026-09-13 | §2.5.1 Search-FAB: Bottom-Toggle-Panel statt Overlay-Drawer (Liste sichtbar)                              |
+| 2026-09-13 | §2.5.1 Filter-FAB: gleiches Bottom-Toggle-Panel wie Suche (Catalog, Trash/Archive)                        |
+| 2026-09-13 | Shell-Suche: unter narrow aus Main-Sidebar entfernt (Suche über Katalog/Listen-FABs)                      |
+| 2026-09-13 | Notifications compact: Filter-FAB + CompactListCount (wie Catalog/Trash)                                  |

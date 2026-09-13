@@ -24,9 +24,7 @@ export type StickySearchChromeProps = {
  * Sticky band for wide list toolbars (Catalog). Compact search uses the FAB toggle panel.
  */
 export function StickySearchChrome({ children, className }: StickySearchChromeProps) {
-  const classes = className
-    ? `sticky-search-chrome ${className}`
-    : 'sticky-search-chrome';
+  const classes = className ? `sticky-search-chrome ${className}` : 'sticky-search-chrome';
   return <div className={classes}>{children}</div>;
 }
 

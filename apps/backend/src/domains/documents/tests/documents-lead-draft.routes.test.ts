@@ -217,35 +217,50 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(409);
   });
 
-  it('Lead PATCH expectedRevision 1 with content change -> 200, Revision 2', async () => {
-    const modified = structuredClone(exampleBlockDocumentV0);
+  it('Lead PATCH expectedRevision matches current with content change -> 200', async () => {
+    const cookie = await context.loginAsScopeLead();
+    const getRes = await context.app.inject({
+      method: 'GET',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie },
+    });
+    expect(getRes.statusCode).toBe(200);
+    const current = getRes.json() as { draftRevision: number; blocks: BlockDocument };
+    const modified = structuredClone(current.blocks);
     modified.blocks[0] = {
       ...modified.blocks[0],
       content: [{ id: 't-lead', type: 'text', meta: { text: 'Lead edit' } }],
     };
-    const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 1,
+        expectedRevision: current.draftRevision,
         blocks: modified,
       }),
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { draftRevision: number };
-    expect(body.draftRevision).toBe(2);
+    expect(body.draftRevision).toBe(current.draftRevision + 1);
   });
 
-  it('Lead PATCH stale expectedRevision 1 -> 409', async () => {
+  it('Lead PATCH stale expectedRevision after prior edit -> 409', async () => {
     const cookie = await context.loginAsScopeLead();
+    const getRes = await context.app.inject({
+      method: 'GET',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie },
+    });
+    expect(getRes.statusCode).toBe(200);
+    const current = getRes.json() as { draftRevision: number };
+    const staleRevision = Math.max(0, current.draftRevision - 1);
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 1,
+        expectedRevision: staleRevision,
         blocks: exampleBlockDocumentV0,
       }),
     });
@@ -361,24 +376,31 @@ describe('Documents routes / lead-draft', () => {
     expect(body.code).toBe('SUGGESTION_DELETE_OVERLAP');
   });
 
-  it('PATCH mit expectedRevision 2 and content change -> 200, Revision 3', async () => {
-    const modified = structuredClone(exampleBlockDocumentV0);
+  it('PATCH with current expectedRevision and content change -> 200, revision +1', async () => {
+    const cookie = await context.loginAsScopeLead();
+    const getRes = await context.app.inject({
+      method: 'GET',
+      url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
+      headers: { cookie },
+    });
+    expect(getRes.statusCode).toBe(200);
+    const current = getRes.json() as { draftRevision: number; blocks: BlockDocument };
+    const modified = structuredClone(current.blocks);
     modified.blocks[0] = {
       ...modified.blocks[0],
       content: [{ id: 't-lead-2', type: 'text', meta: { text: 'Lead edit 2' } }],
     };
-    const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'PATCH',
       url: `/api/v1/documents/${context.publishedDocId}/lead-draft`,
       headers: { cookie, 'content-type': 'application/json' },
       payload: JSON.stringify({
-        expectedRevision: 2,
+        expectedRevision: current.draftRevision,
         blocks: modified,
       }),
     });
     expect(res.statusCode).toBe(200);
     const body = res.json() as { draftRevision: number };
-    expect(body.draftRevision).toBe(3);
+    expect(body.draftRevision).toBe(current.draftRevision + 1);
   });
 });

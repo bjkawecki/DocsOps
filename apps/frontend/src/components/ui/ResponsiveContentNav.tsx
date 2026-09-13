@@ -106,13 +106,7 @@ export function ResponsiveContentNav({
     <Box w="100%">
       <Group mb="xs" gap="sm">
         {compactTrigger === 'icon' ? (
-          <ActionIcon
-            variant="default"
-            size={44}
-            onClick={open}
-            aria-label={aria}
-            title={title}
-          >
+          <ActionIcon variant="default" size={44} onClick={open} aria-label={aria} title={title}>
             <IconLayoutSidebar size={20} stroke={1.5} />
           </ActionIcon>
         ) : (

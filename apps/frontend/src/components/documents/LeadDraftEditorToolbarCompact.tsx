@@ -224,9 +224,7 @@ export function LeadDraftEditorToolbarCompact({
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<IconAlertTriangle size={14} />}
-                  onClick={() =>
-                    editor.chain().focus().toggleCallout({ variant: 'info' }).run()
-                  }
+                  onClick={() => editor.chain().focus().toggleCallout({ variant: 'info' }).run()}
                 >
                   {t('editorToolbar.callout')}
                 </Menu.Item>
@@ -244,9 +242,7 @@ export function LeadDraftEditorToolbarCompact({
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<IconChartDots3 size={14} />}
-                  onClick={() =>
-                    editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()
-                  }
+                  onClick={() => editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()}
                 >
                   {t('editorToolbar.mermaidDiagram')}
                 </Menu.Item>

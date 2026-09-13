@@ -17,12 +17,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import {
-  IconArrowDown,
-  IconArrowUp,
-  IconListSearch,
-  IconSelector,
-} from '@tabler/icons-react';
+import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
@@ -563,8 +558,8 @@ export function CatalogPage() {
                 );
                 const showTagChip = tagIds.length > 0;
                 const tagChip = showTagChip
-                  ? doc.documentTags.find((dt) => tagIds.includes(dt.tag.id))?.tag ??
-                    doc.documentTags[0]?.tag
+                  ? (doc.documentTags.find((dt) => tagIds.includes(dt.tag.id))?.tag ??
+                    doc.documentTags[0]?.tag)
                   : null;
 
                 return (

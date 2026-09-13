@@ -180,7 +180,9 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
 
   it('POST /api/v1/auth/demo-login with DEMO_MODE → 204 + cookie', async () => {
     const prev = process.env.DEMO_MODE;
+    const prevAdmin = process.env.ADMIN_EMAIL;
     process.env.DEMO_MODE = 'true';
+    delete process.env.ADMIN_EMAIL;
     const demoEmail = 'admin@demo.docsops.local';
     const passwordHash = await hashPassword('DocsOps1');
     const demoUser = await prisma.user.upsert({
@@ -207,6 +209,8 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
       await prisma.session.deleteMany({ where: { userId: demoUser.id } });
       if (prev === undefined) delete process.env.DEMO_MODE;
       else process.env.DEMO_MODE = prev;
+      if (prevAdmin === undefined) delete process.env.ADMIN_EMAIL;
+      else process.env.ADMIN_EMAIL = prevAdmin;
     }
   });
 

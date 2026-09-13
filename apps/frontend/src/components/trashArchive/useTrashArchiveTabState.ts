@@ -103,12 +103,7 @@ export function useTrashArchiveTabState({
   const scopeKey = [scope, companyId ?? '', departmentId ?? '', teamId ?? ''] as const;
 
   const wideQuery = useQuery({
-    queryKey: [
-      'me',
-      querySegment,
-      ...scopeKey,
-      buildListParams(limit, offset).toString(),
-    ],
+    queryKey: ['me', querySegment, ...scopeKey, buildListParams(limit, offset).toString()],
     queryFn: () => fetchList(limit, offset),
     enabled: enabled && !compact,
   });
@@ -254,9 +249,7 @@ export function useTrashArchiveTabState({
   const rawItems = compact
     ? (infiniteQuery.data?.pages.flatMap((p) => p.items) ?? [])
     : (wideQuery.data?.items ?? []);
-  const total = compact
-    ? (infiniteQuery.data?.pages[0]?.total ?? 0)
-    : (wideQuery.data?.total ?? 0);
+  const total = compact ? (infiniteQuery.data?.pages[0]?.total ?? 0) : (wideQuery.data?.total ?? 0);
   const totalPages = Math.ceil(total / limit) || 1;
   const isPending = compact ? infiniteQuery.isPending : wideQuery.isPending;
   const hasMore = compact ? !!infiniteQuery.hasNextPage : false;

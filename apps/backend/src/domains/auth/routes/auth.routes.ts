@@ -15,7 +15,8 @@ const authRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     {
       config: {
         rateLimit: {
-          max: 20,
+          // Auth tests log in many times per file; keep prod tight, tests generous.
+          max: process.env.VITEST === 'true' || process.env.NODE_ENV === 'test' ? 1000 : 20,
           timeWindow: '1 minute',
         },
       },

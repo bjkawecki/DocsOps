@@ -1,7 +1,6 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { GrantRole } from '../../../../generated/prisma/client.js';
 import { canPublishDocument } from './canPublishDocument.js';
-import { canWrite } from './canWrite.js';
 import {
   getDocumentOwner,
   isPersonalContextDocumentOwner,
@@ -36,16 +35,12 @@ export async function canEditLeadDraft(
 }
 
 /**
- * Read lead draft: anyone who can write or edit the draft.
+ * Read lead draft: scope lead / scope author / personal owner (not document write-grant alone).
  */
 export async function canReadLeadDraft(
   prisma: PrismaClient,
   userId: string,
   documentId: string
 ): Promise<boolean> {
-  const [write, edit] = await Promise.all([
-    canWrite(prisma, userId, documentId),
-    canEditLeadDraft(prisma, userId, documentId),
-  ]);
-  return write || edit;
+  return canEditLeadDraft(prisma, userId, documentId);
 }

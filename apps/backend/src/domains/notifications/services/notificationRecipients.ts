@@ -143,8 +143,13 @@ async function addUsersInDepartmentsForGrant(
     where: { team: { departmentId: { in: departmentIds } } },
     select: { userId: true },
   });
+  const authors = await prisma.departmentAuthor.findMany({
+    where: { departmentId: { in: departmentIds } },
+    select: { userId: true },
+  });
   for (const r of members) into.add(r.userId);
   for (const r of leads) into.add(r.userId);
+  for (const r of authors) into.add(r.userId);
 }
 
 function grantTeamIds(doc: DocumentForPermission, role: GrantRole): string[] {

@@ -341,10 +341,7 @@ export function ContextWorkspacePage() {
         tone: 'more',
         menu: (
           <>
-            <Menu.Item
-              leftSection={<IconPencil size={14} />}
-              onClick={actions.handleEditClick}
-            >
+            <Menu.Item leftSection={<IconPencil size={14} />} onClick={actions.handleEditClick}>
               {t('workspace.editContextAriaLabel')}
             </Menu.Item>
             {data.contextType !== 'subcontext' && (
@@ -371,14 +368,7 @@ export function ContextWorkspacePage() {
         ),
       },
     ];
-  }, [
-    actions,
-    data?.canWriteContext,
-    data?.contextType,
-    isWide,
-    showContextDetail,
-    t,
-  ]);
+  }, [actions, data?.canWriteContext, data?.contextType, isWide, showContextDetail, t]);
 
   useRegisterPageMobileExtraActions(mobileActions, !isWide);
 

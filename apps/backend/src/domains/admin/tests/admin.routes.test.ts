@@ -62,13 +62,25 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
   });
 
   async function loginAs(email: string, password: string): Promise<string> {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/api/v1/auth/login',
-      payload: { email, password },
-    });
-    expect(res.statusCode).toBe(204);
-    return getCookieHeader(res);
+    let lastStatus = 0;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email, password },
+      });
+      lastStatus = res.statusCode;
+      if (res.statusCode === 204) {
+        return getCookieHeader(res);
+      }
+      if (res.statusCode === 429) {
+        await new Promise((r) => setTimeout(r, 50 * (attempt + 1)));
+        continue;
+      }
+      break;
+    }
+    expect(lastStatus).toBe(204);
+    throw new Error(`loginAs failed for ${email}`);
   }
 
   it('GET /api/v1/admin/users ohne Cookie → 401', async () => {

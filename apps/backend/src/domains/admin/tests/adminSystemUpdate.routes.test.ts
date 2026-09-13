@@ -393,19 +393,7 @@ describe('Admin system update routes', () => {
     } finally {
       if (prevKey === undefined) delete process.env.BACKUP_ENCRYPTION_KEY;
       else process.env.BACKUP_ENCRYPTION_KEY = prevKey;
-      await prisma.systemSettings.update({
-        where: { id: 'default' },
-        data: {
-          smtpEnabled: false,
-          smtpHost: null,
-          smtpPort: null,
-          smtpEncryption: null,
-          smtpUsername: null,
-          smtpPasswordCiphertext: null,
-          smtpFromAddress: null,
-          smtpFromName: null,
-        },
-      });
+      await prisma.systemSettings.deleteMany({ where: { id: 'default' } });
     }
   });
 

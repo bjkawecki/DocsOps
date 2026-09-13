@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  Group,
-  Modal,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-  Textarea,
-} from '@mantine/core';
+import { Box, Button, Group, Modal, Select, Stack, Text, TextInput, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
@@ -62,12 +52,7 @@ export function TemplatesCreateTypeModal({
       <Button variant="default" onClick={onClose} fullWidth={!isWide}>
         {t('templates:newType.cancel')}
       </Button>
-      <Button
-        loading={createLoading}
-        disabled={!canSubmit}
-        onClick={onCreate}
-        fullWidth={!isWide}
-      >
+      <Button loading={createLoading} disabled={!canSubmit} onClick={onCreate} fullWidth={!isWide}>
         {t('templates:newType.create')}
       </Button>
     </Group>
@@ -109,9 +94,7 @@ export function TemplatesCreateTypeModal({
       <Stack
         gap="sm"
         style={
-          isWide
-            ? undefined
-            : { flex: 1, minHeight: 0, overflow: 'auto', paddingBottom: '0.5rem' }
+          isWide ? undefined : { flex: 1, minHeight: 0, overflow: 'auto', paddingBottom: '0.5rem' }
         }
       >
         <TextInput

@@ -123,8 +123,7 @@ export function ScopeWorkspaceEntry({
     );
   }, [canManage, newContextScope, openContextModal, openDocumentModal]);
   const showEmptyState = !isPending && !targetContextId;
-  const showMobileCreate =
-    !isWide && canManage && newContextScope != null && showEmptyState;
+  const showMobileCreate = !isWide && canManage && newContextScope != null && showEmptyState;
 
   const mobileActions = useMemo((): PageMobileAction[] => {
     if (!showMobileCreate) return [];

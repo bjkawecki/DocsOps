@@ -3,6 +3,9 @@ import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { DocumentForPermission } from './documentLoad.js';
 import {
   getDocumentOwner,
+  getUserDepartmentIds,
+  getUserLeaderTeamIds,
+  hasDocumentGrantRole,
   isCompanyLeadForOwner,
   isPersonalContextDocumentOwner,
   loadPermissionSubjectAndBaseDecision,
@@ -11,7 +14,7 @@ import { isScopeAuthorForDocument } from './scopeAuthor.js';
 
 /**
  * Checks if the user may edit document content in the shared lead draft.
- * @param documentOrId - documentId (string) oder bereits geladenes Document mit Context/Grants
+ * @param documentOrId - documentId (string) or already loaded document with context/grants
  */
 export async function canWrite(
   prisma: PrismaClient | Prisma.TransactionClient,
@@ -23,7 +26,7 @@ export async function canWrite(
     userId,
     documentOrId,
     GrantRole.Write,
-    () => new Set<string>()
+    getUserLeaderTeamIds
   );
   if (!loaded) return false;
   const { doc, user } = loaded.subject;
@@ -35,6 +38,18 @@ export async function canWrite(
   if (isScopeAuthorForDocument(user, doc)) return true;
 
   if (isCompanyLeadForOwner(user, owner)) return true;
+
+  if (
+    hasDocumentGrantRole(
+      doc,
+      userId,
+      GrantRole.Write,
+      getUserLeaderTeamIds(user),
+      getUserDepartmentIds(user)
+    )
+  ) {
+    return true;
+  }
 
   return false;
 }

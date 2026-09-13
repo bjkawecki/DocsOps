@@ -1,9 +1,6 @@
 import { ActionIcon, Menu, Stack } from '@mantine/core';
 import type { ReactNode } from 'react';
-import {
-  resolvePageMobileFabTone,
-  type PageMobileFabTone,
-} from './pageMobileFabTokens.js';
+import { resolvePageMobileFabTone, type PageMobileFabTone } from './pageMobileFabTokens.js';
 import './PageMobileActionBar.css';
 
 export type PageMobileAction = {
@@ -54,13 +51,7 @@ export function PageMobileActionBar({
           const { color, variant } = resolvePageMobileFabTone(tone);
           if (action.menu != null) {
             return (
-              <Menu
-                key={action.key}
-                shadow="sm"
-                position="left-end"
-                withinPortal
-                width={200}
-              >
+              <Menu key={action.key} shadow="sm" position="left-end" withinPortal width={200}>
                 <Menu.Target>
                   <ActionIcon
                     variant={variant}

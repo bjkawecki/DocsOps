@@ -33,6 +33,9 @@ describe('GET /api/v1/maintenance/status', () => {
 
     const res = await app.inject({ method: 'GET', url: '/api/v1/maintenance/status' });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ active: true, reason: 'restore' });
+    const body = res.json() as { active: boolean; reason?: string; startedAt?: string };
+    expect(body.active).toBe(true);
+    expect(body.reason).toBe('restore');
+    expect(typeof body.startedAt).toBe('string');
   });
 });

@@ -144,11 +144,7 @@ export function AdminBroadcastTab() {
 
   const chromeActions = useMemo(
     () => (
-      <Button
-        size="xs"
-        leftSection={<IconPlus size={14} />}
-        onClick={openCreateBroadcast}
-      >
+      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreateBroadcast}>
         {t('actions.createMessage')}
       </Button>
     ),

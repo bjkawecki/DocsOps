@@ -9,7 +9,8 @@
   border-color: var(--mantine-color-default-border);
 }
 
-.entity-list-card:not(.entity-list-card--flat) .mantine-UnstyledButton-root.entity-list-card-hit:hover {
+.entity-list-card:not(.entity-list-card--flat)
+  .mantine-UnstyledButton-root.entity-list-card-hit:hover {
   background-color: var(--mantine-color-default-hover);
 }
 
