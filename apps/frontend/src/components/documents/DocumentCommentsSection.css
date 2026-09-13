@@ -17,3 +17,19 @@
 .document-comments-inner-scroll {
   min-height: 0;
 }
+
+/* Compact: comments as a full-width section under the document. */
+.document-comments-stack {
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+.document-comments-stack-toggle {
+  border-radius: var(--mantine-radius-sm);
+  color: inherit;
+  text-align: start;
+}
+
+.document-comments-stack-toggle:hover {
+  background-color: var(--mantine-color-default-hover);
+}

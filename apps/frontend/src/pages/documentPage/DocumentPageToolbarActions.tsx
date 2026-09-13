@@ -17,7 +17,10 @@ import {
   IconFlag,
   IconFlagOff,
 } from '@tabler/icons-react';
-import { DESKTOP_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
+import {
+  DESKTOP_MIN_WIDTH,
+  WIDE_MIN_WIDTH,
+} from '../../components/appShell/appShellLayoutConstants.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
 
@@ -99,33 +102,49 @@ export function DocumentPageToolbarActions({
 }: DocumentPageToolbarActionsProps) {
   const { t } = useTranslation(['documents', 'common']);
   const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const iconBtnSize = isDesktop ? 36 : 44;
+  const compactChrome = !isWide;
+
+  const saveDisabled =
+    (editTab === 'draft' && !leadDraftDirty) ||
+    (editTab === 'metadata' && !metadataDirty) ||
+    editTab === 'access';
+
+  const onSave = () =>
+    void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave());
+
+  const showCompactPublishInMenu = mode === 'edit' && showPublishButton && compactChrome;
+  const showCompactPendingInMenu =
+    mode === 'edit' &&
+    compactChrome &&
+    data.canPublish &&
+    !showPublishButton &&
+    leadDraftPendingSuggestions > 0;
 
   return (
-    <Group gap="xs">
+    <Group gap="xs" wrap="nowrap">
       {mode === 'edit' && (
         <>
-          <Button variant="default" size="sm" onClick={handleCancelEdit}>
+          <Button
+            variant="default"
+            size={compactChrome ? 'compact-md' : 'sm'}
+            onClick={handleCancelEdit}
+          >
             {t('documentPage.toolbar.cancel')}
           </Button>
           <Button
-            size="sm"
+            size={compactChrome ? 'compact-md' : 'sm'}
             loading={saveLoading}
-            disabled={
-              (editTab === 'draft' && !leadDraftDirty) ||
-              (editTab === 'metadata' && !metadataDirty) ||
-              editTab === 'access'
-            }
-            onClick={() =>
-              void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave())
-            }
+            disabled={saveDisabled}
+            onClick={onSave}
           >
-            {editTab === 'draft'
+            {editTab === 'draft' && !compactChrome
               ? t('documentPage.toolbar.saveDraft')
               : t('documentPage.toolbar.save')}
           </Button>
-          {editTab === 'draft' && leadDraftLastSynced && (
-            <Text size="xs" c="dimmed">
+          {!compactChrome && editTab === 'draft' && leadDraftLastSynced && (
+            <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
               {t('documentPage.toolbar.lastSynced', {
                 time: new Date(leadDraftLastSynced).toLocaleTimeString(),
               })}
@@ -143,7 +162,7 @@ export function DocumentPageToolbarActions({
           <IconPencil size={18} />
         </ActionIcon>
       )}
-      {mode === 'edit' && showPublishButton && (
+      {mode === 'edit' && showPublishButton && !compactChrome && (
         <Button
           variant="filled"
           size="sm"
@@ -158,6 +177,7 @@ export function DocumentPageToolbarActions({
         </Button>
       )}
       {mode === 'edit' &&
+        !compactChrome &&
         data.canPublish &&
         !showPublishButton &&
         leadDraftPendingSuggestions > 0 && (
@@ -178,6 +198,25 @@ export function DocumentPageToolbarActions({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
+          {showCompactPublishInMenu && (
+            <Menu.Item
+              leftSection={<IconCloudUpload size={14} />}
+              disabled={publishLoading}
+              onClick={() => void handlePublish()}
+            >
+              {data.publishedAt
+                ? t('documentPage.toolbar.publishChanges')
+                : t('documentPage.toolbar.publish')}
+            </Menu.Item>
+          )}
+          {showCompactPendingInMenu && (
+            <Menu.Item disabled>
+              {t('documentPage.toolbar.resolvePendingSuggestions', {
+                count: leadDraftPendingSuggestions,
+              })}
+            </Menu.Item>
+          )}
+          {(showCompactPublishInMenu || showCompactPendingInMenu) && <Menu.Divider />}
           <Menu.Item
             component={Link}
             to={`/documents/${documentId}/versions`}

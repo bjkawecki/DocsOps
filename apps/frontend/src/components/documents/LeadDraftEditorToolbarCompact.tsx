@@ -1,5 +1,4 @@
-import { Box, NativeSelect, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { ActionIcon, Menu, NativeSelect, Tooltip } from '@mantine/core';
 import type { Editor } from '@tiptap/core';
 import {
   IconAlertTriangle,
@@ -15,15 +14,15 @@ import {
   IconListNumbers,
   IconMinus,
   IconPhoto,
+  IconPlus,
   IconQuote,
   IconRowInsertBottom,
   IconTable,
   IconTableOff,
   IconTypography,
 } from '@tabler/icons-react';
-import { useRef, type ReactNode } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   authorSelectionAllowsInlineFormat,
   toggleAuthorInlineMark,
@@ -37,7 +36,6 @@ import {
 } from '../../lib/calloutVariant.js';
 import { DEFAULT_MERMAID_SOURCE } from '../../tiptap/documentMermaid.js';
 import { LeadDraftLinkPopover } from './LeadDraftLinkPopover.js';
-import { LeadDraftEditorToolbarCompact } from './LeadDraftEditorToolbarCompact.js';
 import { HeadingTool, ICON_SIZE, ToolIcon } from './LeadDraftEditorToolbarShared.js';
 import classes from './LeadDraftEditorToolbar.module.css';
 
@@ -48,32 +46,16 @@ type Props = {
   documentId: string;
 };
 
-function ToolCluster({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Box className={classes.cluster}>
-      <Text className={classes.clusterTitle}>{title}</Text>
-      <div className={classes.clusterTools}>{children}</div>
-    </Box>
-  );
-}
-
-export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', documentId }: Props) {
+export function LeadDraftEditorToolbarCompact({
+  editor,
+  authorMode,
+  authorId = '',
+  documentId,
+}: Props) {
   const { t } = useTranslation('documents');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const authorInlineDisabledReason = t('editorToolbar.inlineFormatDisabled');
-
-  if (!isWide) {
-    return (
-      <LeadDraftEditorToolbarCompact
-        editor={editor}
-        authorMode={authorMode}
-        authorId={authorId}
-        documentId={documentId}
-      />
-    );
-  }
 
   const linkControl = (
     <LeadDraftLinkPopover
@@ -148,32 +130,9 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
     />
   ) : null;
 
-  const tableExtras = editor.isActive('table') ? (
-    <>
-      <ToolIcon
-        label={t('editorToolbar.addRow')}
-        onClick={() => editor.chain().focus().addRowAfter().run()}
-      >
-        <IconRowInsertBottom size={ICON_SIZE} stroke={1.75} />
-      </ToolIcon>
-      <ToolIcon
-        label={t('editorToolbar.addColumn')}
-        onClick={() => editor.chain().focus().addColumnAfter().run()}
-      >
-        <IconColumnInsertRight size={ICON_SIZE} stroke={1.75} />
-      </ToolIcon>
-      <ToolIcon
-        label={t('editorToolbar.deleteTable')}
-        onClick={() => editor.chain().focus().deleteTable().run()}
-      >
-        <IconTableOff size={ICON_SIZE} stroke={1.75} />
-      </ToolIcon>
-    </>
-  ) : null;
-
   return (
-    <div className={classes.row}>
-      <ToolCluster title={t('editorToolbar.editCluster')}>
+    <div className={`${classes.row} ${classes.rowCompact}`}>
+      <div className={classes.clusterTools}>
         <ToolIcon
           label={t('editorToolbar.undo')}
           disabled={!editor.can().undo()}
@@ -188,9 +147,6 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
         >
           <IconArrowForwardUp size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
-      </ToolCluster>
-
-      <ToolCluster title={t('editorToolbar.blockCluster')}>
         <HeadingTool
           label="H2"
           active={editor.isActive('heading', { level: 2 })}
@@ -208,82 +164,6 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
         >
           <IconTypography size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
-      </ToolCluster>
-
-      {!authorMode && (
-        <ToolCluster title={t('editorToolbar.insertCluster')}>
-          <ToolIcon
-            label={t('editorToolbar.bulletList')}
-            active={editor.isActive('bulletList')}
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-          >
-            <IconList size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          <ToolIcon
-            label={t('editorToolbar.numberedList')}
-            active={editor.isActive('orderedList')}
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          >
-            <IconListNumbers size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          <ToolIcon
-            label={t('editorToolbar.quote')}
-            active={editor.isActive('blockquote')}
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          >
-            <IconQuote size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          <ToolIcon
-            label={t('editorToolbar.callout')}
-            active={editor.isActive('callout')}
-            onClick={() => editor.chain().focus().toggleCallout({ variant: 'info' }).run()}
-          >
-            <IconAlertTriangle size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          {calloutVariantSelect}
-          <ToolIcon
-            label={t('editorToolbar.divider')}
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          >
-            <IconMinus size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          <ToolIcon
-            label={t('editorToolbar.codeBlock')}
-            active={editor.isActive('codeBlock')}
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          >
-            <IconFileCode size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          {codeLanguageSelect}
-          <ToolIcon
-            label={t('editorToolbar.mermaidDiagram')}
-            active={editor.isActive('mermaid')}
-            onClick={() => editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()}
-          >
-            <IconChartDots3 size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          <ToolIcon
-            label={t('editorToolbar.image')}
-            active={editor.isActive('image')}
-            onClick={() => imageInputRef.current?.click()}
-          >
-            <IconPhoto size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          {imageInput}
-          <ToolIcon
-            label={t('editorToolbar.table')}
-            active={editor.isActive('table')}
-            onClick={() =>
-              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-            }
-          >
-            <IconTable size={ICON_SIZE} stroke={1.75} />
-          </ToolIcon>
-          {tableExtras}
-        </ToolCluster>
-      )}
-
-      <ToolCluster title={t('editorToolbar.formatCluster')}>
         <ToolIcon
           label={t('editorToolbar.bold')}
           active={editor.isActive('bold')}
@@ -308,20 +188,128 @@ export function LeadDraftEditorToolbar({ editor, authorMode, authorId = '', docu
         >
           <IconItalic size={ICON_SIZE} stroke={1.75} />
         </ToolIcon>
-        <ToolIcon
-          label={t('editorToolbar.inlineCode')}
-          active={editor.isActive('code')}
-          disabled={inlineDisabled}
-          disabledReason={authorInlineDisabledReason}
-          onClick={() => {
-            if (authorMode) toggleAuthorInlineMark(editor, 'code');
-            else editor.chain().focus().toggleCode().run();
-          }}
-        >
-          <IconCode size={ICON_SIZE} stroke={1.75} />
-        </ToolIcon>
         {linkControl}
-      </ToolCluster>
+        {!authorMode && (
+          <>
+            <ToolIcon
+              label={t('editorToolbar.bulletList')}
+              active={editor.isActive('bulletList')}
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+            >
+              <IconList size={ICON_SIZE} stroke={1.75} />
+            </ToolIcon>
+            <ToolIcon
+              label={t('editorToolbar.numberedList')}
+              active={editor.isActive('orderedList')}
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            >
+              <IconListNumbers size={ICON_SIZE} stroke={1.75} />
+            </ToolIcon>
+            <Menu shadow="md" position="bottom-end" withinPortal>
+              <Menu.Target>
+                <Tooltip label={t('editorToolbar.moreTools')} withArrow>
+                  <span className={classes.toolHit}>
+                    <ActionIcon size={28} variant="light" aria-label={t('editorToolbar.moreTools')}>
+                      <IconPlus size={ICON_SIZE} stroke={1.75} />
+                    </ActionIcon>
+                  </span>
+                </Tooltip>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<IconQuote size={14} />}
+                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                >
+                  {t('editorToolbar.quote')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconAlertTriangle size={14} />}
+                  onClick={() =>
+                    editor.chain().focus().toggleCallout({ variant: 'info' }).run()
+                  }
+                >
+                  {t('editorToolbar.callout')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconMinus size={14} />}
+                  onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                >
+                  {t('editorToolbar.divider')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconFileCode size={14} />}
+                  onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                >
+                  {t('editorToolbar.codeBlock')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconChartDots3 size={14} />}
+                  onClick={() =>
+                    editor.chain().focus().insertMermaid(DEFAULT_MERMAID_SOURCE).run()
+                  }
+                >
+                  {t('editorToolbar.mermaidDiagram')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconPhoto size={14} />}
+                  onClick={() => imageInputRef.current?.click()}
+                >
+                  {t('editorToolbar.image')}
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconTable size={14} />}
+                  onClick={() =>
+                    editor
+                      .chain()
+                      .focus()
+                      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                      .run()
+                  }
+                >
+                  {t('editorToolbar.table')}
+                </Menu.Item>
+                {editor.isActive('table') && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item
+                      leftSection={<IconRowInsertBottom size={14} />}
+                      onClick={() => editor.chain().focus().addRowAfter().run()}
+                    >
+                      {t('editorToolbar.addRow')}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconColumnInsertRight size={14} />}
+                      onClick={() => editor.chain().focus().addColumnAfter().run()}
+                    >
+                      {t('editorToolbar.addColumn')}
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<IconTableOff size={14} />}
+                      onClick={() => editor.chain().focus().deleteTable().run()}
+                    >
+                      {t('editorToolbar.deleteTable')}
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+            {calloutVariantSelect}
+            {codeLanguageSelect}
+            {imageInput}
+          </>
+        )}
+        {authorMode && (
+          <ToolIcon
+            label={t('editorToolbar.inlineCode')}
+            active={editor.isActive('code')}
+            disabled={inlineDisabled}
+            disabledReason={authorInlineDisabledReason}
+            onClick={() => toggleAuthorInlineMark(editor, 'code')}
+          >
+            <IconCode size={ICON_SIZE} stroke={1.75} />
+          </ToolIcon>
+        )}
+      </div>
     </div>
   );
 }

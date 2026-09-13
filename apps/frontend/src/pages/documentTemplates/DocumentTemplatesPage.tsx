@@ -1,24 +1,9 @@
-import {
-  Box,
-  Button,
-  Card,
-  Container,
-  Flex,
-  Group,
-  Modal,
-  NavLink,
-  SegmentedControl,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-  Textarea,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Box, Button, Card, Container, Flex, Group, NavLink, SegmentedControl, Stack, Text } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconTemplate } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
@@ -27,6 +12,7 @@ import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import {
@@ -44,6 +30,8 @@ import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.j
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe.js';
 import '../DocumentContent.css';
+import { TemplatesCreateTypeModal } from './TemplatesCreateTypeModal.js';
+import { TemplatesMobileActionBar } from './TemplatesMobileActionBar.js';
 import { TemplatesSidebarGroup } from './TemplatesSidebarGroup.js';
 
 /** Same reserved width as the document comments rail (keeps reading column aligned). */
@@ -84,6 +72,8 @@ export function DocumentTemplatesPage() {
   const { t, i18n } = useTranslation(['templates', 'documents', 'shell', 'common']);
   const queryClient = useQueryClient();
   const { data: me } = useMe();
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const compactNavOpenRef = useRef<(() => void) | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
@@ -324,14 +314,18 @@ export function DocumentTemplatesPage() {
   useSetAppShellNavScope(null);
 
   const breadcrumbActions = useMemo(
-    () => (
-      <Button size="sm" onClick={openCreate}>
-        {t('templates:newType.action')}
-      </Button>
-    ),
-    [openCreate, t]
+    () =>
+      isWide ? (
+        <Button size="sm" onClick={openCreate}>
+          {t('templates:newType.action')}
+        </Button>
+      ) : null,
+    [isWide, openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(breadcrumbActions, 'templates-new-custom');
+  useSetAppShellBreadcrumbActions(
+    breadcrumbActions,
+    isWide ? 'templates-new-custom' : 'templates-mobile'
+  );
 
   if (accessPending) {
     return (
@@ -439,7 +433,11 @@ export function DocumentTemplatesPage() {
           className="document-page-body"
           style={{ display: 'block' }}
         >
-          <ResponsiveContentNav title={sectionTitle} nav={nav}>
+          <ResponsiveContentNav
+            title={sectionTitle}
+            nav={nav}
+            compactNavOpenRef={isWide ? undefined : compactNavOpenRef}
+          >
             <Box className="document-page-main">
               <Flex
                 gap={{ base: 'lg', lg: 'xl' }}
@@ -457,7 +455,7 @@ export function DocumentTemplatesPage() {
                       </Text>
                     ) : (
                       <Stack gap="md" align="stretch" w="100%">
-                        {selectedType.source === 'custom' ? (
+                        {isWide && selectedType.source === 'custom' ? (
                           <Group justify="flex-end">
                             <Button
                               size="sm"
@@ -502,70 +500,40 @@ export function DocumentTemplatesPage() {
         </Container>
       </Box>
 
-      <Modal
+      {!isWide && !createOpened ? (
+        <TemplatesMobileActionBar
+          navTitle={sectionTitle}
+          onOpenNav={() => compactNavOpenRef.current?.()}
+          onCreate={openCreate}
+          showDelete={selectedType?.source === 'custom'}
+          deleteLoading={deleteMutation.isPending}
+          onDelete={() => {
+            if (selectedType?.source === 'custom') {
+              deleteMutation.mutate(selectedType.id);
+            }
+          }}
+        />
+      ) : null}
+
+      <TemplatesCreateTypeModal
         opened={createOpened}
         onClose={closeCreate}
-        title={t('templates:newType.modalTitle')}
-        size="lg"
-      >
-        <Stack gap="sm">
-          <TextInput
-            label={t('templates:newType.labelField')}
-            value={label}
-            onChange={(e) => setLabel(e.currentTarget.value)}
-            required
-          />
-          <Textarea
-            label={t('templates:newType.whenToUseField')}
-            value={whenToUse}
-            onChange={(e) => setWhenToUse(e.currentTarget.value)}
-            minRows={2}
-            required
-          />
-          <TextInput
-            label={t('templates:newType.exampleTitleField')}
-            value={exampleTitle}
-            onChange={(e) => setExampleTitle(e.currentTarget.value)}
-          />
-          <Select
-            label={t('templates:newType.oftenUsedInField')}
-            data={[
-              { value: 'process', label: t('documents:typePicker.groupProcess') },
-              { value: 'project', label: t('documents:typePicker.groupProject') },
-            ]}
-            value={oftenUsedIn}
-            onChange={setOftenUsedIn}
-            clearable
-          />
-          <Select
-            label={t('templates:newType.scopeField')}
-            data={scopeOptions}
-            value={effectiveScopeType}
-            onChange={setScopeType}
-            required
-          />
-          <Textarea
-            label={t('templates:newType.sectionsField')}
-            description={t('templates:newType.sectionsDescription')}
-            value={sectionsText}
-            onChange={(e) => setSectionsText(e.currentTarget.value)}
-            minRows={8}
-            autosize
-          />
-          <Group justify="flex-end">
-            <Button variant="default" onClick={closeCreate}>
-              {t('templates:newType.cancel')}
-            </Button>
-            <Button
-              loading={createMutation.isPending}
-              disabled={!label.trim() || !whenToUse.trim()}
-              onClick={() => createMutation.mutate()}
-            >
-              {t('templates:newType.create')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        label={label}
+        setLabel={setLabel}
+        whenToUse={whenToUse}
+        setWhenToUse={setWhenToUse}
+        exampleTitle={exampleTitle}
+        setExampleTitle={setExampleTitle}
+        oftenUsedIn={oftenUsedIn}
+        setOftenUsedIn={setOftenUsedIn}
+        scopeOptions={scopeOptions}
+        scopeType={effectiveScopeType}
+        setScopeType={setScopeType}
+        sectionsText={sectionsText}
+        setSectionsText={setSectionsText}
+        createLoading={createMutation.isPending}
+        onCreate={() => createMutation.mutate()}
+      />
     </>
   );
 }

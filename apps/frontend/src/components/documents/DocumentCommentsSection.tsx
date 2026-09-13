@@ -1,5 +1,15 @@
-import { ActionIcon, Box, Group, ScrollArea, Text, useMantineTheme } from '@mantine/core';
 import {
+  ActionIcon,
+  Box,
+  Group,
+  ScrollArea,
+  Text,
+  UnstyledButton,
+  useMantineTheme,
+} from '@mantine/core';
+import {
+  IconChevronDown,
+  IconChevronUp,
   IconLayoutSidebarRightCollapse,
   IconLayoutSidebarRightExpand,
   IconMessage,
@@ -120,40 +130,110 @@ export function DocumentCommentsSection({
     return map;
   }, [mentionCandidatesQuery.data, items]);
 
-  const isRail = layout === 'rail';
+  const listBody = (
+    <DocumentCommentsListBody
+      documentId={documentId}
+      panelOpen={panelOpen}
+      mentionNameByUserId={mentionNameByUserId}
+      listQuery={listQuery}
+      items={items}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      headings={headings}
+      currentUserId={currentUserId}
+      newText={newText}
+      setNewText={setNewText}
+      anchorSlug={anchorSlug}
+      setAnchorSlug={setAnchorSlug}
+      editingId={editingId}
+      setEditingId={setEditingId}
+      editDraft={editDraft}
+      setEditDraft={setEditDraft}
+      editAnchorSlug={editAnchorSlug}
+      setEditAnchorSlug={setEditAnchorSlug}
+      replyToRootId={replyToRootId}
+      setReplyToRootId={setReplyToRootId}
+      replyDraft={replyDraft}
+      setReplyDraft={setReplyDraft}
+      createMutation={createMutation}
+      patchMutation={patchMutation}
+      deleteMutation={deleteMutation}
+    />
+  );
+
+  if (layout === 'stack') {
+    return (
+      <Box className="document-comments-stack" mt="xl" w="100%">
+        <UnstyledButton
+          onClick={togglePanel}
+          w="100%"
+          py="sm"
+          px="xs"
+          aria-expanded={panelOpen}
+          aria-label={panelOpen ? t('comments.collapse') : t('comments.expand')}
+          className="document-comments-stack-toggle"
+        >
+          <Group justify="space-between" wrap="nowrap" gap="sm">
+            <Group gap="xs" wrap="nowrap" align="center" style={{ minWidth: 0 }}>
+              <IconMessage
+                size={COMMENT_META_ICON_SIZE}
+                color="var(--mantine-color-dimmed)"
+                aria-hidden
+              />
+              <Text id="document-comments-heading" size="sm" fw={600}>
+                {t('comments.heading')}
+              </Text>
+              {listQuery.data != null && !listQuery.isError && (
+                <Text component="span" c="dimmed" size="sm" style={COMMENT_META_COUNT_TEXT_STYLE}>
+                  ({total})
+                </Text>
+              )}
+            </Group>
+            {panelOpen ? (
+              <IconChevronUp size={18} color={`var(--mantine-color-${primaryColor}-filled)`} />
+            ) : (
+              <IconChevronDown size={18} color={`var(--mantine-color-${primaryColor}-filled)`} />
+            )}
+          </Group>
+        </UnstyledButton>
+        {panelOpen ? (
+          <Box
+            className="document-comments-stack-panel"
+            role="region"
+            aria-labelledby="document-comments-heading"
+            data-document-comments-panel
+            px="xs"
+            pb="md"
+          >
+            {listBody}
+          </Box>
+        ) : null}
+      </Box>
+    );
+  }
+
   const contentWidth = panelOpen ? WIDTH_OPEN : WIDTH_CLOSED;
   // Always reserve the open rail width so the document column does not shift horizontally.
   const railReservedWidth = TOGGLE_STRIP_WIDTH + WIDTH_OPEN;
-  const outerStyle: CSSProperties = isRail
-    ? {
-        width: railReservedWidth,
-        minWidth: railReservedWidth,
-        maxWidth: railReservedWidth,
-        justifyContent: 'flex-end',
-      }
-    : {
-        width: '100%',
-        transition: 'min-height 0.2s ease',
-      };
+  const outerStyle: CSSProperties = {
+    width: railReservedWidth,
+    minWidth: railReservedWidth,
+    maxWidth: railReservedWidth,
+    justifyContent: 'flex-end',
+  };
 
   return (
     <Box
-      className={isRail ? 'document-comments-rail-host' : undefined}
-      mt={isRail ? { base: 'xl', lg: 0 } : 'xl'}
+      className="document-comments-rail-host"
+      mt={{ base: 'xl', lg: 0 }}
       style={{
         ...outerStyle,
         display: 'flex',
         flexDirection: 'row',
         flexShrink: 0,
         alignSelf: 'stretch',
-        ...(isRail
-          ? {}
-          : {
-              borderTop: '1px solid var(--mantine-color-default-border)',
-              borderLeft: '1px solid var(--mantine-color-default-border)',
-            }),
         background: 'var(--mantine-color-body)',
-        ...(isRail ? { maxHeight: '100%' } : { maxHeight: 'min(75vh, 640px)' }),
+        maxHeight: '100%',
       }}
     >
       <Box
@@ -192,9 +272,8 @@ export function DocumentCommentsSection({
 
       <Box
         style={{
-          width: isRail ? contentWidth : panelOpen ? undefined : WIDTH_CLOSED,
-          minWidth: isRail ? contentWidth : panelOpen ? 0 : WIDTH_CLOSED,
-          flex: isRail ? undefined : panelOpen ? 1 : undefined,
+          width: contentWidth,
+          minWidth: contentWidth,
           flexShrink: 0,
           alignSelf: 'stretch',
           display: 'flex',
@@ -212,7 +291,8 @@ export function DocumentCommentsSection({
               minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
-              ...(isRail ? { width: WIDTH_OPEN, minWidth: WIDTH_OPEN } : {}),
+              width: WIDTH_OPEN,
+              minWidth: WIDTH_OPEN,
             }}
           >
             <ScrollArea
@@ -249,36 +329,7 @@ export function DocumentCommentsSection({
                     {t('comments.heading')}
                   </Text>
                 </Group>
-                <Box style={{ paddingLeft: 28 }}>
-                  <DocumentCommentsListBody
-                    documentId={documentId}
-                    panelOpen={panelOpen}
-                    mentionNameByUserId={mentionNameByUserId}
-                    listQuery={listQuery}
-                    items={items}
-                    hasNextPage={hasNextPage}
-                    isFetchingNextPage={isFetchingNextPage}
-                    headings={headings}
-                    currentUserId={currentUserId}
-                    newText={newText}
-                    setNewText={setNewText}
-                    anchorSlug={anchorSlug}
-                    setAnchorSlug={setAnchorSlug}
-                    editingId={editingId}
-                    setEditingId={setEditingId}
-                    editDraft={editDraft}
-                    setEditDraft={setEditDraft}
-                    editAnchorSlug={editAnchorSlug}
-                    setEditAnchorSlug={setEditAnchorSlug}
-                    replyToRootId={replyToRootId}
-                    setReplyToRootId={setReplyToRootId}
-                    replyDraft={replyDraft}
-                    setReplyDraft={setReplyDraft}
-                    createMutation={createMutation}
-                    patchMutation={patchMutation}
-                    deleteMutation={deleteMutation}
-                  />
-                </Box>
+                <Box style={{ paddingLeft: 28 }}>{listBody}</Box>
               </Box>
             </ScrollArea>
           </Box>

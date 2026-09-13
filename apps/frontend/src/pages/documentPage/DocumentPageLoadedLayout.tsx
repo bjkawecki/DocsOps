@@ -1,4 +1,5 @@
 import { Box, Card, Container, Flex, Stack, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { useMemo } from 'react';
@@ -13,6 +14,7 @@ import type { DocumentLeadDraftPanelHandle } from '../../components/documents/Do
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import {
@@ -26,6 +28,7 @@ import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
 import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
 import { DocumentTocNav } from './DocumentTocNav.js';
 import { DocumentPageToolbarActions } from './DocumentPageToolbarActions.js';
+import { DocumentEditMobileActionBar } from './DocumentEditMobileActionBar.js';
 import { DocumentPageEditPanels } from './DocumentPageEditPanels.js';
 
 export type DocumentPageLoadedLayoutProps = {
@@ -161,6 +164,8 @@ export function DocumentPageLoadedLayout({
     return null;
   }, [scopeType, scopeId]);
   const breadcrumbDoc = useMemo(() => ({ ...data, title: docTitle }), [data, docTitle]);
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const editFocusMobile = mode === 'edit' && !isWide;
 
   const breadcrumbActions = (
     <DocumentPageToolbarActions
@@ -204,6 +209,7 @@ export function DocumentPageLoadedLayout({
     documentId,
     mode,
     editTab,
+    editFocusMobile ? 'floating' : 'chrome',
     leadDraftDirty,
     metadataDirty,
     // Metadata form values must be in syncKey: chrome actions freeze handleSave closures.
@@ -231,11 +237,15 @@ export function DocumentPageLoadedLayout({
     startHereBusy,
     startHereScopes.map((s) => `${s.scopeType}:${s.scopeId}:${s.isCurrent ? 1 : 0}`).join(','),
   ].join(':');
-  useSetAppShellBreadcrumbActions(breadcrumbActions, breadcrumbActionsSyncKey);
+  useSetAppShellBreadcrumbActions(editFocusMobile ? null : breadcrumbActions, breadcrumbActionsSyncKey);
 
   return (
     <>
-      <DocumentDocBreadcrumbs documentId={documentId} doc={breadcrumbDoc} />
+      <DocumentDocBreadcrumbs
+        documentId={documentId}
+        doc={breadcrumbDoc}
+        enabled={!editFocusMobile}
+      />
 
       <Container
         fluid
@@ -247,6 +257,8 @@ export function DocumentPageLoadedLayout({
         <ResponsiveContentNav
           title={t('documentPage.chromeNavTitle')}
           stickyNav
+          compactTrigger="icon"
+          hideCompactTrigger={mode === 'edit'}
           nav={
             <Stack gap="md" w="100%">
               {data.contextId != null && ownerScope != null && (
@@ -285,7 +297,9 @@ export function DocumentPageLoadedLayout({
                 <Box
                   className={
                     mode === 'edit'
-                      ? 'document-page-scroll document-page-scroll--edit'
+                      ? editFocusMobile
+                        ? 'document-page-scroll document-page-scroll--edit document-page-scroll--edit-mobile-actions'
+                        : 'document-page-scroll document-page-scroll--edit'
                       : 'document-page-scroll'
                   }
                 >
@@ -397,13 +411,45 @@ export function DocumentPageLoadedLayout({
                   documentId={documentId}
                   currentUserId={me?.user?.id}
                   headings={headings.map(({ id, text }) => ({ id, text }))}
-                  layout="rail"
+                  layout={isWide ? 'rail' : 'stack'}
                 />
               </Box>
             </Flex>
           </Box>
         </ResponsiveContentNav>
       </Container>
+      {editFocusMobile ? (
+        <DocumentEditMobileActionBar
+          documentId={documentId}
+          data={data}
+          editTab={editTab}
+          leadDraftPanelRef={leadDraftPanelRef}
+          leadDraftDirty={leadDraftDirty}
+          metadataDirty={metadataDirty}
+          leadDraftPendingSuggestions={leadDraftPendingSuggestions}
+          saveLoading={saveLoading}
+          publishLoading={publishLoading}
+          showPublishButton={showPublishButton}
+          hasNoContext={hasNoContext}
+          pdfExportLoading={pdfExportLoading}
+          pdfExportStatus={pdfExportStatus}
+          moveDecisionLoading={moveDecisionLoading}
+          startHereScopes={startHereScopes}
+          startHereBusy={startHereBusy}
+          handleCancelEdit={handleCancelEdit}
+          handleSave={handleSave}
+          handlePublish={handlePublish}
+          handleStartPdfExport={handleStartPdfExport}
+          handleArchive={handleArchive}
+          handleUnarchive={handleUnarchive}
+          openAssignContext={openAssignContext}
+          openMoveContext={openMoveContext}
+          onMoveRequestDecision={onMoveRequestDecision}
+          openDelete={openDelete}
+          onSetStartHere={(scope) => void setStartHere.mutateAsync(scope)}
+          onClearStartHere={(scope) => void clearStartHere.mutateAsync(scope)}
+        />
+      ) : null}
     </>
   );
 }

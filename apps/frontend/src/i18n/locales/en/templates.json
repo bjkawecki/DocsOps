@@ -9,9 +9,13 @@
     "selectPrompt": "Select a type to view details.",
     "delete": "Delete"
   },
+  "mobileActions": {
+    "toolbarAria": "Template actions"
+  },
   "newType": {
     "action": "New custom type",
     "modalTitle": "New custom type",
+    "modalTitleShort": "New type",
     "labelField": "Label",
     "whenToUseField": "When to use",
     "exampleTitleField": "Example title",

@@ -22,13 +22,13 @@ export function AppShellBreadcrumbBar() {
 
   if (chromeBar != null) {
     return (
-      <Box mb="lg" className="app-shell-breadcrumb-bar">
+      <Box mb={{ base: 'sm', sm: 'md', md: 'lg' }} className="app-shell-breadcrumb-bar">
         <Group
           className="app-shell-breadcrumb-row"
           justify="space-between"
           align="center"
           gap="sm"
-          wrap="wrap"
+          wrap="nowrap"
           mb={6}
         >
           <Box className="app-shell-breadcrumb-primary" style={{ flex: 1, minWidth: 0 }}>
@@ -44,13 +44,13 @@ export function AppShellBreadcrumbBar() {
   if (!hasItems && actions == null) return null;
 
   return (
-    <Box mb="lg" className="app-shell-breadcrumb-bar">
+    <Box mb={{ base: 'sm', sm: 'md', md: 'lg' }} className="app-shell-breadcrumb-bar">
       <Group
         className="app-shell-breadcrumb-row"
         justify="space-between"
         align="center"
         gap="sm"
-        wrap="wrap"
+        wrap="nowrap"
         mb={6}
       >
         {hasItems ? (
@@ -62,9 +62,18 @@ export function AppShellBreadcrumbBar() {
             {items.map((item, index) => {
               const isLast = index === items.length - 1;
               const content = (
-                <Group gap={4} align="center" wrap="nowrap">
+                <Group gap={4} align="center" wrap="nowrap" style={{ minWidth: 0 }}>
                   {item.icon}
-                  <span>{item.label}</span>
+                  <Text
+                    component="span"
+                    size="sm"
+                    lineClamp={1}
+                    style={{ minWidth: 0 }}
+                    c="inherit"
+                    fw="inherit"
+                  >
+                    {item.label}
+                  </Text>
                 </Group>
               );
               if (item.to && !isLast) {

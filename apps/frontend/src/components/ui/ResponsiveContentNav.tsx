@@ -1,7 +1,7 @@
-import { Box, Button, Drawer, Flex, Group } from '@mantine/core';
+import { ActionIcon, Box, Button, Drawer, Flex, Group } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { IconLayoutSidebar } from '@tabler/icons-react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
@@ -18,6 +18,17 @@ type ResponsiveContentNavProps = {
   children: ReactNode;
   /** Stick left column while scrolling (document chrome). */
   stickyNav?: boolean;
+  /**
+   * Compact trigger: full button with label (default) or icon-only (document reading).
+   */
+  compactTrigger?: 'button' | 'icon';
+  /** Under compact: omit drawer trigger and drawer (e.g. document edit focus mode). */
+  hideCompactTrigger?: boolean;
+  /**
+   * Under compact: no built-in top trigger; still mounts the drawer and assigns
+   * `open` to this ref so a floating action can open the nav.
+   */
+  compactNavOpenRef?: RefObject<(() => void) | null>;
 };
 
 /**
@@ -29,6 +40,9 @@ export function ResponsiveContentNav({
   nav,
   children,
   stickyNav = false,
+  compactTrigger = 'button',
+  hideCompactTrigger = false,
+  compactNavOpenRef,
 }: ResponsiveContentNavProps) {
   const { t } = useTranslation('shell');
   const location = useLocation();
@@ -38,6 +52,14 @@ export function ResponsiveContentNav({
   useEffect(() => {
     close();
   }, [location.pathname, location.search, close]);
+
+  useEffect(() => {
+    if (!compactNavOpenRef) return;
+    compactNavOpenRef.current = open;
+    return () => {
+      compactNavOpenRef.current = null;
+    };
+  }, [compactNavOpenRef, open]);
 
   if (isWide) {
     return (
@@ -50,30 +72,62 @@ export function ResponsiveContentNav({
     );
   }
 
+  if (hideCompactTrigger) {
+    return <Box w="100%">{children}</Box>;
+  }
+
+  const aria = t('nav.contentNavOpenAria', { title });
+  const useExternalTrigger = compactNavOpenRef != null;
+
+  const drawer = (
+    <Drawer
+      opened={opened}
+      onClose={close}
+      title={title}
+      position="left"
+      size={CONTEXT_WORKSPACE_LEFT_WIDTH}
+      padding="md"
+      closeButtonProps={{ 'aria-label': t('nav.contentNavCloseAria', { title }) }}
+    >
+      {nav}
+    </Drawer>
+  );
+
+  if (useExternalTrigger) {
+    return (
+      <Box w="100%">
+        {drawer}
+        {children}
+      </Box>
+    );
+  }
+
   return (
     <Box w="100%">
-      <Group mb="sm" gap="sm">
-        <Button
-          variant="default"
-          size="sm"
-          leftSection={<IconLayoutSidebar size={16} stroke={1.5} />}
-          onClick={open}
-          aria-label={t('nav.contentNavOpenAria', { title })}
-        >
-          {title}
-        </Button>
+      <Group mb="xs" gap="sm">
+        {compactTrigger === 'icon' ? (
+          <ActionIcon
+            variant="default"
+            size={44}
+            onClick={open}
+            aria-label={aria}
+            title={title}
+          >
+            <IconLayoutSidebar size={20} stroke={1.5} />
+          </ActionIcon>
+        ) : (
+          <Button
+            variant="default"
+            size="sm"
+            leftSection={<IconLayoutSidebar size={16} stroke={1.5} />}
+            onClick={open}
+            aria-label={aria}
+          >
+            {title}
+          </Button>
+        )}
       </Group>
-      <Drawer
-        opened={opened}
-        onClose={close}
-        title={title}
-        position="left"
-        size={CONTEXT_WORKSPACE_LEFT_WIDTH}
-        padding="md"
-        closeButtonProps={{ 'aria-label': t('nav.contentNavCloseAria', { title }) }}
-      >
-        {nav}
-      </Drawer>
+      {drawer}
       {children}
     </Box>
   );

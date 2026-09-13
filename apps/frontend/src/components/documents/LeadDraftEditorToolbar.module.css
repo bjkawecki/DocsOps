@@ -10,6 +10,20 @@
   background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
 }
 
+.rowCompact {
+  flex-wrap: wrap;
+  align-items: center;
+  overflow: visible;
+  padding: 4px;
+}
+
+.rowCompact .clusterTools {
+  flex-wrap: wrap;
+  min-height: 44px;
+  gap: 2px;
+  width: 100%;
+}
+
 .cluster {
   display: flex;
   flex-direction: column;
@@ -61,4 +75,25 @@
   line-height: 1;
   width: 100%;
   height: 100%;
+}
+
+/* Compact: larger touch targets, no horizontal scroll strip. */
+@media (max-width: 74.9875em) {
+  .rowCompact .toolHit {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .rowCompact .toolHit :global(.mantine-ActionIcon-root) {
+    --ai-size: 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .rowCompact .headingLabel {
+    font-size: 12px;
+  }
 }

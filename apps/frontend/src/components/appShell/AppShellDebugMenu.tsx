@@ -66,15 +66,21 @@ export function AppShellDebugMenu({
       <Box
         style={{
           position: 'fixed',
-          bottom: 16,
-          right: 16,
+          bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+          right: 'max(0.75rem, env(safe-area-inset-right))',
           zIndex: 1000,
         }}
       >
-        <Menu position="bottom-end" shadow="md" width={320}>
+        <Menu position="left-end" shadow="md" width={320}>
           <Menu.Target>
-            <ActionIcon variant="filled" size="md" aria-label={t('debug.menuAria')} color="grape">
-              <IconBug size={18} />
+            <ActionIcon
+              variant="filled"
+              size={32}
+              radius="xl"
+              aria-label={t('debug.menuAria')}
+              color="grape"
+            >
+              <IconBug size={16} />
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>

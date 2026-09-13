@@ -355,7 +355,8 @@
     "italic": "Italic",
     "inlineCode": "Inline code",
     "inlineFormatDisabled": "Inline formatting applies only to your suggested text, not existing content.",
-    "link": "Link"
+    "link": "Link",
+    "moreTools": "More tools"
   },
   "typePicker": {
     "noType": "No type",

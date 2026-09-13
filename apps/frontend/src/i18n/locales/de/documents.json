@@ -355,7 +355,8 @@
     "italic": "Kursiv",
     "inlineCode": "Inline-Code",
     "inlineFormatDisabled": "Inline-Formatierung gilt nur für deinen vorgeschlagenen Text, nicht für bestehenden Inhalt.",
-    "link": "Link"
+    "link": "Link",
+    "moreTools": "Weitere Werkzeuge"
   },
   "typePicker": {
     "noType": "Kein Typ",

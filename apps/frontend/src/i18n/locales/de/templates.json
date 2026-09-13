@@ -9,9 +9,13 @@
     "selectPrompt": "Einen Typ auswählen, um Details zu sehen.",
     "delete": "Löschen"
   },
+  "mobileActions": {
+    "toolbarAria": "Vorlagen-Aktionen"
+  },
   "newType": {
     "action": "Neuer benutzerdefinierter Typ",
     "modalTitle": "Neuer benutzerdefinierter Typ",
+    "modalTitleShort": "Neuer Typ",
     "labelField": "Name",
     "whenToUseField": "Wann verwenden",
     "exampleTitleField": "Beispieltitel",

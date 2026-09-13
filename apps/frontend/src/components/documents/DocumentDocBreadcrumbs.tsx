@@ -1,7 +1,9 @@
+import { useMediaQuery } from '@mantine/hooks';
 import { useMemo, type ReactNode } from 'react';
 import {
   IconBriefcase,
   IconBuildingSkyscraper,
+  IconChevronLeft,
   IconRoute,
   IconSitemap,
   IconSubtask,
@@ -12,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
+import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
@@ -38,9 +41,20 @@ export type DocumentDocBreadcrumbsProps = {
   doc: DocumentForDocBreadcrumbs;
   /** Auf der Versionsseite: Dokument-Crumb verlinkt zurück zum Dokument. */
   linkDocumentTitle?: boolean;
+  /** When false, clears the shell breadcrumb trail (e.g. mobile edit focus). */
+  enabled?: boolean;
 };
 
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+export type BuildDocumentBreadcrumbOptions = {
+  linkDocumentTitle?: boolean;
+  /**
+   * Compact viewport: one parent crumb (context or scope), no document title
+   * (title already shown as H1).
+   */
+  compact?: boolean;
+};
 
 function buildContextMeta(doc: DocumentForDocBreadcrumbs, t: TranslateFn) {
   if (doc.contextId == null) return null;
@@ -73,8 +87,12 @@ export function buildDocumentBreadcrumbItems(
   documentId: string,
   doc: DocumentForDocBreadcrumbs,
   t: TranslateFn,
-  linkDocumentTitle = false
+  options: BuildDocumentBreadcrumbOptions | boolean = false
 ): AppShellBreadcrumbItem[] {
+  const opts: BuildDocumentBreadcrumbOptions =
+    typeof options === 'boolean' ? { linkDocumentTitle: options } : options;
+  const { linkDocumentTitle = false, compact = false } = opts;
+
   const scope = (doc.scope ?? null) as RecentScope | null;
   const hasNoContext = doc.contextId == null;
   const contextMeta = buildContextMeta(doc, t);
@@ -90,6 +108,43 @@ export function buildDocumentBreadcrumbItems(
         : scope?.type === 'team'
           ? IconUsersGroup
           : IconUser;
+
+  if (compact) {
+    if (linkDocumentTitle) {
+      return [
+        {
+          key: 'document',
+          label: documentTitle,
+          to: `/documents/${documentId}`,
+          icon: <IconChevronLeft size={14} stroke={1.5} />,
+        },
+      ];
+    }
+    if (contextMeta) {
+      return [
+        {
+          key: 'context',
+          label: contextMeta.name,
+          to: contextMeta.to,
+          icon: <IconChevronLeft size={14} stroke={1.5} />,
+        },
+      ];
+    }
+    if (scope) {
+      return [
+        {
+          key: 'scope',
+          label: scopeName,
+          to: scopeToUrl(scope),
+          icon: <IconChevronLeft size={14} stroke={1.5} />,
+        },
+      ];
+    }
+    if (hasNoContext) {
+      return [{ key: 'no-context', label: t('breadcrumbs.noContext') }];
+    }
+    return [];
+  }
 
   const items: AppShellBreadcrumbItem[] = [];
   if (scope) {
@@ -121,51 +176,55 @@ export function buildDocumentBreadcrumbItems(
 
 /**
  * Registers document breadcrumbs in the AppShell row (Scope → Context → Document).
+ * Compact viewports: single parent back-crumb only.
  * Renders nothing inline.
  */
 export function DocumentDocBreadcrumbs({
   documentId,
   doc,
   linkDocumentTitle = false,
+  enabled = true,
 }: DocumentDocBreadcrumbsProps) {
   const { t } = useTranslation('documents');
-  const items = useMemo(
-    () =>
-      buildDocumentBreadcrumbItems(
-        documentId,
-        {
-          title: doc.title,
-          contextId: doc.contextId,
-          contextType: doc.contextType,
-          contextName: doc.contextName,
-          contextProcessId: doc.contextProcessId,
-          contextProjectId: doc.contextProjectId,
-          contextProjectName: doc.contextProjectName,
-          subcontextId: doc.subcontextId,
-          subcontextName: doc.subcontextName,
-          scope: doc.scope,
-        },
-        t,
-        linkDocumentTitle
-      ),
-    [
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const items = useMemo(() => {
+    if (!enabled) return null;
+    return buildDocumentBreadcrumbItems(
       documentId,
-      linkDocumentTitle,
-      doc.title,
-      doc.contextId,
-      doc.contextType,
-      doc.contextName,
-      doc.contextProcessId,
-      doc.contextProjectId,
-      doc.contextProjectName,
-      doc.subcontextId,
-      doc.subcontextName,
-      doc.scope,
+      {
+        title: doc.title,
+        contextId: doc.contextId,
+        contextType: doc.contextType,
+        contextName: doc.contextName,
+        contextProcessId: doc.contextProcessId,
+        contextProjectId: doc.contextProjectId,
+        contextProjectName: doc.contextProjectName,
+        subcontextId: doc.subcontextId,
+        subcontextName: doc.subcontextName,
+        scope: doc.scope,
+      },
       t,
-    ]
-  );
+      { linkDocumentTitle, compact: !isWide }
+    );
+  }, [
+    enabled,
+    documentId,
+    linkDocumentTitle,
+    isWide,
+    doc.title,
+    doc.contextId,
+    doc.contextType,
+    doc.contextName,
+    doc.contextProcessId,
+    doc.contextProjectId,
+    doc.contextProjectName,
+    doc.subcontextId,
+    doc.subcontextName,
+    doc.scope,
+    t,
+  ]);
   useSetAppShellBreadcrumbs(items);
   const scope = (doc.scope ?? null) as RecentScope | null;
-  useSetAppShellNavScope(scope);
+  useSetAppShellNavScope(enabled ? scope : null);
   return null;
 }
