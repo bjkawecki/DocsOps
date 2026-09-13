@@ -90,6 +90,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 - **Umsetzung:**
   - Keine besonderen Hardware-Anforderungen; Ressourcenbedarf der App und ggf. DB dokumentieren.
   - Persistente **Volumes** für Daten und Konfiguration in der Compose-Datei vorsehen.
+  - **Object Storage:** S3-kompatibel über den Compose-Service `minio`. Image: Community-Build **`pgsty/minio`** (gepinnter Tag) – Upstream `minio/minio` liefert keine Community-Images mehr (source-only / archiviert). API/Env (`MINIO_ROOT_*`, `server /data`) unverändert.
   - **Backup (Operational):** Ein **Archiv** pro Lauf (`manifest.json` + `pg_dump -Fc` + MinIO-Objekte); kurzer **Wartungsmodus** ohne Writes; Job `maintenance.backup` im **Worker**; Upload im **selben Job** an Admin-Ziele (`s3_compatible`, `ssh`; WebDAV Phase 2). Kein Sidecar. Scheduler + Retention (`BACKUP_RETENTION_COUNT`). Restore zunächst Runbook + Test auf leerem Stack. **Plattform-Export/Import** separater Job + Tab Migration (§4 / §27). Details: [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md) §3–§4, Todos [§25](Umsetzungs-Todo.md), [§27](Umsetzungs-Todo.md).
   - **Vor Update:** Backup-Hinweis bzw. -Gate in Admin-UI (§26).
 

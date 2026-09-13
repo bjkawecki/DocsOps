@@ -24,7 +24,8 @@ services:
 
   minio:
     container_name: ${COMPOSE_PROJECT_NAME:-docsops}-minio
-    image: minio/minio:latest
+    # See docker-compose.yml: community image (upstream minio/minio no longer publishes).
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: 'no'
     command: server /data
     environment:

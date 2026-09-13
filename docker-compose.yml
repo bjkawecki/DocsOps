@@ -21,7 +21,9 @@ services:
 
   minio:
     container_name: ${COMPOSE_PROJECT_NAME:-docsops}-minio
-    image: minio/minio:latest
+    # Upstream minio/minio stopped publishing community images (source-only / archived).
+    # pgsty/minio is a drop-in community build (S3 API, MINIO_ROOT_*, mc healthcheck).
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: unless-stopped
     command: server /data
     environment:

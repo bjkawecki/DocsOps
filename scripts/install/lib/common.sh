@@ -508,7 +508,7 @@ compose_pull_images() {
     return 0
   fi
   if ! compose_stack_cmd pull -q; then
-    abort_stack_failure "docker compose pull fehlgeschlagen. Prüfe DOCSOPS_VERSION und Registry-Zugriff (${DOCSOPS_IMAGE_PREFIX})."
+    abort_stack_failure "docker compose pull fehlgeschlagen. Prüfe DOCSOPS_VERSION, Registry-Zugriff (${DOCSOPS_IMAGE_PREFIX}) und Basis-Images (postgres, minio/pgsty, caddy)."
   fi
 }
 
