@@ -275,12 +275,53 @@ describe('Admin system update routes', () => {
       updateCheckEnabled: boolean;
       smtpEnabled: boolean;
       smtpPasswordConfigured: boolean;
+      orgRoleLabels: Record<string, unknown>;
       updatedAt: string;
     };
     expect(body.updateCheckEnabled).toBe(true);
     expect(body.smtpEnabled).toBe(false);
     expect(body.smtpPasswordConfigured).toBe(false);
+    expect(body.orgRoleLabels).toEqual({});
     expect(body.updatedAt).toBeTruthy();
+  });
+
+  it('PATCH /admin/system/settings updates orgRoleLabels and public-config', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const labels = {
+      teamLead: { singular: 'Squad Lead', plural: 'Squad Leads' },
+    };
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/admin/system/settings',
+      headers: { cookie },
+      payload: { orgRoleLabels: labels },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { orgRoleLabels: typeof labels };
+    expect(body.orgRoleLabels).toEqual(labels);
+
+    const publicRes = await app.inject({ method: 'GET', url: '/api/v1/system/public-config' });
+    expect(publicRes.statusCode).toBe(200);
+    const publicBody = publicRes.json() as { orgRoleLabels: typeof labels };
+    expect(publicBody.orgRoleLabels).toEqual(labels);
+
+    await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/admin/system/settings',
+      headers: { cookie },
+      payload: { orgRoleLabels: {} },
+    });
+  });
+
+  it('PATCH /admin/system/settings rejects unknown org role keys', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/api/v1/admin/system/settings',
+      headers: { cookie },
+      payload: { orgRoleLabels: { notARole: { singular: 'X' } } },
+    });
+    expect(res.statusCode).toBe(400);
   });
 
   it('PATCH /admin/system/settings toggles update check for admin', async () => {

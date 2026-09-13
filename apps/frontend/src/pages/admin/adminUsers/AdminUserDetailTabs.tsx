@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { IconLock, IconPencil, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import type {
   DepartmentWithTeams,
   UserDocumentsRes,
@@ -56,6 +57,7 @@ export function AdminUserDetailTabs({
   updateUserPending,
 }: Props) {
   const { t } = useTranslation('admin');
+  const roleLabel = useOrgRoleLabel();
   const [documentsPage, setDocumentsPage] = useState(0);
   const [profileEditing, setProfileEditing] = useState(false);
   const [assignmentsEditing, setAssignmentsEditing] = useState(false);
@@ -163,12 +165,12 @@ export function AdminUserDetailTabs({
                     )}
                     {user.role === 'Company Lead' && (
                       <Badge size="sm" color="violet" variant="filled">
-                        {t('roles.companyLead')}
+                        {roleLabel('companyLead')}
                       </Badge>
                     )}
                     {user.isAdmin && (
                       <Badge size="sm" color="blue" variant="filled">
-                        {t('roles.admin')}
+                        {roleLabel('admin')}
                       </Badge>
                     )}
                   </Group>

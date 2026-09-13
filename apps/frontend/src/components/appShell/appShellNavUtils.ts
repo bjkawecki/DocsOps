@@ -1,3 +1,5 @@
+import type { DisplayRoleKey } from '../../lib/orgRoleLabel.js';
+
 export function isActive(path: string, current: string): boolean {
   if (path === '/') return current === '/';
   return current === path || current.startsWith(path + '/');
@@ -42,8 +44,8 @@ export function getNavLinkStyles(): AppShellNavLinkStyles {
   };
 }
 
-/** Rolle aus MeResponse ableiten (gleiche Reihenfolge wie Backend: Admin > Company Lead > Department Lead > Team Lead > User). */
-export function getDisplayRole(me: {
+/** Capability display key from MeResponse (Admin > leads > authors > user). */
+export function getDisplayRoleKey(me: {
   user: { isAdmin: boolean };
   identity: {
     companyLeads: unknown[];
@@ -51,14 +53,14 @@ export function getDisplayRole(me: {
     departmentAuthors?: unknown[];
     teams: { role: string }[];
   };
-}): string {
-  if (me.user.isAdmin) return 'Admin';
-  if ((me.identity.companyLeads?.length ?? 0) > 0) return 'Company Lead';
-  if ((me.identity.departmentLeads?.length ?? 0) > 0) return 'Department Lead';
-  if ((me.identity.departmentAuthors?.length ?? 0) > 0) return 'Department Author';
-  if (me.identity.teams?.some((t) => t.role === 'leader')) return 'Team Lead';
-  if (me.identity.teams?.some((t) => t.role === 'author')) return 'Team Author';
-  return 'User';
+}): DisplayRoleKey {
+  if (me.user.isAdmin) return 'admin';
+  if ((me.identity.companyLeads?.length ?? 0) > 0) return 'companyLead';
+  if ((me.identity.departmentLeads?.length ?? 0) > 0) return 'departmentLead';
+  if ((me.identity.departmentAuthors?.length ?? 0) > 0) return 'departmentAuthor';
+  if (me.identity.teams?.some((t) => t.role === 'leader')) return 'teamLead';
+  if (me.identity.teams?.some((t) => t.role === 'author')) return 'teamAuthor';
+  return 'user';
 }
 
 export type DepartmentWithTeams = {

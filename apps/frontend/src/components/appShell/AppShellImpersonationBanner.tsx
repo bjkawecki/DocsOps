@@ -2,7 +2,8 @@ import { Box, Button, Group, Text } from '@mantine/core';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
 import type { MeResponse } from '../../api/me-types.js';
-import { getDisplayRole } from './appShellNavUtils.js';
+import { useOrgRoleLabel } from '../../hooks/useOrgRoleLabel.js';
+import { getDisplayRoleKey } from './appShellNavUtils.js';
 
 type Props = {
   me: MeResponse | undefined;
@@ -16,6 +17,7 @@ export function AppShellImpersonationBanner({
   stopImpersonateMutation,
 }: Props) {
   const { t } = useTranslation('shell');
+  const roleLabel = useOrgRoleLabel();
 
   if (!me?.impersonation?.active) return null;
 
@@ -51,7 +53,7 @@ export function AppShellImpersonationBanner({
             values={{
               name: me.user.name,
               emailPart,
-              role: getDisplayRole(me),
+              role: roleLabel(getDisplayRoleKey(me)),
               realName: me.impersonation.realUser.name,
             }}
             components={{ strong: <strong /> }}

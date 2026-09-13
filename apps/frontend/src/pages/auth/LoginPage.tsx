@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { fetchMe, meQueryKey } from '../../hooks/useMe';
 import { usePublicConfig } from '../../hooks/usePublicConfig';
+import { useOrgRoleLabel } from '../../hooks/useOrgRoleLabel';
 import { DocopsLogo } from '../../components/appShell/DocopsLogo';
 import { AppVersionLabel } from '../../components/AppVersionLabel';
 import { AppShellMaintenanceBanner } from '../../components/appShell/AppShellMaintenanceBanner';
@@ -41,6 +42,7 @@ type LoginLocationState = {
 
 export function LoginPage() {
   const { t } = useTranslation('auth');
+  const roleLabel = useOrgRoleLabel();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -160,7 +162,7 @@ export function LoginPage() {
                     onClick={() => demoLogin.mutate(role)}
                     style={{ minHeight: 44 }}
                   >
-                    {t(`demo.roles.${role}`)}
+                    {roleLabel(role)}
                   </Button>
                 ))}
               </Stack>

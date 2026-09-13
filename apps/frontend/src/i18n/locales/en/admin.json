@@ -14,6 +14,7 @@
     "migration": "Migration",
     "system": "System",
     "mail": "Mail",
+    "roles": "Roles",
     "broadcast": "Broadcast"
   },
   "demo": {
@@ -68,6 +69,29 @@
     "member": "Member",
     "author": "Author",
     "lead": "Lead"
+  },
+  "rolesPage": {
+    "title": "Organization role labels",
+    "intro": "Custom display names for organization roles (one language for the whole instance). Permissions stay the same; empty fields use the default strings.",
+    "save": "Save role labels",
+    "loadFailed": "Could not load role labels. Reload the page or try again later.",
+    "demoReadOnly": "Demo mode: role labels are read-only.",
+    "defaultHint": "Defaults: {{singular}} / {{plural}}",
+    "fields": {
+      "singular": "Singular",
+      "plural": "Plural"
+    },
+    "roles": {
+      "companyLead": "Company Lead",
+      "departmentLead": "Department Lead",
+      "teamLead": "Team Lead",
+      "teamMember": "Team Member"
+    },
+    "toasts": {
+      "savedTitle": "Role labels saved",
+      "savedMessage": "Display names were updated for this instance.",
+      "saveFailedTitle": "Could not save role labels"
+    }
   },
   "jobs": {
     "loadFailedTitle": "Failed to load admin jobs",

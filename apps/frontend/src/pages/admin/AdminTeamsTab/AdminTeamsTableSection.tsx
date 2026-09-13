@@ -1,4 +1,6 @@
 import { Alert, Group, Pagination, Table, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import type { TeamBatchRow, TeamWithDept } from './adminTeamsTabTypes';
 
 export type AdminTeamsTableSectionProps = {
@@ -28,6 +30,9 @@ export function AdminTeamsTableSection({
   onPageChange,
   onSelectTeam,
 }: AdminTeamsTableSectionProps) {
+  const { t: tAdmin } = useTranslation('admin');
+  const roleLabel = useOrgRoleLabel();
+
   return (
     <>
       {companyId && departmentsLength > 0 && (
@@ -35,10 +40,10 @@ export function AdminTeamsTableSection({
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Team</Table.Th>
-              <Table.Th>Department</Table.Th>
-              <Table.Th>Lead</Table.Th>
-              <Table.Th>Members</Table.Th>
-              <Table.Th>Schreibrechte</Table.Th>
+              <Table.Th>{tAdmin('shared.department')}</Table.Th>
+              <Table.Th>{roleLabel('teamLead')}</Table.Th>
+              <Table.Th>{tAdmin('shared.members')}</Table.Th>
+              <Table.Th>{roleLabel('teamLead')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -53,11 +58,11 @@ export function AdminTeamsTableSection({
                 </Table.Td>
               </Table.Tr>
             ) : (
-              pagedTeams.map((t) => {
-                const batch = teamBatchData?.[t.id];
+              pagedTeams.map((team) => {
+                const batch = teamBatchData?.[team.id];
                 const leadText = batch?.leadNames?.length ? batch.leadNames.join(', ') : '–';
                 return (
-                  <Table.Tr key={t.id}>
+                  <Table.Tr key={team.id}>
                     <Table.Td>
                       <Text
                         component="button"
@@ -72,12 +77,12 @@ export function AdminTeamsTableSection({
                           border: 'none',
                           padding: 0,
                         }}
-                        onClick={() => onSelectTeam(t)}
+                        onClick={() => onSelectTeam(team)}
                       >
-                        {t.name}
+                        {team.name}
                       </Text>
                     </Table.Td>
-                    <Table.Td>{t.departmentName}</Table.Td>
+                    <Table.Td>{team.departmentName}</Table.Td>
                     <Table.Td>{leadText}</Table.Td>
                     <Table.Td>{batch != null ? String(batch.memberCount) : '–'}</Table.Td>
                     <Table.Td>{leadText}</Table.Td>

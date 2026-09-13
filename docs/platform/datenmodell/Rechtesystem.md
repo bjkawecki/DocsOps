@@ -70,6 +70,8 @@ Pro Unit (Team, Department, Company) existieren Rollen:
 
 **Eine Rolle pro Person:** Plattform-**Admin** (`isAdmin`) oder genau **eine** organisatorische Scope-Rolle (`CompanyLead`, `DepartmentLead`, `TeamLead`, `TeamMember`) – nicht kombinierbar. Team Lead erfordert keine Team-Mitgliedschaft; Lead und Member sind auf Team-Ebene mutual exclusive. Zuordnungs-APIs und Admin-User-`isAdmin`-Grant enforced das per 409.
 
+**Anzeige-Labels (kein Rechtewechsel):** Plattform-Admins können unter Admin → Platform → Roles Singular/Plural-Bezeichnungen für `companyLead`, `departmentLead`, `teamLead`, `teamMember` setzen (eine Sprache für die gesamte Instanz). Capability-Keys und Permissions bleiben unverändert; leere Felder nutzen die i18n-Defaults. Labels erreichen Clients über `GET /api/v1/system/public-config` (`orgRoleLabels`).
+
 ---
 
 ### 5. Leserechte (Prinzip)

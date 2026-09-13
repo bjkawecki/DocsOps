@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
 import {
   decryptJson,
   encryptJson,
@@ -10,6 +10,11 @@ import {
   type SmtpTransportConfig,
 } from '../../../infrastructure/mail/smtpTransport.js';
 import { isDemoMode } from '../../../config/runtimeMode.js';
+import {
+  normalizeOrgRoleLabels,
+  parseOrgRoleLabels,
+  type OrgRoleLabels,
+} from '../schemas/orgRoleLabels.js';
 
 export type SmtpEncryptionMode = SmtpEncryption;
 
@@ -23,6 +28,7 @@ export type SystemSettingsView = {
   smtpPasswordConfigured: boolean;
   smtpFromAddress: string | null;
   smtpFromName: string | null;
+  orgRoleLabels: OrgRoleLabels;
   updatedAt: Date;
 };
 
@@ -37,6 +43,7 @@ export type PatchSystemSettingsInput = {
   smtpPassword?: string | null;
   smtpFromAddress?: string | null;
   smtpFromName?: string | null;
+  orgRoleLabels?: OrgRoleLabels;
 };
 
 const SMTP_SELECT = {
@@ -49,6 +56,7 @@ const SMTP_SELECT = {
   smtpPasswordCiphertext: true,
   smtpFromAddress: true,
   smtpFromName: true,
+  orgRoleLabels: true,
   updatedAt: true,
 } as const;
 
@@ -62,6 +70,7 @@ function toView(row: {
   smtpPasswordCiphertext: string | null;
   smtpFromAddress: string | null;
   smtpFromName: string | null;
+  orgRoleLabels: unknown;
   updatedAt: Date;
 }): SystemSettingsView {
   return {
@@ -75,6 +84,7 @@ function toView(row: {
       row.smtpPasswordCiphertext != null && row.smtpPasswordCiphertext.trim() !== '',
     smtpFromAddress: row.smtpFromAddress,
     smtpFromName: row.smtpFromName,
+    orgRoleLabels: parseOrgRoleLabels(row.orgRoleLabels),
     updatedAt: row.updatedAt,
   };
 }
@@ -89,6 +99,7 @@ const DEFAULT_VIEW: SystemSettingsView = {
   smtpPasswordConfigured: false,
   smtpFromAddress: null,
   smtpFromName: null,
+  orgRoleLabels: {},
   updatedAt: new Date(),
 };
 
@@ -206,6 +217,16 @@ export async function updateSystemSettings(
     smtpPasswordCiphertext: passwordCiphertext,
   });
 
+  const nextOrgRoleLabels =
+    data.orgRoleLabels !== undefined
+      ? normalizeOrgRoleLabels(data.orgRoleLabels)
+      : parseOrgRoleLabels(existing?.orgRoleLabels);
+
+  const orgRoleLabelsJson: Prisma.InputJsonValue | typeof Prisma.DbNull =
+    Object.keys(nextOrgRoleLabels).length > 0
+      ? (nextOrgRoleLabels as Prisma.InputJsonValue)
+      : Prisma.DbNull;
+
   const updated = await prisma.systemSettings.upsert({
     where: { id: 'default' },
     create: {
@@ -219,6 +240,7 @@ export async function updateSystemSettings(
       smtpPasswordCiphertext: passwordCiphertext,
       smtpFromAddress: nextFrom,
       smtpFromName: data.smtpFromName !== undefined ? data.smtpFromName : null,
+      orgRoleLabels: data.orgRoleLabels !== undefined ? orgRoleLabelsJson : undefined,
     },
     update: {
       ...(data.updateCheckEnabled !== undefined
@@ -232,11 +254,23 @@ export async function updateSystemSettings(
       ...(data.smtpPassword !== undefined ? { smtpPasswordCiphertext: passwordCiphertext } : {}),
       ...(data.smtpFromAddress !== undefined ? { smtpFromAddress: data.smtpFromAddress } : {}),
       ...(data.smtpFromName !== undefined ? { smtpFromName: data.smtpFromName } : {}),
+      ...(data.orgRoleLabels !== undefined ? { orgRoleLabels: orgRoleLabelsJson } : {}),
     },
     select: SMTP_SELECT,
   });
 
   return toView(updated);
+}
+
+/** Org role display labels for public-config (no auth). */
+export async function getOrgRoleLabelsForPublicConfig(
+  prisma: PrismaClient
+): Promise<OrgRoleLabels> {
+  const row = await prisma.systemSettings.findUnique({
+    where: { id: 'default' },
+    select: { orgRoleLabels: true },
+  });
+  return parseOrgRoleLabels(row?.orgRoleLabels);
 }
 
 /**

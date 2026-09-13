@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import { meQueryKey, useMe } from '../../hooks/useMe';
+import { useOrgRoleLabel } from '../../hooks/useOrgRoleLabel.js';
 import { SettingsCardTitle } from './SettingsCardTitle.js';
 import {
   SETTINGS_CARD_ROW_GAP,
@@ -30,6 +31,7 @@ import {
 
 export function SettingsGeneralTab() {
   const { t } = useTranslation('settings');
+  const roleLabel = useOrgRoleLabel();
   const queryClient = useQueryClient();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [deactivateOpened, { open: openDeactivate, close: closeDeactivate }] = useDisclosure(false);
@@ -191,19 +193,16 @@ export function SettingsGeneralTab() {
                       {t('general.identity.teamRow', {
                         team: team.teamName,
                         department: team.departmentName,
-                        role: t(
-                          team.role === 'leader'
-                            ? 'general.identity.teamRoleLeader'
-                            : team.role === 'author'
-                              ? 'general.identity.teamRoleAuthor'
-                              : 'general.identity.teamRoleMember'
-                        ),
+                        role: roleLabel(team.role),
                       })}
                     </List.Item>
                   ))}
                   {identity.departmentLeads.map((d) => (
                     <List.Item key={d.id}>
-                      {t('general.identity.departmentLeadRow', { name: d.name })}
+                      {t('general.identity.departmentLeadRow', {
+                        role: roleLabel('departmentLead'),
+                        name: d.name,
+                      })}
                     </List.Item>
                   ))}
                   {identity.departmentAuthors.map((d) => (
@@ -213,7 +212,10 @@ export function SettingsGeneralTab() {
                   ))}
                   {identity.companyLeads?.map((c) => (
                     <List.Item key={c.id}>
-                      {t('general.identity.companyLeadRow', { name: c.name })}
+                      {t('general.identity.companyLeadRow', {
+                        role: roleLabel('companyLead'),
+                        name: c.name,
+                      })}
                     </List.Item>
                   ))}
                 </List>

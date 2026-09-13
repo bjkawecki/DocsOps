@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { requireAuthPreHandler } from '../../auth/middleware.js';
 import { isDemoMode } from '../../../config/runtimeMode.js';
 import { appVersion } from '../../../infrastructure/appVersion.js';
+import { getOrgRoleLabelsForPublicConfig } from '../../admin/services/adminSystemSettingsService.js';
 import { semverParamSchema } from '../schemas/releases.js';
 import { getRelease, listReleases, ReleaseNotFoundError } from '../services/releaseNotesService.js';
 
@@ -11,8 +12,9 @@ const systemRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   });
 
   /** Public runtime flags for login UI (no auth). */
-  app.get('/system/public-config', async (_request, reply) => {
-    return reply.send({ demoMode: isDemoMode() });
+  app.get('/system/public-config', async (request, reply) => {
+    const orgRoleLabels = await getOrgRoleLabelsForPublicConfig(request.server.prisma);
+    return reply.send({ demoMode: isDemoMode(), orgRoleLabels });
   });
 
   app.get('/releases', { preHandler: requireAuthPreHandler }, async (_request, reply) => {

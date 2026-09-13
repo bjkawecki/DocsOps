@@ -71,9 +71,9 @@
       "teamRoleAuthor": "Team-Autor",
       "teamRoleMember": "Mitglied",
       "teamRow": "{{team}} ({{department}}) – {{role}}",
-      "departmentLeadRow": "Abteilungsleitung: {{name}}",
+      "departmentLeadRow": "{{role}}: {{name}}",
       "departmentAuthorRow": "Abteilungsautor: {{name}}",
-      "companyLeadRow": "Unternehmensleitung: {{name}}"
+      "companyLeadRow": "{{role}}: {{name}}"
     },
     "editProfileModal": {
       "title": "Profil bearbeiten",

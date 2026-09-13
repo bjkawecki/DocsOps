@@ -21,6 +21,7 @@ import {
   useTeamAuthorMutations,
 } from '../../hooks/useScopeAuthorMutations';
 import { formatPresence, initialsFromName } from '../../lib/formatPresence';
+import { useOrgRoleLabel } from '../../hooks/useOrgRoleLabel.js';
 
 export type ScopePeopleScope = 'team' | 'department' | 'company';
 
@@ -44,18 +45,19 @@ type PersonLineProps = {
 
 function PersonLine({ person, actions, actionsDisabled }: PersonLineProps) {
   const { t } = useTranslation('common');
+  const roleLabel = useOrgRoleLabel();
   const presence = formatPresence(person.isOnline, person.lastActiveAt);
-  const roleLabel =
+  const roleText =
     person.roles?.includes('lead') && person.roles.includes('member')
-      ? t('common:scopePeople.roleLeadMember')
+      ? `${roleLabel('teamLead')}, ${roleLabel('teamMember')}`
       : person.roles?.includes('lead')
-        ? t('common:scopePeople.roleLead')
+        ? roleLabel('teamLead')
         : person.roles?.includes('author')
-          ? t('common:scopePeople.roleAuthor')
+          ? t('scopePeople.roleAuthor')
           : person.roles?.includes('member')
-            ? t('common:scopePeople.roleMember')
+            ? roleLabel('teamMember')
             : null;
-  const detail = [roleLabel, presence].filter(Boolean).join(' · ');
+  const detail = [roleText, presence].filter(Boolean).join(' · ');
 
   return (
     <Group gap="sm" wrap="nowrap" align="center" justify="space-between">
@@ -102,6 +104,7 @@ export function ScopePeopleMenu({
   canManageAuthors = false,
 }: ScopePeopleMenuProps) {
   const { t } = useTranslation(['common', 'shell']);
+  const roleLabel = useOrgRoleLabel();
   const [opened, setOpened] = useState(false);
 
   const teamQuery = useTeamPeople(scopeId, enabled && scope === 'team');
@@ -248,7 +251,7 @@ export function ScopePeopleMenu({
             {deptQuery.data.departmentLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  {t('common:scopePeople.departmentLeads')}
+                  {roleLabel('departmentLead', { form: 'plural' })}
                 </Text>
                 {deptQuery.data.departmentLeads.map((person) => (
                   <PersonLine key={person.id} person={person} />
@@ -304,7 +307,7 @@ export function ScopePeopleMenu({
             {companyQuery.data.companyLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  {t('common:scopePeople.companyLeads')}
+                  {roleLabel('companyLead', { form: 'plural' })}
                 </Text>
                 {companyQuery.data.companyLeads.map((person) => (
                   <PersonLine key={person.id} person={person} />

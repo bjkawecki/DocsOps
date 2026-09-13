@@ -16,6 +16,12 @@ export type {
   PatchAdminSystemSettingsBody,
 } from './domains/admin/schemas/systemUpdate.js';
 
+export type {
+  OrgRoleKey,
+  OrgRoleLabels,
+  OrgRoleLabelBlock,
+} from './domains/admin/schemas/orgRoleLabels.js';
+
 export type { AdminUpdateApplyResponse, AdminUpdateRun } from './domains/admin/schemas/updates.js';
 
 export type {

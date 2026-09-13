@@ -120,6 +120,9 @@ const AdminSystemTab = lazy(() =>
 const AdminMailTab = lazy(() =>
   import('./pages/admin/AdminMailTab.js').then((m) => ({ default: m.AdminMailTab }))
 );
+const AdminRolesTab = lazy(() =>
+  import('./pages/admin/AdminRolesTab.js').then((m) => ({ default: m.AdminRolesTab }))
+);
 
 function RouteFallback() {
   return (
@@ -230,6 +233,7 @@ function App() {
                 <Route index element={<Navigate to="system" replace />} />
                 <Route path="system" element={<AdminSystemTab />} />
                 <Route path="mail" element={<AdminMailTab />} />
+                <Route path="roles" element={<AdminRolesTab />} />
                 <Route path="broadcast" element={<AdminBroadcastTab />} />
               </Route>
               {adminLegacyRedirects.map((r) => (

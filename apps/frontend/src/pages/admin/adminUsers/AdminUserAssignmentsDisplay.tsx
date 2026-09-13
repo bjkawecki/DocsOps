@@ -1,16 +1,24 @@
 import { Group, Stack, Text } from '@mantine/core';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import type { UserRow } from './adminUsersTypes';
 
-function formatTeamRole(t: TFunction, team: UserRow['teams'][number]): string {
-  if (team.isLead) return t('roles.lead');
+type RoleLabelFn = (role: string) => string;
+
+function formatTeamRole(
+  t: TFunction,
+  roleLabel: RoleLabelFn,
+  team: UserRow['teams'][number]
+): string {
+  if (team.isLead) return roleLabel('teamLead');
   if (team.isAuthor) return t('roles.author');
-  return t('roles.member');
+  return roleLabel('teamMember');
 }
 
 export function AdminUserAssignmentsDisplay({ user }: { user: UserRow }) {
   const { t } = useTranslation('admin');
+  const roleLabel = useOrgRoleLabel();
   const team = user.teams?.[0];
   const deptLead = user.departmentsAsLead?.[0];
   const deptAuthor = user.departmentsAsAuthor?.[0];
@@ -22,17 +30,17 @@ export function AdminUserAssignmentsDisplay({ user }: { user: UserRow }) {
     user.departments?.[0]?.name ??
     '–';
   const departmentRole = deptLead
-    ? t('roles.lead')
+    ? roleLabel('departmentLead')
     : deptAuthor
       ? t('roles.author')
       : team?.isAuthor
         ? '–'
         : team
-          ? t('roles.member')
+          ? roleLabel('teamMember')
           : '–';
 
   const teamName = team?.name ?? '–';
-  const teamRole = team ? formatTeamRole(t, team) : '–';
+  const teamRole = team ? formatTeamRole(t, roleLabel, team) : '–';
 
   return (
     <Stack gap="xs">
@@ -68,15 +76,23 @@ export function AdminUserAssignmentsDisplay({ user }: { user: UserRow }) {
   );
 }
 
-export function formatUserTeamsColumn(t: TFunction, user: UserRow): string {
+export function formatUserTeamsColumn(
+  t: TFunction,
+  roleLabel: RoleLabelFn,
+  user: UserRow
+): string {
   if (!user.teams?.length) return '–';
-  return user.teams.map((team) => `${team.name} (${formatTeamRole(t, team)})`).join(', ');
+  return user.teams.map((team) => `${team.name} (${formatTeamRole(t, roleLabel, team)})`).join(', ');
 }
 
-export function formatUserDepartmentsColumn(t: TFunction, user: UserRow): string {
+export function formatUserDepartmentsColumn(
+  t: TFunction,
+  roleLabel: RoleLabelFn,
+  user: UserRow
+): string {
   const labels: string[] = [];
   for (const d of user.departmentsAsLead ?? []) {
-    labels.push(`${d.name} (${t('roles.lead')})`);
+    labels.push(`${d.name} (${roleLabel('departmentLead')})`);
   }
   for (const d of user.departmentsAsAuthor ?? []) {
     if (!user.departmentsAsLead?.some((lead) => lead.id === d.id)) {

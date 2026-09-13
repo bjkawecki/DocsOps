@@ -14,6 +14,7 @@
     "migration": "Migration",
     "system": "System",
     "mail": "E-Mail",
+    "roles": "Rollen",
     "broadcast": "Broadcast"
   },
   "demo": {
@@ -68,6 +69,29 @@
     "member": "Mitglied",
     "author": "Autor",
     "lead": "Leitung"
+  },
+  "rolesPage": {
+    "title": "Bezeichnungen der Organisationsrollen",
+    "intro": "Anzeigenamen für Organisationsrollen (eine Sprache für die gesamte Instanz). Rechte bleiben unverändert; leere Felder nutzen die Standardtexte.",
+    "save": "Rollenbezeichnungen speichern",
+    "loadFailed": "Rollenbezeichnungen konnten nicht geladen werden. Seite neu laden oder später erneut versuchen.",
+    "demoReadOnly": "Demo-Modus: Rollenbezeichnungen sind schreibgeschützt.",
+    "defaultHint": "Standard: {{singular}} / {{plural}}",
+    "fields": {
+      "singular": "Singular",
+      "plural": "Plural"
+    },
+    "roles": {
+      "companyLead": "Unternehmensleitung",
+      "departmentLead": "Abteilungsleitung",
+      "teamLead": "Team-Leitung",
+      "teamMember": "Teammitglied"
+    },
+    "toasts": {
+      "savedTitle": "Rollenbezeichnungen gespeichert",
+      "savedMessage": "Anzeigenamen für diese Instanz wurden aktualisiert.",
+      "saveFailedTitle": "Rollenbezeichnungen konnten nicht gespeichert werden"
+    }
   },
   "jobs": {
     "loadFailedTitle": "Admin-Jobs konnten nicht geladen werden",

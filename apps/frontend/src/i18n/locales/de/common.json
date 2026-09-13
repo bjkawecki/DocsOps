@@ -42,5 +42,29 @@
     "companySummary": "{{departments}} Abteilungen · {{people}} Personen · {{online}} aktiv",
     "departmentDetailSummary": "{{teams}} Teams · {{people}} Personen · {{online}} aktiv",
     "teamDetailSummary": "{{people}} Personen · {{online}} aktiv"
+  },
+  "orgRoles": {
+    "companyLead": {
+      "singular": "Unternehmensleitung",
+      "plural": "Unternehmensleitungen"
+    },
+    "departmentLead": {
+      "singular": "Abteilungsleitung",
+      "plural": "Abteilungsleitungen"
+    },
+    "teamLead": {
+      "singular": "Team-Leitung",
+      "plural": "Team-Leitungen"
+    },
+    "teamMember": {
+      "singular": "Teammitglied",
+      "plural": "Teammitglieder"
+    }
+  },
+  "orgRolesExtra": {
+    "admin": "Admin",
+    "departmentAuthor": "Abteilungsautor",
+    "teamAuthor": "Teamautor",
+    "user": "Nutzer"
   }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { adminUpdateRunSchema } from './updates.js';
+import { orgRoleLabelsSchema } from './orgRoleLabels.js';
 
 export const adminSystemUpdateStatusSchema = z.object({
   installedVersion: z.string().min(1),
@@ -40,6 +41,7 @@ export const adminSystemSettingsSchema = z.object({
   smtpPasswordConfigured: z.boolean(),
   smtpFromAddress: z.string().nullable(),
   smtpFromName: z.string().nullable(),
+  orgRoleLabels: orgRoleLabelsSchema,
   updatedAt: z.iso.datetime(),
 });
 
@@ -55,6 +57,7 @@ export const patchAdminSystemSettingsBodySchema = z.object({
   smtpPassword: z.string().max(512).nullable().optional(),
   smtpFromAddress: z.string().max(320).nullable().optional(),
   smtpFromName: z.string().max(255).nullable().optional(),
+  orgRoleLabels: orgRoleLabelsSchema.optional(),
 });
 
 export type PatchAdminSystemSettingsBody = z.infer<typeof patchAdminSystemSettingsBodySchema>;

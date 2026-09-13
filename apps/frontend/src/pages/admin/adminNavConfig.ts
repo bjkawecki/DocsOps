@@ -55,6 +55,7 @@ export const adminNavGroups = [
     items: [
       { to: '/admin/platform/system', labelKey: 'nav.system' },
       { to: '/admin/platform/mail', labelKey: 'nav.mail' },
+      { to: '/admin/platform/roles', labelKey: 'nav.roles' },
       { to: '/admin/platform/broadcast', labelKey: 'nav.broadcast' },
     ],
   },
@@ -69,7 +70,9 @@ export function getAdminNavGroups(demoMode: boolean): readonly AdminNavGroup[] {
       if (g.id !== 'platform') return g;
       return {
         ...g,
-        items: g.items.filter((item) => item.to === '/admin/platform/system'),
+        items: g.items.filter(
+          (item) => item.to === '/admin/platform/system' || item.to === '/admin/platform/roles'
+        ),
       };
     });
 }
@@ -86,6 +89,7 @@ export const adminLegacyRedirects: ReadonlyArray<{ from: string; to: string }> =
   { from: 'migration', to: '/admin/data/migration' },
   { from: 'broadcast', to: '/admin/platform/broadcast' },
   { from: 'system', to: '/admin/platform/system' },
+  { from: 'roles', to: '/admin/platform/roles' },
 ];
 
 export function findAdminNavGroup(

@@ -16,9 +16,9 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { EntityListCard } from '../../../components/ui/EntityListCard.js';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
 import {
-  userRoleLabel,
   type ListUsersRes,
   type SortByField,
   type SortOrder,
@@ -69,6 +69,7 @@ export function AdminUsersList({
   onEmailClick,
 }: Props) {
   const { t } = useTranslation('admin');
+  const roleLabel = useOrgRoleLabel();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
 
   return (
@@ -203,9 +204,9 @@ export function AdminUsersList({
                         '–'
                       )}
                     </Table.Td>
-                    <Table.Td>{userRoleLabel(t, u.role)}</Table.Td>
-                    <Table.Td>{formatUserTeamsColumn(t, u)}</Table.Td>
-                    <Table.Td>{formatUserDepartmentsColumn(t, u)}</Table.Td>
+                    <Table.Td>{roleLabel(u.role)}</Table.Td>
+                    <Table.Td>{formatUserTeamsColumn(t, roleLabel, u)}</Table.Td>
+                    <Table.Td>{formatUserDepartmentsColumn(t, roleLabel, u)}</Table.Td>
                     <Table.Td>
                       {u.deletedAt ? (
                         <Badge size="sm" color="gray">
@@ -253,7 +254,7 @@ export function AdminUsersList({
                         </Text>
                       )}
                       <Text size="xs" c="dimmed">
-                        {userRoleLabel(t, u.role)}
+                        {roleLabel(u.role)}
                       </Text>
                     </Stack>
                   }

@@ -602,6 +602,8 @@ model SystemSettings {
   smtpPasswordCiphertext  String?
   smtpFromAddress         String?
   smtpFromName            String?
+  /// Display labels for org roles (singular/plural, instance language). Validated in app (Zod). Null/empty = i18n defaults.
+  orgRoleLabels           Json?
   updatedAt               DateTime @updatedAt
 }
 

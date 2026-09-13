@@ -38,6 +38,7 @@ function settingsToResponse(settings: Awaited<ReturnType<typeof getSystemSetting
     smtpPasswordConfigured: settings.smtpPasswordConfigured,
     smtpFromAddress: settings.smtpFromAddress,
     smtpFromName: settings.smtpFromName,
+    orgRoleLabels: settings.orgRoleLabels,
     updatedAt: settings.updatedAt.toISOString(),
   });
 }

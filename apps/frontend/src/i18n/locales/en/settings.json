@@ -71,9 +71,9 @@
       "teamRoleAuthor": "Team Author",
       "teamRoleMember": "Member",
       "teamRow": "{{team}} ({{department}}) – {{role}}",
-      "departmentLeadRow": "Department Lead: {{name}}",
+      "departmentLeadRow": "{{role}}: {{name}}",
       "departmentAuthorRow": "Department Author: {{name}}",
-      "companyLeadRow": "Company Lead: {{name}}"
+      "companyLeadRow": "{{role}}: {{name}}"
     },
     "editProfileModal": {
       "title": "Edit profile",

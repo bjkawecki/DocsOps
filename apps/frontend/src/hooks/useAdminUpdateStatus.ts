@@ -9,6 +9,7 @@ import type {
 } from 'backend/api-types';
 import { apiFetch } from '../api/client.js';
 import { appVersionQueryKey } from './useAppVersion.js';
+import { publicConfigQueryKey } from './usePublicConfig.js';
 
 export const adminUpdateStatusQueryKey = ['admin', 'system', 'update-status'] as const;
 export const adminSystemSettingsQueryKey = ['admin', 'system', 'settings'] as const;
@@ -108,6 +109,7 @@ export function usePatchAdminSystemSettings() {
     onSuccess: (data) => {
       queryClient.setQueryData(adminSystemSettingsQueryKey, data);
       void queryClient.invalidateQueries({ queryKey: adminUpdateStatusQueryKey });
+      void queryClient.invalidateQueries({ queryKey: publicConfigQueryKey() });
     },
   });
 }

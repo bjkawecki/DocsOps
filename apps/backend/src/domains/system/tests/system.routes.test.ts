@@ -54,7 +54,7 @@ describe('System routes', () => {
     try {
       const res = await app.inject({ method: 'GET', url: '/api/v1/system/public-config' });
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ demoMode: false });
+      expect(res.json()).toEqual({ demoMode: false, orgRoleLabels: {} });
     } finally {
       if (prev === undefined) delete process.env.DEMO_MODE;
       else process.env.DEMO_MODE = prev;
@@ -64,7 +64,7 @@ describe('System routes', () => {
     try {
       const res = await app.inject({ method: 'GET', url: '/api/v1/system/public-config' });
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ demoMode: true });
+      expect(res.json()).toEqual({ demoMode: true, orgRoleLabels: {} });
     } finally {
       if (prev === undefined) delete process.env.DEMO_MODE;
       else process.env.DEMO_MODE = prev;

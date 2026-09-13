@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 
 export type BroadcastTargetKind =
   | 'all'
@@ -41,36 +41,56 @@ export type BroadcastDraft = {
   sendAtLocal: string;
 };
 
-const BROADCAST_TARGET_TRANSLATION_KEYS: Record<BroadcastTargetKind, string> = {
-  all: 'all',
-  admins: 'admins',
-  company_leads: 'companyLeads',
-  department_leads: 'departmentLeads',
-  team_leads: 'teamLeads',
-  users: 'users',
-};
-
-function buildBroadcastTargetLabel(t: TFunction) {
-  return (targetKind: string): string => {
-    const key = BROADCAST_TARGET_TRANSLATION_KEYS[targetKind as BroadcastTargetKind];
-    return key ? t(`broadcast.targets.${key}`) : targetKind;
-  };
+function broadcastTargetLabel(
+  t: (key: string) => string,
+  roleLabel: (role: string, opts?: { form?: 'singular' | 'plural' }) => string,
+  targetKind: string
+): string {
+  switch (targetKind) {
+    case 'all':
+      return t('broadcast.targets.all');
+    case 'admins':
+      return t('broadcast.targets.admins');
+    case 'company_leads':
+      return roleLabel('companyLead', { form: 'plural' });
+    case 'department_leads':
+      return roleLabel('departmentLead', { form: 'plural' });
+    case 'team_leads':
+      return roleLabel('teamLead', { form: 'plural' });
+    case 'users':
+      return t('broadcast.targets.users');
+    default:
+      return targetKind;
+  }
 }
 
 export function useBroadcastTargetLabel(): (targetKind: string) => string {
   const { t } = useTranslation('admin');
-  return useMemo(() => buildBroadcastTargetLabel(t), [t]);
+  const roleLabel = useOrgRoleLabel();
+  return useMemo(
+    () => (targetKind: string) => broadcastTargetLabel(t, roleLabel, targetKind),
+    [t, roleLabel]
+  );
 }
 
 export function useBroadcastTargetOptions(): Array<{ value: BroadcastTargetKind; label: string }> {
-  const { t } = useTranslation('admin');
+  const labelFor = useBroadcastTargetLabel();
   return useMemo(
     () =>
-      (Object.keys(BROADCAST_TARGET_TRANSLATION_KEYS) as BroadcastTargetKind[]).map((value) => ({
+      (
+        [
+          'all',
+          'admins',
+          'company_leads',
+          'department_leads',
+          'team_leads',
+          'users',
+        ] as BroadcastTargetKind[]
+      ).map((value) => ({
         value,
-        label: t(`broadcast.targets.${BROADCAST_TARGET_TRANSLATION_KEYS[value]}`),
+        label: labelFor(value),
       })),
-    [t]
+    [labelFor]
   );
 }
 
