@@ -388,7 +388,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Phase 2 Daily UX EN+DE:** Document Editor/Viewer, Approvals/Reviews, Notifications Inbox, Settings-Resttabs, common-Toasts/Status.
 [x] **Phase 3 Workspace-Rest EN+DE:** Context/Org Workspace, Catalog/Home/Search-Reste, Templates, Trash/Archive/Drafts-Chrome, Scope People, What's-new-Chrome.
 [x] **Phase 4 Admin-Tiefe EN+DE:** Backup, Migration, System/Mail-Detail, Jobs/Scheduler, Org-Forms/Tabellen-Rest.
-[ ] **Help-DE / E-Mail-Templates:** bewusst separat (nicht Phasen 2–4); siehe [Plan-App-i18n](Plan-App-i18n.md).
+[x] **Help-DE / E-Mail-Templates:** Help-Topic-Prosa EN+DE (`help` Namespace) + Prev/Next unter dem Artikel; E-Mail-Templates weiter separat – siehe [Plan-App-i18n](Plan-App-i18n.md).
 [x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Musterwerk IT GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
 
 **Demo-Instanz (VM-Lab lokal; öffentlich `docsops.de` / `demo.docsops.de`):**
@@ -420,7 +420,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
 [x] **Mobile UX App (Wellen 0–4):** Code laut [Plan-Mobile-UX](Plan-Mobile-UX.md) / [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md) – Shell, Content-Nav, Cards, Document/Login/Search u. a. **Offen:** manuelle Viewport-Abnahme (Plan-Checklisten „Manuell …“).
 [x] **Mobile UX App – Welle 5 (Page Mobile Actions / FAB-Stack):** Pattern [Plan-Mobile-UX §2.9](Plan-Mobile-UX.md); Shared [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx). Inventar migriert (Compact → FAB; Wide unverändert; Modal-Footer ausgenommen). **Offen:** manuelle Viewport-Abnahme @375 / ~800 / ≥1280.
-[x] **Mobile UX App – Welle 6 (Search-FAB):** Plan ([Plan-Mobile-UX §2.5.1](Plan-Mobile-UX.md)): unter Compact Listen-Suche als **Search-FAB** → Bottom-Sheet (`useCompactListSearchFab`); Count-Zeile im Content; kein Inline-Feld. Catalog, Context-Docs/Shared, Trash/Archive, Admin Users/Teams/Departments. **Offen:** manuelle Viewport-Abnahme.
+[x] **Mobile UX App – Welle 6 (Search/Filter-FAB Toggle-Panel):** Plan ([Plan-Mobile-UX §2.5.1](Plan-Mobile-UX.md)): unter Compact Listen-Suche und Filter als **FAB** → fixes Panel unten (Toggle per zweitem FAB-Tap); Liste bleibt sichtbar; kein Overlay-Drawer. Catalog, Context-Docs/Shared, Trash/Archive, Admin Users/Teams/Departments. **Shell-Suche:** unter narrow kein Suchfeld in der Main-Sidebar (Desktop: Sidebar + ⌘K-Modal). **Offen:** manuelle Viewport-Abnahme.
 
 | Seite / Fläche | Betroffene Buttons / Trigger (heute) | FAB-Ziel (Compact) | Status |
 | --- | --- | --- | --- |

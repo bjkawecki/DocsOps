@@ -2,6 +2,7 @@
   "breadcrumb": "Benachrichtigungen",
   "page": {
     "typeLabel": "Typ",
+    "filterButton": "Filter",
     "categoriesAriaLabel": "Benachrichtigungskategorien",
     "unreadOnly": "Nur ungelesen",
     "markAllAsRead": "Alle als gelesen markieren",

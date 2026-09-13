@@ -91,28 +91,29 @@ Horizontal-Scroll (P2-c) nur als kurzer Fallback, nicht als Zielbild.
 | Maßnahme           | Detail                                                                             |
 | ------------------ | ---------------------------------------------------------------------------------- |
 | Breadcrumb-Actions | `wrap` erlauben; auf `narrow` Actions unter dem Titel oder in Menu „…“             |
-| Listen-Suche (Compact) | **Search-FAB** → Sheet (§2.5.1); Count-Zeile im Content; kein Inline-Feld |
-| Catalog-Filter     | Search-FAB + Filter-FAB; Filter-Rest im Drawer                             |
-| Admin-Toolbar      | Search-FAB; Primäraktion im FAB-Stack (§2.9); Scope-Filter im Search-Sheet |
+| Listen-Suche (Compact) | **Search-FAB** toggelt unteres Panel (§2.5.1); Liste bleibt sichtbar        |
+| Catalog-Filter     | Search-FAB-Panel + Filter-FAB → gleiches Bottom-Toggle-Panel (§2.5.1)              |
+| Admin-Toolbar      | Search-FAB-Panel; Primäraktion im FAB-Stack; Scope-Filter im Search-Panel  |
 | Primärbuttons      | Auf `narrow` full-width unter Titel/Breadcrumb, wenn sie mit dem Titel kollidieren |
 
-#### 2.5.1 Listen-Suche Compact – Search-FAB (Zielbild)
+#### 2.5.1 Listen-Suche / Filter Compact – FAB Toggle-Panel
 
-**Status (2026-09-13):** Plan-Ziel **bewusst geändert**. Früher Welle 3: „Suche immer sichtbar“ im Flow; kurz Sticky-Search; **final:** unter Compact **Search-FAB** → Bottom-Sheet (wie Filter), kein dauerhaftes Suchfeld im Content.
+**Status (2026-09-13):** Plan-Ziel iteriert. Früher Welle 3 Inline-Suche; dann Sticky; dann Overlay-Sheet (Treffer verdeckt). **Aktuell:** unter Compact **Search-FAB** und **Filter-FAB** öffnen/schließen jeweils ein **fixes Panel unten** (zweiter Tap auf denselben FAB schließt). Liste dahinter bleibt sichtbar; Live-Filter beim Tippen. Nur ein Panel gleichzeitig (Öffnen schließt das andere).
 
 **Regel (unter `compact` / &lt; `lg`):**
 
 | Ja | Nein |
 | --- | --- |
-| Search-Icon im FAB-Stack (§2.9); aktiv (blau), wenn Query gesetzt | Dauerhaftes Suchfeld / Sticky-Band im Listen-Flow |
-| Suche im Bottom-Drawer (`useCompactListSearchFab`); Fokus beim Öffnen | Search hinter Shell-Top-Bar oder Ctrl/⌘K ersetzen |
-| Trefferzahl als schmale Count-Zeile im Content | Wide: unverändert Inline-Toolbar |
+| Search-/Filter-Icon im FAB-Stack (§2.9); Toggle-Panel unten; FAB `active` bei offenem Panel oder aktiver Query/Filter | Overlay-Drawer, der die Trefferliste verdeckt |
+| Fokus ins Suchfeld beim Öffnen; Clear im Feld optional; Schließen per zweitem FAB-Tap | Schließen nur über Title-Bar-X |
+| Trefferzahl als schmale Count-Zeile im Content | Dauerhaftes Inline-Suchfeld bzw. Filter-Leiste im Flow |
+| Wide: unverändert Inline-Toolbar | – |
 
 **Flächen:** Catalog, Context-/Firmen-Dokumentlisten, Shared, Trash/Archive, Admin-Listen mit Suche.
 
-**Shared:** [`useCompactListSearchFab`](../../apps/frontend/src/components/ui/StickySearchChrome.tsx) + Registrierung über `PageMobileActionsHost` (mehrere Registranten merge).
+**Shared:** [`useCompactListSearchFab`](../../apps/frontend/src/components/ui/StickySearchChrome.tsx) / `useCompactListFilterFab` (`panel`) + `PageMobileActionsHost`.
 
-**Nicht:** Globale App-Suche ersetzen (Ctrl/⌘K / Search-Modal bleibt Shell).
+**Nicht:** Globale Desktop-Quick-Suche (Ctrl/⌘K / Search-Modal in der Shell-Sidebar) ersetzen. Unter **narrow** (Overlay-Nav): **kein** Suchfeld in der Main-Sidebar – Suche über Katalog / Listen-FABs (§2.5.1).
 
 ### 2.6 Settings (P5) – Bild 4
 
@@ -164,7 +165,7 @@ Historischer Optionsraum (nur Dokumentation): Hybrid mit 4–5 Primärs + „Meh
 - Modal offen → FAB `hidden`; Modal `zIndex` ≥ 1100 (über Debug).
 - Wide (`lg+`): bisherige Breadcrumb-Actions / Inline-Buttons unverändert.
 - Document Edit / Templates / View / Admin / Workspace / Catalog / Notifications nutzen `PageMobileActionBar` (ggf. dünne Seiten-Wrapper).
-- **Farben:** Semantische Tones in [`pageMobileFabTokens.ts`](../../apps/frontend/src/components/ui/pageMobileFabTokens.ts) – gleiches Icon/Role → gleicher Tone app-weit (`nav`, `search`, `filter`, `create`, `edit`, `save`, `more`, `danger`, `secondary`, `active`). Chrome (`nav`/`more`/`search`/`filter`) als `light`, Primaries als `filled` (Dark-Mode-lesbar).
+- **Farben:** Semantische Tones in [`pageMobileFabTokens.ts`](../../apps/frontend/src/components/ui/pageMobileFabTokens.ts) – gleiches Icon/Role → gleicher Tone app-weit (`nav`, `search`, `filter`, `create`, `edit`, `save`, `more`, `danger`, `secondary`, `active`). Alle Tones **`filled`** (deckend über Scroll-Inhalt; kein `light`/halbtransparent).
 
 **Nicht:** Globale Bottom-Bar; FABs in Landing; Touch-Target-Regression auf Shell-Top-Bar (≥44px bleibt); ad-hoc `color:` an FAB-Call-Sites.
 
@@ -270,20 +271,20 @@ Kurzziele: Shared `PageMobileActionBar` nutzen; unter Compact Breadcrumb-CTAs un
 
 **Done when:** Unter Compact keine langen Text-CTAs in der Breadcrumb-Zeile auf inventarisierten Seiten; Wide unverändert.
 
-### Welle 6 – Compact Listen-Suche als Search-FAB (§2.5.1)
+### Welle 6 – Compact Listen-Suche / Filter als FAB Toggle-Panel (§2.5.1)
 
-Kurzziele: Kein dauerhaftes Suchfeld unter Compact; Search-FAB → Sheet; Filter weiter FAB/Drawer.
+Kurzziele: Kein dauerhaftes Such-/Filterfeld unter Compact; Search- und Filter-FAB → Bottom-Toggle-Panel.
 
 #### Umsetzungscheckliste
 
 - [x] Pattern §2.5.1 + Eintrag Umsetzungs-Todo §20
-- [x] Shared `useCompactListSearchFab` (+ Host merge mehrerer Registranten)
+- [x] Shared `useCompactListSearchFab` / `useCompactListFilterFab` (+ Host merge mehrerer Registranten)
 - [x] Catalog, Context-Docs/Shared, Trash/Archive
 - [x] Admin Users + Entity-Toolbars (Teams/Departments)
 - [ ] Manuell @375 / ~800 / ≥1280
 - [x] Lint / i18n-check
 
-**Done when:** Unter Compact keine Inline-Listen-Suche; Search-FAB öffnet Sheet; Wide unverändert.
+**Done when:** Unter Compact keine Inline-Listen-Suche/-Filterleiste; FAB öffnet Toggle-Panel; Wide unverändert.
 
 ---
 
@@ -292,7 +293,7 @@ Kurzziele: Kein dauerhaftes Suchfeld unter Compact; Search-FAB → Sheet; Filter
 - Kein Redesign der Desktop-IA
 - Kein neues Design-System / keine neuen Farben außer bestehendem Mantine-Theme
 - Keine vollständige Admin-Pixel-Parität aller Untertabs vor dem Shared-Pattern
-- Kein erzwungenes Help-DE
+- Help-DE über App-Locale (`help` Namespace); kein separates Mobile-Help
 - Landing nicht in denselben Merge-Zügen wie App-Shell/Patterns
 - Keine Bottom-Navigation (P4-f verworfen, §2.8)
 - Keine FAB-Migration in Welle 5 für Zeilenaktionen / Modal-Footer / Shell-Top-Bar (§2.9)
@@ -334,3 +335,8 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-09-13 | §2.5.1 Sticky-Search: Plan-Ziel ersetzt „Suche immer sichtbar“; Welle 6; kein Search-FAB |
 | 2026-09-13 | §2.5.1 final: Search-FAB → Sheet statt Sticky; Welle 6 Code umgestellt |
 | 2026-09-13 | §2.9 FAB-Farben: semantische Tones (`pageMobileFabTokens`); Dark-Mode light/filled |
+| 2026-09-13 | §2.9 FAB: alle Tones `filled` (nicht halbtransparent über Inhalt) |
+| 2026-09-13 | §2.5.1 Search-FAB: Bottom-Toggle-Panel statt Overlay-Drawer (Liste sichtbar) |
+| 2026-09-13 | §2.5.1 Filter-FAB: gleiches Bottom-Toggle-Panel wie Suche (Catalog, Trash/Archive) |
+| 2026-09-13 | Shell-Suche: unter narrow aus Main-Sidebar entfernt (Suche über Katalog/Listen-FABs) |
+| 2026-09-13 | Notifications compact: Filter-FAB + CompactListCount (wie Catalog/Trash) |

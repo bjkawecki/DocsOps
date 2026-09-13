@@ -1,6 +1,6 @@
 /**
  * Semantic FAB tones for `PageMobileActionBar` (Plan-Mobile-UX §2.9).
- * Same icon/role → same tone on every page; dark mode uses light chrome + filled primaries.
+ * Same icon/role → same color app-wide; all tones use opaque `filled` (readable over scrolling content).
  */
 export type PageMobileFabTone =
   | 'nav'
@@ -17,8 +17,8 @@ export type PageMobileFabTone =
 export type PageMobileFabToneStyle = {
   /** Mantine color name. */
   color: string;
-  /** Prefer `light` for chrome on dark backgrounds; `filled` for primary actions. */
-  variant: 'filled' | 'light';
+  /** Always opaque; FABs float over list/content. */
+  variant: 'filled';
 };
 
 /**
@@ -38,14 +38,14 @@ export type PageMobileFabToneStyle = {
  * | secondary | Mail, Download, Checks | Utility (not create) |
  */
 export const PAGE_MOBILE_FAB_TONE: Record<PageMobileFabTone, PageMobileFabToneStyle> = {
-  nav: { color: 'gray', variant: 'light' },
-  search: { color: 'indigo', variant: 'light' },
-  filter: { color: 'violet', variant: 'light' },
+  nav: { color: 'gray', variant: 'filled' },
+  search: { color: 'indigo', variant: 'filled' },
+  filter: { color: 'violet', variant: 'filled' },
   active: { color: 'blue', variant: 'filled' },
   create: { color: 'teal', variant: 'filled' },
   edit: { color: 'cyan', variant: 'filled' },
   save: { color: 'teal', variant: 'filled' },
-  more: { color: 'gray', variant: 'light' },
+  more: { color: 'gray', variant: 'filled' },
   danger: { color: 'red', variant: 'filled' },
   secondary: { color: 'blue', variant: 'filled' },
 };

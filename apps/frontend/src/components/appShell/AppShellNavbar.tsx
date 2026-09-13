@@ -29,6 +29,8 @@ type Props = {
   onToggleDesktop: () => void;
   onNavigate: () => void;
   onOpenSearch: () => void;
+  /** Desktop shell only; under narrow overlay nav search lives on Catalog / lists. */
+  showSearch?: boolean;
   showMobileClose?: boolean;
   onCloseMobile?: () => void;
 };
@@ -40,6 +42,7 @@ export function AppShellNavbar({
   onToggleDesktop,
   onNavigate,
   onOpenSearch,
+  showSearch = true,
   showMobileClose = false,
   onCloseMobile,
 }: Props) {
@@ -68,8 +71,12 @@ export function AppShellNavbar({
           <MantineAppShell.Section
             className={`app-shell-navbar-body${isMiniRail ? ' app-shell-navbar-body--mini' : ''}`}
           >
-            <AppShellNavbarToolRow isMiniRail={isMiniRail} onOpenSearch={onOpenSearch} />
-            <Divider my={isMiniRail ? 'sm' : 10} />
+            {showSearch ? (
+              <>
+                <AppShellNavbarToolRow isMiniRail={isMiniRail} onOpenSearch={onOpenSearch} />
+                <Divider my={isMiniRail ? 'sm' : 10} />
+              </>
+            ) : null}
             <Stack
               gap={isMiniRail ? SIDEBAR_MINI_GAP : 2}
               className={isMiniRail ? 'app-shell-mini-nav-stack' : undefined}

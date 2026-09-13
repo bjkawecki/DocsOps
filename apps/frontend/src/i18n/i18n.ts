@@ -6,6 +6,7 @@ import authDe from './locales/de/auth.json';
 import commonDe from './locales/de/common.json';
 import contextsDe from './locales/de/contexts.json';
 import documentsDe from './locales/de/documents.json';
+import helpDe from './locales/de/help.json';
 import notificationsDe from './locales/de/notifications.json';
 import settingsDe from './locales/de/settings.json';
 import shellDe from './locales/de/shell.json';
@@ -16,6 +17,7 @@ import authEn from './locales/en/auth.json';
 import commonEn from './locales/en/common.json';
 import contextsEn from './locales/en/contexts.json';
 import documentsEn from './locales/en/documents.json';
+import helpEn from './locales/en/help.json';
 import notificationsEn from './locales/en/notifications.json';
 import settingsEn from './locales/en/settings.json';
 import shellEn from './locales/en/shell.json';
@@ -32,6 +34,7 @@ export const I18N_NAMESPACES = [
   'notifications',
   'contexts',
   'templates',
+  'help',
 ] as const;
 
 void i18n.use(initReactI18next).init({
@@ -47,6 +50,7 @@ void i18n.use(initReactI18next).init({
       notifications: notificationsEn,
       contexts: contextsEn,
       templates: templatesEn,
+      help: helpEn,
     },
     de: {
       common: commonDe,
@@ -59,6 +63,7 @@ void i18n.use(initReactI18next).init({
       notifications: notificationsDe,
       contexts: contextsDe,
       templates: templatesDe,
+      help: helpDe,
     },
   },
   lng: 'en',

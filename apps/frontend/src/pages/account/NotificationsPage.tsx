@@ -41,6 +41,10 @@ import {
   PageMobileActionBar,
   type PageMobileAction,
 } from '../../components/ui/PageMobileActionBar.js';
+import {
+  CompactListCount,
+  useCompactListFilterFab,
+} from '../../components/ui/StickySearchChrome.js';
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
@@ -141,9 +145,38 @@ export function NotificationsPage() {
     `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}:${listTotal ?? 'x'}:${isWide ? 'wide' : 'compact'}`
   );
 
+  const compactFilter = useCompactListFilterFab({
+    label: t('page.filterButton'),
+    active: category !== 'all' || unreadOnly,
+    children: (
+      <>
+        <Select
+          label={t('page.typeLabel')}
+          aria-label={t('page.categoriesAriaLabel')}
+          data={visibleCategories.map((item) => ({
+            value: item.value,
+            label: categoryLabel(t, item.value),
+          }))}
+          value={category}
+          onChange={handleCategoryChange}
+          allowDeselect={false}
+        />
+        <Switch
+          size="sm"
+          label={t('page.unreadOnly')}
+          checked={unreadOnly}
+          onChange={(event) => {
+            handleUnreadOnlyChange(event.currentTarget.checked);
+          }}
+        />
+      </>
+    ),
+  });
+
   const mobileActions = useMemo((): PageMobileAction[] => {
     if (isWide) return [];
     return [
+      compactFilter.action,
       {
         key: 'mark-all',
         label: t('page.markAllAsRead'),
@@ -154,7 +187,7 @@ export function NotificationsPage() {
         onClick: () => markAllAsRead.mutate(),
       },
     ];
-  }, [canMarkAll, isWide, markAllAsRead, t]);
+  }, [canMarkAll, compactFilter.action, isWide, markAllAsRead, t]);
 
   const handleCanMarkAllChange = useCallback((next: boolean) => {
     setCanMarkAll(next);
@@ -181,40 +214,12 @@ export function NotificationsPage() {
     />
   );
 
-  const compactListControls = (
-    <Group gap="md" wrap="wrap" align="center">
-      {totalLabel != null ? (
-        <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-          {totalLabel}
-        </Text>
-      ) : null}
-      <Switch
-        size="sm"
-        label={t('page.unreadOnly')}
-        checked={unreadOnly}
-        onChange={(event) => {
-          handleUnreadOnlyChange(event.currentTarget.checked);
-        }}
-      />
-    </Group>
-  );
-
   if (!isWide) {
     return (
       <Container fluid maw={1600} px="md" mb="xl">
-        <Stack gap="md">
-          <Select
-            label={t('page.typeLabel')}
-            aria-label={t('page.categoriesAriaLabel')}
-            data={visibleCategories.map((item) => ({
-              value: item.value,
-              label: categoryLabel(t, item.value),
-            }))}
-            value={category}
-            onChange={handleCategoryChange}
-            allowDeselect={false}
-          />
-          {compactListControls}
+        <Stack gap="sm">
+          <CompactListCount>{totalLabel}</CompactListCount>
+          {compactFilter.panel}
           {inbox}
         </Stack>
         <PageMobileActionBar

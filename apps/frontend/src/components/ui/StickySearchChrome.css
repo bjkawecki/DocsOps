@@ -1,4 +1,4 @@
-/* Compact list search: sticks under shell chrome while the outlet scrolls (§2.5.1). */
+/* Wide list toolbars: stick under shell chrome while the outlet scrolls. */
 .sticky-search-chrome {
   position: sticky;
   top: 0;
@@ -7,4 +7,33 @@
   margin-bottom: var(--mantine-spacing-xs);
   background-color: var(--mantine-color-body);
   box-shadow: 0 1px 0 var(--mantine-color-default-border);
+}
+
+/*
+ * Compact FAB bottom panel (search / filter): fixed above the FAB stack / debug FAB.
+ * Right inset keeps the FAB column tappable; list behind stays visible.
+ */
+.compact-fab-bottom-panel,
+.compact-list-search-panel {
+  position: fixed;
+  left: max(0.75rem, env(safe-area-inset-left));
+  right: calc(max(0.75rem, env(safe-area-inset-right)) + 2.75rem);
+  bottom: calc(max(0.75rem, env(safe-area-inset-bottom)) + 2.75rem);
+  z-index: 199;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+  max-height: min(50vh, 22rem);
+  overflow-y: auto;
+}
+
+:root[data-mantine-color-scheme='dark'] .compact-fab-bottom-panel,
+:root[data-mantine-color-scheme='dark'] .compact-list-search-panel {
+  background-color: var(--mantine-color-dark-6);
+  border-color: var(--mantine-color-dark-3);
+  box-shadow:
+    0 -2px 8px rgba(0, 0, 0, 0.45),
+    0 -8px 24px rgba(0, 0, 0, 0.25);
 }

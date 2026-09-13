@@ -1,0 +1,145 @@
+{
+  "nav": {
+    "topicsAria": "Help topics",
+    "previous": "Previous article",
+    "next": "Next article"
+  },
+  "groups": {
+    "gettingStarted": "Getting started",
+    "governance": "Governance",
+    "workingWithDocs": "Working with docs"
+  },
+  "topics": {
+    "overview": "What is DocsOps?",
+    "outOfScope": "What DocsOps is not",
+    "organisation": "Organisation & scopes",
+    "contexts": "Processes & projects",
+    "documentTypes": "Document types",
+    "permissions": "Read & write access",
+    "workflow": "Document lifecycle",
+    "collaboration": "Reviews & approvals"
+  },
+  "overview": {
+    "title": "What is DocsOps?",
+    "p1": "DocsOps is a documentation and knowledge workspace for engineering organisations. You work in scoped areas (company, department, team, or personal space), create documents in processes or projects, and move work through review and publication when your organisation uses that workflow.",
+    "p2": "Choosing between a <strong>process</strong> and a <strong>project</strong> is covered in <contextsLink>Processes & projects</contextsLink>. What does <strong>not</strong> belong here is covered in <outOfScopeLink>What DocsOps is not</outOfScopeLink>.",
+    "p3": "DocsOps treats governance as a first-class concern: who can publish, what readers see, and how changes become official – built into the product, not bolted on."
+  },
+  "outOfScope": {
+    "title": "What DocsOps is not",
+    "p1": "DocsOps holds <strong>durable internal knowledge</strong> with an official published stand: how the organisation works (processes) and what it is building or running (projects). It is not a replacement for every tool that stores text or tracks work.",
+    "p2": "Rule of thumb: if the value still matters in weeks and someone should read it as <em>how we do this</em> or <em>what we know about this</em>, it belongs here. If it goes stale in hours or is a workflow step, use another system.",
+    "outOfScopeHeading": "Out of scope",
+    "items": {
+      "issueTrackers": "<strong>Issue trackers</strong> – assignees, sprints, triage status. Document a <em>known issue</em> (symptoms, workaround, link to the ticket) in DocsOps; keep the ticket lifecycle in Jira, GitHub Issues, Linear, or similar.",
+      "chat": "<strong>Chat and ephemeral discussion</strong> – Slack, Teams, email threads. Capture decisions or lasting guidance as documents when they become organisational knowledge.",
+      "fileDrives": "<strong>Generic file drives</strong> – arbitrary binaries without a document lifecycle. Attachments belong on documents; bulk storage stays in Drive, Nextcloud, SharePoint, or object storage.",
+      "publicDocs": "<strong>Public product or API docs / developer portals</strong> – external audiences, SEO, public branding. Use dedicated doc sites; DocsOps stays intranet and org-native.",
+      "codeTruth": "<strong>Code as the source of truth</strong> – specs and docs owned by the repo and CI. DocsOps can complement internal process/project knowledge; it does not replace Git.",
+      "scratch": "<strong>Personal scratch without shared purpose</strong> – fleeting notes. Use personal space only as a draft pad; lasting knowledge belongs in a team or project context.",
+      "lob": "<strong>Line-of-business systems</strong> – CRM, HR, ERP master data. Those systems remain authoritative; DocsOps may only link to them.",
+      "opsSignals": "<strong>Live ops signals</strong> – monitoring, alerts, dashboards. Put <em>runbooks</em> for those signals in DocsOps; keep the signal itself in the observability stack.",
+      "wikis": "<strong>Everyone-edits-the-truth wikis</strong> – live overwrite of the official stand. DocsOps separates draft work from what readers see after lead publication."
+    },
+    "fineLineHeading": "Fine line",
+    "fineLine": {
+      "knownIssue": "<strong>Known issue / workaround</strong> → DocsOps; <strong>who fixes the bug</strong> → tracker.",
+      "runbook": "<strong>Runbook for alert X</strong> → DocsOps; <strong>the alert UI</strong> → ops tools.",
+      "meeting": "<strong>Meeting decision</strong> → DocsOps (notes or ADR); <strong>meeting chat</strong> → not."
+    }
+  },
+  "organisation": {
+    "title": "Organisation & scopes",
+    "p1": "Content is grouped by <strong>scope</strong>: typically company, then department, then team. You may also have a <strong>personal</strong> area for your own drafts and contexts. The catalog and navigation reflect where you have access.",
+    "contextsHeading": "Contexts in a scope",
+    "p2": "Within a scope you create <strong>processes</strong> and <strong>projects</strong> (and optional subcontexts under projects). For when to use which, how to name them, and what belongs inside, see <contextsLink>Processes & projects</contextsLink>."
+  },
+  "contexts": {
+    "title": "Processes & projects",
+    "p1": "Documents live in a <strong>context</strong>: a <strong>process</strong>, a <strong>project</strong>, or a <strong>subcontext</strong> under a project. Choosing the right kind keeps knowledge easy to find. After reading this page you should know when to use which context, what typically belongs inside, how to name it, and how to tell whether something fits an existing context.",
+    "twoQuestionsHeading": "Two questions",
+    "processQ": "<strong>Process</strong> – Is there a clear <strong>trigger</strong>? Ask: <em>What do we do when …?</em> (for example when someone joins, when a customer reports a problem, when we need shared access rules).",
+    "projectQ": "<strong>Project</strong> – Is there a clear <strong>subject</strong>? Ask: <em>What do we know about …?</em> (a product, initiative, or workstream you are building or running).",
+    "belongsHeading": "What belongs inside",
+    "belongsProcess": "A <strong>process</strong> holds reusable guidance for that trigger: roles, steps, checklists, and principles that stay useful across many concrete cases.",
+    "belongsProject": "A <strong>project</strong> holds knowledge <strong>about the subject</strong>: structure, decisions, and subject-specific operational detail (for example how that particular subject is deployed or supported).",
+    "belongsSub": "<strong>Subcontexts</strong> are optional folders <strong>under a project only</strong>. Use them to split document spaces without creating another top-level project. They are named areas, not a second process/project system.",
+    "namingHeading": "Naming",
+    "nameProcess": "Name a <strong>process</strong> after the <strong>trigger</strong> (for example <em>When a new teammate joins</em>).",
+    "nameProject": "Name a <strong>project</strong> after the <strong>subject</strong>.",
+    "nameAvoid": "Avoid creating both a process and a project for the <strong>same subject</strong>.",
+    "existingHeading": "Does it belong in an existing context?",
+    "existingSame": "Same trigger or same subject as an existing context → put the document <strong>there</strong>.",
+    "existingDetail": "Detail that only applies to one subject → prefer the <strong>project</strong> (or a subcontext under it), not a new process named after that subject.",
+    "existingUnsure": "Unsure → follow the <strong>subject</strong> (choose or create a project) rather than inventing a vague process.",
+    "shapeHeading": "Document shape is not context kind",
+    "shapeP1": "How a document is written (step-by-step guide, policy, decision record, and so on) does <strong>not</strong> decide whether the context is a process or a project. Trigger vs subject does. You can use the same document form in either kind of context.",
+    "shapeP2": "Scopes (company, department, team, personal) decide <strong>ownership and access</strong>. They do not replace the process vs project choice – see <organisationLink>Organisation & scopes</organisationLink>.",
+    "movingHeading": "Moving documents",
+    "movingP1": "If a document is already in a context and belongs elsewhere, use <strong>Move to context</strong> on the document (More actions). That is different from <strong>Assign to context</strong>, which only attaches a context-free draft for the first time.",
+    "movingSame": "<strong>Same owner scope</strong> (for example another process in the same team) – the move happens immediately when you have write rights on source and target. Tags and access grants stay on the document.",
+    "movingDiff": "<strong>Different owner scope</strong> (another team, department, company, or personal area) – you create a <strong>move request</strong>. The target scope lead accepts or rejects it under <approvalsLink>Approvals → Move requests</approvalsLink>. You can withdraw a pending request anytime. On accept, scope-bound tags are removed; grants stay.",
+    "movingP2": "More on the Approvals hub and reviews: <collaborationLink>Reviews & approvals</collaborationLink>."
+  },
+  "documentTypes": {
+    "title": "Document types",
+    "p1": "A <strong>document type</strong> describes what kind of document you are writing (Policy, Runbook, ADR, …). A <strong>template</strong> is optional starter content for that type. Context (process / project) answers <em>where</em> the document lives; type answers <em>what</em> it is. Built-ins cover a small core; scope leads can add custom types for everything else.",
+    "choosingHeading": "Choosing a document type",
+    "chooseTemplate": "Pick a type with a template to insert a chapter outline into the new draft.",
+    "chooseBlank": "Choose blank document if you want an empty draft. You can still set a type later.",
+    "chooseGroups": "Process and Project groups are typical homes for a type – suggestions, not hard rules.",
+    "processTypesHeading": "Process types: which one?",
+    "processTypesIntro": "Common mix-ups and when to pick which:",
+    "policyVsStandard": "<strong>Policy vs Standard:</strong> Policy states binding intent (“data must be protected”). Standard makes it measurable (“passwords must be at least 12 characters”).",
+    "guidelineVs": "<strong>Guideline vs Policy/Standard:</strong> Guideline is recommended practice; deviation is OK with judgment. Policy and Standard are binding.",
+    "procedureVsRunbook": "<strong>Procedure vs Runbook:</strong> Procedure is a calm, recurring SOP. Runbook is time-critical incident response (diagnose, mitigate, verify).",
+    "projectTypesHeading": "Project types: which one?",
+    "adrVsArch": "<strong>ADR vs Architecture overview:</strong> ADR records one decision and its trade-offs. Architecture overview is the living system map; update ADRs when decisions change.",
+    "runbookVsPostmortem": "<strong>Runbook vs Post-mortem:</strong> Runbook during the incident; Post-mortem after recovery for timeline, causes, and lasting fixes.",
+    "changingHeading": "Changing type later",
+    "changingP1": "On the document Metadata tab you can set, change, or clear the type. That updates metadata only – existing draft and published content stay unchanged. Templates are never re-applied to existing documents.",
+    "templatesHeading": "Templates",
+    "templatesP1": "Scope leads and admins can define <strong>custom document types</strong> with a default template (for example checklists, playbooks, meeting notes, or known-issue pages). Built-in types ship with the platform and cannot be deleted.",
+    "templatesLead": "Company, department, or team leads for their own scope.",
+    "templatesAdmin": "Admins for platform-wide custom types.",
+    "templatesAuthors": "Authors without a lead role can use types when creating documents, but do not see the manage page.",
+    "templatesP2": "Open <templatesLink>Templates</templatesLink> under Catalog (visible only with manage rights). Create a custom type with label, when to use, example title, and section headings with prompts."
+  },
+  "permissions": {
+    "title": "Read & write access",
+    "p1": "Access follows where a process or project <strong>lives</strong> in the organisation (its owner scope) and your role in that scope. You will only see contexts and documents you are allowed to read.",
+    "readWriteHeading": "Read vs write",
+    "read": "<strong>Read</strong> lets you open documents and context pages in that scope.",
+    "write": "<strong>Write</strong> lets you create and edit drafts, run actions that change content, and participate in workflows you are assigned to (such as reviews), subject to your organisation's rules.",
+    "p2": "Company leads and administrators can have broader management capabilities (for example archiving or trash). Exact rules depend on your deployment and role configuration."
+  },
+  "workflow": {
+    "title": "Document lifecycle",
+    "p1": "Documents generally move from an initial draft through collaboration and quality gates to a published state. The labels in the product may vary slightly, but the idea is consistent.",
+    "draft": "<strong>Draft</strong> – Start a draft in a context you can write to. The draft is yours or your team's working copy until it is published or shared as your process defines.",
+    "edit": "<strong>Edit</strong> – Update content, titles, and metadata. Version history helps you see what changed over time.",
+    "review": "<strong>Review</strong> – When enabled, reviewers can comment or approve so changes meet bar for accuracy and compliance before they land in the canonical published line.",
+    "publish": "<strong>Merge / publish</strong> – Accepted changes are integrated into the published document (or a new published version), so readers see a stable, reviewed result rather than every keystroke in progress.",
+    "p2": "Archiving and trash are separate lifecycle steps for retiring or recovering content."
+  },
+  "collaboration": {
+    "title": "Reviews & approvals",
+    "p1": "Many teams are fine with <strong>real-time collaborative editing</strong> (several people in one live draft). DocsOps is aimed especially at organisations where that model is <strong>not</strong> how they want to ship documentation – whether because of regulation, distributed teams, or the need for a clear, agreed “official” version.",
+    "regulatedHeading": "Regulated and accountable work",
+    "regulatedP1": "In regulated settings, “whatever is in the shared buffer right now” is rarely the artifact you want to stand behind. You need a <strong>defined moment</strong> when a change is accepted: who reviewed it, what was approved, and what readers should treat as current. Review steps and a published line give you that boundary instead of a continuous stream of edits.",
+    "distributedHeading": "Distributed and asynchronous teams",
+    "distributedP1": "When people work across time zones or calendars, expecting everyone to be online in the same document at once is fragile. A workflow built around <strong>drafts, comments, and merge</strong> fits hand-offs: you finish a change, others review when they can, and the merged result becomes the shared truth – without requiring simultaneous presence.",
+    "mergeHeading": "Why merge, not fancy live sync?",
+    "mergeP1": "Keeping many cursors in sync in one surface is a deep engineering problem on its own. That is a secondary point: the main one is product fit. A <strong>merge-based</strong> path – draft → review (where needed) → integrate into a published version – matches how many organisations want <strong>predictable outcomes</strong>, readable history, and a single place for sign-off.",
+    "hubHeading": "Approvals hub",
+    "hubP1": "Open <strong>Approvals</strong> in the sidebar for decisions waiting on you. It has two sections:",
+    "hubReviews": "<strong>Reviews</strong> – documents with pending inline suggestions you can accept or decline as a scope lead.",
+    "hubMoves": "<strong>Move requests</strong> – when someone asks to move a document <strong>into your scope</strong> (inbound: accept or reject) or when you requested a move <strong>out of your scope</strong> (outbound: withdraw while pending).",
+    "hubP2": "How same-scope moves and cross-scope requests work on the document itself is covered under <contextsLink>Processes & projects → Moving documents</contextsLink>.",
+    "getHeading": "What you get",
+    "getPublished": "Published versions readers can trust, plus change history for audit and learning.",
+    "getReview": "Room for review and approval where your process requires it.",
+    "getAmbiguity": "Less ambiguity about what is “live” versus in progress.",
+    "getHub": "A single place for suggestion reviews and cross-scope document move decisions."
+  }
+}

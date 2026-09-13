@@ -289,18 +289,12 @@ export function NotificationsInboxPanel({
                 return (
                   <EntityListCard
                     key={item.id}
+                    variant="card"
                     onClick={() => setDetailItem(item)}
                     leftSection={<NotificationCategoryIcon category={itemCategory} size={16} />}
-                    title={
-                      <Group gap="xs" wrap="nowrap" align="center">
-                        <Text fw={600} size="sm" lineClamp={2}>
-                          {eventHeadline(t, item.eventType)}
-                        </Text>
-                        {!unread && <NotificationReadBadge />}
-                      </Group>
-                    }
+                    title={eventHeadline(t, item.eventType)}
                     meta={
-                      <Stack gap={2}>
+                      <Stack gap={4}>
                         <Text size="xs" fw={600} lineClamp={2}>
                           {documentDisplayTitle(t, item)}
                         </Text>
@@ -324,9 +318,11 @@ export function NotificationsInboxPanel({
                             borderRadius: '50%',
                             background: 'var(--mantine-color-blue-filled)',
                           }}
-                          aria-hidden
+                          aria-label={t('detail.unread')}
                         />
-                      ) : null
+                      ) : (
+                        <NotificationReadBadge />
+                      )
                     }
                   />
                 );

@@ -10,8 +10,8 @@ import {
 } from './documentSearchTypes.js';
 
 /**
- * Global document search modal state (Ctrl/Cmd+K and dashboard hero).
- * @param options.bindGlobalHotkey – register mod+K when true (AppShell). Disable on Home if shell already binds.
+ * Global document search modal state (Ctrl/Cmd+K and desktop sidebar trigger).
+ * @param options.bindGlobalHotkey – register mod+K when true (AppShell).
  */
 export function useDocumentSearch(options?: { bindGlobalHotkey?: boolean }) {
   const bindGlobalHotkey = options?.bindGlobalHotkey ?? false;
@@ -101,10 +101,10 @@ export function useDocumentSearch(options?: { bindGlobalHotkey?: boolean }) {
   const goToCatalogFromModal = () => {
     const q = modalSearch.trim();
     closeSearchModal();
-    void navigate({
-      pathname: '/catalog',
-      search: q ? `?search=${encodeURIComponent(q)}&sortBy=relevance` : '?sortBy=relevance',
-    });
+    const params = new URLSearchParams();
+    if (q) params.set('search', q);
+    params.set('sortBy', 'relevance');
+    void navigate({ pathname: '/catalog', search: `?${params.toString()}` });
   };
 
   return {

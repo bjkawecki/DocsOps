@@ -124,6 +124,7 @@ function AppShellFrame({
               onToggleDesktop={layout.toggleDesktopCollapsed}
               onNavigate={onNavigate}
               onOpenSearch={() => search.openSearch()}
+              showSearch={layout.isDesktop}
               showMobileClose={!layout.isDesktop && layout.mobileOpened}
               onCloseMobile={layout.closeMobile}
             />

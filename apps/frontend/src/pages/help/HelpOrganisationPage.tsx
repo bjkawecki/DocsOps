@@ -1,24 +1,30 @@
 import { Anchor, Stack, Text, Title } from '@mantine/core';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+const rich = {
+  strong: <strong />,
+  em: <em />,
+} as const;
+
 export function HelpOrganisationPage() {
+  const { t } = useTranslation('help');
   return (
     <Stack gap={0} align="stretch" style={{ textAlign: 'left' }}>
-      <Title order={1}>Organisation & scopes</Title>
+      <Title order={1}>{t('organisation.title')}</Title>
       <Text component="p">
-        Content is grouped by <strong>scope</strong>: typically company, then department, then team.
-        You may also have a <strong>personal</strong> area for your own drafts and contexts. The
-        catalog and navigation reflect where you have access.
+        <Trans i18nKey="organisation.p1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>Contexts in a scope</Title>
+      <Title order={2}>{t('organisation.contextsHeading')}</Title>
       <Text component="p">
-        Within a scope you create <strong>processes</strong> and <strong>projects</strong> (and
-        optional subcontexts under projects). For when to use which, how to name them, and what
-        belongs inside, see{' '}
-        <Anchor component={Link} to="/help/contexts">
-          Processes & projects
-        </Anchor>
-        .
+        <Trans
+          i18nKey="organisation.p2"
+          ns="help"
+          components={{
+            ...rich,
+            contextsLink: <Anchor component={Link} to="/help/contexts" />,
+          }}
+        />
       </Text>
     </Stack>
   );

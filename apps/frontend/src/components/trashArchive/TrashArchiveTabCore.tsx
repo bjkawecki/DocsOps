@@ -1,6 +1,5 @@
 import {
   Button,
-  Drawer,
   Group,
   Pagination,
   Select,
@@ -9,8 +8,8 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { useDisclosure, useIntersection, useMediaQuery } from '@mantine/hooks';
-import { IconArchiveOff, IconFilter, IconRefresh } from '@tabler/icons-react';
+import { useIntersection, useMediaQuery } from '@mantine/hooks';
+import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +20,7 @@ import { EntityListCard } from '../ui/EntityListCard.js';
 import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
 import {
   CompactListCount,
+  useCompactListFilterFab,
   useCompactListSearchFab,
 } from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
@@ -50,7 +50,8 @@ export function TrashArchiveTabCore({
   const navigate = useNavigate();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const compact = !isWide;
-  const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
+  const closeSearchRef = useRef<() => void>(() => {});
+  const closeFilterRef = useRef<() => void>(() => {});
   const state = useTrashArchiveTabState({
     variant,
     scope,
@@ -98,26 +99,28 @@ export function TrashArchiveTabCore({
     />
   );
 
+  const compactFilter = useCompactListFilterFab({
+    label: t('documents:catalog.filterButton'),
+    active: Boolean(state.typeFilter),
+    onOpen: () => closeSearchRef.current(),
+    children: typeSelect,
+  });
+
   const compactSearch = useCompactListSearchFab({
     label: t('common:actions.search'),
     placeholder: t('documents:trashArchive.searchPlaceholder'),
     value: state.localSearch,
     onChange: (e) => state.setFilter(state.searchParamKey, e.currentTarget.value),
+    onClear: () => state.setFilter(state.searchParamKey, null),
+    onOpen: () => closeFilterRef.current(),
   });
 
-  const filterAction = useMemo((): PageMobileAction => {
-    return {
-      key: 'filter',
-      label: t('documents:catalog.filterButton'),
-      icon: <IconFilter size={16} stroke={1.5} />,
-      tone: state.typeFilter ? 'active' : 'filter',
-      onClick: openFilters,
-    };
-  }, [openFilters, state.typeFilter, t]);
+  closeSearchRef.current = compactSearch.close;
+  closeFilterRef.current = compactFilter.close;
 
   const compactExtraActions = useMemo(
-    (): PageMobileAction[] => [compactSearch.action, filterAction],
-    [compactSearch.action, filterAction]
+    (): PageMobileAction[] => [compactSearch.action, compactFilter.action],
+    [compactSearch.action, compactFilter.action]
   );
 
   useRegisterPageMobileExtraActions(compactExtraActions, compact);
@@ -139,7 +142,12 @@ export function TrashArchiveTabCore({
 
   return (
     <Stack gap={compact ? 'sm' : 'md'}>
-      {compactSearch.drawer}
+      {compact ? (
+        <>
+          {compactSearch.panel}
+          {compactFilter.panel}
+        </>
+      ) : null}
       {isWide ? (
         <Group gap="md" wrap="wrap" align="flex-end">
           <TextInput
@@ -162,19 +170,7 @@ export function TrashArchiveTabCore({
           />
         </Group>
       ) : (
-        <>
-          <CompactListCount>{countText}</CompactListCount>
-          <Drawer
-            opened={filtersOpened}
-            onClose={closeFilters}
-            title={t('documents:catalog.filterDrawerTitle')}
-            position="bottom"
-            size="auto"
-            padding="md"
-          >
-            <Stack gap="md">{typeSelect}</Stack>
-          </Drawer>
-        </>
+        <CompactListCount>{countText}</CompactListCount>
       )}
 
       {isWide ? (

@@ -173,13 +173,14 @@ export function ContextDocumentsTable({
     placeholder: t('documentsTable.searchPlaceholder'),
     value: localSearch,
     onChange: (e) => setFilter(SEARCH_KEY, e.currentTarget.value),
+    onClear: () => setFilter(SEARCH_KEY, null),
   });
 
   useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
 
   return (
     <Stack gap="md">
-      {compactSearch.drawer}
+      {compactSearch.panel}
       {isWide ? (
         <Group gap="md" wrap="wrap" align="flex-end">
           <TextInput

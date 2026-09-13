@@ -7,12 +7,14 @@ import {
 
 export type HelpTopic = {
   to: string;
-  label: string;
+  /** i18n key under `help` (e.g. `topics.overview`). */
+  labelKey: string;
 };
 
 export type HelpTopicGroup = {
   id: string;
-  label: string;
+  /** i18n key under `help` (e.g. `groups.gettingStarted`). */
+  labelKey: string;
   icon: TablerIcon;
   topics: readonly HelpTopic[];
 };
@@ -24,33 +26,38 @@ export type HelpTopicGroup = {
 export const HELP_TOPIC_GROUPS = [
   {
     id: 'getting-started',
-    label: 'Getting started',
+    labelKey: 'groups.gettingStarted',
     icon: IconInfoCircle,
     topics: [
-      { to: '/help/overview', label: 'What is DocsOps?' },
-      { to: '/help/out-of-scope', label: 'What DocsOps is not' },
+      { to: '/help/overview', labelKey: 'topics.overview' },
+      { to: '/help/out-of-scope', labelKey: 'topics.outOfScope' },
     ],
   },
   {
     id: 'governance',
-    label: 'Governance',
+    labelKey: 'groups.governance',
     icon: IconBuildingSkyscraper,
     topics: [
-      { to: '/help/organisation', label: 'Organisation & scopes' },
-      { to: '/help/contexts', label: 'Processes & projects' },
+      { to: '/help/organisation', labelKey: 'topics.organisation' },
+      { to: '/help/contexts', labelKey: 'topics.contexts' },
     ],
   },
   {
     id: 'working-with-docs',
-    label: 'Working with docs',
+    labelKey: 'groups.workingWithDocs',
     icon: IconStack2,
     topics: [
-      { to: '/help/document-types', label: 'Document types' },
-      { to: '/help/permissions', label: 'Read & write access' },
-      { to: '/help/workflow', label: 'Document lifecycle' },
-      { to: '/help/collaboration', label: 'Reviews & approvals' },
+      { to: '/help/document-types', labelKey: 'topics.documentTypes' },
+      { to: '/help/permissions', labelKey: 'topics.permissions' },
+      { to: '/help/workflow', labelKey: 'topics.workflow' },
+      { to: '/help/collaboration', labelKey: 'topics.collaboration' },
     ],
   },
 ] as const satisfies ReadonlyArray<HelpTopicGroup>;
 
 export const HELP_TOPIC_ICON_SIZE = 16;
+
+/** Flat topic order for previous / next article navigation. */
+export function flattenHelpTopics(): HelpTopic[] {
+  return HELP_TOPIC_GROUPS.flatMap((group) => [...group.topics]);
+}

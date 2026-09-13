@@ -1,73 +1,59 @@
 import { Anchor, List, Stack, Text, Title } from '@mantine/core';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+const rich = {
+  strong: <strong />,
+  em: <em />,
+} as const;
+
 export function HelpCollaborationPage() {
+  const { t } = useTranslation('help');
   return (
     <Stack gap={0} align="stretch" style={{ textAlign: 'left' }}>
-      <Title order={1}>Reviews & approvals</Title>
+      <Title order={1}>{t('collaboration.title')}</Title>
       <Text component="p">
-        Many teams are fine with <strong>real-time collaborative editing</strong> (several people in
-        one live draft). DocsOps is aimed especially at organisations where that model is{' '}
-        <strong>not</strong> how they want to ship documentation – whether because of regulation,
-        distributed teams, or the need for a clear, agreed “official” version.
+        <Trans i18nKey="collaboration.p1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>Regulated and accountable work</Title>
+      <Title order={2}>{t('collaboration.regulatedHeading')}</Title>
       <Text component="p">
-        In regulated settings, “whatever is in the shared buffer right now” is rarely the artifact
-        you want to stand behind. You need a <strong>defined moment</strong> when a change is
-        accepted: who reviewed it, what was approved, and what readers should treat as current.
-        Review steps and a published line give you that boundary instead of a continuous stream of
-        edits.
+        <Trans i18nKey="collaboration.regulatedP1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>Distributed and asynchronous teams</Title>
+      <Title order={2}>{t('collaboration.distributedHeading')}</Title>
       <Text component="p">
-        When people work across time zones or calendars, expecting everyone to be online in the same
-        document at once is fragile. A workflow built around{' '}
-        <strong>drafts, comments, and merge</strong> fits hand-offs: you finish a change, others
-        review when they can, and the merged result becomes the shared truth – without requiring
-        simultaneous presence.
+        <Trans i18nKey="collaboration.distributedP1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>Why merge, not fancy live sync?</Title>
+      <Title order={2}>{t('collaboration.mergeHeading')}</Title>
       <Text component="p">
-        Keeping many cursors in sync in one surface is a deep engineering problem on its own. That
-        is a secondary point: the main one is product fit. A <strong>merge-based</strong> path –
-        draft → review (where needed) → integrate into a published version – matches how many
-        organisations want <strong>predictable outcomes</strong>, readable history, and a single
-        place for sign-off.
+        <Trans i18nKey="collaboration.mergeP1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>Approvals hub</Title>
+      <Title order={2}>{t('collaboration.hubHeading')}</Title>
       <Text component="p">
-        Open <strong>Approvals</strong> in the sidebar for decisions waiting on you. It has two
-        sections:
+        <Trans i18nKey="collaboration.hubP1" ns="help" components={rich} />
       </Text>
       <List spacing="xs">
         <List.Item>
-          <strong>Reviews</strong> – documents with pending inline suggestions you can accept or
-          decline as a scope lead.
+          <Trans i18nKey="collaboration.hubReviews" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          <strong>Move requests</strong> – when someone asks to move a document{' '}
-          <strong>into your scope</strong> (inbound: accept or reject) or when you requested a move{' '}
-          <strong>out of your scope</strong> (outbound: withdraw while pending).
+          <Trans i18nKey="collaboration.hubMoves" ns="help" components={rich} />
         </List.Item>
       </List>
       <Text component="p">
-        How same-scope moves and cross-scope requests work on the document itself is covered under{' '}
-        <Anchor component={Link} to="/help/contexts">
-          Processes & projects → Moving documents
-        </Anchor>
-        .
+        <Trans
+          i18nKey="collaboration.hubP2"
+          ns="help"
+          components={{
+            contextsLink: <Anchor component={Link} to="/help/contexts" />,
+          }}
+        />
       </Text>
-      <Title order={2}>What you get</Title>
+      <Title order={2}>{t('collaboration.getHeading')}</Title>
       <List spacing="xs">
-        <List.Item>
-          Published versions readers can trust, plus change history for audit and learning.
-        </List.Item>
-        <List.Item>Room for review and approval where your process requires it.</List.Item>
-        <List.Item>Less ambiguity about what is “live” versus in progress.</List.Item>
-        <List.Item>
-          A single place for suggestion reviews and cross-scope document move decisions.
-        </List.Item>
+        <List.Item>{t('collaboration.getPublished')}</List.Item>
+        <List.Item>{t('collaboration.getReview')}</List.Item>
+        <List.Item>{t('collaboration.getAmbiguity')}</List.Item>
+        <List.Item>{t('collaboration.getHub')}</List.Item>
       </List>
     </Stack>
   );

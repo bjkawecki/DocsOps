@@ -2,7 +2,7 @@
 
 Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
 
-**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). Help-DE / E-Mail-Templates bewusst separat. Demo-Seed-Inhalte DE: schlanker CSV-Seed umgesetzt (siehe Umsetzungs-Todo §19).
+**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). **Help-DE** (Topic-Prosa) umgesetzt (`help` Namespace). E-Mail-Templates bewusst separat. Demo-Seed-Inhalte DE: schlanker CSV-Seed umgesetzt (siehe Umsetzungs-Todo §19).
 
 ---
 
@@ -11,7 +11,7 @@ Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergän
 - UI der App in **Englisch und Deutsch**
 - **Englisch** ist Quellsprache und Fallback (Keys, fehlende DE-Einträge)
 - Landing (`apps/landing`) bleibt **statisch Deutsch** und **nicht** Teil des App-i18n-Katalogs
-- Help in der App darf vorerst **EN** bleiben (kein Blocker für Demo); Help-DE ist ein eigener späterer Punkt
+- Help in der App: **EN + DE** über Namespace `help` (UI-Locale aus Settings / Browser)
 
 ---
 
@@ -24,7 +24,7 @@ Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergän
 | Ablage        | `apps/frontend/src/i18n/locales/{en,de}/<namespace>.json`                       |
 | Provider      | App-weit (nahe Preference-/Theme-Wiring); Login vor Session ebenfalls abgedeckt |
 
-Namespaces: `common`, `shell`, `auth`, `settings`, `admin`, `documents`, `approvals`, `notifications`, `contexts`, `templates`.
+Namespaces: `common`, `shell`, `auth`, `settings`, `admin`, `documents`, `approvals`, `notifications`, `contexts`, `templates`, `help`.
 
 ---
 
@@ -97,7 +97,7 @@ Alles, was eingeloggte Nutzer täglich sehen (ohne Admin-Ops-Tiefe):
 
 ### Bewusst separat (nicht Phasen 2–4)
 
-- Help-DE (Topic-Prosa)
+- ~~Help-DE (Topic-Prosa)~~ – erledigt (`help` Namespace EN+DE; Prev/Next-Artikel unter dem Lesebereich)
 - E-Mail-Templates (wenn SMTP-Texte user-facing)
 - Landing (`apps/landing`)
 - Backend-Fehlertexte umstellen; User-generierte Inhalte

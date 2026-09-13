@@ -1,6 +1,8 @@
 /* Bordered rows: thin outline, no fill (matches page background). */
-.entity-list-card:not(.entity-list-card--flat) {
+.entity-list-card:not(.entity-list-card--flat),
+.entity-list-card:not(.entity-list-card--flat).mantine-Card-root {
   background: transparent;
+  background-color: transparent;
   box-shadow: none;
   border-width: 1px;
   border-style: solid;

@@ -98,14 +98,15 @@ export function AdminUsersList({
     value: searchInput,
     onChange: (e) => onSearchInputChange(e.target.value),
     onKeyDown: (e) => e.key === 'Enter' && onSearchSubmit(),
-    drawerExtra: statusControl('sm', true),
+    onClear: () => onSearchInputChange(''),
+    panelExtra: statusControl('sm', true),
   });
 
   useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
 
   return (
     <>
-      {compactSearch.drawer}
+      {compactSearch.panel}
       {isWide ? (
         <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
           <Group gap="sm" wrap="wrap">

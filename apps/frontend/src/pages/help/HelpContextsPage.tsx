@@ -1,123 +1,110 @@
 import { Anchor, List, Stack, Text, Title } from '@mantine/core';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+const rich = {
+  strong: <strong />,
+  em: <em />,
+} as const;
+
 export function HelpContextsPage() {
+  const { t } = useTranslation('help');
   return (
     <Stack gap={0} align="stretch" style={{ textAlign: 'left' }}>
-      <Title order={1}>Processes & projects</Title>
+      <Title order={1}>{t('contexts.title')}</Title>
       <Text component="p">
-        Documents live in a <strong>context</strong>: a <strong>process</strong>, a{' '}
-        <strong>project</strong>, or a <strong>subcontext</strong> under a project. Choosing the
-        right kind keeps knowledge easy to find. After reading this page you should know when to use
-        which context, what typically belongs inside, how to name it, and how to tell whether
-        something fits an existing context.
+        <Trans i18nKey="contexts.p1" ns="help" components={rich} />
       </Text>
 
-      <Title order={2}>Two questions</Title>
+      <Title order={2}>{t('contexts.twoQuestionsHeading')}</Title>
       <List spacing="xs">
         <List.Item>
-          <strong>Process</strong> – Is there a clear <strong>trigger</strong>? Ask:{' '}
-          <em>What do we do when …?</em> (for example when someone joins, when a customer reports a
-          problem, when we need shared access rules).
+          <Trans i18nKey="contexts.processQ" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          <strong>Project</strong> – Is there a clear <strong>subject</strong>? Ask:{' '}
-          <em>What do we know about …?</em> (a product, initiative, or workstream you are building
-          or running).
+          <Trans i18nKey="contexts.projectQ" ns="help" components={rich} />
         </List.Item>
       </List>
 
-      <Title order={2}>What belongs inside</Title>
+      <Title order={2}>{t('contexts.belongsHeading')}</Title>
       <Text component="p">
-        A <strong>process</strong> holds reusable guidance for that trigger: roles, steps,
-        checklists, and principles that stay useful across many concrete cases.
+        <Trans i18nKey="contexts.belongsProcess" ns="help" components={rich} />
       </Text>
       <Text component="p">
-        A <strong>project</strong> holds knowledge <strong>about the subject</strong>: structure,
-        decisions, and subject-specific operational detail (for example how that particular subject
-        is deployed or supported).
+        <Trans i18nKey="contexts.belongsProject" ns="help" components={rich} />
       </Text>
       <Text component="p">
-        <strong>Subcontexts</strong> are optional folders <strong>under a project only</strong>. Use
-        them to split document spaces without creating another top-level project. They are named
-        areas, not a second process/project system.
+        <Trans i18nKey="contexts.belongsSub" ns="help" components={rich} />
       </Text>
 
-      <Title order={2}>Naming</Title>
+      <Title order={2}>{t('contexts.namingHeading')}</Title>
       <List spacing="xs">
         <List.Item>
-          Name a <strong>process</strong> after the <strong>trigger</strong> (for example{' '}
-          <em>When a new teammate joins</em>).
+          <Trans i18nKey="contexts.nameProcess" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          Name a <strong>project</strong> after the <strong>subject</strong>.
+          <Trans i18nKey="contexts.nameProject" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          Avoid creating both a process and a project for the <strong>same subject</strong>.
+          <Trans i18nKey="contexts.nameAvoid" ns="help" components={rich} />
         </List.Item>
       </List>
 
-      <Title order={2}>Does it belong in an existing context?</Title>
+      <Title order={2}>{t('contexts.existingHeading')}</Title>
       <List spacing="xs">
         <List.Item>
-          Same trigger or same subject as an existing context → put the document{' '}
-          <strong>there</strong>.
+          <Trans i18nKey="contexts.existingSame" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          Detail that only applies to one subject → prefer the <strong>project</strong> (or a
-          subcontext under it), not a new process named after that subject.
+          <Trans i18nKey="contexts.existingDetail" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          Unsure → follow the <strong>subject</strong> (choose or create a project) rather than
-          inventing a vague process.
+          <Trans i18nKey="contexts.existingUnsure" ns="help" components={rich} />
         </List.Item>
       </List>
 
-      <Title order={2}>Document shape is not context kind</Title>
+      <Title order={2}>{t('contexts.shapeHeading')}</Title>
       <Text component="p">
-        How a document is written (step-by-step guide, policy, decision record, and so on) does{' '}
-        <strong>not</strong> decide whether the context is a process or a project. Trigger vs
-        subject does. You can use the same document form in either kind of context.
+        <Trans i18nKey="contexts.shapeP1" ns="help" components={rich} />
       </Text>
       <Text component="p">
-        Scopes (company, department, team, personal) decide <strong>ownership and access</strong>.
-        They do not replace the process vs project choice – see{' '}
-        <Anchor component={Link} to="/help/organisation">
-          Organisation & scopes
-        </Anchor>
-        .
+        <Trans
+          i18nKey="contexts.shapeP2"
+          ns="help"
+          components={{
+            ...rich,
+            organisationLink: <Anchor component={Link} to="/help/organisation" />,
+          }}
+        />
       </Text>
 
-      <Title order={2}>Moving documents</Title>
+      <Title order={2}>{t('contexts.movingHeading')}</Title>
       <Text component="p">
-        If a document is already in a context and belongs elsewhere, use{' '}
-        <strong>Move to context</strong> on the document (More actions). That is different from{' '}
-        <strong>Assign to context</strong>, which only attaches a context-free draft for the first
-        time.
+        <Trans i18nKey="contexts.movingP1" ns="help" components={rich} />
       </Text>
       <List spacing="xs">
         <List.Item>
-          <strong>Same owner scope</strong> (for example another process in the same team) – the
-          move happens immediately when you have write rights on source and target. Tags and access
-          grants stay on the document.
+          <Trans i18nKey="contexts.movingSame" ns="help" components={rich} />
         </List.Item>
         <List.Item>
-          <strong>Different owner scope</strong> (another team, department, company, or personal
-          area) – you create a <strong>move request</strong>. The target scope lead accepts or
-          rejects it under{' '}
-          <Anchor component={Link} to="/approvals?tab=moves">
-            Approvals → Move requests
-          </Anchor>
-          . You can withdraw a pending request anytime. On accept, scope-bound tags are removed;
-          grants stay.
+          <Trans
+            i18nKey="contexts.movingDiff"
+            ns="help"
+            components={{
+              ...rich,
+              approvalsLink: <Anchor component={Link} to="/approvals?tab=moves" />,
+            }}
+          />
         </List.Item>
       </List>
       <Text component="p">
-        More on the Approvals hub and reviews:{' '}
-        <Anchor component={Link} to="/help/collaboration">
-          Reviews & approvals
-        </Anchor>
-        .
+        <Trans
+          i18nKey="contexts.movingP2"
+          ns="help"
+          components={{
+            collaborationLink: <Anchor component={Link} to="/help/collaboration" />,
+          }}
+        />
       </Text>
     </Stack>
   );

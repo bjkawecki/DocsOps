@@ -63,7 +63,8 @@ export function AdminEntityListToolbar({
     placeholder: searchPlaceholder,
     value: filterText,
     onChange: (e) => onFilterTextChange(e.currentTarget.value),
-    drawerExtra: scopeSelect('md'),
+    onClear: () => onFilterTextChange(''),
+    panelExtra: scopeSelect('md'),
   });
 
   useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
@@ -71,7 +72,7 @@ export function AdminEntityListToolbar({
   if (!isWide) {
     return (
       <>
-        {compactSearch.drawer}
+        {compactSearch.panel}
         <CompactListCount>{countLine}</CompactListCount>
       </>
     );

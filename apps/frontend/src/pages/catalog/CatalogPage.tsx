@@ -1,7 +1,6 @@
 import {
   Badge,
   Box,
-  Drawer,
   Group,
   Stack,
   Table,
@@ -12,16 +11,15 @@ import {
   Pagination,
   Anchor,
 } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { useCallback, useMemo, useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   IconArrowDown,
   IconArrowUp,
-  IconFilter,
   IconListSearch,
   IconSelector,
 } from '@tabler/icons-react';
@@ -33,6 +31,7 @@ import { PageMobileActionBar } from '../../components/ui/PageMobileActionBar.js'
 import {
   CompactListCount,
   StickySearchChrome,
+  useCompactListFilterFab,
   useCompactListSearchFab,
 } from '../../components/ui/StickySearchChrome.js';
 import { contextUrl } from '../contextWorkspace/contextPaths';
@@ -129,7 +128,8 @@ export function CatalogPage() {
   const { t } = useTranslation(['documents', 'common', 'shell']);
   const [searchParams, setSearchParams] = useSearchParams();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
-  const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
+  const closeSearchRef = useRef<() => void>(() => {});
+  const closeFilterRef = useRef<() => void>(() => {});
 
   useSetAppShellBreadcrumbs(
     isWide
@@ -372,12 +372,24 @@ export function CatalogPage() {
     </Table.Th>
   );
 
+  const compactFilter = useCompactListFilterFab({
+    label: t('documents:catalog.filterButton'),
+    active: activeFilterCount > 0,
+    onOpen: () => closeSearchRef.current(),
+    children: advancedFilters,
+  });
+
   const compactSearch = useCompactListSearchFab({
     label: t('documents:catalog.searchLabel'),
     placeholder: t('documents:catalog.searchPlaceholder'),
     value: search,
     onChange: (e) => setFilter('search', e.currentTarget.value),
+    onClear: () => setFilter('search', null),
+    onOpen: () => closeFilterRef.current(),
   });
+
+  closeSearchRef.current = compactSearch.close;
+  closeFilterRef.current = compactFilter.close;
 
   return (
     <Box>
@@ -403,17 +415,8 @@ export function CatalogPage() {
             <CompactListCount>
               {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
             </CompactListCount>
-            {compactSearch.drawer}
-            <Drawer
-              opened={filtersOpened}
-              onClose={closeFilters}
-              title={t('documents:catalog.filterDrawerTitle')}
-              position="bottom"
-              size="auto"
-              padding="md"
-            >
-              <Stack gap="md">{advancedFilters}</Stack>
-            </Drawer>
+            {compactSearch.panel}
+            {compactFilter.panel}
           </>
         )}
 
@@ -607,16 +610,7 @@ export function CatalogPage() {
       {!isWide ? (
         <PageMobileActionBar
           ariaLabel={t('shell:nav.pageMobileActionsAria')}
-          actions={[
-            compactSearch.action,
-            {
-              key: 'filter',
-              label: t('documents:catalog.filterButton'),
-              icon: <IconFilter size={16} stroke={1.5} />,
-              tone: activeFilterCount > 0 ? 'active' : 'filter',
-              onClick: openFilters,
-            },
-          ]}
+          actions={[compactSearch.action, compactFilter.action]}
         />
       ) : null}
     </Box>

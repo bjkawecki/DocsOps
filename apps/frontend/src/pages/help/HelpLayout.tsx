@@ -18,6 +18,7 @@ import { ContentSidebarCollapsibleSection } from '../../components/ui/ContentSid
 import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import '../DocumentContent.css';
+import { HelpArticleNav } from './HelpArticleNav.js';
 import { HELP_TOPIC_GROUPS, HELP_TOPIC_ICON_SIZE } from './helpTopics.js';
 
 /** Same reserved width as the document comments rail (keeps reading column aligned). */
@@ -29,9 +30,9 @@ const navLinkFullWidth = {
 } as const;
 
 export function HelpLayout() {
-  const { t } = useTranslation('shell');
+  const { t } = useTranslation(['shell', 'help']);
   const { pathname } = useLocation();
-  const sectionTitle = t('account.help');
+  const sectionTitle = t('shell:account.help');
   const { contentNavOpenRefProp, navFab } = useCompactContentNavFab(sectionTitle);
 
   useSetAppShellBreadcrumbs([
@@ -54,14 +55,20 @@ export function HelpLayout() {
 
   const nav = (
     <ContentCardWrapper fullHeight={false}>
-      <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Help topics">
+      <Stack
+        gap="md"
+        component="nav"
+        align="stretch"
+        w="100%"
+        aria-label={t('help:nav.topicsAria')}
+      >
         {HELP_TOPIC_GROUPS.map((group) => {
           const GroupIcon = group.icon;
           return (
             <ContentSidebarCollapsibleSection
               key={group.id}
               sectionId={`help:${group.id}`}
-              label={group.label}
+              label={t(`help:${group.labelKey}`)}
               icon={<GroupIcon size={HELP_TOPIC_ICON_SIZE} stroke={1.5} />}
               defaultOpen={group.id === 'getting-started'}
               forceOpenWhen={activeGroupIds.has(group.id)}
@@ -73,7 +80,7 @@ export function HelpLayout() {
                     key={topic.to}
                     component={Link}
                     to={topic.to}
-                    label={topic.label}
+                    label={t(`help:${topic.labelKey}`)}
                     active={active}
                     aria-current={active ? 'page' : undefined}
                     variant="subtle"
@@ -115,6 +122,7 @@ export function HelpLayout() {
                 <Box className="document-page-scroll">
                   <DocumentReadingSurface>
                     <Outlet />
+                    <HelpArticleNav />
                   </DocumentReadingSurface>
                 </Box>
               </Box>
