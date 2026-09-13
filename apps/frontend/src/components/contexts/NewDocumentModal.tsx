@@ -192,7 +192,13 @@ export function NewDocumentModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title={t('modals.newDocument.title')} size="lg">
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={t('modals.newDocument.title')}
+      size="lg"
+      trapFocus={false}
+    >
       <Stack gap="md">
         {allowNoContext && (
           <Radio.Group
@@ -216,6 +222,8 @@ export function NewDocumentModal({
               value={contextId}
               onChange={(v) => setContextId(v)}
               required
+              size="md"
+              comboboxProps={{ withinPortal: false }}
             />
             {contextOptions.length === 0 && (
               <Text size="sm" c="dimmed">
@@ -230,6 +238,7 @@ export function NewDocumentModal({
           value={title}
           onChange={(e) => setTitle(e.currentTarget.value)}
           required
+          size="md"
         />
         <DocumentTypePicker
           contextId={noContext ? null : contextId}
@@ -237,6 +246,7 @@ export function NewDocumentModal({
           onChange={handleTypeChange}
           applyTemplateOnSelect
           mode="create"
+          withinPortal={false}
         />
         {!noContext && (
           <MultiSelect
@@ -247,6 +257,8 @@ export function NewDocumentModal({
             placeholder={t('modals.newDocument.tagsPlaceholder')}
             searchable
             clearable
+            size="md"
+            comboboxProps={{ withinPortal: false }}
           />
         )}
         <Group justify="flex-end" mt="md">

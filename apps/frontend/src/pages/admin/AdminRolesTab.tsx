@@ -11,10 +11,15 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useEffect, useMemo, useState } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconDeviceFloppy } from '@tabler/icons-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OrgRoleKey, OrgRoleLabels } from 'backend/api-types';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
 import {
   useAdminSystemSettings,
   usePatchAdminSystemSettings,
@@ -70,6 +75,7 @@ const ROLE_TITLE_KEYS: Record<OrgRoleKey, string> = {
 export function AdminRolesTab() {
   const { t } = useTranslation('admin');
   const { t: tCommon } = useTranslation('common');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const settingsQuery = useAdminSystemSettings();
   const patchMutation = usePatchAdminSystemSettings();
   const { data: publicConfig } = usePublicConfig();
@@ -92,7 +98,7 @@ export function AdminRolesTab() {
     );
   }, [form, settingsQuery.data]);
 
-  const save = () => {
+  const save = useCallback(() => {
     patchMutation.mutate(
       { orgRoleLabels: formToLabels(form) },
       {
@@ -112,18 +118,38 @@ export function AdminRolesTab() {
         },
       }
     );
-  };
+  }, [form, patchMutation, t]);
 
+  const saveDisabled = demoMode || !dirty || settingsQuery.isPending;
+
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'save',
+        label: t('rolesPage.save'),
+        icon: <IconDeviceFloppy size={16} stroke={1.5} />,
+        tone: 'save',
+        loading: patchMutation.isPending,
+        disabled: saveDisabled,
+        onClick: save,
+      },
+    ],
+    [patchMutation.isPending, save, saveDisabled, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm">
+        <Button onClick={save} loading={patchMutation.isPending} disabled={saveDisabled}>
+          {t('rolesPage.save')}
+        </Button>
+      </Group>
+    ),
+    [patchMutation.isPending, save, saveDisabled, t]
+  );
   useSetAppShellBreadcrumbActions(
-    <Group gap="sm">
-      <Button
-        onClick={save}
-        loading={patchMutation.isPending}
-        disabled={demoMode || !dirty || settingsQuery.isPending}
-      >
-        {t('rolesPage.save')}
-      </Button>
-    </Group>,
+    isWide ? chromeActions : null,
     `${demoMode}-${dirty}-${patchMutation.isPending}`
   );
 

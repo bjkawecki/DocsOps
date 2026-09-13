@@ -9,7 +9,6 @@ import {
   Tooltip,
   useCombobox,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
@@ -40,6 +39,11 @@ type Props = {
   /** When true, selecting a type uses defaultTemplateId (seed on create). */
   applyTemplateOnSelect?: boolean;
   mode?: 'create' | 'metadata';
+  /**
+   * Portal the dropdown. Prefer false inside Modals (avoids focus-trap flicker
+   * with the open combobox).
+   */
+  withinPortal?: boolean;
 };
 
 type FlatOption = { value: string; label: string };
@@ -83,9 +87,14 @@ export function DocumentTypePicker({
   onChange,
   applyTemplateOnSelect = true,
   mode = 'create',
+  withinPortal = true,
 }: Props) {
   const { t, i18n } = useTranslation('documents');
-  const isNarrow = useMediaQuery('(max-width: 36em)');
+  // Snapshot at mount: live media queries flip when the mobile keyboard opens and
+  // cause the dual-panel dropdown to reflow/flicker while focused.
+  const [isNarrow] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 36em)').matches
+  );
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const combobox = useCombobox({
     onDropdownClose: () => {
@@ -242,7 +251,6 @@ export function DocumentTypePicker({
         flex: isNarrow ? undefined : '1 1 50%',
         minWidth: 0,
         borderLeft: isNarrow ? undefined : '1px solid var(--mantine-color-default-border)',
-        borderTop: isNarrow ? '1px solid var(--mantine-color-default-border)' : undefined,
       }}
     >
       <ScrollArea.Autosize mah={isNarrow ? 220 : 320} type="scroll" style={{ width: '100%' }}>
@@ -325,7 +333,7 @@ export function DocumentTypePicker({
       </Group>
       <Combobox
         store={combobox}
-        withinPortal
+        withinPortal={withinPortal}
         onOptionSubmit={(next) => {
           applySelection(next);
           combobox.closeDropdown();
@@ -351,28 +359,23 @@ export function DocumentTypePicker({
         <Combobox.Dropdown
           p={0}
           miw={isNarrow ? undefined : DROPDOWN_MIN_WIDTH}
-          w={isNarrow ? Math.min(DROPDOWN_MIN_WIDTH, 360) : undefined}
+          w={isNarrow ? '100%' : undefined}
         >
-          <Box
-            style={{
-              display: 'flex',
-              flexDirection: isNarrow ? 'column' : 'row',
-              alignItems: 'stretch',
-              width: '100%',
-            }}
-          >
-            {isNarrow ? (
-              <>
-                {listPanel}
-                {previewPanel}
-              </>
-            ) : (
-              <>
-                {previewPanel}
-                {listPanel}
-              </>
-            )}
-          </Box>
+          {isNarrow ? (
+            listPanel
+          ) : (
+            <Box
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'stretch',
+                width: '100%',
+              }}
+            >
+              {previewPanel}
+              {listPanel}
+            </Box>
+          )}
         </Combobox.Dropdown>
       </Combobox>
     </Stack>

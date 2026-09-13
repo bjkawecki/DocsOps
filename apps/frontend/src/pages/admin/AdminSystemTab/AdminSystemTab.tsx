@@ -1,10 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Alert, Button, Group, Loader, Menu, Stack, Tooltip } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconRefresh } from '@tabler/icons-react';
+import { IconDotsVertical, IconRefresh } from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import {
   useAdminSystemSettings,
   useCheckForUpdates,
@@ -20,6 +23,7 @@ import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
 
 export function AdminSystemTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const statusQuery = useAdminUpdateStatus();
   const settingsQuery = useAdminSystemSettings();
   const checkMutation = useCheckForUpdates();
@@ -65,6 +69,48 @@ export function AdminSystemTab() {
   };
 
   const canApplyUpdate = status?.canApplyUpdate === true;
+
+  const mobileExtraActions = useMemo((): PageMobileAction[] => {
+    const moreMenu = (
+      <>
+        <Menu.Item onClick={openSteps} disabled={status == null}>
+          {t('actions.howToUpdate')}
+        </Menu.Item>
+        {canApplyUpdate ? (
+          <Menu.Item onClick={openApply}>{t('actions.applyUpdate')}</Menu.Item>
+        ) : null}
+      </>
+    );
+    return [
+      {
+        key: 'more',
+        label: t('actions.howToUpdate'),
+        icon: <IconDotsVertical size={16} stroke={1.5} />,
+        tone: 'more',
+        menu: moreMenu,
+      },
+      {
+        key: 'check-updates',
+        label: t('actions.checkForUpdates'),
+        icon: <IconRefresh size={16} stroke={1.5} />,
+        tone: 'secondary',
+        loading: checkMutation.isPending,
+        disabled: checkDisabled,
+        onClick: () => void handleCheck(),
+      },
+    ];
+  }, [
+    canApplyUpdate,
+    checkDisabled,
+    checkMutation.isPending,
+    handleCheck,
+    openApply,
+    openSteps,
+    status,
+    t,
+  ]);
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Group gap="sm" align="center" wrap="nowrap">
@@ -105,7 +151,7 @@ export function AdminSystemTab() {
     ]
   );
   useSetAppShellBreadcrumbActions(
-    chromeActions,
+    isWide ? chromeActions : null,
     `admin-system:${checksEnabled}:${checkDisabled}:${canApplyUpdate}:${checkMutation.isPending}`
   );
 

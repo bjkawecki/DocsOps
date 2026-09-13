@@ -1,11 +1,28 @@
-import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
-import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
+import {
+  Button,
+  Drawer,
+  Group,
+  Pagination,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core';
+import { useDisclosure, useIntersection, useMediaQuery } from '@mantine/hooks';
+import { IconArchiveOff, IconFilter, IconRefresh } from '@tabler/icons-react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatTableDate } from '../../lib/formatDate';
+import type { PageMobileAction } from '../ui/PageMobileActionBar.js';
 import { EntityListCard } from '../ui/EntityListCard.js';
+import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
+import {
+  CompactListCount,
+  useCompactListSearchFab,
+} from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 import type { TrashArchiveTabBaseProps } from './trashArchiveTypes';
 import {
@@ -32,7 +49,78 @@ export function TrashArchiveTabCore({
   const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
-  const state = useTrashArchiveTabState({ variant, scope, companyId, departmentId, teamId });
+  const compact = !isWide;
+  const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
+  const state = useTrashArchiveTabState({
+    variant,
+    scope,
+    companyId,
+    departmentId,
+    teamId,
+    compact,
+  });
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const { ref: intersectionRef, entry } = useIntersection({
+    root: null,
+    threshold: 0.1,
+  });
+
+  const { hasMore, loadingMore, loadMore } = state;
+
+  useEffect(() => {
+    if (!compact || !hasMore || loadingMore) return;
+    if (entry?.isIntersecting) loadMore();
+  }, [compact, entry?.isIntersecting, hasMore, loadMore, loadingMore]);
+
+  const setLoadMoreNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      loadMoreRef.current = node;
+      intersectionRef(node);
+    },
+    [intersectionRef]
+  );
+
+  const typeSelect = (
+    <Select
+      label={t('documents:trashArchive.typeLabel')}
+      placeholder={t('documents:catalog.allTypes')}
+      data={[
+        { value: '', label: t('documents:catalog.allTypes') },
+        { value: 'document', label: t('documents:trashArchive.typeDocument') },
+        { value: 'process', label: t('documents:breadcrumbs.process') },
+        { value: 'project', label: t('documents:breadcrumbs.project') },
+      ]}
+      value={state.typeFilter || null}
+      onChange={(v) => state.setFilter('type', v ?? '')}
+      clearable
+      style={{ minWidth: 140 }}
+    />
+  );
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('common:actions.search'),
+    placeholder: t('documents:trashArchive.searchPlaceholder'),
+    value: state.localSearch,
+    onChange: (e) => state.setFilter(state.searchParamKey, e.currentTarget.value),
+  });
+
+  const filterAction = useMemo((): PageMobileAction => {
+    return {
+      key: 'filter',
+      label: t('documents:catalog.filterButton'),
+      icon: <IconFilter size={16} stroke={1.5} />,
+      tone: state.typeFilter ? 'active' : 'filter',
+      onClick: openFilters,
+    };
+  }, [openFilters, state.typeFilter, t]);
+
+  const compactExtraActions = useMemo(
+    (): PageMobileAction[] => [compactSearch.action, filterAction],
+    [compactSearch.action, filterAction]
+  );
+
+  useRegisterPageMobileExtraActions(compactExtraActions, compact);
 
   if (state.isPending) {
     return (
@@ -42,46 +130,52 @@ export function TrashArchiveTabCore({
     );
   }
 
+  const countText = state.localSearch.trim()
+    ? t('documents:trashArchive.itemsOfTotal', {
+        count: state.total,
+        filtered: state.filteredItems.length,
+      })
+    : t('documents:trashArchive.itemsTotal', { count: state.total });
+
   return (
-    <Stack gap="md">
-      <Group gap="md" wrap="wrap" align="flex-end">
-        <TextInput
-          label={t('common:actions.search')}
-          placeholder={t('documents:trashArchive.searchPlaceholder')}
-          value={state.localSearch}
-          onChange={(e) => state.setFilter(state.searchParamKey, e.currentTarget.value)}
-          style={{ minWidth: 200 }}
-        />
-        <Select
-          label={t('documents:trashArchive.typeLabel')}
-          placeholder={t('documents:catalog.allTypes')}
-          data={[
-            { value: '', label: t('documents:catalog.allTypes') },
-            { value: 'document', label: t('documents:trashArchive.typeDocument') },
-            { value: 'process', label: t('documents:breadcrumbs.process') },
-            { value: 'project', label: t('documents:breadcrumbs.project') },
-          ]}
-          value={state.typeFilter || null}
-          onChange={(v) => state.setFilter('type', v ?? '')}
-          clearable
-          style={{ minWidth: 140 }}
-        />
-        <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-          {state.localSearch.trim()
-            ? t('documents:trashArchive.itemsOfTotal', {
-                count: state.total,
-                filtered: state.filteredItems.length,
-              })
-            : t('documents:trashArchive.itemsTotal', { count: state.total })}
-        </Text>
-        <Select
-          label={t('documents:catalog.perPage')}
-          data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-          value={String(state.limit)}
-          onChange={(v) => v && state.setPageSize(parseInt(v, 10))}
-          style={{ width: 90 }}
-        />
-      </Group>
+    <Stack gap={compact ? 'sm' : 'md'}>
+      {compactSearch.drawer}
+      {isWide ? (
+        <Group gap="md" wrap="wrap" align="flex-end">
+          <TextInput
+            label={t('common:actions.search')}
+            placeholder={t('documents:trashArchive.searchPlaceholder')}
+            value={state.localSearch}
+            onChange={(e) => state.setFilter(state.searchParamKey, e.currentTarget.value)}
+            style={{ minWidth: 200 }}
+          />
+          {typeSelect}
+          <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
+            {countText}
+          </Text>
+          <Select
+            label={t('documents:catalog.perPage')}
+            data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+            value={String(state.limit)}
+            onChange={(v) => v && state.setPageSize(parseInt(v, 10))}
+            style={{ width: 90 }}
+          />
+        </Group>
+      ) : (
+        <>
+          <CompactListCount>{countText}</CompactListCount>
+          <Drawer
+            opened={filtersOpened}
+            onClose={closeFilters}
+            title={t('documents:catalog.filterDrawerTitle')}
+            position="bottom"
+            size="auto"
+            padding="md"
+          >
+            <Stack gap="md">{typeSelect}</Stack>
+          </Drawer>
+        </>
+      )}
 
       {isWide ? (
         <Table withTableBorder className="dense-list-table">
@@ -199,11 +293,10 @@ export function TrashArchiveTabCore({
             : t('documents:trashArchive.noSearchMatch')}
         </Text>
       ) : (
-        <Stack gap={0}>
+        <Stack gap="xs">
           {state.filteredItems.map((item) => (
             <EntityListCard
               key={`${item.type}-${item.id}`}
-              variant="flat"
               onClick={() => {
                 void navigate(itemHref(item));
               }}
@@ -250,17 +343,32 @@ export function TrashArchiveTabCore({
               }
             />
           ))}
+          {state.hasMore ? (
+            <div ref={setLoadMoreNode}>
+              <Button
+                fullWidth
+                variant="subtle"
+                size="sm"
+                loading={state.loadingMore}
+                onClick={() => state.loadMore()}
+              >
+                {t('documents:trashArchive.loadMore')}
+              </Button>
+            </div>
+          ) : null}
         </Stack>
       )}
 
-      <Group justify="flex-end">
-        <Pagination
-          total={state.totalPages}
-          value={state.page}
-          onChange={state.setPage}
-          size="sm"
-        />
-      </Group>
+      {isWide ? (
+        <Group justify="flex-end">
+          <Pagination
+            total={state.totalPages}
+            value={state.page}
+            onChange={state.setPage}
+            size="sm"
+          />
+        </Group>
+      ) : null}
     </Stack>
   );
 }

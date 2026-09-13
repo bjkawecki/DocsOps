@@ -1,11 +1,12 @@
 import { Box, Container, Paper, Text } from '@mantine/core';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 import { ArchiveTabContent, TrashTabContent } from '../../components/trashArchive';
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
@@ -42,6 +43,8 @@ export function ScopeTrashArchivePage({
   teamId,
 }: Props) {
   const { t } = useTranslation(['contexts', 'common', 'shell']);
+  const navTitle = t('shell:nav.organization');
+  const compactNavOpenRef = useRef<(() => void) | null>(null);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
@@ -81,27 +84,30 @@ export function ScopeTrashArchivePage({
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <ResponsiveContentNav
-          title={t('shell:nav.organization')}
-          nav={
-            <ScopeContextSidebar
-              processes={processes}
-              projects={projects}
-              drafts={drafts}
-              activeContextId={null}
-              onContextNavClick={handleContextNavClick}
-              trashArchive={trashArchive}
-            />
-          }
-        >
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            {kind === 'trash' ? (
-              <TrashTabContent {...contentProps} />
-            ) : (
-              <ArchiveTabContent {...contentProps} />
-            )}
-          </Box>
-        </ResponsiveContentNav>
+        <PageMobileActionsHost navTitle={navTitle} compactNavOpenRef={compactNavOpenRef}>
+          <ResponsiveContentNav
+            title={navTitle}
+            compactNavOpenRef={compactNavOpenRef}
+            nav={
+              <ScopeContextSidebar
+                processes={processes}
+                projects={projects}
+                drafts={drafts}
+                activeContextId={null}
+                onContextNavClick={handleContextNavClick}
+                trashArchive={trashArchive}
+              />
+            }
+          >
+            <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+              {kind === 'trash' ? (
+                <TrashTabContent {...contentProps} />
+              ) : (
+                <ArchiveTabContent {...contentProps} />
+              )}
+            </Box>
+          </ResponsiveContentNav>
+        </PageMobileActionsHost>
       </Paper>
     </Container>
   );

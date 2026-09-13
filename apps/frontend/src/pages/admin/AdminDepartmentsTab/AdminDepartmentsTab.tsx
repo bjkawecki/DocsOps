@@ -1,5 +1,5 @@
 import { Box, Button, Loader, Modal } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminDepartmentDeleteModal } from './AdminDepartmentDeleteModal';
 import { AdminDepartmentEditModal } from './AdminDepartmentEditModal';
 import { AdminDepartmentsTableSection } from './AdminDepartmentsTableSection';
@@ -29,6 +32,7 @@ import { CreateDepartmentForm } from './CreateDepartmentForm';
 
 export function AdminDepartmentsTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [filterCompanyId, setFilterCompanyId] = useState<string | null>(null);
@@ -346,6 +350,21 @@ export function AdminDepartmentsTab() {
   }, [editingDepartment, leadsForEdit]);
 
   const createDepartmentDisabled = companies.length === 0;
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createDepartment'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreate,
+        disabled: createDepartmentDisabled,
+      },
+    ],
+    [createDepartmentDisabled, openCreate, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Button
@@ -359,7 +378,10 @@ export function AdminDepartmentsTab() {
     ),
     [createDepartmentDisabled, openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(chromeActions, `admin-departments:${createDepartmentDisabled}`);
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-departments:${createDepartmentDisabled}`
+  );
 
   if (companiesPending) {
     return (

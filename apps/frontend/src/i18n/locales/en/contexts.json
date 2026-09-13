@@ -65,7 +65,8 @@
     "count_one": "{{count}} document",
     "count_other": "{{count}} documents",
     "countFiltered_one": "{{filtered}} of {{count}} document",
-    "countFiltered_other": "{{filtered}} of {{count}} documents"
+    "countFiltered_other": "{{filtered}} of {{count}} documents",
+    "loadMore": "Load more"
   },
   "recentItems": {
     "title": "Recently viewed",

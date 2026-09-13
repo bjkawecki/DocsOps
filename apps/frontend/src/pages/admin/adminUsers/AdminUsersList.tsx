@@ -16,6 +16,11 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { EntityListCard } from '../../../components/ui/EntityListCard.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import {
+  CompactListCount,
+  useCompactListSearchFab,
+} from '../../../components/ui/StickySearchChrome.js';
 import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import { AdminUsersSortableTh } from './AdminUsersSortableTh';
 import {
@@ -68,58 +73,81 @@ export function AdminUsersList({
   onPageChange,
   onEmailClick,
 }: Props) {
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation(['admin', 'common']);
   const roleLabel = useOrgRoleLabel();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
 
+  const statusControl = (size: 'xs' | 'sm', fullWidth = false) => (
+    <SegmentedControl
+      size={size}
+      fullWidth={fullWidth}
+      data={[
+        { label: t('users.list.filterAll'), value: 'all' },
+        { label: t('users.list.filterActive'), value: 'active' },
+      ]}
+      value={includeDeactivated ? 'all' : 'active'}
+      onChange={(v) => {
+        onIncludeDeactivatedChange(v === 'all');
+      }}
+    />
+  );
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('common:actions.search'),
+    placeholder: t('users.list.searchPlaceholder'),
+    value: searchInput,
+    onChange: (e) => onSearchInputChange(e.target.value),
+    onKeyDown: (e) => e.key === 'Enter' && onSearchSubmit(),
+    drawerExtra: statusControl('sm', true),
+  });
+
+  useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
+
   return (
     <>
-      <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
-        <Group gap="sm" wrap="wrap">
-          <SegmentedControl
-            size="xs"
-            data={[
-              { label: t('users.list.filterAll'), value: 'all' },
-              { label: t('users.list.filterActive'), value: 'active' },
-            ]}
-            value={includeDeactivated ? 'all' : 'active'}
-            onChange={(v) => {
-              onIncludeDeactivatedChange(v === 'all');
-            }}
-          />
-          <TextInput
-            placeholder={t('users.list.searchPlaceholder')}
-            size="xs"
-            value={searchInput}
-            onChange={(e) => onSearchInputChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit()}
-          />
-          <Button
-            size="xs"
-            variant="filled"
-            onClick={() => {
-              onSearchSubmit();
-            }}
-          >
-            {t('common:actions.search')}
-          </Button>
+      {compactSearch.drawer}
+      {isWide ? (
+        <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
+          <Group gap="sm" wrap="wrap">
+            {statusControl('xs')}
+            <TextInput
+              placeholder={t('users.list.searchPlaceholder')}
+              size="xs"
+              value={searchInput}
+              onChange={(e) => onSearchInputChange(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit()}
+            />
+            <Button
+              size="xs"
+              variant="filled"
+              onClick={() => {
+                onSearchSubmit();
+              }}
+            >
+              {t('common:actions.search')}
+            </Button>
+          </Group>
+          <Group gap="sm" align="flex-end">
+            <Text size="sm" c="dimmed">
+              {t('users.list.countLine', { count: data?.total ?? 0 })}
+            </Text>
+            <Select
+              label={t('shared.perPage')}
+              data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+              value={String(limit)}
+              onChange={(value) => {
+                const next = Number(value ?? DEFAULT_PAGE_SIZE);
+                onLimitChange(next);
+              }}
+              style={{ width: 100 }}
+            />
+          </Group>
         </Group>
-        <Group gap="sm" align="flex-end">
-          <Text size="sm" c="dimmed">
-            {t('users.list.countLine', { count: data?.total ?? 0 })}
-          </Text>
-          <Select
-            label={t('shared.perPage')}
-            data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-            value={String(limit)}
-            onChange={(value) => {
-              const next = Number(value ?? DEFAULT_PAGE_SIZE);
-              onLimitChange(next);
-            }}
-            style={{ width: 100 }}
-          />
-        </Group>
-      </Group>
+      ) : (
+        <CompactListCount>
+          {t('users.list.countLine', { count: data?.total ?? 0 })}
+        </CompactListCount>
+      )}
 
       {isPending && <Loader size="sm" />}
       {isError && (

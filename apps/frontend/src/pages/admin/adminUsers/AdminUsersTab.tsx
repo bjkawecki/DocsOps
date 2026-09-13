@@ -1,12 +1,15 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey, useMe } from '../../../hooks/useMe';
 import { AdminUserCreateForm } from './AdminUserCreateForm';
 import { AdminUserDetailTabs } from './AdminUserDetailTabs';
@@ -25,6 +28,7 @@ import type {
 
 export function AdminUsersTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState<number>(() => {
@@ -259,6 +263,20 @@ export function AdminUsersTab() {
 
   const listError = error instanceof Error ? error : error ? new Error(String(error)) : null;
 
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createUser'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreate,
+      },
+    ],
+    [openCreate, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
@@ -267,7 +285,7 @@ export function AdminUsersTab() {
     ),
     [openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(chromeActions, 'admin-users-create');
+  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, 'admin-users-create');
 
   return (
     <Box>
@@ -278,7 +296,11 @@ export function AdminUsersTab() {
           setOffset(0);
         }}
         searchInput={searchInput}
-        onSearchInputChange={setSearchInput}
+        onSearchInputChange={(v) => {
+          setSearchInput(v);
+          setSearch(v);
+          setOffset(0);
+        }}
         onSearchSubmit={() => {
           setSearch(searchInput);
           setOffset(0);

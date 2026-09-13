@@ -1,9 +1,22 @@
 import { ActionIcon, Box, Button, Container, Group, Menu, Paper, Stack, Text } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import {
+  PageMobileActionsHost,
+  useCompactContentNavFab,
+  useRegisterPageMobileExtraActions,
+} from '../../components/ui/pageMobileNav.js';
+import type { PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
 import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { IconArchive, IconDotsVertical, IconPencil, IconTrash } from '@tabler/icons-react';
+import {
+  IconArchive,
+  IconDotsVertical,
+  IconFilePlus,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
 import { useMe } from '../../hooks/useMe';
 import { useRecentItemsActions, type RecentScope } from '../../hooks/useRecentItems';
@@ -17,14 +30,17 @@ import { ContentLink } from '../../components/ui/ContentLink';
 import { SectionLabel } from '../../components/ui/SectionLabel';
 import {
   ContextDocumentsTable,
+  DOCS_COMPACT_PAGE_SIZE,
   readDocsListLimit,
   readDocsListPage,
 } from '../../components/contexts/ContextDocumentsTable';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import {
   buildContextBreadcrumbs,
+  scopeBreadcrumbIcon,
   scopeBreadcrumbItem,
 } from '../../components/appShell/scopeBreadcrumbs.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
@@ -48,6 +64,7 @@ export function ContextWorkspacePage() {
   const [searchParams] = useSearchParams();
   const { data: me } = useMe();
   const recentActions = useRecentItemsActions();
+  const isWideViewport = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
 
   const docsPage = readDocsListPage(searchParams);
   const docsLimit = readDocsListLimit(searchParams);
@@ -80,6 +97,13 @@ export function ContextWorkspacePage() {
     placeholderData: (previousData) => previousData,
   });
 
+  type DocsPage = {
+    items: ContextDocument[];
+    total: number;
+    limit: number;
+    offset: number;
+  };
+
   const { data: documentsData } = useQuery({
     queryKey: ['contexts', contextId, 'documents', docsLimit, docsOffset],
     queryFn: async () => {
@@ -87,17 +111,44 @@ export function ContextWorkspacePage() {
         `/api/v1/contexts/${contextId}/documents?limit=${docsLimit}&offset=${docsOffset}`
       );
       if (!res.ok) throw new Error('Failed to load documents');
-      return res.json() as Promise<{
-        items: ContextDocument[];
-        total: number;
-        limit: number;
-        offset: number;
-      }>;
+      return res.json() as Promise<DocsPage>;
     },
-    enabled: !!contextId,
+    enabled: !!contextId && isWideViewport,
   });
-  const documents = documentsData?.items ?? [];
-  const documentsTotal = documentsData?.total ?? 0;
+
+  const {
+    data: documentsInfinite,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['contexts', contextId, 'documents', 'infinite', DOCS_COMPACT_PAGE_SIZE],
+    queryFn: async ({ pageParam }) => {
+      const offset = pageParam;
+      const res = await apiFetch(
+        `/api/v1/contexts/${contextId}/documents?limit=${DOCS_COMPACT_PAGE_SIZE}&offset=${offset}`
+      );
+      if (!res.ok) throw new Error('Failed to load documents');
+      return res.json() as Promise<DocsPage>;
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last) => {
+      const nextOffset = last.offset + last.items.length;
+      return nextOffset < last.total ? nextOffset : undefined;
+    },
+    enabled: !!contextId && !isWideViewport,
+  });
+
+  const documents = isWideViewport
+    ? (documentsData?.items ?? [])
+    : (documentsInfinite?.pages.flatMap((p) => p.items) ?? []);
+  const documentsTotal = isWideViewport
+    ? (documentsData?.total ?? 0)
+    : (documentsInfinite?.pages[0]?.total ?? 0);
+
+  const loadMoreDocuments = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const { data: tagsData } = useQuery({
     queryKey: ['tags', data?.ownerId],
@@ -135,6 +186,8 @@ export function ContextWorkspacePage() {
   } = useScopeSidebarNav(scope);
 
   const actions = useContextWorkspaceActions({ contextId, data, scope, scopeKey });
+  const navTitle = t('shell:nav.organization');
+  const { isWide, compactNavOpenRef, contentNavOpenRefProp } = useCompactContentNavFab(navTitle);
 
   useEffect(() => {
     if (!data || data.id !== contextId || !recentActions) return;
@@ -167,6 +220,15 @@ export function ContextWorkspacePage() {
   const breadcrumbItems = useMemo(() => {
     if (!scope) return null;
     if (!showContextDetail || !data) {
+      if (scope.type === 'company') {
+        return [
+          {
+            key: 'organization',
+            label: t('shell:nav.organization'),
+            icon: scopeBreadcrumbIcon(scope),
+          },
+        ];
+      }
       return [scopeBreadcrumbItem(scope, scopeName)];
     }
     if (data.contextType === 'subcontext' && data.parentProject) {
@@ -184,7 +246,7 @@ export function ContextWorkspacePage() {
       contextType: data.contextType,
       contextName: data.name,
     });
-  }, [showContextDetail, data, scope, scopeName]);
+  }, [showContextDetail, data, scope, scopeName, t]);
   useSetAppShellBreadcrumbs(breadcrumbItems);
   useSetAppShellNavScope(scope);
 
@@ -250,11 +312,75 @@ export function ContextWorkspacePage() {
     ) : null;
 
   useSetAppShellBreadcrumbActions(
-    breadcrumbActions,
+    isWide ? breadcrumbActions : null,
     showContextDetail && data?.canWriteContext
-      ? `ctx-actions:${contextId}:${data.contextType}`
+      ? `ctx-actions:${contextId}:${data?.contextType ?? 'none'}:${isWide ? 'wide' : 'compact'}`
       : 'none'
   );
+
+  const modalOpen =
+    actions.newSubcontextOpened ||
+    actions.newDocOpened ||
+    actions.editOpened ||
+    actions.deleteOpened;
+
+  const mobileActions = useMemo((): PageMobileAction[] => {
+    if (isWide || !showContextDetail || !data?.canWriteContext) return [];
+    return [
+      {
+        key: 'new-draft',
+        label: t('workspace.newDraft'),
+        icon: <IconFilePlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: actions.openNewDoc,
+      },
+      {
+        key: 'more',
+        label: t('workspace.moreActionsAriaLabel'),
+        icon: <IconDotsVertical size={16} />,
+        tone: 'more',
+        menu: (
+          <>
+            <Menu.Item
+              leftSection={<IconPencil size={14} />}
+              onClick={actions.handleEditClick}
+            >
+              {t('workspace.editContextAriaLabel')}
+            </Menu.Item>
+            {data.contextType !== 'subcontext' && (
+              <>
+                <Menu.Item
+                  leftSection={<IconArchive size={14} />}
+                  onClick={() => void actions.handleArchive()}
+                >
+                  {t('workspace.archive')}
+                </Menu.Item>
+                <Menu.Divider />
+              </>
+            )}
+            <Menu.Item
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={actions.openDelete}
+            >
+              {data.contextType === 'subcontext'
+                ? t('workspace.delete')
+                : t('workspace.moveToTrash')}
+            </Menu.Item>
+          </>
+        ),
+      },
+    ];
+  }, [
+    actions,
+    data?.canWriteContext,
+    data?.contextType,
+    isWide,
+    showContextDetail,
+    t,
+  ]);
+
+  useRegisterPageMobileExtraActions(mobileActions, !isWide);
 
   if (!contextId) return null;
 
@@ -277,67 +403,80 @@ export function ContextWorkspacePage() {
   return (
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
-        <ResponsiveContentNav
-          title={t('shell:nav.organization')}
-          nav={
-            <ScopeContextSidebar
-              processes={sidebarProcesses}
-              projects={sidebarProjects}
-              drafts={sidebarDrafts}
-              activeContextId={contextSelected ? contextId : null}
-              onContextNavClick={handleContextNavClick}
-              trashArchive={trashArchive}
-            />
-          }
+        <PageMobileActionsHost
+          navTitle={navTitle}
+          compactNavOpenRef={compactNavOpenRef}
+          hidden={modalOpen}
         >
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            {!contextReady ? (
-              <Text size="sm" c="dimmed">
-                {t('common:status.loading')}
-              </Text>
-            ) : !contextSelected ? (
-              <Text size="sm" c="dimmed">
-                {t('workspace.selectPrompt')}
-              </Text>
-            ) : (
-              <Stack gap="xl">
-                <Box data-context-docs-table>
-                  <ContextDocumentsTable documents={documents} total={documentsTotal} />
-                </Box>
-
-                {data.contextType === 'project' && (
-                  <Box>
-                    <Group justify="space-between" wrap="nowrap" mb="sm">
-                      <SectionLabel>{t('workspace.subcontexts')}</SectionLabel>
-                      {data.canWriteContext && (
-                        <Button variant="filled" size="xs" onClick={actions.openNewSubcontext}>
-                          {t('workspace.createSubcontext')}
-                        </Button>
-                      )}
-                    </Group>
-                    {(data.subcontexts?.length ?? 0) === 0 ? (
-                      <Text size="sm" c="dimmed">
-                        {t('workspace.noSubcontexts')}
-                      </Text>
-                    ) : (
-                      <Stack gap={4}>
-                        {(data.subcontexts ?? []).map((sub) => (
-                          <ContentLink
-                            key={sub.id}
-                            to={contextUrl(sub.contextId)}
-                            style={{ fontSize: 'var(--mantine-font-size-sm)' }}
-                          >
-                            {sub.name}
-                          </ContentLink>
-                        ))}
-                      </Stack>
-                    )}
+          <ResponsiveContentNav
+            title={navTitle}
+            compactNavOpenRef={contentNavOpenRefProp}
+            nav={
+              <ScopeContextSidebar
+                processes={sidebarProcesses}
+                projects={sidebarProjects}
+                drafts={sidebarDrafts}
+                activeContextId={contextSelected ? contextId : null}
+                onContextNavClick={handleContextNavClick}
+                trashArchive={trashArchive}
+              />
+            }
+          >
+            <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
+              {!contextReady ? (
+                <Text size="sm" c="dimmed">
+                  {t('common:status.loading')}
+                </Text>
+              ) : !contextSelected ? (
+                <Text size="sm" c="dimmed">
+                  {t('workspace.selectPrompt')}
+                </Text>
+              ) : (
+                <Stack gap="xl">
+                  <Box data-context-docs-table>
+                    <ContextDocumentsTable
+                      documents={documents}
+                      total={documentsTotal}
+                      hasMore={!isWideViewport && !!hasNextPage}
+                      onLoadMore={loadMoreDocuments}
+                      loadingMore={isFetchingNextPage}
+                    />
                   </Box>
-                )}
-              </Stack>
-            )}
-          </Box>
-        </ResponsiveContentNav>
+
+                  {data.contextType === 'project' && (
+                    <Box>
+                      <Group justify="space-between" wrap="nowrap" mb="sm">
+                        <SectionLabel>{t('workspace.subcontexts')}</SectionLabel>
+                        {data.canWriteContext && (
+                          <Button variant="filled" size="xs" onClick={actions.openNewSubcontext}>
+                            {t('workspace.createSubcontext')}
+                          </Button>
+                        )}
+                      </Group>
+                      {(data.subcontexts?.length ?? 0) === 0 ? (
+                        <Text size="sm" c="dimmed">
+                          {t('workspace.noSubcontexts')}
+                        </Text>
+                      ) : (
+                        <Stack gap={4}>
+                          {(data.subcontexts ?? []).map((sub) => (
+                            <ContentLink
+                              key={sub.id}
+                              to={contextUrl(sub.contextId)}
+                              style={{ fontSize: 'var(--mantine-font-size-sm)' }}
+                            >
+                              {sub.name}
+                            </ContentLink>
+                          ))}
+                        </Stack>
+                      )}
+                    </Box>
+                  )}
+                </Stack>
+              )}
+            </Box>
+          </ResponsiveContentNav>
+        </PageMobileActionsHost>
       </Paper>
 
       <ContextWorkspaceModals

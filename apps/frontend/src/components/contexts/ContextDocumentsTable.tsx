@@ -1,12 +1,17 @@
-import { Badge, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
-import { useCallback, useMemo } from 'react';
+import { Badge, Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import { useIntersection, useMediaQuery } from '@mantine/hooks';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatTableDate } from '../../lib/formatDate';
 import { ContentLink } from '../ui/ContentLink';
 import { EntityListCard } from '../ui/EntityListCard.js';
+import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
+import {
+  CompactListCount,
+  useCompactListSearchFab,
+} from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 
 export type ContextDocumentsTableRow = {
@@ -18,6 +23,8 @@ export type ContextDocumentsTableRow = {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 10;
+/** Compact infinite-scroll page size. */
+export const DOCS_COMPACT_PAGE_SIZE = 25;
 
 const SEARCH_KEY = 'docsSearch';
 const LIMIT_KEY = 'docsLimit';
@@ -36,18 +43,30 @@ export function ContextDocumentsTable({
   documents,
   total,
   emptyMessage,
+  hasMore,
+  onLoadMore,
+  loadingMore,
 }: {
-  /** Current server page of documents. */
+  /** Loaded documents (current page on wide; accumulated pages on compact). */
   documents: ContextDocumentsTableRow[];
   /** Server total (all pages). */
   total: number;
   /** Shown when there are no documents at all (not merely search miss). */
   emptyMessage?: string;
+  /** Compact infinite scroll: more pages available. */
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }) {
   const { t } = useTranslation('contexts');
   const navigate = useNavigate();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [searchParams, setSearchParams] = useSearchParams();
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const { ref: intersectionRef, entry } = useIntersection({
+    root: null,
+    threshold: 0.1,
+  });
 
   const localSearch = searchParams.get(SEARCH_KEY) ?? '';
   const sortBy = searchParams.get('sortBy') ?? 'updatedAt';
@@ -132,29 +151,58 @@ export function ContextDocumentsTable({
     [sortedItems, searchLower]
   );
 
+  useEffect(() => {
+    if (isWide || !hasMore || !onLoadMore || loadingMore) return;
+    if (entry?.isIntersecting) onLoadMore();
+  }, [entry?.isIntersecting, hasMore, isWide, loadingMore, onLoadMore]);
+
+  const setLoadMoreNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      loadMoreRef.current = node;
+      intersectionRef(node);
+    },
+    [intersectionRef]
+  );
+
+  const countText = localSearch.trim()
+    ? t('documentsTable.countFiltered', { count: total, filtered: filteredItems.length })
+    : t('documentsTable.count', { count: total });
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('documentsTable.searchLabel'),
+    placeholder: t('documentsTable.searchPlaceholder'),
+    value: localSearch,
+    onChange: (e) => setFilter(SEARCH_KEY, e.currentTarget.value),
+  });
+
+  useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
+
   return (
     <Stack gap="md">
-      <Group gap="md" wrap="wrap" align="flex-end">
-        <TextInput
-          label={t('documentsTable.searchLabel')}
-          placeholder={t('documentsTable.searchPlaceholder')}
-          value={localSearch}
-          onChange={(e) => setFilter(SEARCH_KEY, e.currentTarget.value)}
-          style={{ minWidth: 200 }}
-        />
-        <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
-          {localSearch.trim()
-            ? t('documentsTable.countFiltered', { count: total, filtered: filteredItems.length })
-            : t('documentsTable.count', { count: total })}
-        </Text>
-        <Select
-          label={t('documentsTable.perPageLabel')}
-          data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
-          value={String(limit)}
-          onChange={(v) => v && setPageSize(parseInt(v, 10))}
-          style={{ width: 90 }}
-        />
-      </Group>
+      {compactSearch.drawer}
+      {isWide ? (
+        <Group gap="md" wrap="wrap" align="flex-end">
+          <TextInput
+            label={t('documentsTable.searchLabel')}
+            placeholder={t('documentsTable.searchPlaceholder')}
+            value={localSearch}
+            onChange={(e) => setFilter(SEARCH_KEY, e.currentTarget.value)}
+            style={{ minWidth: 200 }}
+          />
+          <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
+            {countText}
+          </Text>
+          <Select
+            label={t('documentsTable.perPageLabel')}
+            data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+            value={String(limit)}
+            onChange={(v) => v && setPageSize(parseInt(v, 10))}
+            style={{ width: 90 }}
+          />
+        </Group>
+      ) : (
+        <CompactListCount>{countText}</CompactListCount>
+      )}
 
       {isWide ? (
         <Table withTableBorder className="dense-list-table">
@@ -228,7 +276,7 @@ export function ContextDocumentsTable({
             : t('documentsTable.emptySearch')}
         </Text>
       ) : (
-        <Stack gap={0}>
+        <Stack gap="xs">
           {filteredItems.map((doc) => {
             const tagsPreview = doc.documentTags
               .slice(0, 3)
@@ -237,7 +285,6 @@ export function ContextDocumentsTable({
             return (
               <EntityListCard
                 key={doc.id}
-                variant="flat"
                 to={`/documents/${doc.id}`}
                 title={doc.title}
                 meta={
@@ -256,12 +303,27 @@ export function ContextDocumentsTable({
               />
             );
           })}
+          {hasMore ? (
+            <div ref={setLoadMoreNode}>
+              <Button
+                fullWidth
+                variant="subtle"
+                size="sm"
+                loading={loadingMore}
+                onClick={() => onLoadMore?.()}
+              >
+                {t('documentsTable.loadMore')}
+              </Button>
+            </div>
+          ) : null}
         </Stack>
       )}
 
-      <Group justify="flex-end">
-        <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
-      </Group>
+      {isWide ? (
+        <Group justify="flex-end">
+          <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+        </Group>
+      ) : null}
     </Stack>
   );
 }

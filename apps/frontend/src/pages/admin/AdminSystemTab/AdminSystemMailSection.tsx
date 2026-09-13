@@ -12,10 +12,15 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconDeviceFloppy, IconMail } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AdminSystemSettings } from 'backend/api-types';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { useMe } from '../../../hooks/useMe.js';
 import {
   usePatchAdminSystemSettings,
@@ -31,6 +36,7 @@ type Props = {
  */
 export function AdminSystemMailSection({ settings }: Props) {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const { data: me } = useMe();
   const patchMutation = usePatchAdminSystemSettings();
   const testMutation = useSendAdminSmtpTestEmail();
@@ -108,6 +114,31 @@ export function AdminSystemMailSection({ settings }: Props) {
   handleTestRef.current = handleTest;
 
   const testDisabled = !settings.smtpEnabled && !smtpEnabled;
+
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'test',
+        label: t('actions.sendTestEmail'),
+        icon: <IconMail size={16} stroke={1.5} />,
+        tone: 'secondary',
+        loading: testMutation.isPending,
+        disabled: testDisabled,
+        onClick: () => void handleTestRef.current(),
+      },
+      {
+        key: 'save',
+        label: t('actions.saveMailSettings'),
+        icon: <IconDeviceFloppy size={16} stroke={1.5} />,
+        tone: 'save',
+        loading: patchMutation.isPending,
+        onClick: () => void handleSaveRef.current(),
+      },
+    ],
+    [patchMutation.isPending, testDisabled, testMutation.isPending, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Group gap="sm" align="center" wrap="nowrap">
@@ -132,7 +163,7 @@ export function AdminSystemMailSection({ settings }: Props) {
     [patchMutation.isPending, testMutation.isPending, testDisabled, t]
   );
   useSetAppShellBreadcrumbActions(
-    chromeActions,
+    isWide ? chromeActions : null,
     `admin-mail:${patchMutation.isPending}:${testMutation.isPending}:${testDisabled}`
   );
 

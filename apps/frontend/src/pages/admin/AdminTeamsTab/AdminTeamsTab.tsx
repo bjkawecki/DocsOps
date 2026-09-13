@@ -1,5 +1,5 @@
 import { Box, Button, Modal } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminTeamDeleteModal } from './AdminTeamDeleteModal';
 import { AdminTeamEditModal } from './AdminTeamEditModal';
 import { AdminTeamsTableSection } from './AdminTeamsTableSection';
@@ -31,6 +34,7 @@ import { CreateTeamForm } from './CreateTeamForm';
 
 export function AdminTeamsTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(null);
@@ -481,6 +485,21 @@ export function AdminTeamsTab() {
   ]);
 
   const createTeamDisabled = !companyId || departments.length === 0;
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createTeam'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreateTeam,
+        disabled: createTeamDisabled,
+      },
+    ],
+    [createTeamDisabled, openCreateTeam, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Button
@@ -494,7 +513,10 @@ export function AdminTeamsTab() {
     ),
     [createTeamDisabled, openCreateTeam, t]
   );
-  useSetAppShellBreadcrumbActions(chromeActions, `admin-teams:${createTeamDisabled}`);
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-teams:${createTeamDisabled}`
+  );
 
   return (
     <Box>

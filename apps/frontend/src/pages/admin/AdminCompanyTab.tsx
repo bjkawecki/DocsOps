@@ -15,12 +15,15 @@ import {
   TextInput,
   Select,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
 import type { Company } from 'backend/api-types';
 import { CompanyForm } from './AdminCompanyForm';
 import { CompanyPdfBrandingForm } from '../../components/organisation/CompanyPdfBrandingForm.js';
@@ -51,6 +54,7 @@ function formatBytes(n: number): string {
 
 export function AdminCompanyTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -249,6 +253,23 @@ export function AdminCompanyTab() {
       notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createCompany'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreate,
+      },
+    ],
+    [openCreate, t]
+  );
+  useRegisterPageMobileExtraActions(
+    mobileExtraActions,
+    !isWide && !companiesPending && companies.length === 0
+  );
+
   const chromeActions = useMemo(
     () => (
       <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
@@ -257,7 +278,10 @@ export function AdminCompanyTab() {
     ),
     [openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(chromeActions, 'admin-company-create');
+  useSetAppShellBreadcrumbActions(
+    isWide && !companiesPending && companies.length === 0 ? chromeActions : null,
+    `admin-company-create:${companies.length}`
+  );
 
   if (companiesPending) {
     return (

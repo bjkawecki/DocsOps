@@ -91,9 +91,28 @@ Horizontal-Scroll (P2-c) nur als kurzer Fallback, nicht als Zielbild.
 | Maßnahme           | Detail                                                                             |
 | ------------------ | ---------------------------------------------------------------------------------- |
 | Breadcrumb-Actions | `wrap` erlauben; auf `narrow` Actions unter dem Titel oder in Menu „…“             |
-| Catalog-Filter     | Suche immer sichtbar; Rest hinter Button „Filter“ → Drawer/Sheet                   |
-| Admin-Toolbar      | Suche + Primäraktion sichtbar; sekundäre Filter ggf. collapsen                     |
+| Listen-Suche (Compact) | **Search-FAB** → Sheet (§2.5.1); Count-Zeile im Content; kein Inline-Feld |
+| Catalog-Filter     | Search-FAB + Filter-FAB; Filter-Rest im Drawer                             |
+| Admin-Toolbar      | Search-FAB; Primäraktion im FAB-Stack (§2.9); Scope-Filter im Search-Sheet |
 | Primärbuttons      | Auf `narrow` full-width unter Titel/Breadcrumb, wenn sie mit dem Titel kollidieren |
+
+#### 2.5.1 Listen-Suche Compact – Search-FAB (Zielbild)
+
+**Status (2026-09-13):** Plan-Ziel **bewusst geändert**. Früher Welle 3: „Suche immer sichtbar“ im Flow; kurz Sticky-Search; **final:** unter Compact **Search-FAB** → Bottom-Sheet (wie Filter), kein dauerhaftes Suchfeld im Content.
+
+**Regel (unter `compact` / &lt; `lg`):**
+
+| Ja | Nein |
+| --- | --- |
+| Search-Icon im FAB-Stack (§2.9); aktiv (blau), wenn Query gesetzt | Dauerhaftes Suchfeld / Sticky-Band im Listen-Flow |
+| Suche im Bottom-Drawer (`useCompactListSearchFab`); Fokus beim Öffnen | Search hinter Shell-Top-Bar oder Ctrl/⌘K ersetzen |
+| Trefferzahl als schmale Count-Zeile im Content | Wide: unverändert Inline-Toolbar |
+
+**Flächen:** Catalog, Context-/Firmen-Dokumentlisten, Shared, Trash/Archive, Admin-Listen mit Suche.
+
+**Shared:** [`useCompactListSearchFab`](../../apps/frontend/src/components/ui/StickySearchChrome.tsx) + Registrierung über `PageMobileActionsHost` (mehrere Registranten merge).
+
+**Nicht:** Globale App-Suche ersetzen (Ctrl/⌘K / Search-Modal bleibt Shell).
 
 ### 2.6 Settings (P5) – Bild 4
 
@@ -121,6 +140,33 @@ Desktop-Look der Illustration bleibt erhalten.
 **Begründung:** DocsOps hat eine tiefe, rollenabhängige Main-Nav. Shell-Drawer (Welle 1) plus Content-Nav-Drawer (Welle 2+) decken Navigation und Content-first ab. Eine dritte Nav-Zone (Bottom-Bar) würde Safe-Area, Debug-FAB und doppelte Active-States verdoppeln ohne klaren Gewinn.
 
 Historischer Optionsraum (nur Dokumentation): Hybrid mit 4–5 Primärs + „Mehr“ → Drawer war die einzige denkbare Variante; nicht umgesetzt.
+
+### 2.9 Page Mobile Actions (FAB-Stack) – gewählt
+
+**Status (2026-09-13):** Pattern festgelegt; Shared-Baustein + Seiten-Migration (Welle 5) im Code. **Offen:** manuelle Viewport-Abnahme.
+
+**Regel (unter `compact` / &lt; `lg`):** Seiten-Chrome-Aktionen (nicht Modal-Footer, nicht Shell-Top-Bar, nicht Zeilen-/Listen-Inline) liegen in einem **vertikalen FAB-Stack unten rechts**, über dem Inhalt und **über** dem Debug-FAB. Breadcrumb-Trail bleibt freigeräumt (`useSetAppShellBreadcrumbActions(null)` unter Compact).
+
+**Abgrenzung zu §2.8:** Das ist **keine** App-Bottom-Nav. Content-Nav bleibt Drawer von links; nur der **Trigger** (und sonstige Page-Actions) wandert in den Stack.
+
+| Rein in den FAB-Stack | Nicht in den FAB-Stack |
+| --- | --- |
+| Breadcrumb-CTAs (Create / Save / …) | Shell-Top-Bar (Bell, Settings, Help, Burger, Account) |
+| `ResponsiveContentNav`-Trigger | Modal-/Drawer-Footer (Cancel/Create im Dialog) |
+| Primäre Objekt-Aktionen der Seite (z. B. Delete des aktuellen Typs) | Listen-/Tabellen-Zeilenaktionen, Toolbar in Filter-Sheets |
+| Max. ~3 sichtbare Icons; Rest in `⋯`-Menü | Ungebündelte Admin-Toolbars mit vielen Text-Buttons |
+
+**Shared Baustein:** [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx) (+ CSS). Position/Größe/`z-index`/Debug-Offset nur dort.
+
+**Konventionen:**
+
+- Stack-Reihenfolge oben → unten: sekundär (z. B. Nav-Trigger, Delete) → primär (Create/Save) **unten**, nah am Debug-FAB.
+- Modal offen → FAB `hidden`; Modal `zIndex` ≥ 1100 (über Debug).
+- Wide (`lg+`): bisherige Breadcrumb-Actions / Inline-Buttons unverändert.
+- Document Edit / Templates / View / Admin / Workspace / Catalog / Notifications nutzen `PageMobileActionBar` (ggf. dünne Seiten-Wrapper).
+- **Farben:** Semantische Tones in [`pageMobileFabTokens.ts`](../../apps/frontend/src/components/ui/pageMobileFabTokens.ts) – gleiches Icon/Role → gleicher Tone app-weit (`nav`, `search`, `filter`, `create`, `edit`, `save`, `more`, `danger`, `secondary`, `active`). Chrome (`nav`/`more`/`search`/`filter`) als `light`, Primaries als `filled` (Dark-Mode-lesbar).
+
+**Nicht:** Globale Bottom-Bar; FABs in Landing; Touch-Target-Regression auf Shell-Top-Bar (≥44px bleibt); ad-hoc `color:` an FAB-Call-Sites.
 
 ---
 
@@ -179,7 +225,7 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 ### Welle 3 – Listen (P2) + Filter (P3) + Settings (P5) + Home (P6)
 
 - [x] Card-Listen: Notifications, Catalog, Admin Nutzer (Pilot) – `EntityListCard` + `WIDE_MIN_WIDTH`
-- [x] Catalog-Filter-Sheet (Search + Count sichtbar; Rest im Drawer unter compact)
+- [x] Catalog-Filter-Sheet (Search + Count sichtbar; Rest im Drawer unter compact) – **Search-Verhalten später Sticky (§2.5.1 / Welle 6)**
 - [x] Settings Drill-down im Modal (fullscreen + Nav/Content; Deep-Link öffnet Content)
 - [x] Home-Illustration mobil entschärfen (`visibleFrom="lg"` + opaque Feed-Hintergrund)
 - [x] Kurzer Audit: weitere großen App-Modals einspaltig (kein P5); Approvals + Context Workspace auf `ResponsiveContentNav` (Trash/Shared/MostRead → Welle 4)
@@ -204,6 +250,41 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 
 **Done when:** Abdeckungslücken aus Inventar §6 abgearbeitet oder mit Notiz zurückgestellt; Desktop `wide` unverändert nutzbar.
 
+### Welle 5 – Page Mobile Actions (FAB-Stack, §2.9)
+
+Kurzziele: Shared `PageMobileActionBar` nutzen; unter Compact Breadcrumb-CTAs und Content-Nav-Trigger in den FAB-Stack; Modals ausgenommen.
+
+#### Umsetzungscheckliste
+
+- [x] Pattern §2.9 + Inventar in Umsetzungs-Todo §20
+- [x] Shared Baustein `PageMobileActionBar` (+ CSS); Menu/Slot + `PageMobileActionsHost` / `useCompactContentNavFab`
+- [x] Document Edit + Templates auf Shared umstellen (bestehende lokalen Bars entfernen)
+- [x] Content-Nav-Trigger flächendeckend via `compactNavOpenRef` + FAB (Admin, Help, Approvals, Workspace, Trash, MostRead, Shared, Document View)
+- [x] Breadcrumb-Create/Save-Seiten laut Inventar §20 migrieren
+- [x] Document View (Lesen): Toolbar-Actions in FAB / Overflow
+- [x] Notifications: Mark-all + Unread-Filter-Strategie (Switch ggf. im Inhalt lassen)
+- [x] Catalog: Filter-Button als FAB-Kandidat prüfen
+- [x] Modal offen → FAB hidden; Modal z-index über Debug (Best Practice)
+- [ ] Manuell @375 / ~800 / ≥1280
+- [x] Lint / i18n-check
+
+**Done when:** Unter Compact keine langen Text-CTAs in der Breadcrumb-Zeile auf inventarisierten Seiten; Wide unverändert.
+
+### Welle 6 – Compact Listen-Suche als Search-FAB (§2.5.1)
+
+Kurzziele: Kein dauerhaftes Suchfeld unter Compact; Search-FAB → Sheet; Filter weiter FAB/Drawer.
+
+#### Umsetzungscheckliste
+
+- [x] Pattern §2.5.1 + Eintrag Umsetzungs-Todo §20
+- [x] Shared `useCompactListSearchFab` (+ Host merge mehrerer Registranten)
+- [x] Catalog, Context-Docs/Shared, Trash/Archive
+- [x] Admin Users + Entity-Toolbars (Teams/Departments)
+- [ ] Manuell @375 / ~800 / ≥1280
+- [x] Lint / i18n-check
+
+**Done when:** Unter Compact keine Inline-Listen-Suche; Search-FAB öffnet Sheet; Wide unverändert.
+
 ---
 
 ## 4. Nicht-Ziele (Welle 1–3)
@@ -214,6 +295,8 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - Kein erzwungenes Help-DE
 - Landing nicht in denselben Merge-Zügen wie App-Shell/Patterns
 - Keine Bottom-Navigation (P4-f verworfen, §2.8)
+- Keine FAB-Migration in Welle 5 für Zeilenaktionen / Modal-Footer / Shell-Top-Bar (§2.9)
+- Kein dauerhaftes Compact-Listen-Suchfeld im Content (Search-FAB §2.5.1)
 
 ---
 
@@ -246,3 +329,8 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-08-07 | Welle 3: Card-Listen, Catalog-Filter, Settings-Drill-down, Home-Illustration, Approvals/Workspace Wrapper |
 | 2026-08-07 | Welle 4: Restflächen Wrapper/Cards/Document/Login/Search; P4-f verworfen                                  |
 | 2026-09-13 | Checkbox-Drift: Welle-2 Lint abgehakt; §20 Mobile App vs Landing getrennt                              |
+| 2026-09-13 | §2.9 Page Mobile Actions (FAB); Welle 5; Shared `PageMobileActionBar`; Inventar Umsetzungs-Todo §20   |
+| 2026-09-13 | Welle 5 Code: Shared-Bar, Content-Nav-FABs, Admin/Workspace/Document/Catalog/Notifications Migration |
+| 2026-09-13 | §2.5.1 Sticky-Search: Plan-Ziel ersetzt „Suche immer sichtbar“; Welle 6; kein Search-FAB |
+| 2026-09-13 | §2.5.1 final: Search-FAB → Sheet statt Sticky; Welle 6 Code umgestellt |
+| 2026-09-13 | §2.9 FAB-Farben: semantische Tones (`pageMobileFabTokens`); Dark-Mode light/filled |

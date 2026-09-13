@@ -13,8 +13,8 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconBell } from '@tabler/icons-react';
-import { useCallback, useState } from 'react';
+import { IconBell, IconChecks } from '@tabler/icons-react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
@@ -37,6 +37,10 @@ import {
   NotificationCategoryIcon,
 } from '../../components/notifications/notificationCategoryUi.js';
 import { useMarkAllNotificationsAsRead } from '../../components/notifications/useMarkAllNotificationsAsRead.js';
+import {
+  PageMobileActionBar,
+  type PageMobileAction,
+} from '../../components/ui/PageMobileActionBar.js';
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
@@ -49,7 +53,7 @@ const navLinkFullWidth = {
 } as const;
 
 export function NotificationsPage() {
-  const { t } = useTranslation('notifications');
+  const { t } = useTranslation(['notifications', 'shell']);
   const { data: me } = useMe();
   const isAdmin = me?.user.isAdmin === true;
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
@@ -133,9 +137,24 @@ export function NotificationsPage() {
   );
 
   useSetAppShellBreadcrumbActions(
-    breadcrumbActions,
-    `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}:${listTotal ?? 'x'}`
+    isWide ? breadcrumbActions : null,
+    `notif-actions:${unreadOnly}:${canMarkAll}:${markAllAsRead.isPending}:${listTotal ?? 'x'}:${isWide ? 'wide' : 'compact'}`
   );
+
+  const mobileActions = useMemo((): PageMobileAction[] => {
+    if (isWide) return [];
+    return [
+      {
+        key: 'mark-all',
+        label: t('page.markAllAsRead'),
+        icon: <IconChecks size={16} stroke={1.5} />,
+        tone: 'secondary',
+        loading: markAllAsRead.isPending,
+        disabled: markAllAsRead.isPending || !canMarkAll,
+        onClick: () => markAllAsRead.mutate(),
+      },
+    ];
+  }, [canMarkAll, isWide, markAllAsRead, t]);
 
   const handleCanMarkAllChange = useCallback((next: boolean) => {
     setCanMarkAll(next);
@@ -162,6 +181,24 @@ export function NotificationsPage() {
     />
   );
 
+  const compactListControls = (
+    <Group gap="md" wrap="wrap" align="center">
+      {totalLabel != null ? (
+        <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+          {totalLabel}
+        </Text>
+      ) : null}
+      <Switch
+        size="sm"
+        label={t('page.unreadOnly')}
+        checked={unreadOnly}
+        onChange={(event) => {
+          handleUnreadOnlyChange(event.currentTarget.checked);
+        }}
+      />
+    </Group>
+  );
+
   if (!isWide) {
     return (
       <Container fluid maw={1600} px="md" mb="xl">
@@ -177,8 +214,13 @@ export function NotificationsPage() {
             onChange={handleCategoryChange}
             allowDeselect={false}
           />
+          {compactListControls}
           {inbox}
         </Stack>
+        <PageMobileActionBar
+          ariaLabel={t('shell:nav.pageMobileActionsAria')}
+          actions={mobileActions}
+        />
       </Container>
     );
   }

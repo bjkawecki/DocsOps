@@ -411,6 +411,7 @@
     "itemsOfTotal_other": "{{filtered}} von {{count}} Einträgen",
     "itemsTotal_one": "{{count}} Eintrag",
     "itemsTotal_other": "{{count}} Einträge",
+    "loadMore": "Mehr laden",
     "table": {
       "title": "Titel",
       "context": "Kontext",

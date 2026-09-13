@@ -1,5 +1,6 @@
-import { Box, Center, Loader, Stack, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Box, Center, Loader, Menu, Stack, Text } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { IconBriefcase, IconPlus, IconRoute } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +8,12 @@ import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { CreateContextMenu, NewContextModal, NewDocumentModal } from '../../components/contexts';
 import type { NewContextScope } from '../../components/contexts/NewContextModal';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
+import {
+  PageMobileActionBar,
+  type PageMobileAction,
+} from '../../components/ui/PageMobileActionBar.js';
 import { scopeToKey, type RecentScope } from '../../hooks/useRecentItems.js';
 import { contextUrl, readLastScopeContextId, scopeToOwnerQueryParams } from './contextPaths.js';
 
@@ -40,7 +46,8 @@ export function ScopeWorkspaceEntry({
   scopeLabel,
   canManage = false,
 }: ScopeWorkspaceEntryProps) {
-  const { t } = useTranslation('contexts');
+  const { t } = useTranslation(['contexts', 'shell']);
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scopeKey = scopeToKey(scope);
@@ -115,8 +122,46 @@ export function ScopeWorkspaceEntry({
       />
     );
   }, [canManage, newContextScope, openContextModal, openDocumentModal]);
+  const showEmptyState = !isPending && !targetContextId;
+  const showMobileCreate =
+    !isWide && canManage && newContextScope != null && showEmptyState;
+
+  const mobileActions = useMemo((): PageMobileAction[] => {
+    if (!showMobileCreate) return [];
+    return [
+      {
+        key: 'create',
+        label: t('createMenu.ariaLabel'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        menu: (
+          <>
+            <Menu.Item
+              leftSection={<IconRoute size={16} />}
+              onClick={() => {
+                setContextInitialType('process');
+                openContextModal();
+              }}
+            >
+              {t('createMenu.process')}
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<IconBriefcase size={16} />}
+              onClick={() => {
+                setContextInitialType('project');
+                openContextModal();
+              }}
+            >
+              {t('createMenu.project')}
+            </Menu.Item>
+          </>
+        ),
+      },
+    ];
+  }, [openContextModal, showMobileCreate, t]);
+
   // Hooks must run every render (before Loader early-return) – syncKey in chrome avoids action loops.
-  useRegisterScopePageChrome(scope, scopeLabel, chromeActions);
+  useRegisterScopePageChrome(scope, scopeLabel, isWide ? chromeActions : null);
 
   if (isPending || targetContextId) {
     return (
@@ -153,6 +198,14 @@ export function ScopeWorkspaceEntry({
           />
         </>
       )}
+
+      {!isWide ? (
+        <PageMobileActionBar
+          ariaLabel={t('shell:nav.pageMobileActionsAria')}
+          actions={mobileActions}
+          hidden={contextModalOpened || documentModalOpened}
+        />
+      ) : null}
     </Box>
   );
 }

@@ -64,21 +64,30 @@ export function AppShellBreadcrumbBar() {
               const content = (
                 <Group gap={4} align="center" wrap="nowrap" style={{ minWidth: 0 }}>
                   {item.icon}
-                  <Text
-                    component="span"
-                    size="sm"
-                    lineClamp={1}
-                    style={{ minWidth: 0 }}
-                    c="inherit"
-                    fw="inherit"
-                  >
-                    {item.label}
-                  </Text>
+                  {!item.iconOnly ? (
+                    <Text
+                      component="span"
+                      size="sm"
+                      lineClamp={1}
+                      style={{ minWidth: 0 }}
+                      c="inherit"
+                      fw="inherit"
+                    >
+                      {item.label}
+                    </Text>
+                  ) : null}
                 </Group>
               );
               if (item.to && !isLast) {
                 return (
-                  <Anchor key={item.key} component={Link} to={item.to} c="dimmed" size="sm">
+                  <Anchor
+                    key={item.key}
+                    component={Link}
+                    to={item.to}
+                    c="dimmed"
+                    size="sm"
+                    aria-label={item.iconOnly ? item.label : undefined}
+                  >
                     {content}
                   </Anchor>
                 );
@@ -92,6 +101,7 @@ export function AppShellBreadcrumbBar() {
                     c="var(--mantine-color-text)"
                     size="sm"
                     fw={600}
+                    aria-label={item.iconOnly ? item.label : undefined}
                   >
                     {content}
                   </Anchor>
@@ -104,6 +114,7 @@ export function AppShellBreadcrumbBar() {
                   c="var(--mantine-color-text)"
                   fw={600}
                   component="span"
+                  aria-label={item.iconOnly ? item.label : undefined}
                 >
                   {content}
                 </Text>

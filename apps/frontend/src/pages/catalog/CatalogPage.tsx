@@ -1,7 +1,6 @@
 import {
   Badge,
   Box,
-  Button,
   Drawer,
   Group,
   Stack,
@@ -30,6 +29,12 @@ import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBre
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
+import { PageMobileActionBar } from '../../components/ui/PageMobileActionBar.js';
+import {
+  CompactListCount,
+  StickySearchChrome,
+  useCompactListSearchFab,
+} from '../../components/ui/StickySearchChrome.js';
 import { contextUrl } from '../contextWorkspace/contextPaths';
 import { apiFetch } from '../../api/client';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
@@ -121,7 +126,7 @@ function parseStoredPageSize(): number {
  * No tab area per §7.
  */
 export function CatalogPage() {
-  const { t } = useTranslation(['documents', 'common']);
+  const { t } = useTranslation(['documents', 'common', 'shell']);
   const [searchParams, setSearchParams] = useSearchParams();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
@@ -367,11 +372,18 @@ export function CatalogPage() {
     </Table.Th>
   );
 
+  const compactSearch = useCompactListSearchFab({
+    label: t('documents:catalog.searchLabel'),
+    placeholder: t('documents:catalog.searchPlaceholder'),
+    value: search,
+    onChange: (e) => setFilter('search', e.currentTarget.value),
+  });
+
   return (
     <Box>
       <Stack gap={isWide ? 'md' : 'sm'}>
-        <Box className="catalog-sticky-filters">
-          {isWide ? (
+        {isWide ? (
+          <StickySearchChrome>
             <Group gap="md" wrap="wrap" align="flex-end">
               <TextInput
                 label={t('documents:catalog.searchLabel')}
@@ -385,44 +397,25 @@ export function CatalogPage() {
                 {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
               </Text>
             </Group>
-          ) : (
-            <Stack gap="xs" className="catalog-sticky-filters-compact">
-              <TextInput
-                aria-label={t('documents:catalog.searchLabel')}
-                placeholder={t('documents:catalog.searchPlaceholder')}
-                value={search}
-                onChange={(e) => setFilter('search', e.currentTarget.value)}
-                size="md"
-              />
-              <Group gap="sm" justify="space-between" align="center" wrap="nowrap">
-                <Button
-                  variant="default"
-                  size="compact-md"
-                  leftSection={<IconFilter size={16} stroke={1.5} />}
-                  onClick={openFilters}
-                >
-                  {t('documents:catalog.filterButton')}
-                  {activeFilterCount > 0
-                    ? ` (${t('documents:catalog.filtersActive', { count: activeFilterCount })})`
-                    : ''}
-                </Button>
-                <Text size="xs" c="dimmed">
-                  {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
-                </Text>
-              </Group>
-              <Drawer
-                opened={filtersOpened}
-                onClose={closeFilters}
-                title={t('documents:catalog.filterDrawerTitle')}
-                position="bottom"
-                size="auto"
-                padding="md"
-              >
-                <Stack gap="md">{advancedFilters}</Stack>
-              </Drawer>
-            </Stack>
-          )}
-        </Box>
+          </StickySearchChrome>
+        ) : (
+          <>
+            <CompactListCount>
+              {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
+            </CompactListCount>
+            {compactSearch.drawer}
+            <Drawer
+              opened={filtersOpened}
+              onClose={closeFilters}
+              title={t('documents:catalog.filterDrawerTitle')}
+              position="bottom"
+              size="auto"
+              padding="md"
+            >
+              <Stack gap="md">{advancedFilters}</Stack>
+            </Drawer>
+          </>
+        )}
 
         {isWide ? (
           <Box className="docsops-search-snippet-mark" style={{ overflowX: 'auto' }}>
@@ -546,7 +539,7 @@ export function CatalogPage() {
             </Table>
           </Box>
         ) : (
-          <Stack gap={0} className="docsops-search-snippet-mark">
+          <Stack gap="xs" className="docsops-search-snippet-mark">
             {isPending ? (
               <Text size="sm" c="dimmed">
                 {t('documents:catalog.loading')}
@@ -574,7 +567,6 @@ export function CatalogPage() {
                 return (
                   <EntityListCard
                     key={doc.id}
-                    variant="flat"
                     to={`/documents/${doc.id}`}
                     title={
                       <Text fw={600} size="md" lineClamp={2}>
@@ -612,6 +604,21 @@ export function CatalogPage() {
           </Group>
         )}
       </Stack>
+      {!isWide ? (
+        <PageMobileActionBar
+          ariaLabel={t('shell:nav.pageMobileActionsAria')}
+          actions={[
+            compactSearch.action,
+            {
+              key: 'filter',
+              label: t('documents:catalog.filterButton'),
+              icon: <IconFilter size={16} stroke={1.5} />,
+              tone: activeFilterCount > 0 ? 'active' : 'filter',
+              onClick: openFilters,
+            },
+          ]}
+        />
+      ) : null}
     </Box>
   );
 }

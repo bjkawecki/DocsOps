@@ -1,49 +1,39 @@
 import { Menu } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   IconArchive,
   IconArchiveOff,
   IconArrowsExchange,
-  IconCloudUpload,
-  IconDeviceFloppy,
   IconDotsVertical,
   IconDownload,
   IconFlag,
   IconFlagOff,
   IconHistory,
+  IconPencil,
   IconTarget,
   IconTrash,
-  IconX,
 } from '@tabler/icons-react';
 import {
   PageMobileActionBar,
   type PageMobileAction,
 } from '../../components/ui/PageMobileActionBar.js';
-import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
+import { buildPageMobileNavAction } from '../../components/ui/pageMobileNav.js';
 import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
 
-export type DocumentEditMobileActionBarProps = {
+export type DocumentViewMobileActionBarProps = {
   documentId: string;
   data: DocumentResponse;
-  editTab: 'draft' | 'metadata' | 'access';
-  leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
-  leadDraftDirty: boolean;
-  metadataDirty: boolean;
-  leadDraftPendingSuggestions: number;
-  saveLoading: boolean;
-  publishLoading: boolean;
-  showPublishButton: boolean;
+  navTitle: string;
+  onOpenNav: () => void;
+  canEnterEditMode: boolean;
   hasNoContext: boolean;
   pdfExportLoading: boolean;
   pdfExportStatus: PdfExportJobStatusResponse | undefined;
   moveDecisionLoading: boolean;
   startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
   startHereBusy: boolean;
-  handleCancelEdit: () => void;
-  handleSave: () => Promise<void>;
-  handlePublish: () => Promise<void>;
+  handleEditClick: () => void;
   handleStartPdfExport: () => Promise<void>;
   handleArchive: () => Promise<void>;
   handleUnarchive: () => Promise<void>;
@@ -61,29 +51,20 @@ export type DocumentEditMobileActionBarProps = {
   }) => void;
 };
 
-/**
- * Compact edit focus chrome via shared PageMobileActionBar.
- */
-export function DocumentEditMobileActionBar({
+/** Compact view-mode chrome: content nav, edit, and overflow menu via PageMobileActionBar. */
+export function DocumentViewMobileActionBar({
   documentId,
   data,
-  editTab,
-  leadDraftPanelRef,
-  leadDraftDirty,
-  metadataDirty,
-  leadDraftPendingSuggestions,
-  saveLoading,
-  publishLoading,
-  showPublishButton,
+  navTitle,
+  onOpenNav,
+  canEnterEditMode,
   hasNoContext,
   pdfExportLoading,
   pdfExportStatus,
   moveDecisionLoading,
   startHereScopes,
   startHereBusy,
-  handleCancelEdit,
-  handleSave,
-  handlePublish,
+  handleEditClick,
   handleStartPdfExport,
   handleArchive,
   handleUnarchive,
@@ -93,41 +74,11 @@ export function DocumentEditMobileActionBar({
   openDelete,
   onSetStartHere,
   onClearStartHere,
-}: DocumentEditMobileActionBarProps) {
-  const { t } = useTranslation(['documents', 'common', 'shell']);
-
-  const saveDisabled =
-    (editTab === 'draft' && !leadDraftDirty) ||
-    (editTab === 'metadata' && !metadataDirty) ||
-    editTab === 'access';
-
-  const onSave = () =>
-    void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave());
+}: DocumentViewMobileActionBarProps) {
+  const { t } = useTranslation(['documents', 'shell']);
 
   const moreMenu = (
     <>
-      {showPublishButton && (
-        <Menu.Item
-          leftSection={<IconCloudUpload size={12} />}
-          disabled={publishLoading}
-          onClick={() => void handlePublish()}
-        >
-          {data.publishedAt
-            ? t('documentPage.toolbar.publishChanges')
-            : t('documentPage.toolbar.publish')}
-        </Menu.Item>
-      )}
-      {data.canPublish && !showPublishButton && leadDraftPendingSuggestions > 0 && (
-        <Menu.Item disabled>
-          {t('documentPage.toolbar.resolvePendingSuggestions', {
-            count: leadDraftPendingSuggestions,
-          })}
-        </Menu.Item>
-      )}
-      {(showPublishButton ||
-        (data.canPublish && !showPublishButton && leadDraftPendingSuggestions > 0)) && (
-        <Menu.Divider />
-      )}
       <Menu.Item
         component={Link}
         to={`/documents/${documentId}/versions`}
@@ -246,34 +197,32 @@ export function DocumentEditMobileActionBar({
   );
 
   const actions: PageMobileAction[] = [
-    {
-      key: 'cancel',
-      label: t('documentPage.toolbar.cancel'),
-      icon: <IconX size={16} stroke={1.5} />,
-      tone: 'danger',
-      onClick: handleCancelEdit,
-    },
-    {
-      key: 'save',
-      label: t('documentPage.toolbar.save'),
-      icon: <IconDeviceFloppy size={16} stroke={1.5} />,
-      tone: 'save',
-      loading: saveLoading,
-      disabled: saveDisabled,
-      onClick: onSave,
-    },
-    {
-      key: 'more',
-      label: t('documentPage.toolbar.moreActionsAria'),
-      icon: <IconDotsVertical size={16} />,
-      tone: 'more',
-      menu: moreMenu,
-    },
+    buildPageMobileNavAction(
+      navTitle,
+      onOpenNav,
+      t('shell:nav.contentNavOpenAria', { title: navTitle })
+    ),
   ];
+  if (canEnterEditMode) {
+    actions.push({
+      key: 'edit',
+      label: t('documentPage.toolbar.editDocumentAria'),
+      icon: <IconPencil size={16} stroke={1.5} />,
+      tone: 'edit',
+      onClick: handleEditClick,
+    });
+  }
+  actions.push({
+    key: 'more',
+    label: t('documentPage.toolbar.moreActionsAria'),
+    icon: <IconDotsVertical size={16} />,
+    tone: 'more',
+    menu: moreMenu,
+  });
 
   return (
     <PageMobileActionBar
-      ariaLabel={t('documentPage.toolbar.editDocumentAria')}
+      ariaLabel={t('shell:nav.pageMobileActionsAria')}
       actions={actions}
     />
   );

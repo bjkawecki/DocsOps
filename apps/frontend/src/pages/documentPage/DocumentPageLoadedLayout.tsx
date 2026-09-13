@@ -2,7 +2,7 @@ import { Box, Card, Container, Flex, Stack, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DocumentBlocksPreview,
@@ -29,6 +29,7 @@ import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
 import { DocumentTocNav } from './DocumentTocNav.js';
 import { DocumentPageToolbarActions } from './DocumentPageToolbarActions.js';
 import { DocumentEditMobileActionBar } from './DocumentEditMobileActionBar.js';
+import { DocumentViewMobileActionBar } from './DocumentViewMobileActionBar.js';
 import { DocumentPageEditPanels } from './DocumentPageEditPanels.js';
 
 export type DocumentPageLoadedLayoutProps = {
@@ -166,6 +167,8 @@ export function DocumentPageLoadedLayout({
   const breadcrumbDoc = useMemo(() => ({ ...data, title: docTitle }), [data, docTitle]);
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const editFocusMobile = mode === 'edit' && !isWide;
+  const viewFocusMobile = mode === 'view' && !isWide;
+  const compactNavOpenRef = useRef<(() => void) | null>(null);
 
   const breadcrumbActions = (
     <DocumentPageToolbarActions
@@ -209,7 +212,7 @@ export function DocumentPageLoadedLayout({
     documentId,
     mode,
     editTab,
-    editFocusMobile ? 'floating' : 'chrome',
+    editFocusMobile || viewFocusMobile ? 'floating' : 'chrome',
     leadDraftDirty,
     metadataDirty,
     // Metadata form values must be in syncKey: chrome actions freeze handleSave closures.
@@ -237,7 +240,10 @@ export function DocumentPageLoadedLayout({
     startHereBusy,
     startHereScopes.map((s) => `${s.scopeType}:${s.scopeId}:${s.isCurrent ? 1 : 0}`).join(','),
   ].join(':');
-  useSetAppShellBreadcrumbActions(editFocusMobile ? null : breadcrumbActions, breadcrumbActionsSyncKey);
+  useSetAppShellBreadcrumbActions(
+    editFocusMobile || viewFocusMobile ? null : breadcrumbActions,
+    breadcrumbActionsSyncKey
+  );
 
   return (
     <>
@@ -257,8 +263,8 @@ export function DocumentPageLoadedLayout({
         <ResponsiveContentNav
           title={t('documentPage.chromeNavTitle')}
           stickyNav
-          compactTrigger="icon"
           hideCompactTrigger={mode === 'edit'}
+          compactNavOpenRef={viewFocusMobile ? compactNavOpenRef : undefined}
           nav={
             <Stack gap="md" w="100%">
               {data.contextId != null && ownerScope != null && (
@@ -418,7 +424,31 @@ export function DocumentPageLoadedLayout({
           </Box>
         </ResponsiveContentNav>
       </Container>
-      {editFocusMobile ? (
+      {viewFocusMobile ? (
+        <DocumentViewMobileActionBar
+          documentId={documentId}
+          data={data}
+          navTitle={t('documentPage.chromeNavTitle')}
+          onOpenNav={() => compactNavOpenRef.current?.()}
+          canEnterEditMode={canEnterEditMode}
+          hasNoContext={hasNoContext}
+          pdfExportLoading={pdfExportLoading}
+          pdfExportStatus={pdfExportStatus}
+          moveDecisionLoading={moveDecisionLoading}
+          startHereScopes={startHereScopes}
+          startHereBusy={startHereBusy}
+          handleEditClick={handleEditClick}
+          handleStartPdfExport={handleStartPdfExport}
+          handleArchive={handleArchive}
+          handleUnarchive={handleUnarchive}
+          openAssignContext={openAssignContext}
+          openMoveContext={openMoveContext}
+          onMoveRequestDecision={onMoveRequestDecision}
+          openDelete={openDelete}
+          onSetStartHere={(scope) => void setStartHere.mutateAsync(scope)}
+          onClearStartHere={(scope) => void clearStartHere.mutateAsync(scope)}
+        />
+      ) : editFocusMobile ? (
         <DocumentEditMobileActionBar
           documentId={documentId}
           data={data}

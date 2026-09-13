@@ -14,6 +14,8 @@ export type AppShellBreadcrumbItem = {
   label: string;
   to?: string;
   icon?: ReactNode;
+  /** When true, render icon only (label remains the accessible name). */
+  iconOnly?: boolean;
 };
 
 type BreadcrumbsContextValue = {

@@ -17,8 +17,8 @@ export type EntityListCardProps = {
   /** Optional leading icon. */
   leftSection?: ReactNode;
   /**
-   * `card` – bordered surface (default).
-   * `flat` – divider rows for dense lists (catalog, trash, …).
+   * `card` – thin border, transparent fill (default; catalog, context docs, …).
+   * `flat` – divider rows for dense lists (trash, approvals, …).
    */
   variant?: 'card' | 'flat';
 };
@@ -105,7 +105,7 @@ export function EntityListCard({
       );
     }
     return (
-      <Card withBorder radius="md" w="100%" padding={0} className={rootClass}>
+      <Card withBorder radius="md" w="100%" padding={0} bg="transparent" className={rootClass}>
         <UnstyledButton
           component={Link}
           to={to}
@@ -131,7 +131,7 @@ export function EntityListCard({
       );
     }
     return (
-      <Card withBorder radius="md" w="100%" padding={0} className={rootClass}>
+      <Card withBorder radius="md" w="100%" padding={0} bg="transparent" className={rootClass}>
         <UnstyledButton
           onClick={onClick}
           w="100%"
@@ -154,7 +154,7 @@ export function EntityListCard({
   }
 
   return (
-    <Card withBorder radius="md" w="100%" padding="sm" className={rootClass}>
+    <Card withBorder radius="md" w="100%" padding="sm" bg="transparent" className={rootClass}>
       {body}
     </Card>
   );

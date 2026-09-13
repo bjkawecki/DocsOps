@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Pagination, Stack } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client.js';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminBroadcastCreateModal } from './AdminBroadcastCreateModal.js';
 import { AdminBroadcastTableSection } from './AdminBroadcastTableSection.js';
 import { AdminBroadcastToolbar } from './AdminBroadcastToolbar.js';
@@ -41,6 +45,7 @@ const emptyDraft = (): BroadcastDraft => ({
 
 export function AdminBroadcastTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [limit, setLimit] = useState(readInitialLimit);
   const [offset, setOffset] = useState(0);
@@ -118,22 +123,38 @@ export function AdminBroadcastTab() {
     if (currentPage > pageCount) setOffset(0);
   }, [currentPage, pageCount]);
 
+  const openCreateBroadcast = useCallback(() => {
+    setDraft(emptyDraft());
+    setCreateOpen(true);
+  }, []);
+
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createMessage'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreateBroadcast,
+      },
+    ],
+    [openCreateBroadcast, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Button
         size="xs"
         leftSection={<IconPlus size={14} />}
-        onClick={() => {
-          setDraft(emptyDraft());
-          setCreateOpen(true);
-        }}
+        onClick={openCreateBroadcast}
       >
         {t('actions.createMessage')}
       </Button>
     ),
-    [t]
+    [openCreateBroadcast, t]
   );
-  useSetAppShellBreadcrumbActions(chromeActions, 'admin-broadcast-create');
+  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, 'admin-broadcast-create');
 
   return (
     <Stack gap="md">

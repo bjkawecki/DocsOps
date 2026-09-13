@@ -1,5 +1,12 @@
 import { Group, Select, Text, TextInput } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
+import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
+import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
+import {
+  CompactListCount,
+  useCompactListSearchFab,
+} from '../../components/ui/StickySearchChrome.js';
 import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
@@ -35,7 +42,41 @@ export function AdminEntityListToolbar({
   onLimitChange,
   pageSizeLocalStorageKey,
 }: AdminEntityListToolbarProps) {
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation(['admin', 'common']);
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+
+  const scopeSelect = (size: 'xs' | 'md') => (
+    <Select
+      placeholder={scopeSelectPlaceholder}
+      size={size}
+      data={scopeSelectData}
+      value={scopeSelectValue ?? ''}
+      onChange={(v) => onScopeSelectChange(v || null)}
+      disabled={scopeSelectDisabled}
+      clearable
+      style={{ width: size === 'xs' ? 160 : '100%' }}
+    />
+  );
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('common:actions.search'),
+    placeholder: searchPlaceholder,
+    value: filterText,
+    onChange: (e) => onFilterTextChange(e.currentTarget.value),
+    drawerExtra: scopeSelect('md'),
+  });
+
+  useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
+
+  if (!isWide) {
+    return (
+      <>
+        {compactSearch.drawer}
+        <CompactListCount>{countLine}</CompactListCount>
+      </>
+    );
+  }
+
   return (
     <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
       <Group gap="sm" wrap="wrap">
@@ -45,23 +86,14 @@ export function AdminEntityListToolbar({
           value={filterText}
           onChange={(e) => onFilterTextChange(e.currentTarget.value)}
         />
-        <Select
-          placeholder={scopeSelectPlaceholder}
-          size="xs"
-          data={scopeSelectData}
-          value={scopeSelectValue ?? ''}
-          onChange={(v) => onScopeSelectChange(v || null)}
-          disabled={scopeSelectDisabled}
-          clearable
-          style={{ width: 160 }}
-        />
+        {scopeSelect('xs')}
       </Group>
       <Group gap="sm" align="flex-end">
         <Text size="sm" c="dimmed">
           {countLine}
         </Text>
         <Select
-          label={t('shared.perPage')}
+          label={t('admin:shared.perPage')}
           data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
           value={String(limit)}
           onChange={(value) => {

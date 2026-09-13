@@ -6,6 +6,7 @@ import { MostReadListContent } from '../../components/mostRead/MostReadListConte
 import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
 import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
@@ -38,6 +39,8 @@ export function ScopeMostReadPage({
   teamId,
 }: Props) {
   const { t } = useTranslation(['contexts', 'common', 'shell']);
+  const navTitle = t('shell:nav.organization');
+  const { contentNavOpenRefProp, navFab } = useCompactContentNavFab(navTitle);
   const { data: me, isPending } = useMe();
   const allowed = canShowTrashArchiveTabs(me, canManage);
   const { processes, projects, drafts } = useScopeSidebarNav(navScope);
@@ -71,7 +74,8 @@ export function ScopeMostReadPage({
     <Container fluid maw={1600} px="md" mb="xl">
       <Paper withBorder={false} p={0} radius="md">
         <ResponsiveContentNav
-          title={t('shell:nav.organization')}
+          title={navTitle}
+          compactNavOpenRef={contentNavOpenRefProp}
           nav={
             <ScopeContextSidebar
               processes={processes}
@@ -96,6 +100,7 @@ export function ScopeMostReadPage({
           </Box>
         </ResponsiveContentNav>
       </Paper>
+      {navFab}
     </Container>
   );
 }

@@ -12,6 +12,7 @@ import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBre
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
+import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { useMeMoveRequests, type MeMoveRequestItem } from '../../hooks/useMeMoveRequests';
@@ -309,6 +310,7 @@ export function ApprovalsPage() {
   const inboundItems = inbound.data?.items ?? [];
   const outboundItems = outbound.data?.items ?? [];
   const movesCount = inboundItems.length + outboundItems.length;
+  const { contentNavOpenRefProp, navFab } = useCompactContentNavFab(t('breadcrumb'));
 
   const sidebarDocs: ApprovalsSidebarDoc[] = useMemo(
     () =>
@@ -359,6 +361,7 @@ export function ApprovalsPage() {
       <Paper withBorder={false} p={0} radius="md">
         <ResponsiveContentNav
           title={t('breadcrumb')}
+          compactNavOpenRef={contentNavOpenRefProp}
           nav={
             <ApprovalsScopeSidebar
               section={section}
@@ -436,6 +439,7 @@ export function ApprovalsPage() {
           </Box>
         </ResponsiveContentNav>
       </Paper>
+      {navFab}
     </Container>
   );
 }

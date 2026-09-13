@@ -15,6 +15,7 @@ import {
 } from '../../components/documents/documentComments/documentCommentsConstants.js';
 import { DocumentReadingSurface } from '../../components/documents/DocumentReadingSurface.js';
 import { ContentSidebarCollapsibleSection } from '../../components/ui/ContentSidebarCollapsibleSection.js';
+import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import '../DocumentContent.css';
 import { HELP_TOPIC_GROUPS, HELP_TOPIC_ICON_SIZE } from './helpTopics.js';
@@ -31,6 +32,7 @@ export function HelpLayout() {
   const { t } = useTranslation('shell');
   const { pathname } = useLocation();
   const sectionTitle = t('account.help');
+  const { contentNavOpenRefProp, navFab } = useCompactContentNavFab(sectionTitle);
 
   useSetAppShellBreadcrumbs([
     {
@@ -95,7 +97,11 @@ export function HelpLayout() {
         className="document-page-body"
         style={{ display: 'block' }}
       >
-        <ResponsiveContentNav title={sectionTitle} nav={nav}>
+        <ResponsiveContentNav
+          title={sectionTitle}
+          nav={nav}
+          compactNavOpenRef={contentNavOpenRefProp}
+        >
           <Box className="document-page-main">
             <Flex
               gap={{ base: 'lg', lg: 'xl' }}
@@ -129,6 +135,7 @@ export function HelpLayout() {
           </Box>
         </ResponsiveContentNav>
       </Container>
+      {navFab}
     </Box>
   );
 }

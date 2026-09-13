@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { scopeToKey, type RecentScope } from '../../hooks/useRecentItems.js';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav.js';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
@@ -59,7 +60,7 @@ export type BuildContextBreadcrumbsArgs = {
 };
 
 /**
- * Process/Project: Scope → ContextName
+ * Process/Project: Scope → ContextName (company scope is icon-only; single-company rule).
  * Subcontext: Scope → ProjectName → SubcontextName
  * Scope crumb links to `scopeToUrl(scope)`. Last crumb has no link.
  */
@@ -78,6 +79,8 @@ export function buildContextBreadcrumbs({
       label: scopeLabel ?? scopeToLabel(scope),
       to: scopeToUrl(scope),
       icon: scopeBreadcrumbIcon(scope),
+      // Max one company: keep building icon as trail anchor, hide the name.
+      ...(scope.type === 'company' ? { iconOnly: true } : {}),
     },
   ];
 
@@ -109,6 +112,7 @@ export function useRegisterScopePageChrome(
   actions?: ReactNode | null,
   trailSuffix?: AppShellBreadcrumbItem[] | null
 ) {
+  const { t } = useTranslation('shell');
   const scopeKey = scope == null ? null : scopeToKey(scope);
   const suffixKey =
     trailSuffix == null || trailSuffix.length === 0
@@ -127,13 +131,16 @@ export function useRegisterScopePageChrome(
               const id = scopeKey.slice(sep + 1);
               return { type, id };
             })();
-    const base = scopeBreadcrumbItem(resolved, label);
+    // Single-company: show Organization instead of the company display name.
+    const displayLabel =
+      resolved.type === 'company' ? t('nav.organization') : (label ?? scopeToLabel(resolved));
+    const base = scopeBreadcrumbItem(resolved, displayLabel);
     // Scope crumb links back to scope landing when there is a suffix (Trash/Archive).
     if (trailSuffix != null && trailSuffix.length > 0) {
       return [{ ...base, to: scopeToUrl(resolved) }, ...trailSuffix];
     }
     return [base];
-  }, [scopeKey, label, trailSuffix]);
+  }, [scopeKey, label, trailSuffix, t]);
   useSetAppShellBreadcrumbs(items);
   useSetAppShellNavScope(scope);
   useSetAppShellBreadcrumbActions(

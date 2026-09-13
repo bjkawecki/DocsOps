@@ -1,5 +1,5 @@
 import { notifications } from '@mantine/notifications';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { contextUrl } from '../../pages/contextWorkspace/contextPaths';
 import type { TrashArchiveItem, TrashArchiveTabBaseProps } from './trashArchiveTypes';
 
 const DEFAULT_PAGE_SIZE = 10;
+/** Compact infinite-scroll page size. */
+export const TRASH_ARCHIVE_COMPACT_PAGE_SIZE = 25;
 
 type ListResponse = {
   items: TrashArchiveItem[];
@@ -20,6 +22,8 @@ export type TrashArchiveTabVariant = 'trash' | 'archive';
 
 export type UseTrashArchiveTabStateArgs = TrashArchiveTabBaseProps & {
   variant: TrashArchiveTabVariant;
+  /** When true: fixed page size + infinite scroll (no URL pagination). */
+  compact?: boolean;
 };
 
 export function itemHref(item: TrashArchiveItem): string {
@@ -34,6 +38,7 @@ export function useTrashArchiveTabState({
   companyId,
   departmentId,
   teamId,
+  compact = false,
 }: UseTrashArchiveTabStateArgs) {
   const { t } = useTranslation(['documents', 'common']);
   const queryClient = useQueryClient();
@@ -50,22 +55,12 @@ export function useTrashArchiveTabState({
   const sortOrder = searchParams.get('sortOrder') ?? 'desc';
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
   const limitParam = searchParams.get(limitParamKey);
-  const limit = limitParam
-    ? Math.min(100, Math.max(1, parseInt(limitParam, 10) || DEFAULT_PAGE_SIZE))
-    : DEFAULT_PAGE_SIZE;
+  const limit = compact
+    ? TRASH_ARCHIVE_COMPACT_PAGE_SIZE
+    : limitParam
+      ? Math.min(100, Math.max(1, parseInt(limitParam, 10) || DEFAULT_PAGE_SIZE))
+      : DEFAULT_PAGE_SIZE;
   const offset = (page - 1) * limit;
-
-  const params = new URLSearchParams({
-    scope,
-    limit: String(limit),
-    offset: String(offset),
-    sortBy,
-    sortOrder,
-  });
-  if (scope === 'company' && companyId) params.set('companyId', companyId);
-  if (scope === 'department' && departmentId) params.set('departmentId', departmentId);
-  if (scope === 'team' && teamId) params.set('teamId', teamId);
-  if (typeFilter) params.set('type', typeFilter);
 
   const enabled =
     scope === 'personal' ||
@@ -74,25 +69,68 @@ export function useTrashArchiveTabState({
     (scope === 'team' && !!teamId);
 
   const querySegment = variant === 'trash' ? 'trash' : 'archive';
-  const apiUrl =
-    variant === 'trash' ? `/api/v1/me/trash?${params}` : `/api/v1/me/archive?${params}`;
 
-  const { data, isPending } = useQuery({
-    queryKey: [
-      'me',
-      querySegment,
-      scope,
-      companyId ?? '',
-      departmentId ?? '',
-      teamId ?? '',
-      params.toString(),
-    ],
-    queryFn: async (): Promise<ListResponse> => {
+  const buildListParams = useCallback(
+    (listLimit: number, listOffset: number) => {
+      const params = new URLSearchParams({
+        scope,
+        limit: String(listLimit),
+        offset: String(listOffset),
+        sortBy,
+        sortOrder,
+      });
+      if (scope === 'company' && companyId) params.set('companyId', companyId);
+      if (scope === 'department' && departmentId) params.set('departmentId', departmentId);
+      if (scope === 'team' && teamId) params.set('teamId', teamId);
+      if (typeFilter) params.set('type', typeFilter);
+      return params;
+    },
+    [companyId, departmentId, scope, sortBy, sortOrder, teamId, typeFilter]
+  );
+
+  const fetchList = useCallback(
+    async (listLimit: number, listOffset: number): Promise<ListResponse> => {
+      const params = buildListParams(listLimit, listOffset);
+      const apiUrl =
+        variant === 'trash' ? `/api/v1/me/trash?${params}` : `/api/v1/me/archive?${params}`;
       const res = await apiFetch(apiUrl);
       if (!res.ok) throw new Error(`Failed to load ${querySegment}`);
       return (await res.json()) as ListResponse;
     },
-    enabled,
+    [buildListParams, querySegment, variant]
+  );
+
+  const scopeKey = [scope, companyId ?? '', departmentId ?? '', teamId ?? ''] as const;
+
+  const wideQuery = useQuery({
+    queryKey: [
+      'me',
+      querySegment,
+      ...scopeKey,
+      buildListParams(limit, offset).toString(),
+    ],
+    queryFn: () => fetchList(limit, offset),
+    enabled: enabled && !compact,
+  });
+
+  const infiniteQuery = useInfiniteQuery({
+    queryKey: [
+      'me',
+      querySegment,
+      'infinite',
+      ...scopeKey,
+      sortBy,
+      sortOrder,
+      typeFilter,
+      TRASH_ARCHIVE_COMPACT_PAGE_SIZE,
+    ],
+    queryFn: ({ pageParam }) => fetchList(TRASH_ARCHIVE_COMPACT_PAGE_SIZE, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (last) => {
+      const nextOffset = last.offset + last.items.length;
+      return nextOffset < last.total ? nextOffset : undefined;
+    },
+    enabled: enabled && compact,
   });
 
   const setFilter = useCallback(
@@ -213,19 +251,34 @@ export function useTrashArchiveTabState({
     }
   };
 
-  const total = data?.total ?? 0;
+  const rawItems = compact
+    ? (infiniteQuery.data?.pages.flatMap((p) => p.items) ?? [])
+    : (wideQuery.data?.items ?? []);
+  const total = compact
+    ? (infiniteQuery.data?.pages[0]?.total ?? 0)
+    : (wideQuery.data?.total ?? 0);
   const totalPages = Math.ceil(total / limit) || 1;
+  const isPending = compact ? infiniteQuery.isPending : wideQuery.isPending;
+  const hasMore = compact ? !!infiniteQuery.hasNextPage : false;
+  const loadingMore = compact ? infiniteQuery.isFetchingNextPage : false;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = infiniteQuery;
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const sortedItems = useMemo(() => {
-    const list = data?.items ?? [];
+    const list = [...rawItems];
     if (sortBy === 'type') {
-      return [...list].sort((a, b) => {
+      return list.sort((a, b) => {
         const c = (a.type ?? '').localeCompare(b.type ?? '');
         return sortOrder === 'asc' ? c : -c;
       });
     }
     if (sortBy === 'contextName') {
-      return [...list].sort((a, b) => {
+      return list.sort((a, b) => {
         const va = (a.contextName ?? '').toLowerCase();
         const vb = (b.contextName ?? '').toLowerCase();
         const c = va.localeCompare(vb);
@@ -233,7 +286,7 @@ export function useTrashArchiveTabState({
       });
     }
     return list;
-  }, [data?.items, sortBy, sortOrder]);
+  }, [rawItems, sortBy, sortOrder]);
 
   const searchLower = localSearch.trim().toLowerCase();
   const filteredItems = useMemo(
@@ -281,6 +334,9 @@ export function useTrashArchiveTabState({
     emptyAllLabel,
     dateColumnLabel,
     dateValue,
+    hasMore,
+    loadingMore,
+    loadMore,
     setFilter,
     setSort,
     setPage,

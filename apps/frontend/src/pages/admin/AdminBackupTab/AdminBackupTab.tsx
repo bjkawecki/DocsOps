@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, Group, Loader, Stack } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Button, Group, Loader, Menu, Stack } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { IconSettings } from '@tabler/icons-react';
+import { IconDatabase, IconDotsVertical, IconSettings } from '@tabler/icons-react';
 import { apiBase, apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey } from '../../../hooks/useMe';
 import type { DestinationFormState } from './adminBackupDestinationForm';
 import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
@@ -46,6 +49,7 @@ type CreateBackupResult = { backupRunId: string; jobId: string };
 
 export function AdminBackupTab() {
   const { t } = useTranslation('admin');
+  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [settingsInitialTab, setSettingsInitialTab] = useState<BackupSettingsTab>('general');
@@ -358,6 +362,40 @@ export function AdminBackupTab() {
     status.encryptionConfigured &&
     !status.maintenanceActive;
 
+  const handleBackupNow = useCallback(() => {
+    createBackup.mutate(status?.defaultDestinationId ?? undefined);
+  }, [createBackup, status?.defaultDestinationId]);
+
+  const mobileExtraActions = useMemo((): PageMobileAction[] => {
+    const moreMenu = (
+      <Menu.Item
+        leftSection={<IconSettings size={12} />}
+        onClick={() => openBackupSettings('general')}
+      >
+        {t('actions.backupSettings')}
+      </Menu.Item>
+    );
+    return [
+      {
+        key: 'more',
+        label: t('actions.backupSettings'),
+        icon: <IconDotsVertical size={16} stroke={1.5} />,
+        tone: 'more',
+        menu: moreMenu,
+      },
+      {
+        key: 'backup-now',
+        label: t('actions.backupNow'),
+        icon: <IconDatabase size={16} stroke={1.5} />,
+        tone: 'secondary',
+        loading: createBackup.isPending,
+        disabled: !canBackup,
+        onClick: handleBackupNow,
+      },
+    ];
+  }, [canBackup, createBackup.isPending, handleBackupNow, openBackupSettings, t]);
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
   const chromeActions = useMemo(
     () => (
       <Group gap="sm" align="center" wrap="nowrap">
@@ -371,7 +409,7 @@ export function AdminBackupTab() {
         </Button>
         <Button
           size="xs"
-          onClick={() => createBackup.mutate(status?.defaultDestinationId ?? undefined)}
+          onClick={handleBackupNow}
           loading={createBackup.isPending}
           disabled={!canBackup}
         >
@@ -379,10 +417,10 @@ export function AdminBackupTab() {
         </Button>
       </Group>
     ),
-    [canBackup, createBackup, openBackupSettings, status?.defaultDestinationId, t]
+    [canBackup, createBackup.isPending, handleBackupNow, openBackupSettings, t]
   );
   useSetAppShellBreadcrumbActions(
-    chromeActions,
+    isWide ? chromeActions : null,
     `admin-backup:${canBackup}:${createBackup.isPending}`
   );
 

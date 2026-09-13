@@ -419,6 +419,35 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
 [x] **Mobile UX App (Wellen 0–4):** Code laut [Plan-Mobile-UX](Plan-Mobile-UX.md) / [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md) – Shell, Content-Nav, Cards, Document/Login/Search u. a. **Offen:** manuelle Viewport-Abnahme (Plan-Checklisten „Manuell …“).
+[x] **Mobile UX App – Welle 5 (Page Mobile Actions / FAB-Stack):** Pattern [Plan-Mobile-UX §2.9](Plan-Mobile-UX.md); Shared [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx). Inventar migriert (Compact → FAB; Wide unverändert; Modal-Footer ausgenommen). **Offen:** manuelle Viewport-Abnahme @375 / ~800 / ≥1280.
+[x] **Mobile UX App – Welle 6 (Search-FAB):** Plan ([Plan-Mobile-UX §2.5.1](Plan-Mobile-UX.md)): unter Compact Listen-Suche als **Search-FAB** → Bottom-Sheet (`useCompactListSearchFab`); Count-Zeile im Content; kein Inline-Feld. Catalog, Context-Docs/Shared, Trash/Archive, Admin Users/Teams/Departments. **Offen:** manuelle Viewport-Abnahme.
+
+| Seite / Fläche | Betroffene Buttons / Trigger (heute) | FAB-Ziel (Compact) | Status |
+| --- | --- | --- | --- |
+| Templates `/templates` | Breadcrumb „New custom type“; Delete (Custom); Content-Nav „Templates“ | Nav + Delete + Create | erledigt |
+| Document Edit | Cancel / Save / More; Content-Nav ausgeblendet | Cancel + Save + More | erledigt |
+| Document View (Lesen) | Edit / Publish / More; Content-Nav Icon | Nav + Edit + Overflow | erledigt |
+| Context Workspace | New draft; Edit context; More; Content-Nav | Nav + New draft + Overflow | erledigt |
+| Scope Workspace Entry | Create context menu (Process/Project) | Create-FAB mit Menü | erledigt |
+| Scope Trash/Archive, Most Read, Shared | Content-Nav-Trigger | Nav-FAB | erledigt |
+| Approvals | Content-Nav-Trigger | Nav-FAB | erledigt |
+| Admin (Shell) | Content-Nav „Admin“ | Nav-FAB (Host) | erledigt |
+| Admin Company | Create company | Create-FAB | erledigt |
+| Admin Users | Create user | Create-FAB | erledigt |
+| Admin Departments | Create department | Create-FAB | erledigt |
+| Admin Teams | Create team | Create-FAB | erledigt |
+| Admin Broadcast | Create broadcast | Create-FAB | erledigt |
+| Admin Backup | Backup settings; Backup now | Backup now + More (Settings) | erledigt |
+| Admin System | How to update; Apply update; Check for updates | Check + More | erledigt |
+| Admin System Mail | Save mail; Send test email | Save + Test | erledigt |
+| Admin Migration | Export platform; Import platform | Export + Import | erledigt |
+| Admin Roles | Save | Save-FAB | erledigt |
+| Notifications | Unread-only Switch; Mark all as read; Count-Label | Mark-all-FAB; Switch/Count im Inhalt | erledigt |
+| Help | Content-Nav „Help“ | Nav-FAB | erledigt |
+| Catalog | Filter-Button | Filter-FAB | erledigt |
+| Shell Top-Bar | Bell, Settings, Help, Burger, Account | **nicht** in FAB (§2.9) | ausgeschlossen |
+| Modal-/Drawer-Footer | Cancel / Create / … | **nicht** in FAB | ausgeschlossen |
+| Listen-Zeilen / Tabellen-Row-Actions | Edit/Delete pro Zeile | **nicht** in FAB | ausgeschlossen |
 [ ] **Mobile-Review Landing:** Schmale Viewports für `apps/landing` – siehe **§19**.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
 [x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.

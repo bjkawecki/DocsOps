@@ -153,6 +153,7 @@ export function buildDocumentBreadcrumbItems(
       label: scopeName,
       to: scopeToUrl(scope),
       icon: <ScopeIcon size={14} />,
+      ...(scope.type === 'company' ? { iconOnly: true } : {}),
     });
   }
   if (contextMeta) {

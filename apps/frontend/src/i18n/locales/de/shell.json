@@ -22,6 +22,7 @@
     "closeMenu": "Navigationsmenü schließen",
     "contentNavOpenAria": "{{title}}-Menü öffnen",
     "contentNavCloseAria": "{{title}}-Menü schließen",
+    "pageMobileActionsAria": "Seitenaktionen",
     "company": "Unternehmen",
     "department": "Abteilung",
     "departments": "Abteilungen",

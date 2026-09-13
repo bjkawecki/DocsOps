@@ -40,6 +40,8 @@ export function NewDraftDocumentModal({
       title={t('modals.newDraftDocument.title')}
       centered
       size="lg"
+      // Combobox/MultiSelect dropdowns: trapFocus + portaled menus fight for focus (mobile flicker).
+      trapFocus={false}
     >
       <Stack gap="md">
         <TextInput
@@ -48,6 +50,7 @@ export function NewDraftDocumentModal({
           onChange={(e) => onTitleChange(e.currentTarget.value)}
           placeholder={t('modals.newDraftDocument.titlePlaceholder')}
           required
+          size="md"
         />
         <DocumentTypePicker
           contextId={contextId}
@@ -55,6 +58,7 @@ export function NewDraftDocumentModal({
           onChange={onTypeSelectionChange}
           applyTemplateOnSelect
           mode="create"
+          withinPortal={false}
         />
         <MultiSelect
           label={t('modals.newDraftDocument.tagsLabel')}
@@ -64,6 +68,8 @@ export function NewDraftDocumentModal({
           placeholder={t('modals.newDraftDocument.tagsPlaceholder')}
           searchable
           clearable
+          size="md"
+          comboboxProps={{ withinPortal: false }}
         />
         <Group justify="flex-end" gap="xs">
           <Button variant="default" onClick={onClose}>
