@@ -1,6 +1,7 @@
 import { Box, Card, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import type { MouseEventHandler, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import './EntityListCard.css';
 
 export type EntityListCardProps = {
   /** Primary line (string or custom node). */
@@ -15,10 +16,14 @@ export type EntityListCardProps = {
   onClick?: MouseEventHandler<HTMLElement>;
   /** Optional leading icon. */
   leftSection?: ReactNode;
+  /**
+   * `card` – bordered surface (default).
+   * `flat` – divider rows for dense lists (catalog, trash, …).
+   */
+  variant?: 'card' | 'flat';
 };
 
 const interactiveButtonStyle = {
-  borderRadius: 'var(--mantine-radius-md)',
   textAlign: 'start' as const,
   textDecoration: 'none',
   color: 'inherit',
@@ -35,7 +40,11 @@ export function EntityListCard({
   to,
   onClick,
   leftSection,
+  variant = 'card',
 }: EntityListCardProps) {
+  const flat = variant === 'flat';
+  const rootClass = flat ? 'entity-list-card entity-list-card--flat' : 'entity-list-card';
+
   const body = (
     <Group
       gap="sm"
@@ -51,7 +60,7 @@ export function EntityListCard({
             {leftSection}
           </Box>
         ) : null}
-        <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap={10} style={{ flex: 1, minWidth: 0 }}>
           {typeof title === 'string' ? (
             <Text fw={600} size="sm" lineClamp={2}>
               {title}
@@ -74,16 +83,37 @@ export function EntityListCard({
     </Group>
   );
 
-  const cardProps = {
-    withBorder: true as const,
-    radius: 'md' as const,
-    w: '100%' as const,
+  const hitStyle = {
+    ...interactiveButtonStyle,
+    borderRadius: flat ? 0 : 'var(--mantine-radius-md)',
   };
 
   if (to != null) {
+    if (flat) {
+      return (
+        <Box className={rootClass} w="100%">
+          <UnstyledButton
+            component={Link}
+            to={to}
+            w="100%"
+            className="entity-list-card-hit"
+            style={hitStyle}
+          >
+            {body}
+          </UnstyledButton>
+        </Box>
+      );
+    }
     return (
-      <Card {...cardProps} padding={0} className="entity-list-card">
-        <UnstyledButton component={Link} to={to} w="100%" p="sm" style={interactiveButtonStyle}>
+      <Card withBorder radius="md" w="100%" padding={0} className={rootClass}>
+        <UnstyledButton
+          component={Link}
+          to={to}
+          w="100%"
+          p="sm"
+          className="entity-list-card-hit"
+          style={hitStyle}
+        >
           {body}
         </UnstyledButton>
       </Card>
@@ -91,17 +121,40 @@ export function EntityListCard({
   }
 
   if (onClick != null) {
+    if (flat) {
+      return (
+        <Box className={rootClass} w="100%">
+          <UnstyledButton onClick={onClick} w="100%" className="entity-list-card-hit" style={hitStyle}>
+            {body}
+          </UnstyledButton>
+        </Box>
+      );
+    }
     return (
-      <Card {...cardProps} padding={0} className="entity-list-card">
-        <UnstyledButton onClick={onClick} w="100%" p="sm" style={interactiveButtonStyle}>
+      <Card withBorder radius="md" w="100%" padding={0} className={rootClass}>
+        <UnstyledButton
+          onClick={onClick}
+          w="100%"
+          p="sm"
+          className="entity-list-card-hit"
+          style={hitStyle}
+        >
           {body}
         </UnstyledButton>
       </Card>
     );
   }
 
+  if (flat) {
+    return (
+      <Box className={rootClass} w="100%" py="sm">
+        {body}
+      </Box>
+    );
+  }
+
   return (
-    <Card {...cardProps} padding="sm" className="entity-list-card">
+    <Card withBorder radius="md" w="100%" padding="sm" className={rootClass}>
       {body}
     </Card>
   );

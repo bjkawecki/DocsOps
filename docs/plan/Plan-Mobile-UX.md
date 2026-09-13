@@ -170,7 +170,7 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - [x] i18n EN/DE für Trigger-Labels („Menü“ / Bereichsname)
 - [ ] Manuell @~800px (`compact`, Shell schon desktop) und @375px: Content sichtbar ohne volle Sidebar-Karte; Drawer/Select erreichbar
 - [ ] Desktop ≥1280: Zwei-Spalten wie zuvor
-- [ ] Lint / i18n-check
+- [x] Lint / i18n-check
 
 **Nicht in Welle 2:** Card-Listen (P2), Catalog-Filter-Sheet, Settings-Drill-down, Home-Illustration (Welle 3); Approvals/Workspace/Trash folgen demselben Wrapper danach (Welle 3/4).
 
@@ -245,3 +245,4 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-08-06 | Welle 2: `ResponsiveContentNav` + Pilot Admin/Help/Templates/Notifications; Breadcrumb wrap               |
 | 2026-08-07 | Welle 3: Card-Listen, Catalog-Filter, Settings-Drill-down, Home-Illustration, Approvals/Workspace Wrapper |
 | 2026-08-07 | Welle 4: Restflächen Wrapper/Cards/Document/Login/Search; P4-f verworfen                                  |
+| 2026-09-13 | Checkbox-Drift: Welle-2 Lint abgehakt; §20 Mobile App vs Landing getrennt                              |

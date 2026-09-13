@@ -126,13 +126,17 @@ export function CatalogPage() {
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const [filtersOpened, { open: openFilters, close: closeFilters }] = useDisclosure(false);
 
-  useSetAppShellBreadcrumbs([
-    {
-      key: 'catalog',
-      label: t('documents:catalog.title'),
-      icon: <IconListSearch size={14} stroke={1.5} />,
-    },
-  ]);
+  useSetAppShellBreadcrumbs(
+    isWide
+      ? [
+          {
+            key: 'catalog',
+            label: t('documents:catalog.title'),
+            icon: <IconListSearch size={14} stroke={1.5} />,
+          },
+        ]
+      : null
+  );
   useSetAppShellNavScope(null);
 
   const contextType = searchParams.get('contextType') ?? '';
@@ -365,7 +369,7 @@ export function CatalogPage() {
 
   return (
     <Box>
-      <Stack gap="md">
+      <Stack gap={isWide ? 'md' : 'sm'}>
         <Box className="catalog-sticky-filters">
           {isWide ? (
             <Group gap="md" wrap="wrap" align="flex-end">
@@ -382,17 +386,18 @@ export function CatalogPage() {
               </Text>
             </Group>
           ) : (
-            <Stack gap="sm">
+            <Stack gap="xs" className="catalog-sticky-filters-compact">
               <TextInput
-                label={t('documents:catalog.searchLabel')}
+                aria-label={t('documents:catalog.searchLabel')}
                 placeholder={t('documents:catalog.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setFilter('search', e.currentTarget.value)}
+                size="md"
               />
-              <Group gap="sm" justify="space-between" align="center" wrap="wrap">
+              <Group gap="sm" justify="space-between" align="center" wrap="nowrap">
                 <Button
                   variant="default"
-                  size="sm"
+                  size="compact-md"
                   leftSection={<IconFilter size={16} stroke={1.5} />}
                   onClick={openFilters}
                 >
@@ -401,7 +406,7 @@ export function CatalogPage() {
                     ? ` (${t('documents:catalog.filtersActive', { count: activeFilterCount })})`
                     : ''}
                 </Button>
-                <Text size="sm" c="dimmed">
+                <Text size="xs" c="dimmed">
                   {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
                 </Text>
               </Group>
@@ -541,7 +546,7 @@ export function CatalogPage() {
             </Table>
           </Box>
         ) : (
-          <Stack gap="sm" className="docsops-search-snippet-mark">
+          <Stack gap={0} className="docsops-search-snippet-mark">
             {isPending ? (
               <Text size="sm" c="dimmed">
                 {t('documents:catalog.loading')}
@@ -556,30 +561,37 @@ export function CatalogPage() {
               </Text>
             ) : (
               data?.items.map((doc) => {
-                const tagsPreview = doc.documentTags
-                  .slice(0, 3)
-                  .map((dt) => dt.tag.name)
-                  .join(', ');
+                const contextLabel = (doc.contextName || '').trim();
+                const metaParts = [contextLabel || null, formatDate(doc.updatedAt)].filter(
+                  (part): part is string => Boolean(part)
+                );
+                const showTagChip = tagIds.length > 0;
+                const tagChip = showTagChip
+                  ? doc.documentTags.find((dt) => tagIds.includes(dt.tag.id))?.tag ??
+                    doc.documentTags[0]?.tag
+                  : null;
+
                 return (
                   <EntityListCard
                     key={doc.id}
+                    variant="flat"
                     to={`/documents/${doc.id}`}
                     title={
-                      <Text fw={600} size="sm" lineClamp={2}>
+                      <Text fw={600} size="md" lineClamp={2}>
                         {highlightMatch(doc.title || doc.id, search)}
                       </Text>
                     }
                     meta={
-                      <Stack gap={2}>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {doc.ownerDisplay} · {doc.contextName || '–'} ·{' '}
-                          {formatDate(doc.updatedAt)}
-                        </Text>
-                        {tagsPreview ? (
+                      <Stack gap={4}>
+                        {metaParts.length > 0 ? (
                           <Text size="xs" c="dimmed" lineClamp={1}>
-                            {tagsPreview}
-                            {doc.documentTags.length > 3 ? '…' : ''}
+                            {metaParts.join(' · ')}
                           </Text>
+                        ) : null}
+                        {tagChip ? (
+                          <Badge size="xs" variant="light" w="fit-content">
+                            {tagChip.name}
+                          </Badge>
                         ) : null}
                         {search.trim() && doc.searchSnippet ? (
                           <Text size="xs" c="dimmed" lineClamp={2}>
@@ -587,13 +599,6 @@ export function CatalogPage() {
                           </Text>
                         ) : null}
                       </Stack>
-                    }
-                    rightSection={
-                      <Text size="xs" c="dimmed">
-                        {doc.currentPublishedVersionNumber != null
-                          ? `v${doc.currentPublishedVersionNumber}`
-                          : t('documents:catalog.draftVersion')}
-                      </Text>
                     }
                   />
                 );

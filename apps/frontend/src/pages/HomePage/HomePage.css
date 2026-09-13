@@ -2,9 +2,8 @@
   position: relative;
   overflow-x: clip;
   /*
-   * AppShell `.app-shell-main-body` uses pt sm (md+) / md (base). Sticky top:0 sits at the
-   * content edge; cover the padding band with an upward box-shadow (not 100vw – that
-   * causes horizontal scroll).
+   * Outlet is the page scrollport (breadcrumbs pinned above). Sticky top:0 sits at the
+   * outlet edge; cover any residual gap with an upward box-shadow if needed.
    */
   --pulse-sticky-pad-compensate: var(--mantine-spacing-sm);
   --pulse-type-status: 1.375rem; /* 22px – peak above explore section */

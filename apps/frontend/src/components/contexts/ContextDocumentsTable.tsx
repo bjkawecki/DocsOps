@@ -228,7 +228,7 @@ export function ContextDocumentsTable({
             : t('documentsTable.emptySearch')}
         </Text>
       ) : (
-        <Stack gap="sm">
+        <Stack gap={0}>
           {filteredItems.map((doc) => {
             const tagsPreview = doc.documentTags
               .slice(0, 3)
@@ -237,6 +237,7 @@ export function ContextDocumentsTable({
             return (
               <EntityListCard
                 key={doc.id}
+                variant="flat"
                 to={`/documents/${doc.id}`}
                 title={doc.title}
                 meta={

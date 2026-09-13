@@ -376,8 +376,8 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Landing-App:** Vite + React + Mantine; DE-Copy; Routen `/`, `/philosophie`, `/install`, `/changelog`, `/sponsor`, `/impressum`, `/datenschutz`; Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
 [x] **Modell-Sections:** Scope · Kontext · Rollen · Beispiel (IT / Software X / A11y) laut [Landing-Sections-Plan](../marketing/Landing-Sections-Plan.md) / Positionierung Phasen B–E.
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
-[ ] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). Siehe auch §20.
-[ ] **Landing Go-live:** Deploy auf `docsops.de`; Impressum/Datenschutz-Platzhalter ersetzen; DNS/Caddy; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
+[ ] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
+[x] **Landing Go-live:** Deploy auf `docsops.de`; DNS/Caddy; Impressum/Datenschutz im Landing-Code; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
 
@@ -401,11 +401,11 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Demo-Login mit Rollenwahl:** Angepasste Login-Seite in `DEMO_MODE` – **Rollenauswahl** (kein Passwort-Formular nötig bzw. optional daneben), **nicht** Bug-Menü. Mindestens **fünf** Seed-Rollen mit echten Accounts/Rechten: **Admin**, **Company Lead**, **Department Lead**, **Team Lead**, **normaler User** (Team Member). Auswahl loggt als entsprechender Seed-User ein (Session). Landing kann auf Demo-Login verweisen.
 [x] **Admin in DEMO_MODE eingeschränkt (UI + API):** Mutierende/gefährliche Admin-Routen **serverseitig deaktivieren** (403), nicht nur UI ausblenden – u. a. User anlegen/löschen, Passwort-Reset, Platform-Reset/Reseed, Update-Apply, Backup-Ziele ändern, SMTP ändern, Broadcasts, Migration Import/Export soweit missbrauchsträchtig. Lesende Org-Übersicht ggf. erlaubt (Produktentscheidung in Umsetzung). Nav „Admin“ nur Rest-Funktionen oder Hinweis „Demo – limited admin“.
 [x] **Reset einmal täglich:** Cron `/etc/cron.d/docsops-demo` bzw. `docsops-demo-local` → `… reset` (Compose `down -v` + Up, Seed via `DEMO_MODE`). Dev-Checkout: `pnpm --filter backend demo:reset`. Banner „Demo resets daily“ in App.
-[x] **DEMO_MODE-Zusatz (lokal):** kein Mail-Versand, kein Self-Register, Rate Limits auf Login, kurze Sessions (4 h Default), strengere Upload-Limits, `robots.txt`/noindex, Disclaimer auf Login + App-Banner. Öffentliche Nutzungsbedingungen/Legal auf Landing: noch offen.
-[x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); Go-live der Demo-Instanz separat.
-[ ] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, Monitoring, Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7.
+[x] **DEMO_MODE-Zusatz (lokal):** kein Mail-Versand, kein Self-Register, Rate Limits auf Login, kurze Sessions (4 h Default), strengere Upload-Limits, `robots.txt`/noindex, Disclaimer auf Login + App-Banner. Landing Legal-Seiten vorhanden (öffentliche Demo).
+[x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); öffentliche Demo unter `demo.docsops.de`.
+[x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing Go-live (optional parallel) → Demo-Ops-Skript + Seed/Rollen-Login + Admin-API-Lockdown + täglicher Reset.
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live (erledigt) → Betrieb/Managed Hosting und Rest-Todos separat.
 
 **Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 
@@ -413,12 +413,13 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 ## 20. Layout- & UX-Ergänzungen (Phase 2)
 
-[ ] **Optionale öffentliche Seiten (Demo):** Siehe **§19** (Demo-Instanz + Landing Go-live); Landing-Code ist erledigt, Deploy/Demo noch offen.
+[x] **Optionale öffentliche Seiten (Demo):** Landing + Demo öffentlich (`docsops.de` / `demo.docsops.de`); siehe **§19**.
 [x] **Pin Sidebar:** Sidebar ein-/ausklappbar (Desktop Mini-Rail ~72px oder expanded 260px), Option in Settings („Pin“); Mobile Overlay-Drawer mit Burger.
 [x] **Notifications (Inbox & Navigation):** Erledigt in **§23** (Route `/notifications`, Sidebar, Unread-Zähler). Dieser §20-Punkt diente als Sammelwunsch; Details und weitere Ausbauten nur noch in **§23** pflegen.
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
-[ ] **Mobile-Review (Landing + App):** Schmale Viewports systematisch prüfen und verbessern – Landing (`apps/landing`) und App (`apps/frontend`). **Inventar:** [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md). **Plan (Entscheidungen + Wellen):** [Plan-Mobile-UX](Plan-Mobile-UX.md). Umsetzung: Shell/Patterns vor Seitendetails; Landing separat (§19).
+[x] **Mobile UX App (Wellen 0–4):** Code laut [Plan-Mobile-UX](Plan-Mobile-UX.md) / [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md) – Shell, Content-Nav, Cards, Document/Login/Search u. a. **Offen:** manuelle Viewport-Abnahme (Plan-Checklisten „Manuell …“).
+[ ] **Mobile-Review Landing:** Schmale Viewports für `apps/landing` – siehe **§19**.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
 [x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.
 

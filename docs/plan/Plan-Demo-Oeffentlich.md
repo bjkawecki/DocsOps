@@ -1,6 +1,6 @@
 # Öffentliche Demo, Domains & Sprache
 
-**Status:** Planungsnotiz – Details für Marketing, Live-Demo und rechtlichen Rahmen. Umsetzung über [Umsetzungs-Todo §19–§20](Umsetzungs-Todo.md), sobald die Plattform demo-tauglich ist. Ergänzt [Infrastruktur §11](Infrastruktur-und-Deployment.md).
+**Status:** Öffentliche Demo/Landing live (`docsops.de` / `demo.docsops.de`). Restliche Feinheiten (Monitoring-Tiefe, `docsops.org`, Legal-Anwalt) unten. Ergänzt [Infrastruktur §11](Infrastruktur-und-Deployment.md); Tracking: [Umsetzungs-Todo §19](Umsetzungs-Todo.md).
 
 ---
 
@@ -167,32 +167,32 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 
 ## 7. Go-Live-Checkliste (Demo)
 
-- [ ] `demo.docsops.de` – eigene Instanz, isolierte Volumes
-- [ ] Seed + automatischer Reset (Cron/Job dokumentiert)
-- [ ] `DEMO_MODE` + Rate Limits, kein E-Mail-Versand
-- [ ] Disclaimer + Nutzungsbedingungen Demo + Impressum/Datenschutz (DE)
-- [ ] Hinweis Landing: keine vertraulichen Daten; App EN/DE
-- [ ] Monitoring (Disk, CPU, Traffic)
+- [x] `docsops.de` – Landing (DE), TLS
+- [x] `demo.docsops.de` – eigene Instanz, isolierte Volumes
+- [x] Seed + automatischer Reset (Cron/Job dokumentiert)
+- [x] `DEMO_MODE` + Rate Limits, kein E-Mail-Versand
+- [x] Disclaimer + Impressum/Datenschutz (DE) auf Landing/Demo
+- [x] Hinweis Landing: keine vertraulichen Daten; App EN/DE
+- [ ] Monitoring (Disk, CPU, Traffic) – Betriebstiefe nach Bedarf
 - [ ] `docsops.org` → Redirect oder OSS-Rolle festgelegt
 
 ---
 
 ## 8. Empfohlene Reihenfolge
 
-1. Plattform intern demo-stabil (Seed, Basis-Features) – weitgehend erreicht
-2. **App-i18n EN + DE** (vor öffentlicher Demo)
-3. Statische **DE-Landing** auf `docsops.de` (Code fertig; Deploy + Legal-Platzhalter)
-4. **Demo-Subdomain** mit Seed-Accounts (Rollen), täglichem Reset, `DEMO_MODE`
-5. Optional: integrierte Landing per Flag; `docsops.org`-Strategie verfeinern; Vergleich/FAQ auf Landing
+1. Plattform intern demo-stabil (Seed, Basis-Features) – erledigt
+2. **App-i18n EN + DE** – erledigt
+3. Statische **DE-Landing** auf `docsops.de` – erledigt (Deploy live)
+4. **Demo-Subdomain** mit Seed-Accounts, täglichem Reset, `DEMO_MODE` – erledigt
+5. Optional: Monitoring-Tiefe; `docsops.org`-Strategie; Vergleich/FAQ auf Landing; Mobile-Review Landing (§19)
 
 ---
 
 ## 9. Offene Punkte
 
-- Formulierung Nutzungsbedingungen / Disclaimer (Anwalt)
-- „Enter demo“ vs. sichtbare Demo-Credentials
-- **Rollen-UX:** Seed-Accounts (A) vs. Demo-Switcher (B) vs. beides – Entscheidung vor Umsetzung
-- Seed-Sprache: DE-Seed (Musterwerk IT GmbH) für Demo/Lab
+- Formulierung Nutzungsbedingungen / Disclaimer (Anwalt), falls nötig
+- Monitoring-Tiefe (Disk, CPU, Traffic)
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
+- `docsops.org` Redirect / OSS-Rolle
 
-**Nächster Schritt:** DNS A/AAAA `docsops.de` + `demo.docsops.de` → VPS, Firewall 80/443, dann `curl …/docsops-demo | sudo bash`. Monitoring + Checkliste §7. Lokal/VM: `docsops-demo-local` (install/reset/cron/hosts). App: Rollenwahl-Login, Admin-403, Limits/Disclaimer, `pnpm --filter backend demo:reset`.
+**Nächster Schritt:** Mobile-Review Landing (§19) bzw. Betrieb/Monitoring nach Bedarf; Kunden-Prod-Instanz bleibt separat (Managed Hosting).

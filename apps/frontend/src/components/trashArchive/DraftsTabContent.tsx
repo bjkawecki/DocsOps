@@ -217,10 +217,11 @@ export function DraftsTabContent({
           </Table.Tbody>
         </Table>
       ) : (
-        <Stack gap="sm">
+        <Stack gap={0}>
           {filteredDrafts.map((d) => (
             <EntityListCard
               key={d.id}
+              variant="flat"
               to={`/documents/${d.id}`}
               title={d.title}
               meta={`${d.scopeName} · ${formatTableDate(d.updatedAt)}`}

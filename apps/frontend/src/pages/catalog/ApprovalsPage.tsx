@@ -45,10 +45,11 @@ function PendingReviewsTable({
       );
     }
     return (
-      <Stack gap="sm">
+      <Stack gap={0}>
         {items.map((item) => (
           <EntityListCard
             key={item.documentId}
+            variant="flat"
             to={documentDraftLink(item.documentId)}
             title={item.documentTitle}
             meta={
@@ -188,10 +189,11 @@ function MoveRequestsTable({
       );
     }
     return (
-      <Stack gap="sm">
+      <Stack gap={0}>
         {items.map((item) => (
           <EntityListCard
             key={item.id}
+            variant="flat"
             title={item.documentTitle}
             meta={
               <Stack gap={4}>

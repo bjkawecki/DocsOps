@@ -158,11 +158,7 @@ function AppShellFrame({
                 logout={s.logout}
               />
               <Box
-                className={
-                  isContainedReadingPage
-                    ? 'app-shell-main-body app-shell-main-body--document'
-                    : 'app-shell-main-body'
-                }
+                className="app-shell-main-body"
                 pt={{ base: 'md', md: 'sm' }}
                 pb={{ base: 'md', md: 'lg', xl: 'xl' }}
                 px={{ base: 'md', md: 'lg', xl: 'xl' }}

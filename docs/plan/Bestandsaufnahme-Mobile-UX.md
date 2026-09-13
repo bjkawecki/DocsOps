@@ -252,11 +252,11 @@ Home-Illustration (Bild 1); ggf. weitere dekorative Hintergründe auditieren.
 
 ---
 
-## 5. Was schon „irgendwie“ da ist (nicht als erledigt werten)
+## 5. Was schon da ist (Stand nach Wellen 0–4)
 
-- Mobile AppShell-Overlay + Burger (`§20` Responsiv / Pin Sidebar) – **funktional unvollständig** (Close/Overlay-UX, Touch-Größe).
-- Viele Layouts haben responsive `direction`/`w`-Props – das löst **nicht** die IA-Probleme.
-- Landing hat eigenen Mobile-Drawer; **nicht** Gegenstand dieses Inventars (eigenes Todo §19).
+- AppShell Mobile: Close, Scrim, Escape, Touch-Chrome (Welle 1).
+- Content-Nav / Cards / Document / Login / Search-Patterns (Wellen 2–4); siehe [Plan-Mobile-UX](Plan-Mobile-UX.md).
+- Landing: eigener Mobile-Drawer; systematisches Landing-Mobile-Review weiter **§19**.
 
 ---
 
@@ -270,7 +270,7 @@ Für die spätere Planung zusätzlich prüfen (kurz, gleiche Pattern-Klassen):
 - [x] Reviews / Approvals – Nav Welle 3, Cards Welle 4
 - [x] Search – narrow fullscreen Welle 4
 - [x] What's new – Hit-Area Welle 4
-- [ ] Lange Formulare / Create-Modals – **bewusst zurückgestellt** (einspaltig; kein P5-Zwang)
+- [x] Lange Formulare / Create-Modals – **bewusst zurückgestellt** (einspaltig; kein P5-Zwang)
 
 P4-f Bottom-Nav: **verworfen** (siehe Plan §2.8). Landing: separat §19.
 
@@ -307,3 +307,4 @@ Siehe [Plan-Mobile-UX](Plan-Mobile-UX.md): zuerst Shell (P4), dann Content-Nav (
 | 2026-08-06 | Verweis auf [Plan-Mobile-UX](Plan-Mobile-UX.md)                           |
 | 2026-08-06 | P4-f Bottom-Nav Hybrid als Offenpunkt (Plan §2.8)                         |
 | 2026-08-07 | §6 Restflächen Welle 4; P4-f verworfen; Create-Modals zurückgestellt      |
+| 2026-09-13 | §5/§6 Drift: Wellen-Stand; Create-Modals als zurückgestellt abgehakt      |

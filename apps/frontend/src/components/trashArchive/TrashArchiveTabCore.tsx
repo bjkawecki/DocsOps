@@ -199,10 +199,11 @@ export function TrashArchiveTabCore({
             : t('documents:trashArchive.noSearchMatch')}
         </Text>
       ) : (
-        <Stack gap="sm">
+        <Stack gap={0}>
           {state.filteredItems.map((item) => (
             <EntityListCard
               key={`${item.type}-${item.id}`}
+              variant="flat"
               onClick={() => {
                 void navigate(itemHref(item));
               }}

@@ -1,0 +1,29 @@
+.entity-list-card--flat {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: transparent;
+  box-shadow: none;
+}
+
+.entity-list-card--flat:last-child {
+  border-bottom: none;
+}
+
+/*
+ * Link/UnstyledButton can stay `display: inline` (or similar). Vertical padding then
+ * reports in computed style but does NOT grow layout height – dividers stay cramped.
+ * `display: block` makes padding-block contribute to row height sustainably.
+ */
+.entity-list-card--flat .mantine-UnstyledButton-root.entity-list-card-hit {
+  display: block;
+  width: 100%;
+  border-radius: 0;
+  padding-block: 1rem;
+  padding-inline: 0;
+  box-sizing: border-box;
+}
+
+.entity-list-card--flat .mantine-UnstyledButton-root.entity-list-card-hit:hover {
+  background-color: var(--mantine-color-default-hover);
+}

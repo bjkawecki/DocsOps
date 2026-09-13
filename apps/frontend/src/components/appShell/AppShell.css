@@ -24,42 +24,37 @@
   overflow: hidden;
 }
 
+/*
+ * Pin shell chrome (breadcrumbs, banners); page content scrolls in the outlet.
+ * Document pages keep the same structure; --document only adds scrollbar polish.
+ */
 .app-shell-main-body {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: auto;
-}
-
-/* Document page: breadcrumbs stay put; outlet below is the page scrollport. */
-.app-shell-main-body--document {
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  min-height: 0;
 }
 
-.app-shell-main-body--document > .app-shell-breadcrumb-bar {
+.app-shell-main-body > .app-shell-breadcrumb-bar {
   flex-shrink: 0;
 }
 
 .app-shell-outlet {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-/*
- * Document reading page: this outlet is the page scrollport (below breadcrumbs).
- * Sidebar / edit chrome / comments use position sticky inside it.
- */
-.app-shell-outlet--document {
   flex: 1 1 0%;
+  min-width: 0;
   min-height: 0;
   height: auto;
   display: block;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/*
+ * Document reading page: same scrollport; thinner auto-hide scrollbar.
+ * Sidebar / edit chrome / comments use position sticky inside it.
+ */
+.app-shell-outlet--document {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
