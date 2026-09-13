@@ -50,7 +50,8 @@ export function PageMobileActionBar({
     <div className="page-mobile-actions" role="toolbar" aria-label={ariaLabel}>
       <Stack gap={6} align="center">
         {actions.map((action) => {
-          const { color, variant } = resolvePageMobileFabTone(action.tone);
+          const tone = action.tone ?? 'more';
+          const { color, variant } = resolvePageMobileFabTone(tone);
           if (action.menu != null) {
             return (
               <Menu
@@ -71,6 +72,7 @@ export function PageMobileActionBar({
                     aria-label={action.label}
                     title={action.label}
                     className="page-mobile-actions-fab"
+                    data-tone={tone}
                   >
                     {action.icon}
                   </ActionIcon>
@@ -92,6 +94,7 @@ export function PageMobileActionBar({
               aria-label={action.label}
               title={action.label}
               className="page-mobile-actions-fab"
+              data-tone={tone}
               onClick={action.onClick}
             >
               {action.icon}

@@ -20,10 +20,54 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
+/*
+ * Dark mode: keep filled FABs mid-dark with light icons.
+ * Mantine `gray`/`light` filled can invert to pale surfaces; we force readable chrome.
+ */
 :root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.55),
     0 4px 12px rgba(0, 0, 0, 0.35);
+  --ai-color: var(--mantine-color-white);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='nav'],
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='more'] {
+  --ai-bg: var(--mantine-color-dark-5);
+  --ai-hover: var(--mantine-color-dark-4);
+  border: 1px solid var(--mantine-color-dark-3);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='search'] {
+  --ai-bg: var(--mantine-color-indigo-9);
+  --ai-hover: var(--mantine-color-indigo-8);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='filter'] {
+  --ai-bg: var(--mantine-color-violet-9);
+  --ai-hover: var(--mantine-color-violet-8);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='secondary'],
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='active'] {
+  --ai-bg: var(--mantine-color-blue-9);
+  --ai-hover: var(--mantine-color-blue-8);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='create'],
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='save'] {
+  --ai-bg: var(--mantine-color-teal-9);
+  --ai-hover: var(--mantine-color-teal-8);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='edit'] {
+  --ai-bg: var(--mantine-color-cyan-9);
+  --ai-hover: var(--mantine-color-cyan-8);
+}
+
+:root[data-mantine-color-scheme='dark'] .page-mobile-actions-fab[data-tone='danger'] {
+  --ai-bg: var(--mantine-color-red-9);
+  --ai-hover: var(--mantine-color-red-8);
 }
 
 /* Dense overflow menu for narrow viewports. */

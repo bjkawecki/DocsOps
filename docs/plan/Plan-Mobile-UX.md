@@ -336,6 +336,7 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-09-13 | §2.5.1 final: Search-FAB → Sheet statt Sticky; Welle 6 Code umgestellt |
 | 2026-09-13 | §2.9 FAB-Farben: semantische Tones (`pageMobileFabTokens`); Dark-Mode light/filled |
 | 2026-09-13 | §2.9 FAB: alle Tones `filled` (nicht halbtransparent über Inhalt) |
+| 2026-09-13 | §2.9 FAB Dark-Mode: dunklere Flächen + helles Icon (nicht pale gray) |
 | 2026-09-13 | §2.5.1 Search-FAB: Bottom-Toggle-Panel statt Overlay-Drawer (Liste sichtbar) |
 | 2026-09-13 | §2.5.1 Filter-FAB: gleiches Bottom-Toggle-Panel wie Suche (Catalog, Trash/Archive) |
 | 2026-09-13 | Shell-Suche: unter narrow aus Main-Sidebar entfernt (Suche über Katalog/Listen-FABs) |
