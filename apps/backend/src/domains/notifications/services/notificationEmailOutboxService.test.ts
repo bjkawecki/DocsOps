@@ -66,6 +66,12 @@ describe('consumeNotificationEmailOutbox', () => {
     const result = await consumeNotificationEmailOutbox(prisma, { batchSize: 50 });
     expect(result.pickedCount).toBeGreaterThanOrEqual(1);
     expect(sendSmtpMail).toHaveBeenCalled();
+    const mailArg = sendSmtpMail.mock.calls.find(
+      (call) => (call[1] as { to?: string })?.to === 'reader@example.com'
+    )?.[1] as { subject: string; text: string } | undefined;
+    expect(mailArg?.subject).toMatch(/^DocsOps:/);
+    expect(mailArg?.text).not.toContain('{');
+    expect(mailArg?.text.toLowerCase()).toContain('notification');
 
     const rows = await prisma.$queryRaw<{ status: string }[]>(Prisma.sql`
       SELECT status FROM notification_email_outbox WHERE id = ${id}

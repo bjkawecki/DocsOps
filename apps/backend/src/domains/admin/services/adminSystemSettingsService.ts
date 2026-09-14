@@ -9,6 +9,7 @@ import {
   type SmtpEncryption,
   type SmtpTransportConfig,
 } from '../../../infrastructure/mail/smtpTransport.js';
+import { formatSmtpTestMail, type MailLocale } from '../../../infrastructure/mail/mailI18n.js';
 import { isDemoMode } from '../../../config/runtimeMode.js';
 import {
   normalizeOrgRoleLabels,
@@ -318,7 +319,11 @@ export async function getSmtpTransportConfig(
   };
 }
 
-export async function sendSmtpTestEmail(prisma: PrismaClient, to: string): Promise<void> {
+export async function sendSmtpTestEmail(
+  prisma: PrismaClient,
+  to: string,
+  locale: MailLocale = 'en'
+): Promise<void> {
   if (isDemoMode()) {
     throw new DemoModeSmtpForbiddenError();
   }
@@ -332,9 +337,10 @@ export async function sendSmtpTestEmail(prisma: PrismaClient, to: string): Promi
   if (!recipient.includes('@')) {
     throw new SmtpSettingsValidationError('Invalid test recipient email');
   }
+  const mail = formatSmtpTestMail(locale);
   await sendSmtpMail(config, {
     to: recipient,
-    subject: 'DocsOps SMTP test',
-    text: 'This is a test email from DocsOps. SMTP is configured correctly.',
+    subject: mail.subject,
+    text: mail.text,
   });
 }

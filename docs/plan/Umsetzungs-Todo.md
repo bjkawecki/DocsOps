@@ -452,7 +452,8 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Phase 2 Daily UX EN+DE:** Document Editor/Viewer, Approvals/Reviews, Notifications Inbox, Settings-Resttabs, common-Toasts/Status.
 [x] **Phase 3 Workspace-Rest EN+DE:** Context/Org Workspace, Catalog/Home/Search-Reste, Templates, Trash/Archive/Drafts-Chrome, Scope People, What's-new-Chrome.
 [x] **Phase 4 Admin-Tiefe EN+DE:** Backup, Migration, System/Mail-Detail, Jobs/Scheduler, Org-Forms/Tabellen-Rest.
-[x] **Help-DE / E-Mail-Templates:** Help-Topic-Prosa EN+DE (`help` Namespace) + Prev/Next unter dem Artikel; E-Mail-Templates weiter separat – siehe [Plan-App-i18n](Plan-App-i18n.md).
+[x] **Help-DE:** Help-Topic-Prosa EN+DE (`help` Namespace) + Prev/Next unter dem Artikel – siehe [Plan-App-i18n](Plan-App-i18n.md).
+[x] **Mail-i18n Phase 1:** Backend-Kataloge EN/DE (`infrastructure/mail/locales`), Empfänger-`preferences.locale` für Notification-Outbox, Admin-Locale für SMTP-Test, `auth.reset.*` Keys vorbereitet; CI DE ⊆ EN über `pnpm run check:i18n` – siehe [Plan-App-i18n](Plan-App-i18n.md) §7.
 [x] **Demo-Seed DE (Inhalt):** schlanker CSV-Seed (Musterwerk IT GmbH, 1×1×1 Org, fünf Rollen, Passwort `DocsOps1`, wenige Story-Docs) – Grundlage für Dev-Reset und Demo; siehe `apps/backend/prisma/seed-data/` und [install.md](../install.md).
 
 **Demo-Instanz (VM-Lab lokal; öffentlich `docsops.de` / `demo.docsops.de`):**

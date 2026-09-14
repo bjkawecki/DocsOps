@@ -2,7 +2,7 @@
 
 Vorgaben für die Mehrsprachigkeit der internen Webapp (`apps/frontend`). Ergänzt [Plan-Demo-Oeffentlich §4](Plan-Demo-Oeffentlich.md#4-sprache--i18n) und [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (App-i18n).
 
-**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). **Help-DE** (Topic-Prosa) umgesetzt (`help` Namespace). E-Mail-Templates bewusst separat. Demo-Seed-Inhalte DE: schlanker CSV-Seed umgesetzt (siehe Umsetzungs-Todo §19).
+**Status:** Phasen 1–4 umgesetzt (Gerüst, Daily UX, Workspace-Rest, Admin-Tiefe). **Help-DE** (Topic-Prosa) umgesetzt (`help` Namespace). **E-Mail-Templates Phase 1** umgesetzt (Backend-Katalog EN/DE). Demo-Seed-Inhalte DE: schlanker CSV-Seed umgesetzt (siehe Umsetzungs-Todo §19).
 
 ---
 
@@ -98,7 +98,7 @@ Alles, was eingeloggte Nutzer täglich sehen (ohne Admin-Ops-Tiefe):
 ### Bewusst separat (nicht Phasen 2–4)
 
 - ~~Help-DE (Topic-Prosa)~~ – erledigt (`help` Namespace EN+DE; Prev/Next-Artikel unter dem Lesebereich)
-- E-Mail-Templates (wenn SMTP-Texte user-facing)
+- ~~E-Mail-Templates Phase 1~~ – erledigt (siehe §7); tiefere Per-Event-Templates / HTML später
 - Landing (`apps/landing`)
 - Backend-Fehlertexte umstellen; User-generierte Inhalte
 
@@ -106,25 +106,46 @@ Demo-Seed-Inhalte DE: erledigt (schlanker CSV unter `apps/backend/prisma/seed-da
 
 ---
 
-## 7. Pflege & Schutz vor Lücken
+## 7. E-Mail-Templates (Backend)
 
-- Jeder neue UI-Text: EN-Key anlegen; DE zeitnah oder bewusst TODO (nur unkritische Labels)
-- CI/Verify: `pnpm run check:i18n` (`apps/frontend/scripts/check-i18n-keys.mjs`) stellt sicher, dass **DE-Keys ⊆ EN-Keys**
-- ESLint `i18next/no-literal-string` noch **nicht** app-weit (zu laut); Review: migrierte Surfaces nur mit `t()`
-- Review-Checkliste: keine neuen hardcoded Labels ohne `t()` auf bereits migrierten Surfaces (Phasen 1–4)
+Ausgehende SMTP-Mails sind **nicht** Teil des Frontend-`i18next`-Katalogs. Der Worker liest Backend-eigene JSON-Kataloge.
+
+| Regel | Vorgabe |
+| ----- | ------- |
+| Ablage | `apps/backend/src/infrastructure/mail/locales/{en,de}/emails.json` |
+| Helper | `mailI18n.ts` (`resolveMailLocale`, `tMail`, Format-Helfer) |
+| Locale | `User.preferences.locale` des **Empfängers**; sonst **`en`** (kein Browser-`Accept-Language`) |
+| SMTP-Test | Locale des **eingeloggten Admins** |
+| Copy Phase 1 | Menschlich-generisch (Rahmen + Event-Label + Inbox-Hinweis); **kein** Payload-JSON im Body |
+| API / Logs | Bleiben Englisch; kein Backend-Fehler-i18n über denselben Katalog |
+| Passwort-Reset | Keys `auth.reset.*` vorbereitet; Versand erst mit Reset-Feature |
+
+CI: Root `pnpm run check:i18n` prüft Frontend **und** Mail-JSON (`pnpm --filter backend run check:mail-i18n`, DE ⊆ EN).
+
+Nicht in Phase 1: HTML/MJML-Layouts; volle Per-Event-Variablen-Matrix; Frontend-`notifications`-JSON als Laufzeitquelle für den Worker.
 
 ---
 
-## 8. Explizit nicht
+## 8. Pflege & Schutz vor Lücken
+
+- Jeder neue UI-Text: EN-Key anlegen; DE zeitnah oder bewusst TODO (nur unkritische Labels)
+- CI/Verify: `pnpm run check:i18n` (Frontend `check-i18n-keys.mjs` + Backend `check-mail-i18n-keys.mjs`) stellt sicher, dass **DE-Keys ⊆ EN-Keys**
+- ESLint `i18next/no-literal-string` noch **nicht** app-weit (zu laut); Review: migrierte Surfaces nur mit `t()`
+- Review-Checkliste: keine neuen hardcoded Labels ohne `t()` auf bereits migrierten Surfaces (Phasen 1–4); neue Mail-Texte nur über `emails.json` + `tMail`
+
+---
+
+## 9. Explizit nicht
 
 - Strings-as-Keys
 - Soft-Fallback über weitere Sprachen hinaus EN
-- Backend-Responses auf DE umstellen
+- Backend-Responses / API-Fehler auf DE umstellen
 - Landing in denselben i18n-Katalog ziehen
+- Frontend-Help/`notifications`-JSON als Quelle für SMTP-Outbox
 
 ---
 
-## 9. Bezug
+## 10. Bezug
 
 - Persistenz: `GET/PATCH /api/v1/me/preferences` → `locale`
 - Demo/Landing-Hinweis: [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md)

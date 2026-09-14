@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "check:permissions": "bash scripts/check-permission-drift.sh",
-    "check:i18n": "pnpm --filter frontend run check:i18n",
+    "check:i18n": "pnpm --filter frontend run check:i18n && pnpm --filter backend run check:mail-i18n",
     "verify": "pnpm run lint && pnpm run check:permissions && pnpm run check:i18n && pnpm run format:check && pnpm --filter backend run build && pnpm --filter frontend run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

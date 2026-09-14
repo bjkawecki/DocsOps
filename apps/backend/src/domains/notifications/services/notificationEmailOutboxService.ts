@@ -1,10 +1,16 @@
 import { Prisma, type PrismaClient } from '../../../../generated/prisma/client.js';
 import { isDemoMode } from '../../../config/runtimeMode.js';
+import {
+  formatNotificationOutboxMail,
+  resolveMailLocale,
+  type MailLocale,
+} from '../../../infrastructure/mail/mailI18n.js';
 import { sendSmtpMail } from '../../../infrastructure/mail/smtpTransport.js';
 import { getSmtpTransportConfig } from '../../admin/services/adminSystemSettingsService.js';
 
 type OutboxRow = {
   id: string;
+  user_id: string;
   email: string;
   event_type: string;
   payload: unknown;
@@ -16,16 +22,21 @@ export type NotificationEmailOutboxConsumeResult = {
   failedCount: number;
 };
 
-function formatOutboxMail(row: OutboxRow): { subject: string; text: string } {
-  const subject = `DocsOps: ${row.event_type}`;
-  let payloadText = '';
-  try {
-    payloadText = JSON.stringify(row.payload, null, 2);
-  } catch {
-    payloadText = String(row.payload);
+async function loadRecipientLocales(
+  prisma: PrismaClient,
+  userIds: string[]
+): Promise<Map<string, MailLocale>> {
+  const unique = [...new Set(userIds.filter(Boolean))];
+  const map = new Map<string, MailLocale>();
+  if (unique.length === 0) return map;
+  const users = await prisma.user.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, preferences: true },
+  });
+  for (const user of users) {
+    map.set(user.id, resolveMailLocale(user.preferences));
   }
-  const text = `You have a DocsOps notification (${row.event_type}).\n\n${payloadText}\n`;
-  return { subject, text };
+  return map;
 }
 
 async function markOutboxSent(prisma: PrismaClient, id: string): Promise<void> {
@@ -74,7 +85,7 @@ export async function consumeNotificationEmailOutbox(
       SET status = 'sending'
       FROM cte
       WHERE o.id = cte.id
-      RETURNING o.id, o.email, o.event_type, o.payload
+      RETURNING o.id, o.user_id, o.email, o.event_type, o.payload
     `);
   });
 
@@ -99,6 +110,11 @@ export async function consumeNotificationEmailOutbox(
     return { pickedCount: claimed.length, sentCount: 0, failedCount };
   }
 
+  const localesByUserId = await loadRecipientLocales(
+    prisma,
+    claimed.map((row) => row.user_id)
+  );
+
   for (const row of claimed) {
     const email = row.email?.trim() ?? '';
     if (!email.includes('@')) {
@@ -107,7 +123,8 @@ export async function consumeNotificationEmailOutbox(
       continue;
     }
     try {
-      const mail = formatOutboxMail(row);
+      const locale = localesByUserId.get(row.user_id) ?? 'en';
+      const mail = formatNotificationOutboxMail(locale, row.event_type);
       await sendSmtpMail(config, { to: email, subject: mail.subject, text: mail.text });
       await markOutboxSent(prisma, row.id);
       sentCount += 1;

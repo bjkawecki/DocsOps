@@ -26,6 +26,7 @@ import {
   getAdminSystemUpdateStatus,
   resetAdminSystemUpdateCacheForTests,
 } from '../services/adminSystemUpdateService.js';
+import { resolveMailLocale } from '../../../infrastructure/mail/mailI18n.js';
 
 function settingsToResponse(settings: Awaited<ReturnType<typeof getSystemSettings>>) {
   return adminSystemSettingsSchema.parse({
@@ -88,12 +89,13 @@ const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);
 
+    const admin = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, preferences: true },
+    });
+
     let to = body.to?.trim();
     if (!to) {
-      const admin = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true },
-      });
       to = admin?.email?.trim() || undefined;
     }
     if (!to) {
@@ -102,8 +104,10 @@ const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         .send({ error: 'No recipient email; pass "to" or set your account email' });
     }
 
+    const locale = resolveMailLocale(admin?.preferences);
+
     try {
-      await sendSmtpTestEmail(prisma, to);
+      await sendSmtpTestEmail(prisma, to, locale);
       return reply.send(adminSystemMailTestResponseSchema.parse({ ok: true }));
     } catch (err) {
       if (err instanceof DemoModeSmtpForbiddenError) {
