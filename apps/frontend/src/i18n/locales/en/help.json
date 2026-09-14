@@ -11,7 +11,7 @@
   },
   "topics": {
     "overview": "What is DocsOps?",
-    "outOfScope": "What DocsOps is not",
+    "outOfScope": "Where DocsOps fits",
     "organisation": "Organisation & scopes",
     "contexts": "Processes & projects",
     "documentTypes": "Document types",
@@ -23,29 +23,25 @@
     "title": "What is DocsOps?",
     "p1": "DocsOps is the place for durable internal knowledge in engineering organisations: how you work, and what you know about the systems you build and run. Readers see an official published stand – not whatever was last edited in a shared wiki page.",
     "p2": "You organise work by <strong>scope</strong> (company, department, team, or personal space) and keep documents in <strong>processes</strong> or <strong>projects</strong>. Drafts stay editable; what leads publish is what readers see.",
-    "p3": "Choosing between process and project: <contextsLink>Processes & projects</contextsLink>. What does <strong>not</strong> belong here: <outOfScopeLink>What DocsOps is not</outOfScopeLink>."
+    "p3": "Choosing between process and project: <contextsLink>Processes & projects</contextsLink>. How DocsOps sits next to trackers, chat, and ops tools: <outOfScopeLink>Where DocsOps fits</outOfScopeLink>."
   },
   "outOfScope": {
-    "title": "What DocsOps is not",
-    "p1": "This page draws the boundary. DocsOps is for durable internal knowledge with an official published stand (see <overviewLink>What is DocsOps?</overviewLink>). It is not a replacement for every tool that stores text or tracks work.",
-    "p2": "Rule of thumb: if the value still matters in weeks and someone should read it as <em>how we do this</em> or <em>what we know about this</em>, it belongs here. If it goes stale in hours or is a workflow step, use another system.",
-    "outOfScopeHeading": "Out of scope",
+    "title": "Where DocsOps fits",
+    "p1": "DocsOps has a clear job: durable internal knowledge with an official published stand (see <overviewLink>What is DocsOps?</overviewLink>). Trackers, chat, Git, and monitoring keep theirs. That split is what makes DocsOps useful – not a second inbox for every kind of text.",
+    "p2": "Rule of thumb: if it should still matter in weeks as <em>how we do this</em> or <em>what we know about this</em>, put it here. Ephemeral chat, ticket status, and live signals stay in the tools built for them.",
+    "outOfScopeHeading": "Typical neighbours",
     "items": {
-      "issueTrackers": "<strong>Issue trackers</strong> – assignees, sprints, triage status. Document a <em>known issue</em> (symptoms, workaround, link to the ticket) in DocsOps; keep the ticket lifecycle in Jira, GitHub Issues, Linear, or similar.",
-      "chat": "<strong>Chat and ephemeral discussion</strong> – Slack, Teams, email threads. Capture decisions or lasting guidance as documents when they become organisational knowledge.",
-      "fileDrives": "<strong>Generic file drives</strong> – arbitrary binaries without a document lifecycle. Attachments belong on documents; bulk storage stays in Drive, Nextcloud, SharePoint, or object storage.",
-      "publicDocs": "<strong>Public product or API docs / developer portals</strong> – external audiences, SEO, public branding. Use dedicated doc sites; DocsOps stays intranet and org-native.",
-      "codeTruth": "<strong>Code as the source of truth</strong> – specs and docs owned by the repo and CI. DocsOps can complement internal process/project knowledge; it does not replace Git.",
-      "scratch": "<strong>Personal scratch without shared purpose</strong> – fleeting notes. Use personal space only as a draft pad; lasting knowledge belongs in a team or project context.",
-      "lob": "<strong>Line-of-business systems</strong> – CRM, HR, ERP master data. Those systems remain authoritative; DocsOps may only link to them.",
-      "opsSignals": "<strong>Live ops signals</strong> – monitoring, alerts, dashboards. Put <em>runbooks</em> for those signals in DocsOps; keep the signal itself in the observability stack.",
-      "wikis": "<strong>Everyone-edits-the-truth wikis</strong> – live overwrite of the official stand. DocsOps separates draft work from what readers see after lead publication."
+      "issueTrackers": "<strong>Issue trackers</strong> – Document known issues and workarounds here (symptoms, fix hints, link to the ticket). Assignees, sprints, and triage stay in Jira, GitHub Issues, Linear, or similar.",
+      "chat": "<strong>Chat</strong> – When a thread becomes lasting guidance or a decision others must find later, capture it here. Day-to-day discussion stays in Slack, Teams, or email.",
+      "opsSignals": "<strong>Ops tools</strong> – Write <em>runbooks</em> for alerts here. Dashboards, paging, and the alert UI stay in your observability stack.",
+      "codeTruth": "<strong>Git and CI</strong> – Process and project knowledge that people read lives here. Code and repo-owned specs stay in the repository.",
+      "fileDrives": "<strong>File stores and public doc sites</strong> – Attach files to documents here. Bulk dumps and external/API portals stay in Drive, Nextcloud, SharePoint, or a dedicated public site."
     },
-    "fineLineHeading": "Fine line",
+    "fineLineHeading": "Quick examples",
     "fineLine": {
-      "knownIssue": "<strong>Known issue / workaround</strong> → DocsOps; <strong>who fixes the bug</strong> → tracker.",
-      "runbook": "<strong>Runbook for alert X</strong> → DocsOps; <strong>the alert UI</strong> → ops tools.",
-      "meeting": "<strong>Meeting decision</strong> → DocsOps (notes or ADR); <strong>meeting chat</strong> → not."
+      "knownIssue": "<strong>Known issue / workaround</strong> → DocsOps; <strong>who owns the bug</strong> → tracker.",
+      "runbook": "<strong>Runbook for alert X</strong> → DocsOps; <strong>the alert itself</strong> → ops tools.",
+      "meeting": "<strong>Meeting decision worth keeping</strong> → DocsOps; <strong>the chat thread</strong> → chat."
     }
   },
   "organisation": {

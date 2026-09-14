@@ -28,19 +28,7 @@ export function HelpOutOfScopePage() {
 
       <Title order={2}>{t('outOfScope.outOfScopeHeading')}</Title>
       <List spacing="sm">
-        {(
-          [
-            'issueTrackers',
-            'chat',
-            'fileDrives',
-            'publicDocs',
-            'codeTruth',
-            'scratch',
-            'lob',
-            'opsSignals',
-            'wikis',
-          ] as const
-        ).map((key) => (
+        {(['issueTrackers', 'chat', 'opsSignals', 'codeTruth', 'fileDrives'] as const).map((key) => (
           <List.Item key={key}>
             <Trans i18nKey={`outOfScope.items.${key}`} ns="help" components={rich} />
           </List.Item>

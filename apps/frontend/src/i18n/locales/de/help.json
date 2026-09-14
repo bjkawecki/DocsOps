@@ -11,7 +11,7 @@
   },
   "topics": {
     "overview": "Was ist DocsOps?",
-    "outOfScope": "Was DocsOps nicht ist",
+    "outOfScope": "Wo DocsOps hingehört",
     "organisation": "Organisation & Scopes",
     "contexts": "Prozesse & Projekte",
     "documentTypes": "Dokumenttypen",
@@ -23,29 +23,25 @@
     "title": "Was ist DocsOps?",
     "p1": "DocsOps ist der Ort für dauerhaftes internes Wissen in Engineering-Organisationen: wie ihr arbeitet und was ihr über die Systeme wisst, die ihr baut und betreibt. Leser sehen einen offiziellen veröffentlichten Stand – nicht einfach die letzte Bearbeitung einer gemeinsamen Wiki-Seite.",
     "p2": "Ihr organisiert Arbeit nach <strong>Scope</strong> (Unternehmen, Abteilung, Team oder persönlicher Bereich) und legt Dokumente in <strong>Prozessen</strong> oder <strong>Projekten</strong> ab. Entwürfe bleiben editierbar; was Leads veröffentlichen, sehen die Leser.",
-    "p3": "Wahl zwischen Prozess und Projekt: <contextsLink>Prozesse & Projekte</contextsLink>. Was <strong>nicht</strong> hierher gehört: <outOfScopeLink>Was DocsOps nicht ist</outOfScopeLink>."
+    "p3": "Wahl zwischen Prozess und Projekt: <contextsLink>Prozesse & Projekte</contextsLink>. Wie DocsOps neben Tracker, Chat und Ops-Tools steht: <outOfScopeLink>Wo DocsOps hingehört</outOfScopeLink>."
   },
   "outOfScope": {
-    "title": "Was DocsOps nicht ist",
-    "p1": "Diese Seite zieht die Grenze. DocsOps ist für dauerhaftes internes Wissen mit offiziellem veröffentlichtem Stand (siehe <overviewLink>Was ist DocsOps?</overviewLink>). Es ersetzt nicht jedes Tool, das Text speichert oder Arbeit trackt.",
-    "p2": "Faustregel: Wenn der Inhalt in Wochen noch zählt und jemand ihn als <em>so machen wir das</em> oder <em>das wissen wir darüber</em> lesen soll, gehört er hierher. Wenn er in Stunden veraltet oder ein Workflow-Schritt ist, nutzt ein anderes System.",
-    "outOfScopeHeading": "Außerhalb des Scopes",
+    "title": "Wo DocsOps hingehört",
+    "p1": "DocsOps hat einen klaren Auftrag: dauerhaftes internes Wissen mit offiziellem veröffentlichtem Stand (siehe <overviewLink>Was ist DocsOps?</overviewLink>). Tracker, Chat, Git und Monitoring behalten den ihren. Genau diese Aufteilung macht DocsOps nützlich – nicht ein zweites Postfach für jeden Text.",
+    "p2": "Faustregel: Wenn etwas in Wochen noch als <em>so machen wir das</em> oder <em>das wissen wir darüber</em> zählen soll, gehört es hierher. Flüchtiger Chat, Ticket-Status und Live-Signale bleiben in den dafür gebauten Tools.",
+    "outOfScopeHeading": "Typische Nachbarn",
     "items": {
-      "issueTrackers": "<strong>Issue-Tracker</strong> – Assignees, Sprints, Triage-Status. Ein <em>bekanntes Problem</em> (Symptome, Workaround, Link zum Ticket) dokumentierst du in DocsOps; den Ticket-Lebenszyklus behältst du in Jira, GitHub Issues, Linear oder ähnlich.",
-      "chat": "<strong>Chat und flüchtige Diskussion</strong> – Slack, Teams, E-Mail-Threads. Entscheidungen oder bleibende Leitlinien fängst du als Dokumente ein, wenn sie Organisationswissen werden.",
-      "fileDrives": "<strong>Generische Dateiablagen</strong> – beliebige Binärdateien ohne Dokument-Lebenszyklus. Anhänge gehören an Dokumente; Massenspeicher bleibt in Drive, Nextcloud, SharePoint oder Object Storage.",
-      "publicDocs": "<strong>Öffentliche Produkt- oder API-Docs / Developer-Portale</strong> – externe Zielgruppen, SEO, öffentliches Branding. Nutze eigene Doc-Sites; DocsOps bleibt Intranet und organisationsnah.",
-      "codeTruth": "<strong>Code als Quelle der Wahrheit</strong> – Specs und Docs, die Repo und CI gehören. DocsOps kann internes Prozess-/Projektwissen ergänzen; Git ersetzt es nicht.",
-      "scratch": "<strong>Persönliches Gekritzel ohne gemeinsamen Zweck</strong> – flüchtige Notizen. Persönlichen Bereich nur als Entwurfspad nutzen; bleibendes Wissen gehört in Team- oder Projektkontext.",
-      "lob": "<strong>Fachsysteme</strong> – CRM, HR, ERP-Stammdaten. Diese Systeme bleiben maßgeblich; DocsOps darf nur darauf verlinken.",
-      "opsSignals": "<strong>Live-Ops-Signale</strong> – Monitoring, Alerts, Dashboards. <em>Runbooks</em> zu diesen Signalen gehören in DocsOps; das Signal selbst bleibt im Observability-Stack.",
-      "wikis": "<strong>Jeder-editiert-die-Wahrheit-Wikis</strong> – Live-Überschreiben des offiziellen Stands. DocsOps trennt Entwurfsarbeit von dem, was Leser nach Lead-Veröffentlichung sehen."
+      "issueTrackers": "<strong>Issue-Tracker</strong> – Bekannte Probleme und Workarounds dokumentierst du hier (Symptome, Hinweise, Link zum Ticket). Assignees, Sprints und Triage bleiben in Jira, GitHub Issues, Linear oder ähnlich.",
+      "chat": "<strong>Chat</strong> – Wird aus einem Thread eine bleibende Leitlinie oder eine Entscheidung, die andere später finden müssen, hältst du sie hier fest. Der Alltag bleibt in Slack, Teams oder E-Mail.",
+      "opsSignals": "<strong>Ops-Tools</strong> – <em>Runbooks</em> zu Alerts schreibst du hier. Dashboards, Alarmierung und die Alert-UI bleiben im Observability-Stack.",
+      "codeTruth": "<strong>Git und CI</strong> – Prozess- und Projektwissen, das Menschen lesen, lebt hier. Code und repo-eigene Specs bleiben im Repository.",
+      "fileDrives": "<strong>Dateiablagen und öffentliche Doc-Sites</strong> – Dateien hängst du an Dokumente. Massenablage und externe/API-Portale bleiben in Drive, Nextcloud, SharePoint oder einer eigenen öffentlichen Site."
     },
-    "fineLineHeading": "Grenzfälle",
+    "fineLineHeading": "Kurzbeispiele",
     "fineLine": {
-      "knownIssue": "<strong>Bekanntes Problem / Workaround</strong> → DocsOps; <strong>wer den Bug behebt</strong> → Tracker.",
-      "runbook": "<strong>Runbook für Alert X</strong> → DocsOps; <strong>die Alert-UI</strong> → Ops-Tools.",
-      "meeting": "<strong>Meeting-Entscheidung</strong> → DocsOps (Notizen oder ADR); <strong>Meeting-Chat</strong> → nicht."
+      "knownIssue": "<strong>Bekanntes Problem / Workaround</strong> → DocsOps; <strong>wer den Bug besitzt</strong> → Tracker.",
+      "runbook": "<strong>Runbook für Alert X</strong> → DocsOps; <strong>der Alert selbst</strong> → Ops-Tools.",
+      "meeting": "<strong>Meeting-Entscheidung zum Behalten</strong> → DocsOps; <strong>der Chat-Thread</strong> → Chat."
     }
   },
   "organisation": {
