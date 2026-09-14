@@ -15,17 +15,9 @@ export function HelpCollaborationPage() {
       <Text component="p">
         <Trans i18nKey="collaboration.p1" ns="help" components={rich} />
       </Text>
-      <Title order={2}>{t('collaboration.regulatedHeading')}</Title>
+      <Title order={2}>{t('collaboration.whyHeading')}</Title>
       <Text component="p">
-        <Trans i18nKey="collaboration.regulatedP1" ns="help" components={rich} />
-      </Text>
-      <Title order={2}>{t('collaboration.distributedHeading')}</Title>
-      <Text component="p">
-        <Trans i18nKey="collaboration.distributedP1" ns="help" components={rich} />
-      </Text>
-      <Title order={2}>{t('collaboration.mergeHeading')}</Title>
-      <Text component="p">
-        <Trans i18nKey="collaboration.mergeP1" ns="help" components={rich} />
+        <Trans i18nKey="collaboration.whyP1" ns="help" components={rich} />
       </Text>
       <Title order={2}>{t('collaboration.hubHeading')}</Title>
       <Text component="p">
@@ -45,6 +37,7 @@ export function HelpCollaborationPage() {
           ns="help"
           components={{
             contextsLink: <Anchor component={Link} to="/help/contexts" />,
+            workflowLink: <Anchor component={Link} to="/help/workflow" />,
           }}
         />
       </Text>

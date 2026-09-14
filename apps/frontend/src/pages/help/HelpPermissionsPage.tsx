@@ -1,5 +1,6 @@
-import { List, Stack, Text, Title } from '@mantine/core';
+import { Anchor, List, Stack, Text, Title } from '@mantine/core';
 import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 const rich = {
   strong: <strong />,
@@ -23,7 +24,23 @@ export function HelpPermissionsPage() {
           <Trans i18nKey="permissions.write" ns="help" components={rich} />
         </List.Item>
       </List>
-      <Text component="p">{t('permissions.p2')}</Text>
+      <Title order={2}>{t('permissions.leadsHeading')}</Title>
+      <List spacing="xs">
+        <List.Item>
+          <Trans
+            i18nKey="permissions.leads"
+            ns="help"
+            components={{
+              ...rich,
+              workflowLink: <Anchor component={Link} to="/help/workflow" />,
+              collaborationLink: <Anchor component={Link} to="/help/collaboration" />,
+            }}
+          />
+        </List.Item>
+        <List.Item>
+          <Trans i18nKey="permissions.grants" ns="help" components={rich} />
+        </List.Item>
+      </List>
     </Stack>
   );
 }

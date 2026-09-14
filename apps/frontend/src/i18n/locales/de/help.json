@@ -27,7 +27,7 @@
   },
   "outOfScope": {
     "title": "Was DocsOps nicht ist",
-    "p1": "DocsOps hält <strong>dauerhaftes internes Wissen</strong> mit einem offiziellen veröffentlichten Stand: wie die Organisation arbeitet (Prozesse) und was sie baut oder betreibt (Projekte). Es ersetzt nicht jedes Tool, das Text speichert oder Arbeit trackt.",
+    "p1": "Diese Seite zieht die Grenze. DocsOps ist für dauerhaftes internes Wissen mit offiziellem veröffentlichtem Stand (siehe <overviewLink>Was ist DocsOps?</overviewLink>). Es ersetzt nicht jedes Tool, das Text speichert oder Arbeit trackt.",
     "p2": "Faustregel: Wenn der Inhalt in Wochen noch zählt und jemand ihn als <em>so machen wir das</em> oder <em>das wissen wir darüber</em> lesen soll, gehört er hierher. Wenn er in Stunden veraltet oder ein Workflow-Schritt ist, nutzt ein anderes System.",
     "outOfScopeHeading": "Außerhalb des Scopes",
     "items": {
@@ -36,7 +36,7 @@
       "fileDrives": "<strong>Generische Dateiablagen</strong> – beliebige Binärdateien ohne Dokument-Lebenszyklus. Anhänge gehören an Dokumente; Massenspeicher bleibt in Drive, Nextcloud, SharePoint oder Object Storage.",
       "publicDocs": "<strong>Öffentliche Produkt- oder API-Docs / Developer-Portale</strong> – externe Zielgruppen, SEO, öffentliches Branding. Nutze eigene Doc-Sites; DocsOps bleibt Intranet und organisationsnah.",
       "codeTruth": "<strong>Code als Quelle der Wahrheit</strong> – Specs und Docs, die Repo und CI gehören. DocsOps kann internes Prozess-/Projektwissen ergänzen; Git ersetzt es nicht.",
-      "scratch": "<strong>Persönliches Gekritzel ohne gemeinsamen Zweck</strong> – flüchtige Notizen. Persönlichen Space nur als Entwurfspad nutzen; bleibendes Wissen gehört in Team- oder Projektkontext.",
+      "scratch": "<strong>Persönliches Gekritzel ohne gemeinsamen Zweck</strong> – flüchtige Notizen. Persönlichen Bereich nur als Entwurfspad nutzen; bleibendes Wissen gehört in Team- oder Projektkontext.",
       "lob": "<strong>Fachsysteme</strong> – CRM, HR, ERP-Stammdaten. Diese Systeme bleiben maßgeblich; DocsOps darf nur darauf verlinken.",
       "opsSignals": "<strong>Live-Ops-Signale</strong> – Monitoring, Alerts, Dashboards. <em>Runbooks</em> zu diesen Signalen gehören in DocsOps; das Signal selbst bleibt im Observability-Stack.",
       "wikis": "<strong>Jeder-editiert-die-Wahrheit-Wikis</strong> – Live-Überschreiben des offiziellen Stands. DocsOps trennt Entwurfsarbeit von dem, was Leser nach Lead-Veröffentlichung sehen."
@@ -50,13 +50,14 @@
   },
   "organisation": {
     "title": "Organisation & Scopes",
-    "p1": "Inhalte sind nach <strong>Scope</strong> gruppiert: typischerweise Unternehmen, dann Abteilung, dann Team. Du kannst auch einen <strong>persönlichen</strong> Bereich für eigene Entwürfe und Kontexte haben. Katalog und Navigation zeigen, wo du Zugriff hast.",
+    "p1": "Inhalte liegen in einem <strong>Scope</strong>: Unternehmen, dann Abteilung, dann Team. Diese Hierarchie bestimmt <strong>Eigentum und Standardzugriff</strong>. Scope-Leads (und Admins) verwalten Personen und Lead-Funktionen wie Veröffentlichen und Papierkorb für ihren Bereich.",
+    "p2": "Du kannst auch einen <strong>persönlichen</strong> Bereich für eigene Entwürfe und Kontexte haben. Katalog und Navigation zeigen nur Scopes und Dokumente, die du lesen darfst.",
     "contextsHeading": "Kontexte in einem Scope",
-    "p2": "Innerhalb eines Scopes erstellst du <strong>Prozesse</strong> und <strong>Projekte</strong> (und optionale Unterkontexte unter Projekten). Wann welches, wie benennen und was hinein gehört, steht unter <contextsLink>Prozesse & Projekte</contextsLink>."
+    "p3": "Innerhalb eines Scopes legst du <strong>Prozesse</strong> und <strong>Projekte</strong> an (und optionale Unterkontexte unter Projekten). Wann welches, wie benennen und was hinein gehört: <contextsLink>Prozesse & Projekte</contextsLink>."
   },
   "contexts": {
     "title": "Prozesse & Projekte",
-    "p1": "Dokumente leben in einem <strong>Kontext</strong>: einem <strong>Prozess</strong>, einem <strong>Projekt</strong> oder einem <strong>Unterkontext</strong> unter einem Projekt. Die richtige Art macht Wissen auffindbar. Nach dieser Seite solltest du wissen, wann welcher Kontext passt, was typischerweise hinein gehört, wie du ihn benennst und wie du erkennst, ob etwas in einen bestehenden Kontext passt.",
+    "p1": "Dokumente leben in einem <strong>Kontext</strong>: einem <strong>Prozess</strong>, einem <strong>Projekt</strong> oder einem <strong>Unterkontext</strong> unter einem Projekt. Die richtige Art macht Wissen auffindbar.",
     "twoQuestionsHeading": "Zwei Fragen",
     "processQ": "<strong>Prozess</strong> – Gibt es einen klaren <strong>Auslöser</strong>? Frage: <em>Was tun wir, wenn …?</em> (zum Beispiel wenn jemand startet, wenn ein Kunde ein Problem meldet, wenn gemeinsame Zugangsregeln nötig sind).",
     "projectQ": "<strong>Projekt</strong> – Gibt es einen klaren <strong>Gegenstand</strong>? Frage: <em>Was wissen wir über …?</em> (ein Produkt, eine Initiative oder ein Workstream, den ihr baut oder betreibt).",
@@ -83,7 +84,7 @@
   },
   "documentTypes": {
     "title": "Dokumenttypen",
-    "p1": "Ein <strong>Dokumenttyp</strong> beschreibt, welche Art Dokument du schreibst (Policy, Runbook, ADR, …). Ein <strong>Template</strong> ist optionaler Startinhalt für diesen Typ. Der Kontext (Prozess / Projekt) beantwortet <em>wo</em> das Dokument lebt; der Typ beantwortet <em>was</em> es ist. Built-ins decken einen kleinen Kern ab; Scope-Leads können eigene Typen ergänzen.",
+    "p1": "Ein <strong>Dokumenttyp</strong> beantwortet <em>was</em> du schreibst (Richtlinie, Runbook, ADR, …). Ein <strong>Template</strong> ist optionaler Startinhalt für diesen Typ. Der Kontext (Prozess / Projekt) beantwortet <em>wo</em> es lebt. Built-in-Typen decken einen kleinen Kern ab; Scope-Leads können eigene Typen ergänzen.",
     "choosingHeading": "Dokumenttyp wählen",
     "chooseTemplate": "Wähle einen Typ mit Template, um eine Kapitelgliederung in den neuen Entwurf einzufügen.",
     "chooseBlank": "Wähle leeres Dokument für einen leeren Entwurf. Den Typ kannst du später noch setzen.",
@@ -107,39 +108,37 @@
   },
   "permissions": {
     "title": "Lese- & Schreibrechte",
-    "p1": "Zugriff folgt dem Ort, an dem ein Prozess oder Projekt in der Organisation <strong>lebt</strong> (Owner-Scope), und deiner Rolle in diesem Scope. Du siehst nur Kontexte und Dokumente, die du lesen darfst.",
+    "p1": "Wer ein Dokument öffnen darf, folgt dem <strong>Owner-Scope</strong> (Unternehmen, Abteilung, Team oder persönlich) und deiner Rolle dort – plus eventuellen <strong>expliziten Grants</strong> am Dokument. Du siehst nur Kontexte und Dokumente, die du lesen darfst.",
     "readWriteHeading": "Lesen vs. Schreiben",
-    "read": "<strong>Lesen</strong> erlaubt, Dokumente und Kontextseiten in diesem Scope zu öffnen.",
-    "write": "<strong>Schreiben</strong> erlaubt, Entwürfe zu erstellen und zu bearbeiten, inhaltsändernde Aktionen auszuführen und an Workflows teilzunehmen, denen du zugewiesen bist (zum Beispiel Reviews), nach den Regeln eurer Organisation.",
-    "p2": "Unternehmens-Leads und Administratoren können breitere Verwaltungsrechte haben (zum Beispiel Archiv oder Papierkorb). Die genauen Regeln hängen von Deployment und Rollenkonfiguration ab."
+    "read": "<strong>Lesen</strong> – Kontextseiten und Dokumente öffnen. Bei veröffentlichten Dokumenten sehen Leser die veröffentlichte Fassung, nicht jeden Entwurfsschritt.",
+    "write": "<strong>Schreiben</strong> – Dokumente anlegen und am gemeinsamen Lead-Draft arbeiten (als Autor mit Vorschlägen oder als Lead mit direkten Edits), je nach Rolle.",
+    "leadsHeading": "Leads und Teilen",
+    "leads": "<strong>Scope-Leads</strong> (und Admins) können veröffentlichen, Papierkorb/Archiv für ihren Bereich verwalten und Autoren-Vorschläge annehmen oder ablehnen. Details: <workflowLink>Dokument-Lebenszyklus</workflowLink> und <collaborationLink>Reviews & Freigaben</collaborationLink>.",
+    "grants": "<strong>Grants</strong> teilen ein einzelnes Dokument mit Personen oder Teams außerhalb der üblichen Scope-Mitgliedschaft – ohne das Dokument zu verschieben."
   },
   "workflow": {
     "title": "Dokument-Lebenszyklus",
-    "p1": "Dokumente gehen in der Regel vom ersten Entwurf über Zusammenarbeit und Qualitätsgates in einen veröffentlichten Zustand. Die Labels im Produkt können leicht variieren, die Idee bleibt gleich.",
-    "draft": "<strong>Entwurf</strong> – Starte einen Entwurf in einem Kontext, in dem du schreiben darfst. Der Entwurf ist deine oder eure Arbeitskopie, bis er veröffentlicht oder nach eurem Prozess geteilt wird.",
-    "edit": "<strong>Bearbeiten</strong> – Inhalt, Titel und Metadaten aktualisieren. Die Versionshistorie zeigt, was sich über die Zeit geändert hat.",
-    "review": "<strong>Review</strong> – Wenn aktiviert, können Reviewer kommentieren oder freigeben, damit Änderungen den Anspruch an Genauigkeit und Compliance erfüllen, bevor sie in die kanonische veröffentlichte Linie einfließen.",
-    "publish": "<strong>Mergen / Veröffentlichen</strong> – Akzeptierte Änderungen fließen in das veröffentlichte Dokument (oder eine neue veröffentlichte Version) ein, damit Leser ein stabiles, geprüftes Ergebnis sehen statt jeden Tastenanschlag im Fluss.",
-    "p2": "Archivieren und Papierkorb sind eigene Lebenszyklus-Schritte zum Zurückziehen oder Wiederherstellen von Inhalten."
+    "p1": "Jedes Dokument hat einen <strong>gemeinsamen Lead-Draft</strong> und, nach dem Veröffentlichen, eine <strong>offizielle Version</strong>, die Leser sehen. Entwurfsarbeit bleibt editierbar; Veröffentlichen macht einen stabilen Stand für die Organisation.",
+    "draft": "<strong>Entwurf</strong> – Lege ein Dokument in einem Kontext an, in dem du schreiben darfst. Der Lead-Draft ist die gemeinsame Arbeitskopie.",
+    "edit": "<strong>Zusammenarbeiten</strong> – Scope-Leads bearbeiten den Lead-Draft direkt. Autoren mit Schreibrecht schlagen Änderungen als <strong>Inline-Vorschläge</strong> (Einfügen/Löschen) vor, die der Lead reviewed.",
+    "review": "<strong>Review</strong> – Leads nehmen ausstehende Vorschläge an oder lehnen sie ab (auch im Freigaben-Hub). Veröffentlichen ist blockiert, solange Vorschläge offen sind.",
+    "publish": "<strong>Veröffentlichen</strong> – Ein Scope-Lead veröffentlicht den Draft als neue offizielle Version. Leser sehen dann diesen Stand; die Versionshistorie behält frühere Veröffentlichungen.",
+    "p2": "Archiv und Papierkorb ziehen Dokumente und Kontexte zurück oder stellen sie wieder her – unabhängig vom Draft/Publish-Pfad."
   },
   "collaboration": {
     "title": "Reviews & Freigaben",
-    "p1": "Viele Teams kommen mit <strong>Echtzeit-Kollaboration</strong> klar (mehrere Personen in einem Live-Entwurf). DocsOps zielt besonders auf Organisationen, für die dieses Modell <strong>nicht</strong> der Weg ist, Dokumentation zu shippen – wegen Regulierung, verteilter Teams oder dem Bedarf an einer klaren, abgestimmten „offiziellen“ Version.",
-    "regulatedHeading": "Reguliertes und verantwortbares Arbeiten",
-    "regulatedP1": "In regulierten Umfeldern ist „was gerade im gemeinsamen Buffer steht“ selten das Artefakt, hinter dem du stehen willst. Du brauchst einen <strong>definierten Moment</strong>, in dem eine Änderung akzeptiert wird: wer reviewed hat, was freigegeben wurde und was Leser als aktuell behandeln sollen. Review-Schritte und eine veröffentlichte Linie geben diese Grenze statt eines endlosen Edit-Streams.",
-    "distributedHeading": "Verteilte und asynchrone Teams",
-    "distributedP1": "Wenn Menschen über Zeitzonen oder Kalender hinweg arbeiten, ist die Erwartung, alle gleichzeitig im selben Dokument online zu haben, fragil. Ein Workflow um <strong>Entwürfe, Kommentare und Merge</strong> passt zu Übergaben: du schließt eine Änderung ab, andere reviewen, wenn sie können, und das gemergte Ergebnis wird die gemeinsame Wahrheit – ohne gleichzeitige Anwesenheit.",
-    "mergeHeading": "Warum Merge statt Live-Sync?",
-    "mergeP1": "Viele Cursor in einer Oberfläche zu synchronisieren ist für sich schon ein tiefes Engineering-Problem. Das ist Nebensache: der Hauptpunkt ist Produktfit. Ein <strong>merge-basierter</strong> Pfad – Entwurf → Review (wo nötig) → Integration in eine veröffentlichte Version – entspricht dem, wie viele Organisationen <strong>vorhersehbare Ergebnisse</strong>, lesbare Historie und einen klaren Ort für Sign-off wollen.",
+    "p1": "DocsOps ist für einen klaren <strong>offiziellen Stand</strong> gebaut: nicht „was gerade im gemeinsamen Buffer steht“. Autoren schlagen vor; Leads entscheiden; Leser sehen, was veröffentlicht wurde.",
+    "whyHeading": "Warum dieses Modell",
+    "whyP1": "Es passt zu regulierter oder verantwortbarer Arbeit (definierter Annahme-Moment) und zu verteilten Teams (Änderung übergeben, asynchron reviewen). Reines Live-Mitschreiben an der „Wahrheit“ ist eine andere Produktform.",
     "hubHeading": "Freigaben-Hub",
-    "hubP1": "Öffne <strong>Freigaben</strong> in der Sidebar für Entscheidungen, die auf dich warten. Es gibt zwei Bereiche:",
+    "hubP1": "Öffne <strong>Freigaben</strong> in der Sidebar für Entscheidungen, die auf dich warten:",
     "hubReviews": "<strong>Reviews</strong> – Dokumente mit ausstehenden Inline-Vorschlägen, die du als Scope-Lead annehmen oder ablehnen kannst.",
-    "hubMoves": "<strong>Verschiebeanfragen</strong> – wenn jemand ein Dokument <strong>in deinen Scope</strong> verschieben will (eingehend: annehmen oder ablehnen) oder wenn du eine Verschiebung <strong>aus deinem Scope</strong> beantragt hast (ausgehend: zurückziehen, solange ausstehend).",
-    "hubP2": "Wie Verschiebungen im gleichen Scope und Anfragen über Scopes hinweg am Dokument selbst funktionieren, steht unter <contextsLink>Prozesse & Projekte → Dokumente verschieben</contextsLink>.",
+    "hubMoves": "<strong>Verschiebeanfragen</strong> – jemand will ein Dokument <strong>in deinen Scope</strong> verschieben (annehmen oder ablehnen) oder du hast eine Verschiebung <strong>aus deinem Scope</strong> beantragt (zurückziehen, solange ausstehend).",
+    "hubP2": "Verschiebungen im gleichen Scope und Anfragen über Scopes hinweg am Dokument: <contextsLink>Prozesse & Projekte → Dokumente verschieben</contextsLink>. Lebenszyklus und Veröffentlichen: <workflowLink>Dokument-Lebenszyklus</workflowLink>.",
     "getHeading": "Was du bekommst",
-    "getPublished": "Veröffentlichte Versionen, denen Leser vertrauen können, plus Änderungshistorie für Audit und Lernen.",
-    "getReview": "Raum für Review und Freigabe, wo euer Prozess das verlangt.",
-    "getAmbiguity": "Weniger Unklarheit darüber, was „live“ ist und was noch in Arbeit.",
+    "getPublished": "Veröffentlichte Versionen, denen Leser vertrauen können, plus Historie.",
+    "getReview": "Einen klaren Annehmen/Ablehnen-Pfad für Autoren-Vorschläge.",
+    "getAmbiguity": "Weniger Unklarheit, was live ist und was noch Entwurf.",
     "getHub": "Einen Ort für Vorschlags-Reviews und Verschiebeentscheidungen über Scopes hinweg."
   }
 }

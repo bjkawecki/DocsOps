@@ -15,10 +15,13 @@ export function HelpOrganisationPage() {
       <Text component="p">
         <Trans i18nKey="organisation.p1" ns="help" components={rich} />
       </Text>
+      <Text component="p">
+        <Trans i18nKey="organisation.p2" ns="help" components={rich} />
+      </Text>
       <Title order={2}>{t('organisation.contextsHeading')}</Title>
       <Text component="p">
         <Trans
-          i18nKey="organisation.p2"
+          i18nKey="organisation.p3"
           ns="help"
           components={{
             ...rich,

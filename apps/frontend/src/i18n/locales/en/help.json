@@ -27,7 +27,7 @@
   },
   "outOfScope": {
     "title": "What DocsOps is not",
-    "p1": "DocsOps holds <strong>durable internal knowledge</strong> with an official published stand: how the organisation works (processes) and what it is building or running (projects). It is not a replacement for every tool that stores text or tracks work.",
+    "p1": "This page draws the boundary. DocsOps is for durable internal knowledge with an official published stand (see <overviewLink>What is DocsOps?</overviewLink>). It is not a replacement for every tool that stores text or tracks work.",
     "p2": "Rule of thumb: if the value still matters in weeks and someone should read it as <em>how we do this</em> or <em>what we know about this</em>, it belongs here. If it goes stale in hours or is a workflow step, use another system.",
     "outOfScopeHeading": "Out of scope",
     "items": {
@@ -50,13 +50,14 @@
   },
   "organisation": {
     "title": "Organisation & scopes",
-    "p1": "Content is grouped by <strong>scope</strong>: typically company, then department, then team. You may also have a <strong>personal</strong> area for your own drafts and contexts. The catalog and navigation reflect where you have access.",
+    "p1": "Content sits in a <strong>scope</strong>: company, then department, then team. That hierarchy decides <strong>ownership and default access</strong>. Scope leads (and admins) manage people and lead features such as publishing and trash for their area.",
+    "p2": "You may also have a <strong>personal</strong> area for your own drafts and contexts. The catalog and navigation only show scopes and documents you can read.",
     "contextsHeading": "Contexts in a scope",
-    "p2": "Within a scope you create <strong>processes</strong> and <strong>projects</strong> (and optional subcontexts under projects). For when to use which, how to name them, and what belongs inside, see <contextsLink>Processes & projects</contextsLink>."
+    "p3": "Inside a scope you create <strong>processes</strong> and <strong>projects</strong> (and optional subcontexts under projects). When to use which, how to name them, and what belongs inside: <contextsLink>Processes & projects</contextsLink>."
   },
   "contexts": {
     "title": "Processes & projects",
-    "p1": "Documents live in a <strong>context</strong>: a <strong>process</strong>, a <strong>project</strong>, or a <strong>subcontext</strong> under a project. Choosing the right kind keeps knowledge easy to find. After reading this page you should know when to use which context, what typically belongs inside, how to name it, and how to tell whether something fits an existing context.",
+    "p1": "Documents live in a <strong>context</strong>: a <strong>process</strong>, a <strong>project</strong>, or a <strong>subcontext</strong> under a project. The right kind keeps knowledge easy to find.",
     "twoQuestionsHeading": "Two questions",
     "processQ": "<strong>Process</strong> – Is there a clear <strong>trigger</strong>? Ask: <em>What do we do when …?</em> (for example when someone joins, when a customer reports a problem, when we need shared access rules).",
     "projectQ": "<strong>Project</strong> – Is there a clear <strong>subject</strong>? Ask: <em>What do we know about …?</em> (a product, initiative, or workstream you are building or running).",
@@ -83,7 +84,7 @@
   },
   "documentTypes": {
     "title": "Document types",
-    "p1": "A <strong>document type</strong> describes what kind of document you are writing (Policy, Runbook, ADR, …). A <strong>template</strong> is optional starter content for that type. Context (process / project) answers <em>where</em> the document lives; type answers <em>what</em> it is. Built-ins cover a small core; scope leads can add custom types for everything else.",
+    "p1": "A <strong>document type</strong> answers <em>what</em> you are writing (policy, runbook, ADR, …). A <strong>template</strong> is optional starter content for that type. The context (process / project) answers <em>where</em> it lives. Built-in types cover a small core; scope leads can add custom types.",
     "choosingHeading": "Choosing a document type",
     "chooseTemplate": "Pick a type with a template to insert a chapter outline into the new draft.",
     "chooseBlank": "Choose blank document if you want an empty draft. You can still set a type later.",
@@ -107,39 +108,37 @@
   },
   "permissions": {
     "title": "Read & write access",
-    "p1": "Access follows where a process or project <strong>lives</strong> in the organisation (its owner scope) and your role in that scope. You will only see contexts and documents you are allowed to read.",
+    "p1": "Who can open a document follows its <strong>owner scope</strong> (company, department, team, or personal) and your role there – plus any <strong>explicit grants</strong> on that document. You only see contexts and documents you are allowed to read.",
     "readWriteHeading": "Read vs write",
-    "read": "<strong>Read</strong> lets you open documents and context pages in that scope.",
-    "write": "<strong>Write</strong> lets you create and edit drafts, run actions that change content, and participate in workflows you are assigned to (such as reviews), subject to your organisation's rules.",
-    "p2": "Company leads and administrators can have broader management capabilities (for example archiving or trash). Exact rules depend on your deployment and role configuration."
+    "read": "<strong>Read</strong> – open context pages and documents. For published documents, readers see the published version, not every draft edit.",
+    "write": "<strong>Write</strong> – create documents and work on the shared lead draft (as author with suggestions, or as lead with direct edits), depending on your role.",
+    "leadsHeading": "Leads and sharing",
+    "leads": "<strong>Scope leads</strong> (and admins) can publish, manage trash/archive for their area, and accept or decline author suggestions. Details: <workflowLink>Document lifecycle</workflowLink> and <collaborationLink>Reviews & approvals</collaborationLink>.",
+    "grants": "<strong>Grants</strong> share a single document with people or teams outside the usual scope membership – without moving the document."
   },
   "workflow": {
     "title": "Document lifecycle",
-    "p1": "Documents generally move from an initial draft through collaboration and quality gates to a published state. The labels in the product may vary slightly, but the idea is consistent.",
-    "draft": "<strong>Draft</strong> – Start a draft in a context you can write to. The draft is yours or your team's working copy until it is published or shared as your process defines.",
-    "edit": "<strong>Edit</strong> – Update content, titles, and metadata. Version history helps you see what changed over time.",
-    "review": "<strong>Review</strong> – When enabled, reviewers can comment or approve so changes meet bar for accuracy and compliance before they land in the canonical published line.",
-    "publish": "<strong>Merge / publish</strong> – Accepted changes are integrated into the published document (or a new published version), so readers see a stable, reviewed result rather than every keystroke in progress.",
-    "p2": "Archiving and trash are separate lifecycle steps for retiring or recovering content."
+    "p1": "Every document has a <strong>shared lead draft</strong> and, once published, an <strong>official version</strong> that readers see. Draft work stays editable; publishing makes a stable stand for the organisation.",
+    "draft": "<strong>Draft</strong> – Create a document in a context you can write to. The lead draft is the shared working copy for that document.",
+    "edit": "<strong>Collaborate</strong> – Scope leads edit the lead draft directly. Authors with write access propose changes as <strong>inline suggestions</strong> (insert/delete marks) for the lead to review.",
+    "review": "<strong>Review</strong> – Leads accept or decline pending suggestions (also from the Approvals hub). Publishing is blocked while suggestions are still pending.",
+    "publish": "<strong>Publish</strong> – A scope lead publishes the draft as the new official version. Readers then see that stand; version history keeps earlier published versions.",
+    "p2": "Archive and trash retire or recover documents and contexts without using the draft/publish path."
   },
   "collaboration": {
     "title": "Reviews & approvals",
-    "p1": "Many teams are fine with <strong>real-time collaborative editing</strong> (several people in one live draft). DocsOps is aimed especially at organisations where that model is <strong>not</strong> how they want to ship documentation – whether because of regulation, distributed teams, or the need for a clear, agreed “official” version.",
-    "regulatedHeading": "Regulated and accountable work",
-    "regulatedP1": "In regulated settings, “whatever is in the shared buffer right now” is rarely the artifact you want to stand behind. You need a <strong>defined moment</strong> when a change is accepted: who reviewed it, what was approved, and what readers should treat as current. Review steps and a published line give you that boundary instead of a continuous stream of edits.",
-    "distributedHeading": "Distributed and asynchronous teams",
-    "distributedP1": "When people work across time zones or calendars, expecting everyone to be online in the same document at once is fragile. A workflow built around <strong>drafts, comments, and merge</strong> fits hand-offs: you finish a change, others review when they can, and the merged result becomes the shared truth – without requiring simultaneous presence.",
-    "mergeHeading": "Why merge, not fancy live sync?",
-    "mergeP1": "Keeping many cursors in sync in one surface is a deep engineering problem on its own. That is a secondary point: the main one is product fit. A <strong>merge-based</strong> path – draft → review (where needed) → integrate into a published version – matches how many organisations want <strong>predictable outcomes</strong>, readable history, and a single place for sign-off.",
+    "p1": "DocsOps is built for a clear <strong>official stand</strong>: not “whatever is in the shared buffer right now”. Authors propose; leads decide; readers see what was published.",
+    "whyHeading": "Why this model",
+    "whyP1": "It fits regulated or accountable work (a defined moment of acceptance) and distributed teams (hand off a change, review asynchronously). Pure real-time co-editing of the live truth is a different product shape.",
     "hubHeading": "Approvals hub",
-    "hubP1": "Open <strong>Approvals</strong> in the sidebar for decisions waiting on you. It has two sections:",
+    "hubP1": "Open <strong>Approvals</strong> in the sidebar for decisions waiting on you:",
     "hubReviews": "<strong>Reviews</strong> – documents with pending inline suggestions you can accept or decline as a scope lead.",
-    "hubMoves": "<strong>Move requests</strong> – when someone asks to move a document <strong>into your scope</strong> (inbound: accept or reject) or when you requested a move <strong>out of your scope</strong> (outbound: withdraw while pending).",
-    "hubP2": "How same-scope moves and cross-scope requests work on the document itself is covered under <contextsLink>Processes & projects → Moving documents</contextsLink>.",
+    "hubMoves": "<strong>Move requests</strong> – someone wants to move a document <strong>into your scope</strong> (accept or reject) or you requested a move <strong>out of your scope</strong> (withdraw while pending).",
+    "hubP2": "Same-scope moves and cross-scope requests on the document: <contextsLink>Processes & projects → Moving documents</contextsLink>. Lifecycle and publishing: <workflowLink>Document lifecycle</workflowLink>.",
     "getHeading": "What you get",
-    "getPublished": "Published versions readers can trust, plus change history for audit and learning.",
-    "getReview": "Room for review and approval where your process requires it.",
-    "getAmbiguity": "Less ambiguity about what is “live” versus in progress.",
-    "getHub": "A single place for suggestion reviews and cross-scope document move decisions."
+    "getPublished": "Published versions readers can trust, with history.",
+    "getReview": "A clear accept/decline path for author suggestions.",
+    "getAmbiguity": "Less confusion about what is live versus still in draft.",
+    "getHub": "One place for suggestion reviews and cross-scope move decisions."
   }
 }

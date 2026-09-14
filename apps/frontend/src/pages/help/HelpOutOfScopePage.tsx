@@ -1,5 +1,6 @@
-import { List, Stack, Text, Title } from '@mantine/core';
+import { Anchor, List, Stack, Text, Title } from '@mantine/core';
 import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 const rich = {
   strong: <strong />,
@@ -12,7 +13,14 @@ export function HelpOutOfScopePage() {
     <Stack gap={0} align="stretch" style={{ textAlign: 'left' }}>
       <Title order={1}>{t('outOfScope.title')}</Title>
       <Text component="p">
-        <Trans i18nKey="outOfScope.p1" ns="help" components={rich} />
+        <Trans
+          i18nKey="outOfScope.p1"
+          ns="help"
+          components={{
+            ...rich,
+            overviewLink: <Anchor component={Link} to="/help/overview" />,
+          }}
+        />
       </Text>
       <Text component="p">
         <Trans i18nKey="outOfScope.p2" ns="help" components={rich} />
