@@ -195,4 +195,4 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 - `docsops.org` Redirect / OSS-Rolle
 
-**Nächster Schritt:** Mobile-Review Landing (§19) bzw. Betrieb/Monitoring nach Bedarf; Kunden-Prod-Instanz bleibt separat (Managed Hosting).
+**Nächster Schritt:** Mobile-Review Landing (§19) nach Bedarf. Kunden-Prod stellen Kunden selbst per Install-Bundle auf; kein eigener Projekt-Stack nötig (siehe Umsetzungs-Todo §19).

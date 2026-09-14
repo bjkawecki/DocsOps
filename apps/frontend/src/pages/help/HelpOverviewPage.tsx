@@ -14,8 +14,11 @@ export function HelpOverviewPage() {
       <Title order={1}>{t('overview.title')}</Title>
       <Text component="p">{t('overview.p1')}</Text>
       <Text component="p">
+        <Trans i18nKey="overview.p2" ns="help" components={rich} />
+      </Text>
+      <Text component="p">
         <Trans
-          i18nKey="overview.p2"
+          i18nKey="overview.p3"
           ns="help"
           components={{
             ...rich,
@@ -23,9 +26,6 @@ export function HelpOverviewPage() {
             outOfScopeLink: <Anchor component={Link} to="/help/out-of-scope" />,
           }}
         />
-      </Text>
-      <Text component="p" fs="italic">
-        {t('overview.p3')}
       </Text>
     </Stack>
   );

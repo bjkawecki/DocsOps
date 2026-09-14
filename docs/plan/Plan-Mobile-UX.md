@@ -98,7 +98,7 @@ Horizontal-Scroll (P2-c) nur als kurzer Fallback, nicht als Zielbild.
 
 #### 2.5.1 Listen-Suche / Filter Compact – FAB Toggle-Panel
 
-**Status (2026-09-13):** Plan-Ziel iteriert. Früher Welle 3 Inline-Suche; dann Sticky; dann Overlay-Sheet (Treffer verdeckt). **Aktuell:** unter Compact **Search-FAB** und **Filter-FAB** öffnen/schließen jeweils ein **fixes Panel unten** (zweiter Tap auf denselben FAB schließt). Liste dahinter bleibt sichtbar; Live-Filter beim Tippen. Nur ein Panel gleichzeitig (Öffnen schließt das andere).
+**Status (2026-09-14):** Plan-Ziel iteriert und im Code (Welle 6). Manuelle Viewport-Abnahme erledigt. Unter Compact **Search-FAB** und **Filter-FAB** öffnen/schließen jeweils ein **fixes Panel unten** (zweiter Tap auf denselben FAB schließt). Liste dahinter bleibt sichtbar; Live-Filter beim Tippen. Nur ein Panel gleichzeitig (Öffnen schließt das andere).
 
 **Regel (unter `compact` / &lt; `lg`):**
 
@@ -144,7 +144,7 @@ Historischer Optionsraum (nur Dokumentation): Hybrid mit 4–5 Primärs + „Meh
 
 ### 2.9 Page Mobile Actions (FAB-Stack) – gewählt
 
-**Status (2026-09-13):** Pattern festgelegt; Shared-Baustein + Seiten-Migration (Welle 5) im Code. **Offen:** manuelle Viewport-Abnahme.
+**Status (2026-09-14):** Pattern festgelegt; Shared-Baustein + Seiten-Migration (Welle 5) im Code. Manuelle Viewport-Abnahme erledigt.
 
 **Regel (unter `compact` / &lt; `lg`):** Seiten-Chrome-Aktionen (nicht Modal-Footer, nicht Shell-Top-Bar, nicht Zeilen-/Listen-Inline) liegen in einem **vertikalen FAB-Stack unten rechts**, über dem Inhalt und **über** dem Debug-FAB. Breadcrumb-Trail bleibt freigeräumt (`useSetAppShellBreadcrumbActions(null)` unter Compact).
 
@@ -215,8 +215,8 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - [x] Notifications: Kategorien als Select/Segmented über der Inbox (kein gestapelter Sidebar-Block); [`NotificationsPage.tsx`](../../apps/frontend/src/pages/account/NotificationsPage.tsx) – ggf. Wrapper nur wenn Nav später tiefer wird
 - [x] Breadcrumb-Actions: [`AppShellBreadcrumbBar.tsx`](../../apps/frontend/src/components/appShell/AppShellBreadcrumbBar.tsx) – `wrap` erlauben; auf `narrow` Actions unter Titel oder Overflow
 - [x] i18n EN/DE für Trigger-Labels („Menü“ / Bereichsname)
-- [ ] Manuell @~800px (`compact`, Shell schon desktop) und @375px: Content sichtbar ohne volle Sidebar-Karte; Drawer/Select erreichbar
-- [ ] Desktop ≥1280: Zwei-Spalten wie zuvor
+- [x] Manuell @~800px (`compact`, Shell schon desktop) und @375px: Content sichtbar ohne volle Sidebar-Karte; Drawer/Select erreichbar
+- [x] Desktop ≥1280: Zwei-Spalten wie zuvor
 - [x] Lint / i18n-check
 
 **Nicht in Welle 2:** Card-Listen (P2), Catalog-Filter-Sheet, Settings-Drill-down, Home-Illustration (Welle 3); Approvals/Workspace/Trash folgen demselben Wrapper danach (Welle 3/4).
@@ -230,7 +230,7 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - [x] Settings Drill-down im Modal (fullscreen + Nav/Content; Deep-Link öffnet Content)
 - [x] Home-Illustration mobil entschärfen (`visibleFrom="lg"` + opaque Feed-Hintergrund)
 - [x] Kurzer Audit: weitere großen App-Modals einspaltig (kein P5); Approvals + Context Workspace auf `ResponsiveContentNav` (Trash/Shared/MostRead → Welle 4)
-- [ ] Manuell @375 / ~800 / ≥1280 Regression
+- [x] Manuell @375 / ~800 / ≥1280 Regression
 - [x] Lint / i18n-check
 
 **Done when:** Bild 1, 3, 4, 6, 7-Symptome am Pilot behoben; Templates/Help bereits aus Welle 2 nutzbar.
@@ -246,7 +246,7 @@ Kurzziele laut §2.3 / §2.5 (Breadcrumb-Teil): Content first unter `compact`; N
 - [x] Login/Demo Touch-Targets (≥44px)
 - [x] Search Modal narrow fullscreen; What's new Collapse Hit-Area ≥44px
 - [x] P4-f als verworfen dokumentiert (§2.8); Landing unberührt (§19)
-- [ ] Manuell 375 / ~800 / ≥1280 (Abnahme durch Reviewer)
+- [x] Manuell 375 / ~800 / ≥1280 (Abnahme durch Reviewer, 2026-09-14)
 - [x] Lint / i18n-check (`pnpm run lint`, `pnpm run check:i18n`)
 
 **Done when:** Abdeckungslücken aus Inventar §6 abgearbeitet oder mit Notiz zurückgestellt; Desktop `wide` unverändert nutzbar.
@@ -266,7 +266,7 @@ Kurzziele: Shared `PageMobileActionBar` nutzen; unter Compact Breadcrumb-CTAs un
 - [x] Notifications: Mark-all + Unread-Filter-Strategie (Switch ggf. im Inhalt lassen)
 - [x] Catalog: Filter-Button als FAB-Kandidat prüfen
 - [x] Modal offen → FAB hidden; Modal z-index über Debug (Best Practice)
-- [ ] Manuell @375 / ~800 / ≥1280
+- [x] Manuell @375 / ~800 / ≥1280 (2026-09-14)
 - [x] Lint / i18n-check
 
 **Done when:** Unter Compact keine langen Text-CTAs in der Breadcrumb-Zeile auf inventarisierten Seiten; Wide unverändert.
@@ -281,7 +281,7 @@ Kurzziele: Kein dauerhaftes Such-/Filterfeld unter Compact; Search- und Filter-F
 - [x] Shared `useCompactListSearchFab` / `useCompactListFilterFab` (+ Host merge mehrerer Registranten)
 - [x] Catalog, Context-Docs/Shared, Trash/Archive
 - [x] Admin Users + Entity-Toolbars (Teams/Departments)
-- [ ] Manuell @375 / ~800 / ≥1280
+- [x] Manuell @375 / ~800 / ≥1280 (2026-09-14)
 - [x] Lint / i18n-check
 
 **Done when:** Unter Compact keine Inline-Listen-Suche/-Filterleiste; FAB öffnet Toggle-Panel; Wide unverändert.
@@ -340,4 +340,4 @@ Siehe [Umsetzungs-Todo §20](Umsetzungs-Todo.md) – Mobile-Review verweist auf 
 | 2026-09-13 | §2.5.1 Search-FAB: Bottom-Toggle-Panel statt Overlay-Drawer (Liste sichtbar)                              |
 | 2026-09-13 | §2.5.1 Filter-FAB: gleiches Bottom-Toggle-Panel wie Suche (Catalog, Trash/Archive)                        |
 | 2026-09-13 | Shell-Suche: unter narrow aus Main-Sidebar entfernt (Suche über Katalog/Listen-FABs)                      |
-| 2026-09-13 | Notifications compact: Filter-FAB + CompactListCount (wie Catalog/Trash)                                  |
+| 2026-09-14 | Manuelle Viewport-Abnahme App (Wellen 2–6) erledigt; Umsetzungs-Todo §20 bereinigt                        |

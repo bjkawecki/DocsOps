@@ -21,9 +21,9 @@
   },
   "overview": {
     "title": "Was ist DocsOps?",
-    "p1": "DocsOps ist ein Dokumentations- und Wissensarbeitsplatz für Engineering-Organisationen. Du arbeitest in abgegrenzten Bereichen (Unternehmen, Abteilung, Team oder persönlicher Space), erstellst Dokumente in Prozessen oder Projekten und führst Arbeit durch Review und Veröffentlichung, wenn eure Organisation diesen Workflow nutzt.",
-    "p2": "Die Wahl zwischen <strong>Prozess</strong> und <strong>Projekt</strong> steht unter <contextsLink>Prozesse & Projekte</contextsLink>. Was <strong>nicht</strong> hierher gehört, steht unter <outOfScopeLink>Was DocsOps nicht ist</outOfScopeLink>.",
-    "p3": "DocsOps behandelt Governance als Kernanliegen: wer veröffentlichen darf, was Leser sehen und wie Änderungen offiziell werden – im Produkt verankert, nicht nachträglich angebaut."
+    "p1": "DocsOps ist der Ort für dauerhaftes internes Wissen in Engineering-Organisationen: wie ihr arbeitet und was ihr über die Systeme wisst, die ihr baut und betreibt. Leser sehen einen offiziellen veröffentlichten Stand – nicht einfach die letzte Bearbeitung einer gemeinsamen Wiki-Seite.",
+    "p2": "Ihr organisiert Arbeit nach <strong>Scope</strong> (Unternehmen, Abteilung, Team oder persönlicher Bereich) und legt Dokumente in <strong>Prozessen</strong> oder <strong>Projekten</strong> ab. Entwürfe bleiben editierbar; was Leads veröffentlichen, sehen die Leser.",
+    "p3": "Wahl zwischen Prozess und Projekt: <contextsLink>Prozesse & Projekte</contextsLink>. Was <strong>nicht</strong> hierher gehört: <outOfScopeLink>Was DocsOps nicht ist</outOfScopeLink>."
   },
   "outOfScope": {
     "title": "Was DocsOps nicht ist",

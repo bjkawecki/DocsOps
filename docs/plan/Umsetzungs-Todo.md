@@ -362,12 +362,76 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Release-Pipeline:** Git-Tag `v*` → CI: Images nach **GHCR** (`ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`) + Release-Asset `docsops-vX.Y.Z.tar.gz` (Workflow `.github/workflows/release.yml`).
 [x] **Compose & Env:** `docker-compose.prod.yml` mit `image:` + Tag aus `/etc/docsops/docsops.env` (`DOCSOPS_VERSION`, `DOCSOPS_IMAGE_PREFIX`); `build:` nur Dev (`docker-compose.override.yml`).
 [x] **Install:** Bundle statt `git clone`; Release-URL `curl …/releases/download/vX.Y.Z/install.sh`; `pull` + `up -d`; `main` abgewiesen; Doku README + [install.md](../install.md).
-[x] **Update:** `scripts/update.sh` – Bundle tauschen + `pull` + `up -d` + Rollback-Hinweis in install.md. Admin-UI: **§26** (offen).
+[x] **Update:** `scripts/update.sh` – Bundle tauschen + `pull` + `up -d` + Rollback-Hinweis in install.md. Admin-UI: **§26**.
 [x] **CI Install-Test:** Release-Workflow – Bundle-Install mit `pull` + Health-Check (Port 8080).
 
-**Erstes Release:** Git-Tag `v0.1.0` manuell setzen, wenn Images auf GHCR veröffentlicht werden sollen.
+**Erstes Release:** Git-Tag `v0.1.0` (Entwicklungs-Release; darf überschrieben werden).
 
-**Später (optional):** HTTPS/443 (Caddy ACME / `tls internal`); private GHCR + PAT; Air-gap (`docker save`/`load`); eigenes CDN; CI Frontend-/E2E-Tests.
+### Optionaler Betriebsausbau (§19 Ops) – Konzept
+
+**Ausgangslage (bereits da):** DocsOps wird als **Intranet-Self-host** ausgeliefert. Ein Release liefert zwei Dinge:
+
+1. **Release-Bundle** (Tar-Archiv von GitHub Releases): Compose-Dateien, Install-/Update-Skripte, Caddyfile, Landing-Dists, Agent – alles, was der Host zum Starten braucht, außer den schweren App-Images.
+2. **Container-Images** auf **GHCR** (`docsops-app`, `docsops-worker`, `docsops-migrate`, `docsops-frontend` + Basisimages wie Postgres/Caddy/MinIO-Fork): der Server macht `docker compose pull`.
+
+Dazu prüft die Release-CI einen **Install-Smoke** (Bundle entpacken → pull → up → Health). Das reicht für Lab, Demo und typische Kunden-Installationen im Firmennetz.
+
+Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **Verteilungs- und Absicherungswege**, wenn das Standardmodell (öffentliches GHCR + HTTP:80 + GitHub-Assets) nicht passt. Sie ändern nicht die App-Logik, sondern nur **wie** Images/Assets zum Server kommen und **wie** Clients den Stack erreichen.
+
+#### 1. HTTPS / Port 443 (TLS vor Caddy)
+
+**Problem:** Standard-Install lauscht oft auf **HTTP Port 80**. Im reinen Intranet (VPN, interne DNS) ist das akzeptiert. Sobald Nutzer über öffentliches Internet oder untrusted Netze zugreifen, fehlt Verschlüsselung (Login-Cookies, Dokumentinhalte).
+
+**Konzept:** Caddy terminiert TLS (Let's Encrypt ACME bei öffentlicher Domain, oder `tls internal` / eigene Zertifikate im LAN). Die App dahinter bleibt HTTP im Docker-Netz; Session-Cookies brauchen dann `SESSION_COOKIE_SECURE=1`.
+
+**Abgrenzung:** Die öffentliche Demo (`docsops.de` / `demo.docsops.de`) hat TLS bereits über `Caddyfile.demo`. Der optionale Punkt meint den **allgemeinen Self-host-Default** und Doku/Skripte dafür – nicht „Demo ohne HTTPS“.
+
+#### 2. Private GHCR + PAT (Images nicht öffentlich)
+
+**Problem:** Heute kann jeder die DocsOps-Images von GHCR pullen (öffentlich). Manche Organisationen verbieten öffentliche Container-Repos oder wollen Zugriffe auditieren/beschränken.
+
+**Konzept:** Package-Sichtbarkeit auf **private** stellen. Install/Update brauchen dann einen **GitHub Personal Access Token** (oder Deploy-Token) mit `read:packages`: `docker login ghcr.io` vor `compose pull`. Bundle und `install.sh` bleiben nutzbar; nur der Registry-Zugriff wird authentisiert.
+
+**Abgrenzung:** Betrifft nicht den App-Code, nur Registry-Policy und Install-Doku (Token hinterlegen, Rotation, Fehlerbilder bei 401).
+
+#### 3. Air-gap (kein Registry-/GitHub-Zugriff vom Server)
+
+**Problem:** Hochsicherheits- oder Offline-Netze dürfen **keinen** ausgehenden Zugriff auf `ghcr.io` / GitHub. Der Standardweg `compose pull` scheitert.
+
+**Konzept:** Auf einem online Rechner Images und Bundle laden, per Datenträger/Transfer ins Netz bringen:
+
+- Bundle: Tar wie bisher entpacken.
+- Images: `docker save` → Datei → `docker load` auf dem Zielhost; danach Install mit `DOCSOPS_SKIP_IMAGE_PULL=1` (lokale Tags).
+
+**Abgrenzung:** Kein neues Produktmodul – ein **Transfer-Runbook** und ggf. Hilfsskripte. Updates = neuer Transfer derselben Art.
+
+#### 4. Eigenes CDN / eigene Asset-Origin
+
+**Problem:** Install und Landing laden Skripte/Bundle/Landing-Files von **GitHub Releases** (bzw. der Demo-Host liefert Landing lokal). Bei vielen Installs, geografischer Nähe oder Policy „kein GitHub als Origin“ will man Assets unter eigener Domain.
+
+**Konzept:** Release-Artefakte (und optional Landing-Static) auf eigenem Speicher/CDN spiegeln; Install-URL und Doku zeigen auf diese Origin. Die App-Images können weiter GHCR nutzen oder ebenfalls gespiegelt werden.
+
+**Abgrenzung:** Marketing-Landing auf `docsops.de` ist schon „eigene Origin“ für die Website – hier geht es um **Verteilung der Release-Artefakte** an Self-host-Kunden, nicht um die Marketing-Site selbst.
+
+#### 5. CI Frontend- / E2E-Tests
+
+**Problem:** Release-CI prüft vor allem **„lässt sich der Stack installieren und antwortet Health?“**. UI-Regressionen (Login-Klickpfade, kritische Flows) fängt das nicht.
+
+**Konzept:** Zusätzliche Jobs (Playwright/Cypress o. Ä.) gegen Dev- oder CI-Stack: z. B. Login, Catalog öffnen, Dokument lesen. Laufen parallel oder nach Verify – erhöhen Vertrauen vor Tag-Publish, ersetzen den Install-Smoke nicht.
+
+**Abgrenzung:** Qualitätssicherung der **Anwendung**, nicht der Image-Verteilung. Unabhängig von HTTPS/GHCR/Air-gap.
+
+#### Einordnung
+
+| Thema | Schicht | Braucht App-Änderung? | Dev-Blocker? |
+| ----- | ------- | --------------------- | ------------ |
+| HTTPS/443 | Edge (Caddy + Cookie-Flags) | kaum (Config/Doku) | nein |
+| Private GHCR | Registry-Auth | nein (Doku/Skripte) | nein |
+| Air-gap | Lieferweg Images/Bundle | nein (Runbook/Flags) | nein |
+| Eigenes CDN | Asset-Origin | nein (Doku/Spiegel) | nein |
+| CI E2E | Test-Pipeline | Testcode | nein |
+
+**Fazit:** Solange Kunden im Intranet per öffentlichem Bundle+GHCR installieren und Demo/Lab laufen, bleiben diese fünf Punkte **Backlog Betrieb** – umsetzen, wenn ein konkreter Hosting-Zwang oder QA-Bedarf entsteht.
 
 ### Demo & öffentliche Präsenz (getrennt von Self-hosted)
 
@@ -397,7 +461,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 [x] **Demo-Ops-Skript public (`docsops-demo`):** Host-Skript (Bash; Release-Asset + Bundle). Profile `public`: Hosts `docsops.de` / `demo.docsops.de`, Compose `docker-compose.demo.yml` + `docker-compose.demo-public.yml`, Landing `landing-dist-public/`, Ports 80+443, kein Server-`/etc/hosts`, Cron → `docsops-demo reset`.
 [x] **Demo-Ops-Skript local (`docsops-demo-local`):** wie bisher Lab: `.local`-Hosts, `/etc/hosts`, `docker-compose.lab.yml`, `landing-dist-local/`, Port 80, Cron → `docsops-demo-local reset`.
-[ ] **Eigene Instanz (öffentlich, Kunden-Prod):** isolierter Prod-Stack auf VPS ohne `DEMO_MODE`; siehe Go-live / Managed Hosting. _(Demo public: `docsops-demo install`.)_
+[x] **Kunden-Prod (Scope):** Kein eigener öffentlicher Kunden-Prod-Stack im Projekt nötig – Demo (`docsops-demo`) reicht für Entwicklung/Marketing. Produktivinstanzen stellen Kunden selbst per Install-Bundle auf (ohne `DEMO_MODE`). Managed Hosting nur falls später gewünscht: [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
 [x] **Demo-Login mit Rollenwahl:** Angepasste Login-Seite in `DEMO_MODE` – **Rollenauswahl** (kein Passwort-Formular nötig bzw. optional daneben), **nicht** Bug-Menü. Mindestens **fünf** Seed-Rollen mit echten Accounts/Rechten: **Admin**, **Company Lead**, **Department Lead**, **Team Lead**, **normaler User** (Team Member). Auswahl loggt als entsprechender Seed-User ein (Session). Landing kann auf Demo-Login verweisen.
 [x] **Admin in DEMO_MODE eingeschränkt (UI + API):** Mutierende/gefährliche Admin-Routen **serverseitig deaktivieren** (403), nicht nur UI ausblenden – u. a. User anlegen/löschen, Passwort-Reset, Platform-Reset/Reseed, Update-Apply, Backup-Ziele ändern, SMTP ändern, Broadcasts, Migration Import/Export soweit missbrauchsträchtig. Lesende Org-Übersicht ggf. erlaubt (Produktentscheidung in Umsetzung). Nav „Admin“ nur Rest-Funktionen oder Hinweis „Demo – limited admin“.
 [x] **Reset einmal täglich:** Cron `/etc/cron.d/docsops-demo` bzw. `docsops-demo-local` → `… reset` (Compose `down -v` + Up, Seed via `DEMO_MODE`). Dev-Checkout: `pnpm --filter backend demo:reset`. Banner „Demo resets daily“ in App.
@@ -405,9 +469,7 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); öffentliche Demo unter `demo.docsops.de`.
 [x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live (erledigt) → Betrieb/Managed Hosting und Rest-Todos separat.
-
-**Betrieb (Releases, Backup, Update, Migration):** [Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md); Umsetzung **§24–§27**. **Managed Hosting (später):** [Plan-Managed-Hosting](Plan-Managed-Hosting.md).
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live (erledigt). Offen in §19 vor allem **Mobile-Review Landing**. Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)).
 
 ---
 
@@ -418,9 +480,9 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 [x] **Notifications (Inbox & Navigation):** Erledigt in **§23** (Route `/notifications`, Sidebar, Unread-Zähler). Dieser §20-Punkt diente als Sammelwunsch; Details und weitere Ausbauten nur noch in **§23** pflegen.
 [x] **Notifications-UI in Settings:** Tab **Notifications** mit In-App-/E-Mail-Schaltern pro Kategorie (u. a. `documentChanges`, dokumentbezogene Review-Kategorien laut Backend-Schema, `reminders`) und Anbindung an `PATCH /me/preferences` sowie Dispatch (vgl. §8, §17, **§23**).
 [x] **Responsiv:** Sidebar auf kleinen Viewports (Overlay/Hamburger) umgesetzt; Desktop Mini-Rail + Toggle.
-[x] **Mobile UX App (Wellen 0–4):** Code laut [Plan-Mobile-UX](Plan-Mobile-UX.md) / [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md) – Shell, Content-Nav, Cards, Document/Login/Search u. a. **Offen:** manuelle Viewport-Abnahme (Plan-Checklisten „Manuell …“).
-[x] **Mobile UX App – Welle 5 (Page Mobile Actions / FAB-Stack):** Pattern [Plan-Mobile-UX §2.9](Plan-Mobile-UX.md); Shared [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx). Inventar migriert (Compact → FAB; Wide unverändert; Modal-Footer ausgenommen). **Offen:** manuelle Viewport-Abnahme @375 / ~800 / ≥1280.
-[x] **Mobile UX App – Welle 6 (Search/Filter-FAB Toggle-Panel):** Plan ([Plan-Mobile-UX §2.5.1](Plan-Mobile-UX.md)): unter Compact Listen-Suche und Filter als **FAB** → fixes Panel unten (Toggle per zweitem FAB-Tap); Liste bleibt sichtbar; kein Overlay-Drawer. Catalog, Context-Docs/Shared, Trash/Archive, Admin Users/Teams/Departments. **Shell-Suche:** unter narrow kein Suchfeld in der Main-Sidebar (Desktop: Sidebar + ⌘K-Modal). **Offen:** manuelle Viewport-Abnahme.
+[x] **Mobile UX App (Wellen 0–4):** Code laut [Plan-Mobile-UX](Plan-Mobile-UX.md) / [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md) – Shell, Content-Nav, Cards, Document/Login/Search u. a. Manuelle Viewport-Abnahme erledigt (2026-09-14).
+[x] **Mobile UX App – Welle 5 (Page Mobile Actions / FAB-Stack):** Pattern [Plan-Mobile-UX §2.9](Plan-Mobile-UX.md); Shared [`PageMobileActionBar`](../../apps/frontend/src/components/ui/PageMobileActionBar.tsx). Inventar migriert (Compact → FAB; Wide unverändert; Modal-Footer ausgenommen). Manuelle Viewport-Abnahme @375 / ~800 / ≥1280 erledigt (2026-09-14).
+[x] **Mobile UX App – Welle 6 (Search/Filter-FAB Toggle-Panel):** Plan ([Plan-Mobile-UX §2.5.1](Plan-Mobile-UX.md)): unter Compact Listen-Suche und Filter als **FAB** → fixes Panel unten (Toggle per zweitem FAB-Tap); Liste bleibt sichtbar; kein Overlay-Drawer. Catalog, Context-Docs/Shared, Trash/Archive, Admin Users/Teams/Departments. **Shell-Suche:** unter narrow kein Suchfeld in der Main-Sidebar (Desktop: Sidebar + ⌘K-Modal). Manuelle Viewport-Abnahme erledigt (2026-09-14).
 
 | Seite / Fläche                         | Betroffene Buttons / Trigger (heute)                                   | FAB-Ziel (Compact)                   | Status         |
 | -------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------ | -------------- |
@@ -691,13 +753,15 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 [x] **Benachrichtigungen:** In-App an Admins (`platform-export-succeeded` / `-failed`, `platform-import-succeeded` / `-failed`); Kategorie `system`.
 [x] **Doku:** Abschnitt in Plan-Betrieb §4; Hinweis im [Runbook-Backup-Restore](Runbook-Backup-Restore.md), dass DR-Restore ≠ Plattform-Import.
 
-### Phase 2 – Erweiterungen
+### Phase 2 – Erweiterungen (kein Dev-Blocker)
 
-[ ] **Cross-Version:** Importer-Adapter bei `APP_VERSION`- / Block-`schemaVersion`-Wechsel.
-[ ] **Push an Ziel-Instanz:** Ziel erzeugt URL + Token; Quell-Wizard liefert Export-Paket direkt (ohne Download/Upload); TTL, single-use, Bestätigung auf Ziel.
-[ ] **Selektiver Export:** eine Company / Tenant (Managed Hosting).
-[ ] **Merge-Import:** Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht v1-Default.
-[ ] **CLI:** optionales Offline-Import-Skript für air-gapped Restore.
+Heute (Phase 1): vollständiger Export/Import nur in eine **leere** Instanz. Phase 2 erweitern, wenn Betrieb/Hosting es braucht:
+
+[ ] **Cross-Version:** Export von älterer DocsOps-/Block-Schema-Version auf neuerem Ziel importierbar machen (Importer-Adapter). Sonst nur gleiche Versionspaare zuverlässig.
+[ ] **Push an Ziel-Instanz:** Ziel erzeugt kurzlebige URL + Token; Quelle sendet das Paket direkt (ohne manuellen Download/Upload); TTL, einmalig, Bestätigung auf dem Ziel.
+[ ] **Selektiver Export:** nur eine Company/Tenant statt der ganzen Instanz (relevant für Managed Hosting / Mandanten).
+[ ] **Merge-Import:** Import in eine **bereits befüllte** Instanz mit Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht Default.
+[ ] **CLI:** Offline-Import-Skript für air-gapped Hosts ohne Admin-UI.
 
 ---
 
