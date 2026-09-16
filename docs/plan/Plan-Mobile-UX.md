@@ -2,7 +2,7 @@
 
 **Status:** Plan (Entscheidungen + Phasen). Umsetzung noch offen.  
 **Basis:** [Bestandsaufnahme-Mobile-UX](Bestandsaufnahme-Mobile-UX.md)  
-**Scope:** `apps/frontend`. Landing bleibt unter [Umsetzungs-Todo §19](Umsetzungs-Todo.md) (Mobile-Review Landing) und wird **nicht** in denselben PR-Wellen mitgezogen.  
+**Scope:** `apps/frontend`. Landing-Mobile-Review unter [Umsetzungs-Todo §19](Umsetzungs-Todo.md) ist **erledigt** und wurde nicht in denselben PR-Wellen mitgezogen.  
 **Prinzip:** Patterns vor Seitendetails. Desktop-Layout bleibt; Mobile bekommt eigene IA, kein bloßes Stapeln.
 
 ---

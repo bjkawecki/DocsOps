@@ -256,7 +256,7 @@ Home-Illustration (Bild 1); ggf. weitere dekorative Hintergründe auditieren.
 
 - AppShell Mobile: Close, Scrim, Escape, Touch-Chrome (Welle 1).
 - Content-Nav / Cards / Document / Login / Search-Patterns (Wellen 2–4); siehe [Plan-Mobile-UX](Plan-Mobile-UX.md).
-- Landing: eigener Mobile-Drawer; systematisches Landing-Mobile-Review weiter **§19**.
+- Landing: eigener Mobile-Drawer; Landing-Mobile-Review **§19** erledigt.
 
 ---
 

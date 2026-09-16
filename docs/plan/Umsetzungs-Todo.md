@@ -440,7 +440,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Landing-App:** Vite + React + Mantine; DE-Copy; Routen `/`, `/philosophie`, `/install`, `/changelog`, `/sponsor`, `/impressum`, `/datenschutz`; Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
 [x] **Modell-Sections:** Scope · Kontext · Rollen · Beispiel (IT / Software X / A11y) laut [Landing-Sections-Plan](../marketing/Landing-Sections-Plan.md) / Positionierung Phasen B–E.
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
-[ ] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
+[x] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
 [x] **Landing Go-live:** Deploy auf `docsops.de`; DNS/Caddy; Impressum/Datenschutz im Landing-Code; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
@@ -470,7 +470,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); öffentliche Demo unter `demo.docsops.de`.
 [x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live (erledigt). Offen in §19 vor allem **Mobile-Review Landing**. Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)).
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Offen in §19 nichts Wesentliches mehr. Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
 
 ---
 
@@ -512,7 +512,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 | Modal-/Drawer-Footer                   | Cancel / Create / …                                                    | **nicht** in FAB                     | ausgeschlossen |
 | Listen-Zeilen / Tabellen-Row-Actions   | Edit/Delete pro Zeile                                                  | **nicht** in FAB                     | ausgeschlossen |
 
-[ ] **Mobile-Review Landing:** Schmale Viewports für `apps/landing` – siehe **§19**.
+[x] **Mobile-Review Landing:** Schmale Viewports für `apps/landing` – siehe **§19**.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
 [x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.
 

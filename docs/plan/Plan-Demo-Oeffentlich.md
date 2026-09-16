@@ -184,7 +184,7 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 2. **App-i18n EN + DE** – erledigt
 3. Statische **DE-Landing** auf `docsops.de` – erledigt (Deploy live)
 4. **Demo-Subdomain** mit Seed-Accounts, täglichem Reset, `DEMO_MODE` – erledigt
-5. Optional: Monitoring-Tiefe; `docsops.org`-Strategie; Vergleich/FAQ auf Landing; Mobile-Review Landing (§19)
+5. Optional: Monitoring-Tiefe; `docsops.org`-Strategie; Vergleich/FAQ auf Landing
 
 ---
 
@@ -195,4 +195,4 @@ Profanity-Filter im Editor: optional, meist **unnötig** bei täglichem Reset.
 - Öffentliche Produkt-Doku: nur Landing-Abschnitt vs. `docs.docsops.de`
 - `docsops.org` Redirect / OSS-Rolle
 
-**Nächster Schritt:** Mobile-Review Landing (§19) nach Bedarf. Kunden-Prod stellen Kunden selbst per Install-Bundle auf; kein eigener Projekt-Stack nötig (siehe Umsetzungs-Todo §19).
+**Nächster Schritt:** Betrieb **§24–§27** nach Bedarf. KI/Ask (**§21**) bewusst zurückgestellt. Kunden-Prod stellen Kunden selbst per Install-Bundle auf; kein eigener Projekt-Stack nötig (siehe Umsetzungs-Todo §19).
