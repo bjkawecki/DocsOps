@@ -63,6 +63,7 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
   const [importRunId, setImportRunId] = useState<string | null>(null);
   const [preflight, setPreflight] = useState<PlatformImportPreflight | null>(null);
   const [transferPasswordHashes, setTransferPasswordHashes] = useState(false);
+  const [merge, setMerge] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadErrorTitle, setUploadErrorTitle] = useState(
     t('migration.importModal.uploadErrorTitle.uploadFailed')
@@ -185,7 +186,7 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
       const res = await apiFetch(`/api/v1/admin/platform-imports/${importRunId}/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transferPasswordHashes }),
+        body: JSON.stringify({ transferPasswordHashes, merge }),
       });
       if (!res.ok) {
         throw new Error(await readApiErrorMessage(res, 'Failed to confirm import'));
@@ -211,6 +212,7 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
     setImportRunId(null);
     setPreflight(null);
     setTransferPasswordHashes(false);
+    setMerge(false);
     setUploadError(null);
     setUploadErrorTitle(t('migration.importModal.uploadErrorTitle.uploadFailed'));
     refreshedAppCacheForRunIdRef.current = null;
@@ -227,7 +229,11 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
 
   const canProceedFromUpload = preflight?.ok === true && !uploadError;
   const preflightFailed = preflight != null && !preflight.ok;
+  const requiresMerge = preflight?.requiresMerge === true || preflight?.targetEmpty === false;
+  const canProceedFromOptions = !requiresMerge || merge;
   const postImportHref = me?.user?.isAdmin ? '/company' : '/';
+  const mergeStats =
+    importRun?.optionsJson?.merge === true ? importRun.optionsJson.mergeStats : undefined;
 
   const handleFileSelect = (file: File) => {
     setUploadFile(file);
@@ -240,9 +246,23 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
     if (activeStep === 0) {
       return (
         <Stack gap="sm">
-          <Alert color="red" variant="filled" title={t('migration.importModal.freshInstanceTitle')}>
-            {t('migration.importModal.freshInstanceMessage')}
-          </Alert>
+          {requiresMerge ? (
+            <Alert
+              color="yellow"
+              variant="light"
+              title={t('migration.importModal.mergeRequiredTitle')}
+            >
+              {t('migration.importModal.mergeRequiredMessage')}
+            </Alert>
+          ) : (
+            <Alert
+              color="red"
+              variant="filled"
+              title={t('migration.importModal.freshInstanceTitle')}
+            >
+              {t('migration.importModal.freshInstanceMessage')}
+            </Alert>
+          )}
           {!uploadFile ? (
             <PlatformImportDropzone
               onFileSelect={handleFileSelect}
@@ -327,6 +347,14 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
             })}
           </Text>
           <MigrationRunStatsGrid counts={preflight.counts} />
+          {requiresMerge ? (
+            <Checkbox
+              label={t('migration.importModal.merge')}
+              description={t('migration.importModal.mergeDescription')}
+              checked={merge}
+              onChange={(e) => setMerge(e.currentTarget.checked)}
+            />
+          ) : null}
           {preflight.sameAppVersion ? (
             <Checkbox
               label={t('migration.importModal.transferPasswordHashes')}
@@ -345,7 +373,9 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
     if (activeStep === 2) {
       return (
         <Alert color="red" variant="filled">
-          {t('migration.importModal.maintenanceWarning')}
+          {merge
+            ? t('migration.importModal.maintenanceWarningMerge')
+            : t('migration.importModal.maintenanceWarning')}
         </Alert>
       );
     }
@@ -369,9 +399,45 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
 
       if (importRun?.status === 'succeeded') {
         return (
-          <Alert color="green" variant="filled" title={t('migration.importModal.completeTitle')}>
-            {t('migration.importModal.completeMessage')}
-          </Alert>
+          <Stack gap="sm">
+            <Alert color="green" variant="filled" title={t('migration.importModal.completeTitle')}>
+              {t('migration.importModal.completeMessage')}
+            </Alert>
+            {mergeStats ? (
+              <Alert
+                color="blue"
+                variant="light"
+                title={t('migration.importModal.mergeReportTitle')}
+              >
+                <Text size="sm">
+                  {t('migration.importModal.mergeReportReused', {
+                    companies: mergeStats.reused.companies ?? 0,
+                    users: mergeStats.reused.users ?? 0,
+                    processes: mergeStats.reused.processes ?? 0,
+                    tags: mergeStats.reused.tags ?? 0,
+                  })}
+                </Text>
+                <Text size="sm">
+                  {t('migration.importModal.mergeReportCreated', {
+                    documents: mergeStats.created.documents ?? 0,
+                    companies: mergeStats.created.companies ?? 0,
+                    users: mergeStats.created.users ?? 0,
+                  })}
+                </Text>
+                <Text size="sm">
+                  {t('migration.importModal.mergeReportSkipped', {
+                    memberships:
+                      (mergeStats.skipped.teamMembers ?? 0) +
+                      (mergeStats.skipped.teamLeads ?? 0) +
+                      (mergeStats.skipped.departmentLeads ?? 0) +
+                      (mergeStats.skipped.companyLeads ?? 0),
+                    grants: mergeStats.skipped.grants ?? 0,
+                    pins: mergeStats.skipped.pins ?? 0,
+                  })}
+                </Text>
+              </Alert>
+            ) : null}
+          </Stack>
         );
       }
 
@@ -427,6 +493,7 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
           showPrimary
           primaryLabel={t('migration.importModal.continue')}
           onPrimary={() => setActiveStep(2)}
+          primaryDisabled={!canProceedFromOptions}
         />
       );
     }

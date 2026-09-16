@@ -78,6 +78,7 @@ export const jobPayloadSchemas = {
     options: z
       .object({
         transferPasswordHashes: z.boolean().optional(),
+        merge: z.boolean().optional(),
       })
       .default({}),
   }),

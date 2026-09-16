@@ -278,14 +278,18 @@ Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-
 
 ### v1-Umfang vs. später
 
-| v1                                        | Phase 2+                                     |
-| ----------------------------------------- | -------------------------------------------- |
-| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)    |
-| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln) |
-| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert   |
-| Admin-UI + Job + Audit                    | CLI-Skript für Offline-Import                |
-| Cross-Version Format + Block-Schema       | (weitere Format-Versionen als Adapter)       |
-| Push an Ziel-Instanz (Receive-Slot)       | –                                            |
+| v1                                        | Phase 2+                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| Vollständiger Export/Import einer Instanz | – (kein selektiver Company-Export; Managed Hosting = volle Instanz)    |
+| Import nur in **leere** Ziel-DB           | Merge opt-in (`merge: true`): Reuse + Skip (E-Mail, Name unter Parent) |
+| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert                             |
+| Admin-UI + Job + Audit                    | CLI: `platform-export` / `platform-import` (DB/MinIO, air-gapped)      |
+| Cross-Version Format + Block-Schema       | (weitere Format-Versionen als Adapter)                                 |
+| Push an Ziel-Instanz (Receive-Slot)       | –                                                                      |
+
+**Merge (Reuse + Skip):** User per E-Mail; Company/Department/Team/Owner/Process/Project/Tag per Name unter Parent wiederverwenden; Dokumente und Anhänge immer neu; Memberships/Grants/Pins skip wenn schon vorhanden. Ohne `merge` bleibt der Empty-Check. Merge-Fail: kein Full-Wipe der Zielinstanz.
+
+**CLI:** Ops-Skripte unter `apps/backend/scripts/` gegen dieselbe Env wie das Backend (kein HTTP). Export schreibt Archiv nach `--out`; Import braucht `--archive` und `--yes`, optional `--merge` / `--transfer-password-hashes`. Push/Receive bleiben Admin-UI-only.
 
 ### UI-Platzierung (festgelegt)
 

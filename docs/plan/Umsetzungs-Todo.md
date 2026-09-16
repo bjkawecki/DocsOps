@@ -760,9 +760,9 @@ Heute (Phase 1): vollständiger Export/Import nur in eine **leere** Instanz. Pha
 
 [x] **Cross-Version:** Format-Adapter-Registry (`platformMigration/adapters/`) + Block-Normalisierung/-Validierung beim Import; Preflight prüft `exportFormatVersion` und `maxBlocksSchemaVersion`. APP_VERSION-Mismatch bleibt erlaubt (ohne Passwort-Hash-Transfer). Neue Package-Formate brauchen einen neuen Adapter.
 [x] **Push an Ziel-Instanz:** Ziel erzeugt kurzlebige URL + Token (`PlatformImportReceiveSlot`, TTL 60 min, einmalig); Quelle pusht per `POST /admin/platform-exports/:id/push` serverseitig aus MinIO; Ziel empfängt `PUT /platform-import-receive/:token`, Preflight, Admin bestätigt Import.
-[ ] **Selektiver Export:** nur eine Company/Tenant statt der ganzen Instanz (relevant für Managed Hosting / Mandanten).
-[ ] **Merge-Import:** Import in eine **bereits befüllte** Instanz mit Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht Default.
-[ ] **CLI:** Offline-Import-Skript für air-gapped Hosts ohne Admin-UI.
+[~] **Selektiver Export:** bewusst gestrichen – Managed Hosting = Single-Tenant-Instanz; voller Plattform-Export reicht (siehe [Plan-Managed-Hosting](Plan-Managed-Hosting.md)).
+[x] **Merge-Import:** Import in eine **bereits befüllte** Instanz, explizit opt-in (`merge: true`). Regel **Reuse + Skip**: User per E-Mail; Org/Owner/Process/Project/Tag per Name unter Parent; Dokumente/Anhänge immer neu; Joins (Memberships, Grants, Pins) skip wenn vorhanden. Merge-Fail ohne Full-Wipe. Default bleibt „nur leere Instanz“.
+[x] **CLI:** Offline-Skripte `platform:export` / `platform:import` (DB/MinIO, kein Admin-HTTP); Import inkl. `--merge` und `--transfer-password-hashes`.
 
 ---
 

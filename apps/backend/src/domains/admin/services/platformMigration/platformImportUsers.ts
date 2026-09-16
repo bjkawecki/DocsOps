@@ -39,11 +39,16 @@ export async function findExistingEmailsForExportUsers(
   return existing.map((user) => user.email).filter((email): email is string => email != null);
 }
 
+export type ResolveImportedUserResult = {
+  userId: string;
+  reused: boolean;
+};
+
 export async function resolveOrCreateImportedUser(
   prisma: PrismaClient,
   exportUser: ExportUserRecord,
   transferPasswordHashes: boolean
-): Promise<string> {
+): Promise<ResolveImportedUserResult> {
   const email = normalizeImportUserEmail(exportUser.email);
   const deletedAt = exportUser.deletedAt ? new Date(exportUser.deletedAt) : null;
 
@@ -66,7 +71,7 @@ export async function resolveOrCreateImportedUser(
             : {}),
         },
       });
-      return existing.id;
+      return { userId: existing.id, reused: true };
     }
   }
 
@@ -81,5 +86,5 @@ export async function resolveOrCreateImportedUser(
       passwordHash: transferPasswordHashes ? exportUser.passwordHash : null,
     },
   });
-  return created.id;
+  return { userId: created.id, reused: false };
 }

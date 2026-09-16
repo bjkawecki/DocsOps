@@ -30,13 +30,21 @@ export type PlatformImportPreflight = {
     attachmentFiles?: number;
   };
   targetEmpty: boolean;
+  requiresMerge?: boolean;
   targetAppVersion: string;
   sameAppVersion: boolean;
   supportedExportFormatVersions?: number[];
   maxBlocksSchemaVersion?: number;
   blockSchemaUpgradeRequired?: boolean;
+  overlappingUserEmails?: string[];
   errors: string[];
   warnings: string[];
+};
+
+export type PlatformImportMergeStats = {
+  reused: Record<string, number>;
+  created: Record<string, number>;
+  skipped: Record<string, number>;
 };
 
 export type PlatformImportRun = {
@@ -46,7 +54,11 @@ export type PlatformImportRun = {
   uploadObjectKey: string | null;
   triggeredByUserId: string | null;
   preflightJson: PlatformImportPreflight | null;
-  optionsJson: unknown;
+  optionsJson: {
+    transferPasswordHashes?: boolean;
+    merge?: boolean;
+    mergeStats?: PlatformImportMergeStats;
+  } | null;
   errorMessage: string | null;
   startedAt: string | null;
   finishedAt: string | null;

@@ -178,7 +178,9 @@ export async function receivePlatformImportPush(
       });
 
       await extractZstdTarArchive(archivePath, bundleDir);
-      const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+      const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
+        enforceEmpty: false,
+      });
       const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
 
       await prisma.$transaction([

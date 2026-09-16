@@ -124,4 +124,63 @@ describe('platformImportPreflight cross-version', () => {
     expect(result.errors.some((e) => e.includes('maxBlocksSchemaVersion'))).toBe(true);
     await rm(dir, { recursive: true, force: true });
   });
+
+  it('fails when target is not empty and merge is not enabled', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'preflight-full-'));
+    const files: PlatformExportManifest['files'] = {};
+    for (const name of [
+      'organization.json',
+      'users.json',
+      'owners.json',
+      'contexts.json',
+      'documents.json',
+      'document-versions.json',
+      'grants.json',
+      'tags.json',
+      'pins.json',
+      'comments.json',
+      'attachments-map.json',
+    ]) {
+      const body =
+        name.endsWith('map.json') || name === 'grants.json' || name === 'tags.json' ? '{}' : '[]';
+      files[name] = await writeBundleFile(dir, name, body);
+    }
+    const usersBody = '[]';
+    files['users.json'] = await writeBundleFile(dir, 'users.json', usersBody);
+
+    const manifest: PlatformExportManifest = {
+      exportFormatVersion: PLATFORM_EXPORT_FORMAT_VERSION,
+      platformExportRunId: 'run-full',
+      sourceAppVersion: '0.1.0',
+      createdAt: new Date().toISOString(),
+      files,
+      counts: emptyCounts,
+      maxBlocksSchemaVersion: 1,
+    };
+    await writePlatformManifestFile(join(dir, 'manifest.json'), manifest);
+
+    const prisma = {
+      company: { count: vi.fn().mockResolvedValue(1) },
+      document: { count: vi.fn().mockResolvedValue(0) },
+      user: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+
+    const blocked = await runPlatformImportPreflight(prisma as never, dir);
+    expect(blocked.ok).toBe(false);
+    expect(blocked.requiresMerge).toBe(true);
+    expect(blocked.errors.some((e) => e.includes('not empty'))).toBe(true);
+
+    const soft = await runPlatformImportPreflight(prisma as never, dir, {
+      enforceEmpty: false,
+    });
+    expect(soft.ok).toBe(true);
+    expect(soft.requiresMerge).toBe(true);
+    expect(soft.warnings.some((w) => w.includes('not empty'))).toBe(true);
+
+    const merged = await runPlatformImportPreflight(prisma as never, dir, { merge: true });
+    expect(merged.ok).toBe(true);
+    expect(merged.warnings.some((w) => w.includes('Merge import enabled'))).toBe(true);
+
+    await rm(dir, { recursive: true, force: true });
+  });
 });

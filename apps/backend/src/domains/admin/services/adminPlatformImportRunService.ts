@@ -120,7 +120,9 @@ export async function triggerPlatformImportUpload(
       });
 
       await extractZstdTarArchive(archivePath, bundleDir);
-      const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+      const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
+        enforceEmpty: false,
+      });
 
       const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
       await prisma.platformImportRun.update({
@@ -170,7 +172,9 @@ export async function runPlatformImportPreflightForRun(prisma: PrismaClient, id:
     if (!object) throw new Error('Upload archive not found');
     await pipeline(object.Body, createWriteStream(archivePath));
     await extractZstdTarArchive(archivePath, bundleDir);
-    const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+    const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
+      enforceEmpty: false,
+    });
 
     const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
     await prisma.platformImportRun.update({
@@ -194,6 +198,7 @@ export async function confirmPlatformImport(
     platformImportRunId: string;
     triggeredByUserId: string;
     transferPasswordHashes?: boolean;
+    merge?: boolean;
   }
 ) {
   await assertMaintenanceAvailable(prisma);
@@ -217,12 +222,19 @@ export async function confirmPlatformImport(
     throw new Error('Preflight must succeed before import');
   }
 
+  const merge = args.merge === true;
+  if (!preflight.targetEmpty && !merge) {
+    throw new Error(
+      'Target instance is not empty. Confirm with merge: true to import using Reuse + Skip rules.'
+    );
+  }
+
   const transferPasswordHashes = validateTransferPasswordHashesOption(
     args.transferPasswordHashes === true,
     preflight
   );
 
-  const options = { transferPasswordHashes };
+  const options = { transferPasswordHashes, merge };
 
   await prisma.platformImportRun.update({
     where: { id: run.id },

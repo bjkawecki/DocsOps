@@ -66,6 +66,7 @@ export async function importDocumentsAndVersions(
       },
     });
     idMap.set(d.exportId, created.id);
+    ctx.mergeStats.created.documents += 1;
   }
 
   const versions = await readJson<

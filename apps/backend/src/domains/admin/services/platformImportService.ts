@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
 import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
@@ -89,9 +89,10 @@ async function failRun(
 
 export async function runPlatformImportPreflightOnBundle(
   prisma: PrismaClient,
-  bundleDir: string
+  bundleDir: string,
+  options?: { merge?: boolean; enforceEmpty?: boolean }
 ): Promise<PlatformImportPreflightResult> {
-  return runPlatformImportPreflight(prisma, bundleDir);
+  return runPlatformImportPreflight(prisma, bundleDir, options);
 }
 
 export async function runPlatformImport(
@@ -111,6 +112,7 @@ export async function runPlatformImport(
       throw new Error('Upload object key is missing');
     }
 
+    const merge = payload.options.merge === true;
     const transferPasswordHashes =
       payload.options.transferPasswordHashes === true &&
       run.preflightJson != null &&
@@ -139,19 +141,23 @@ export async function runPlatformImport(
     await mkdir(bundleDir, { recursive: true });
     await extractZstdTarArchive(archivePath, bundleDir);
 
-    const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+    const preflight = await runPlatformImportPreflight(prisma, bundleDir, { merge });
     if (!preflight.ok) {
       throw new Error(preflight.errors.join('; ') || 'Preflight failed');
     }
 
-    const preImportUsers = await capturePreImportUserSnapshots(prisma);
+    const preImportUsers = merge ? [] : await capturePreImportUserSnapshots(prisma);
     let importStarted = false;
+    let mergeStats = null as
+      | Awaited<ReturnType<typeof importDomainDataFromDirectory>>['mergeStats']
+      | null;
 
     try {
       importStarted = true;
-      await importDomainDataFromDirectory(prisma, storage, {
+      const imported = await importDomainDataFromDirectory(prisma, storage, {
         bundleDir,
         transferPasswordHashes,
+        merge,
         onPhase: async (status) => {
           await prisma.platformImportRun.update({
             where: { id: platformImportRunId },
@@ -159,8 +165,9 @@ export async function runPlatformImport(
           });
         },
       });
+      mergeStats = imported.mergeStats;
     } catch (importError) {
-      if (importStarted) {
+      if (importStarted && !merge) {
         logger.warn(
           { platformImportRunId },
           'Platform import failed mid-run; rolling back imported domain data'
@@ -176,9 +183,21 @@ export async function runPlatformImport(
         await enqueueJob('search.reindex.full', { reason: 'manual' }).catch((err: unknown) => {
           logger.warn({ err }, 'Failed to enqueue search reindex after import rollback');
         });
+      } else if (importStarted && merge) {
+        logger.warn(
+          { platformImportRunId },
+          'Merge platform import failed mid-run; target instance was not wiped'
+        );
       }
       throw importError;
     }
+
+    const priorOptions =
+      run.optionsJson != null &&
+      typeof run.optionsJson === 'object' &&
+      !Array.isArray(run.optionsJson)
+        ? (run.optionsJson as Record<string, unknown>)
+        : {};
 
     await prisma.platformImportRun.update({
       where: { id: platformImportRunId },
@@ -186,6 +205,12 @@ export async function runPlatformImport(
         status: 'succeeded',
         finishedAt: new Date(),
         errorMessage: null,
+        optionsJson: {
+          ...priorOptions,
+          transferPasswordHashes,
+          merge,
+          ...(merge ? { mergeStats } : {}),
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -202,9 +227,10 @@ export async function runPlatformImport(
     await notifyAdmins(prisma, 'platform-import-succeeded', {
       platformImportRunId,
       documentCount: preflight.counts?.documents ?? null,
+      merge,
     });
 
-    logger.info({ platformImportRunId }, 'Platform import completed');
+    logger.info({ platformImportRunId, merge }, 'Platform import completed');
   } catch (error) {
     await releaseMaintenanceLockIfOwned(prisma, {
       reason: 'platform-import',

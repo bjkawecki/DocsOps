@@ -12,7 +12,7 @@ export async function importTagsGrantsPinsComments(
   ctx: ImportContext,
   onPhase: ImportPhaseUpdater
 ): Promise<void> {
-  const { prisma, idMap } = ctx;
+  const { prisma, idMap, merge, mergeStats } = ctx;
 
   const tagsData = await readJson<{
     tags: Array<{ exportId: string; name: string; ownerExportId: string }>;
@@ -22,20 +22,42 @@ export async function importTagsGrantsPinsComments(
   await onPhase('importing_tags');
 
   for (const t of tagsData.tags) {
+    const ownerId = idMap.getOrThrow(t.ownerExportId);
+    if (merge) {
+      const existing = await prisma.tag.findUnique({
+        where: { ownerId_name: { ownerId, name: t.name } },
+        select: { id: true },
+      });
+      if (existing) {
+        idMap.set(t.exportId, existing.id);
+        mergeStats.reused.tags += 1;
+        continue;
+      }
+    }
     const created = await prisma.tag.create({
       data: {
         name: t.name,
-        ownerId: idMap.getOrThrow(t.ownerExportId),
+        ownerId,
       },
     });
     idMap.set(t.exportId, created.id);
+    mergeStats.created.tags += 1;
   }
   for (const dt of tagsData.documentTags) {
+    const documentId = idMap.getOrThrow(dt.documentExportId);
+    const tagId = idMap.getOrThrow(dt.tagExportId);
+    if (merge) {
+      const existing = await prisma.documentTag.findUnique({
+        where: { documentId_tagId: { documentId, tagId } },
+        select: { documentId: true },
+      });
+      if (existing) {
+        mergeStats.skipped.documentTags += 1;
+        continue;
+      }
+    }
     await prisma.documentTag.create({
-      data: {
-        documentId: idMap.getOrThrow(dt.documentExportId),
-        tagId: idMap.getOrThrow(dt.tagExportId),
-      },
+      data: { documentId, tagId },
     });
   }
 
@@ -53,32 +75,62 @@ export async function importTagsGrantsPinsComments(
 
   for (const g of grants.users) {
     if (g.role !== 'Read') continue;
+    const documentId = idMap.getOrThrow(g.documentExportId);
+    const userId = idMap.getOrThrow(g.userExportId);
+    if (merge) {
+      const existing = await prisma.documentGrantUser.findUnique({
+        where: {
+          documentId_userId_role: { documentId, userId, role: g.role },
+        },
+        select: { documentId: true },
+      });
+      if (existing) {
+        mergeStats.skipped.grants += 1;
+        continue;
+      }
+    }
     await prisma.documentGrantUser.create({
-      data: {
-        documentId: idMap.getOrThrow(g.documentExportId),
-        userId: idMap.getOrThrow(g.userExportId),
-        role: g.role,
-      },
+      data: { documentId, userId, role: g.role },
     });
   }
   for (const g of grants.teams) {
     if (g.role !== 'Read') continue;
+    const documentId = idMap.getOrThrow(g.documentExportId);
+    const teamId = idMap.getOrThrow(g.teamExportId);
+    if (merge) {
+      const existing = await prisma.documentGrantTeam.findUnique({
+        where: {
+          documentId_teamId_role: { documentId, teamId, role: g.role },
+        },
+        select: { documentId: true },
+      });
+      if (existing) {
+        mergeStats.skipped.grants += 1;
+        continue;
+      }
+    }
     await prisma.documentGrantTeam.create({
-      data: {
-        documentId: idMap.getOrThrow(g.documentExportId),
-        teamId: idMap.getOrThrow(g.teamExportId),
-        role: g.role,
-      },
+      data: { documentId, teamId, role: g.role },
     });
   }
   for (const g of grants.departments) {
     if (g.role !== 'Read') continue;
+    const documentId = idMap.getOrThrow(g.documentExportId);
+    const departmentId = idMap.getOrThrow(g.departmentExportId);
+    if (merge) {
+      const existing = await prisma.documentGrantDepartment.findUnique({
+        where: {
+          documentId_departmentId_role: { documentId, departmentId, role: g.role },
+        },
+        select: { documentId: true },
+      });
+      if (existing) {
+        mergeStats.skipped.grants += 1;
+        continue;
+      }
+    }
     await prisma.documentGrantDepartment.create({
-      data: {
-        documentId: idMap.getOrThrow(g.documentExportId),
-        departmentId: idMap.getOrThrow(g.departmentExportId),
-        role: g.role,
-      },
+      data: { documentId, departmentId, role: g.role },
     });
   }
 
@@ -97,11 +149,30 @@ export async function importTagsGrantsPinsComments(
   await onPhase('importing_pins');
 
   for (const p of pins) {
+    const documentId = idMap.getOrThrow(p.documentExportId);
+    const scopeId = idMap.getOrThrow(p.scopeExportId);
+    if (merge) {
+      const existing = await prisma.documentPinnedInScope.findUnique({
+        where: {
+          scopeType_scopeId_documentId: {
+            scopeType: p.scopeType,
+            scopeId,
+            documentId,
+          },
+        },
+        select: { id: true },
+      });
+      if (existing) {
+        idMap.set(p.exportId, existing.id);
+        mergeStats.skipped.pins += 1;
+        continue;
+      }
+    }
     const created = await prisma.documentPinnedInScope.create({
       data: {
-        documentId: idMap.getOrThrow(p.documentExportId),
+        documentId,
         scopeType: p.scopeType,
-        scopeId: idMap.getOrThrow(p.scopeExportId),
+        scopeId,
         order: p.order,
         pinnedById: idMap.get(p.pinnedByExportId),
         createdAt: new Date(p.createdAt),

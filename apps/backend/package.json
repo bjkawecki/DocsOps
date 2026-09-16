@@ -21,6 +21,8 @@
     "test": "vitest run",
     "check:mail-i18n": "node ./scripts/check-mail-i18n-keys.mjs",
     "create-admin": "tsx scripts/create-admin.ts",
+    "platform:export": "tsx scripts/run-with-app-version.ts -- tsx scripts/platform-export.ts",
+    "platform:import": "tsx scripts/run-with-app-version.ts -- tsx scripts/platform-import.ts",
     "seed": "tsx scripts/run-seed.ts",
     "demo:reset": "tsx scripts/run-with-app-version.ts -- tsx scripts/demo-reset.ts",
     "backfill-context-owner-display": "tsx scripts/run-backfill-context-owner-display.ts",

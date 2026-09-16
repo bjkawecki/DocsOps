@@ -21,6 +21,7 @@ export const listPlatformImportRunsQuerySchema = z.object({
 
 export const confirmPlatformImportBodySchema = z.object({
   transferPasswordHashes: z.boolean().optional().default(false),
+  merge: z.boolean().optional().default(false),
 });
 
 export const platformExportPushBodySchema = z.object({

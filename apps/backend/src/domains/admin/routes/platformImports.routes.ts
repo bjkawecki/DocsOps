@@ -206,13 +206,18 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
           platformImportRunId: id,
           triggeredByUserId: (request as RequestWithUser).user.id,
           transferPasswordHashes: body.transferPasswordHashes,
+          merge: body.merge,
         });
         if (!result) return reply.status(404).send({ error: 'Platform import not found' });
         await writeAuditSafe(request as RequestWithUser, {
           action: 'platform-import-confirm',
           status: 'success',
           platformImportRunId: id,
-          details: { jobId: result.jobId, transferPasswordHashes: body.transferPasswordHashes },
+          details: {
+            jobId: result.jobId,
+            transferPasswordHashes: body.transferPasswordHashes,
+            merge: body.merge,
+          },
         });
         return reply.status(202).send(result);
       } catch (error) {

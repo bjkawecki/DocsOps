@@ -21,11 +21,14 @@ export type PlatformImportPreflightResult = {
   sourceAppVersion?: string;
   counts?: PlatformExportManifest['counts'];
   targetEmpty: boolean;
+  /** True when the target is not empty; confirm must pass merge: true. */
+  requiresMerge: boolean;
   targetAppVersion: string;
   sameAppVersion: boolean;
   supportedExportFormatVersions: number[];
   maxBlocksSchemaVersion?: number;
   blockSchemaUpgradeRequired: boolean;
+  overlappingUserEmails: string[];
   errors: string[];
   warnings: string[];
 };
@@ -91,20 +94,32 @@ export async function resolveMaxBlocksSchemaVersion(
 
 export async function runPlatformImportPreflight(
   prisma: PrismaClient,
-  bundleDir: string
+  bundleDir: string,
+  options?: { merge?: boolean; enforceEmpty?: boolean }
 ): Promise<PlatformImportPreflightResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
   const supportedExportFormatVersions = listSupportedExportFormatVersions();
+  const merge = options?.merge === true;
+  const enforceEmpty = options?.enforceEmpty !== false;
 
   const [companyCount, documentCount] = await Promise.all([
     prisma.company.count(),
     prisma.document.count(),
   ]);
   const targetEmpty = companyCount === 0 && documentCount === 0;
-  if (!targetEmpty) {
+  const requiresMerge = !targetEmpty;
+  if (!targetEmpty && !merge && enforceEmpty) {
     errors.push(
-      'Target instance is not empty. Platform import requires an empty instance (no companies or documents).'
+      'Target instance is not empty. Platform import requires an empty instance (no companies or documents), or confirm with merge: true (Reuse + Skip).'
+    );
+  } else if (!targetEmpty && !merge && !enforceEmpty) {
+    warnings.push(
+      'Target instance is not empty. Enable merge (Reuse + Skip) on confirm to import into this instance; otherwise import is blocked.'
+    );
+  } else if (!targetEmpty && merge) {
+    warnings.push(
+      'Merge import enabled: existing users (by email), org units, owners, processes/projects/tags (by name under parent) will be reused; documents are always created; duplicate memberships/grants/pins are skipped. A failed merge does not wipe the target instance.'
     );
   }
 
@@ -116,10 +131,12 @@ export async function runPlatformImportPreflight(
     return {
       ok: false,
       targetEmpty,
+      requiresMerge,
       targetAppVersion: appVersion,
       sameAppVersion: false,
       supportedExportFormatVersions,
       blockSchemaUpgradeRequired: false,
+      overlappingUserEmails: [],
       errors,
       warnings,
     };
@@ -168,12 +185,13 @@ export async function runPlatformImportPreflight(
     );
   }
 
+  let overlappingUserEmails: string[] = [];
   try {
     const exportUsers = await readExportUsers(bundleDir);
-    const overlappingEmails = await findExistingEmailsForExportUsers(prisma, exportUsers);
-    if (overlappingEmails.length > 0) {
+    overlappingUserEmails = await findExistingEmailsForExportUsers(prisma, exportUsers);
+    if (overlappingUserEmails.length > 0) {
       warnings.push(
-        `${overlappingEmails.length} export user(s) share an email with an existing account on this instance (${overlappingEmails.join(', ')}). Those accounts will be linked during import instead of creating duplicates.`
+        `${overlappingUserEmails.length} export user(s) share an email with an existing account on this instance (${overlappingUserEmails.join(', ')}). Those accounts will be linked during import instead of creating duplicates.`
       );
     }
   } catch {
@@ -186,11 +204,13 @@ export async function runPlatformImportPreflight(
     sourceAppVersion: manifest.sourceAppVersion,
     counts: manifest.counts,
     targetEmpty,
+    requiresMerge,
     targetAppVersion: appVersion,
     sameAppVersion,
     supportedExportFormatVersions,
     maxBlocksSchemaVersion,
     blockSchemaUpgradeRequired,
+    overlappingUserEmails,
     errors,
     warnings,
   };
@@ -199,11 +219,12 @@ export async function runPlatformImportPreflight(
 export async function extractAndPreflightArchive(
   prisma: PrismaClient,
   archivePath: string,
-  workDir: string
+  workDir: string,
+  options?: { merge?: boolean; enforceEmpty?: boolean }
 ): Promise<{ bundleDir: string; preflight: PlatformImportPreflightResult }> {
   const bundleDir = join(workDir, 'bundle');
   await mkdir(bundleDir, { recursive: true });
   await extractZstdTarArchive(archivePath, bundleDir);
-  const preflight = await runPlatformImportPreflight(prisma, bundleDir);
+  const preflight = await runPlatformImportPreflight(prisma, bundleDir, options);
   return { bundleDir, preflight };
 }
