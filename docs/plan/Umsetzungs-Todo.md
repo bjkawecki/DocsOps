@@ -376,62 +376,39 @@ Basis für PDF-Export-Downloads (§17); Dokumentinhalte liegen im Edit-System al
 
 Dazu prüft die Release-CI einen **Install-Smoke** (Bundle entpacken → pull → up → Health). Das reicht für Lab, Demo und typische Kunden-Installationen im Firmennetz.
 
-Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **Verteilungs- und Absicherungswege**, wenn das Standardmodell (öffentliches GHCR + HTTP:80 + GitHub-Assets) nicht passt. Sie ändern nicht die App-Logik, sondern nur **wie** Images/Assets zum Server kommen und **wie** Clients den Stack erreichen.
+Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **Verteilungs- und Absicherungswege**, wenn das Standardmodell (öffentliches GHCR + GitHub-Assets; TLS siehe unten) nicht passt. Sie ändern nicht die App-Logik, sondern nur **wie** Images/Assets zum Server kommen und **wie** Clients den Stack erreichen.
 
 #### 1. HTTPS / Port 443 (TLS vor Caddy)
 
-**Problem:** Standard-Install lauscht oft auf **HTTP Port 80**. Im reinen Intranet (VPN, interne DNS) ist das akzeptiert. Sobald Nutzer über öffentliches Internet oder untrusted Netze zugreifen, fehlt Verschlüsselung (Login-Cookies, Dokumentinhalte).
-
-**Konzept:** Caddy terminiert TLS (Let's Encrypt ACME bei öffentlicher Domain, oder `tls internal` / eigene Zertifikate im LAN). Die App dahinter bleibt HTTP im Docker-Netz; Session-Cookies brauchen dann `SESSION_COOKIE_SECURE=1`.
-
-**Abgrenzung:** Die öffentliche Demo (`docsops.de` / `demo.docsops.de`) hat TLS bereits über `Caddyfile.demo`. Der optionale Punkt meint den **allgemeinen Self-host-Default** und Doku/Skripte dafür – nicht „Demo ohne HTTPS“.
+[x] **Umgesetzt:** `DOCSOPS_TLS_MODE=off|internal|acme` (Default neuer Prod-Installs: `internal`). Caddyfiles `Caddyfile.prod` / `.internal` / `.acme`, Compose Ports 80+443 + `caddy_data`, Install setzt `SESSION_COOKIE_SECURE` und `DOCSOPS_CADDYFILE`. CI/Lab: `DOCSOPS_TLS_MODE=off`. Doku: [install.md](../install.md), [Env-und-Config](Env-und-Config.md).
 
 #### 2. Private GHCR + PAT (Images nicht öffentlich)
 
-**Problem:** Heute kann jeder die DocsOps-Images von GHCR pullen (öffentlich). Manche Organisationen verbieten öffentliche Container-Repos oder wollen Zugriffe auditieren/beschränken.
-
-**Konzept:** Package-Sichtbarkeit auf **private** stellen. Install/Update brauchen dann einen **GitHub Personal Access Token** (oder Deploy-Token) mit `read:packages`: `docker login ghcr.io` vor `compose pull`. Bundle und `install.sh` bleiben nutzbar; nur der Registry-Zugriff wird authentisiert.
-
-**Abgrenzung:** Betrifft nicht den App-Code, nur Registry-Policy und Install-Doku (Token hinterlegen, Rotation, Fehlerbilder bei 401).
+[~] **Zurückgestellt (Kosten/Aufwand):** öffentliches GHCR bleibt Default. Privat erst bei Kunden-Policy „keine öffentlichen Images“ (PAT, Login in Install/Update, Support).
 
 #### 3. Air-gap (kein Registry-/GitHub-Zugriff vom Server)
 
-**Problem:** Hochsicherheits- oder Offline-Netze dürfen **keinen** ausgehenden Zugriff auf `ghcr.io` / GitHub. Der Standardweg `compose pull` scheitert.
-
-**Konzept:** Auf einem online Rechner Images und Bundle laden, per Datenträger/Transfer ins Netz bringen:
-
-- Bundle: Tar wie bisher entpacken.
-- Images: `docker save` → Datei → `docker load` auf dem Zielhost; danach Install mit `DOCSOPS_SKIP_IMAGE_PULL=1` (lokale Tags).
-
-**Abgrenzung:** Kein neues Produktmodul – ein **Transfer-Runbook** und ggf. Hilfsskripte. Updates = neuer Transfer derselben Art.
+[x] **Umgesetzt:** [Runbook-Air-Gap-Install](Runbook-Air-Gap-Install.md) + `scripts/airgap-save-images.sh` / `airgap-load-images.sh` um `DOCSOPS_BUNDLE_PATH` und `DOCSOPS_SKIP_IMAGE_PULL=1`.
 
 #### 4. Eigenes CDN / eigene Asset-Origin
 
-**Problem:** Install und Landing laden Skripte/Bundle/Landing-Files von **GitHub Releases** (bzw. der Demo-Host liefert Landing lokal). Bei vielen Installs, geografischer Nähe oder Policy „kein GitHub als Origin“ will man Assets unter eigener Domain.
-
-**Konzept:** Release-Artefakte (und optional Landing-Static) auf eigenem Speicher/CDN spiegeln; Install-URL und Doku zeigen auf diese Origin. Die App-Images können weiter GHCR nutzen oder ebenfalls gespiegelt werden.
-
-**Abgrenzung:** Marketing-Landing auf `docsops.de` ist schon „eigene Origin“ für die Website – hier geht es um **Verteilung der Release-Artefakte** an Self-host-Kunden, nicht um die Marketing-Site selbst.
+[~] **Zurückgestellt (Kosten):** GitHub Releases bleiben die Asset-Origin, solange Volumen und Policy das erlauben.
 
 #### 5. CI Frontend- / E2E-Tests
 
-**Problem:** Release-CI prüft vor allem **„lässt sich der Stack installieren und antwortet Health?“**. UI-Regressionen (Login-Klickpfade, kritische Flows) fängt das nicht.
-
-**Konzept:** Zusätzliche Jobs (Playwright/Cypress o. Ä.) gegen Dev- oder CI-Stack: z. B. Login, Catalog öffnen, Dokument lesen. Laufen parallel oder nach Verify – erhöhen Vertrauen vor Tag-Publish, ersetzen den Install-Smoke nicht.
-
-**Abgrenzung:** Qualitätssicherung der **Anwendung**, nicht der Image-Verteilung. Unabhängig von HTTPS/GHCR/Air-gap.
+[x] **Umgesetzt:** Playwright-Paket `apps/e2e` (Login → Catalog → Dokument). Läuft im Release-Workflow **nach** `install-test` gegen denselben Stack (`DOCSOPS_TLS_MODE=off`). Ersetzt den Install-Smoke nicht.
 
 #### Einordnung
 
-| Thema        | Schicht                     | Braucht App-Änderung? | Dev-Blocker? |
-| ------------ | --------------------------- | --------------------- | ------------ |
-| HTTPS/443    | Edge (Caddy + Cookie-Flags) | kaum (Config/Doku)    | nein         |
-| Private GHCR | Registry-Auth               | nein (Doku/Skripte)   | nein         |
-| Air-gap      | Lieferweg Images/Bundle     | nein (Runbook/Flags)  | nein         |
-| Eigenes CDN  | Asset-Origin                | nein (Doku/Spiegel)   | nein         |
-| CI E2E       | Test-Pipeline               | Testcode              | nein         |
+| Thema        | Schicht                     | Status                                   |
+| ------------ | --------------------------- | ---------------------------------------- |
+| HTTPS/443    | Edge (Caddy + Cookie-Flags) | erledigt (Default `internal`)            |
+| Private GHCR | Registry-Auth               | zurückgestellt (Kosten/Policy)           |
+| Air-gap      | Lieferweg Images/Bundle     | erledigt (Runbook + Save/Load)           |
+| Eigenes CDN  | Asset-Origin                | zurückgestellt (Kosten)                  |
+| CI E2E       | Test-Pipeline               | erledigt (Playwright nach Install-Smoke) |
 
-**Fazit:** Solange Kunden im Intranet per öffentlichem Bundle+GHCR installieren und Demo/Lab laufen, bleiben diese fünf Punkte **Backlog Betrieb** – umsetzen, wenn ein konkreter Hosting-Zwang oder QA-Bedarf entsteht.
+**Fazit:** HTTPS-Default, Air-gap und Release-E2E sind umgesetzt. Private GHCR und eigenes CDN bleiben Backlog, bis ein Kunde/Policy Kosten rechtfertigt.
 
 ### Demo & öffentliche Präsenz (getrennt von Self-hosted)
 

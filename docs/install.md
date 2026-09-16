@@ -4,7 +4,7 @@ Anleitung für **Self-hosted** DocsOps auf einem Linux-Server im Intranet. Entwi
 
 **Deployment:** Release-Bundle + Container-Images von **GHCR** (`docker compose pull`). Kein Git-Clone, kein `docker compose build` auf dem Server.
 
-**Deployment-Annahme:** Production = **Intranet-Self-hosted** auf einem Linux-Host. Standard ist **HTTP Port 80** (Caddy reverse proxy, keine TLS-Pflicht). Clients erreichen DocsOps per Server-IP oder internem Hostnamen (z. B. `docsops.intranet`). Öffentliches Internet oder HTTPS sind **nicht** vorausgesetzt; beides kann später ergänzt werden.
+**Deployment-Annahme:** Production = **Intranet-Self-hosted** auf einem Linux-Host. **Default:** HTTPS auf Port **443** (`DOCSOPS_TLS_MODE=internal`, Caddy self-signed) plus HTTP :80 für Health/Redirect. `SESSION_COOKIE_SECURE=1`. Bewusstes HTTP-only: `DOCSOPS_TLS_MODE=off`. Öffentliche Domain: `DOCSOPS_TLS_MODE=acme` mit `DOCSOPS_TLS_DOMAIN` und `DOCSOPS_TLS_EMAIL`. Air-gap: [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
 
 ---
 
@@ -18,7 +18,7 @@ Install lädt vorgebaute Images von der Registry (`docker compose pull`) – typ
 | Empfohlen   | 8 GB  | 40 GB  | Intranet-Production       |
 | Komfortabel | 16 GB | 80 GB+ | MinIO/Backups wachsen mit |
 
-Host: Linux, `sudo`, Port **80** frei; curl/openssl/Docker bei Bedarf via Skript.
+Host: Linux, `sudo`, Ports **80** und **443** frei (bei `DOCSOPS_TLS_MODE=off` reicht 80); curl/openssl/Docker bei Bedarf via Skript.
 
 Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on device`. Dann `docker system prune -af` / Disk vergrößern.
 
@@ -31,10 +31,10 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode) |
 | Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`          |
 | Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                          |
-| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → Port **80** (HTTP)   |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → **80** + **443**     |
 | Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                   |
-| TLS / HTTPS            | nicht nötig (Dev)                                 | **Standard: aus** – optional später (Caddy TLS)                         |
-| Session-Cookies        | Dev-Stack                                         | **ohne** `Secure` (HTTP); mit HTTPS: `SESSION_COOKIE_SECURE=1`          |
+| TLS / HTTPS            | nicht nötig (Dev)                                 | **Default `internal`** (self-signed); `acme` oder `off` per Env         |
+| Session-Cookies        | Dev-Stack                                         | Default mit `Secure` (TLS); bei `DOCSOPS_TLS_MODE=off` ohne Secure      |
 | Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                        |
 | Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                           |
 | Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                         |
@@ -336,11 +336,11 @@ sudo systemctl enable --now docsops.service
 
 ## Persistente Docker-Volumes (Production)
 
-| Volume          | Inhalt                            |
-| --------------- | --------------------------------- |
-| `postgres_data` | Datenbank                         |
-| `minio_data`    | Anhänge, Exporte, Backup-Objekte  |
-| `caddy_data`    | optional später (TLS-Zertifikate) |
+| Volume          | Inhalt                                           |
+| --------------- | ------------------------------------------------ |
+| `postgres_data` | Datenbank                                        |
+| `minio_data`    | Anhänge, Exporte, Backup-Objekte                 |
+| `caddy_data`    | TLS-Zertifikate (Caddy; bei `internal` / `acme`) |
 
 Secrets liegen in **`/etc/docsops/docsops.env`** auf dem Host, nicht in einem extra Docker-Volume (einfacher zu backuppen und zu dokumentieren).
 
@@ -350,8 +350,11 @@ Secrets liegen in **`/etc/docsops/docsops.env`** auf dem Host, nicht in einem ex
 
 ## Zugriff im Intranet
 
-- **Ohne Hostname:** `http://<server-ip>/`
+- **Default (HTTPS tls internal):** `https://<server-ip>/` (Browser-Warnung für self-signed einmal bestätigen)
+- **HTTP-only** (`DOCSOPS_TLS_MODE=off`): `http://<server-ip>/`
 - **Mit Hostname:** internes DNS oder `/etc/hosts` auf Client-Rechnern, z. B. `192.168.1.50 docsops.intranet`
+
+Air-gap (kein Registry-/GitHub-Zugriff): [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
 
 Das Install-Skript richtet kein VPN und kein zentrales DNS ein (Hinweis in Doku reicht).
 
@@ -365,7 +368,7 @@ Das Install-Skript richtet kein VPN und kein zentrales DNS ein (Hinweis in Doku 
 curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/install.sh | sudo bash
 ```
 
-Lädt das **neueste** Release-Bundle nach `/opt/docsops`, installiert bei Bedarf Docker und startet DocsOps auf **Port 80**. Nur **Release-Tags** (`vX.Y.Z`) – kein Branch `main`. Die Version ist im heruntergeladenen `install.sh` eingebettet (Skript, Bundle und Images passen zusammen).
+Lädt das **neueste** Release-Bundle nach `/opt/docsops`, installiert bei Bedarf Docker und startet DocsOps (**HTTPS :443** Default, Health weiter auf :80). Nur **Release-Tags** (`vX.Y.Z`) – kein Branch `main`. Die Version ist im heruntergeladenen `install.sh` eingebettet (Skript, Bundle und Images passen zusammen).
 
 **Bestimmte Version (Pinning):**
 
@@ -396,7 +399,7 @@ Mit bestehender `/etc/docsops/docsops.env` wird diese im Non-interactive-Modus s
 
 Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilfe via `--help`.
 
-**CI:** `docker-compose.ci.yml` mappt Caddy auf Port **8080** (`DOCSOPS_EXTRA_COMPOSE_FILES`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`).
+**CI:** `docker-compose.ci.yml` mappt Caddy auf Port **8080** (`DOCSOPS_EXTRA_COMPOSE_FILES`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`). Nach Health: Playwright E2E (`apps/e2e`) Login → Catalog → Dokument.
 
 ---
 
@@ -404,16 +407,17 @@ Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilf
 
 ### Login: `GET /api/v1/me` → 401 nach Anmeldung
 
-Standard-Production läuft auf **HTTP** (Port 80). Session-Cookies dürfen dann **kein** `Secure`-Flag haben – sondern speichert der Browser das Cookie nicht.
+Bei **HTTPS** (`DOCSOPS_TLS_MODE=internal|acme`) muss `SESSION_COOKIE_SECURE=1` gesetzt sein (Install setzt das). Clients müssen die **https://**-URL nutzen.
 
-- Erst wenn Caddy **HTTPS** terminiert: in `/etc/docsops/docsops.env` `SESSION_COOKIE_SECURE=1` setzen und App neu starten.
-- Im Browser (DevTools → Application → Cookies): nach Login muss `sessionId` für `docsops.intranet` sichtbar sein.
+Bei bewusst **HTTP-only** (`DOCSOPS_TLS_MODE=off`): `SESSION_COOKIE_SECURE` muss `0`/unset sein – sonst speichert der Browser das Cookie nicht.
+
+- Im Browser (DevTools → Application → Cookies): nach Login muss `sessionId` sichtbar sein.
 - Ein 401 auf `/me` **vor** dem Login (Login-Seite) ist normal.
 
 ### `docker compose pull` schlägt fehl
 
 - `DOCSOPS_VERSION` in `/etc/docsops/docsops.env` muss ein existierendes Release sein (`vX.Y.Z`).
-- Server braucht ausgehenden HTTPS-Zugriff auf `ghcr.io`.
+- Server braucht ausgehenden HTTPS-Zugriff auf `ghcr.io`, oder Air-gap: [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
 
 ---
 
@@ -422,3 +426,4 @@ Standard-Production läuft auf **HTTP** (Port 80). Session-Cookies dürfen dann 
 - [Infrastruktur & Deployment](plan/Infrastruktur-und-Deployment.md)
 - [Env- und Config](plan/Env-und-Config.md)
 - [Runbook Backup/Restore](plan/Runbook-Backup-Restore.md)
+- [Runbook Air-Gap Install](plan/Runbook-Air-Gap-Install.md)

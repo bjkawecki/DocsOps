@@ -193,6 +193,7 @@ jobs:
           DOCSOPS_USE_EXISTING_CONFIG: '0'
           DOCSOPS_EXTRA_COMPOSE_FILES: docker-compose.ci.yml
           DOCSOPS_HEALTH_URL: http://127.0.0.1:8080/health
+          DOCSOPS_TLS_MODE: 'off'
           ADMIN_EMAIL: ci-admin@example.com
           ADMIN_PASSWORD: ci-admin-password-12
         run: sudo -E "$DOCSOPS_CI_DIR/scripts/install-prod.sh"
@@ -201,6 +202,26 @@ jobs:
         run: |
           TOKEN="$(sudo grep '^DOCSOPS_AGENT_TOKEN=' "$DOCSOPS_CI_ENV" | cut -d= -f2-)"
           curl -sf -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8091/v1/status
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: App E2E (Playwright)
+        env:
+          DOCSOPS_E2E_BASE_URL: http://127.0.0.1:8080
+          DOCSOPS_E2E_ADMIN_EMAIL: ci-admin@example.com
+          DOCSOPS_E2E_ADMIN_PASSWORD: ci-admin-password-12
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --filter docsops-e2e exec playwright install --with-deps chromium
+          pnpm --filter docsops-e2e test
 
       - name: Cleanup CI install
         if: always()
@@ -217,6 +238,7 @@ jobs:
           fi
           sudo rm -rf "$CI_DIR"
           sudo docker volume rm docsops_postgres_data docsops_minio_data 2>/dev/null || true
+          sudo docker volume rm "${{ env.DOCSOPS_CI_PROJECT }}_caddy_data" 2>/dev/null || true
 
   release:
     needs: [bundle, install-test]

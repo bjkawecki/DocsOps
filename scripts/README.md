@@ -13,9 +13,13 @@
 | [`release/build-bundle.sh`](release/build-bundle.sh)     | Build `docsops-vX.Y.Z.tar.gz` (CI / release; local + public Landing dists)            |
 | [`docker-image-sizes.sh`](docker-image-sizes.sh)         | Build all prod images locally and print sizes (before/after comparisons)              |
 | [`check-permission-drift.sh`](check-permission-drift.sh) | CI: backend permission exports vs frontend usage                                      |
+| [`airgap-save-images.sh`](airgap-save-images.sh)         | Air-gap: `docker save` DocsOps + base images for a release tag                        |
+| [`airgap-load-images.sh`](airgap-load-images.sh)         | Air-gap: `docker load` on the offline host                                            |
 | [`lab/smoke-vm-lab.sh`](lab/smoke-vm-lab.sh)             | Smoke: landing + five demo role logins                                                |
 
-**Environment:** `DOCSOPS_VERSION` (optional for update; required for pinned install from repo checkout), `DOCSOPS_IMAGE_PREFIX` (default `ghcr.io/bjkawecki`), `DOCSOPS_BUNDLE_PATH` (local bundle tar.gz for update), `DOCSOPS_SKIP_IMAGE_PULL=1` (skip registry pull), `DOCSOPS_NON_INTERACTIVE`, `DOCSOPS_ASSUME_YES`, `DOCSOPS_INSTALL_DIR`, `DOCSOPS_EXTRA_COMPOSE_FILES` (CI: `docker-compose.ci.yml`), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DOCSOPS_HOSTNAME`.
+**Environment:** `DOCSOPS_VERSION` (optional for update; required for pinned install from repo checkout), `DOCSOPS_IMAGE_PREFIX` (default `ghcr.io/bjkawecki`), `DOCSOPS_BUNDLE_PATH` (local bundle tar.gz for update), `DOCSOPS_SKIP_IMAGE_PULL=1` (skip registry pull), `DOCSOPS_TLS_MODE` (`off`\|`internal`\|`acme`, install default `internal`), `DOCSOPS_NON_INTERACTIVE`, `DOCSOPS_ASSUME_YES`, `DOCSOPS_INSTALL_DIR`, `DOCSOPS_EXTRA_COMPOSE_FILES` (CI: `docker-compose.ci.yml`), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `DOCSOPS_HOSTNAME`.
+
+Air-gap transfer: [Runbook-Air-Gap-Install](../docs/plan/Runbook-Air-Gap-Install.md).
 
 **Public demo (`docsops.de`):**
 

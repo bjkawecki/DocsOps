@@ -1,4 +1,5 @@
-# Production (intranet): HTTP on port 80. /api → backend, / → static frontend (nginx).
+# Production (intranet): HTTP on port 80. Used when DOCSOPS_TLS_MODE=off (CI / explicit HTTP).
+# /api → backend, / → static frontend (nginx).
 {
 	auto_https disable_redirects
 	log {

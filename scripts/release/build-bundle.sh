@@ -74,6 +74,8 @@ copy_file "${ROOT}/docker-compose.demo.yml" "${BUNDLE_ROOT}/docker-compose.demo.
 copy_file "${ROOT}/docker-compose.lab.yml" "${BUNDLE_ROOT}/docker-compose.lab.yml"
 copy_file "${ROOT}/docker-compose.demo-public.yml" "${BUNDLE_ROOT}/docker-compose.demo-public.yml"
 copy_file "${ROOT}/Caddyfile.prod" "${BUNDLE_ROOT}/Caddyfile.prod"
+copy_file "${ROOT}/Caddyfile.prod.internal" "${BUNDLE_ROOT}/Caddyfile.prod.internal"
+copy_file "${ROOT}/Caddyfile.prod.acme" "${BUNDLE_ROOT}/Caddyfile.prod.acme"
 copy_file "${ROOT}/Caddyfile.lab" "${BUNDLE_ROOT}/Caddyfile.lab"
 copy_file "${ROOT}/Caddyfile.demo" "${BUNDLE_ROOT}/Caddyfile.demo"
 stamp_install_sh "${ROOT}/install.sh" "${BUNDLE_ROOT}/install.sh" "$VERSION"
@@ -88,6 +90,8 @@ copy_file "${ROOT}/scripts/docsops-demo-local" "${BUNDLE_ROOT}/scripts/docsops-d
 copy_file "${ROOT}/scripts/docsops-demo" "${BUNDLE_ROOT}/docsops-demo"
 copy_file "${ROOT}/scripts/docsops-demo-local" "${BUNDLE_ROOT}/docsops-demo-local"
 copy_file "${ROOT}/scripts/update.sh" "${BUNDLE_ROOT}/scripts/update.sh"
+copy_file "${ROOT}/scripts/airgap-save-images.sh" "${BUNDLE_ROOT}/scripts/airgap-save-images.sh"
+copy_file "${ROOT}/scripts/airgap-load-images.sh" "${BUNDLE_ROOT}/scripts/airgap-load-images.sh"
 copy_file "${ROOT}/scripts/lab/smoke-vm-lab.sh" "${BUNDLE_ROOT}/scripts/lab/smoke-vm-lab.sh"
 copy_file "${ROOT}/docker-compose.ci.yml" "${BUNDLE_ROOT}/docker-compose.ci.yml"
 install -m 755 "$AGENT_BINARY" "${BUNDLE_ROOT}/bin/docsops-agent"
@@ -102,6 +106,7 @@ chmod +x "${BUNDLE_ROOT}/install.sh" "${BUNDLE_ROOT}/uninstall.sh" \
   "${BUNDLE_ROOT}/scripts/install-prod.sh" "${BUNDLE_ROOT}/scripts/uninstall-prod.sh" \
   "${BUNDLE_ROOT}/scripts/docsops-demo" "${BUNDLE_ROOT}/scripts/docsops-demo-local" \
   "${BUNDLE_ROOT}/scripts/docsops-demo-cli.sh" "${BUNDLE_ROOT}/scripts/update.sh" \
+  "${BUNDLE_ROOT}/scripts/airgap-save-images.sh" "${BUNDLE_ROOT}/scripts/airgap-load-images.sh" \
   "${BUNDLE_ROOT}/scripts/lab/smoke-vm-lab.sh"
 
 ARCHIVE="${OUT_DIR}/docsops-${VERSION}.tar.gz"

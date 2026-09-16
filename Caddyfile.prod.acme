@@ -1,0 +1,39 @@
+# Production with Let's Encrypt / ACME (DOCSOPS_TLS_MODE=acme).
+# Requires DOCSOPS_TLS_DOMAIN (public DNS to this host) and DOCSOPS_TLS_EMAIL in the env file.
+# Caddy container must receive those env vars (see docker-compose.prod.yml).
+{
+	email {$DOCSOPS_TLS_EMAIL}
+	log {
+		output stdout
+		format console
+	}
+}
+
+http://:80 {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+}
+
+{$DOCSOPS_TLS_DOMAIN} {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle /api/v1/me/events {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}

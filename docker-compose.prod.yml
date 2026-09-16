@@ -1,4 +1,5 @@
-# Production stack: GHCR images, Caddy on port 80. Requires DOCSOPS_VERSION and DOCSOPS_IMAGE_PREFIX in env.
+# Production stack: GHCR images, Caddy on 80/443. Requires DOCSOPS_VERSION and DOCSOPS_IMAGE_PREFIX.
+# TLS: DOCSOPS_TLS_MODE=off|internal|acme and DOCSOPS_CADDYFILE (set by install-prod.sh).
 # Usage: docker compose --env-file /etc/docsops/docsops.env \
 #   -f docker-compose.yml -f docker-compose.prod.yml pull
 #   docker compose --env-file /etc/docsops/docsops.env \
@@ -28,6 +29,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
       SESSION_SECRET: ${SESSION_SECRET:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-0}
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
       BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
@@ -98,10 +100,18 @@ services:
     restart: unless-stopped
     ports:
       - '80:80'
+      - '443:443'
+    environment:
+      DOCSOPS_TLS_DOMAIN: ${DOCSOPS_TLS_DOMAIN:-}
+      DOCSOPS_TLS_EMAIL: ${DOCSOPS_TLS_EMAIL:-}
     volumes:
-      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - ./${DOCSOPS_CADDYFILE:-Caddyfile.prod}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
     depends_on:
       app:
         condition: service_healthy
       frontend:
         condition: service_healthy
+
+volumes:
+  caddy_data:

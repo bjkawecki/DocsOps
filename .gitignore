@@ -40,6 +40,11 @@ reports/
 # Test / coverage
 coverage/
 .nyc_output/
+test-results/
+playwright-report/
+blob-report/
+apps/e2e/test-results/
+apps/e2e/playwright-report/
 
 # pnpm-lock.yaml is committed (do not ignore)
 .pnpm-store/

@@ -190,23 +190,25 @@ print_security_notice() {
 DocsOps Production-Installation
 ================================
 
-Einsatzmodell (Standard: Intranet)
-----------------------------------
+Einsatzmodell (Standard: Intranet mit HTTPS)
+--------------------------------------------
 DocsOps Production ist für einen **Linux-Server im Intranet** gedacht:
-  - Zugriff per **HTTP** auf Port **80** (z. B. http://docsops.intranet oder Server-IP)
+  - Default: **HTTPS** auf Port **443** (Caddy tls internal, self-signed)
+  - HTTP Port **80** bleibt für Health-Checks und Redirects
   - Hostname optional – internes DNS oder /etc/hosts auf Clients
-  - Kein öffentliches Internet / keine TLS-Pflicht in der Standard-Installation
-  - Session-Cookies funktionieren über http:// (kein Secure-Flag)
-  - Keine Demo-Seed-Daten; kein Admin-Debug („View as user“)
+  - Session-Cookies mit Secure-Flag (SESSION_COOKIE_SECURE=1)
+  - Keine Demo-Seed-Daten; kein Admin-Debug ("View as user")
 
-HTTPS oder Zugriff von außen (VPN) sind optional (spätere Phase): Caddy mit TLS,
-dann in ${DOCSOPS_ENV_FILE} SESSION_COOKIE_SECURE=1 setzen.
+TLS-Modi (DOCSOPS_TLS_MODE in ${DOCSOPS_ENV_FILE}):
+  - internal (Default): self-signed HTTPS – Browser-Warnung einmal bestätigen
+  - acme: Let's Encrypt (DOCSOPS_TLS_DOMAIN + DOCSOPS_TLS_EMAIL, öffentliche DNS)
+  - off: nur HTTP :80 (CI / bewusstes HTTP-Intranet)
 
 Dieses Skript wird als root ausgeführt und kann:
   - Systempakete installieren (curl, openssl, Docker)
   - Deploy-Dateien nach ${DOCSOPS_INSTALL_DIR} entpacken
   - /etc/docsops/docsops.env mit Secrets anlegen
-  - Container-Images von der Registry laden und starten (Port 80 frei oder bereits durch DocsOps/Caddy belegt)
+  - Container-Images von der Registry laden und starten (Ports 80/443)
 
 Warum root-Skripte aus dem Internet riskant sind
 -------------------------------------------------
@@ -229,7 +231,6 @@ EOF
     echo ""
   fi
 }
-
 docker_compose_ready() {
   command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1
 }
@@ -398,6 +399,7 @@ require_port_80_free() {
 
 write_env_file() {
   local session_secret backup_key admin_email admin_password hostname image_prefix version
+  local tls_mode caddyfile session_cookie_secure tls_domain tls_email
   assert_release_version
   session_secret="$(openssl rand -hex 32)"
   backup_key="$(openssl rand -base64 32)"
@@ -408,6 +410,30 @@ write_env_file() {
   version="${DOCSOPS_VERSION}"
   update_github_repo="${DOCSOPS_UPDATE_GITHUB_REPO:-${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}}"
   agent_token="$(openssl rand -hex 32)"
+  tls_mode="${DOCSOPS_TLS_MODE:-internal}"
+  tls_domain="${DOCSOPS_TLS_DOMAIN:-}"
+  tls_email="${DOCSOPS_TLS_EMAIL:-}"
+
+  case "${tls_mode}" in
+    off | internal | acme) ;;
+    *)
+      die "DOCSOPS_TLS_MODE must be off, internal, or acme (got: ${tls_mode})"
+      ;;
+  esac
+  if [[ "${tls_mode}" == "acme" ]]; then
+    [[ -n "${tls_domain}" ]] || die "DOCSOPS_TLS_MODE=acme requires DOCSOPS_TLS_DOMAIN"
+    [[ -n "${tls_email}" ]] || die "DOCSOPS_TLS_MODE=acme requires DOCSOPS_TLS_EMAIL"
+  fi
+
+  caddyfile="Caddyfile.prod"
+  session_cookie_secure=0
+  if [[ "${tls_mode}" == "internal" ]]; then
+    caddyfile="Caddyfile.prod.internal"
+    session_cookie_secure=1
+  elif [[ "${tls_mode}" == "acme" ]]; then
+    caddyfile="Caddyfile.prod.acme"
+    session_cookie_secure=1
+  fi
 
   install -d -m 700 /etc/docsops
 
@@ -429,6 +455,11 @@ DOCSOPS_AGENT_INSTALL_DIR=${DOCSOPS_INSTALL_DIR}
 DOCSOPS_AGENT_ENV_FILE=${DOCSOPS_ENV_FILE}
 DOCSOPS_AGENT_HEALTH_URL=${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}
 DOCSOPS_EXTRA_COMPOSE_FILES=${DOCSOPS_EXTRA_COMPOSE_FILES:-}
+DOCSOPS_TLS_MODE=${tls_mode}
+DOCSOPS_CADDYFILE=${caddyfile}
+DOCSOPS_TLS_DOMAIN=${tls_domain}
+DOCSOPS_TLS_EMAIL=${tls_email}
+SESSION_COOKIE_SECURE=${session_cookie_secure}
 SESSION_SECRET=${session_secret}
 BACKUP_ENCRYPTION_KEY="${backup_key}"
 ADMIN_EMAIL=${admin_email}
@@ -444,6 +475,7 @@ EOF
   echo "${backup_key}"
   echo "================================================================"
   echo "Gespeichert in: ${DOCSOPS_ENV_FILE}"
+  echo "TLS-Modus: ${tls_mode} (Caddyfile=${caddyfile}, SESSION_COOKIE_SECURE=${session_cookie_secure})"
   echo ""
   confirm_backup_key_saved
 }
@@ -626,22 +658,44 @@ EOF
 }
 
 print_finish() {
-  local ip url
+  local ip url tls_mode
   ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
-  url="http://${ip:-localhost}/"
+  tls_mode="${DOCSOPS_TLS_MODE:-}"
+  if [[ -z "${tls_mode}" && -f "${DOCSOPS_ENV_FILE}" ]]; then
+    tls_mode="$(grep -E '^DOCSOPS_TLS_MODE=' "$DOCSOPS_ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  fi
+  tls_mode="${tls_mode:-internal}"
+  if [[ "${tls_mode}" == "off" ]]; then
+    url="http://${ip:-localhost}/"
+  else
+    url="https://${ip:-localhost}/"
+  fi
   if [[ -n "${DOCSOPS_HOSTNAME:-}" ]]; then
     echo ""
     echo "Optionaler Hostname: ${DOCSOPS_HOSTNAME}"
     echo "Clients: Eintrag in /etc/hosts oder internes DNS, z. B.:"
     echo "  ${ip:-<server-ip>}  ${DOCSOPS_HOSTNAME}"
-    url="http://${DOCSOPS_HOSTNAME}/"
+    if [[ "${tls_mode}" == "off" ]]; then
+      url="http://${DOCSOPS_HOSTNAME}/"
+    else
+      url="https://${DOCSOPS_HOSTNAME}/"
+    fi
   fi
   echo ""
-  echo "DocsOps ist installiert (Intranet-Standard: HTTP auf Port 80)."
+  if [[ "${tls_mode}" == "off" ]]; then
+    echo "DocsOps ist installiert (HTTP auf Port 80)."
+  elif [[ "${tls_mode}" == "acme" ]]; then
+    echo "DocsOps ist installiert (HTTPS / ACME auf Port 443)."
+  else
+    echo "DocsOps ist installiert (HTTPS tls internal auf Port 443)."
+    echo "Browser: Self-signed-Warnung einmal bestätigen (oder Caddy Local CA trusten)."
+  fi
   echo "  URL:        ${url}"
   echo "  Admin:      ${ADMIN_EMAIL:-}"
+  echo "  TLS-Modus:  ${tls_mode}"
   echo "  Konfiguration: ${DOCSOPS_ENV_FILE}"
   echo ""
-  echo "HTTPS später: Caddy TLS einrichten und SESSION_COOKIE_SECURE=1 in ${DOCSOPS_ENV_FILE} setzen."
+  echo "Firewall: Ports 80 und 443 (bei TLS). HTTP-only: DOCSOPS_TLS_MODE=off."
   echo ""
 }
+

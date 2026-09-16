@@ -16,6 +16,7 @@ module.exports = tseslint.config(
       'docs/',
       'apps/updater/',
       'apps/landing/scripts/',
+      'apps/e2e/',
       '**/prisma.config.ts',
     ],
   },
