@@ -110,15 +110,15 @@ Demo-Seed-Inhalte DE: erledigt (schlanker CSV unter `apps/backend/prisma/seed-da
 
 Ausgehende SMTP-Mails sind **nicht** Teil des Frontend-`i18next`-Katalogs. Der Worker liest Backend-eigene JSON-Kataloge.
 
-| Regel | Vorgabe |
-| ----- | ------- |
-| Ablage | `apps/backend/src/infrastructure/mail/locales/{en,de}/emails.json` |
-| Helper | `mailI18n.ts` (`resolveMailLocale`, `tMail`, Format-Helfer) |
-| Locale | `User.preferences.locale` des **Empfängers**; sonst **`en`** (kein Browser-`Accept-Language`) |
-| SMTP-Test | Locale des **eingeloggten Admins** |
-| Copy Phase 1 | Menschlich-generisch (Rahmen + Event-Label + Inbox-Hinweis); **kein** Payload-JSON im Body |
-| API / Logs | Bleiben Englisch; kein Backend-Fehler-i18n über denselben Katalog |
-| Passwort-Reset | Keys `auth.reset.*` vorbereitet; Versand erst mit Reset-Feature |
+| Regel          | Vorgabe                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| Ablage         | `apps/backend/src/infrastructure/mail/locales/{en,de}/emails.json`                            |
+| Helper         | `mailI18n.ts` (`resolveMailLocale`, `tMail`, Format-Helfer)                                   |
+| Locale         | `User.preferences.locale` des **Empfängers**; sonst **`en`** (kein Browser-`Accept-Language`) |
+| SMTP-Test      | Locale des **eingeloggten Admins**                                                            |
+| Copy Phase 1   | Menschlich-generisch (Rahmen + Event-Label + Inbox-Hinweis); **kein** Payload-JSON im Body    |
+| API / Logs     | Bleiben Englisch; kein Backend-Fehler-i18n über denselben Katalog                             |
+| Passwort-Reset | Keys `auth.reset.*` vorbereitet; Versand erst mit Reset-Feature                               |
 
 CI: Root `pnpm run check:i18n` prüft Frontend **und** Mail-JSON (`pnpm --filter backend run check:mail-i18n`, DE ⊆ EN).
 

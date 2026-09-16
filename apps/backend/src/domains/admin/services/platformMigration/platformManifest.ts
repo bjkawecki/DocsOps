@@ -44,6 +44,8 @@ export type PlatformExportManifest = {
   createdAt: string;
   files: Record<string, { sha256: string; sizeBytes: number }>;
   counts: PlatformExportManifestCounts;
+  /** Highest BlockDocument / column schema version present in the package (optional on older exports). */
+  maxBlocksSchemaVersion?: number;
   bundleSha256?: string;
 };
 
@@ -77,8 +79,4 @@ export async function finalizePlatformManifestBundleSha(
   manifest.bundleSha256 = await sha256File(archivePath);
   await writePlatformManifestFile(manifestPath, manifest);
   return manifest;
-}
-
-export function isSupportedExportFormatVersion(version: number): boolean {
-  return version === PLATFORM_EXPORT_FORMAT_VERSION;
 }

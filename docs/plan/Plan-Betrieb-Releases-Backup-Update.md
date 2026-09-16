@@ -256,23 +256,36 @@ Die Tab-Ansicht zeigt **letzten Export-Status** und Import-CTA; **keine** Export
 
 1. Wartungsmodus an
 2. Archiv entpacken; Manifest + Checksummen prüfen
-3. Kompatibilität: `exportFormatVersion` ↔ Importer (ggf. Adapter pro Quell-`APP_VERSION`)
-4. Import in Reihenfolge mit **ID-Remapping** (Export-ID → neue UUID):
-   - Organization → Users (+ TeamMember, Leads) → Contexts → Documents (+ Versionen, Tags, Rechte) → Files (MinIO, neue Keys, DB patchen)
+3. Kompatibilität: `exportFormatVersion` ↔ Importer-Adapter-Registry; `maxBlocksSchemaVersion` ≤ Ziel-Support; `sourceAppVersion` ≠ Ziel nur Warning (kein Passwort-Hash-Transfer)
+4. Format-Adapter auf Bundle (`adaptBundle`, v1 = Identity); danach Import in Reihenfolge mit **ID-Remapping** (Export-ID → neue UUID):
+   - Organization → Users (+ TeamMember, Leads) → Contexts → Documents (+ Versionen mit Block-Normalisierung/-Validierung, Tags, Rechte) → Files (MinIO, neue Keys, DB patchen)
 5. Import-Metadaten in DB; Temp aufräumen; Wartungsmodus aus
 6. Benachrichtigung an Admins (`platform-import-succeeded` / `-failed`); Reindex anstoßen
 
 Import-Logik in **Services**, nicht Roh-Prisma in Routes; Rechte- und Lifecycle-Regeln gelten wie bei normalem Betrieb.
 
+### Cross-Version (Phase 2, umgesetzt)
+
+- **Package-Format:** Unterstützte `exportFormatVersion`-Werte kommen aus der Adapter-Registry (`platformMigration/adapters/`). Unbekannte Formate → Preflight-Fehler. Format v1 = Identity-Adapter; neue Breaking Package-Shapes brauchen einen neuen Adapter.
+- **Block-Schema:** Manifest-Feld `maxBlocksSchemaVersion` (Export); ältere Pakete ohne Feld werden aus `documents.json` / `document-versions.json` gescannt. Höher als Ziel-Support → Fehler. Beim Import: `coerceImportedBlockDocument` (normalize + Zod).
+- **APP_VERSION:** Unterschied Quell-/Ziel-Version ist erlaubt; Passwort-Hash-Transfer bleibt an gleiche `APP_VERSION` gebunden. Domänen-JSON-Rewrites pro App-Version nur bei realen Diffs (kein Fake-Historien-Adapter).
+
+### Push an Ziel-Instanz (Phase 2, umgesetzt)
+
+- **Ziel:** Admin → Migration → Receive push erzeugt `PlatformImportReceiveSlot` (Token nur einmal in der Response; Speicherung als SHA-256-Hash). Absolute URL = `window.location.origin` + `/api/v1/platform-import-receive/{token}` (TTL 60 min, single-use). `PUT` ohne Session-Auth, nur Token; speichert Archiv wie Upload (`source: push`), Preflight, Status `awaiting_confirm`.
+- **Quelle:** Nach erfolgreichem Export „Push to target“ → `POST /api/v1/admin/platform-exports/:id/push` mit `{ receiveUrl }`; Worker-Instanz streamt aus MinIO. HTTPS Pflicht; HTTP nur localhost/`*.local`.
+- **Confirm:** Unverändert am Ziel (Options + Confirm). DEMO_MODE: Create/Receive/Push → 403.
+
 ### v1-Umfang vs. später
 
-| v1                                        | Phase 2+                                                                                        |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)                                                       |
-| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln)                                                    |
-| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert                                                      |
-| Admin-UI + Job + Audit                    | Upload von externem Ziel; CLI-Skript für Offline-Import                                         |
-| **Push an Ziel-Instanz**                  | Ziel erzeugt URL + Token; Quell-Wizard liefert Paket direkt (TTL, single-use, Confirm auf Ziel) |
+| v1                                        | Phase 2+                                     |
+| ----------------------------------------- | -------------------------------------------- |
+| Vollständiger Export/Import einer Instanz | Selektiver Export (eine Company / Tenant)    |
+| Import nur in **leere** Ziel-DB           | Merge in bestehende Instanz (Konfliktregeln) |
+| Passwort-Reset nach Import (Default)      | SSO-only / Hash-Übernahme policy-gesteuert   |
+| Admin-UI + Job + Audit                    | CLI-Skript für Offline-Import                |
+| Cross-Version Format + Block-Schema       | (weitere Format-Versionen als Adapter)       |
+| Push an Ziel-Instanz (Receive-Slot)       | –                                            |
 
 ### UI-Platzierung (festgelegt)
 
@@ -286,7 +299,7 @@ Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“
 
 ### Abhängigkeiten
 
-- Block-Schema: Export serialisiert `schemaVersion`; Import braucht ggf. **Migrations-Adapter** bei DocsOps-Versionswechsel ([Edit-System](Edit-System-Blocks-Suggestions-Lead-Draft.md)).
+- Block-Schema: Export setzt `maxBlocksSchemaVersion`; Import normalisiert/validiert Block-Dokumente ([Edit-System](Edit-System-Blocks-Suggestions-Lead-Draft.md)).
 - Managed Hosting: Tenant-Löschung / Suspend → Plattform-Export ([Plan-Managed-Hosting](Plan-Managed-Hosting.md) §9).
 
 ---

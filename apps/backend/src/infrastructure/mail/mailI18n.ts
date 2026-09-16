@@ -47,11 +47,7 @@ function interpolate(template: string, vars?: Record<string, string>): string {
 /**
  * Resolve a mail string. EN catalog is required; missing DE falls back to EN.
  */
-export function tMail(
-  locale: MailLocale,
-  key: string,
-  vars?: Record<string, string>
-): string {
+export function tMail(locale: MailLocale, key: string, vars?: Record<string, string>): string {
   const enValue = lookup(catalogs.en, key);
   if (enValue == null) {
     throw new MailI18nMissingKeyError(key);

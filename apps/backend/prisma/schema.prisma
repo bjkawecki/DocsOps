@@ -146,6 +146,7 @@ model User {
   backupActionAudits    AdminBackupActionAudit[]
   platformExportRunsTriggered PlatformExportRun[] @relation("PlatformExportRunTriggeredBy")
   platformImportRunsTriggered PlatformImportRun[] @relation("PlatformImportRunTriggeredBy")
+  platformImportReceiveSlotsCreated PlatformImportReceiveSlot[] @relation("PlatformImportReceiveSlotCreatedBy")
   platformMigrationAudits     AdminPlatformMigrationAudit[]
 }
 
@@ -765,6 +766,7 @@ enum PlatformImportRunStatus {
 
 enum PlatformImportRunSource {
   upload
+  push
 }
 
 /// One platform export execution (logical domain archive for migration).
@@ -802,8 +804,26 @@ model PlatformImportRun {
   startedAt         DateTime?
   finishedAt        DateTime?
   createdAt         DateTime                 @default(now())
+  receiveSlot       PlatformImportReceiveSlot?
 
   @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Single-use, TTL-bound token for another instance to PUSH a platform export archive here.
+model PlatformImportReceiveSlot {
+  id                  String    @id @default(cuid())
+  tokenHash           String    @unique
+  expiresAt           DateTime
+  usedAt              DateTime?
+  createdByUserId     String
+  createdBy           User      @relation("PlatformImportReceiveSlotCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  platformImportRunId String?   @unique
+  platformImportRun   PlatformImportRun? @relation(fields: [platformImportRunId], references: [id], onDelete: SetNull)
+  createdAt           DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([usedAt])
   @@index([createdAt(sort: Desc)])
 }
 

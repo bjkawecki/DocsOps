@@ -6,6 +6,7 @@ import {
 } from '../../auth/middleware.js';
 import {
   listPlatformExportRunsQuerySchema,
+  platformExportPushBodySchema,
   platformExportRunIdParamSchema,
 } from '../schemas/platformMigration.js';
 import {
@@ -15,8 +16,15 @@ import {
   listPlatformExportRuns,
   triggerPlatformExport,
 } from '../services/adminPlatformExportRunService.js';
+import {
+  PlatformExportPushError,
+  pushPlatformExportToReceiveUrl,
+} from '../services/platformExportPushService.js';
 import { writeAdminPlatformMigrationAudit } from '../services/adminPlatformMigrationAuditService.js';
-import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
+import {
+  DemoModeForbiddenError,
+  requireNotDemoMutatingPreHandler,
+} from '../../../config/demoModeGuard.js';
 
 const adminPlatformExportsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
@@ -94,6 +102,43 @@ const adminPlatformExportsRoutes: FastifyPluginAsync = (app: FastifyInstance) =>
         .header('Content-Type', download.contentType)
         .header('Content-Disposition', `attachment; filename="${download.filename}"`)
         .send(download.body);
+    }
+  );
+
+  app.post<{ Params: { id: string } }>(
+    '/admin/platform-exports/:id/push',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const { id } = platformExportRunIdParamSchema.parse(request.params);
+      const body = platformExportPushBodySchema.parse(request.body ?? {});
+      try {
+        const result = await pushPlatformExportToReceiveUrl(request.server.prisma, {
+          platformExportRunId: id,
+          receiveUrl: body.receiveUrl,
+        });
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'platform-export-push',
+          status: 'success',
+          platformExportRunId: id,
+          details: { bytesPushed: result.bytesPushed },
+        });
+        return reply.send(result);
+      } catch (error) {
+        if (error instanceof DemoModeForbiddenError) {
+          return reply.status(403).send({ error: error.message });
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'platform-export-push',
+          status: 'failed',
+          platformExportRunId: id,
+          details: { error: message },
+        });
+        if (error instanceof PlatformExportPushError) {
+          return reply.status(error.statusCode).send({ error: error.message });
+        }
+        throw error;
+      }
     }
   );
 

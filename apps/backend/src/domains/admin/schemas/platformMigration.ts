@@ -22,3 +22,15 @@ export const listPlatformImportRunsQuerySchema = z.object({
 export const confirmPlatformImportBodySchema = z.object({
   transferPasswordHashes: z.boolean().optional().default(false),
 });
+
+export const platformExportPushBodySchema = z.object({
+  receiveUrl: z.url().max(2048),
+});
+
+export const platformImportReceiveSlotIdParamSchema = z.object({
+  id: z.cuid(),
+});
+
+export const platformImportReceiveTokenParamSchema = z.object({
+  token: z.string().min(16).max(128),
+});

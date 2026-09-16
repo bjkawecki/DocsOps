@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Prisma } from '../../../../../generated/prisma/client.js';
+import { emptyBlockDocumentJson } from '../../../documents/services/blocks/documentBlocksBackfill.js';
+import { coerceImportedBlockDocument } from './coerceImportedBlockDocument.js';
 import type { ImportContext, ImportPhaseUpdater } from './importDomainData.js';
 
 async function readJson<T>(path: string): Promise<T> {
@@ -37,10 +39,18 @@ export async function importDocumentsAndVersions(
   await onPhase('importing_documents');
 
   for (const d of documents) {
+    const draft =
+      d.draftBlocks != null
+        ? coerceImportedBlockDocument(d.draftBlocks, null, {
+            exportId: d.exportId,
+            field: 'draftBlocks',
+          })
+        : null;
+
     const created = await prisma.document.create({
       data: {
         title: d.title,
-        draftBlocks: d.draftBlocks ?? undefined,
+        draftBlocks: draft?.json ?? emptyBlockDocumentJson(),
         draftRevision: d.draftRevision,
         pdfUrl: null,
         contextId: idMap.get(d.contextExportId),
@@ -74,11 +84,15 @@ export async function importDocumentsAndVersions(
   await onPhase('importing_versions');
 
   for (const v of versions) {
+    const coerced = coerceImportedBlockDocument(v.blocks, v.blocksSchemaVersion, {
+      exportId: v.exportId,
+      field: 'blocks',
+    });
     const created = await prisma.documentVersion.create({
       data: {
         documentId: idMap.getOrThrow(v.documentExportId),
-        blocks: v.blocks ?? undefined,
-        blocksSchemaVersion: v.blocksSchemaVersion,
+        blocks: coerced.json,
+        blocksSchemaVersion: coerced.schemaVersion,
         versionNumber: v.versionNumber,
         createdAt: new Date(v.createdAt),
         createdById: idMap.get(v.createdByExportId),

@@ -30,6 +30,7 @@
     "backupSettings": "Einstellungen",
     "exportPlatform": "Plattform exportieren",
     "importPlatform": "Plattform importieren",
+    "receivePush": "Push empfangen",
     "howToUpdate": "Update-Anleitung",
     "applyUpdate": "Update anwenden",
     "checkForUpdates": "Nach Updates suchen",
@@ -948,7 +949,29 @@
       "continue": "Weiter",
       "startExport": "Export starten",
       "downloadAgain": "Erneut herunterladen",
-      "done": "Fertig"
+      "done": "Fertig",
+      "pushTitle": "An andere Instanz pushen",
+      "pushDescription": "Füge die Empfangs-URL vom Ziel ein (Admin → Migration → Push empfangen). Das Archiv wird server-zu-server gesendet.",
+      "receiveUrlLabel": "Empfangs-URL des Ziels",
+      "pushSubmit": "Zum Ziel pushen",
+      "pushSucceeded": "Zum Ziel gepusht",
+      "pushFailed": "Push fehlgeschlagen"
+    },
+    "receiveModal": {
+      "title": "Plattform-Push empfangen",
+      "description": "Erzeuge einen einmaligen Empfangs-Link (60 Minuten gültig). Auf der Quell-Instanz Export abschließen und diese URL unter „Zum Ziel pushen“ einfügen. Nach dem Empfang den Import hier bestätigen.",
+      "createSlot": "Empfangs-Link erzeugen",
+      "createFailed": "Empfangs-Link konnte nicht erzeugt werden",
+      "revokeFailed": "Empfangs-Link konnte nicht widerrufen werden",
+      "receiveUrlLabel": "Empfangs-URL",
+      "copyUrl": "URL kopieren",
+      "copied": "Kopiert",
+      "revoke": "Widerrufen",
+      "expiresAt": "Gültig bis {{time}}",
+      "waitingForPush": "Warte auf Push von der Quell-Instanz…",
+      "pushReceivedTitle": "Archiv empfangen",
+      "pushReceived": "Ein Plattform-Archiv ist per Push angekommen. Weiter zu Preflight und Import-Bestätigung.",
+      "continueImport": "Weiter zum Import"
     },
     "importModal": {
       "title": "Plattform-Export importieren",

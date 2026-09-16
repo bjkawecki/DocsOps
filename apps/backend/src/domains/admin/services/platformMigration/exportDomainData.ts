@@ -231,6 +231,37 @@ export async function exportDomainDataToDirectory(
     }))
   );
 
+  let maxBlocksSchemaVersion = 0;
+  for (const d of documents) {
+    if (
+      d.draftBlocks != null &&
+      typeof d.draftBlocks === 'object' &&
+      !Array.isArray(d.draftBlocks) &&
+      typeof (d.draftBlocks as { schemaVersion?: unknown }).schemaVersion === 'number'
+    ) {
+      maxBlocksSchemaVersion = Math.max(
+        maxBlocksSchemaVersion,
+        (d.draftBlocks as { schemaVersion: number }).schemaVersion
+      );
+    }
+  }
+  for (const v of documentVersions) {
+    if (typeof v.blocksSchemaVersion === 'number') {
+      maxBlocksSchemaVersion = Math.max(maxBlocksSchemaVersion, v.blocksSchemaVersion);
+    }
+    if (
+      v.blocks != null &&
+      typeof v.blocks === 'object' &&
+      !Array.isArray(v.blocks) &&
+      typeof (v.blocks as { schemaVersion?: unknown }).schemaVersion === 'number'
+    ) {
+      maxBlocksSchemaVersion = Math.max(
+        maxBlocksSchemaVersion,
+        (v.blocks as { schemaVersion: number }).schemaVersion
+      );
+    }
+  }
+
   await writeJson(join(args.bundleDir, 'grants.json'), {
     users: grantUsers.map((g) => ({
       documentExportId: g.documentId,
@@ -370,6 +401,7 @@ export async function exportDomainDataToDirectory(
     createdAt: new Date().toISOString(),
     files: filesMeta,
     counts,
+    maxBlocksSchemaVersion,
   };
 
   await writePlatformManifestFile(join(args.bundleDir, 'manifest.json'), manifest);

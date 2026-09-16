@@ -1,15 +1,19 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PrismaClient } from '../../../../../generated/prisma/client.js';
 import { extractZstdTarArchive } from '../../../../infrastructure/backup/archiveExtract.js';
 import {
+  listSupportedExportFormatVersions,
   isSupportedExportFormatVersion,
+} from './adapters/registry.js';
+import {
   readPlatformManifestFile,
   sha256File,
   type PlatformExportManifest,
 } from './platformManifest.js';
 import { appVersion } from '../../../../infrastructure/appVersion.js';
 import { findExistingEmailsForExportUsers, readExportUsers } from './platformImportUsers.js';
+import { MAX_SUPPORTED_BLOCKS_SCHEMA_VERSION } from '../../../documents/services/blocks/blockSchema.js';
 
 export type PlatformImportPreflightResult = {
   ok: boolean;
@@ -19,9 +23,71 @@ export type PlatformImportPreflightResult = {
   targetEmpty: boolean;
   targetAppVersion: string;
   sameAppVersion: boolean;
+  supportedExportFormatVersions: number[];
+  maxBlocksSchemaVersion?: number;
+  blockSchemaUpgradeRequired: boolean;
   errors: string[];
   warnings: string[];
 };
+
+async function readJsonUnknown(path: string): Promise<unknown> {
+  const raw = await readFile(path, 'utf8');
+  return JSON.parse(raw) as unknown;
+}
+
+function schemaVersionFromJson(value: unknown): number | null {
+  if (value == null || typeof value !== 'object' || Array.isArray(value)) return null;
+  const version = (value as { schemaVersion?: unknown }).schemaVersion;
+  return typeof version === 'number' ? version : null;
+}
+
+/**
+ * Resolve max block schema version from manifest or by scanning package JSON (older exports).
+ */
+export async function resolveMaxBlocksSchemaVersion(
+  bundleDir: string,
+  manifest: PlatformExportManifest
+): Promise<number> {
+  if (typeof manifest.maxBlocksSchemaVersion === 'number') {
+    return manifest.maxBlocksSchemaVersion;
+  }
+
+  let max = 0;
+
+  try {
+    const documents = (await readJsonUnknown(join(bundleDir, 'documents.json'))) as Array<{
+      draftBlocks?: unknown;
+    }>;
+    if (Array.isArray(documents)) {
+      for (const doc of documents) {
+        const version = schemaVersionFromJson(doc.draftBlocks);
+        if (version != null) max = Math.max(max, version);
+      }
+    }
+  } catch {
+    // Missing/invalid file covered by manifest checksum checks
+  }
+
+  try {
+    const versions = (await readJsonUnknown(join(bundleDir, 'document-versions.json'))) as Array<{
+      blocks?: unknown;
+      blocksSchemaVersion?: number | null;
+    }>;
+    if (Array.isArray(versions)) {
+      for (const row of versions) {
+        if (typeof row.blocksSchemaVersion === 'number') {
+          max = Math.max(max, row.blocksSchemaVersion);
+        }
+        const fromBlocks = schemaVersionFromJson(row.blocks);
+        if (fromBlocks != null) max = Math.max(max, fromBlocks);
+      }
+    }
+  } catch {
+    // Missing/invalid file covered by manifest checksum checks
+  }
+
+  return max;
+}
 
 export async function runPlatformImportPreflight(
   prisma: PrismaClient,
@@ -29,6 +95,7 @@ export async function runPlatformImportPreflight(
 ): Promise<PlatformImportPreflightResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const supportedExportFormatVersions = listSupportedExportFormatVersions();
 
   const [companyCount, documentCount] = await Promise.all([
     prisma.company.count(),
@@ -51,13 +118,17 @@ export async function runPlatformImportPreflight(
       targetEmpty,
       targetAppVersion: appVersion,
       sameAppVersion: false,
+      supportedExportFormatVersions,
+      blockSchemaUpgradeRequired: false,
       errors,
       warnings,
     };
   }
 
   if (!isSupportedExportFormatVersion(manifest.exportFormatVersion)) {
-    errors.push(`Unsupported exportFormatVersion: ${manifest.exportFormatVersion}. Supported: 1`);
+    errors.push(
+      `Unsupported exportFormatVersion: ${manifest.exportFormatVersion}. Supported: ${supportedExportFormatVersions.join(', ')}`
+    );
   }
 
   for (const [fileName, meta] of Object.entries(manifest.files)) {
@@ -76,6 +147,24 @@ export async function runPlatformImportPreflight(
   if (!sameAppVersion) {
     warnings.push(
       `Source app version (${manifest.sourceAppVersion}) differs from target (${appVersion}). Password hash transfer will be disabled.`
+    );
+  }
+
+  const maxBlocksSchemaVersion = await resolveMaxBlocksSchemaVersion(bundleDir, manifest);
+  if (maxBlocksSchemaVersion > MAX_SUPPORTED_BLOCKS_SCHEMA_VERSION) {
+    errors.push(
+      `Unsupported maxBlocksSchemaVersion: ${maxBlocksSchemaVersion}. Supported max: ${MAX_SUPPORTED_BLOCKS_SCHEMA_VERSION}`
+    );
+  }
+
+  const blockSchemaUpgradeRequired = maxBlocksSchemaVersion < MAX_SUPPORTED_BLOCKS_SCHEMA_VERSION;
+
+  if (
+    isSupportedExportFormatVersion(manifest.exportFormatVersion) &&
+    (!sameAppVersion || blockSchemaUpgradeRequired)
+  ) {
+    warnings.push(
+      'Import will run the format adapter and normalize/validate block documents to the target schema.'
     );
   }
 
@@ -99,6 +188,9 @@ export async function runPlatformImportPreflight(
     targetEmpty,
     targetAppVersion: appVersion,
     sameAppVersion,
+    supportedExportFormatVersions,
+    maxBlocksSchemaVersion,
+    blockSchemaUpgradeRequired,
     errors,
     warnings,
   };

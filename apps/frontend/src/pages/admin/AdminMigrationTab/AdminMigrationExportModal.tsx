@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Loader, Modal, Stack, Text } from '@mantine/core';
+import { Alert, Button, Loader, Modal, Stack, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../../api/client';
+import { readApiErrorMessage } from '../../../api/readApiErrorMessage';
 import {
   type PlatformExportRun,
   formatBytes,
@@ -26,6 +27,8 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState(0);
   const [exportRunId, setExportRunId] = useState<string | null>(null);
+  const [receiveUrl, setReceiveUrl] = useState('');
+  const [pushSucceeded, setPushSucceeded] = useState(false);
   const autoDownloadedRef = useRef<string | null>(null);
 
   const EXPORT_WIZARD_STEPS = [
@@ -106,9 +109,40 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     },
   });
 
+  const pushMutation = useMutation({
+    mutationFn: async () => {
+      if (!exportRunId) throw new Error('No export run');
+      const res = await apiFetch(`/api/v1/admin/platform-exports/${exportRunId}/push`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiveUrl: receiveUrl.trim() }),
+      });
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, t('migration.exportModal.pushFailed')));
+      }
+      return res.json() as Promise<{ ok: true; bytesPushed: number | null }>;
+    },
+    onSuccess: () => {
+      setPushSucceeded(true);
+      notifications.show({
+        color: 'green',
+        message: t('migration.exportModal.pushSucceeded'),
+      });
+    },
+    onError: (err: Error) => {
+      notifications.show({
+        color: 'red',
+        title: t('migration.exportModal.pushFailed'),
+        message: err.message,
+      });
+    },
+  });
+
   const handleClose = () => {
     setActiveStep(0);
     setExportRunId(null);
+    setReceiveUrl('');
+    setPushSucceeded(false);
     autoDownloadedRef.current = null;
     onClose();
   };
@@ -117,6 +151,8 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
     if (!opened) {
       setActiveStep(0);
       setExportRunId(null);
+      setReceiveUrl('');
+      setPushSucceeded(false);
       autoDownloadedRef.current = null;
     }
   }, [opened]);
@@ -179,6 +215,31 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
             <Text size="sm" c="dimmed">
               {t('migration.exportModal.downloadAutoHint')}
             </Text>
+            <Stack gap="xs">
+              <Text size="sm" fw={600}>
+                {t('migration.exportModal.pushTitle')}
+              </Text>
+              <Text size="sm" c="dimmed">
+                {t('migration.exportModal.pushDescription')}
+              </Text>
+              <TextInput
+                label={t('migration.exportModal.receiveUrlLabel')}
+                placeholder="https://target.example/api/v1/platform-import-receive/…"
+                value={receiveUrl}
+                onChange={(event) => setReceiveUrl(event.currentTarget.value)}
+                disabled={pushSucceeded || pushMutation.isPending}
+              />
+              <Button
+                variant="default"
+                loading={pushMutation.isPending}
+                disabled={!receiveUrl.trim() || pushSucceeded}
+                onClick={() => pushMutation.mutate()}
+              >
+                {pushSucceeded
+                  ? t('migration.exportModal.pushSucceeded')
+                  : t('migration.exportModal.pushSubmit')}
+              </Button>
+            </Stack>
           </Stack>
         );
       }

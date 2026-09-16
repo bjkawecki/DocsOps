@@ -73,7 +73,7 @@ export const jobPayloadSchemas = {
   }),
   'maintenance.platform-import': z.object({
     platformImportRunId: z.cuid(),
-    source: z.literal('upload'),
+    source: z.enum(['upload', 'push']),
     uploadObjectKey: z.string().min(1).max(1024),
     options: z
       .object({

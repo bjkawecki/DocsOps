@@ -126,6 +126,9 @@ export const blockDocumentSchemaV1 = z.object({
 
 export const blockDocumentSchema = z.union([blockDocumentSchemaV0, blockDocumentSchemaV1]);
 
+/** Highest BlockDocument.schemaVersion this runtime can import or persist. */
+export const MAX_SUPPORTED_BLOCKS_SCHEMA_VERSION = 1;
+
 export type BlockDocumentV0 = z.infer<typeof blockDocumentSchemaV0>;
 export type BlockDocumentV1 = z.infer<typeof blockDocumentSchemaV1>;
 export type BlockDocument = BlockDocumentV0 | BlockDocumentV1;

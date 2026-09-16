@@ -235,7 +235,7 @@ export async function confirmPlatformImport(
 
   const jobId = await enqueueJob('maintenance.platform-import', {
     platformImportRunId: run.id,
-    source: 'upload',
+    source: run.source === 'push' ? 'push' : 'upload',
     uploadObjectKey: run.uploadObjectKey,
     options,
   });

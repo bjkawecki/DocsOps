@@ -32,6 +32,9 @@ export type PlatformImportPreflight = {
   targetEmpty: boolean;
   targetAppVersion: string;
   sameAppVersion: boolean;
+  supportedExportFormatVersions?: number[];
+  maxBlocksSchemaVersion?: number;
+  blockSchemaUpgradeRequired?: boolean;
   errors: string[];
   warnings: string[];
 };

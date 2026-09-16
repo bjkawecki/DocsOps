@@ -423,13 +423,13 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 
 #### Einordnung
 
-| Thema | Schicht | Braucht App-Änderung? | Dev-Blocker? |
-| ----- | ------- | --------------------- | ------------ |
-| HTTPS/443 | Edge (Caddy + Cookie-Flags) | kaum (Config/Doku) | nein |
-| Private GHCR | Registry-Auth | nein (Doku/Skripte) | nein |
-| Air-gap | Lieferweg Images/Bundle | nein (Runbook/Flags) | nein |
-| Eigenes CDN | Asset-Origin | nein (Doku/Spiegel) | nein |
-| CI E2E | Test-Pipeline | Testcode | nein |
+| Thema        | Schicht                     | Braucht App-Änderung? | Dev-Blocker? |
+| ------------ | --------------------------- | --------------------- | ------------ |
+| HTTPS/443    | Edge (Caddy + Cookie-Flags) | kaum (Config/Doku)    | nein         |
+| Private GHCR | Registry-Auth               | nein (Doku/Skripte)   | nein         |
+| Air-gap      | Lieferweg Images/Bundle     | nein (Runbook/Flags)  | nein         |
+| Eigenes CDN  | Asset-Origin                | nein (Doku/Spiegel)   | nein         |
+| CI E2E       | Test-Pipeline               | Testcode              | nein         |
 
 **Fazit:** Solange Kunden im Intranet per öffentlichem Bundle+GHCR installieren und Demo/Lab laufen, bleiben diese fünf Punkte **Backlog Betrieb** – umsetzen, wenn ein konkreter Hosting-Zwang oder QA-Bedarf entsteht.
 
@@ -758,8 +758,8 @@ Plan: [Plan-Host-Agent](Plan-Host-Agent.md). Ersetzt Sidecar + `updater-exec-upd
 
 Heute (Phase 1): vollständiger Export/Import nur in eine **leere** Instanz. Phase 2 erweitern, wenn Betrieb/Hosting es braucht:
 
-[ ] **Cross-Version:** Export von älterer DocsOps-/Block-Schema-Version auf neuerem Ziel importierbar machen (Importer-Adapter). Sonst nur gleiche Versionspaare zuverlässig.
-[ ] **Push an Ziel-Instanz:** Ziel erzeugt kurzlebige URL + Token; Quelle sendet das Paket direkt (ohne manuellen Download/Upload); TTL, einmalig, Bestätigung auf dem Ziel.
+[x] **Cross-Version:** Format-Adapter-Registry (`platformMigration/adapters/`) + Block-Normalisierung/-Validierung beim Import; Preflight prüft `exportFormatVersion` und `maxBlocksSchemaVersion`. APP_VERSION-Mismatch bleibt erlaubt (ohne Passwort-Hash-Transfer). Neue Package-Formate brauchen einen neuen Adapter.
+[x] **Push an Ziel-Instanz:** Ziel erzeugt kurzlebige URL + Token (`PlatformImportReceiveSlot`, TTL 60 min, einmalig); Quelle pusht per `POST /admin/platform-exports/:id/push` serverseitig aus MinIO; Ziel empfängt `PUT /platform-import-receive/:token`, Preflight, Admin bestätigt Import.
 [ ] **Selektiver Export:** nur eine Company/Tenant statt der ganzen Instanz (relevant für Managed Hosting / Mandanten).
 [ ] **Merge-Import:** Import in eine **bereits befüllte** Instanz mit Konfliktregeln (E-Mail, Slug); explizit opt-in, nicht Default.
 [ ] **CLI:** Offline-Import-Skript für air-gapped Hosts ohne Admin-UI.

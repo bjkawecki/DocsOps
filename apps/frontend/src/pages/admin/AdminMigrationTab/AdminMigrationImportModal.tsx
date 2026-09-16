@@ -34,6 +34,8 @@ import { PlatformImportPhaseList } from './PlatformImportPhaseList';
 type Props = {
   opened: boolean;
   onClose: () => void;
+  /** When set, skip upload and resume from an existing awaiting_confirm / preflight_failed run (e.g. push). */
+  initialImportRunId?: string | null;
 };
 
 type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
@@ -51,7 +53,7 @@ function uploadErrorTitleFromMessage(message: string, t: TranslateFn): string {
   return t('migration.importModal.uploadErrorTitle.uploadFailed');
 }
 
-export function AdminMigrationImportModal({ opened, onClose }: Props) {
+export function AdminMigrationImportModal({ opened, onClose, initialImportRunId }: Props) {
   const { t } = useTranslation('admin');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -66,6 +68,39 @@ export function AdminMigrationImportModal({ opened, onClose }: Props) {
     t('migration.importModal.uploadErrorTitle.uploadFailed')
   );
   const refreshedAppCacheForRunIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!opened || !initialImportRunId) return;
+    let cancelled = false;
+    void (async () => {
+      const res = await apiFetch(`/api/v1/admin/platform-imports/${initialImportRunId}`);
+      if (!res.ok || cancelled) return;
+      const run = (await res.json()) as PlatformImportRun;
+      if (cancelled) return;
+      setImportRunId(run.id);
+      setPreflight(run.preflightJson);
+      setUploadError(null);
+      if (run.status === 'awaiting_confirm' && run.preflightJson?.ok) {
+        setActiveStep(1);
+      } else if (run.status === 'preflight_failed') {
+        setActiveStep(0);
+        setUploadError(run.errorMessage ?? t('migration.importModal.preflightFailedTitle'));
+      } else if (
+        run.status === 'queued' ||
+        run.status === 'running' ||
+        run.status.startsWith('importing_') ||
+        run.status === 'succeeded' ||
+        run.status === 'failed'
+      ) {
+        setActiveStep(3);
+      } else {
+        setActiveStep(1);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [opened, initialImportRunId, t]);
 
   const IMPORT_WIZARD_STEPS = [
     {

@@ -8,6 +8,7 @@ import {
 import {
   confirmPlatformImportBodySchema,
   listPlatformImportRunsQuerySchema,
+  platformImportReceiveSlotIdParamSchema,
   platformImportRunIdParamSchema,
 } from '../schemas/platformMigration.js';
 import {
@@ -18,9 +19,18 @@ import {
   runPlatformImportPreflightForRun,
   triggerPlatformImportUpload,
 } from '../services/adminPlatformImportRunService.js';
+import {
+  createPlatformImportReceiveSlot,
+  getActivePlatformImportReceiveSlot,
+  PlatformImportReceiveSlotError,
+  revokePlatformImportReceiveSlot,
+} from '../services/platformImportReceiveService.js';
 import { formatPlatformImportUploadError } from '../services/platformImportUploadErrors.js';
 import { writeAdminPlatformMigrationAudit } from '../services/adminPlatformMigrationAuditService.js';
-import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
+import {
+  DemoModeForbiddenError,
+  requireNotDemoMutatingPreHandler,
+} from '../../../config/demoModeGuard.js';
 
 const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   const maxUploadBytes = getPlatformImportUploadMaxBytesFromEnv();
@@ -59,6 +69,67 @@ const adminPlatformImportsRoutes: FastifyPluginAsync = async (app: FastifyInstan
       const run = await getPlatformImportRun(request.server.prisma, id);
       if (!run) return reply.status(404).send({ error: 'Platform import not found' });
       return reply.send(run);
+    }
+  );
+
+  app.post(
+    '/admin/platform-imports/receive-slots',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      try {
+        const slot = await createPlatformImportReceiveSlot(request.server.prisma, {
+          createdByUserId: (request as RequestWithUser).user.id,
+        });
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'platform-import-receive-slot-create',
+          status: 'success',
+          details: { receiveSlotId: slot.id, expiresAt: slot.expiresAt },
+        });
+        return reply.status(201).send(slot);
+      } catch (error) {
+        if (error instanceof DemoModeForbiddenError) {
+          return reply.status(403).send({ error: error.message });
+        }
+        if (error instanceof PlatformImportReceiveSlotError) {
+          return reply.status(error.statusCode).send({ error: error.message });
+        }
+        throw error;
+      }
+    }
+  );
+
+  app.get(
+    '/admin/platform-imports/receive-slots/active',
+    { preHandler: preAdmin },
+    async (request, reply) => {
+      const slot = await getActivePlatformImportReceiveSlot(request.server.prisma);
+      return reply.send({ slot });
+    }
+  );
+
+  app.delete<{ Params: { id: string } }>(
+    '/admin/platform-imports/receive-slots/:id',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const { id } = platformImportReceiveSlotIdParamSchema.parse(request.params);
+      try {
+        const deleted = await revokePlatformImportReceiveSlot(request.server.prisma, id);
+        if (!deleted) return reply.status(404).send({ error: 'Receive slot not found' });
+        await writeAuditSafe(request as RequestWithUser, {
+          action: 'platform-import-receive-slot-revoke',
+          status: 'success',
+          details: { receiveSlotId: id },
+        });
+        return reply.status(204).send();
+      } catch (error) {
+        if (error instanceof DemoModeForbiddenError) {
+          return reply.status(403).send({ error: error.message });
+        }
+        if (error instanceof PlatformImportReceiveSlotError) {
+          return reply.status(error.statusCode).send({ error: error.message });
+        }
+        throw error;
+      }
     }
   );
 

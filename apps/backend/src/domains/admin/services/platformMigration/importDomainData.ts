@@ -2,11 +2,14 @@ import type { PrismaClient } from '../../../../../generated/prisma/client.js';
 import type { StorageService } from '../../../../infrastructure/storage/index.js';
 import { ExportIdMap } from './idRemap.js';
 import type { PlatformImportRunStatus } from '../../../../../generated/prisma/client.js';
+import { getPlatformImportAdapter } from './adapters/registry.js';
 import { importOrgAndUsers } from './importOrgAndUsers.js';
 import { importOwnersAndContexts } from './importOwnersAndContexts.js';
 import { importDocumentsAndVersions } from './importDocumentsAndVersions.js';
 import { importTagsGrantsPinsComments } from './importTagsGrantsPinsComments.js';
 import { importAttachmentFiles } from './importAttachmentFiles.js';
+import { readPlatformManifestFile } from './platformManifest.js';
+import { join } from 'node:path';
 
 export type ImportPhaseUpdater = (status: PlatformImportRunStatus) => Promise<void>;
 
@@ -28,6 +31,10 @@ export async function importDomainDataFromDirectory(
     onPhase: ImportPhaseUpdater;
   }
 ): Promise<{ idMap: ExportIdMap }> {
+  const manifest = await readPlatformManifestFile(join(args.bundleDir, 'manifest.json'));
+  const adapter = getPlatformImportAdapter(manifest.exportFormatVersion);
+  await adapter.adaptBundle(args.bundleDir);
+
   const ctx: ImportContext = {
     prisma,
     storage,

@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   PLATFORM_EXPORT_FORMAT_VERSION,
-  isSupportedExportFormatVersion,
   readPlatformManifestFile,
   writePlatformManifestFile,
   sha256File,
   type PlatformExportManifest,
 } from './platformManifest.js';
+import { isSupportedExportFormatVersion } from './adapters/registry.js';
 
 describe('platformManifest', () => {
   it('supports export format version 1', () => {

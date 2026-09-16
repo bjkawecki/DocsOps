@@ -30,6 +30,7 @@
     "backupSettings": "Settings",
     "exportPlatform": "Export platform",
     "importPlatform": "Import platform",
+    "receivePush": "Receive push",
     "howToUpdate": "How to update",
     "applyUpdate": "Apply update",
     "checkForUpdates": "Check for updates",
@@ -948,7 +949,29 @@
       "continue": "Continue",
       "startExport": "Start export",
       "downloadAgain": "Download again",
-      "done": "Done"
+      "done": "Done",
+      "pushTitle": "Push to another instance",
+      "pushDescription": "Paste the receive URL from the target Admin → Migration → Receive push flow. The archive is sent server-to-server.",
+      "receiveUrlLabel": "Target receive URL",
+      "pushSubmit": "Push to target",
+      "pushSucceeded": "Pushed to target",
+      "pushFailed": "Push failed"
+    },
+    "receiveModal": {
+      "title": "Receive platform push",
+      "description": "Create a one-time receive link (valid 60 minutes). On the source instance, finish Export and paste this URL under Push to target. After the archive arrives, confirm the import here.",
+      "createSlot": "Create receive link",
+      "createFailed": "Could not create receive link",
+      "revokeFailed": "Could not revoke receive link",
+      "receiveUrlLabel": "Receive URL",
+      "copyUrl": "Copy URL",
+      "copied": "Copied",
+      "revoke": "Revoke",
+      "expiresAt": "Expires at {{time}}",
+      "waitingForPush": "Waiting for the source instance to push…",
+      "pushReceivedTitle": "Archive received",
+      "pushReceived": "A platform archive arrived via push. Continue to review preflight and confirm the import.",
+      "continueImport": "Continue to import"
     },
     "importModal": {
       "title": "Import platform export",
