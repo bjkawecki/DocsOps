@@ -102,6 +102,6 @@ func DockerComposeAvailable() bool {
 }
 
 func InstallDirValid(installDir string) bool {
-	_, err := os.Stat(filepath.Join(installDir, "docker-compose.prod.yml"))
+	_, err := os.Stat(filepath.Join(installDir, "deploy", "docker-compose.prod.yml"))
 	return err == nil
 }

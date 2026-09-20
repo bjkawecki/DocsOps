@@ -1,5 +1,5 @@
 # Infrastructure services shared by dev (override) and production (prod overlay).
-# Application services: docker-compose.override.yml (dev) or docker-compose.prod.yml (registry images).
+# Application services: docker-compose.override.yml (dev) or deploy/docker-compose.prod.yml (registry images).
 name: ${COMPOSE_PROJECT_NAME:-docsops}
 
 services:

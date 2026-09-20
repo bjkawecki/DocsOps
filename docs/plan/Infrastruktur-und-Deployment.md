@@ -23,7 +23,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
   - Skript prüft/installiert Voraussetzungen (Docker, curl, openssl).
   - Lädt Release-Bundle nach `/opt/docsops` (nur `vX.Y.Z`, kein `main`).
   - **Konfiguration:** Secrets in **`/etc/docsops/docsops.env`** (`chmod 600`), **keine** `.env` im Deploy-Verzeichnis; Install-Skript generiert `SESSION_SECRET` und `BACKUP_ENCRYPTION_KEY`, setzt `DOCSOPS_VERSION` / `DOCSOPS_IMAGE_PREFIX`, fragt Admin ab; `BACKUP_ENCRYPTION_KEY` einmal an den Betreiber ausgeben.
-  - Start: `docker compose pull` dann `up -d` mit `docker-compose.yml` + `docker-compose.prod.yml` (Images von GHCR).
+  - Start: `docker compose pull` dann `up -d` mit `docker-compose.yml` + `deploy/docker-compose.prod.yml` (Images von GHCR).
   - Optional: systemd-Unit mit `EnvironmentFile=/etc/docsops/docsops.env` (Autostart).
   - Dokumentation: [install.md](../install.md), README.
 
@@ -109,7 +109,7 @@ Plan für die technische Umsetzung der internen Dokumentationsplattform (vgl. [D
 ## 10. Test des Install-Skripts
 
 - **Problem:** `install.sh` lässt sich auf der lokalen Dev-Maschine nicht realistisch testen (Repo und Dienste sind schon da).
-- **Empfehlung:** **Release-CI** (`.github/workflows/release.yml`) auf einem frischen Runner: Images nach GHCR pushen, Bundle extrahieren, `install-prod.sh` mit `docker compose pull`, Health-Check auf Port **8080** (`docker-compose.ci.yml`).
+- **Empfehlung:** **Release-CI** (`.github/workflows/release.yml`) auf einem frischen Runner: Images nach GHCR pushen, Bundle extrahieren, `install-prod.sh` mit `docker compose pull`, Health-Check auf Port **8080** (`deploy/docker-compose.ci.yml`).
 - **Umsetzung:** Install-Test im Release-Workflow nach Tag `v*.*.*`.
 
 ---

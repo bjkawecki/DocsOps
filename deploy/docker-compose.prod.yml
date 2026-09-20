@@ -1,9 +1,9 @@
 # Production stack: GHCR images, Caddy on 80/443. Requires DOCSOPS_VERSION and DOCSOPS_IMAGE_PREFIX.
 # TLS: DOCSOPS_TLS_MODE=off|internal|acme and DOCSOPS_CADDYFILE (set by install-prod.sh).
 # Usage: docker compose --env-file /etc/docsops/docsops.env \
-#   -f docker-compose.yml -f docker-compose.prod.yml pull
+#   -f docker-compose.yml -f deploy/docker-compose.prod.yml pull
 #   docker compose --env-file /etc/docsops/docsops.env \
-#   -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 
 services:
   docsops-migrate:
@@ -105,7 +105,7 @@ services:
       DOCSOPS_TLS_DOMAIN: ${DOCSOPS_TLS_DOMAIN:-}
       DOCSOPS_TLS_EMAIL: ${DOCSOPS_TLS_EMAIL:-}
     volumes:
-      - ./${DOCSOPS_CADDYFILE:-Caddyfile.prod}:/etc/caddy/Caddyfile:ro
+      - ./deploy/${DOCSOPS_CADDYFILE:-Caddyfile.prod}:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
     depends_on:
       app:

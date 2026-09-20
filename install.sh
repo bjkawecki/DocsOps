@@ -114,7 +114,7 @@ main() {
 
   local bundle_root
   bundle_root="$(script_dir_from_source)"
-  if [[ -n "$bundle_root" && -f "${bundle_root}/scripts/install-prod.sh" && -f "${bundle_root}/docker-compose.prod.yml" ]]; then
+  if [[ -n "$bundle_root" && -f "${bundle_root}/scripts/install-prod.sh" && -f "${bundle_root}/deploy/docker-compose.prod.yml" ]]; then
     run_install_prod_from_dir "$bundle_root" "${INSTALL_PROD_ARGS[@]}"
   fi
 

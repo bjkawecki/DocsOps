@@ -191,7 +191,7 @@ jobs:
           DOCSOPS_ASSUME_YES: '1'
           DOCSOPS_INSTALL_CONFIRMED: '1'
           DOCSOPS_USE_EXISTING_CONFIG: '0'
-          DOCSOPS_EXTRA_COMPOSE_FILES: docker-compose.ci.yml
+          DOCSOPS_EXTRA_COMPOSE_FILES: deploy/docker-compose.ci.yml
           DOCSOPS_HEALTH_URL: http://127.0.0.1:8080/health
           DOCSOPS_TLS_MODE: 'off'
           ADMIN_EMAIL: ci-admin@example.com
@@ -229,11 +229,11 @@ jobs:
           CI_DIR="${{ env.DOCSOPS_CI_DIR }}"
           CI_ENV="${{ env.DOCSOPS_CI_ENV }}"
           sudo systemctl stop docsops-agent.service 2>/dev/null || true
-          if [[ -f "$CI_ENV" && -f "${CI_DIR}/docker-compose.prod.yml" ]]; then
+          if [[ -f "$CI_ENV" && -f "${CI_DIR}/deploy/docker-compose.prod.yml" ]]; then
             sudo docker compose --env-file "$CI_ENV" \
               -f "${CI_DIR}/docker-compose.yml" \
-              -f "${CI_DIR}/docker-compose.prod.yml" \
-              -f "${CI_DIR}/docker-compose.ci.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.prod.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.ci.yml" \
               down -v --remove-orphans 2>/dev/null || true
           fi
           sudo rm -rf "$CI_DIR"

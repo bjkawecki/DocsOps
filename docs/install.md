@@ -31,7 +31,7 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode) |
 | Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`          |
 | Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                          |
-| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `docker-compose.prod.yml` → **80** + **443**     |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `deploy/docker-compose.prod.yml` → **80** + **443**     |
 | Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                   |
 | TLS / HTTPS            | nicht nötig (Dev)                                 | **Default `internal`** (self-signed); `acme` oder `off` per Env         |
 | Session-Cookies        | Dev-Stack                                         | Default mit `Secure` (TLS); bei `DOCSOPS_TLS_MODE=off` ohne Secure      |
@@ -43,7 +43,7 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 
 |                       | **Intranet-Production** (Install-Skript)         | **Demo** (öffentliche Demo-Instanz)  |
 | --------------------- | ------------------------------------------------ | ------------------------------------ |
-| Compose               | `docker-compose.yml` + `docker-compose.prod.yml` | zusätzlich `docker-compose.demo.yml` |
+| Compose               | `docker-compose.yml` + `deploy/docker-compose.prod.yml` | zusätzlich `deploy/docker-compose.demo.yml` |
 | `DEMO_MODE`           | **nicht** setzen                                 | `true`                               |
 | Seed                  | nein                                             | ja (CSV bei leerer DB)               |
 | Debug / Impersonation | nein                                             | nein                                 |
@@ -58,7 +58,7 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 | Team Lead       | `team.lead@demo.docsops.local`       | CSV       |
 | Member          | `member@demo.docsops.local`          | CSV       |
 
-Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
+Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `deploy/docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
 
 ### Öffentliche Demo (`docsops.de` / `demo.docsops.de`)
 
@@ -179,8 +179,8 @@ Manuell ohne Ops-Skript (Auszug Env / Compose) – nur falls nötig:
 # … siehe docsops-demo-local / write_demo_env_file
 
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml \
-  -f docker-compose.demo.yml -f docker-compose.lab.yml \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml \
+  -f deploy/docker-compose.demo.yml -f deploy/docker-compose.lab.yml \
   up -d
 ```
 
@@ -199,7 +199,8 @@ In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Sk
 ## Pfade
 
 ```text
-/opt/docsops/                    Release-Bundle (Compose, Caddyfile, Install-Skripte)
+/opt/docsops/                    Release-Bundle (Basis-Compose, deploy/, Install-Skripte)
+/opt/docsops/deploy/             Prod-/Demo-/CI-Overlays + Caddyfiles
 /etc/docsops/docsops.env         Secrets + DOCSOPS_VERSION / Image-Prefix (root:root, chmod 600)
 /etc/systemd/system/docsops.service   optional: Autostart nach Reboot
 ```
@@ -227,9 +228,9 @@ Nach erfolgreicher Admin-Anlage reicht das Passwort als Hash in der Datenbank; `
 ```bash
 cd /opt/docsops
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml pull
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml pull
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml up -d
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 ```
 
 ### Update
@@ -316,9 +317,9 @@ RemainAfterExit=yes
 WorkingDirectory=/opt/docsops
 EnvironmentFile=/etc/docsops/docsops.env
 ExecStart=/usr/bin/docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml up -d
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
 ExecStop=/usr/bin/docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml down
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml down
 TimeoutStartSec=0
 
 [Install]
@@ -399,7 +400,7 @@ Mit bestehender `/etc/docsops/docsops.env` wird diese im Non-interactive-Modus s
 
 Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilfe via `--help`.
 
-**CI:** `docker-compose.ci.yml` mappt Caddy auf Port **8080** (`DOCSOPS_EXTRA_COMPOSE_FILES`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`). Nach Health: Playwright E2E (`apps/e2e`) Login → Catalog → Dokument.
+**CI:** `deploy/docker-compose.ci.yml` mappt Caddy auf Port **8080** (`DOCSOPS_EXTRA_COMPOSE_FILES`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`). Nach Health: Playwright E2E (`apps/e2e`) Login → Catalog → Dokument.
 
 ---
 

@@ -66,6 +66,7 @@ Full guide: [docs/install.md](docs/install.md). Offline hosts: [docs/plan/Runboo
 
 | Path | Role |
 | ---- | ---- |
+| [`deploy/`](deploy) | Compose overlays + production Caddyfiles |
 | [`apps/backend`](apps/backend) | API, worker, Prisma |
 | [`apps/frontend`](apps/frontend) | Web app (Vite + React) |
 | [`apps/landing`](apps/landing) | Marketing site |

@@ -123,8 +123,8 @@ compose_down_from_install_dir() {
   cd "$install_dir"
   load_compose_project_name_from_env_file
 
-  if [[ -f "$DOCSOPS_ENV_FILE" && -f "${install_dir}/docker-compose.prod.yml" ]]; then
-    DOCSOPS_COMPOSE_FILES="docker-compose.yml:docker-compose.prod.yml"
+  if [[ -f "$DOCSOPS_ENV_FILE" && -f "${install_dir}/deploy/docker-compose.prod.yml" ]]; then
+    DOCSOPS_COMPOSE_FILES="docker-compose.yml:deploy/docker-compose.prod.yml"
     compose_stack_setup
     if [[ "$KEEP_DATA" == "1" ]]; then
       compose_stack_cmd down

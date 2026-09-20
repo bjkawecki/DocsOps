@@ -65,7 +65,7 @@ Manuelles `sudo /opt/docsops/scripts/update.sh` auf dem **Host** funktioniert zu
 ### 2.2 Was unverändert bleibt
 
 - Release-Bundle (`docsops-vX.Y.Z.tar.gz`) + GHCR-Images
-- `docker-compose.yml` + `docker-compose.prod.yml`
+- `docker-compose.yml` + `deploy/docker-compose.prod.yml`
 - `/etc/docsops/docsops.env` als Konfig-SSOT (`DOCSOPS_VERSION`, Secrets)
 - `/opt/docsops` als Deploy-Verzeichnis (Compose, Caddy, Skripte)
 - `UpdateRun` + `maintenance.backup` (`pre_update`) + Wartungsmodus + Notifications
@@ -355,9 +355,9 @@ Vor destruktiven Schritten (mindestens vor `extract_bundle` und optional über `
 
 ```bash
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml pull
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml pull
 docker compose --env-file /etc/docsops/docsops.env \
-  -f docker-compose.yml -f docker-compose.prod.yml up -d [--wait]
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d [--wait]
 ```
 
 ---
@@ -415,7 +415,7 @@ docker compose --env-file /etc/docsops/docsops.env \
 | `adminSystemUpdateWatchService.ts` | Poll `/v1/status`, `agentPhase` in DB                                                             |
 | `UpdateRun` (Prisma)               | `agentPhase String?`                                                                              |
 | Admin Apply-Modal                  | Preflight-Anzeige, Phasen-Fortschritt (ohne Minuten-Schätzung), bei Fehler `errorCode` + Log-Tail |
-| `docker-compose.prod.yml`          | `docsops-updater` entfernen                                                                       |
+| `deploy/docker-compose.prod.yml`   | `docsops-updater` entfernen                                                                       |
 | CI / `release.yml`                 | Go-Binary bauen und ins Release-Bundle                                                            |
 
 **Runbook:** `scripts/update.sh` bleibt; kann intern `docsops-agent apply --version …` aufrufen, sobald Agent Standard ist.

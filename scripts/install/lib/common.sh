@@ -7,7 +7,7 @@ DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
 DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
 DOCSOPS_IMAGE_PREFIX="${DOCSOPS_IMAGE_PREFIX:-ghcr.io/bjkawecki}"
 DOCSOPS_HEALTH_URL="${DOCSOPS_HEALTH_URL:-http://127.0.0.1/health}"
-DOCSOPS_COMPOSE_FILES="${DOCSOPS_COMPOSE_FILES:-docker-compose.yml:docker-compose.prod.yml}"
+DOCSOPS_COMPOSE_FILES="${DOCSOPS_COMPOSE_FILES:-docker-compose.yml:deploy/docker-compose.prod.yml}"
 DOCSOPS_DOCKER_COMPOSE_VERSION="${DOCSOPS_DOCKER_COMPOSE_VERSION:-v2.32.4}"
 # Local update testing: path to docsops-vX.Y.Z.tar.gz instead of GitHub download.
 DOCSOPS_BUNDLE_PATH="${DOCSOPS_BUNDLE_PATH:-}"
@@ -292,7 +292,7 @@ ensure_docker_compose() {
 }
 
 resolve_install_dir() {
-  [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.prod.yml" ]] || return 1
+  [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/docker-compose.prod.yml" ]] || return 1
   return 0
 }
 
@@ -610,8 +610,8 @@ Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=${DOCSOPS_INSTALL_DIR}
 EnvironmentFile=${DOCSOPS_ENV_FILE}
-ExecStart=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} -f docker-compose.yml -f docker-compose.prod.yml up -d
-ExecStop=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} -f docker-compose.yml -f docker-compose.prod.yml down
+ExecStart=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose --env-file ${DOCSOPS_ENV_FILE} -f docker-compose.yml -f deploy/docker-compose.prod.yml down
 TimeoutStartSec=0
 
 [Install]

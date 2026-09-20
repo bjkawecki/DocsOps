@@ -28,7 +28,7 @@ Environment:
   DOCSOPS_INSTALL_CONFIRMED=1 Disclaimer bereits in install.sh bestätigt
   DOCSOPS_SKIP_IMAGE_PULL=1   Kein docker compose pull (lokale Images)
   DOCSOPS_INSTALL_DIR         Default: /opt/docsops
-  DOCSOPS_EXTRA_COMPOSE_FILES z. B. docker-compose.ci.yml für CI
+  DOCSOPS_EXTRA_COMPOSE_FILES z. B. deploy/docker-compose.ci.yml für CI
   DOCSOPS_HEALTH_URL          Default: http://127.0.0.1/health
 EOF
 }
@@ -157,7 +157,7 @@ main() {
   require_root
 
   resolve_install_dir \
-    || die "docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
+    || die "deploy/docker-compose.prod.yml nicht gefunden unter ${DOCSOPS_INSTALL_DIR}"
 
   local stage_total=6
   if [[ "${DOCSOPS_INSTALL_CONFIRMED:-}" != "1" ]]; then

@@ -36,7 +36,7 @@ help:
 	@echo "  make up-fg        Stack starten im Vordergrund (docker compose up)"
 	@echo "  make down         Stack stoppen"
 	@echo "  make down-volumes Stack stoppen und Docker-Volumes löschen (frische DB)"
-	@echo "  make infra        Nur Postgres + MinIO (Schnell-Dev; docker-compose.dev.yml)"
+	@echo "  make infra        Nur Postgres + MinIO (Schnell-Dev; deploy/docker-compose.dev.yml)"
 	@echo "  make migrate      Prisma-Migrationen anwenden (DB-Schema); vor admin-create nötig"
 	@echo "  make admin-create Admin anlegen (falls noch keiner); ADMIN_EMAIL/ADMIN_PASSWORD in .env"
 	@echo "  make duplicates-backend  Duplikate im Backend prüfen + Markdown-Ranking"
@@ -128,7 +128,7 @@ down-volumes:
 	docker compose down -v
 
 infra:
-	docker compose -f docker-compose.dev.yml up -d
+	docker compose -f deploy/docker-compose.dev.yml up -d
 
 migrate:
 	pnpm --filter backend exec prisma migrate deploy

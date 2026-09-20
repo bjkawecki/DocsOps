@@ -173,7 +173,7 @@ run_install() {
     DOCSOPS_ASSUME_YES=1 \
     DOCSOPS_INSTALL_CONFIRMED=1 \
     DOCSOPS_USE_EXISTING_CONFIG=0 \
-    DOCSOPS_EXTRA_COMPOSE_FILES=docker-compose.ci.yml \
+    DOCSOPS_EXTRA_COMPOSE_FILES=deploy/docker-compose.ci.yml \
     DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health \
     DOCSOPS_IMAGE_PREFIX="$IMAGE_PREFIX" \
     "${INSTALL_DIR}/scripts/install-prod.sh"
@@ -188,7 +188,7 @@ run_update() {
     COMPOSE_PROJECT_NAME="$PROJECT" \
     DOCSOPS_BUNDLE_PATH="$archive" \
     DOCSOPS_SKIP_IMAGE_PULL=1 \
-    DOCSOPS_EXTRA_COMPOSE_FILES=docker-compose.ci.yml \
+    DOCSOPS_EXTRA_COMPOSE_FILES=deploy/docker-compose.ci.yml \
     DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health \
     DOCSOPS_IMAGE_PREFIX="$IMAGE_PREFIX" \
     "${INSTALL_DIR}/scripts/update.sh" "$TO_VERSION"

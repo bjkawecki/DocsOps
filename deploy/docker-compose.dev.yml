@@ -1,5 +1,5 @@
 # Schnell-Dev: nur PostgreSQL + MinIO. Backend/Frontend auf dem Host.
-# Nutzung: docker compose -f docker-compose.dev.yml up -d
+# Nutzung: docker compose -f deploy/docker-compose.dev.yml up -d
 # Host-Ports nur auf Loopback; kein Autostart nach Reboot (restart: "no").
 name: ${COMPOSE_PROJECT_NAME:-docsops}
 

@@ -50,9 +50,9 @@ demo_is_public() {
 
 demo_compose_extra_files() {
   if demo_is_public; then
-    echo "docker-compose.demo.yml:docker-compose.demo-public.yml"
+    echo "deploy/docker-compose.demo.yml:deploy/docker-compose.demo-public.yml"
   else
-    echo "docker-compose.demo.yml:docker-compose.lab.yml"
+    echo "deploy/docker-compose.demo.yml:deploy/docker-compose.lab.yml"
   fi
 }
 
@@ -63,23 +63,23 @@ demo_primary_ip() {
 }
 
 ensure_demo_compose_overlay() {
-  [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.demo.yml" ]] \
-    || die "docker-compose.demo.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
+  [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/docker-compose.demo.yml" ]] \
+    || die "deploy/docker-compose.demo.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
   if demo_is_public; then
-    [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.demo-public.yml" ]] \
-      || die "docker-compose.demo-public.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
-    [[ -f "${DOCSOPS_INSTALL_DIR}/Caddyfile.demo" ]] \
-      || die "Caddyfile.demo fehlt unter ${DOCSOPS_INSTALL_DIR}"
+    [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/docker-compose.demo-public.yml" ]] \
+      || die "deploy/docker-compose.demo-public.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
+    [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/Caddyfile.demo" ]] \
+      || die "deploy/Caddyfile.demo fehlt unter ${DOCSOPS_INSTALL_DIR}"
   else
-    [[ -f "${DOCSOPS_INSTALL_DIR}/docker-compose.lab.yml" ]] \
-      || die "docker-compose.lab.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
-    [[ -f "${DOCSOPS_INSTALL_DIR}/Caddyfile.lab" ]] \
-      || die "Caddyfile.lab fehlt unter ${DOCSOPS_INSTALL_DIR}"
+    [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/docker-compose.lab.yml" ]] \
+      || die "deploy/docker-compose.lab.yml fehlt unter ${DOCSOPS_INSTALL_DIR}"
+    [[ -f "${DOCSOPS_INSTALL_DIR}/deploy/Caddyfile.lab" ]] \
+      || die "deploy/Caddyfile.lab fehlt unter ${DOCSOPS_INSTALL_DIR}"
   fi
 }
 
 demo_compose_file_list() {
-  echo "docker-compose.yml:docker-compose.prod.yml:$(demo_compose_extra_files)"
+  echo "docker-compose.yml:deploy/docker-compose.prod.yml:$(demo_compose_extra_files)"
 }
 
 # Health wait uses HTTP (ACME/TLS may still be settling on public).
@@ -488,7 +488,7 @@ download_demo_release_bundle() {
   if [[ -z "${DOCSOPS_BUNDLE_PATH:-}" && "${DOCSOPS_FORCE_BUNDLE:-}" != "1" ]]; then
     # Install convenience only: skip re-download when the same tag is already unpacked.
     # Updates always set DOCSOPS_FORCE_BUNDLE=1 so same-tag retags refresh Landing/scripts.
-    if [[ -f "${DOCSOPS_INSTALL_DIR}/VERSION" && -f "${DOCSOPS_INSTALL_DIR}/docker-compose.demo.yml" ]]; then
+    if [[ -f "${DOCSOPS_INSTALL_DIR}/VERSION" && -f "${DOCSOPS_INSTALL_DIR}/deploy/docker-compose.demo.yml" ]]; then
       local have
       have="$(tr -d '[:space:]' <"${DOCSOPS_INSTALL_DIR}/VERSION")"
       if [[ "$have" == "$version" ]]; then

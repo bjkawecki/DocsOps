@@ -59,7 +59,7 @@ func LoadFromEnv() (Config, error) {
 		DemoCliPath:     envOr("DOCSOPS_DEMO_CLI", "/usr/local/bin/docsops-demo"),
 	}
 
-	composeFiles := envOr("DOCSOPS_COMPOSE_FILES", "docker-compose.yml:docker-compose.prod.yml")
+	composeFiles := envOr("DOCSOPS_COMPOSE_FILES", "docker-compose.yml:deploy/docker-compose.prod.yml")
 	cfg.ComposeFiles = strings.Split(composeFiles, ":")
 
 	if cfg.DemoHookEnabled && cfg.DemoHookToken == "" {
