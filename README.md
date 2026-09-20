@@ -1,23 +1,51 @@
-# DocsOps
+# DocsOps _(docs-ops)_
 
-Self-hosted **internal documentation** for organizations. Knowledge lives in your company hierarchy (company → department → team), with a clear split between **drafts** and the **published, official version**.
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-## Why DocsOps
+Self-hosted internal documentation with org hierarchy and lead-controlled publishing.
+
+DocsOps is an open-source (MIT) platform for internal company documentation: scopes follow **company → department → team** (plus personal space), documents live in process or project contexts, and access is granted explicitly. Authors draft and propose; scope leads publish the official version that members read.
+
+The GitHub repository and folder are `docs-ops`. The root npm workspace package is still named `engineering-knowledge-operations` (legacy); the product name is **DocsOps**.
+
+## Table of Contents
+
+- [Background](#background)
+- [Install](#install)
+  - [Dependencies](#dependencies)
+  - [Development](#development)
+  - [Production (intranet)](#production-intranet)
+  - [Updating](#updating)
+- [Usage](#usage)
+- [Repository map](#repository-map)
+- [Operational notes](#operational-notes)
+  - [Operational backup](#operational-backup)
+- [Maintainers](#maintainers)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Background
+
+Motivation and product shape (see also [docs/marketing/Positionierung-und-Landing.md](docs/marketing/Positionierung-und-Landing.md)):
 
 - **Organization in the product** – Scopes mirror how you work: company, department, team, plus personal space.
 - **Process and project contexts** – “How we work” and “what we are building” share the same model, not a flat wiki dump.
 - **Explicit access** – Readers and writers are granted per document (and via teams/departments), not guessed from folder ACLs alone.
 - **Lead publishes** – Authors draft and propose; scope leads publish the binding version. Members see the official stand, not every WIP edit.
-- **Yours to run** – Open source (MIT), intranet-friendly install, no SaaS lock-in.
+- **Yours to run** – Self-hosted, intranet-friendly install, no SaaS lock-in.
 
-## Try it
+Try it: [docsops.de](https://docsops.de) (marketing) · [demo.docsops.de](https://demo.docsops.de) (live demo, resets daily).
 
-- Marketing site: [https://docsops.de](https://docsops.de)
-- Live demo (resets daily): [https://demo.docsops.de](https://demo.docsops.de)
+Deeper concept docs: [docs/platform/README.md](docs/platform/README.md). Implementation backlog: [docs/plan/Umsetzungs-Todo.md](docs/plan/Umsetzungs-Todo.md).
 
-## Quick start: development
+## Install
 
-**Need:** Docker (Compose), Node.js matching [`.nvmrc`](.nvmrc), [pnpm](https://pnpm.io/).
+### Dependencies
+
+- [Docker](https://docs.docker.com/get-docker/) with Compose
+- For local development: [Node.js](https://nodejs.org/) matching [`.nvmrc`](.nvmrc), and [pnpm](https://pnpm.io/)
+
+### Development
 
 ```bash
 cp .env.example .env   # if you do not have a root .env yet
@@ -28,7 +56,7 @@ App: [http://localhost:5000](http://localhost:5000) · Health: [http://localhost
 
 More detail: [docs/Development-Anleitung.md](docs/Development-Anleitung.md).
 
-## Quick start: production (intranet)
+### Production (intranet)
 
 On a Linux host with Docker, ports **80** and **443** free:
 
@@ -58,9 +86,22 @@ export DOCSOPS_TLS_EMAIL=admin@example.com
 
 Pin a version: `…/releases/download/v0.1.0/install.sh` or `DOCSOPS_VERSION=v0.1.0` before `bash`.
 
-**Update:** `sudo /opt/docsops/scripts/update.sh` (latest) or `… update.sh vX.Y.Z`.
-
 Full guide: [docs/install.md](docs/install.md). Offline hosts: [docs/plan/Runbook-Air-Gap-Install.md](docs/plan/Runbook-Air-Gap-Install.md).
+
+### Updating
+
+```bash
+sudo /opt/docsops/scripts/update.sh          # latest
+sudo /opt/docsops/scripts/update.sh vX.Y.Z   # pin
+```
+
+## Usage
+
+After **development** install, open [http://localhost:5000](http://localhost:5000) and sign in with the admin from your `.env` (or the CSV seed in the dev stack).
+
+After **production** install, open `https://<server-ip>/` (confirm the self-signed certificate once when using `DOCSOPS_TLS_MODE=internal`) and sign in with the admin created during install.
+
+Compose overlays and production Caddyfiles live under [`deploy/`](deploy). Local `make up` uses root [`docker-compose.yml`](docker-compose.yml) plus [`docker-compose.override.yml`](docker-compose.override.yml).
 
 ## Repository map
 
@@ -87,16 +128,16 @@ Set **`BACKUP_ENCRYPTION_KEY`** (32 bytes, base64) so backup destination credent
 
 Details: [docs/install.md](docs/install.md), [docs/plan/Runbook-Backup-Restore.md](docs/plan/Runbook-Backup-Restore.md).
 
-## Further reading
+## Maintainers
 
-| Topic | Doc |
-| ----- | --- |
-| Production install & demo stacks | [docs/install.md](docs/install.md) |
-| Local development | [docs/Development-Anleitung.md](docs/Development-Anleitung.md) |
-| Air-gapped install/update | [docs/plan/Runbook-Air-Gap-Install.md](docs/plan/Runbook-Air-Gap-Install.md) |
-| Platform concept | [docs/platform/README.md](docs/platform/README.md) |
-| Implementation backlog | [docs/plan/Umsetzungs-Todo.md](docs/plan/Umsetzungs-Todo.md) |
+- [@bjkawecki](https://github.com/bjkawecki)
+
+## Contributing
+
+Questions and bug reports: [GitHub Issues](https://github.com/bjkawecki/docs-ops/issues).
+
+Pull requests are welcome. For local setup, follow [docs/Development-Anleitung.md](docs/Development-Anleitung.md). Use `pnpm` (not npm/yarn), keep UI and API paths in English, and run `pnpm run lint` before opening a PR.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2025
