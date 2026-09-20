@@ -140,4 +140,4 @@ Pull requests are welcome. For local setup, follow [docs/Development-Anleitung.m
 
 ## License
 
-[MIT](LICENSE) © 2025
+[MIT](LICENSE) © 2026
