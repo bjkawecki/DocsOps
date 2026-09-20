@@ -105,18 +105,18 @@ Compose overlays and production Caddyfiles live under [`deploy/`](deploy). Local
 
 ## Repository map
 
-| Path | Role |
-| ---- | ---- |
-| [`deploy/`](deploy) | Compose overlays + production Caddyfiles |
-| [`apps/backend`](apps/backend) | API, worker, Prisma |
-| [`apps/frontend`](apps/frontend) | Web app (Vite + React) |
-| [`apps/landing`](apps/landing) | Marketing site |
-| [`apps/agent`](apps/agent) | Host agent for updates |
-| [`apps/e2e`](apps/e2e) | Playwright smoke (release CI) |
-| [`scripts/`](scripts) | Install, update, air-gap helpers |
-| [`docs/platform/`](docs/platform) | Product concept and architecture |
-| [`docs/plan/`](docs/plan) | Implementation and ops plans |
-| [`content/releases/`](content/releases) | In-app “What’s new” notes |
+| Path                                    | Role                                     |
+| --------------------------------------- | ---------------------------------------- |
+| [`deploy/`](deploy)                     | Compose overlays + production Caddyfiles |
+| [`apps/backend`](apps/backend)          | API, worker, Prisma                      |
+| [`apps/frontend`](apps/frontend)        | Web app (Vite + React)                   |
+| [`apps/landing`](apps/landing)          | Marketing site                           |
+| [`apps/agent`](apps/agent)              | Host agent for updates                   |
+| [`apps/e2e`](apps/e2e)                  | Playwright smoke (release CI)            |
+| [`scripts/`](scripts)                   | Install, update, air-gap helpers         |
+| [`docs/platform/`](docs/platform)       | Product concept and architecture         |
+| [`docs/plan/`](docs/plan)               | Implementation and ops plans             |
+| [`content/releases/`](content/releases) | In-app “What’s new” notes                |
 
 ## Operational notes
 

@@ -26,27 +26,27 @@ Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on
 
 ## Konfiguration: Dev vs. Production
 
-|                        | **Entwicklung**                                   | **Production**                                                          |
-| ---------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
-| Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode) |
-| Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`          |
-| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                          |
-| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `deploy/docker-compose.prod.yml` → **80** + **443**     |
-| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                   |
-| TLS / HTTPS            | nicht nötig (Dev)                                 | **Default `internal`** (self-signed); `acme` oder `off` per Env         |
-| Session-Cookies        | Dev-Stack                                         | Default mit `Secure` (TLS); bei `DOCSOPS_TLS_MODE=off` ohne Secure      |
-| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                        |
-| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                           |
-| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                         |
+|                        | **Entwicklung**                                   | **Production**                                                             |
+| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
+| Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode)    |
+| Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`             |
+| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                             |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `deploy/docker-compose.prod.yml` → **80** + **443** |
+| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                      |
+| TLS / HTTPS            | nicht nötig (Dev)                                 | **Default `internal`** (self-signed); `acme` oder `off` per Env            |
+| Session-Cookies        | Dev-Stack                                         | Default mit `Secure` (TLS); bei `DOCSOPS_TLS_MODE=off` ohne Secure         |
+| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                           |
+| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                              |
+| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                            |
 
 ### Production vs. Demo
 
-|                       | **Intranet-Production** (Install-Skript)         | **Demo** (öffentliche Demo-Instanz)  |
-| --------------------- | ------------------------------------------------ | ------------------------------------ |
+|                       | **Intranet-Production** (Install-Skript)                | **Demo** (öffentliche Demo-Instanz)         |
+| --------------------- | ------------------------------------------------------- | ------------------------------------------- |
 | Compose               | `docker-compose.yml` + `deploy/docker-compose.prod.yml` | zusätzlich `deploy/docker-compose.demo.yml` |
-| `DEMO_MODE`           | **nicht** setzen                                 | `true`                               |
-| Seed                  | nein                                             | ja (CSV bei leerer DB)               |
-| Debug / Impersonation | nein                                             | nein                                 |
+| `DEMO_MODE`           | **nicht** setzen                                        | `true`                                      |
+| Seed                  | nein                                                    | ja (CSV bei leerer DB)                      |
+| Debug / Impersonation | nein                                                    | nein                                        |
 
 **Demo-/Dev-Seed-Logins** (CSV + `create-admin`; Passwort überall `DocsOps1`):
 
