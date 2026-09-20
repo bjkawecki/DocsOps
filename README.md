@@ -1,78 +1,101 @@
 # DocsOps
 
-Internal documentation platform.
+Self-hosted **internal documentation** for organizations. Knowledge lives in your company hierarchy (company → department → team), with a clear split between **drafts** and the **published, official version**.
 
-## Documentation
+## Why DocsOps
 
-- **Concept:** [docs/platform/](docs/platform/)
-- **Implementation plan:** [docs/plan/](docs/plan/)
+- **Organization in the product** – Scopes mirror how you work: company, department, team, plus personal space.
+- **Process and project contexts** – “How we work” and “what we are building” share the same model, not a flat wiki dump.
+- **Explicit access** – Readers and writers are granted per document (and via teams/departments), not guessed from folder ACLs alone.
+- **Lead publishes** – Authors draft and propose; scope leads publish the binding version. Members see the official stand, not every WIP edit.
+- **Yours to run** – Open source (MIT), intranet-friendly install, no SaaS lock-in.
 
-## Prerequisites
+## Try it
 
-- Docker (with `docker compose`) or Podman with podman-compose
-- For development: Node.js (`.nvmrc`), pnpm
+- Marketing site: [https://docsops.de](https://docsops.de)
+- Live demo (resets daily): [https://demo.docsops.de](https://demo.docsops.de)
 
-## Installation
+## Quick start: development
 
-### Production (intranet server)
+**Need:** Docker (Compose), Node.js matching [`.nvmrc`](.nvmrc), [pnpm](https://pnpm.io/).
 
-DocsOps production is designed for the **intranet**: a Linux server on the corporate network, reachable via **HTTP** on port **80** (e.g. `http://docsops.intranet` or the server IP). Hostname is optional via internal DNS or `/etc/hosts`. **TLS/HTTPS** is not part of the default install (optional later: Caddy + `SESSION_COOKIE_SECURE=1` in `/etc/docsops/docsops.env`).
+```bash
+cp .env.example .env   # if you do not have a root .env yet
+make up                # or: docker compose up -d
+```
+
+App: [http://localhost:5000](http://localhost:5000) · Health: [http://localhost:5000/health](http://localhost:5000/health)
+
+More detail: [docs/Development-Anleitung.md](docs/Development-Anleitung.md).
+
+## Quick start: production (intranet)
+
+On a Linux host with Docker, ports **80** and **443** free:
 
 ```bash
 curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/install.sh | sudo bash
 ```
 
-The script from the **latest GitHub release** embeds the matching version (bundle + images). **Pinning:** `…/releases/download/v0.1.0/install.sh` or `DOCSOPS_VERSION=v0.1.0` before `bash`.
+The script installs the matching release bundle under `/opt/docsops`, writes secrets to `/etc/docsops/docsops.env`, pulls images from GHCR, and creates the first admin.
 
-**Root required:** Run the pipeline with `sudo`. The script downloads the release bundle to `/opt/docsops`, creates secrets in **`/etc/docsops/docsops.env`**, and starts the production stack on **port 80** (container images from **GHCR**, no local build). **No seed data, no debug menu** — admin access is created during install only.
+**Defaults after install**
 
-Updates: `sudo /opt/docsops/scripts/update.sh` (latest release) or `… update.sh vX.Y.Z` to pin a version (see [docs/install.md](docs/install.md)).
+- HTTPS on **:443** (`DOCSOPS_TLS_MODE=internal`, Caddy self-signed – browsers show a one-time warning)
+- HTTP **:80** for health checks and redirects
+- `SESSION_COOKIE_SECURE=1` (use `https://` in the browser)
 
-**Demo instance** (public live demo): additionally `docker-compose.demo.yml` and `DEMO_MODE=true` — see [docs/install.md](docs/install.md).
-
-Full guide: **[docs/install.md](docs/install.md)**.
-
-### Development / local prod-like
+**Useful overrides** (set before install, or edit `/etc/docsops/docsops.env` and recreate the stack):
 
 ```bash
-make up
-# or: docker compose up -d
+# HTTP-only intranet
+export DOCSOPS_TLS_MODE=off
+
+# Public hostname + Let's Encrypt
+export DOCSOPS_TLS_MODE=acme
+export DOCSOPS_TLS_DOMAIN=docsops.example.com
+export DOCSOPS_TLS_EMAIL=admin@example.com
 ```
 
-After a short startup, the app is at **http://localhost:5000** (health: http://localhost:5000/health). Configuration: `.env` in the repo root (see `.env.example`).
+Pin a version: `…/releases/download/v0.1.0/install.sh` or `DOCSOPS_VERSION=v0.1.0` before `bash`.
 
-See [docs/Development-Anleitung.md](docs/Development-Anleitung.md).
+**Update:** `sudo /opt/docsops/scripts/update.sh` (latest) or `… update.sh vX.Y.Z`.
 
-## Operational backup
+Full guide: [docs/install.md](docs/install.md). Offline hosts: [docs/plan/Runbook-Air-Gap-Install.md](docs/plan/Runbook-Air-Gap-Install.md).
 
-Before configuring backup destinations in **Admin → Backup**, set `BACKUP_ENCRYPTION_KEY` (encrypts stored destination credentials at rest).
+## Repository map
 
-| Environment     | Where to set                                                                 |
-| --------------- | ---------------------------------------------------------------------------- |
-| **Development** | `.env` in the repo root                                                      |
-| **Production**  | `/etc/docsops/docsops.env` (created by install; key shown once to the admin) |
+| Path | Role |
+| ---- | ---- |
+| [`apps/backend`](apps/backend) | API, worker, Prisma |
+| [`apps/frontend`](apps/frontend) | Web app (Vite + React) |
+| [`apps/landing`](apps/landing) | Marketing site |
+| [`apps/agent`](apps/agent) | Host agent for updates |
+| [`apps/e2e`](apps/e2e) | Playwright smoke (release CI) |
+| [`scripts/`](scripts) | Install, update, air-gap helpers |
+| [`docs/platform/`](docs/platform) | Product concept and architecture |
+| [`docs/plan/`](docs/plan) | Implementation and ops plans |
+| [`content/releases/`](content/releases) | In-app “What’s new” notes |
 
-Generate a 32-byte key (base64):
+## Operational notes
 
-```bash
-openssl rand -base64 32
-# or: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
+### Operational backup
 
-Development: add to `.env` (use quotes if the value contains `+` or `/`):
+Operational backup (Admin → Backup) is disaster recovery for Postgres + MinIO. It is **not** platform export/import (Admin → Migration).
 
-```bash
-BACKUP_ENCRYPTION_KEY="<generated-value>"
-```
+Set **`BACKUP_ENCRYPTION_KEY`** (32 bytes, base64) so backup destination credentials can be stored encrypted. Production install writes it once to `/etc/docsops/docsops.env` – keep a copy in a password manager. Losing the key means encrypted destination secrets cannot be decrypted; the key is not inside backup archives.
 
-Restart **docsops-app** and **docsops-job-worker** after changing env (`docker compose up` or restart dev processes). With Docker Compose, variables are passed from the env file into the containers.
+Details: [docs/install.md](docs/install.md), [docs/plan/Runbook-Backup-Restore.md](docs/plan/Runbook-Backup-Restore.md).
 
-**Troubleshooting (dev):** If Admin → Backup shows _Encryption not configured_ although the key is set, check quoting, file at **repo root**, and container restart. For local `make dev`, the backend loads the repo-root `.env` automatically.
+## Further reading
 
-**Production:** Store `BACKUP_ENCRYPTION_KEY` in a password manager in addition to `/etc/docsops/docsops.env`. See [docs/install.md](docs/install.md).
+| Topic | Doc |
+| ----- | --- |
+| Production install & demo stacks | [docs/install.md](docs/install.md) |
+| Local development | [docs/Development-Anleitung.md](docs/Development-Anleitung.md) |
+| Air-gapped install/update | [docs/plan/Runbook-Air-Gap-Install.md](docs/plan/Runbook-Air-Gap-Install.md) |
+| Platform concept | [docs/platform/README.md](docs/platform/README.md) |
+| Implementation backlog | [docs/plan/Umsetzungs-Todo.md](docs/plan/Umsetzungs-Todo.md) |
 
-If you lose this key, existing destinations cannot be decrypted. The key is **not** included in backup archives. See [Runbook-Backup-Restore](docs/plan/Runbook-Backup-Restore.md).
+## License
 
-## Development
-
-See [docs/Development-Anleitung.md](docs/Development-Anleitung.md).
+[MIT](LICENSE)
