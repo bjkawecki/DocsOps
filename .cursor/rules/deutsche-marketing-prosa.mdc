@@ -1,0 +1,48 @@
+---
+description: Deutsche Marketing- und Landing-Prosa (Thema-Rhema, keine Kontrast-Floskeln, vollständige Sätze)
+globs: apps/landing/**/*.{ts,tsx,md},docs/marketing/**/*.md
+alwaysApply: false
+---
+
+# Deutsche Marketing- und Landing-Prosa
+
+Gilt für Landing-Copy (`apps/landing`), Marketing-Texte in `docs/marketing/` und vergleichbare deutschsprachige Produktprosa.
+
+## Kein „nicht X, sondern Y“
+
+Formulierungen vermeiden, die nur über Verneinung plus Gegensatz erklären:
+
+- „liegt selten darin …, sondern darin …“
+- „nicht nur A, sondern B“
+- „vorgegeben ist A, nicht B“ (als Kontrast-Hack)
+
+Stattdessen den gemeinten Sachverhalt positiv und direkt sagen. Abgrenzung zur Konkurrenz oder zum Anti-Ziel gehört in klare eigene Sätze, nicht in eine Verneinungs-Scharnierformel.
+
+```text
+❌ Der Engpass liegt selten darin, dass Wissen existiert, sondern darin, dass es nicht gepflegt wird.
+✅ Zu diesem Zusammenspiel gehört Wissen, das laufend entsteht und sich verändert. Ohne verlässliche Pflege bleibt unklar, was gerade gilt.
+```
+
+## Thema-Rhema (Anschluss)
+
+Jeder neue Satz knüpft an etwas bereits Genanntes an (Thema) und führt davon aus Neues ein (Rhema). Keine neuen Leitbegriffe („Engpass“, „Herausforderung“, „Kern“) ohne Brücke zum vorherigen Satz.
+
+```text
+❌ … Wissen entsteht und verändert sich. Der Engpass liegt darin, dass …
+✅ … Wissen entsteht und verändert sich. Dieses Wissen bleibt nur nutzbar, wenn es verlässlich gepflegt wird und klar ist, was gilt.
+```
+
+## Kein Telegrafenstil
+
+Absätze und Aufzählungs-Bodies in vollständigen Sätzen. Keine kommagetrennten Nominalgruppen als Pseudo-Satz nach Doppelpunkt.
+
+```text
+❌ DocsOps ist die Software für diese Pflege: Ordnung entlang der Organisation, gemeinsame Arbeit an Entwürfen und ein freigegebener Stand.
+✅ DocsOps unterstützt diese Pflege als Dokumentationsplattform. Die Ordnung folgt der Organisation. Menschen arbeiten gemeinsam an Entwürfen. Die Leitung gibt die Fassung frei, auf die sich andere stützen.
+```
+
+Kurze Titel und UI-Labels dürfen nominal bleiben. Fließtext und Erklärabsätze nicht.
+
+## Abschnitte „Ist → DocsOps“
+
+Wo DocsOps-Prinzipien erklärt werden (z. B. „Was DocsOps anders macht“): zuerst benennen, was in Unternehmen der Fall ist oder welche Herausforderung besteht, danach in einem weiteren Satz (oder klarem Anschluss), wie DocsOps darauf antwortet.

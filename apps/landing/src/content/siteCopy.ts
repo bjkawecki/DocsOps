@@ -185,61 +185,47 @@ export const faqCopy = {
 export const philosophieCopy = {
   pageHeadline: 'Unser Ansatz',
   metaDescription:
-    'Der DocsOps-Ansatz: Dokumentation als Teil des Betriebs, Organisation als Rahmen, Kontext, getrennte Mitwirkung und Veröffentlichung, Verantwortung und Zugriff.',
-  tagline: 'Dokumentation ist Teil des Betriebs, nicht nur dessen Abdruck.',
-  narrative: [
-    'Unternehmen bestehen aus Abläufen, Regeln, Entscheidungen, Projekten und Dingen, mit denen gearbeitet wird. Dieses Wissen entsteht laufend, verändert sich und wird von vielen Menschen genutzt.',
-    'DocsOps bildet diesen Teil des Unternehmens ab: eine gemeinsame Grundlage dafür, wie ein Unternehmen arbeitet und was dabei gilt. Struktur, Zusammenarbeit und Verbindlichkeit gehören zusammen.',
+    'Warum DocsOps so gedacht ist: Wissen in Unternehmen verändert sich. Entscheidend ist, das zu erkennen und bewusst weiterzuführen, zu archivieren oder zu löschen.',
+  intro: [
+    'Jedes Unternehmen ist ein komplexes Zusammenspiel aus Abläufen, Regeln, Entscheidungen, Projekten, Produkten, Systemen sowie Vorlieben und Interessen.',
+    'In diesem Zusammenspiel entsteht ständig Wissen. Es wandert zwischen Menschen, wird umgeschrieben und verliert mit der Zeit an Wert. Das ist ein normaler Vorgang.',
+    'Entscheidend ist, diesen Wandel zu erkennen und bewusst zu handeln: Wissen weiterzuführen, zu archivieren oder zu löschen. Dafür braucht es konkrete Schritte.',
   ],
-  meansTitle: 'Was DocsOps anders macht',
-  meansItems: [
+  howCare: [
     {
-      title: 'Die Organisation gibt den Rahmen vor',
+      title: 'Wissen muss festgehalten werden',
       paragraphs: [
-        'Unternehmen haben Strukturen und Zuständigkeiten. DocsOps nimmt diese Organisation als Rahmen für Dokumentation, ohne die Inhalte vorzuschreiben.',
+        'Was nur erinnert oder mündlich weitergegeben wird, lässt sich schwer teilen und noch schwerer bewusst entscheiden.',
+        'Ein erster Schritt ist deshalb, Wissen niederzuschreiben: zum Beispiel als Text in einem System, den andere nachlesen und später ändern, archivieren oder löschen können.',
       ],
     },
     {
-      title: 'Information braucht Kontext',
+      title: 'Wissen braucht Kontext',
       paragraphs: [
-        'Wissen braucht einen festen Bezug im Unternehmen. So bleibt klar, wozu etwas gehört, nicht nur, was geschrieben wurde.',
+        'Sobald ein solcher Text existiert, reicht sein Inhalt allein oft nicht aus. Es fehlt, für wen er gedacht ist und in welcher Situation er gilt.',
+        'Diesen Zusammenhang findet man in der Organisation schon vor: in Teams, Prozessen und Projekten. Wissen gehört an genau diese Orte und zu den Themen, die dort schon geführt werden. So findet man es wieder und wendet es im richtigen Rahmen an.',
       ],
     },
     {
-      title: 'Gemeinsam bearbeiten. Verbindlich veröffentlichen.',
+      title: 'Wissen braucht Verantwortlichkeit',
       paragraphs: [
-        'Mitwirkung und Veröffentlichung bleiben getrennt. Erst die freigegebene Fassung ist der Stand, auf den andere ihre Arbeit stützen.',
-      ],
-    },
-    {
-      title: 'Verantwortung ist nicht dasselbe wie Zugriff',
-      paragraphs: [
-        'Zuständigkeit und Leserecht sind verschiedene Dinge. Verantwortung bleibt lokal; Sichtbarkeit in der Organisation kann darüber hinaus reichen.',
+        'Auch ein gut eingeordneter Text altert, wenn die Arbeit weitergeht und niemand ihn prüft.',
+        'Deshalb braucht diese Arbeit Zuständige. Diese Rolle kennt die Organisation oft schon: jemanden, der entscheidet, ob ein Stand weitergeführt, als gültig freigegeben, archiviert oder gelöscht wird.',
       ],
     },
   ],
-  summaryTitle: 'Für wen DocsOps gedacht ist',
-  fitsForTitle: 'DocsOps passt zu Ihnen, wenn Sie',
-  fitsFor: [
-    'Abläufe und Bestand strukturiert abbilden möchten',
-    'klare Verantwortlichkeiten brauchen',
-    'gemeinsam arbeiten möchten, ohne jeden Entwurf sofort offiziell zu machen',
-    'eine vorgegebene Struktur als Orientierung schätzen',
-  ],
-  doesNotFitForTitle: 'DocsOps ist eher nichts für Sie, wenn Sie',
-  doesNotFitFor: [
-    'vor allem eine freie Notiz- oder Brainstorming-Fläche suchen',
-    'ohne Organisationsmodell dokumentieren möchten',
-    'maximale Gestaltungsfreiheit wichtiger finden als einen gemeinsamen Rahmen',
-  ],
-  ctaBody: 'Genug Haltung. Demo öffnen oder das Projekt unterstützen.',
-  primaryCta: 'Live-Demo',
-  secondaryCta: 'Unterstützen',
+  vision: {
+    title: 'Was wir mit DocsOps erreichen wollen',
+    paragraphs: [
+      'Arbeit im Unternehmen soll auf einem gemeinsamen, aktuellen Wissensstand ruhen können.',
+      'Diese Pflege gelingt am besten, wenn sie an vorhandene Orte und Rollen anschließt. DocsOps ist die Software dafür: Die Ordnung der Organisation wird zur Ordnung des Wissens.',
+    ],
+  },
 } as const;
 
 export const philosophyTeaserCopy = {
   title: 'Warum so viele Regeln?',
-  body: 'Geltungsbereich, Kontext und Rollen können nach viel Aufwand aussehen. Der Ansatz dahinter: Dokumentation ist Teil des Betriebs, nicht nur dessen Abdruck.',
+  body: 'Festzulegen, wo Wissen hingehört und wer sich darum kümmert, kann zunächst nach zu viel Aufwand aussehen. Damit werden Anwender jedoch zu einem Denkprozess angehalten, der auf Dauer die Ordnung aufrechterhält. Mehr dazu unter Philosophie.',
   cta: 'Zur Philosophie',
 } as const;
 
