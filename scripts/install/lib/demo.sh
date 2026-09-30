@@ -95,11 +95,42 @@ demo_public_url() {
 export_demo_compose_env() {
   apply_demo_profile
   export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-docsops-demo}"
-  export DOCSOPS_EXTRA_COMPOSE_FILES="${DOCSOPS_EXTRA_COMPOSE_FILES:-$(demo_compose_extra_files)}"
-  export COMPOSE_FILE="${COMPOSE_FILE:-$(demo_compose_file_list)}"
+  # Always use current profile paths (do not keep pre-deploy/ layout from old env files).
+  export DOCSOPS_EXTRA_COMPOSE_FILES="$(demo_compose_extra_files)"
+  export COMPOSE_FILE="$(demo_compose_file_list)"
   export LANDING_DIST_DIR="${LANDING_DIST_DIR:-${DOCSOPS_INSTALL_DIR}/landing}"
   export DOCSOPS_HEALTH_URL="${DOCSOPS_HEALTH_URL:-$(demo_health_url)}"
   export DOCSOPS_LAB_LANDING_HOST DOCSOPS_LAB_DEMO_HOST DOCSOPS_DEMO_PROFILE
+}
+
+# Persist compose overlay paths into docsops.env (migrates pre-deploy/ layouts on update/status).
+patch_demo_compose_env_paths() {
+  local env_file compose_file extra_files cur_compose cur_extra
+  apply_demo_profile
+  env_file="${DOCSOPS_ENV_FILE}"
+  [[ -f "$env_file" ]] || die "${env_file} fehlt – zuerst installieren."
+  compose_file="$(demo_compose_file_list)"
+  extra_files="$(demo_compose_extra_files)"
+  cur_compose="$(grep '^COMPOSE_FILE=' "$env_file" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+  cur_extra="$(grep '^DOCSOPS_EXTRA_COMPOSE_FILES=' "$env_file" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+
+  if [[ "$cur_compose" == "$compose_file" && "$cur_extra" == "$extra_files" ]]; then
+    export_demo_compose_env
+    return 0
+  fi
+
+  log "Aktualisiere Compose-Pfade in ${env_file} (deploy/-Layout)"
+  if grep -q '^COMPOSE_FILE=' "$env_file"; then
+    sed -i "s|^COMPOSE_FILE=.*|COMPOSE_FILE=${compose_file}|" "$env_file"
+  else
+    echo "COMPOSE_FILE=${compose_file}" >>"$env_file"
+  fi
+  if grep -q '^DOCSOPS_EXTRA_COMPOSE_FILES=' "$env_file"; then
+    sed -i "s|^DOCSOPS_EXTRA_COMPOSE_FILES=.*|DOCSOPS_EXTRA_COMPOSE_FILES=${extra_files}|" "$env_file"
+  else
+    echo "DOCSOPS_EXTRA_COMPOSE_FILES=${extra_files}" >>"$env_file"
+  fi
+  export_demo_compose_env
 }
 
 require_demo_ports_free() {
@@ -287,7 +318,7 @@ load_demo_env() {
   [[ -n "$saved_landing" ]] && DOCSOPS_LAB_LANDING_HOST="$saved_landing"
   [[ -n "$saved_demo" ]] && DOCSOPS_LAB_DEMO_HOST="$saved_demo"
   LANDING_DIST_DIR="${LANDING_DIST_DIR:-${DOCSOPS_INSTALL_DIR}/landing}"
-  export_demo_compose_env
+  patch_demo_compose_env_paths
   assert_release_version
 }
 
