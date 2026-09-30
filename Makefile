@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-build-lab landing-build-public landing-preview up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-build-lab landing-build-public landing-preview release release-overwrite up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -32,6 +32,8 @@ help:
 	@echo "  make landing-build-lab  Landing für VM-Lab → dist-local (docsops.local)"
 	@echo "  make landing-build-public  Landing public → dist-public (docsops.de)"
 	@echo "  make landing-preview Landing-Build lokal ansehen (nach landing-build)"
+	@echo "  make release VERSION=X.Y.Z            Neues Git-Tag/Release (schlägt fehl, wenn Tag existiert)"
+	@echo "  make release-overwrite VERSION=X.Y.Z Tag+Release ersetzen (force-push; startet Release-CI)"
 	@echo "  make up           Stack starten (docker compose up -d)"
 	@echo "  make up-fg        Stack starten im Vordergrund (docker compose up)"
 	@echo "  make down         Stack stoppen"
@@ -114,6 +116,19 @@ landing-build-public:
 
 landing-preview:
 	pnpm --filter landing preview
+
+# Cut GitHub release via tag push (CI: .github/workflows/release.yml).
+# VERSION must match root package.json (e.g. VERSION=0.1.0). Optional: WATCH=1
+VERSION ?=
+WATCH ?= 0
+
+release:
+	@test -n "$(VERSION)" || (echo "usage: make release VERSION=X.Y.Z" >&2; exit 1)
+	./scripts/release/cut-release.sh "$(VERSION)" $(if $(filter 1 true yes,$(WATCH)),--watch,)
+
+release-overwrite:
+	@test -n "$(VERSION)" || (echo "usage: make release-overwrite VERSION=X.Y.Z" >&2; exit 1)
+	./scripts/release/cut-release.sh "$(VERSION)" --overwrite $(if $(filter 1 true yes,$(WATCH)),--watch,)
 
 up:
 	docker compose up -d
