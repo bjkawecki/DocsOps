@@ -90,48 +90,52 @@ export function HeroHeadline() {
     <h1 className="landing-hero-headline" aria-label={headlineAccessible}>
       <span className="landing-hero-headline-lead">{headlineLead}</span>
       <span className="landing-hero-headline-second" aria-hidden="true">
-        <span className="landing-hero-qualifier">
-          <span className="landing-hero-qualifier-sizer" aria-hidden="true">
-            {headlineQualities.map((word) => (
-              <span key={word} className="landing-hero-qualifier-sizer-word">
-                {word}
-              </span>
-            ))}
-          </span>
-          <span className="landing-hero-qualifier-viewport">
-            {outgoingWord === null ? (
-              <span
-                key={`settled-${displayIndex}-${settledKey}`}
-                className="landing-hero-qualifier-word landing-hero-qualifier-word--settled"
-              >
-                {activeWord}
-              </span>
-            ) : (
-              <>
-                <span
-                  key={`out-${outgoingIndex}`}
-                  className={`landing-hero-qualifier-word landing-hero-qualifier-word--layer${slideActive ? ' landing-hero-qualifier-word--out-active' : ''}`}
-                >
-                  {outgoingWord}
+        <span className="landing-hero-headline-phrase">
+          <span className="landing-hero-qualifier">
+            <span className="landing-hero-qualifier-sizer" aria-hidden="true">
+              {headlineQualities.map((word) => (
+                <span key={word} className="landing-hero-qualifier-sizer-word">
+                  {word}
                 </span>
+              ))}
+            </span>
+            <span className="landing-hero-qualifier-viewport">
+              {outgoingWord === null ? (
                 <span
-                  key={`in-${displayIndex}`}
-                  className={`landing-hero-qualifier-word landing-hero-qualifier-word--layer landing-hero-qualifier-word--in${slideActive ? ' landing-hero-qualifier-word--in-active' : ''}`}
-                  onTransitionEnd={(event) => {
-                    if (event.propertyName !== 'transform') {
-                      return;
-                    }
-                    finishSlide();
-                  }}
+                  key={`settled-${displayIndex}-${settledKey}`}
+                  className="landing-hero-qualifier-word landing-hero-qualifier-word--settled"
                 >
                   {activeWord}
                 </span>
-              </>
-            )}
+              ) : (
+                <>
+                  <span
+                    key={`out-${outgoingIndex}`}
+                    className={`landing-hero-qualifier-word landing-hero-qualifier-word--layer${slideActive ? ' landing-hero-qualifier-word--out-active' : ''}`}
+                  >
+                    {outgoingWord}
+                  </span>
+                  <span
+                    key={`in-${displayIndex}`}
+                    className={`landing-hero-qualifier-word landing-hero-qualifier-word--layer landing-hero-qualifier-word--in${slideActive ? ' landing-hero-qualifier-word--in-active' : ''}`}
+                    onTransitionEnd={(event) => {
+                      if (event.propertyName !== 'transform') {
+                        return;
+                      }
+                      finishSlide();
+                    }}
+                  >
+                    {activeWord}
+                  </span>
+                </>
+              )}
+            </span>
+          </span>
+          <span className="landing-hero-headline-close">
+            <span className="landing-hero-headline-tail">{headlineTail}</span>
+            <span className="landing-hero-dot">.</span>
           </span>
         </span>
-        <span className="landing-hero-headline-tail">{headlineTail}</span>
-        <span className="landing-hero-dot">.</span>
       </span>
     </h1>
   );

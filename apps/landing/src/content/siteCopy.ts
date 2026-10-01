@@ -3,10 +3,10 @@ export const heroCopy = {
   metaDescription:
     'Internes Wissen übersichtlich pflegen. Feste Org-Struktur statt beliebiger Wiki-Ablage. Rollenbasierte Freigaben. Open Source und zum Selbst-Hosten. Live-Demo ansehen ➔',
   headlineLead: 'Ihr Betriebswissen.',
-  headlineQualities: ['Strukturiert', 'Transparent', 'Verbindlich'] as const,
+  headlineQualities: ['Hierarchisch', 'Strukturiert', 'Verbindlich'] as const,
   headlineTail: 'dokumentiert',
-  headlineAccessible: 'Ihr Betriebswissen. Strukturiert, transparent, verbindlich dokumentiert.',
-  subline: 'Mit DocsOps pflegen Sie den internen Wissensstand und die Abläufe Ihrer Organisation.',
+  headlineAccessible: 'Ihr Betriebswissen. Hierarchisch, strukturiert, verbindlich dokumentiert.',
+  subline: 'Mit DocsOps pflegen Sie den internen Wissensstand in der Struktur Ihrer Organisation.',
   trustPills: ['Open Source', 'Self-hosted'] as const,
   scrollHint: 'So funktioniert DocsOps',
   showroomAlt:

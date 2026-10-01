@@ -96,13 +96,19 @@
 }
 
 .landing-hero-headline-second {
+  display: block;
+  margin-top: 0.15em;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* Qualifier + „dokumentiert.“ stay on one line; fluid H1 size handles narrow viewports. */
+.landing-hero-headline-phrase {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: baseline;
   column-gap: 0.2em;
-  row-gap: 0;
-  margin-top: 0.15em;
   max-width: 100%;
 }
 
@@ -130,7 +136,8 @@
   position: relative;
   overflow: hidden;
   height: 1.15em;
-  text-align: left;
+  /* Right-align so shorter qualifiers sit next to „dokumentiert“ (sizer = longest word). */
+  text-align: right;
 }
 
 .landing-hero-qualifier-word {
@@ -146,7 +153,8 @@
 
 .landing-hero-qualifier-word--layer {
   position: absolute;
-  left: 0;
+  right: 0;
+  left: auto;
   top: 0;
 }
 
@@ -170,6 +178,13 @@
   opacity: 0;
 }
 
+.landing-hero-headline-close {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+
 .landing-hero-headline-tail {
   margin-inline-start: 0;
   flex-shrink: 0;
@@ -183,6 +198,7 @@
 
 .landing-hero-dot {
   color: var(--mantine-color-blue-4);
+  flex-shrink: 0;
 }
 
 .landing-hero-subline-wrap {
