@@ -185,31 +185,31 @@ export const faqCopy = {
 export const philosophieCopy = {
   pageHeadline: 'Unser Ansatz',
   metaDescription:
-    'Warum DocsOps so gedacht ist: Wissen in Unternehmen verändert sich. Entscheidend ist, das zu erkennen und bewusst weiterzuführen, zu archivieren oder zu löschen.',
+    'Warum DocsOps so gedacht ist: Wissen in Unternehmen wandert, wird umgeschrieben oder ersetzt und kann mit der Zeit an Wert verlieren. DocsOps ordnet diese Arbeit am Wissen entlang der Organisation.',
   intro: [
     'Jedes Unternehmen ist ein komplexes Zusammenspiel aus Abläufen, Regeln, Entscheidungen, Projekten, Produkten, Systemen sowie Vorlieben und Interessen.',
-    'In diesem Zusammenspiel entsteht ständig Wissen. Es wandert zwischen Menschen, wird umgeschrieben und verliert mit der Zeit an Wert. Das ist ein normaler Vorgang.',
-    'Entscheidend ist, diesen Wandel zu erkennen und bewusst zu handeln: Wissen weiterzuführen, zu archivieren oder zu löschen. Dafür braucht es konkrete Schritte.',
+    'In diesem Zusammenspiel entsteht ständig Wissen. Es wandert zwischen Menschen, wird umgeschrieben, ergänzt oder ersetzt und kann mit der Zeit an Wert verlieren.',
+    'Mit diesem Wandel umzugehen heißt, dafür zu sorgen, dass Wissen für die Arbeit im Unternehmen brauchbar bleibt und bewusst weitergeführt wird.',
   ],
   howCare: [
     {
       title: 'Wissen muss festgehalten werden',
       paragraphs: [
-        'Was nur erinnert oder mündlich weitergegeben wird, lässt sich schwer teilen und noch schwerer bewusst entscheiden.',
-        'Ein erster Schritt ist deshalb, Wissen niederzuschreiben: zum Beispiel als Text in einem System, den andere nachlesen und später ändern, archivieren oder löschen können.',
+        'Das beginnt damit, dass Wissen überhaupt nachlesbar wird. Solange es nur in Köpfen oder in Gesprächen steckt, lässt es sich schwer teilen und noch schwerer weiterführen.',
+        'Ein erster Schritt ist deshalb, Wissen zu dokumentieren: in einem System, das andere nachlesen und später ändern können.',
       ],
     },
     {
       title: 'Wissen braucht Kontext',
       paragraphs: [
-        'Sobald ein solcher Text existiert, reicht sein Inhalt allein oft nicht aus. Es fehlt, für wen er gedacht ist und in welcher Situation er gilt.',
-        'Diesen Zusammenhang findet man in der Organisation schon vor: in Teams, Prozessen und Projekten. Wissen gehört an genau diese Orte und zu den Themen, die dort schon geführt werden. So findet man es wieder und wendet es im richtigen Rahmen an.',
+        'Sobald eine solche Dokumentation existiert, reicht ihr Inhalt allein oft nicht aus. Es fehlt, für wen sie gedacht ist und in welcher Situation sie gilt.',
+        'Diesen Zusammenhang findet man in der Organisation schon vor: in Teams, Prozessen und Projekten. Wissen gehört dorthin und zu den Themen, die dort schon geführt werden.',
       ],
     },
     {
       title: 'Wissen braucht Verantwortlichkeit',
       paragraphs: [
-        'Auch ein gut eingeordneter Text altert, wenn die Arbeit weitergeht und niemand ihn prüft.',
+        'Eingordnetes Wissen braucht jemanden, der den Stand im Blick behält, während die Arbeit weitergeht.',
         'Deshalb braucht diese Arbeit Zuständige. Diese Rolle kennt die Organisation oft schon: jemanden, der entscheidet, ob ein Stand weitergeführt, als gültig freigegeben, archiviert oder gelöscht wird.',
       ],
     },
@@ -217,8 +217,8 @@ export const philosophieCopy = {
   vision: {
     title: 'Was wir mit DocsOps erreichen wollen',
     paragraphs: [
-      'Arbeit im Unternehmen soll auf einem gemeinsamen, aktuellen Wissensstand ruhen können.',
-      'Diese Pflege gelingt am besten, wenn sie an vorhandene Orte und Rollen anschließt. DocsOps ist die Software dafür: Die Ordnung der Organisation wird zur Ordnung des Wissens.',
+      'Verlässliche Zusammenarbeit setzt voraus, dass die Arbeit auf einem gemeinsamen, aktuellen Wissensstand ruhen kann.',
+      'DocsOps hält diesen Stand in der Organisation. Dokumentation entsteht so nicht als paralleles System neben der Arbeit, sondern in derselben Struktur, in der schon entschieden und verantwortet wird.',
     ],
   },
 } as const;

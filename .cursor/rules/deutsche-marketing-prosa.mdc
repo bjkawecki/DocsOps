@@ -1,5 +1,5 @@
 ---
-description: Deutsche Marketing- und Landing-Prosa (Thema-Rhema, keine Kontrast-Floskeln, vollständige Sätze)
+description: Deutsche Marketing- und Landing-Prosa (Thema-Rhema, bedachter Kontrast, vollständige Sätze)
 globs: apps/landing/**/*.{ts,tsx,md},docs/marketing/**/*.md
 alwaysApply: false
 ---
@@ -8,19 +8,23 @@ alwaysApply: false
 
 Gilt für Landing-Copy (`apps/landing`), Marketing-Texte in `docs/marketing/` und vergleichbare deutschsprachige Produktprosa.
 
-## Kein „nicht X, sondern Y“
+## „nicht X, sondern Y“ mit Bedacht
 
-Formulierungen vermeiden, die nur über Verneinung plus Gegensatz erklären:
+Kein Verbot. Kontrast-Formeln nicht als Standard-Scharnier missbrauchen, wenn der Sachverhalt positiv klarer ist.
+
+**Meiden**, wenn die Verneinung nur Rhetorik ist und das Gemeinte auch direkt ginge:
 
 - „liegt selten darin …, sondern darin …“
-- „nicht nur A, sondern B“
-- „vorgegeben ist A, nicht B“ (als Kontrast-Hack)
+- „nicht nur A, sondern B“ als leerer Steigerungshack
+- „vorgegeben ist A, nicht B“ nur als Kontrast-Trick
 
-Stattdessen den gemeinten Sachverhalt positiv und direkt sagen. Abgrenzung zur Konkurrenz oder zum Anti-Ziel gehört in klare eigene Sätze, nicht in eine Verneinungs-Scharnierformel.
+**Erlaubt**, wenn der Gegensatz selbst die Pointe trägt (Abgrenzung, die der Leser braucht), z. B. paralleles Dokumentensystem vs. dieselbe Organisationsstruktur.
 
 ```text
 ❌ Der Engpass liegt selten darin, dass Wissen existiert, sondern darin, dass es nicht gepflegt wird.
 ✅ Zu diesem Zusammenspiel gehört Wissen, das laufend entsteht und sich verändert. Ohne verlässliche Pflege bleibt unklar, was gerade gilt.
+
+✅ Dokumentation entsteht so nicht als paralleles System neben der Arbeit, sondern in derselben Struktur, in der schon entschieden und verantwortet wird.
 ```
 
 ## Thema-Rhema (Anschluss)
