@@ -6,8 +6,6 @@ Self-hosted internal documentation with org hierarchy and lead-controlled publis
 
 DocsOps is an open-source (MIT) platform for internal company documentation: scopes follow **company → department → team** (plus personal space), documents live in process or project contexts, and access is granted explicitly. Authors draft and propose; scope leads publish the official version that members read.
 
-The GitHub repository and folder are `docs-ops`. The root npm workspace package is still named `engineering-knowledge-operations` (legacy); the product name is **DocsOps**.
-
 ## Table of Contents
 
 - [Background](#background)
