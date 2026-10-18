@@ -440,5 +440,21 @@
         "updated": "Aktualisiert"
       }
     }
+  },
+  "versionsPage": {
+    "description": "Versionshistorie",
+    "listTitle": "Versionen",
+    "view": "Anzeigen",
+    "compareTitle": "Zwei Versionen vergleichen",
+    "fromVersion": "Von Version",
+    "toVersion": "Bis Version",
+    "selectPlaceholder": "Auswählen…",
+    "compare": "Vergleichen",
+    "empty": "Noch keine veröffentlichten Versionen. Veröffentlichen Sie das Dokument, um Version 1 anzulegen.",
+    "versionContent": "Versionsinhalt",
+    "diff": "Diff",
+    "loadDocumentFailed": "Dokument konnte nicht geladen werden",
+    "loadVersionsFailed": "Versionen konnten nicht geladen werden",
+    "loadVersionFailed": "Version konnte nicht geladen werden"
   }
 }

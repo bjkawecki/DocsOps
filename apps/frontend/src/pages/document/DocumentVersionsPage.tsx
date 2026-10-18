@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { PageHeader } from '../../components/ui/PageHeader';
 import {
@@ -94,6 +95,7 @@ function DiffView({ fromContent, toContent }: { fromContent: string; toContent: 
 }
 
 export function DocumentVersionsPage() {
+  const { t } = useTranslation('documents');
   const { documentId } = useParams<{ documentId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewVersionId = searchParams.get('version') ?? '';
@@ -106,7 +108,7 @@ export function DocumentVersionsPage() {
     queryKey: ['document', documentId],
     queryFn: async () => {
       const res = await apiFetch(`/api/v1/documents/${documentId}`);
-      if (!res.ok) throw new Error('Failed to load document');
+      if (!res.ok) throw new Error(t('versionsPage.loadDocumentFailed'));
       return res.json() as Promise<DocumentVersionsDoc>;
     },
     enabled: !!documentId,
@@ -116,7 +118,7 @@ export function DocumentVersionsPage() {
     queryKey: ['document-versions', documentId],
     queryFn: async () => {
       const res = await apiFetch(`/api/v1/documents/${documentId}/versions`);
-      if (!res.ok) throw new Error('Failed to load versions');
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionsFailed'));
       return res.json() as Promise<{ items: VersionItem[] }>;
     },
     enabled: !!documentId,
@@ -131,7 +133,7 @@ export function DocumentVersionsPage() {
     queryFn: async () => {
       const id = fromId || compareFromId;
       const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${id}`);
-      if (!res.ok) throw new Error('Failed to load version');
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
       return res.json() as Promise<VersionDetail>;
     },
     enabled: !!documentId && !!(fromId || compareFromId),
@@ -142,7 +144,7 @@ export function DocumentVersionsPage() {
     queryFn: async () => {
       const id = toId || compareToId;
       const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${id}`);
-      if (!res.ok) throw new Error('Failed to load version');
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
       return res.json() as Promise<VersionDetail>;
     },
     enabled: !!documentId && !!(toId || compareToId),
@@ -152,7 +154,7 @@ export function DocumentVersionsPage() {
     queryKey: ['document-version', documentId, viewVersionId],
     queryFn: async () => {
       const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${viewVersionId}`);
-      if (!res.ok) throw new Error('Failed to load version');
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
       return res.json() as Promise<VersionDetail>;
     },
     enabled: !!documentId && !!viewVersionId,
@@ -197,7 +199,7 @@ export function DocumentVersionsPage() {
               <IconPencil size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
             )
           }
-          description="Version history"
+          description={t('versionsPage.description')}
         />
       </Stack>
 
@@ -206,13 +208,13 @@ export function DocumentVersionsPage() {
           <Skeleton height={120} />
         ) : versions.length === 0 ? (
           <Text size="sm" c="dimmed">
-            No published versions yet. Publish the document to create version 1.
+            {t('versionsPage.empty')}
           </Text>
         ) : (
           <>
             <Card withBorder padding="md">
               <Text size="sm" fw={500} mb="xs">
-                Versions
+                {t('versionsPage.listTitle')}
               </Text>
               <Stack gap="xs">
                 {versions.map((v) => (
@@ -232,7 +234,7 @@ export function DocumentVersionsPage() {
                       component={Link}
                       to={`/documents/${documentId}/versions?version=${v.id}`}
                     >
-                      View
+                      {t('versionsPage.view')}
                     </Button>
                   </Group>
                 ))}
@@ -241,25 +243,31 @@ export function DocumentVersionsPage() {
 
             <Card withBorder padding="md">
               <Text size="sm" fw={500} mb="xs">
-                Compare two versions
+                {t('versionsPage.compareTitle')}
               </Text>
               <Group align="flex-end" gap="sm" wrap="wrap">
                 <NativeSelect
-                  label="From version"
-                  data={[{ value: '', label: 'Select…' }, ...versionOptions]}
+                  label={t('versionsPage.fromVersion')}
+                  data={[
+                    { value: '', label: t('versionsPage.selectPlaceholder') },
+                    ...versionOptions,
+                  ]}
                   value={fromId || compareFromId}
                   onChange={(e) => setCompareFromId(e.target.value)}
                   style={{ minWidth: 280 }}
                 />
                 <NativeSelect
-                  label="To version"
-                  data={[{ value: '', label: 'Select…' }, ...versionOptions]}
+                  label={t('versionsPage.toVersion')}
+                  data={[
+                    { value: '', label: t('versionsPage.selectPlaceholder') },
+                    ...versionOptions,
+                  ]}
                   value={toId || compareToId}
                   onChange={(e) => setCompareToId(e.target.value)}
                   style={{ minWidth: 280 }}
                 />
                 <Button disabled={!canApplyCompare} onClick={handleCompare} size="sm">
-                  Compare
+                  {t('versionsPage.compare')}
                 </Button>
               </Group>
             </Card>
@@ -267,7 +275,7 @@ export function DocumentVersionsPage() {
             {showSingleVersion && (
               <Card withBorder padding="md">
                 <Text size="sm" fw={500} mb="xs">
-                  Version content
+                  {t('versionsPage.versionContent')}
                   {viewDetail && (
                     <Text component="span" size="sm" c="dimmed" ml="xs">
                       v{viewDetail.versionNumber}
@@ -300,7 +308,7 @@ export function DocumentVersionsPage() {
             {showCompare && (
               <Card withBorder padding="md">
                 <Text size="sm" fw={500} mb="xs">
-                  Diff
+                  {t('versionsPage.diff')}
                   {fromVersion && toVersion && (
                     <Text component="span" size="sm" c="dimmed" ml="xs">
                       v{fromVersion.versionNumber} → v{toVersion.versionNumber}

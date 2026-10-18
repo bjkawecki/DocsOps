@@ -1,4 +1,14 @@
-import { Box, Button, Group, Modal, ScrollArea, Stack, Text, UnstyledButton } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Group,
+  Modal,
+  ScrollArea,
+  Stack,
+  Text,
+  Tooltip,
+  UnstyledButton,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconClock, IconFileText } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -36,18 +46,23 @@ type CompactListProps = {
 function ContinueCompactList({ items, onSelect }: CompactListProps) {
   return (
     <Stack gap={2} align="stretch">
-      {items.map((item) => (
-        <UnstyledButton
-          key={`${item.type}-${item.id}`}
-          onClick={() => onSelect(item)}
-          className="app-shell-continue-item"
-        >
-          <IconFileText size={ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
-          <Text size="md" fw={600} className="app-shell-continue-item-label">
-            {itemLabel(item)}
-          </Text>
-        </UnstyledButton>
-      ))}
+      {items.map((item) => {
+        const label = itemLabel(item);
+        return (
+          <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
+            <UnstyledButton
+              onClick={() => onSelect(item)}
+              className="app-shell-continue-item"
+              aria-label={label}
+            >
+              <IconFileText size={ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
+              <Text size="md" fw={600} className="app-shell-continue-item-label">
+                {label}
+              </Text>
+            </UnstyledButton>
+          </Tooltip>
+        );
+      })}
     </Stack>
   );
 }
@@ -62,32 +77,35 @@ function ContinueDetailedList({ items, onSelect, metaLineFor }: DetailedListProp
   return (
     <Stack gap={10} align="stretch">
       {items.map((item) => {
+        const label = itemLabel(item);
         const meta = metaLineFor(item);
         return (
-          <UnstyledButton
-            key={`${item.type}-${item.id}`}
-            onClick={() => onSelect(item)}
-            className="app-shell-continue-item app-shell-continue-item--detailed"
-          >
-            <span className="app-shell-continue-item-icon">
-              <IconFileText size={DETAILED_ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
-            </span>
-            <span className="app-shell-continue-item-text">
-              <Text size="md" fw={600} className="app-shell-continue-item-title" component="span">
-                {itemLabel(item)}
-              </Text>
-              {meta ? (
-                <Text
-                  size="sm"
-                  c="dimmed"
-                  className="app-shell-continue-item-meta"
-                  component="span"
-                >
-                  {meta}
+          <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
+            <UnstyledButton
+              onClick={() => onSelect(item)}
+              className="app-shell-continue-item app-shell-continue-item--detailed"
+              aria-label={label}
+            >
+              <span className="app-shell-continue-item-icon">
+                <IconFileText size={DETAILED_ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
+              </span>
+              <span className="app-shell-continue-item-text">
+                <Text size="md" fw={600} className="app-shell-continue-item-title" component="span">
+                  {label}
                 </Text>
-              ) : null}
-            </span>
-          </UnstyledButton>
+                {meta ? (
+                  <Text
+                    size="sm"
+                    c="dimmed"
+                    className="app-shell-continue-item-meta"
+                    component="span"
+                  >
+                    {meta}
+                  </Text>
+                ) : null}
+              </span>
+            </UnstyledButton>
+          </Tooltip>
         );
       })}
     </Stack>

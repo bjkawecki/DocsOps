@@ -440,5 +440,21 @@
         "updated": "Updated"
       }
     }
+  },
+  "versionsPage": {
+    "description": "Version history",
+    "listTitle": "Versions",
+    "view": "View",
+    "compareTitle": "Compare two versions",
+    "fromVersion": "From version",
+    "toVersion": "To version",
+    "selectPlaceholder": "Select…",
+    "compare": "Compare",
+    "empty": "No published versions yet. Publish the document to create version 1.",
+    "versionContent": "Version content",
+    "diff": "Diff",
+    "loadDocumentFailed": "Failed to load document",
+    "loadVersionsFailed": "Failed to load versions",
+    "loadVersionFailed": "Failed to load version"
   }
 }
