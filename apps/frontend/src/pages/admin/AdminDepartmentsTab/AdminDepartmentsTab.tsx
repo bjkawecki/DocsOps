@@ -35,7 +35,6 @@ export function AdminDepartmentsTab() {
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
-  const [filterCompanyId, setFilterCompanyId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState<number>(() => {
     try {
@@ -74,18 +73,10 @@ export function AdminDepartmentsTab() {
   );
 
   const filteredDepartments = useMemo(() => {
-    let list = allDepartments;
-    if (filterText.trim()) {
-      const q = filterText.trim().toLowerCase();
-      list = list.filter(
-        (d) => d.name.toLowerCase().includes(q) || d.companyName.toLowerCase().includes(q)
-      );
-    }
-    if (filterCompanyId) {
-      list = list.filter((d) => d.companyId === filterCompanyId);
-    }
-    return list;
-  }, [allDepartments, filterText, filterCompanyId]);
+    if (!filterText.trim()) return allDepartments;
+    const q = filterText.trim().toLowerCase();
+    return allDepartments.filter((d) => d.name.toLowerCase().includes(q));
+  }, [allDepartments, filterText]);
   const totalPages = Math.max(1, Math.ceil(filteredDepartments.length / limit));
   const pagedDepartments = useMemo(() => {
     const start = (page - 1) * limit;
@@ -287,14 +278,6 @@ export function AdminDepartmentsTab() {
       notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
-  const companyOptions = useMemo(
-    () => [
-      { value: '', label: t('departments.allCompaniesOption') },
-      ...companies.map((c) => ({ value: c.id, label: c.name })),
-    ],
-    [companies, t]
-  );
-
   const handleSaveDepartmentCard = useCallback(() => {
     const dept = editingDepartment;
     if (!dept) return;
@@ -399,12 +382,6 @@ export function AdminDepartmentsTab() {
           setFilterText(value);
           setPage(1);
         }}
-        filterCompanyId={filterCompanyId}
-        onFilterCompanyIdChange={(value) => {
-          setFilterCompanyId(value);
-          setPage(1);
-        }}
-        companyOptions={companyOptions}
         filteredDepartmentsCount={filteredDepartments.length}
         limit={limit}
         onLimitChange={(next) => {

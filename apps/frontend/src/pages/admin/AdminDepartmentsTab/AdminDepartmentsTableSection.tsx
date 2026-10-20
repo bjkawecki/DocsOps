@@ -38,7 +38,6 @@ export function AdminDepartmentsTableSection({
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t('departments.table.department')}</Table.Th>
-                <Table.Th>{t('departments.table.company')}</Table.Th>
                 <Table.Th>{t('departments.table.leads')}</Table.Th>
                 <Table.Th>{t('departments.table.members')}</Table.Th>
                 <Table.Th>{t('departments.table.teams')}</Table.Th>
@@ -47,7 +46,7 @@ export function AdminDepartmentsTableSection({
             <Table.Tbody>
               {pagedDepartments.length === 0 ? (
                 <Table.Tr>
-                  <Table.Td colSpan={5}>
+                  <Table.Td colSpan={4}>
                     <Text size="sm" c="dimmed">
                       {allDepartmentsLength === 0
                         ? t('departments.table.emptyNoDepartments')
@@ -79,7 +78,6 @@ export function AdminDepartmentsTableSection({
                           {d.name}
                         </Text>
                       </Table.Td>
-                      <Table.Td>{d.companyName}</Table.Td>
                       <Table.Td>{leadNames || '–'}</Table.Td>
                       <Table.Td>
                         {memberCounts[d.id] !== undefined ? String(memberCounts[d.id]) : '–'}

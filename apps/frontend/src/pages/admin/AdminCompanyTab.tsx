@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -10,15 +10,16 @@ import {
   Stack,
   Card,
   Modal,
-  Table,
   Tabs,
   TextInput,
   Select,
+  Title,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
@@ -46,6 +47,17 @@ type CompanyStatsRes = {
   projectCount: number;
 };
 
+const COMPANY_TABS = ['overview', 'pdf', 'manage'] as const;
+type CompanyTab = (typeof COMPANY_TABS)[number];
+
+function isCompanyTab(value: string | null): value is CompanyTab {
+  return value != null && (COMPANY_TABS as readonly string[]).includes(value);
+}
+
+function parseCompanyTab(value: string | null): CompanyTab {
+  return isCompanyTab(value) ? value : 'overview';
+}
+
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
@@ -56,12 +68,32 @@ export function AdminCompanyTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [companyCardEditing, setCompanyCardEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editLeadId, setEditLeadId] = useState('');
   const [deleteConfirmCompany, setDeleteConfirmCompany] = useState<Company | null>(null);
+
+  const activeTab = parseCompanyTab(searchParams.get('tab'));
+  const setActiveTab = useCallback(
+    (value: string | null) => {
+      const next = parseCompanyTab(value);
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === 'overview') {
+            params.delete('tab');
+          } else {
+            params.set('tab', next);
+          }
+          return params;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
   const { data: companiesData, isPending: companiesPending } = useQuery({
     queryKey: ['companies'],
@@ -73,31 +105,18 @@ export function AdminCompanyTab() {
   });
 
   const companies = useMemo(() => companiesData?.items ?? [], [companiesData?.items]);
-  const companyIds = useMemo(() => companies.map((c) => c.id), [companies]);
-
-  const { data: leadsBatchData } = useQuery({
-    queryKey: ['companies', 'leads-batch', companyIds.join(',')],
-    queryFn: async (): Promise<Record<string, { id: string; name: string }[]>> => {
-      const entries = await Promise.all(
-        companyIds.map(async (cid) => {
-          const res = await apiFetch(`/api/v1/companies/${cid}/company-leads?limit=100`);
-          const items = res.ok ? ((await res.json()) as AssignmentListRes).items : [];
-          return [cid, items] as const;
-        })
-      );
-      return Object.fromEntries(entries);
-    },
-    enabled: companyIds.length > 0,
-  });
+  const company = companies[0] ?? null;
+  const companyId = company?.id;
 
   const { data: leadsForEditData, isPending: leadsForEditPending } = useQuery({
-    queryKey: ['companies', editingCompany?.id, 'company-leads'],
+    queryKey: ['companies', companyId, 'company-leads'],
     queryFn: async (): Promise<AssignmentListRes> => {
-      const res = await apiFetch(`/api/v1/companies/${editingCompany!.id}/company-leads?limit=100`);
+      if (!companyId) throw new Error(t('common:errors.loadFailed'));
+      const res = await apiFetch(`/api/v1/companies/${companyId}/company-leads?limit=100`);
       if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
-    enabled: !!editingCompany?.id,
+    enabled: !!companyId,
   });
   const leadsForEdit = leadsForEditData?.items ?? [];
 
@@ -108,7 +127,7 @@ export function AdminCompanyTab() {
       if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AdminUsersRes;
     },
-    enabled: !!editingCompany?.id,
+    enabled: !!companyId,
   });
   const userOptions = useMemo(
     () => (adminUsersData?.items ?? []).map((u) => ({ value: u.id, label: u.name })),
@@ -116,19 +135,19 @@ export function AdminCompanyTab() {
   );
 
   const { data: companyStatsData, isPending: companyStatsPending } = useQuery({
-    queryKey: ['admin', 'companies', editingCompany?.id, 'stats'],
+    queryKey: ['admin', 'companies', companyId, 'stats'],
     queryFn: async (): Promise<CompanyStatsRes> => {
-      const res = await apiFetch(`/api/v1/admin/companies/${editingCompany!.id}/stats`);
+      if (!companyId) throw new Error(t('common:errors.loadFailed'));
+      const res = await apiFetch(`/api/v1/admin/companies/${companyId}/stats`);
       if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as CompanyStatsRes;
     },
-    enabled: !!editingCompany?.id,
+    enabled: !!companyId,
   });
 
   const invalidateCompanies = () => void queryClient.invalidateQueries({ queryKey: ['companies'] });
   const invalidateLeads = (cid: string) => {
     void queryClient.invalidateQueries({ queryKey: ['companies', cid, 'company-leads'] });
-    void queryClient.invalidateQueries({ queryKey: ['companies', 'leads-batch'] });
   };
 
   const createCompany = useMutation({
@@ -170,11 +189,8 @@ export function AdminCompanyTab() {
       }
       return (await res.json()) as Company;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       invalidateCompanies();
-      setEditingCompany((prev) =>
-        prev && prev.id === variables.id ? { ...prev, name: variables.name } : prev
-      );
       setCompanyCardEditing(false);
       notifications.show({
         title: t('company.toasts.updatedTitle'),
@@ -197,6 +213,15 @@ export function AdminCompanyTab() {
     onSuccess: () => {
       invalidateCompanies();
       setDeleteConfirmCompany(null);
+      setCompanyCardEditing(false);
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          params.delete('tab');
+          return params;
+        },
+        { replace: true }
+      );
       notifications.show({
         title: t('company.toasts.deletedTitle'),
         message: t('company.toasts.deletedMessage'),
@@ -293,77 +318,16 @@ export function AdminCompanyTab() {
 
   return (
     <Box>
-      {companies.length === 0 ? (
+      {company == null ? (
         <Alert color="blue" mb="md">
           {t('company.noCompanyAlert')}
         </Alert>
       ) : (
-        <Table withTableBorder withColumnBorders mb="md" className="admin-table-hover">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('company.table.company')}</Table.Th>
-              <Table.Th>{t('company.table.lead')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {companies.map((c) => {
-              const leadNames = leadsBatchData?.[c.id]?.map((u) => u.name) ?? [];
-              const leadText = leadNames.length > 0 ? leadNames.join(', ') : '–';
-              return (
-                <Table.Tr key={c.id}>
-                  <Table.Td>
-                    <Text
-                      component="button"
-                      type="button"
-                      variant="link"
-                      c="var(--mantine-color-anchor)"
-                      size="sm"
-                      className="admin-link-hover"
-                      style={{
-                        cursor: 'pointer',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                      }}
-                      onClick={() => {
-                        setEditingCompany(c);
-                        setCompanyCardEditing(false);
-                      }}
-                    >
-                      {c.name}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>{leadText}</Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-      )}
-
-      <Modal
-        opened={createOpened}
-        onClose={closeCreate}
-        title={t('actions.createCompany')}
-        size="sm"
-      >
-        <CompanyForm
-          initialName=""
-          onSubmit={(name) => createCompany.mutate(name)}
-          onCancel={closeCreate}
-          loading={createCompany.isPending}
-        />
-      </Modal>
-
-      {editingCompany && (
-        <Modal
-          opened
-          onClose={() => setEditingCompany(null)}
-          title={t('company.editModal.title', { name: editingCompany.name })}
-          size="lg"
-          key={editingCompany.id}
-        >
-          <Tabs defaultValue="overview">
+        <>
+          <Title order={3} mb="md">
+            {company.name}
+          </Title>
+          <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
               <Tabs.Tab value="overview">{t('company.editModal.tabs.overview')}</Tabs.Tab>
               <Tabs.Tab value="pdf">{t('company.editModal.tabs.pdfBranding')}</Tabs.Tab>
@@ -381,7 +345,7 @@ export function AdminCompanyTab() {
                       variant="filled"
                       leftSection={<IconPencil size={14} />}
                       onClick={() => {
-                        setEditName(editingCompany.name);
+                        setEditName(company.name);
                         setEditLeadId(leadsForEdit[0]?.id ?? '');
                         setCompanyCardEditing(true);
                       }}
@@ -422,29 +386,26 @@ export function AdminCompanyTab() {
                           if (!name) return;
                           void (async () => {
                             try {
-                              if (name !== editingCompany.name) {
-                                await updateCompany.mutateAsync({ id: editingCompany.id, name });
+                              if (name !== company.name) {
+                                await updateCompany.mutateAsync({ id: company.id, name });
                               }
                               const currentIds = leadsForEdit.map((u) => u.id);
                               const targetLeadId = editLeadId || null;
                               for (const userId of currentIds) {
                                 if (userId !== targetLeadId) {
                                   await removeLead.mutateAsync({
-                                    companyId: editingCompany.id,
+                                    companyId: company.id,
                                     userId,
                                   });
                                 }
                               }
                               if (targetLeadId && !currentIds.includes(targetLeadId)) {
                                 await addLead.mutateAsync({
-                                  companyId: editingCompany.id,
+                                  companyId: company.id,
                                   userId: targetLeadId,
                                 });
                               }
-                              setEditingCompany((prev) =>
-                                prev && prev.id === editingCompany.id ? { ...prev, name } : prev
-                              );
-                              invalidateLeads(editingCompany.id);
+                              invalidateLeads(company.id);
                               setCompanyCardEditing(false);
                             } catch {
                               // notifications from mutations
@@ -468,7 +429,7 @@ export function AdminCompanyTab() {
                       <Text size="xs" c="dimmed">
                         {t('shared.name')}
                       </Text>
-                      <Text size="sm">{editingCompany.name}</Text>
+                      <Text size="sm">{company.name}</Text>
                     </div>
                     <div>
                       <Text size="xs" c="dimmed">
@@ -537,7 +498,7 @@ export function AdminCompanyTab() {
             </Tabs.Panel>
             <Tabs.Panel value="pdf" pt="md">
               <Card withBorder padding="md">
-                <CompanyPdfBrandingForm companyId={editingCompany.id} />
+                <CompanyPdfBrandingForm companyId={company.id} />
               </Card>
             </Tabs.Panel>
             <Tabs.Panel value="manage" pt="md">
@@ -553,7 +514,7 @@ export function AdminCompanyTab() {
                   variant="filled"
                   color="red"
                   leftSection={<IconTrash size={14} />}
-                  onClick={() => setDeleteConfirmCompany(editingCompany)}
+                  onClick={() => setDeleteConfirmCompany(company)}
                   loading={deleteCompany.isPending}
                 >
                   {t('company.editModal.manage.deleteButton')}
@@ -561,8 +522,22 @@ export function AdminCompanyTab() {
               </Card>
             </Tabs.Panel>
           </Tabs>
-        </Modal>
+        </>
       )}
+
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t('actions.createCompany')}
+        size="sm"
+      >
+        <CompanyForm
+          initialName=""
+          onSubmit={(name) => createCompany.mutate(name)}
+          onCancel={closeCreate}
+          loading={createCompany.isPending}
+        />
+      </Modal>
 
       <Modal
         opened={!!deleteConfirmCompany}

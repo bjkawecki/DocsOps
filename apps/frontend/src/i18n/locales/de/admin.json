@@ -650,14 +650,11 @@
   },
   "departments": {
     "toolbar": {
-      "searchPlaceholder": "Suche (Abteilung, Firma)",
-      "companyPlaceholder": "Firma",
+      "searchPlaceholder": "Suche (Abteilung)",
       "countLine": "{{count}} Abteilung(en)"
     },
-    "allCompaniesOption": "Alle Firmen",
     "table": {
       "department": "Abteilung",
-      "company": "Firma",
       "leads": "Leitungen",
       "members": "Mitglieder",
       "teams": "Teams",
@@ -700,12 +697,7 @@
   },
   "company": {
     "noCompanyAlert": "Keine Firma eingerichtet. Zuerst die Firma anlegen, dann Firmenleitungen verwalten.",
-    "table": {
-      "company": "Firma",
-      "lead": "Leitung"
-    },
     "editModal": {
-      "title": "Firma: {{name}}",
       "tabs": {
         "overview": "Übersicht",
         "pdfBranding": "PDF-Branding",

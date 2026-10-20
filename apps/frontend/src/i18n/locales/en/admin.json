@@ -650,14 +650,11 @@
   },
   "departments": {
     "toolbar": {
-      "searchPlaceholder": "Search (department, company)",
-      "companyPlaceholder": "Company",
+      "searchPlaceholder": "Search (department)",
       "countLine": "{{count}} department(s)"
     },
-    "allCompaniesOption": "All companies",
     "table": {
       "department": "Department",
-      "company": "Company",
       "leads": "Leads",
       "members": "Members",
       "teams": "Teams",
@@ -700,12 +697,7 @@
   },
   "company": {
     "noCompanyAlert": "No company set up. Create the company first, then manage company leads.",
-    "table": {
-      "company": "Company",
-      "lead": "Lead"
-    },
     "editModal": {
-      "title": "Company: {{name}}",
       "tabs": {
         "overview": "Overview",
         "pdfBranding": "PDF branding",

@@ -16,10 +16,11 @@ export type AdminEntityListToolbarProps = {
   searchPlaceholder: string;
   filterText: string;
   onFilterTextChange: (value: string) => void;
-  scopeSelectPlaceholder: string;
-  scopeSelectData: { value: string; label: string }[];
-  scopeSelectValue: string | null;
-  onScopeSelectChange: (value: string | null) => void;
+  /** Optional scope filter (e.g. department). Omit when not needed. */
+  scopeSelectPlaceholder?: string;
+  scopeSelectData?: { value: string; label: string }[];
+  scopeSelectValue?: string | null;
+  onScopeSelectChange?: (value: string | null) => void;
   scopeSelectDisabled?: boolean;
   countLine: string;
   limit: number;
@@ -44,19 +45,22 @@ export function AdminEntityListToolbar({
 }: AdminEntityListToolbarProps) {
   const { t } = useTranslation(['admin', 'common']);
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const showScopeSelect =
+    scopeSelectPlaceholder != null && scopeSelectData != null && onScopeSelectChange != null;
 
-  const scopeSelect = (size: 'xs' | 'md') => (
-    <Select
-      placeholder={scopeSelectPlaceholder}
-      size={size}
-      data={scopeSelectData}
-      value={scopeSelectValue ?? ''}
-      onChange={(v) => onScopeSelectChange(v || null)}
-      disabled={scopeSelectDisabled}
-      clearable
-      style={{ width: size === 'xs' ? 160 : '100%' }}
-    />
-  );
+  const scopeSelect = (size: 'xs' | 'md') =>
+    showScopeSelect ? (
+      <Select
+        placeholder={scopeSelectPlaceholder}
+        size={size}
+        data={scopeSelectData}
+        value={scopeSelectValue ?? ''}
+        onChange={(v) => onScopeSelectChange(v || null)}
+        disabled={scopeSelectDisabled}
+        clearable
+        style={{ width: size === 'xs' ? 160 : '100%' }}
+      />
+    ) : null;
 
   const compactSearch = useCompactListSearchFab({
     label: t('common:actions.search'),
