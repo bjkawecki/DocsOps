@@ -52,11 +52,11 @@ export const registerPublicationPdfRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** POST PDF export job: queue background generation and return job id for polling. */
+  /** POST PDF export job: regenerate current published version (scope lead / admin). */
   app.post<{ Params: { documentId: string } }>(
     '/documents/:documentId/export-pdf',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('publish'))],
     },
     async (request, reply) => {
       const prisma = request.server.prisma;

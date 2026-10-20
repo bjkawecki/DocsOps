@@ -16,7 +16,7 @@ export const DOCUMENT_ID_PARAM = 'documentId';
  * `writeOrPublish`: canWrite **oder** canPublishDocument (UI Edit für Scope-Leads inkl. Metadata).
  */
 export function requireDocumentAccess(
-  mode: 'read' | 'write' | 'readOrWrite' | 'writeOrPublish'
+  mode: 'read' | 'write' | 'readOrWrite' | 'writeOrPublish' | 'publish'
 ): (request: FastifyRequest, reply: FastifyReply) => Promise<void> {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     const documentId = (request.params as Record<string, string | undefined>)?.[DOCUMENT_ID_PARAM];
@@ -49,6 +49,8 @@ export function requireDocumentAccess(
       allowed = await canRead(prisma, userId, doc);
     } else if (mode === 'write') {
       allowed = await canWrite(prisma, userId, doc);
+    } else if (mode === 'publish') {
+      allowed = await canPublishDocument(prisma, userId, documentId);
     } else if (mode === 'writeOrPublish') {
       allowed =
         (await canWrite(prisma, userId, doc)) ||

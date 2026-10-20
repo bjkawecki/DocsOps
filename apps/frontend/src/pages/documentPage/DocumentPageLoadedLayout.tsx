@@ -23,7 +23,7 @@ import {
 } from '../../hooks/useScopeStartDocument.js';
 import { ContextSwitcherSelect } from '../contextWorkspace/ContextSwitcherSelect.js';
 import { contextUrl } from '../contextWorkspace/contextPaths.js';
-import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
+import type { DocumentResponse } from './documentPageTypes';
 import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
 import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
 import { DocumentPersonalUngroupedDocsNav } from './DocumentPersonalUngroupedDocsNav.js';
@@ -66,7 +66,6 @@ export type DocumentPageLoadedLayoutProps = {
   setLeadDraftPendingSuggestions: (count: number) => void;
   leadDraftPendingSuggestions: number;
   pdfExportLoading: boolean;
-  pdfExportStatus: PdfExportJobStatusResponse | undefined;
   handleCancelEdit: () => void;
   handleSave: () => Promise<void>;
   handleEditClick: () => void;
@@ -121,7 +120,6 @@ export function DocumentPageLoadedLayout({
   setLeadDraftPendingSuggestions,
   leadDraftPendingSuggestions,
   pdfExportLoading,
-  pdfExportStatus,
   handleCancelEdit,
   handleSave,
   handleEditClick,
@@ -188,7 +186,6 @@ export function DocumentPageLoadedLayout({
       showPublishButton={showPublishButton}
       hasNoContext={hasNoContext}
       pdfExportLoading={pdfExportLoading}
-      pdfExportStatus={pdfExportStatus}
       moveDecisionLoading={moveDecisionLoading}
       startHereScopes={startHereScopes}
       startHereBusy={startHereBusy}
@@ -222,8 +219,7 @@ export function DocumentPageLoadedLayout({
     showPublishButton,
     hasNoContext,
     pdfExportLoading,
-    pdfExportStatus?.status,
-    pdfExportStatus?.downloadUrl,
+    data.pdfUrl,
     data.canWrite,
     data.canMove,
     data.canPublish,
@@ -423,7 +419,6 @@ export function DocumentPageLoadedLayout({
           canEnterEditMode={canEnterEditMode}
           hasNoContext={hasNoContext}
           pdfExportLoading={pdfExportLoading}
-          pdfExportStatus={pdfExportStatus}
           moveDecisionLoading={moveDecisionLoading}
           startHereScopes={startHereScopes}
           startHereBusy={startHereBusy}
@@ -450,7 +445,6 @@ export function DocumentPageLoadedLayout({
           showPublishButton={showPublishButton}
           hasNoContext={hasNoContext}
           pdfExportLoading={pdfExportLoading}
-          pdfExportStatus={pdfExportStatus}
           moveDecisionLoading={moveDecisionLoading}
           startHereScopes={startHereScopes}
           startHereBusy={startHereBusy}

@@ -28,6 +28,16 @@ describe('Documents routes / content-storage', () => {
     expect(body.error).toBe('PDF not available');
   });
 
+  it('POST /documents/:documentId/export-pdf ohne Publish-Recht -> 403', async () => {
+    const cookie = await context.loginAsReaderOnly();
+    const res = await context.app.inject({
+      method: 'POST',
+      url: `/api/v1/documents/${context.publishedDocId}/export-pdf`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
   it('POST /documents/:documentId/attachments ohne storage -> 503', async () => {
     const cookie = await context.loginAsWriter();
     const res = await context.app.inject({

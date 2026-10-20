@@ -62,7 +62,6 @@ export function DocumentPage() {
         setLeadDraftPendingSuggestions={vm.setLeadDraftPendingSuggestions}
         leadDraftPendingSuggestions={vm.leadDraftPendingSuggestions}
         pdfExportLoading={vm.pdfExportLoading}
-        pdfExportStatus={vm.pdfExportStatus}
         handleCancelEdit={vm.handleCancelEdit}
         handleSave={vm.handleSave}
         handleEditClick={vm.handleEditClick}

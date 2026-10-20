@@ -13,7 +13,6 @@ import {
   IconCloudUpload,
   IconHistory,
   IconDotsVertical,
-  IconDownload,
   IconFlag,
   IconFlagOff,
   IconBraces,
@@ -23,7 +22,8 @@ import {
   WIDE_MIN_WIDTH,
 } from '../../components/appShell/appShellLayoutConstants.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
+import type { DocumentResponse } from './documentPageTypes';
+import { DocumentPdfMenuItems } from './DocumentPdfMenuItems.js';
 
 export type DocumentPageToolbarActionsProps = {
   documentId: string;
@@ -39,7 +39,6 @@ export type DocumentPageToolbarActionsProps = {
   showPublishButton: boolean;
   hasNoContext: boolean;
   pdfExportLoading: boolean;
-  pdfExportStatus: PdfExportJobStatusResponse | undefined;
   moveDecisionLoading: boolean;
   startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
   startHereBusy: boolean;
@@ -80,7 +79,6 @@ export function DocumentPageToolbarActions({
   showPublishButton,
   hasNoContext,
   pdfExportLoading,
-  pdfExportStatus,
   moveDecisionLoading,
   startHereScopes,
   startHereBusy,
@@ -212,26 +210,12 @@ export function DocumentPageToolbarActions({
           >
             {t('documentPage.menu.history')}
           </Menu.Item>
-          <Menu.Item
-            leftSection={<IconDownload size={14} />}
-            disabled={pdfExportLoading}
-            onClick={() => void handleStartPdfExport()}
-          >
-            {pdfExportLoading
-              ? t('documentPage.menu.exportingPdf')
-              : t('documentPage.menu.exportPdf')}
-          </Menu.Item>
-          {pdfExportStatus?.status === 'succeeded' && pdfExportStatus.downloadUrl && (
-            <Menu.Item
-              component="a"
-              href={pdfExportStatus.downloadUrl}
-              target="_blank"
-              rel="noreferrer"
-              leftSection={<IconDownload size={14} />}
-            >
-              {t('documentPage.menu.downloadPdf')}
-            </Menu.Item>
-          )}
+          <DocumentPdfMenuItems
+            documentId={documentId}
+            data={data}
+            pdfExportLoading={pdfExportLoading}
+            handleStartPdfExport={handleStartPdfExport}
+          />
           {hasNoContext && data.canWrite && (
             <Menu.Item leftSection={<IconTarget size={14} />} onClick={openAssignContext}>
               {t('documentPage.menu.assignContext')}
