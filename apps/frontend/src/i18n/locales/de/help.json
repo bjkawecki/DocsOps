@@ -4,137 +4,386 @@
     "previous": "Vorheriger Artikel",
     "next": "Nächster Artikel"
   },
+  "stub": {
+    "internalQuestion": "Interne Frage",
+    "outline": "Grob"
+  },
   "groups": {
     "gettingStarted": "Erste Schritte",
-    "governance": "Governance",
-    "workingWithDocs": "Mit Dokumenten arbeiten"
+    "organisation": "Organisation",
+    "roles": "Rollen",
+    "documents": "Dokumente"
   },
   "topics": {
-    "overview": "Was ist DocsOps?",
-    "outOfScope": "Wo DocsOps hingehört",
-    "organisation": "Organisation & Scopes",
-    "contexts": "Prozesse & Projekte",
-    "documentTypes": "Dokumenttypen",
-    "permissions": "Lese- & Schreibrechte",
-    "workflow": "Dokument-Lebenszyklus",
-    "collaboration": "Reviews & Freigaben"
+    "whatIsDocsOps": "Was ist DocsOps?",
+    "usingDocsOps": "DocsOps richtig nutzen",
+    "userInterface": "Die Nutzeroberfläche",
+    "organisationIntroduction": "Wozu Organisation?",
+    "areas": "Bereiche",
+    "contexts": "Kontexte",
+    "planningOrganisation": "Organisation einrichten",
+    "rolesIntroduction": "Wozu Rollen?",
+    "admin": "Admin",
+    "userRoles": "Nutzerrollen",
+    "documentsIntroduction": "Was sind Dokumente?",
+    "templates": "Vorlagen",
+    "lifecycle": "Lebenszyklus",
+    "collaboration": "Zusammenarbeit"
   },
-  "overview": {
-    "title": "Was ist DocsOps?",
-    "p1": "DocsOps ist der Ort für dauerhaftes internes Wissen in Engineering-Organisationen: wie ihr arbeitet und was ihr über die Systeme wisst, die ihr baut und betreibt. Leser sehen einen offiziellen veröffentlichten Stand – nicht einfach die letzte Bearbeitung einer gemeinsamen Wiki-Seite.",
-    "p2": "Ihr organisiert Arbeit nach <strong>Scope</strong> (Unternehmen, Abteilung, Team oder persönlicher Bereich) und legt Dokumente in <strong>Prozessen</strong> oder <strong>Projekten</strong> ab. Entwürfe bleiben editierbar; was Leads veröffentlichen, sehen die Leser.",
-    "p3": "Wahl zwischen Prozess und Projekt: <contextsLink>Prozesse & Projekte</contextsLink>. Wie DocsOps neben Tracker, Chat und Ops-Tools steht: <outOfScopeLink>Wo DocsOps hingehört</outOfScopeLink>."
-  },
-  "outOfScope": {
-    "title": "Wo DocsOps hingehört",
-    "p1": "DocsOps hat einen klaren Auftrag: dauerhaftes internes Wissen mit offiziellem veröffentlichtem Stand (siehe <overviewLink>Was ist DocsOps?</overviewLink>). Tracker, Chat, Git und Monitoring behalten den ihren. Genau diese Aufteilung macht DocsOps nützlich – nicht ein zweites Postfach für jeden Text.",
-    "p2": "Faustregel: Wenn etwas in Wochen noch als <em>so machen wir das</em> oder <em>das wissen wir darüber</em> zählen soll, gehört es hierher. Flüchtiger Chat, Ticket-Status und Live-Signale bleiben in den dafür gebauten Tools.",
-    "outOfScopeHeading": "Typische Nachbarn",
-    "items": {
-      "issueTrackers": "<strong>Issue-Tracker</strong> – Bekannte Probleme und Workarounds dokumentierst du hier (Symptome, Hinweise, Link zum Ticket). Assignees, Sprints und Triage bleiben in Jira, GitHub Issues, Linear oder ähnlich.",
-      "chat": "<strong>Chat</strong> – Wird aus einem Thread eine bleibende Leitlinie oder eine Entscheidung, die andere später finden müssen, hältst du sie hier fest. Der Alltag bleibt in Slack, Teams oder E-Mail.",
-      "opsSignals": "<strong>Ops-Tools</strong> – <em>Runbooks</em> zu Alerts schreibst du hier. Dashboards, Alarmierung und die Alert-UI bleiben im Observability-Stack.",
-      "codeTruth": "<strong>Git und CI</strong> – Prozess- und Projektwissen, das Menschen lesen, lebt hier. Code und repo-eigene Specs bleiben im Repository.",
-      "fileDrives": "<strong>Dateiablagen und öffentliche Doc-Sites</strong> – Dateien hängst du an Dokumente. Massenablage und externe/API-Portale bleiben in Drive, Nextcloud, SharePoint oder einer eigenen öffentlichen Site."
+  "articles": {
+    "whatIsDocsOps": {
+      "lead": [
+        "DocsOps ist Software für Wissensmanagement (Knowledge Management). Wissensmanagement meint hier den Umgang mit dem Wissen, das in einer Organisation entsteht und für die Arbeit gebraucht wird. Mitglieder der Organisation erfassen dieses Wissen mit DocsOps, ordnen es und stellen es so bereit, dass danach gearbeitet werden kann.",
+        "Dieses Wissen betrifft den Alltag der Organisation. Es geht darum, wie gearbeitet wird – in Abläufen, Regeln und Standards – und darum, woran gearbeitet wird – im Stand konkreter Vorhaben. In DocsOps bleibt dieser Stand festgehalten, sodass erkennbar ist, welche Fassung gilt."
+      ]
     },
-    "fineLineHeading": "Kurzbeispiele",
-    "fineLine": {
-      "knownIssue": "<strong>Bekanntes Problem / Workaround</strong> → DocsOps; <strong>wer den Bug besitzt</strong> → Tracker.",
-      "runbook": "<strong>Runbook für Alert X</strong> → DocsOps; <strong>der Alert selbst</strong> → Ops-Tools.",
-      "meeting": "<strong>Meeting-Entscheidung zum Behalten</strong> → DocsOps; <strong>der Chat-Thread</strong> → Chat."
+    "usingDocsOps": {
+      "lead": [
+        "DocsOps ist für eine Aufgabe gedacht: internes Wissen festhalten, nach dem in der Organisation gearbeitet wird. Andere Programme leisten anderes – Vorgänge, Abstimmungen, Code, Nachweise – und DocsOps ersetzt sie nicht. Deshalb gehört nicht alles, was irgendwo geschrieben oder abgelegt wird, auch in DocsOps. Kriterien helfen bei der Entscheidung, welches Wissen hier seinen Ort hat und welches besser außerhalb bleibt."
+      ],
+      "sections": [
+        {
+          "heading": "Für DocsOps geeignetes Wissen",
+          "paragraphs": [
+            "Geeignet ist Wissen, nach dem in der Organisation gearbeitet wird: wie in Abläufen, Regeln und Standards verfahren wird und woran in konkreten Vorhaben gearbeitet wird. Dazu zählen etwa eine Beschreibung, wie neue Mitglieder eingearbeitet werden, eine Richtlinie zur Datensicherheit oder der aktuelle Stand eines Produkts oder Audits. Mitglieder der Organisation halten dieses Wissen in DocsOps fest, damit der verbindliche Stand erkennbar bleibt.",
+            "Sinnvoll ist vor allem Wissen, das über den Moment hinaus gebraucht wird. Was nur vorübergehend oder nur für eine einzelne Aufgabe relevant ist – etwa eine Notiz zur nächsten Besprechung – ist selten der richtige Inhalt für DocsOps."
+          ]
+        },
+        {
+          "heading": "Wissen außerhalb von DocsOps",
+          "paragraphs": [
+            "Außerhalb von DocsOps bleibt vor allem Wissen und Kommunikation, die an ein anderes Werkzeug gebunden sind oder nur kurz leben. Tickets und Vorgänge gehören in ein Vorgangssystem, kurze Abstimmungen in den Chat, Quellcode in die Versionsverwaltung, Rohdateien in die Dateiablage. Nachweise und Auditpfade gehören in das Qualitätsmanagement-System."
+          ]
+        }
+      ]
+    },
+    "userInterface": {
+      "lead": [
+        "Die Nutzeroberfläche von DocsOps bündelt den Zugang zu Dokumenten, zu den Einheiten der Organisation und zu den persönlichen Einstellungen."
+      ],
+      "sections": [
+        {
+          "heading": "Seitenleiste",
+          "paragraphs": [
+            "Die Seitenleiste enthält die Navigation der Anwendung: Start, Katalog, die Einträge zu Unternehmen, Abteilung und Team sowie den persönlichen Bereich.",
+            "In der Seitenleiste liegt außerdem die Suche zum Auffinden von Inhalten nach Titel oder Stichwort. Konto und Einstellungen erreicht man über die Seitenleiste bzw. das Profilmenü."
+          ]
+        },
+        {
+          "heading": "Wichtige Einstiegspunkte",
+          "paragraphs": [
+            "Die Startseite zeigt Neuigkeiten und relevante Hinweise zum aktuellen Geschehen in DocsOps.",
+            "Der Katalog listet die zugänglichen Dokumente und Kontexte. Über ihn lassen sich Inhalte finden, ohne zuvor einen Bereich zu wählen.",
+            "Über die Einträge zu Unternehmen, Abteilung und Team in der Seitenleiste öffnet man die Inhalte der jeweiligen Organisationseinheit. Der persönliche Bereich dient der eigenen Vorarbeit außerhalb dieser Einheiten."
+          ]
+        },
+        {
+          "heading": "Darstellung anpassen",
+          "paragraphs": [
+            "In den Einstellungen lassen sich Farbe, Schriftgröße und Sprache festlegen. Hell- und Dunkelmodus sowie die automatische Anpassung an das System stehen zusätzlich im Profilmenü zur Verfügung."
+          ]
+        }
+      ]
+    },
+    "organisationIntroduction": {
+      "lead": [
+        "DocsOps bildet die Organisation im Produkt ab, damit internes Wissen nicht als lose Sammlung neben der Organisation liegt."
+      ],
+      "sections": [
+        {
+          "heading": "Wer liest welches Wissen?",
+          "paragraphs": [
+            "Nicht jedes interne Wissen ist für alle gleichermaßen zugänglich. Die Organisation im Produkt bestimmt, wer Kontexte und Dokumente lesen darf – entlang der Bereiche, denen die Nutzer zugeordnet sind.",
+            "Ohne diesen Rahmen wäre nicht bestimmt, wer ein Dokument im Alltag überhaupt erreichen kann. Der Zugriff folgt der Organisationsgliederung, nicht einer davon unabhängigen Ablagestruktur."
+          ]
+        },
+        {
+          "heading": "Wohin gehört Wissen?",
+          "paragraphs": [
+            "Leserecht allein sagt noch nicht, wohin ein Stück Wissen inhaltlich gehört. Innerhalb der Organisation wird Wissen deshalb inhaltlich zugeordnet: zusammengehörige Inhalte stehen beieinander und bleiben nach ihrem Gegenstand auffindbar.",
+            "Zugriff und inhaltliche Zuordnung greifen ineinander, beantworten aber verschiedene Fragen. Die eine betrifft, wer etwas lesen darf; die andere, wo es inhaltlich liegt."
+          ]
+        }
+      ]
+    },
+    "areas": {
+      "lead": [
+        "Ein Bereich ist eine Einheit der Organisation – Unternehmen, Abteilung oder Team – oder der persönliche Bereich eines Mitglieds. Die Zuordnung zu einem Bereich bestimmt, welche Kontexte und Dokumente der Nutzer lesen darf."
+      ],
+      "sections": [
+        {
+          "heading": "Unternehmen, Abteilung und Team",
+          "paragraphs": [
+            "Die Organisationsbereiche folgen dem Aufbau der Organisation: Das Unternehmen gliedert sich in Abteilungen, die Abteilungen in Teams. Nutzer werden in dieser Struktur eingeordnet – dem Unternehmen, gegebenenfalls einer Abteilung, gegebenenfalls einem Team dieser Abteilung. Mit dem Team ist die Abteilung dieses Teams mitgegeben."
+          ]
+        },
+        {
+          "heading": "Leserecht im Bereich",
+          "paragraphs": [
+            "Wer einem Bereich zugeordnet ist, liest die Kontexte und Dokumente dieses Bereichs. Liegt der Bereich unter einem übergeordneten Bereich – die Abteilung unter dem Unternehmen, das Team unter der Abteilung –, gilt das Leserecht auch für die Kontexte und Dokumente der übergeordneten Bereiche."
+          ]
+        },
+        {
+          "heading": "Persönlicher Bereich",
+          "paragraphs": [
+            "Neben der Organisationshierarchie hat jedes Mitglied einen persönlichen Bereich. Er liegt außerhalb von Unternehmen, Abteilung und Team und dient der eigenen Vorarbeit.",
+            "Leitung von Unternehmen oder Abteilung erhält dort keinen automatischen Lesezugriff. Andere Mitglieder sehen Inhalte des persönlichen Bereichs nur, wenn der Zugriff ausdrücklich freigegeben wird."
+          ]
+        }
+      ]
+    },
+    "contexts": {
+      "lead": [
+        "Kontexte bestimmen, wohin Wissen innerhalb eines Bereichs gehört. DocsOps kennt zwei Kontextarten: Prozesse und Projekte. Dokumente liegen jeweils in genau einem Kontext."
+      ],
+      "sections": [
+        {
+          "heading": "Prozesse",
+          "paragraphs": [
+            "Ein Prozess ist die Kontextart für dauerhaftes Wissen dazu, wie in der Organisation gearbeitet wird: Abläufe, Regeln und Standards. Typische Beispiele sind Einarbeitung, Freigabeverfahren oder eine Richtlinie zur Datensicherheit. Die Dokumente hängen direkt am Prozess."
+          ]
+        },
+        {
+          "heading": "Projekte",
+          "paragraphs": [
+            "Ein Projekt ist die Kontextart für Wissen zu einem konkreten Vorhaben oder Gegenstand: woran gearbeitet wird und welcher aktuelle Stand dazu vorliegt. Projekte sind zeitlich begrenzt. Beispiele sind die Einführung eines Produkts oder der Stand eines Audits."
+          ]
+        },
+        {
+          "heading": "Prozess oder Projekt",
+          "paragraphs": [
+            "Die Wahl der Kontextart richtet sich nach der Form des Wissens. Ein Prozess passt, wenn es darum geht, was zu tun ist, wenn ein bestimmter Fall eintritt – etwa wenn ein neues Mitglied hinzukommt. Ein Projekt passt, wenn es darum geht, was über einen bestimmten Gegenstand bekannt ist und wie dessen Stand fortgeschrieben wird.",
+            "Dasselbe Thema kann in beiden Kontextarten vorkommen: der Prozess beschreibt, wie Barrierefreiheit hergestellt wird; das Projekt hält den aktuellen Stand der Barrierefreiheit fest. Welcher konkrete Kontext gewählt wird, ist die thematische Entscheidung."
+          ]
+        },
+        {
+          "heading": "Unterkontexte",
+          "paragraphs": [
+            "Unterkontexte gibt es nur unter Projekten. Sie gliedern die Dokumente eines Projekts – etwa nach Modulen oder Protokollen –, ohne selbst ein eigenes Vorhaben zu sein. Sinnvoll sind sie, wenn ein Projekt sonst unübersichtlich würde; bei schlanken Projekten reichen Dokumente direkt am Projekt."
+          ]
+        },
+        {
+          "heading": "Archiv und Papierkorb",
+          "paragraphs": [
+            "Kontexte lassen sich archivieren oder in den Papierkorb legen. Archivierte Kontexte erscheinen nicht in den normalen Listen; die zugehörigen Dokumente werden mitarchiviert.",
+            "Beim Verschieben in den Papierkorb werden die Dokumente des Kontexts mitgelöscht. Wird ein Dokument aus einem Kontext im Papierkorb wiederhergestellt, liegt es danach ohne Kontext vor, bis es neu zugeordnet wird."
+          ]
+        }
+      ]
+    },
+    "planningOrganisation": {
+      "lead": [
+        "Die Struktur in DocsOps bildet die Arbeitsorganisation ab: Unternehmen, Abteilungen und Teams so, wie die Organisation gegliedert ist. Davon hängt ab, wer Kontexte und Dokumente im Standardfall lesen darf."
+      ],
+      "sections": [
+        {
+          "heading": "Wer über die Struktur entscheidet",
+          "paragraphs": [
+            "Der Admin richtet Unternehmen, Abteilungen und Teams in DocsOps ein. Die fachliche Gliederung – welche Abteilungen und Teams es gibt und wie sie heißen – bildet die Organisation ab und wird nicht als reine Technikentscheidung getroffen.",
+            "Wer Abteilungen und Teams festlegt, entscheidet damit mit, wer welche Kontexte und Dokumente im Standardfall lesen darf. Das gehört zur Organisation der Arbeit, nicht allein zur Plattformverwaltung."
+          ]
+        },
+        {
+          "heading": "Folgen der Struktur",
+          "paragraphs": [
+            "Mitglieder lesen Inhalte entlang der Bereiche, denen sie zugeordnet sind, einschließlich der übergeordneten Bereiche. Eine unpassende Struktur führt zu falschem Zugriff oder dazu, dass Wissen im Alltag schwer zu finden ist.",
+            "Änderungen an der Struktur wirken auf bestehende Zuordnungen. Deshalb lohnt es sich, die Gliederung vor dem Anlegen vieler Inhalte zu klären."
+          ]
+        },
+        {
+          "heading": "Wann welche Ebene",
+          "paragraphs": [
+            "Inhalte liegen in dem Bereich, dessen Leserkreis sie im Standardfall treffen sollen. Unternehmensweite Regeln und Standards liegen beim Unternehmen. Was nur eine Abteilung betrifft, liegt bei der Abteilung. Operatives Wissen eines Teams liegt beim Team.",
+            "Zu hoch angesiedelte Inhalte sind für zu viele lesbar; zu niedrig angesiedelte Inhalte zwingen später zu vielen Freigaben über Bereichsgrenzen hinweg."
+          ]
+        },
+        {
+          "heading": "Freigaben sparsam einsetzen",
+          "paragraphs": [
+            "Freigaben erlauben Leserecht über die Standard-Zuordnung der Bereiche hinaus – etwa wenn ein anderes Team ein Dokument lesen soll. Sie ergänzen die Struktur, ersetzen sie aber nicht.",
+            "Je genauer die Struktur zur Organisation passt, desto weniger Freigaben sind nötig. Viele Freigaben sind ein Hinweis, Bereichszuordnung oder Kontextzuordnung anders zu setzen."
+          ]
+        }
+      ]
+    },
+    "rolesIntroduction": {
+      "lead": [
+        "Rollen ordnen in DocsOps ein, welche Rechte ein Nutzer hat. Über Rechte wird unter anderem gesteuert, welche Verantwortung der Nutzer trägt."
+      ],
+      "sections": [
+        {
+          "heading": "Hierarchie und Verantwortung",
+          "paragraphs": [
+            "In einer Organisation ist Verantwortung gestaffelt und an die Hierarchie gebunden. Je nach Stellung in der Hierarchie tragen Nutzer unterschiedliche Entscheidungen und Folgen – das ist das Hierarchieprinzip.",
+            "DocsOps bildet dieses Prinzip ab: Bereichszuordnung und inhaltliche Zugehörigkeit allein legen noch nicht fest, welche Handlungen und welche Verantwortung ein Nutzer hat. Dafür braucht es Rollen."
+          ]
+        },
+        {
+          "heading": "Rechte nach Rolle",
+          "paragraphs": [
+            "Jede Rolle bündelt bestimmte Rechte – den technischen Rahmen dafür, welche Handlungen dem Nutzer erlaubt sind. Mit einer Rolle darf der Nutzer das, was diese Rechte umfassen.",
+            "Aus den Rechten folgt die soziale Seite: Verantwortung. Hat ein Nutzer bestimmte Rechte, trägt er die dazugehörige Verantwortung."
+          ]
+        }
+      ]
+    },
+    "admin": {
+      "lead": [
+        "Der Admin verwaltet die DocsOps-Instanz. Die Admin-Rolle ist eine Plattformrolle, keine Nutzerrolle in der Organisation."
+      ],
+      "sections": [
+        {
+          "heading": "Plattformverwaltung",
+          "paragraphs": [
+            "Zum Admin gehören Installation und Betrieb der Instanz sowie die Verwaltung von Nutzern, der Organisationsstruktur und plattformweiten Einstellungen. Dafür nutzt der Admin den Admin-Bereich der Anwendung."
+          ]
+        },
+        {
+          "heading": "Wer Admin sein sollte",
+          "paragraphs": [
+            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung. Beide Aufgaben in einer Person zu bündeln vermischt Plattformbetrieb und organisatorische Leitung auf Unternehmensebene. Deshalb sollte dieselbe Person nicht beides sein; die Unternehmensleitung braucht die Admin-Rolle nicht."
+          ]
+        }
+      ]
+    },
+    "userRoles": {
+      "lead": [
+        "Nutzerrollen gelten in der Organisation. Sie unterscheiden sich von der Admin-Rolle: der Admin verwaltet die Plattform; Nutzerrollen bestimmen, welche Rechte ein Nutzer in den Bereichen hat und welche Verantwortung daraus folgt.",
+        "DocsOps kennt drei Nutzerrollen: Leitung, Autor und Mitglied."
+      ],
+      "sections": [
+        {
+          "heading": "Leitung und Autoren",
+          "paragraphs": [
+            "Pro Organisationsbereich – Unternehmen, Abteilung oder Team – gibt es eine Leitung. Die Leitung eines Bereichs veröffentlicht neue Versionen der Dokumente in diesem Bereich.",
+            "In Abteilungen und Teams können Mitglieder zu Autoren ernannt werden. Mehrere Mitglieder können zugleich Autoren sein. Autoren bringen Änderungen an Entwürfen als Vorschläge ein; eine neue Version veröffentlicht nur die Leitung.",
+            "Das Mitglied liest den veröffentlichten Stand und wirkt an Entwürfen nicht mit."
+          ]
+        },
+        {
+          "heading": "Wer Leitung sein sollte",
+          "paragraphs": [
+            "Naheliegend ist, dass die fachliche Leitung eines Bereichs in der Organisation auch die Leitung in DocsOps übernimmt – etwa die Teamleitung im Team.",
+            "Entscheidend ist aber die Kapazität für die laufende Arbeit: regelmäßig neue Eingaben und Vorschläge prüfen, selbst Dokumente beisteuern und den Veröffentlichungsprozess dauerhaft führen. Die Stellung in der Firmenhierarchie allein genügt dafür nicht."
+          ]
+        },
+        {
+          "heading": "Übersicht",
+          "paragraphs": [],
+          "table": {
+            "headers": ["Handlung", "Leitung", "Autor", "Mitglied"],
+            "rows": [
+              ["Veröffentlichten Stand lesen", "ja", "ja", "ja"],
+              ["An Entwürfen mitwirken", "direkt", "als Vorschlag", "nein"],
+              ["Kontexte und Dokumente anlegen oder löschen", "ja", "nein", "nein"],
+              ["Neue Version veröffentlichen", "ja", "nein", "nein"],
+              ["Freigaben vergeben", "ja", "nein", "nein"]
+            ]
+          }
+        }
+      ]
+    },
+    "documentsIntroduction": {
+      "lead": [
+        "Dokumente halten das Wissen der Organisation fest. Jedes Dokument gehört zu einem Kontext und damit zu genau einem Bereich: Unternehmen, Abteilung, Team oder dem persönlichen Bereich."
+      ],
+      "sections": [
+        {
+          "heading": "Entwurf und veröffentlichter Stand",
+          "paragraphs": [
+            "Änderungen entstehen im Entwurf und werden dort gespeichert. Speichern erzeugt keine neue Version; erst das Veröffentlichen erzeugt eine.",
+            "Eine neue Version veröffentlicht ausschließlich die Leitung des Bereichs, dem das Dokument zugeordnet ist. Autoren wirken am Entwurf mit, indem sie Änderungen als Vorschläge einbringen; veröffentlichen dürfen sie nicht.",
+            "Solange ein Dokument unveröffentlicht ist, sehen es nur Schreibberechtigte. Nach der Veröffentlichung sehen Leser den geltenden Stand, nicht den laufenden Entwurf."
+          ]
+        },
+        {
+          "heading": "Persönlicher Bereich",
+          "paragraphs": [
+            "Im persönlichen Bereich ist der Eigentümer die Leitung: Er schreibt und veröffentlicht allein. Eine festgeschriebene Version bleibt privat – andere sehen die Inhalte nur, wenn der Zugriff ausdrücklich freigegeben ist."
+          ]
+        },
+        {
+          "heading": "Verschieben",
+          "paragraphs": [
+            "Dokumente können zwischen Kontexten und Bereichen verschoben werden. Innerhalb desselben Bereichs erfolgt der Wechsel unmittelbar. Über Bereichsgrenzen hinweg – auch aus dem persönlichen Bereich in die Organisation – braucht es eine Verschiebeanfrage; die Leitung des Zielbereichs nimmt sie an oder lehnt sie ab."
+          ]
+        },
+        {
+          "heading": "Archiv und Papierkorb",
+          "paragraphs": [
+            "Archivieren blendet ein Dokument aus den normalen Listen aus. In den Papierkorb legen entfernt es vorläufig; von dort kann es wiederhergestellt werden."
+          ]
+        }
+      ]
+    },
+    "templates": {
+      "lead": [
+        "Eine Vorlage gibt dem neuen Dokument einen Start: vorgeschlagenen Aufbau, Hilfen zum Ausfüllen und eine Kennzeichnung der Dokumentart. Ohne Vorlage entsteht ein leerer Entwurf.",
+        "Die Vorlage bestimmt nicht, wohin das Wissen gehört – das bleiben Kontext und Bereich. Prozess und Projekt haben jeweils eigene Vorlagen.",
+        "Mitgelieferte Vorlagen stehen je nach Kontextart zur Verfügung. Eigene Vorlagen stellt die Leitung eines Bereichs oder der Admin bereit; wer Dokumente anlegen darf, kann sie verwenden."
+      ]
+    },
+    "lifecycle": {
+      "lead": [
+        "Der Lebenszyklus eines Dokuments folgt festen Stationen: am Entwurf arbeiten, ihn freigabefähig machen, veröffentlichen. Danach gilt der neue Stand für die Leser, bis die nächste Runde am Entwurf beginnt. Im persönlichen Bereich entfallen Autor und Leitung – dort durchläuft der Eigentümer die Stationen allein."
+      ],
+      "sections": [
+        {
+          "heading": "Am Entwurf arbeiten",
+          "paragraphs": [
+            "Jede inhaltliche Änderung entsteht zuerst im Entwurf. Dort wird im Editor gearbeitet und gespeichert. Speichern hält den Zwischenstand fest, erzeugt aber noch keine neue Version für die Leser.",
+            "Aus dem Dokument heraus lässt sich der Inhalt als PDF exportieren – unabhängig davon, ob gerade am Entwurf oder am veröffentlichten Stand gearbeitet wird."
+          ]
+        },
+        {
+          "heading": "Autoren und Leitung",
+          "paragraphs": [
+            "In der Organisation teilen sich Autoren und Leitung denselben Entwurf. Autoren schlagen Änderungen vor; die Leitung schreibt direkt und entscheidet über die Vorschläge: annehmen oder ablehnen.",
+            "Solange Vorschläge offen sind, bleibt die nächste Station blockiert: Veröffentlichen ist erst möglich, wenn der Entwurf ohne offene Vorschläge dasteht."
+          ]
+        },
+        {
+          "heading": "Neue Version und Historie",
+          "paragraphs": [
+            "Veröffentlichen schließt den Zyklus für diese Runde: Der Entwurf wird zur neuen Version. Die Leitung des Bereichs löst diesen Schritt aus.",
+            "Wer lesen darf, sieht danach den geltenden Stand und kann frühere Versionen nachvollziehen. Den laufenden Entwurf und offene Vorschläge sehen Leser nicht – die nächste Bearbeitungsrunde beginnt wieder im Entwurf."
+          ]
+        }
+      ]
+    },
+    "collaboration": {
+      "lead": [
+        "Wissen in der Organisation entsteht gemeinsam. Am Dokument stehen dafür mehrere Wege offen: diskutieren, den Entwurf mitgestalten, gezielt Zugriff geben oder Vorarbeit aus dem persönlichen Bereich in die Organisation bringen."
+      ],
+      "sections": [
+        {
+          "heading": "Diskussion am Dokument",
+          "paragraphs": [
+            "Im Kommentarbereich können Leser Rückfragen stellen, Hinweise geben und miteinander diskutieren. So fließt ihr Input in den Entstehungsprozess ein.",
+            "Kommentare halten das Gespräch am Dokument fest und machen Rückmeldungen für alle Beteiligten sichtbar."
+          ]
+        },
+        {
+          "heading": "Am Entwurf mitarbeiten",
+          "paragraphs": [
+            "Autoren gestalten den gemeinsamen Entwurf mit und bringen Änderungen als Vorschläge ein. Die Leitung entscheidet über die Vorschläge und führt den Entwurf damit weiter."
+          ]
+        },
+        {
+          "heading": "Zugriff gezielt öffnen",
+          "paragraphs": [
+            "Mit einer Freigabe lässt sich der Zugriff für weitere Personen oder Teams öffnen – etwa wenn ein anderes Team mitlesen oder jemand zeitweise eingebunden werden soll.",
+            "Freigaben können für einen begrenzten Bedarf gelten und danach wieder entfallen."
+          ]
+        },
+        {
+          "heading": "Vom Persönlichen in die Organisation",
+          "paragraphs": [
+            "Im persönlichen Bereich lässt sich Wissen ausarbeiten und anschließend in die Organisation bringen. Die Leitung des Zielbereichs entscheidet über die Verschiebeanfrage.",
+            "Nach der Aufnahme kann dieselbe Person dort als Autor weiter am Entwurf mitwirken."
+          ]
+        }
+      ]
     }
-  },
-  "organisation": {
-    "title": "Organisation & Scopes",
-    "p1": "Inhalte liegen in einem <strong>Scope</strong>: Unternehmen, dann Abteilung, dann Team. Diese Hierarchie bestimmt <strong>Eigentum und Standardzugriff</strong>. Scope-Leads (und Admins) verwalten Personen und Lead-Funktionen wie Veröffentlichen und Papierkorb für ihren Bereich.",
-    "p2": "Du kannst auch einen <strong>persönlichen</strong> Bereich für eigene Entwürfe und Kontexte haben. Katalog und Navigation zeigen nur Scopes und Dokumente, die du lesen darfst.",
-    "contextsHeading": "Kontexte in einem Scope",
-    "p3": "Innerhalb eines Scopes legst du <strong>Prozesse</strong> und <strong>Projekte</strong> an (und optionale Unterkontexte unter Projekten). Wann welches, wie benennen und was hinein gehört: <contextsLink>Prozesse & Projekte</contextsLink>."
-  },
-  "contexts": {
-    "title": "Prozesse & Projekte",
-    "p1": "Dokumente leben in einem <strong>Kontext</strong>: einem <strong>Prozess</strong>, einem <strong>Projekt</strong> oder einem <strong>Unterkontext</strong> unter einem Projekt. Die richtige Art macht Wissen auffindbar.",
-    "twoQuestionsHeading": "Zwei Fragen",
-    "processQ": "<strong>Prozess</strong> – Gibt es einen klaren <strong>Auslöser</strong>? Frage: <em>Was tun wir, wenn …?</em> (zum Beispiel wenn jemand startet, wenn ein Kunde ein Problem meldet, wenn gemeinsame Zugangsregeln nötig sind).",
-    "projectQ": "<strong>Projekt</strong> – Gibt es einen klaren <strong>Gegenstand</strong>? Frage: <em>Was wissen wir über …?</em> (ein Produkt, eine Initiative oder ein Workstream, den ihr baut oder betreibt).",
-    "belongsHeading": "Was hinein gehört",
-    "belongsProcess": "Ein <strong>Prozess</strong> hält wiederverwendbare Leitlinien für diesen Auslöser: Rollen, Schritte, Checklisten und Prinzipien, die über viele konkrete Fälle hinweg nützlich bleiben.",
-    "belongsProject": "Ein <strong>Projekt</strong> hält Wissen <strong>über den Gegenstand</strong>: Struktur, Entscheidungen und gegenstandsspezifische Betriebsdetails (zum Beispiel, wie genau dieser Gegenstand deployed oder supportet wird).",
-    "belongsSub": "<strong>Unterkontexte</strong> sind optionale Ordner <strong>nur unter einem Projekt</strong>. Damit teilst du Dokumenträume, ohne ein weiteres Top-Level-Projekt anzulegen. Es sind benannte Bereiche, kein zweites Prozess-/Projektsystem.",
-    "namingHeading": "Benennung",
-    "nameProcess": "Benenne einen <strong>Prozess</strong> nach dem <strong>Auslöser</strong> (zum Beispiel <em>Wenn ein neues Teammitglied startet</em>).",
-    "nameProject": "Benenne ein <strong>Projekt</strong> nach dem <strong>Gegenstand</strong>.",
-    "nameAvoid": "Vermeide, für denselben <strong>Gegenstand</strong> sowohl Prozess als auch Projekt anzulegen.",
-    "existingHeading": "Gehört es in einen bestehenden Kontext?",
-    "existingSame": "Gleicher Auslöser oder gleicher Gegenstand wie ein bestehender Kontext → Dokument <strong>dort</strong> ablegen.",
-    "existingDetail": "Detail, das nur einen Gegenstand betrifft → lieber das <strong>Projekt</strong> (oder einen Unterkontext darunter), keinen neuen Prozess nach diesem Gegenstand benannt.",
-    "existingUnsure": "Unsicher → dem <strong>Gegenstand</strong> folgen (Projekt wählen oder anlegen), statt einen vagen Prozess zu erfinden.",
-    "shapeHeading": "Dokumentform ist nicht Kontextart",
-    "shapeP1": "Wie ein Dokument geschrieben ist (Schritt-für-Schritt-Anleitung, Policy, Entscheidungsprotokoll usw.) entscheidet <strong>nicht</strong>, ob der Kontext Prozess oder Projekt ist. Auslöser vs. Gegenstand schon. Dieselbe Dokumentform kannst du in beiden Kontextarten nutzen.",
-    "shapeP2": "Scopes (Unternehmen, Abteilung, Team, persönlich) entscheiden über <strong>Eigentum und Zugriff</strong>. Sie ersetzen die Wahl Prozess vs. Projekt nicht – siehe <organisationLink>Organisation & Scopes</organisationLink>.",
-    "movingHeading": "Dokumente verschieben",
-    "movingP1": "Wenn ein Dokument schon in einem Kontext liegt und woanders hingehört, nutze <strong>In Kontext verschieben</strong> am Dokument (Weitere Aktionen). Das unterscheidet sich von <strong>Kontext zuweisen</strong>, das einen kontextfreien Entwurf nur erstmals anhängt.",
-    "movingSame": "<strong>Gleicher Owner-Scope</strong> (zum Beispiel anderer Prozess im selben Team) – die Verschiebung passiert sofort, wenn du Schreibrechte auf Quelle und Ziel hast. Tags und Zugriffsrechte bleiben am Dokument.",
-    "movingDiff": "<strong>Anderer Owner-Scope</strong> (anderes Team, Abteilung, Unternehmen oder persönlicher Bereich) – du erstellst eine <strong>Verschiebeanfrage</strong>. Der Lead des Ziel-Scopes akzeptiert oder lehnt unter <approvalsLink>Freigaben → Verschiebeanfragen</approvalsLink> ab. Eine ausstehende Anfrage kannst du jederzeit zurückziehen. Bei Annahme werden scope-gebundene Tags entfernt; Grants bleiben.",
-    "movingP2": "Mehr zum Freigaben-Hub und zu Reviews: <collaborationLink>Reviews & Freigaben</collaborationLink>."
-  },
-  "documentTypes": {
-    "title": "Dokumenttypen",
-    "p1": "Ein <strong>Dokumenttyp</strong> beantwortet <em>was</em> du schreibst (Richtlinie, Runbook, ADR, …). Ein <strong>Template</strong> ist optionaler Startinhalt für diesen Typ. Der Kontext (Prozess / Projekt) beantwortet <em>wo</em> es lebt. Built-in-Typen decken einen kleinen Kern ab; Scope-Leads können eigene Typen ergänzen.",
-    "choosingHeading": "Dokumenttyp wählen",
-    "chooseTemplate": "Wähle einen Typ mit Template, um eine Kapitelgliederung in den neuen Entwurf einzufügen.",
-    "chooseBlank": "Wähle leeres Dokument für einen leeren Entwurf. Den Typ kannst du später noch setzen.",
-    "chooseGroups": "Prozess- und Projekt-Gruppen sind typische Heimaten für einen Typ – Vorschläge, keine harten Regeln.",
-    "processTypesHeading": "Prozesstypen: welcher?",
-    "processTypesIntro": "Häufige Verwechslungen und wann welcher passt:",
-    "policyVsStandard": "<strong>Policy vs. Standard:</strong> Policy formuliert verbindliche Absicht („Daten müssen geschützt werden“). Standard macht sie messbar („Passwörter mindestens 12 Zeichen“).",
-    "guidelineVs": "<strong>Guideline vs. Policy/Standard:</strong> Guideline ist empfohlene Praxis; Abweichung mit Urteil OK. Policy und Standard sind verbindlich.",
-    "procedureVsRunbook": "<strong>Procedure vs. Runbook:</strong> Procedure ist eine ruhige, wiederkehrende SOP. Runbook ist zeitkritische Incident-Response (diagnostizieren, mitigieren, verifizieren).",
-    "projectTypesHeading": "Projekttypen: welcher?",
-    "adrVsArch": "<strong>ADR vs. Architekturübersicht:</strong> ADR hält eine Entscheidung und ihre Trade-offs fest. Architekturübersicht ist die lebende Systemkarte; ADRs aktualisieren, wenn sich Entscheidungen ändern.",
-    "runbookVsPostmortem": "<strong>Runbook vs. Post-mortem:</strong> Runbook während des Incidents; Post-mortem nach der Recovery für Timeline, Ursachen und bleibende Fixes.",
-    "changingHeading": "Typ später ändern",
-    "changingP1": "Im Dokument-Tab Metadaten kannst du den Typ setzen, ändern oder leeren. Das ändert nur Metadaten – bestehender Entwurf und veröffentlichter Inhalt bleiben unverändert. Templates werden nie auf bestehende Dokumente erneut angewendet.",
-    "templatesHeading": "Templates",
-    "templatesP1": "Scope-Leads und Admins können <strong>eigene Dokumenttypen</strong> mit Standard-Template definieren (zum Beispiel Checklisten, Playbooks, Meeting-Notizen oder Known-Issue-Seiten). Built-in-Typen kommen mit der Plattform und lassen sich nicht löschen.",
-    "templatesLead": "Unternehmens-, Abteilungs- oder Team-Leads für den eigenen Scope.",
-    "templatesAdmin": "Admins für plattformweite eigene Typen.",
-    "templatesAuthors": "Autoren ohne Lead-Rolle können Typen beim Erstellen nutzen, sehen aber die Verwaltungsseite nicht.",
-    "templatesP2": "Öffne <templatesLink>Templates</templatesLink> unter Katalog (nur mit Verwaltungsrechten sichtbar). Lege einen eigenen Typ mit Label, Wann nutzen, Beispieltitel und Abschnittsüberschriften mit Prompts an."
-  },
-  "permissions": {
-    "title": "Lese- & Schreibrechte",
-    "p1": "Wer ein Dokument öffnen darf, folgt dem <strong>Owner-Scope</strong> (Unternehmen, Abteilung, Team oder persönlich) und deiner Rolle dort – plus eventuellen <strong>expliziten Grants</strong> am Dokument. Du siehst nur Kontexte und Dokumente, die du lesen darfst.",
-    "readWriteHeading": "Lesen vs. Schreiben",
-    "read": "<strong>Lesen</strong> – Kontextseiten und Dokumente öffnen. Bei veröffentlichten Dokumenten sehen Leser die veröffentlichte Fassung, nicht jeden Entwurfsschritt.",
-    "write": "<strong>Schreiben</strong> – Dokumente anlegen und am gemeinsamen Lead-Draft arbeiten (als Autor mit Vorschlägen oder als Lead mit direkten Edits), je nach Rolle.",
-    "leadsHeading": "Leads und Teilen",
-    "leads": "<strong>Scope-Leads</strong> (und Admins) können veröffentlichen, Papierkorb/Archiv für ihren Bereich verwalten und Autoren-Vorschläge annehmen oder ablehnen. Details: <workflowLink>Dokument-Lebenszyklus</workflowLink> und <collaborationLink>Reviews & Freigaben</collaborationLink>.",
-    "grants": "<strong>Grants</strong> teilen ein einzelnes Dokument mit Personen oder Teams außerhalb der üblichen Scope-Mitgliedschaft – ohne das Dokument zu verschieben."
-  },
-  "workflow": {
-    "title": "Dokument-Lebenszyklus",
-    "p1": "Jedes Dokument hat einen <strong>gemeinsamen Lead-Draft</strong> und, nach dem Veröffentlichen, eine <strong>offizielle Version</strong>, die Leser sehen. Entwurfsarbeit bleibt editierbar; Veröffentlichen macht einen stabilen Stand für die Organisation.",
-    "draft": "<strong>Entwurf</strong> – Lege ein Dokument in einem Kontext an, in dem du schreiben darfst. Der Lead-Draft ist die gemeinsame Arbeitskopie.",
-    "edit": "<strong>Zusammenarbeiten</strong> – Scope-Leads bearbeiten den Lead-Draft direkt. Autoren mit Schreibrecht schlagen Änderungen als <strong>Inline-Vorschläge</strong> (Einfügen/Löschen) vor, die der Lead reviewed.",
-    "review": "<strong>Review</strong> – Leads nehmen ausstehende Vorschläge an oder lehnen sie ab (auch im Freigaben-Hub). Veröffentlichen ist blockiert, solange Vorschläge offen sind.",
-    "publish": "<strong>Veröffentlichen</strong> – Ein Scope-Lead veröffentlicht den Draft als neue offizielle Version. Leser sehen dann diesen Stand; die Versionshistorie behält frühere Veröffentlichungen.",
-    "p2": "Archiv und Papierkorb ziehen Dokumente und Kontexte zurück oder stellen sie wieder her – unabhängig vom Draft/Publish-Pfad."
-  },
-  "collaboration": {
-    "title": "Reviews & Freigaben",
-    "p1": "DocsOps ist für einen klaren <strong>offiziellen Stand</strong> gebaut: nicht „was gerade im gemeinsamen Buffer steht“. Autoren schlagen vor; Leads entscheiden; Leser sehen, was veröffentlicht wurde.",
-    "whyHeading": "Warum dieses Modell",
-    "whyP1": "Es passt zu regulierter oder verantwortbarer Arbeit (definierter Annahme-Moment) und zu verteilten Teams (Änderung übergeben, asynchron reviewen). Reines Live-Mitschreiben an der „Wahrheit“ ist eine andere Produktform.",
-    "hubHeading": "Freigaben-Hub",
-    "hubP1": "Öffne <strong>Freigaben</strong> in der Sidebar für Entscheidungen, die auf dich warten:",
-    "hubReviews": "<strong>Reviews</strong> – Dokumente mit ausstehenden Inline-Vorschlägen, die du als Scope-Lead annehmen oder ablehnen kannst.",
-    "hubMoves": "<strong>Verschiebeanfragen</strong> – jemand will ein Dokument <strong>in deinen Scope</strong> verschieben (annehmen oder ablehnen) oder du hast eine Verschiebung <strong>aus deinem Scope</strong> beantragt (zurückziehen, solange ausstehend).",
-    "hubP2": "Verschiebungen im gleichen Scope und Anfragen über Scopes hinweg am Dokument: <contextsLink>Prozesse & Projekte → Dokumente verschieben</contextsLink>. Lebenszyklus und Veröffentlichen: <workflowLink>Dokument-Lebenszyklus</workflowLink>.",
-    "getHeading": "Was du bekommst",
-    "getPublished": "Veröffentlichte Versionen, denen Leser vertrauen können, plus Historie.",
-    "getReview": "Einen klaren Annehmen/Ablehnen-Pfad für Autoren-Vorschläge.",
-    "getAmbiguity": "Weniger Unklarheit, was live ist und was noch Entwurf.",
-    "getHub": "Einen Ort für Vorschlags-Reviews und Verschiebeentscheidungen über Scopes hinweg."
   }
 }

@@ -91,7 +91,7 @@ Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. S
 [x] **Personal:** Entry-Point `/personal` für eigene Prozesse, Projekte und Dokumente (Owner = Nutzer); Struktur analog zu Company/Department/Team (Tabs, Overview mit Recent Items, Karten); siehe §11a.
 [x] **Shared:** Entry-Point `/shared` für per Grant geteilte Inhalte; Struktur analog zu Company/Department/Team (Tabs, Overview mit Recent Items, Karten); siehe §11a.
 [x] **Reviews** (bedingt): NavLink **Reviews** `/reviews` nur wenn der Nutzer Review-Rechte hat (`hasReviewRights` in `AppShell`).
-[x] **Sidebar unten:** Account-Dropdown (Trigger: E-Mail oder Name) mit **Admin** (nur bei `isAdmin`, z. B. `/admin/users`), **Help** (`/help/overview`), **Settings**, Trennlinie, **Log out**. Kein Admin in der Haupt-Navigation.
+[x] **Sidebar unten:** Account-Dropdown (Trigger: E-Mail oder Name) mit **Admin** (nur bei `isAdmin`, z. B. `/admin/users`), **Help** (`/help/what-is-docsops`), **Settings**, Trennlinie, **Log out**. Kein Admin in der Haupt-Navigation.
 [x] **Main-Content:** Thematische Karten/Cards, einheitliche Abstände; Loading States (Skeletons/Spinner), Fehlerbehandlung (API-Fehler, 404, Fehlerseite), Toasts/Notifications für Erfolg und Fehler.
 
 ---
@@ -492,6 +492,15 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Mobile-Review Landing:** Schmale Viewports für `apps/landing` – siehe **§19**.
 [x] **Icons & A11y:** Tabler-Icons in Sidebar; Skip-Link, Nav-Landmarks, Collapsible-/Account-ARIA, PageWithTabs `aria-label`, Notifications-Kategorien-Nav (Scope: Shell + Tabs + Notifications, kein app-weiter Audit).
 [x] **Barrierefreiheit – Schriftgröße:** Preference `textSize` (`default` / `large` / `larger`) in Settings → Appearance als Accessibility-Steuerung (klare Beschreibung, Prozent-Hinweis, Live-Preview mit Document-Reading-Font). App-weit über Mantine `theme.scale` (`--mantine-scale`); `fontSizes`/`spacing` via `rem()` skaliert; Dokument-Überschriften in `.document-content` multiplizieren mit `--mantine-scale`. Drei Stufen reichen (100% / 112% / 125%); keine weitere Stufe nötig.
+
+### Help (`/help`) – Copy & UX
+
+[x] **Help-IA (Gerüst):** Vier Sections (Erste Schritte, Organisation, Rollen, Dokumente) mit Artikeltiteln; Stub-Inhalt = Interne Frage + Grob (EN+DE); gemeinsame `HelpArticlePage`; Redirects von alten `/help/*`-Pfaden. Gruppe Zusammenarbeit entfällt: ein Artikel **Zusammenarbeit** unter Dokumente.
+[~] **Help-Copy (Ausformulieren):** Stub-Outlines durch fertige Prosa ersetzen. **Zuerst nur DE** (`de/help.json`); EN erst nachziehen, wenn DE freigegeben. Prosa-SSoT: [.cursor/rules/help-prosa.mdc](../../.cursor/rules/help-prosa.mdc) (sechs Checks). Prüf-Regel: [.cursor/rules/help-text-pruefen.mdc](../../.cursor/rules/help-text-pruefen.mdc). **IA Rollen:** Admin eigener Artikel; Leitung/Autor/Mitglied → **Nutzerrollen** (`/help/user-roles`) inkl. Übersichtstabelle. Redirects von `/help/lead|author|member`. **IA Dokumente (4):** Was sind Dokumente? · Vorlagen · Lebenszyklus · **Zusammenarbeit** (Kommentar, Autor am Entwurf, Freigaben, persönlich→Org). Redirects von `/help/comments|suggestions|sharing|collaboration/introduction` → Zusammenarbeit; `/help/moving-documents` → Was sind Dokumente?; `/help/entry-documents` → Nutzerrollen (Einstiegsdokumente später). EN-Spiegel nach DE-Freigabe.
+[x] **Help Content-Sidebar sticky:** `stickyNav` auf `HelpLayout` / `ResponsiveContentNav`; Mobile (Drawer/FAB) unverändert.
+[x] **Help Prev/Next:** `variant="light"` / `color="gray"`.
+
+**Help-Prosa – Kurzchecks** (Details nur in `help-prosa.mdc`): 1 Anschluss (inkl. kein Vorgriff, nahtlos nach oben) · 2 Erklärung · 3 Einmal · 4 Register · 5 Abschnittswert · 6 Arbeitsweise
 
 ---
 

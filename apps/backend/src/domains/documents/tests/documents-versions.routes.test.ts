@@ -42,14 +42,19 @@ describe('Documents routes / versions', () => {
     expect(body.items[0]).toHaveProperty('createdAt');
   });
 
-  it('GET /documents/:documentId/versions read-only -> 403', async () => {
+  it('GET /documents/:documentId/versions read-only -> 200', async () => {
     const cookie = await context.loginAsReaderOnly();
     const res = await context.app.inject({
       method: 'GET',
       url: `/api/v1/documents/${context.publishedDocId}/versions`,
       headers: { cookie },
     });
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as {
+      items: { id: string; versionNumber: number; createdAt: string }[];
+    };
+    expect(Array.isArray(body.items)).toBe(true);
+    expect(body.items.length).toBeGreaterThanOrEqual(1);
   });
 
   it('GET /documents/:documentId/versions/:versionId mit Auth -> 200', async () => {
@@ -69,7 +74,7 @@ describe('Documents routes / versions', () => {
     expect(body.versionNumber).toBe(1);
   });
 
-  it('GET /documents/:documentId/versions/:versionId read-only -> 403', async () => {
+  it('GET /documents/:documentId/versions/:versionId read-only -> 200', async () => {
     const version = await prisma.documentVersion.findFirst({
       where: { documentId: context.publishedDocId },
       select: { id: true },
@@ -80,6 +85,9 @@ describe('Documents routes / versions', () => {
       url: `/api/v1/documents/${context.publishedDocId}/versions/${version!.id}`,
       headers: { cookie },
     });
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { content: string; versionNumber: number };
+    expect(body).toHaveProperty('content');
+    expect(body.versionNumber).toBe(1);
   });
 });

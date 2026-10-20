@@ -17,7 +17,7 @@
 ## 2. Freigabe und sichtbare Inhalte
 
 - **Unveröffentlichtes Dokument** (`publishedAt == null`): nur für Nutzer mit Schreibrecht (bzw. Lead) sichtbar, bis zur Veröffentlichung.
-- **Veröffentlicht:** Leser sehen den **Snapshot** der aktuellen Version — **ohne** Suggestion-Marks.
+- **Veröffentlicht:** Leser sehen den **Snapshot** der aktuellen Version – **ohne** Suggestion-Marks. Mit Leserecht dürfen sie auch die **Versionshistorie** (frühere Publish-Snapshots) auflisten, anzeigen und vergleichen; Draft und pending Suggestions bleiben geschützt.
 - **Autoren** erzeugen Inline-Vorschläge im Draft; **Lead** accept/decline und löst **Publish** aus → materialisierter Kanon als neuer Snapshot.
 
 Details: [ADR 004](../adr/004-inline-draft-suggestions.md).

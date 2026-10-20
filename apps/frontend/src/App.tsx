@@ -34,6 +34,7 @@ import { AdminGuard } from './components/guards/AdminGuard';
 import { ThemeFromPreferences } from './components/system/ThemeFromPreferences';
 import { ErrorBoundary } from './components/system/ErrorBoundary';
 import { ADMIN_DEFAULT_PATH, adminLegacyRedirects } from './pages/admin/adminNavConfig.js';
+import { flattenHelpTopics, HELP_DEFAULT_PATH } from './pages/help/helpTopics.js';
 
 const DocumentPage = lazy(() =>
   import('./pages/document/DocumentPage').then((m) => ({ default: m.DocumentPage }))
@@ -46,36 +47,13 @@ const DocumentVersionsPage = lazy(() =>
 const HelpLayout = lazy(() =>
   import('./pages/help/HelpLayout').then((m) => ({ default: m.HelpLayout }))
 );
-const HelpOverviewPage = lazy(() =>
-  import('./pages/help/HelpOverviewPage').then((m) => ({ default: m.HelpOverviewPage }))
-);
-const HelpOutOfScopePage = lazy(() =>
-  import('./pages/help/HelpOutOfScopePage').then((m) => ({ default: m.HelpOutOfScopePage }))
-);
-const HelpOrganisationPage = lazy(() =>
-  import('./pages/help/HelpOrganisationPage').then((m) => ({ default: m.HelpOrganisationPage }))
-);
-const HelpContextsPage = lazy(() =>
-  import('./pages/help/HelpContextsPage').then((m) => ({ default: m.HelpContextsPage }))
+const HelpArticlePage = lazy(() =>
+  import('./pages/help/HelpArticlePage').then((m) => ({ default: m.HelpArticlePage }))
 );
 const DocumentTemplatesPage = lazy(() =>
   import('./pages/documentTemplates/DocumentTemplatesPage').then((m) => ({
     default: m.DocumentTemplatesPage,
   }))
-);
-const HelpDocumentTypesPage = lazy(() =>
-  import('./pages/help/HelpDocumentTypesPage').then((m) => ({
-    default: m.HelpDocumentTypesPage,
-  }))
-);
-const HelpPermissionsPage = lazy(() =>
-  import('./pages/help/HelpPermissionsPage').then((m) => ({ default: m.HelpPermissionsPage }))
-);
-const HelpWorkflowPage = lazy(() =>
-  import('./pages/help/HelpWorkflowPage').then((m) => ({ default: m.HelpWorkflowPage }))
-);
-const HelpCollaborationPage = lazy(() =>
-  import('./pages/help/HelpCollaborationPage').then((m) => ({ default: m.HelpCollaborationPage }))
 );
 const WhatsNewPage = lazy(() =>
   import('./pages/whatsNew/WhatsNewPage').then((m) => ({ default: m.WhatsNewPage }))
@@ -183,20 +161,70 @@ function App() {
             <Route path="settings" element={<SettingsRouteRedirect />} />
             <Route path="whats-new" element={<WhatsNewPage />} />
             <Route path="help" element={<HelpLayout />}>
-              <Route index element={<Navigate to="overview" replace />} />
-              <Route path="overview" element={<HelpOverviewPage />} />
-              <Route path="out-of-scope" element={<HelpOutOfScopePage />} />
-              <Route path="organisation" element={<HelpOrganisationPage />} />
-              <Route path="contexts" element={<HelpContextsPage />} />
-              <Route path="document-types" element={<HelpDocumentTypesPage />} />
-              <Route path="templates" element={<Navigate to="/help/document-types" replace />} />
+              <Route
+                index
+                element={<Navigate to={HELP_DEFAULT_PATH.replace(/^\/help\//, '')} replace />}
+              />
+              {flattenHelpTopics().map((topic) => (
+                <Route
+                  key={topic.to}
+                  path={topic.to.replace(/^\/help\//, '')}
+                  element={<HelpArticlePage />}
+                />
+              ))}
+              <Route path="overview" element={<Navigate to="/help/what-is-docsops" replace />} />
+              <Route path="out-of-scope" element={<Navigate to="/help/using-docsops" replace />} />
+              <Route
+                path="organisation"
+                element={<Navigate to="/help/organisation/introduction" replace />}
+              />
+              <Route
+                path="why-hierarchy"
+                element={<Navigate to="/help/organisation/introduction" replace />}
+              />
+              <Route
+                path="permissions"
+                element={<Navigate to="/help/roles/introduction" replace />}
+              />
+              <Route
+                path="why-roles"
+                element={<Navigate to="/help/roles/introduction" replace />}
+              />
+              <Route
+                path="what-is-a-document"
+                element={<Navigate to="/help/documents/introduction" replace />}
+              />
+              <Route path="workflow" element={<Navigate to="/help/lifecycle" replace />} />
+              <Route
+                path="why-collaborate"
+                element={<Navigate to="/help/collaboration" replace />}
+              />
+              <Route
+                path="collaboration/introduction"
+                element={<Navigate to="/help/collaboration" replace />}
+              />
+              <Route path="comments" element={<Navigate to="/help/collaboration" replace />} />
+              <Route path="suggestions" element={<Navigate to="/help/collaboration" replace />} />
+              <Route path="sharing" element={<Navigate to="/help/collaboration" replace />} />
+              <Route
+                path="moving-documents"
+                element={<Navigate to="/help/documents/introduction" replace />}
+              />
+              <Route path="entry-documents" element={<Navigate to="/help/user-roles" replace />} />
+              <Route path="subcontexts" element={<Navigate to="/help/contexts" replace />} />
+              <Route path="personal-area" element={<Navigate to="/help/areas" replace />} />
               <Route
                 path="managing-templates"
-                element={<Navigate to="/help/document-types" replace />}
+                element={<Navigate to="/help/templates" replace />}
               />
-              <Route path="permissions" element={<HelpPermissionsPage />} />
-              <Route path="workflow" element={<HelpWorkflowPage />} />
-              <Route path="collaboration" element={<HelpCollaborationPage />} />
+              <Route path="document-types" element={<Navigate to="/help/templates" replace />} />
+              <Route
+                path="working-in-documents"
+                element={<Navigate to="/help/documents/introduction" replace />}
+              />
+              <Route path="lead" element={<Navigate to="/help/user-roles" replace />} />
+              <Route path="author" element={<Navigate to="/help/user-roles" replace />} />
+              <Route path="member" element={<Navigate to="/help/user-roles" replace />} />
             </Route>
             <Route path="teams" element={<Navigate to="/team" replace />} />
             <Route path="repositories" element={<Navigate to="/catalog" replace />} />

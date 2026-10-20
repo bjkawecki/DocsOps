@@ -26,7 +26,13 @@ export function ContextWorkspaceLeftColumn({
     ...(sticky
       ? {
           position: 'sticky',
-          top: 'var(--mantine-spacing-xl)',
+          /*
+           * top must match the natural offset in the scrollport. A larger inset
+           * (e.g. spacing-xl) pushes the column down once overflow appears, so
+           * short vs long articles jump vertically (~22px). top: 0 keeps both
+           * states on the same Y at scrollTop 0 while still sticking on scroll.
+           */
+          top: 0,
           alignSelf: 'flex-start',
         }
       : {}),

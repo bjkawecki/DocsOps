@@ -3,7 +3,9 @@
 **Stand:** Juli 2026  
 **Bezug:** [Umsetzungs-Todo §28b](Umsetzungs-Todo.md) (Document types & templates, Phase 2)
 
-**Ebenen:** **Context** (process / project / subcontext) = wo das Dokument liegt. **Document type** (optional am Dokument) = welche Art Doc (Policy, Runbook, ADR, …; Built-in + Custom). **Template** = Starter-Inhalt zu einem Type (example title, typical chapters / Leitfragen, Kurztext **when to use**). Document shape ≠ context kind – ein Runbook kann in process oder project liegen.
+**Ebenen:** **Context** (process / project / subcontext) = wo das Dokument liegt. **Document type** (optional am Dokument) = welche Art Doc (Policy, Runbook, ADR, …; Built-in + Custom). **Template** = Starter-Inhalt zu einem Type (example title, typical chapters / Leitfragen, Kurztext **when to use**).
+
+**Picker / Built-ins:** Prozess und Projekt haben **getrennte** Vorlagenkataloge (`oftenUsedIn`: `process` | `project`). Die UI filtert danach; SSoT im Code (`listBuiltinDocumentTypes`, Custom mit `oftenUsedIn` bzw. `null` = beide). Vorlage setzt nicht den Kontext – sie startet Inhalt und Kennzeichnung innerhalb der gewählten Kontextart.
 
 **v1:** Ein Default-Template pro Type. Custom Types/Templates: Scope Lead (Geltungsbereich) und Admin (org-/plattformweit). Anwenden im New-document-Flow; Verwalten unter Catalog (`Document templates`).
 
@@ -40,7 +42,7 @@ Policy  →  Standard  →  Baseline  →  Guideline  →  Procedure  →  Runbo
 - **Procedures** setzen Policy/Standard in wiederholbare Schritte um.
 - **Runbooks/Playbooks** sind operative Ausprägungen (Incident vs. wiederkehrender Ablauf).
 
-**UI-Hinweis:** Im Type-/Template-Picker nur **englische Labels**; optional Tooltip mit deutschem Begriff aus der Tabelle (z. B. „Policy (Richtlinie)“). Spalte „Often used in“ in §28b ist Filter-Hinweis, keine Pflichtbindung an process/project.
+**UI-Hinweis:** Im Type-/Template-Picker nur **englische Labels**; optional Tooltip mit deutschem Begriff aus der Tabelle (z. B. „Policy (Richtlinie)“). `oftenUsedIn` steuert, welcher Katalog im Prozess- vs. Projekt-Kontext angeboten wird.
 
 ---
 

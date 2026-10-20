@@ -255,7 +255,7 @@ export function AppShellTopBar({
             </ActionIcon>
           </Tooltip>
           {utilIcon(
-            '/help/overview',
+            '/help/what-is-docsops',
             t('account.help'),
             <IconHelp size={18} stroke={1.75} />,
             helpActive

@@ -15,7 +15,7 @@ Tabellen und Spalten für `prisma/schema.prisma`, abgeleitet aus [Pseudocode Dat
 | **Team**       | id, name, departmentId                             | → department, members (TeamMember), leaders (TeamLeader), owners (Owner), documentGrantTeam |
 | **User**       | id, name, email?, externalId?, isAdmin, deletedAt? | teamMemberships, leaderOfTeams, supervisorOfDepartments, userSpaces, documentGrantUser      |
 
-- **TeamMember:** Junction Team ↔ User (Mitgliedschaft). @@id([teamId, userId]).
+- **TeamMember:** Junction Team ↔ User (operative Mitgliedschaft). @@id([teamId, userId]). **Konzept:** Nutzer ist immer einem Unternehmen zugeordnet; optional Abteilung, optional Team dieser Abteilung; Team ⇒ Abteilung des Teams. Abteilung-/Unternehmens-Zugehörigkeit für Rechte wird aus Team (und Lead/Author-Rollen) abgeleitet – keine eigenen DepartmentMember-/CompanyMember-Tabellen.
 - **TeamLeader** (Rolle: Team Lead): Junction Team ↔ User. Schreibrechte für Team-Kontexte. @@id([teamId, userId]).
 - **Supervisor** (Rolle: Department Lead): Junction Department ↔ User. Nutzer mit Leserechten auf alle Dokumente der Abteilung und ihrer Teams (Prozesse, Projekte, Unterkontexte), nicht auf persönliche Kontexte (ownerUserId). Ableitung in der App.
 - **Owner:** Abstraktion für Prozess/Projekt. id, companyId?, departmentId?, teamId?, ownerUserId? (in der App genau einer gesetzt), **displayName?** (gecacht für Katalog-Sortierung; synchron bei Namensänderung Company/Department/Team/User). Process und Project haben ownerId → Owner.

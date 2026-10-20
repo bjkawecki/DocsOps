@@ -4,137 +4,260 @@
     "previous": "Previous article",
     "next": "Next article"
   },
+  "stub": {
+    "internalQuestion": "Internal question",
+    "outline": "Outline"
+  },
   "groups": {
     "gettingStarted": "Getting started",
-    "governance": "Governance",
-    "workingWithDocs": "Working with docs"
+    "organisation": "Organisation",
+    "roles": "Roles",
+    "documents": "Documents"
   },
   "topics": {
-    "overview": "What is DocsOps?",
-    "outOfScope": "Where DocsOps fits",
-    "organisation": "Organisation & scopes",
-    "contexts": "Processes & projects",
-    "documentTypes": "Document types",
-    "permissions": "Read & write access",
-    "workflow": "Document lifecycle",
-    "collaboration": "Reviews & approvals"
+    "whatIsDocsOps": "What is DocsOps?",
+    "usingDocsOps": "Using DocsOps well",
+    "userInterface": "The user interface",
+    "organisationIntroduction": "What organisation is for",
+    "areas": "Scopes",
+    "contexts": "Contexts",
+    "planningOrganisation": "Setting up the organisation",
+    "rolesIntroduction": "What roles are for",
+    "admin": "Admin",
+    "userRoles": "User roles",
+    "documentsIntroduction": "What are documents?",
+    "templates": "Templates",
+    "lifecycle": "Lifecycle",
+    "collaboration": "Collaboration"
   },
-  "overview": {
-    "title": "What is DocsOps?",
-    "p1": "DocsOps is the place for durable internal knowledge in engineering organisations: how you work, and what you know about the systems you build and run. Readers see an official published stand – not whatever was last edited in a shared wiki page.",
-    "p2": "You organise work by <strong>scope</strong> (company, department, team, or personal space) and keep documents in <strong>processes</strong> or <strong>projects</strong>. Drafts stay editable; what leads publish is what readers see.",
-    "p3": "Choosing between process and project: <contextsLink>Processes & projects</contextsLink>. How DocsOps sits next to trackers, chat, and ops tools: <outOfScopeLink>Where DocsOps fits</outOfScopeLink>."
-  },
-  "outOfScope": {
-    "title": "Where DocsOps fits",
-    "p1": "DocsOps has a clear job: durable internal knowledge with an official published stand (see <overviewLink>What is DocsOps?</overviewLink>). Trackers, chat, Git, and monitoring keep theirs. That split is what makes DocsOps useful – not a second inbox for every kind of text.",
-    "p2": "Rule of thumb: if it should still matter in weeks as <em>how we do this</em> or <em>what we know about this</em>, put it here. Ephemeral chat, ticket status, and live signals stay in the tools built for them.",
-    "outOfScopeHeading": "Typical neighbours",
-    "items": {
-      "issueTrackers": "<strong>Issue trackers</strong> – Document known issues and workarounds here (symptoms, fix hints, link to the ticket). Assignees, sprints, and triage stay in Jira, GitHub Issues, Linear, or similar.",
-      "chat": "<strong>Chat</strong> – When a thread becomes lasting guidance or a decision others must find later, capture it here. Day-to-day discussion stays in Slack, Teams, or email.",
-      "opsSignals": "<strong>Ops tools</strong> – Write <em>runbooks</em> for alerts here. Dashboards, paging, and the alert UI stay in your observability stack.",
-      "codeTruth": "<strong>Git and CI</strong> – Process and project knowledge that people read lives here. Code and repo-owned specs stay in the repository.",
-      "fileDrives": "<strong>File stores and public doc sites</strong> – Attach files to documents here. Bulk dumps and external/API portals stay in Drive, Nextcloud, SharePoint, or a dedicated public site."
+  "articles": {
+    "whatIsDocsOps": {
+      "lead": [
+        "DocsOps is software for keeping internal knowledge in companies and organisations organised and usable (knowledge management).",
+        "DocsOps gives that continually forming knowledge a clear place in the organisation and keeps it current and findable.",
+        "DocsOps puts that knowledge into an order that follows the organisation."
+      ]
     },
-    "fineLineHeading": "Quick examples",
-    "fineLine": {
-      "knownIssue": "<strong>Known issue / workaround</strong> → DocsOps; <strong>who owns the bug</strong> → tracker.",
-      "runbook": "<strong>Runbook for alert X</strong> → DocsOps; <strong>the alert itself</strong> → ops tools.",
-      "meeting": "<strong>Meeting decision worth keeping</strong> → DocsOps; <strong>the chat thread</strong> → chat."
+    "usingDocsOps": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Knowledge suited for DocsOps",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Knowledge outside DocsOps",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "userInterface": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Sidebar",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Important entry points",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Adjusting appearance",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "organisationIntroduction": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "For whom is knowledge relevant?",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Where does knowledge belong?",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "areas": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Company, department, and team",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Personal scope",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "What a scope controls",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "contexts": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Processes",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Projects",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Process or project",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Subcontexts",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Archive and trash",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "planningOrganisation": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Who decides the structure",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Consequences of the structure",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "When which level",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Use sharing sparingly",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "rolesIntroduction": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Hierarchy and responsibility",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Rights by role",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "admin": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Platform administration",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Admin and lead",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "userRoles": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Lead and authors",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Who should be lead",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Overview",
+          "paragraphs": [],
+          "table": {
+            "headers": ["Action", "Lead", "Author", "Member"],
+            "rows": [
+              ["Read published stand", "yes", "yes", "yes"],
+              ["Contribute to the draft", "directly", "as suggestion", "no"],
+              ["Create or delete contexts and documents", "yes", "no", "no"],
+              ["Publish", "yes", "no", "no"],
+              ["Grant access", "yes", "no", "no"]
+            ]
+          }
+        }
+      ]
+    },
+    "documentsIntroduction": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Draft and published stand",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Personal scope",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Moving",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Archive and trash",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "templates": {
+      "lead": ["Translation pending; German text is the source of truth for this article."]
+    },
+    "lifecycle": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Working on the draft",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Authors and lead",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "New version and history",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
+    },
+    "collaboration": {
+      "lead": ["Translation pending; German text is the source of truth for this article."],
+      "sections": [
+        {
+          "heading": "Discussion on the document",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Working on the draft",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "Opening access selectively",
+          "paragraphs": ["Translation pending."]
+        },
+        {
+          "heading": "From personal scope into the organisation",
+          "paragraphs": ["Translation pending."]
+        }
+      ]
     }
-  },
-  "organisation": {
-    "title": "Organisation & scopes",
-    "p1": "Content sits in a <strong>scope</strong>: company, then department, then team. That hierarchy decides <strong>ownership and default access</strong>. Scope leads (and admins) manage people and lead features such as publishing and trash for their area.",
-    "p2": "You may also have a <strong>personal</strong> area for your own drafts and contexts. The catalog and navigation only show scopes and documents you can read.",
-    "contextsHeading": "Contexts in a scope",
-    "p3": "Inside a scope you create <strong>processes</strong> and <strong>projects</strong> (and optional subcontexts under projects). When to use which, how to name them, and what belongs inside: <contextsLink>Processes & projects</contextsLink>."
-  },
-  "contexts": {
-    "title": "Processes & projects",
-    "p1": "Documents live in a <strong>context</strong>: a <strong>process</strong>, a <strong>project</strong>, or a <strong>subcontext</strong> under a project. The right kind keeps knowledge easy to find.",
-    "twoQuestionsHeading": "Two questions",
-    "processQ": "<strong>Process</strong> – Is there a clear <strong>trigger</strong>? Ask: <em>What do we do when …?</em> (for example when someone joins, when a customer reports a problem, when we need shared access rules).",
-    "projectQ": "<strong>Project</strong> – Is there a clear <strong>subject</strong>? Ask: <em>What do we know about …?</em> (a product, initiative, or workstream you are building or running).",
-    "belongsHeading": "What belongs inside",
-    "belongsProcess": "A <strong>process</strong> holds reusable guidance for that trigger: roles, steps, checklists, and principles that stay useful across many concrete cases.",
-    "belongsProject": "A <strong>project</strong> holds knowledge <strong>about the subject</strong>: structure, decisions, and subject-specific operational detail (for example how that particular subject is deployed or supported).",
-    "belongsSub": "<strong>Subcontexts</strong> are optional folders <strong>under a project only</strong>. Use them to split document spaces without creating another top-level project. They are named areas, not a second process/project system.",
-    "namingHeading": "Naming",
-    "nameProcess": "Name a <strong>process</strong> after the <strong>trigger</strong> (for example <em>When a new teammate joins</em>).",
-    "nameProject": "Name a <strong>project</strong> after the <strong>subject</strong>.",
-    "nameAvoid": "Avoid creating both a process and a project for the <strong>same subject</strong>.",
-    "existingHeading": "Does it belong in an existing context?",
-    "existingSame": "Same trigger or same subject as an existing context → put the document <strong>there</strong>.",
-    "existingDetail": "Detail that only applies to one subject → prefer the <strong>project</strong> (or a subcontext under it), not a new process named after that subject.",
-    "existingUnsure": "Unsure → follow the <strong>subject</strong> (choose or create a project) rather than inventing a vague process.",
-    "shapeHeading": "Document shape is not context kind",
-    "shapeP1": "How a document is written (step-by-step guide, policy, decision record, and so on) does <strong>not</strong> decide whether the context is a process or a project. Trigger vs subject does. You can use the same document form in either kind of context.",
-    "shapeP2": "Scopes (company, department, team, personal) decide <strong>ownership and access</strong>. They do not replace the process vs project choice – see <organisationLink>Organisation & scopes</organisationLink>.",
-    "movingHeading": "Moving documents",
-    "movingP1": "If a document is already in a context and belongs elsewhere, use <strong>Move to context</strong> on the document (More actions). That is different from <strong>Assign to context</strong>, which only attaches a context-free draft for the first time.",
-    "movingSame": "<strong>Same owner scope</strong> (for example another process in the same team) – the move happens immediately when you have write rights on source and target. Tags and access grants stay on the document.",
-    "movingDiff": "<strong>Different owner scope</strong> (another team, department, company, or personal area) – you create a <strong>move request</strong>. The target scope lead accepts or rejects it under <approvalsLink>Approvals → Move requests</approvalsLink>. You can withdraw a pending request anytime. On accept, scope-bound tags are removed; grants stay.",
-    "movingP2": "More on the Approvals hub and reviews: <collaborationLink>Reviews & approvals</collaborationLink>."
-  },
-  "documentTypes": {
-    "title": "Document types",
-    "p1": "A <strong>document type</strong> answers <em>what</em> you are writing (policy, runbook, ADR, …). A <strong>template</strong> is optional starter content for that type. The context (process / project) answers <em>where</em> it lives. Built-in types cover a small core; scope leads can add custom types.",
-    "choosingHeading": "Choosing a document type",
-    "chooseTemplate": "Pick a type with a template to insert a chapter outline into the new draft.",
-    "chooseBlank": "Choose blank document if you want an empty draft. You can still set a type later.",
-    "chooseGroups": "Process and Project groups are typical homes for a type – suggestions, not hard rules.",
-    "processTypesHeading": "Process types: which one?",
-    "processTypesIntro": "Common mix-ups and when to pick which:",
-    "policyVsStandard": "<strong>Policy vs Standard:</strong> Policy states binding intent (“data must be protected”). Standard makes it measurable (“passwords must be at least 12 characters”).",
-    "guidelineVs": "<strong>Guideline vs Policy/Standard:</strong> Guideline is recommended practice; deviation is OK with judgment. Policy and Standard are binding.",
-    "procedureVsRunbook": "<strong>Procedure vs Runbook:</strong> Procedure is a calm, recurring SOP. Runbook is time-critical incident response (diagnose, mitigate, verify).",
-    "projectTypesHeading": "Project types: which one?",
-    "adrVsArch": "<strong>ADR vs Architecture overview:</strong> ADR records one decision and its trade-offs. Architecture overview is the living system map; update ADRs when decisions change.",
-    "runbookVsPostmortem": "<strong>Runbook vs Post-mortem:</strong> Runbook during the incident; Post-mortem after recovery for timeline, causes, and lasting fixes.",
-    "changingHeading": "Changing type later",
-    "changingP1": "On the document Metadata tab you can set, change, or clear the type. That updates metadata only – existing draft and published content stay unchanged. Templates are never re-applied to existing documents.",
-    "templatesHeading": "Templates",
-    "templatesP1": "Scope leads and admins can define <strong>custom document types</strong> with a default template (for example checklists, playbooks, meeting notes, or known-issue pages). Built-in types ship with the platform and cannot be deleted.",
-    "templatesLead": "Company, department, or team leads for their own scope.",
-    "templatesAdmin": "Admins for platform-wide custom types.",
-    "templatesAuthors": "Authors without a lead role can use types when creating documents, but do not see the manage page.",
-    "templatesP2": "Open <templatesLink>Templates</templatesLink> under Catalog (visible only with manage rights). Create a custom type with label, when to use, example title, and section headings with prompts."
-  },
-  "permissions": {
-    "title": "Read & write access",
-    "p1": "Who can open a document follows its <strong>owner scope</strong> (company, department, team, or personal) and your role there – plus any <strong>explicit grants</strong> on that document. You only see contexts and documents you are allowed to read.",
-    "readWriteHeading": "Read vs write",
-    "read": "<strong>Read</strong> – open context pages and documents. For published documents, readers see the published version, not every draft edit.",
-    "write": "<strong>Write</strong> – create documents and work on the shared lead draft (as author with suggestions, or as lead with direct edits), depending on your role.",
-    "leadsHeading": "Leads and sharing",
-    "leads": "<strong>Scope leads</strong> (and admins) can publish, manage trash/archive for their area, and accept or decline author suggestions. Details: <workflowLink>Document lifecycle</workflowLink> and <collaborationLink>Reviews & approvals</collaborationLink>.",
-    "grants": "<strong>Grants</strong> share a single document with people or teams outside the usual scope membership – without moving the document."
-  },
-  "workflow": {
-    "title": "Document lifecycle",
-    "p1": "Every document has a <strong>shared lead draft</strong> and, once published, an <strong>official version</strong> that readers see. Draft work stays editable; publishing makes a stable stand for the organisation.",
-    "draft": "<strong>Draft</strong> – Create a document in a context you can write to. The lead draft is the shared working copy for that document.",
-    "edit": "<strong>Collaborate</strong> – Scope leads edit the lead draft directly. Authors with write access propose changes as <strong>inline suggestions</strong> (insert/delete marks) for the lead to review.",
-    "review": "<strong>Review</strong> – Leads accept or decline pending suggestions (also from the Approvals hub). Publishing is blocked while suggestions are still pending.",
-    "publish": "<strong>Publish</strong> – A scope lead publishes the draft as the new official version. Readers then see that stand; version history keeps earlier published versions.",
-    "p2": "Archive and trash retire or recover documents and contexts without using the draft/publish path."
-  },
-  "collaboration": {
-    "title": "Reviews & approvals",
-    "p1": "DocsOps is built for a clear <strong>official stand</strong>: not “whatever is in the shared buffer right now”. Authors propose; leads decide; readers see what was published.",
-    "whyHeading": "Why this model",
-    "whyP1": "It fits regulated or accountable work (a defined moment of acceptance) and distributed teams (hand off a change, review asynchronously). Pure real-time co-editing of the live truth is a different product shape.",
-    "hubHeading": "Approvals hub",
-    "hubP1": "Open <strong>Approvals</strong> in the sidebar for decisions waiting on you:",
-    "hubReviews": "<strong>Reviews</strong> – documents with pending inline suggestions you can accept or decline as a scope lead.",
-    "hubMoves": "<strong>Move requests</strong> – someone wants to move a document <strong>into your scope</strong> (accept or reject) or you requested a move <strong>out of your scope</strong> (withdraw while pending).",
-    "hubP2": "Same-scope moves and cross-scope requests on the document: <contextsLink>Processes & projects → Moving documents</contextsLink>. Lifecycle and publishing: <workflowLink>Document lifecycle</workflowLink>.",
-    "getHeading": "What you get",
-    "getPublished": "Published versions readers can trust, with history.",
-    "getReview": "A clear accept/decline path for author suggestions.",
-    "getAmbiguity": "Less confusion about what is live versus still in draft.",
-    "getHub": "One place for suggestion reviews and cross-scope move decisions."
   }
 }

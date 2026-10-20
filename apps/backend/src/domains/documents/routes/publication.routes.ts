@@ -320,11 +320,11 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** GET Versionsliste – nur für Nutzer mit Schreibrecht am Dokument. */
+  /** GET Versionsliste – Leserecht (veröffentlichte Snapshots; kein Draft). */
   app.get<{ Params: { documentId: string } }>(
     '/documents/:documentId/versions',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
     },
     async (request, reply) => {
       const prisma = request.server.prisma;
@@ -357,11 +357,11 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
     }
   );
 
-  /** GET Einzelversion – nur für Nutzer mit Schreibrecht am Dokument. */
+  /** GET Einzelversion – Leserecht (veröffentlichter Snapshot; kein Draft). */
   app.get<{ Params: { documentId: string; versionId: string } }>(
     '/documents/:documentId/versions/:versionId',
     {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('write'))],
+      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
     },
     async (request, reply) => {
       const prisma = request.server.prisma;

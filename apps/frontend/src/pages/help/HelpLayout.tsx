@@ -80,7 +80,7 @@ export function HelpLayout() {
                     key={topic.to}
                     component={Link}
                     to={topic.to}
-                    label={t(`help:${topic.labelKey}`)}
+                    label={t(`help:topics.${topic.id}`)}
                     active={active}
                     aria-current={active ? 'page' : undefined}
                     variant="subtle"
@@ -107,6 +107,7 @@ export function HelpLayout() {
         <ResponsiveContentNav
           title={sectionTitle}
           nav={nav}
+          stickyNav
           compactNavOpenRef={contentNavOpenRefProp}
         >
           <Box className="document-page-main">
@@ -119,7 +120,7 @@ export function HelpLayout() {
               style={{ overflow: 'visible' }}
             >
               <Box className="document-page-reading">
-                <Box className="document-page-scroll">
+                <Box className="document-page-scroll document-page-scroll--help">
                   <DocumentReadingSurface>
                     <Outlet />
                     <HelpArticleNav />

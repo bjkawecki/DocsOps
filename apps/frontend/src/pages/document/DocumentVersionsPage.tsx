@@ -26,6 +26,7 @@ import { IconFileText, IconPencil } from '@tabler/icons-react';
 type DocumentVersionsDoc = DocumentForDocBreadcrumbs & {
   title: string;
   publishedAt: string | null;
+  canPublish?: boolean;
 };
 
 type VersionItem = {
@@ -114,7 +115,11 @@ export function DocumentVersionsPage() {
     enabled: !!documentId,
   });
 
-  const { data: versionsData, isPending: versionsPending } = useQuery({
+  const {
+    data: versionsData,
+    isPending: versionsPending,
+    isError: versionsError,
+  } = useQuery({
     queryKey: ['document-versions', documentId],
     queryFn: async () => {
       const res = await apiFetch(`/api/v1/documents/${documentId}/versions`);
@@ -125,6 +130,7 @@ export function DocumentVersionsPage() {
   });
 
   const versions = versionsData?.items ?? [];
+  const canPublish = !!doc?.canPublish;
   const fromVersion = versions.find((v) => v.id === (fromId || compareFromId));
   const toVersion = versions.find((v) => v.id === (toId || compareToId));
 
@@ -206,9 +212,13 @@ export function DocumentVersionsPage() {
       <Stack gap="lg">
         {versionsPending ? (
           <Skeleton height={120} />
+        ) : versionsError ? (
+          <Text size="sm" c="dimmed">
+            {t('versionsPage.loadVersionsFailed')}
+          </Text>
         ) : versions.length === 0 ? (
           <Text size="sm" c="dimmed">
-            {t('versionsPage.empty')}
+            {canPublish ? t('versionsPage.emptyCanPublish') : t('versionsPage.empty')}
           </Text>
         ) : (
           <>

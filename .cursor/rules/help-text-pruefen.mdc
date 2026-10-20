@@ -1,0 +1,18 @@
+---
+description: Wenn der Nutzer Help-/Produkttext prüfen lässt – gegen die sechs Help-Prosa-Checks prüfen
+alwaysApply: true
+---
+
+# Help-/Produkttext prüfen
+
+Wenn der Nutzer **Text**, einen **Absatz**, eine **Passage** oder einen **Artikel** prüfen, reviewen oder gegen Kriterien halten will (z. B. „prüfen“, „negativbeispiel“, Screenshot mit markiertem Satz):
+
+## Pflicht
+
+Gegen die **sechs Checks** in [.cursor/rules/help-prosa.mdc](help-prosa.mdc) prüfen.
+
+Format: **Check → Verstoß oder OK**, kurz am konkreten Satz/Absatz. Nicht nur Gesamteindruck. Besonders prüfen: Vorgriff auf Folgetexte und nahtloser Anschluss nach oben.
+
+## Danach
+
+Reparatur-Absicht nennen. Unschlüssiger Abschnitt: **Weglassen empfehlen**, nicht umschreiben um ihn zu retten. Umsetzen nur bei klarem Auftrag / Agent-Modus.

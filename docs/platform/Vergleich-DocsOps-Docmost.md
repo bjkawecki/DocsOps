@@ -65,7 +65,7 @@ Rollen auf Workspace-Ebene: **Owner**, **Admin**, **Member**. Auf Space-Ebene: *
 ### 4.1 Architektur und Struktur
 
 - **Organisationshierarchie:** Company → Department → Team; dazu **persönliche Kontexte** (Prozesse/Projekte mit Owner = User).
-- **Kontexte:** Prozess, Projekt, Unterkontext (Subcontext). Jeder Kontext gehört genau einer **Owner-Unit** (Company, Department, Team oder User). Dokumente gehören **genau einem Kontext** (oder sind kontextfreie Drafts).
+- **Kontexte:** Prozess, Projekt, Unterkontext (Subcontext). Jeder Kontext gehört genau einer **Owner-Unit** (Company, Department, Team oder User). Dokumente gehören **immer genau einem Kontext** und damit einem Bereich.
 - **Dokumente:** Markdown-Inhalt, Tags, **explizite Zugriffsrechte** pro Dokument (Grants für User, Team, Department mit Rolle Read oder Write).
 - **Rollen:** Team Lead, Department Lead, Company Lead („Scope-Lead“); **Leserechte werden nach oben vererbt**, **Schreibrechte sind lokal** (nur Lead der Owner-Unit oder expliziter Writer-Grant). Keine Quer-Vererbung zwischen parallelen Units.
 - **Publishing:** Dokumente haben Status **Draft** oder **Published** (`publishedAt`). Nur **Scope-Lead** darf **veröffentlichen** (Publish). Änderungen an veröffentlichten Inhalten laufen im Zielbild über **Suggestions** und **Lead-Draft** ([Edit-System-Plan](../plan/Edit-System-Blocks-Suggestions-Lead-Draft.md)).

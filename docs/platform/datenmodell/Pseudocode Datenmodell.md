@@ -24,8 +24,15 @@ prozesse: List[Prozess]
 class Nutzer:
 id
 name
-teams: List[Team] # Mitgliedschaft
-superuser_teams: List[Team] # Schreibrechte als Superuser
+
+# Zugehörigkeit: immer einem Unternehmen; optional Abteilung; optional Team dieser Abteilung.
+
+# Team-Mitgliedschaft schließt Zugehörigkeit zur Abteilung des Teams ein.
+
+# Technisch: TeamMember; Abteilung/Unternehmen daraus abgeleitet (vgl. Rechtesystem).
+
+teams: List[Team]
+superuser_teams: List[Team] # Lead-Rollen (historisch Superuser)
 
 ---
 

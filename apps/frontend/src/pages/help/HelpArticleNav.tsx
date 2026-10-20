@@ -30,11 +30,12 @@ export function HelpArticleNav() {
         <Button
           component={Link}
           to={previous.to}
-          variant="default"
+          variant="light"
+          color="gray"
           leftSection={<IconArrowLeft size={16} stroke={1.5} />}
           style={{ flex: '1 1 12rem' }}
         >
-          {t('nav.previous')}: {t(previous.labelKey)}
+          {t('nav.previous')}: {t(`topics.${previous.id}`)}
         </Button>
       ) : (
         <span style={{ flex: '1 1 12rem' }} />
@@ -43,11 +44,12 @@ export function HelpArticleNav() {
         <Button
           component={Link}
           to={next.to}
-          variant="default"
+          variant="light"
+          color="gray"
           rightSection={<IconArrowRight size={16} stroke={1.5} />}
           style={{ flex: '1 1 12rem' }}
         >
-          {t('nav.next')}: {t(next.labelKey)}
+          {t('nav.next')}: {t(`topics.${next.id}`)}
         </Button>
       ) : (
         <span style={{ flex: '1 1 12rem' }} />

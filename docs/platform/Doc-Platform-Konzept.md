@@ -6,29 +6,33 @@ Kurzfassung des Produktmodells. Details: [Rechtesystem](datenmodell/Rechtesystem
 
 - Interne Dokumentationsplattform mit **Organisationshierarchie im Produkt** (Firma → Abteilung → Team).
 - DocsOps **trennt Zusammenarbeit von Veröffentlichung:** Autoren arbeiten am Entwurf bzw. mit Vorschlägen; die **Leitung des Geltungsbereichs** veröffentlicht. Leser sehen den **offiziellen, versionierten Stand** – nicht den laufenden Entwurf.
-- Zwei Wissensarten: **Prozess** („wie wir arbeiten“) und **Projekt** („woran wir arbeiten“ / Ist-Stand).
-- Dokumente gehören in der Regel genau einem **Kontext** (Prozess, Projekt oder Unterkontext); Ausnahme: kontextfreie Drafts (siehe §3.4).
-- **Ownership** bestimmt Verantwortlichkeit und lokale Schreib-/Publish-Rechte; **Leserechte** werden nach oben vererbt. Keine Quer-Vererbung zwischen parallelen Units.
+- Zwei **Kontextarten:** **Prozess** („wie wir arbeiten“, dauerhaft) und **Projekt** („woran wir arbeiten“ / Ist-Stand, zeitlich gebunden). Die Wahl der Kontextart ist formbezogen; die Wahl zwischen konkreten Kontexten ist thematisch.
+- Dokumente gehören **immer** genau einem **Kontext** (Prozess, Projekt oder Unterkontext) und damit genau einem **Bereich** (Unternehmen, Abteilung, Team oder persönlicher Bereich).
+- **Scope (Bereich)** steuert **Leserecht**: wer die Kontexte und Dokumente eines Bereichs (und seiner übergeordneten Bereiche) lesen darf. **Kontext** steuert **Zugehörigkeit** des Wissens. **Rollen** steuern darüber hinausgehende **Rechte** (Schreiben, Publish, …); über Rechte wird u. a. **Verantwortung** gesteuert (Hierarchieprinzip). Verantwortung liegt damit bei den Rollen, nicht bei Scope oder Kontext allein.
+- **Ownership** (Owner-Unit eines Kontexts) ordnet den Kontext einem Scope zu und steuert lokale Schreib-/Publish-Rechte des Scope-Leads. Keine Quer-Vererbung zwischen parallelen Units.
 
 ---
 
 ## 2. Organisationsstruktur (Scope)
 
+Scope/Bereich = **Leserahmen** in der Organisationshierarchie (wer Kontexte/Dokumente dieses Bereichs und der Eltern-Bereiche liest) – nicht „Zuständigkeit“ und nicht thematische Ablage (das leisten Kontexte).
+
 ```
 Company
 └── Department
     └── Team
-        └── User (Mitgliedschaft)
 
 User-Scope (persönlich) – parallel zur Org-Hierarchie
 ```
 
-| Ebene     | Rolle (engl. in API/UI) | Kurz                                                       |
-| --------- | ----------------------- | ---------------------------------------------------------- |
-| Firma     | Company                 | Oberste Organisationseinheit; kann Kontexte besitzen       |
-| Abteilung | Department              | Enthält Teams; kann Prozesse/Projekte besitzen             |
-| Team      | Team                    | Operative Einheit; kann Prozesse/Projekte besitzen         |
-| Nutzer    | User                    | Mitgliedschaft in Teams; optional persönlicher Owner-Scope |
+| Ebene     | Rolle (engl. in API/UI) | Kurz                                                         |
+| --------- | ----------------------- | ------------------------------------------------------------ |
+| Firma     | Company                 | Oberste Organisationseinheit; kann Kontexte besitzen         |
+| Abteilung | Department              | Enthält Teams; kann Prozesse/Projekte besitzen               |
+| Team      | Team                    | Operative Einheit; kann Prozesse/Projekte besitzen           |
+| Nutzer    | User                    | Zugehörigkeit siehe unten; optional persönlicher Owner-Scope |
+
+**Nutzerzugehörigkeit:** Jeder Nutzer ist einem Unternehmen zugeordnet. Er kann einer Abteilung dieses Unternehmens angehören und zusätzlich einem Team dieser Abteilung. Gehört er einem Team an, gehört er damit auch zur Abteilung dieses Teams.
 
 **Rollen (eine organisatorische Scope-Rolle pro Person, oder Plattform-Admin):**
 
@@ -43,15 +47,15 @@ Details und Ausschlüsse (Lead vs. Member, Exclusive Roles): [Rechtesystem §4](
 
 ## 3. Kontexte
 
-Jeder Prozess/Projekt hat genau einen **Owner** (Company, Department, Team oder Nutzer).
+Kontexte bestimmen die **Zugehörigkeit** von Wissen (wohin es inhaltlich gehört) – nicht die Verantwortung für Veröffentlichung. Jeder Prozess/Projekt hat genau einen **Owner** (Company, Department, Team oder Nutzer), der den Kontext in einen Scope legt.
 
-### 3.1 Prozess
+### 3.1 Prozess (Kontextart)
 
 - Langlebig („wie wir arbeiten“): Richtlinien, Abläufe, Standards.
 - Dokumente hängen direkt am Prozess.
 - Unterkontexte selten nötig.
 
-### 3.2 Projekt
+### 3.2 Projekt (Kontextart)
 
 - Zeitlich begrenzt („woran wir arbeiten“); kann archiviert werden.
 - Optional **Unterkontexte** (z. B. Protokolle, Module) unter dem Projekt.
@@ -65,21 +69,23 @@ Jeder Prozess/Projekt hat genau einen **Owner** (Company, Department, Team oder 
 
 ### 3.4 Dokumente
 
-- Einzelne inhaltliche Einheit im Kontext (oder als **kontextfreier Draft**: `contextId` null, nur unveröffentlicht; Lesen/Schreiben für Ersteller und explizite Grants; Publish erst nach Kontext-Zuweisung).
+- Einzelne inhaltliche Einheit **im Kontext**; der Kontext gehört genau einem Bereich.
 - Inhalt als **Block-JSON** (Editor TipTap); Publish erzeugt einen Snapshot ohne Suggestion-Marks. Siehe [ADR 002](adr/002-block-schema-v1-inline-marks.md), [ADR 004](adr/004-inline-draft-suggestions.md).
 - Explizite **Document Grants** vor allem **Read** für Cross-Scope-Zugriff (externe Teams/Abteilungen/Nutzer); Verwaltung durch den Scope Lead.
+- _Implementierung:_ Kurzlebige `contextId = null`-Zustände (z. B. Restore aus Papierkorb-Kontext) sind Übergang, nicht das Produktmodell.
 
 ---
 
 ## 4. Zugriffsrechte (Prinzip)
 
-| Prinzip                | Bedeutung                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Leserechte nach oben   | Member der Owner-Unit **oder** Lead einer übergeordneten Unit darf lesen                                           |
-| Schreibarbeit lokal    | Lead der Owner-Unit (direkt) bzw. Scope Author (Inline-Vorschläge); kein Quer-Schreiben                            |
-| Keine Quer-Vererbung   | Team A liest Team B nicht ohne Grant                                                                               |
-| Company als Governance | Company Lead: Leserecht auf Organisations-Kontexte (nicht persönliche); kein globales Schreiben                    |
-| Publish nur Lead       | Neue veröffentlichte Version nur Scope Lead / Admin / persönlicher Owner; nur wenn keine offenen Inline-Vorschläge |
+| Prinzip                         | Bedeutung                                                                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Lesen im Bereich + Eltern       | Wer einem Bereich zugeordnet ist, liest dessen Kontexte/Dokumente und die der übergeordneten Bereiche                  |
+| Lesen durch übergeordnete Leads | Lead einer übergeordneten Unit liest Kontexte/Dokumente untergeordneter Units                                          |
+| Schreibarbeit lokal             | Lead der Owner-Unit (direkt) bzw. Scope Author (Inline-Vorschläge); kein Quer-Schreiben                                |
+| Keine Quer-Vererbung            | Team A liest Team B nicht ohne Grant                                                                                   |
+| Company als Governance          | Company Lead: Leserecht auf Organisations-Kontexte (nicht persönliche); kein globales Schreiben                        |
+| Publish nur Bereichsleitung     | Neue Version nur die Leitung des Owner-Bereichs (persönlich: der Eigentümer); nur wenn keine offenen Inline-Vorschläge |
 
 **Nicht mehr gültig:** „Superuser schreibt alles im Team“ / „Schreibrechte nur über Superuser“. Das aktuelle Modell ist Lead + Scope Author + Read-Grants.
 
@@ -87,22 +93,22 @@ Vollständige Ableitung (`canRead` / `canWrite` / Publish): [Rechtesystem](daten
 
 ---
 
-## 5. Ownership vs. Zugriff
+## 5. Scope, Ownership und Zugriff
 
-|         | Ownership                                                     | Zugriff                                                          |
-| ------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Frage   | Wer ist organisatorisch verantwortlich?                       | Wer darf lesen / am Draft arbeiten / veröffentlichen?            |
-| Träger  | Genau eine Owner-Unit (Company, Department, Team) oder Nutzer | Vererbung + Rollen + Grants                                      |
-| Wirkung | Scope für Lead/Author, Create/Delete/Publish                  | Lesen für Members/übergeordnete Leads; Cross-Scope nur per Grant |
+|         | Scope (Leserecht)                                              | Ownership (Kontext → Scope)                    | Rollen (weitere Rechte)                                 |
+| ------- | -------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
+| Frage   | Wer liest Kontexte/Dokumente dieses Bereichs (und der Eltern)? | Welchem Scope ist der Kontext zugeordnet?      | Wer darf am Draft arbeiten / veröffentlichen / steuern? |
+| Träger  | Unit (Company, Department, Team) oder User-Scope               | Genau eine Owner-Unit oder Nutzer              | Lead / Author / Member + Grants                         |
+| Wirkung | Lesen im eigenen Bereich und in übergeordneten Bereichen       | lokale Schreib-/Publish-Rechte des Scope-Leads | Cross-Scope-Lesen nur per Grant; Schreiben lokal        |
 
-Vorteil: klare Verantwortlichkeit, vorhersehbare Transparenz nach oben, Autonomie nach unten.
+**Rollen** bündeln Rechte (technisch). Daraus folgt Verantwortung (sozial), gestaffelt nach Hierarchie. Publish/Versionen setzen Verbindlichkeit um; das ist eine Folge von Rechten, nicht der alleinige Zweck von Rollen.
 
 ---
 
 ## 6. Designprinzipien
 
-1. Dokumente gehören in der Regel genau einem Kontext (Ausnahme: kontextfreie Drafts).
-2. Struktur bestimmt Ownership; Leserechte werden nach oben vererbt, Schreiben und Publish bleiben lokal.
+1. Dokumente gehören immer genau einem Kontext und damit einem Bereich.
+2. Struktur bestimmt Ownership; Lesen gilt im Bereich und in Eltern-Bereichen (sowie für übergeordnete Leads nach unten), Schreiben und Publish bleiben lokal.
 3. Teams sind operative Einheiten; keine impliziten Rechte quer zu parallelen Teams.
 4. Kontexte: Prozesse (dauerhaft), Projekte (zeitlich, Unterkontexte möglich), persönliche Kontexte (privat).
 5. Zusammenarbeit ≠ Veröffentlichung: Authors vorschlagen, Lead entscheidet und published.

@@ -12,7 +12,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { IconClock, IconFileText } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useMe } from '../../hooks/useMe.js';
 import {
   formatRecentScopeLabel,
@@ -33,6 +33,10 @@ function itemLabel(item: AggregatedRecentItem): string {
   return item.name?.trim() ? item.name : item.id;
 }
 
+function documentPath(item: AggregatedRecentItem): string {
+  return `/documents/${item.id}`;
+}
+
 type Props = {
   isMiniRail: boolean;
   onNavigate: () => void;
@@ -40,10 +44,10 @@ type Props = {
 
 type CompactListProps = {
   items: AggregatedRecentItem[];
-  onSelect: (item: AggregatedRecentItem) => void;
+  onActivate: () => void;
 };
 
-function ContinueCompactList({ items, onSelect }: CompactListProps) {
+function ContinueCompactList({ items, onActivate }: CompactListProps) {
   return (
     <Stack gap={2} align="stretch">
       {items.map((item) => {
@@ -51,7 +55,9 @@ function ContinueCompactList({ items, onSelect }: CompactListProps) {
         return (
           <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
             <UnstyledButton
-              onClick={() => onSelect(item)}
+              component={Link}
+              to={documentPath(item)}
+              onClick={onActivate}
               className="app-shell-continue-item"
               aria-label={label}
             >
@@ -69,11 +75,11 @@ function ContinueCompactList({ items, onSelect }: CompactListProps) {
 
 type DetailedListProps = {
   items: AggregatedRecentItem[];
-  onSelect: (item: AggregatedRecentItem) => void;
+  onActivate: () => void;
   metaLineFor: (item: AggregatedRecentItem) => string | null;
 };
 
-function ContinueDetailedList({ items, onSelect, metaLineFor }: DetailedListProps) {
+function ContinueDetailedList({ items, onActivate, metaLineFor }: DetailedListProps) {
   return (
     <Stack gap={10} align="stretch">
       {items.map((item) => {
@@ -82,7 +88,9 @@ function ContinueDetailedList({ items, onSelect, metaLineFor }: DetailedListProp
         return (
           <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
             <UnstyledButton
-              onClick={() => onSelect(item)}
+              component={Link}
+              to={documentPath(item)}
+              onClick={onActivate}
               className="app-shell-continue-item app-shell-continue-item--detailed"
               aria-label={label}
             >
@@ -119,7 +127,6 @@ function ContinueDetailedList({ items, onSelect, metaLineFor }: DetailedListProp
 export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
   const { t } = useTranslation(['shell', 'common']);
   const { data: me } = useMe();
-  const navigate = useNavigate();
   const [allOpen, { open: openAll, close: closeAll }] = useDisclosure(false);
 
   if (isMiniRail) return null;
@@ -152,10 +159,9 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
     return parts.length > 0 ? parts.join(' · ') : null;
   };
 
-  const goTo = (item: AggregatedRecentItem) => {
+  const onActivate = () => {
     closeAll();
     onNavigate();
-    void navigate(`/documents/${item.id}`);
   };
 
   return (
@@ -175,7 +181,7 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
           </UnstyledButton>
         ) : null}
       </Group>
-      <ContinueCompactList items={preview} onSelect={goTo} />
+      <ContinueCompactList items={preview} onActivate={onActivate} />
       <Modal
         opened={allOpen}
         onClose={closeAll}
@@ -203,7 +209,7 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
           className="app-shell-continue-modal-scroll"
           px={4}
         >
-          <ContinueDetailedList items={items} onSelect={goTo} metaLineFor={metaLineFor} />
+          <ContinueDetailedList items={items} onActivate={onActivate} metaLineFor={metaLineFor} />
         </ScrollArea>
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={closeAll}>

@@ -17,7 +17,7 @@ DocsOps **trennt Zusammenarbeit von Veröffentlichung** – auf Basis einer **Or
 
 **Roter Faden:** Es gibt einen **offiziellen Stand** – für Prozesswissen („wie wir arbeiten“) und Projektwissen („woran wir arbeiten“ / konkreter Ist-Stand).
 
-**Abgrenzung (bewusst anderer Weg):** DocsOps ist **stark hierarchiegeprägt** – nicht weil „enterprise“, sondern weil interne Dokumentation in Organisationen **Verantwortliche, Zuständigkeiten und verbindliche Fassungen** braucht. Viele Plattformen setzen auf **flexible Wiki-Flächen und frei gestaltbare Strukturen**; DocsOps modelliert **Organisation, Verantwortung und Veröffentlichung im Produkt** (Firma → Abteilung → Team, Prozess/Projekt, Rechte je Dokument).
+**Abgrenzung (bewusst anderer Weg):** DocsOps ist **stark hierarchiegeprägt** – nicht weil „enterprise“, sondern weil interne Dokumentation **Leserecht entlang der Bereiche (Scope), Zugehörigkeit (Kontext) und verbindliche Fassungen (Rollen/Publish)** braucht. Viele Plattformen setzen auf **flexible Wiki-Flächen und frei gestaltbare Strukturen**; DocsOps modelliert **Organisation, Kontext und Veröffentlichung im Produkt** (Firma → Abteilung → Team, Prozess/Projekt, Rechte je Dokument).
 
 **Nicht als Leit-Narrativ:** Einzelne Features wie Live-Co-Editing – das ist höchstens ein Symptom, nicht der Kernunterschied.
 
@@ -42,11 +42,11 @@ Beide teilen: **veröffentlichte Fassung** für Leser, Änderungen im Entwurf / 
 
 **Umsetzungsplan (Detail):** [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
 
-| #   | Section     | Leitfrage (Subtitle)                         |
-| --- | ----------- | -------------------------------------------- |
-| 1   | **Scope**   | Wo gehört ein Nutzer hin – und was sieht er? |
-| 2   | **Kontext** | Wo wird Wissen abgelegt?                     |
-| 3   | **Rechte**  | Wie entsteht die verbindliche Fassung?       |
+| #   | Section     | Leitfrage (Subtitle)                                       |
+| --- | ----------- | ---------------------------------------------------------- |
+| 1   | **Scope**   | Für wen ist Wissen relevant – und was sieht man deshalb?   |
+| 2   | **Kontext** | Wohin gehört Wissen (Zugehörigkeit; Kontextart und Thema)? |
+| 3   | **Rechte**  | Wie entsteht die verbindliche Fassung (Verantwortung)?     |
 
 ### 3.1 Abgrenzung (kurz, optional vor den Sections)
 
@@ -54,7 +54,7 @@ Beide teilen: **veröffentlichte Fassung** für Leser, Änderungen im Entwurf / 
 
 ### 3.2 Section 1 – Scope
 
-**Perspektive:** Organisations-Hierarchie und Sichtbarkeit – nicht Ablageort, nicht Rollenverhalten.
+**Perspektive:** Organisations-Hierarchie und **Leserecht** (wer Kontexte/Dokumente eines Bereichs und seiner Eltern-Bereiche liest) – nicht thematische Ablage (Kontext), nicht Verantwortungskette (Rollen/Publish).
 
 **Struktur (Ziel-Grafik):**
 
@@ -82,7 +82,7 @@ Beide teilen: **veröffentlichte Fassung** für Leser, Änderungen im Entwurf / 
 
 ### 3.3 Section 2 – Kontext
 
-**Perspektive:** Ablageort von Wissen innerhalb eines Scopes.
+**Perspektive:** **Zugehörigkeit** von Wissen innerhalb eines Scopes – nicht Leserecht (Scope), nicht Publish-Verantwortung (Rollen).
 
 ```
 Scope
@@ -90,10 +90,12 @@ Scope
         └── Dokument
 ```
 
-| Typ         | Merkmal           | Beispiele                                                        |
+| Kontextart  | Merkmal           | Beispiele                                                        |
 | ----------- | ----------------- | ---------------------------------------------------------------- |
 | **Prozess** | dauerhaft         | Onboarding, Richtlinien, „wie Barrierefreiheit hergestellt wird“ |
 | **Projekt** | zeitlich begrenzt | Software X, Audit 2026, „Stand Barrierefreiheit“                 |
+
+**Kontextart** (Prozess vs. Projekt) = Form des Kontexts. **Thema** = Wahl zwischen konkreten Kontexten derselben oder gemischter Art.
 
 **Format Landing:** Typografie + ggf. statische Mini-Grafik. Mermaid: [diagramme/kontext-dokument.mmd](./diagramme/kontext-dokument.mmd).
 

@@ -109,7 +109,7 @@ export function WhatsNewPage() {
         )}
 
         <Text size="sm" c="dimmed">
-          <Anchor component={Link} to="/help/overview" size="sm">
+          <Anchor component={Link} to="/help/what-is-docsops" size="sm">
             {t('shell:whatsNew.helpLink')}
           </Anchor>
         </Text>

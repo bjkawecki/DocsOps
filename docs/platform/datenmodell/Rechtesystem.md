@@ -10,12 +10,13 @@ Einheitliche Beschreibung des Rechtesystems: Konzeption (Grundprinzipien, Units,
 
 Das Rechtesystem basiert auf einer hierarchischen Organisationsstruktur.
 
-- Dokumente gehören in der Regel genau einem Kontext (Projekt, Prozess oder Unterkontext); Ausnahme: **kontextfreie Drafts** (contextId null), siehe Abschnitt 3.
+- Dokumente gehören **immer** genau einem Kontext (Projekt, Prozess oder Unterkontext) und damit genau einem Bereich (Unternehmen, Abteilung, Team oder persönlicher Bereich).
 - Kontexte gehören genau einer organisatorischen Einheit (Unit).
 
 **Prinzipien:**
 
-- **Leserechte werden nach oben vererbt.** (Member der Owner-Unit oder Lead einer übergeordneten Unit.)
+- **Lesen im Bereich und in Eltern-Bereichen.** Wer einem Bereich zugeordnet ist, liest Kontexte/Dokumente dieses Bereichs und der übergeordneten Bereiche (Team → Abteilung → Unternehmen).
+- **Übergeordnete Leads lesen nach unten.** Lead einer übergeordneten Unit liest Kontexte/Dokumente untergeordneter Units.
 - **Schreibrechte sind lokal.** (Nur Lead der Owner-Unit oder expliziter Grant.)
 - **Keine Quer-Vererbung** zwischen parallelen Units.
 
@@ -29,18 +30,31 @@ Die Plattform kennt folgende hierarchische Units:
 Company
 └── Department
     └── Team
-        └── User (persönlicher Scope)
 ```
 
 **Unit:** Organisatorische Ebene mit klarer Zugehörigkeit (Parent-Unit), eigener Ownership, eigenen Lead-Rollen und eigenem Scope. Units bilden eine gerichtete Hierarchie (Baum).
 
+**Nutzerzugehörigkeit:** Jeder Nutzer ist einem Unternehmen zugeordnet. Er kann einer Abteilung dieses Unternehmens angehören und zusätzlich einem Team dieser Abteilung. Gehört er einem Team an, gehört er damit auch zur Abteilung dieses Teams. Persönlicher Scope steht parallel zur Org-Hierarchie.
+
+**Implementierung (Ableitung):** Operative Mitgliedschaft liegt als `TeamMember` (Team ↔ User). Zugehörigkeit zur Abteilung bzw. zum Unternehmen für Leserechte und Sichtbarkeit wird daraus abgeleitet (Team → Abteilung → Unternehmen), ergänzt um Department Lead/Author und Company Lead. Es gibt keine eigene Junction „DepartmentMember“ / „CompanyMember“.
+
 ---
 
-### 3. Scope und Ownership
+### 3. Scope, Kontext und Ownership
 
-**Scope** beschreibt den Sicht- und Verwaltungsbereich einer Unit (Team-Scope, Department-Scope, Company-Scope, User-Scope). Kontexte (Projekte, Prozesse) existieren innerhalb eines Scopes; ein Kontext gehört genau einer Unit.
+Drei Ebenen nicht vermengen:
 
-**Ownership** bedeutet organisatorische Verantwortung:
+| Ebene               | Bedeutet                                                                                                | Bedeutet nicht                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Scope** (Bereich) | **Leserecht:** wer Kontexte/Dokumente dieses Bereichs und seiner Eltern-Bereiche liest                  | Zuständigkeit oder „wer verantwortlich ist“; thematische Ablage                                |
+| **Kontext**         | **Zugehörigkeit:** wohin Wissen inhaltlich gehört (Prozess oder Projekt; konkreter Kontext = Thema)     | Verantwortung für Freigabe/Publish                                                             |
+| **Rollen**          | weitere **Rechte** (Schreiben, Publish, …); darüber u. a. **Verantwortung** (sozial, Hierarchieprinzip) | ersetzt nicht Scope oder Kontext; Verbindlichkeit über Versionen/Publish ist Folge von Rechten |
+
+**Scope** ist der Lese- und Verwaltungsbereich einer Unit (Team-Scope, Department-Scope, Company-Scope, User-Scope).
+
+**Kontextart** (Prozess vs. Projekt) ist die Form des Kontexts (dauerhaftes Arbeitswissen vs. zeitlich gebundenes Vorhaben-Wissen). Die Wahl **zwischen konkreten Kontexten** ist thematisch.
+
+**Ownership** (Owner-Unit eines Kontexts) ordnet den Kontext einem Scope zu und steuert damit die Ableitung lokaler Schreib-/Publish-Rechte des Scope-Leads – nicht die fachliche „Verantwortung“ im Sinne von Zuständigkeit:
 
 - Jeder Kontext hat genau eine Owner-Unit.
 - Owner-Unit definiert Schreibrechte (Lead dieser Unit darf schreiben).
@@ -49,9 +63,9 @@ Company
 
 **Persönliche Kontexte** (User-Scope): Prozesse und Projekte mit Owner = Nutzer (Owner.ownerUserId). Sie sind **standardmäßig privat**; Zugriff nur für den Besitzer oder über explizite Lese-/Schreib-Grants.
 
-**Dokumente ohne Kontext (kontextfreie Drafts):** Ein Document kann mit `contextId = null` existieren (nur als Draft, `publishedAt = null`). Lesen und Schreiben haben ausschließlich der **Ersteller** (createdById) und Nutzer mit **explizitem Grant** auf dieses Dokument. Es gibt keinen Scope-Lead; **Veröffentlichung** ist erst nach Zuweisung eines Kontexts (PATCH contextId) möglich.
+**Kontextzuordnung:** Jedes Dokument hat einen Kontext; der Kontext hat genau einen Owner-Bereich. _Implementierung:_ `contextId = null` nur als kurzlebiger Übergang (z. B. Restore eines Dokuments aus einem Kontext im Papierkorb = Abkoppeln, bis neu zugeordnet) – nicht das dauerhafte Produktmodell.
 
-**Trash (Papierkorb):** Soft-gelöschte Dokumente (`deletedAt` gesetzt) sind nur für Nutzer sichtbar, die das Dokument löschen dürfen (canDeleteDocument). Wiederherstellen (Restore) darf derselbe Nutzerkreis. **Kontexte (Variante B):** Beim Soft-Delete eines Kontexts (Process/Project) werden alle zugehörigen Dokumente mitgelöscht (Kaskade). Restore eines Dokuments aus einem trashed Kontext = Abkoppeln (contextId = null) als kontextfreier Draft.
+**Trash (Papierkorb):** Soft-gelöschte Dokumente (`deletedAt` gesetzt) sind nur für Nutzer sichtbar, die das Dokument löschen dürfen (canDeleteDocument). Wiederherstellen (Restore) darf derselbe Nutzerkreis. **Kontexte (Variante B):** Beim Soft-Delete eines Kontexts (Process/Project) werden alle zugehörigen Dokumente mitgelöscht (Kaskade). Restore eines Dokuments aus einem Kontext im Papierkorb setzt vorübergehend `contextId = null`, bis das Dokument einem Kontext neu zugeordnet ist.
 
 **Archive:** Archivierte Dokumente (`archivedAt` gesetzt) werden aus normalen Listen ausgeblendet. Archivieren/Entarchivieren (PATCH archivedAt) darf, wer Schreibrecht hat (canWrite). Kontexte (Process/Project) haben ebenfalls `archivedAt`; beim Archivieren kaskadiert der Status auf alle Dokumente des Kontexts.
 
@@ -76,15 +90,15 @@ Pro Unit (Team, Department, Company) existieren Rollen:
 
 ### 5. Leserechte (Prinzip)
 
-Leserechte werden nach oben vererbt.
+**Regel:** Ein Nutzer darf ein Dokument lesen, wenn er dem Owner-Bereich des Kontexts zugeordnet ist (einschließlich Zuordnung über untergeordnete Bereiche: Team-Mitglied liest auch Abteilungs- und Unternehmens-Kontexte) **oder** Lead einer übergeordneten Unit ist.
 
-**Regel:** Ein Nutzer darf ein Dokument lesen, wenn er Mitglied der Owner-Unit ist **oder** Lead einer übergeordneten Unit ist.
+**Aus Nutzersicht:** Wer einem Bereich zugeordnet ist, liest die Kontexte/Dokumente dieses Bereichs und der Eltern-Bereiche.
 
 **Beispiele:**
 
 - **Team-Dokument:** Team-Mitglieder lesen; Department-Lead liest; Company-Lead liest. Anderes Department: kein Zugriff.
-- **Department-Dokument:** Department-Mitglieder lesen; Company-Lead liest.
-- **Company-Dokument:** Alle Units darunter können lesen (sofern konzeptionell zugeordnet).
+- **Department-Dokument:** Wer der Abteilung angehört (über Team-Mitgliedschaft in einem Team der Abteilung bzw. als Department Lead/Author), liest; Company-Lead liest.
+- **Company-Dokument:** Wer dem Unternehmen zugeordnet ist (über Zugehörigkeit zu Abteilung/Team bzw. als Company Lead), liest.
 
 **Keine Quer-Vererbung:** Team A kann Team B nicht lesen.
 
@@ -120,7 +134,7 @@ Schreibrechte sind nicht vererbbar.
 
 <span id="6b-freigabe-publish"></span>
 
-**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur Scope-Lead** (Team Lead, Department Lead, Company Lead der Owner-Unit), Admin und Owner von persönlichem Prozess/Projekt (ownerUserId). Publish nur wenn **keine pending Inline-Vorschläge** (`pendingSuggestionCount === 0`). Scope Authors erzeugen Inline-Vorschläge; die Freigabe erfolgt ausschließlich durch Publish durch den Lead. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [ADR 004](../adr/004-inline-draft-suggestions.md).
+**Veröffentlichen** bzw. **Freigabe einer neuen Version** (Lead-Draft wird zur nächsten **Published**-Version mit neuem Snapshot) darf **nur die Leitung des Owner-Bereichs**: Team Lead, Department Lead oder Company Lead der Owner-Unit; im persönlichen Bereich der Owner (`ownerUserId`). Niemand sonst (Autoren nicht; Admin nur als Plattformrolle außerhalb dieses Produktmodells). Publish nur wenn **keine pending Inline-Vorschläge** (`pendingSuggestionCount === 0`). Scope Authors erzeugen Inline-Vorschläge; die Freigabe erfolgt ausschließlich durch Publish durch die Leitung. Details siehe [Versionierung als Snapshots + Deltas](../versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md) und [ADR 004](../adr/004-inline-draft-suggestions.md).
 
 ---
 
