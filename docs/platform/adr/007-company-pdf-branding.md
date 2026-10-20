@@ -27,7 +27,7 @@
 
 7. **Logo-Upload:** PNG/JPEG, max. 2 MB; Seitenverhältnis Breite:Höhe **2:1–6:1** (empfohlen 3:1–5:1); Skalierung im Header auf 12 mm Höhe.
 8. **Versionierte PDFs:** Bei Publish wird `documents.export.pdf` für die neue `DocumentVersion` enqueued; Speicherung in `pdfObjectKey` + `pdfResponsibleLabel` (Scope-Leads zum Erzeugungszeitpunkt). Download im Versionsverlauf ohne Neu-Rendern. Manueller Export regeneriert die aktuelle Version.
-9. **Sichtbare Meta-Zeile** unter dem Titel: `Name(n), YYYY-MM-DD, Version n` (ohne Lead-Namen: nur Datum und Version).
+9. **Sichtbare Meta-Zeile** unter dem Titel: `Name(n), Datum, Version n` (ohne Lead-Namen: nur Datum und Version). Datum nach Locale des Export-Anforderers (`en`: `YYYY-MM-DD`, `de`: `TT.MM.JJJJ`).
 10. **Schreibschutz:** nach Typst `qpdf` mit leerem User-Passwort, Modify/Annotate aus (kein Öffnungs-Passwort; kein eIDAS).
 
 ## Konsequenzen
@@ -47,3 +47,4 @@
 | 2026-08-01 | Logo im Page-Header (links/rechts), explizite H1/H2-Skalierung     |
 | 2026-10-20 | Logo-Aspekt, Publish-PDF pro Version, Lead-Zeile, qpdf-Permissions |
 | 2026-10-20 | Admin: `pdfFontFamily` sans/serif (Liberation)                     |
+| 2026-10-20 | Meta-Zeile: Datumsformat nach Nutzer-Locale (de/en)                |

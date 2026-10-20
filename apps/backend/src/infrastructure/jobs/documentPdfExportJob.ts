@@ -15,6 +15,7 @@ import {
 import {
   buildPdfResponsibleMetaLine,
   resolveDocumentPdfResponsibleNames,
+  resolvePdfMetaLocale,
 } from '../pdf/pdfExportMeta.js';
 import { applyPdfWriteProtection } from '../pdf/pdfWriteProtect.js';
 import { renderMarkdownToPdfBuffer, themeFromCompanyRow } from '../pdf/typstPdfExport.js';
@@ -122,10 +123,16 @@ export async function exportDocumentToPdf(
     version.document.id
   );
   const responsibleLabel = responsibleNames.join(', ');
+  const requester = await context.prisma.user.findUnique({
+    where: { id: payload.requestedByUserId },
+    select: { preferences: true },
+  });
+  const metaLocale = resolvePdfMetaLocale(requester?.preferences);
   const metaLine = buildPdfResponsibleMetaLine({
     responsibleNames,
     versionNumber: version.versionNumber,
     publishedAt: version.createdAt,
+    locale: metaLocale,
   });
 
   const brandingCompanyId = await resolvePdfBrandingCompanyIdForDocument(
