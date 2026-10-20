@@ -28,6 +28,8 @@ model Company {
   pdfLogoContentType  String?
   /// Page-header logo corner: "left" | "right"; null = left.
   pdfLogoPosition     String?
+  /// Body typeface: "sans" | "serif"; null = platform default (sans).
+  pdfFontFamily       String?
   departments         Department[]
   companyLeads        CompanyLead[]
   owners              Owner[]       @relation("OwnerCompany")

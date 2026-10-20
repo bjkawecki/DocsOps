@@ -60,7 +60,7 @@ RUN TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
 
 # Job worker: PDF export (typst + qpdf write-protect) + backup tools
 FROM runtime-base AS worker
-RUN apk add --no-cache postgresql-client zstd tar qpdf
+RUN apk add --no-cache postgresql-client zstd tar qpdf font-liberation
 COPY --from=typst-fetch /usr/local/bin/typst /usr/local/bin/typst
 RUN typst --version && qpdf --version
 ENV NODE_ENV=production

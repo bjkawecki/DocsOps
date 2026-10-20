@@ -14,16 +14,20 @@ export type CompanyPdfBrandingPublic = {
   pdfPrimaryColor: string | null;
   pdfMarginMm: number | null;
   pdfLogoPosition: 'left' | 'right' | null;
+  pdfFontFamily: 'sans' | 'serif' | null;
   hasPdfLogo: boolean;
 };
 
 export function toCompanyPdfBrandingPublic(row: CompanyPdfBrandingRow): CompanyPdfBrandingPublic {
   const position =
     row.pdfLogoPosition === 'left' || row.pdfLogoPosition === 'right' ? row.pdfLogoPosition : null;
+  const fontFamily =
+    row.pdfFontFamily === 'sans' || row.pdfFontFamily === 'serif' ? row.pdfFontFamily : null;
   return {
     pdfPrimaryColor: row.pdfPrimaryColor,
     pdfMarginMm: row.pdfMarginMm,
     pdfLogoPosition: position,
+    pdfFontFamily: fontFamily,
     hasPdfLogo: row.pdfLogoObjectKey != null && row.pdfLogoObjectKey.length > 0,
   };
 }
@@ -40,6 +44,7 @@ export async function getCompanyPdfBrandingRow(
       pdfLogoObjectKey: true,
       pdfLogoContentType: true,
       pdfLogoPosition: true,
+      pdfFontFamily: true,
     },
   });
 }
@@ -58,6 +63,7 @@ export async function updateCompanyPdfBranding(
       pdfPrimaryColor: true,
       pdfMarginMm: true,
       pdfLogoPosition: true,
+      pdfFontFamily: true,
     },
   });
   if (!current) {
@@ -68,6 +74,7 @@ export async function updateCompanyPdfBranding(
     pdfPrimaryColor?: string | null;
     pdfMarginMm?: number | null;
     pdfLogoPosition?: string | null;
+    pdfFontFamily?: string | null;
     pdfLogoObjectKey?: string | null;
     pdfLogoContentType?: string | null;
   } = {};
@@ -80,6 +87,9 @@ export async function updateCompanyPdfBranding(
   }
   if (body.pdfLogoPosition !== undefined) {
     data.pdfLogoPosition = body.pdfLogoPosition;
+  }
+  if (body.pdfFontFamily !== undefined) {
+    data.pdfFontFamily = body.pdfFontFamily;
   }
 
   if (body.clearPdfLogo === true) {
@@ -99,6 +109,7 @@ export async function updateCompanyPdfBranding(
       pdfLogoObjectKey: true,
       pdfLogoContentType: true,
       pdfLogoPosition: true,
+      pdfFontFamily: true,
     },
   });
   return toCompanyPdfBrandingPublic(updated);
@@ -164,6 +175,7 @@ export async function uploadCompanyPdfLogo(
       pdfLogoObjectKey: true,
       pdfLogoContentType: true,
       pdfLogoPosition: true,
+      pdfFontFamily: true,
     },
   });
   return toCompanyPdfBrandingPublic(updated);

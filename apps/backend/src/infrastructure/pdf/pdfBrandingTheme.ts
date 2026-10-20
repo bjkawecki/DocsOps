@@ -7,6 +7,11 @@ export const PDF_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 export const PDF_LOGO_ALLOWED_CONTENT_TYPES = ['image/png', 'image/jpeg'] as const;
 export const PDF_LOGO_POSITIONS = ['left', 'right'] as const;
 export const PDF_BRANDING_DEFAULT_LOGO_POSITION = 'left' as const;
+export const PDF_FONT_FAMILIES = ['sans', 'serif'] as const;
+export const PDF_BRANDING_DEFAULT_FONT_FAMILY = 'sans' as const;
+/** Typst font names (Liberation; installed on worker / node-dev images). */
+export const PDF_TYPST_FONT_SANS = 'Liberation Sans';
+export const PDF_TYPST_FONT_SERIF = 'Liberation Serif';
 /** Extra top margin when a header logo is present (logo height + gap). */
 export const PDF_LOGO_HEADER_EXTRA_TOP_MM = 16;
 export const PDF_LOGO_HEADER_HEIGHT_MM = 12;
@@ -16,6 +21,7 @@ export const PDF_LOGO_ASPECT_RATIO_MAX = 6;
 
 export type PdfLogoContentType = (typeof PDF_LOGO_ALLOWED_CONTENT_TYPES)[number];
 export type PdfLogoPosition = (typeof PDF_LOGO_POSITIONS)[number];
+export type PdfFontFamily = (typeof PDF_FONT_FAMILIES)[number];
 
 export type CompanyPdfBrandingRow = {
   pdfPrimaryColor: string | null;
@@ -23,12 +29,14 @@ export type CompanyPdfBrandingRow = {
   pdfLogoObjectKey: string | null;
   pdfLogoContentType: string | null;
   pdfLogoPosition: string | null;
+  pdfFontFamily: string | null;
 };
 
 export type ResolvedPdfBrandingTheme = {
   primaryColor: string;
   marginMm: number;
   logoPosition: PdfLogoPosition;
+  fontFamily: PdfFontFamily;
   /** Relative path under Typst workdir, e.g. `branding/logo.png`. */
   logoRelativePath: string | null;
   logoObjectKey: string | null;
@@ -51,6 +59,14 @@ export function isValidPdfMarginMm(value: number): boolean {
 
 export function isValidPdfLogoPosition(value: string): value is PdfLogoPosition {
   return (PDF_LOGO_POSITIONS as readonly string[]).includes(value);
+}
+
+export function isValidPdfFontFamily(value: string): value is PdfFontFamily {
+  return (PDF_FONT_FAMILIES as readonly string[]).includes(value);
+}
+
+export function typstFontNameForFamily(family: PdfFontFamily): string {
+  return family === 'serif' ? PDF_TYPST_FONT_SERIF : PDF_TYPST_FONT_SANS;
 }
 
 export function isAllowedPdfLogoContentType(value: string): value is PdfLogoContentType {
@@ -82,6 +98,7 @@ export function resolvePdfBrandingTheme(
       primaryColor: PDF_BRANDING_DEFAULT_PRIMARY_COLOR,
       marginMm: PDF_BRANDING_DEFAULT_MARGIN_MM,
       logoPosition: PDF_BRANDING_DEFAULT_LOGO_POSITION,
+      fontFamily: PDF_BRANDING_DEFAULT_FONT_FAMILY,
       logoRelativePath: null,
       logoObjectKey: null,
       logoContentType: null,
@@ -103,6 +120,11 @@ export function resolvePdfBrandingTheme(
       ? company.pdfLogoPosition
       : PDF_BRANDING_DEFAULT_LOGO_POSITION;
 
+  const fontFamily =
+    company.pdfFontFamily != null && isValidPdfFontFamily(company.pdfFontFamily)
+      ? company.pdfFontFamily
+      : PDF_BRANDING_DEFAULT_FONT_FAMILY;
+
   const contentType = company.pdfLogoContentType;
   const objectKey = company.pdfLogoObjectKey;
   if (
@@ -116,6 +138,7 @@ export function resolvePdfBrandingTheme(
       primaryColor,
       marginMm,
       logoPosition,
+      fontFamily,
       logoRelativePath: `branding/logo${ext}`,
       logoObjectKey: objectKey,
       logoContentType: contentType,
@@ -126,6 +149,7 @@ export function resolvePdfBrandingTheme(
     primaryColor,
     marginMm,
     logoPosition,
+    fontFamily,
     logoRelativePath: null,
     logoObjectKey: null,
     logoContentType: null,
@@ -140,9 +164,10 @@ export function resolvePdfBrandingTheme(
  * explicitly because Typst’s default level scale is too subtle for Markdown H1/H2.
  */
 export function buildTypstMainSource(theme: ResolvedPdfBrandingTheme): string {
+  const fontName = typstFontNameForFamily(theme.fontFamily);
   const lines = [
     '#import "@preview/cmarker:0.1.6": render',
-    '#set text(size: 11pt)',
+    '#set text(font: "' + fontName + '", size: 11pt)',
     '#show heading.where(level: 1): set text(size: 22pt, weight: "bold")',
     '#show heading.where(level: 2): set text(size: 16pt, weight: "bold")',
     '#show heading.where(level: 3): set text(size: 13pt, weight: "semibold")',

@@ -11,10 +11,10 @@
 
 ## Entscheidung
 
-1. **Schema (`Company`):** optional `pdfPrimaryColor` (`#RRGGBB`), `pdfMarginMm` (12–40), `pdfLogoObjectKey` + `pdfLogoContentType` (PNG/JPEG, max 2 MB), `pdfLogoPosition` (`left` | `right`, Default links).
-2. **Plattform-Default:** Farbe `#1c7ed6`, Margin 20 mm, kein Logo, Logo-Position links – wenn Dokument ohne Company-Owner (personal/kein Kontext) oder Felder null/ungültig.
+1. **Schema (`Company`):** optional `pdfPrimaryColor` (`#RRGGBB`), `pdfMarginMm` (12–40), `pdfLogoObjectKey` + `pdfLogoContentType` (PNG/JPEG, max 2 MB), `pdfLogoPosition` (`left` | `right`, Default links), `pdfFontFamily` (`sans` | `serif`, Default sans).
+2. **Plattform-Default:** Farbe `#1c7ed6`, Margin 20 mm, kein Logo, Logo-Position links, Schrift sans (Liberation Sans) – wenn Dokument ohne Company-Owner (personal/kein Kontext) oder Felder null/ungültig. Serif nutzt Liberation Serif (Worker-/Dev-Images).
 3. **Company-Auflösung beim Export:** Document → Context → Owner → `companyId` (direkt oder über Department/Team); personal Owner → Default.
-4. **Typst:** Entry `main.typ` (Margins, Link-Farbe, optionales Logo im **Page-Header** links/rechts, explizite Heading-Größen H1–H4) + CommonMark-Body in `content.md` via `@preview/cmarker` (`#render(read("content.md"))`). Typst kompiliert Markdown **nicht** nativ als Hauptdatei. Package-Cache im Dev-Image unter `/var/cache/typst`.
+4. **Typst:** Entry `main.typ` (Margins, Link-Farbe, Schriftfamilie, optionales Logo im **Page-Header** links/rechts, explizite Heading-Größen H1–H4) + CommonMark-Body in `content.md` via `@preview/cmarker` (`#render(read("content.md"))`). Typst kompiliert Markdown **nicht** nativ als Hauptdatei. Package-Cache im Dev-Image unter `/var/cache/typst`.
 5. **API:** `GET/PATCH …/pdf-branding`, `GET/POST/DELETE …/pdf-logo`. Verwalten: Admin oder Company-Lead (`canManageCompanyPdfBranding`). Lesen Logo: `canViewScope`.
 6. **UI:** Admin → Company → Tab „PDF branding“ (kein Org-Nav-Eintrag unter Company).
 
@@ -46,3 +46,4 @@
 | 2026-08-01 | Erstfassung (akzeptiert, v1)                                       |
 | 2026-08-01 | Logo im Page-Header (links/rechts), explizite H1/H2-Skalierung     |
 | 2026-10-20 | Logo-Aspekt, Publish-PDF pro Version, Lead-Zeile, qpdf-Permissions |
+| 2026-10-20 | Admin: `pdfFontFamily` sans/serif (Liberation)                     |

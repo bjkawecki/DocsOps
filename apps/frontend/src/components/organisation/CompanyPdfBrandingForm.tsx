@@ -19,6 +19,7 @@ export type CompanyPdfBrandingDto = {
   pdfPrimaryColor: string | null;
   pdfMarginMm: number | null;
   pdfLogoPosition: 'left' | 'right' | null;
+  pdfFontFamily: 'sans' | 'serif' | null;
   hasPdfLogo: boolean;
 };
 
@@ -33,6 +34,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
   const [primaryColor, setPrimaryColor] = useState('#1c7ed6');
   const [marginMm, setMarginMm] = useState<number | string>(20);
   const [logoPosition, setLogoPosition] = useState<'left' | 'right'>('left');
+  const [fontFamily, setFontFamily] = useState<'sans' | 'serif'>('sans');
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
 
   const { data, isPending } = useQuery({
@@ -49,6 +51,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
     setPrimaryColor(data.pdfPrimaryColor ?? '#1c7ed6');
     setMarginMm(data.pdfMarginMm ?? 20);
     setLogoPosition(data.pdfLogoPosition ?? 'left');
+    setFontFamily(data.pdfFontFamily ?? 'sans');
   }, [data]);
 
   useEffect(() => {
@@ -83,6 +86,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
           pdfPrimaryColor: primaryColor.trim() || null,
           pdfMarginMm: Number.isFinite(margin) ? margin : null,
           pdfLogoPosition: logoPosition,
+          pdfFontFamily: fontFamily,
         }),
       });
       if (!res.ok) {
@@ -202,6 +206,22 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
         value={marginMm}
         onChange={setMarginMm}
       />
+      <Stack gap={6}>
+        <Text size="sm" fw={500}>
+          {t('company.pdfBranding.fontFamilyLabel')}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {t('company.pdfBranding.fontFamilyDescription')}
+        </Text>
+        <SegmentedControl
+          value={fontFamily}
+          onChange={(value) => setFontFamily(value as 'sans' | 'serif')}
+          data={[
+            { label: t('company.pdfBranding.fontSans'), value: 'sans' },
+            { label: t('company.pdfBranding.fontSerif'), value: 'serif' },
+          ]}
+        />
+      </Stack>
       <Stack gap={6}>
         <Text size="sm" fw={500}>
           {t('company.pdfBranding.logoLabel')}

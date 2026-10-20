@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   PDF_BRANDING_MARGIN_MM_MAX,
   PDF_BRANDING_MARGIN_MM_MIN,
+  PDF_FONT_FAMILIES,
   PDF_LOGO_POSITIONS,
   isValidPdfPrimaryColor,
 } from '../../../infrastructure/pdf/pdfBrandingTheme.js';
@@ -40,6 +41,7 @@ export const updateCompanyPdfBrandingBodySchema = z
       .nullable()
       .optional(),
     pdfLogoPosition: z.enum(PDF_LOGO_POSITIONS).nullable().optional(),
+    pdfFontFamily: z.enum(PDF_FONT_FAMILIES).nullable().optional(),
     /** When true, clears stored logo (object deleted by service). */
     clearPdfLogo: z.boolean().optional(),
   })
@@ -48,6 +50,7 @@ export const updateCompanyPdfBrandingBodySchema = z
       body.pdfPrimaryColor !== undefined ||
       body.pdfMarginMm !== undefined ||
       body.pdfLogoPosition !== undefined ||
+      body.pdfFontFamily !== undefined ||
       body.clearPdfLogo === true,
     { message: 'At least one branding field is required' }
   );
