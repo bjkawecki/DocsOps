@@ -16,9 +16,9 @@ describe('buildMarkdownForPdfExport', () => {
   });
 
   it('inserts meta line under title', () => {
-    expect(
-      buildMarkdownForPdfExport('Body', 'Doc', 'Responsible: A · Version 1 · 2026-10-20')
-    ).toBe('# Doc\n\nResponsible: A · Version 1 · 2026-10-20\n\nBody');
+    expect(buildMarkdownForPdfExport('Body', 'Doc', 'A, 2026-10-20, Version 1')).toBe(
+      '# Doc\n\nA, 2026-10-20, Version 1\n\nBody'
+    );
   });
 });
 

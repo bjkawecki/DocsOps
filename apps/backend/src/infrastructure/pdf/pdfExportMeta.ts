@@ -103,13 +103,18 @@ export async function resolveDocumentPdfResponsibleNames(
   return [];
 }
 
-/** Visible PDF meta line under the title (English product strings). */
+/** Visible PDF meta line under the title: name(s), date, version. */
 export function buildPdfResponsibleMetaLine(args: {
   responsibleNames: string[];
   versionNumber: number;
   publishedAt: Date;
 }): string {
   const date = args.publishedAt.toISOString().slice(0, 10);
-  const responsible = args.responsibleNames.length > 0 ? args.responsibleNames.join(', ') : 'n/a';
-  return `Responsible: ${responsible} · Version ${args.versionNumber} · ${date}`;
+  const parts: string[] = [];
+  if (args.responsibleNames.length > 0) {
+    parts.push(args.responsibleNames.join(', '));
+  }
+  parts.push(date);
+  parts.push(`Version ${args.versionNumber}`);
+  return parts.join(', ');
 }
