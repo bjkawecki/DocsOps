@@ -256,8 +256,8 @@
           "heading": "Lead and authors",
           "paragraphs": [
             "Each organisational scope – company, department, or team – has a lead. The lead of a scope publishes new versions of the documents in that scope.",
-            "In departments and teams, members can be appointed as authors. Several members can be authors at the same time. Authors contribute changes to drafts as suggestions; only the lead publishes a new version.",
-            "The member reads the published state and does not contribute to drafts."
+            "In departments and teams, members can be appointed as authors. Several members can be authors at the same time. Authors contribute changes to the working copy as suggestions; only the lead publishes a new version.",
+            "The member reads the published state and does not contribute to the working copy."
           ]
         },
         {
@@ -274,7 +274,7 @@
             "headers": ["Action", "Lead", "Author", "Member"],
             "rows": [
               ["Read published state", "yes", "yes", "yes"],
-              ["Contribute to drafts", "directly", "as suggestion", "no"],
+              ["Contribute to the working copy", "directly", "as suggestion", "no"],
               ["Create or delete contexts and documents", "yes", "no", "no"],
               ["Publish a new version", "yes", "no", "no"],
               ["Grant access", "yes", "no", "no"]
@@ -289,11 +289,11 @@
       ],
       "sections": [
         {
-          "heading": "Draft and published state",
+          "heading": "Working copy and published version",
           "paragraphs": [
-            "Changes are made in the draft and saved there. Saving does not create a new version; only publishing does.",
-            "Only the lead of the scope the document is assigned to publishes a new version. Authors contribute to the draft by submitting changes as suggestions; they may not publish.",
-            "While a document is unpublished, only those with write access see it. After publication, readers see the current state, not the ongoing draft."
+            "Changes are made in the working copy and saved there. Saving does not create a new version; only publishing does.",
+            "Only the lead of the scope the document is assigned to publishes a new version. Authors contribute to the working copy by submitting changes as suggestions; they may not publish.",
+            "While a document is unpublished, only those with write access see it. After publication, readers see the current state, not the ongoing working copy."
           ]
         },
         {
@@ -325,35 +325,35 @@
     },
     "lifecycle": {
       "lead": [
-        "A document’s lifecycle follows fixed stages: work on the draft, make it ready to publish, publish. After that the new state applies for readers until the next round on the draft begins. In the personal scope, author and lead fall away – there the owner goes through the stages alone."
+        "A document’s lifecycle follows fixed stages: work on the working copy, make it ready to publish, publish. After that the new state applies for readers until the next round on the working copy begins. In the personal scope, author and lead fall away – there the owner goes through the stages alone."
       ],
       "sections": [
         {
-          "heading": "Working on the draft",
+          "heading": "Working on the working copy",
           "paragraphs": [
-            "Every content change is made first in the draft. There, work happens in the editor and is saved. Saving keeps the intermediate state but does not yet create a new version for readers.",
-            "From the document, the content can be exported as PDF – whether work is currently on the draft or on the published state."
+            "Every content change is made first in the working copy. There, work happens in the editor and is saved. Saving keeps the intermediate state but does not yet create a new version for readers.",
+            "From the document, the content can be exported as PDF – whether work is currently on the working copy or on the published version."
           ]
         },
         {
           "heading": "Authors and lead",
           "paragraphs": [
-            "In the organisation, authors and lead share the same draft. Authors propose changes; the lead writes directly and decides on suggestions: accept or decline.",
-            "While suggestions are open, the next stage stays blocked: publishing is only possible when the draft has no open suggestions."
+            "In the organisation, authors and lead share the same working copy. Authors propose changes; the lead writes directly and decides on suggestions: accept or decline.",
+            "While suggestions are open, the next stage stays blocked: publishing is only possible when the working copy has no open suggestions."
           ]
         },
         {
           "heading": "New version and history",
           "paragraphs": [
-            "Publishing closes the cycle for this round: the draft becomes the new version. The scope’s lead triggers that step.",
-            "Anyone who may read then sees the current state and can review earlier versions. Readers do not see the ongoing draft or open suggestions – the next editing round begins again in the draft."
+            "Publishing closes the cycle for this round: the working copy becomes the new version. The scope’s lead triggers that step.",
+            "Anyone who may read then sees the current state and can review earlier versions. Readers do not see the ongoing working copy or open suggestions – the next editing round begins again in the working copy."
           ]
         }
       ]
     },
     "collaboration": {
       "lead": [
-        "Knowledge in the organisation is created together. On the document, several paths are open: discuss, shape the draft, grant access selectively, or bring preparatory work from the personal scope into the organisation."
+        "Knowledge in the organisation is created together. On the document, several paths are open: discuss, shape the working copy, grant access selectively, or bring preparatory work from the personal scope into the organisation."
       ],
       "sections": [
         {
@@ -364,9 +364,9 @@
           ]
         },
         {
-          "heading": "Working on the draft",
+          "heading": "Contributing to the working copy",
           "paragraphs": [
-            "Authors contribute to the shared draft and submit changes as suggestions. The lead decides on the suggestions and thereby continues the draft."
+            "Authors contribute to the shared working copy and submit changes as suggestions. The lead decides on the suggestions and thereby continues the working copy."
           ]
         },
         {
@@ -380,7 +380,7 @@
           "heading": "From personal scope into the organisation",
           "paragraphs": [
             "In the personal scope, knowledge can be developed and then brought into the organisation. The lead of the target scope decides on the move request.",
-            "After acceptance, the same person can continue contributing to the draft there as an author."
+            "After acceptance, the same person can continue contributing to the working copy there as an author."
           ]
         }
       ]

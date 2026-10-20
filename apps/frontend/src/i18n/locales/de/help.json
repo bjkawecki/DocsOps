@@ -256,8 +256,8 @@
           "heading": "Leitung und Autoren",
           "paragraphs": [
             "Pro Organisationsbereich – Unternehmen, Abteilung oder Team – gibt es eine Leitung. Die Leitung eines Bereichs veröffentlicht neue Versionen der Dokumente in diesem Bereich.",
-            "In Abteilungen und Teams können Mitglieder zu Autoren ernannt werden. Mehrere Mitglieder können zugleich Autoren sein. Autoren bringen Änderungen an Entwürfen als Vorschläge ein; eine neue Version veröffentlicht nur die Leitung.",
-            "Das Mitglied liest den veröffentlichten Stand und wirkt an Entwürfen nicht mit."
+            "In Abteilungen und Teams können Mitglieder zu Autoren ernannt werden. Mehrere Mitglieder können zugleich Autoren sein. Autoren bringen Änderungen am Arbeitsstand als Vorschläge ein; eine neue Version veröffentlicht nur die Leitung.",
+            "Das Mitglied liest den veröffentlichten Stand und wirkt am Arbeitsstand nicht mit."
           ]
         },
         {
@@ -274,7 +274,7 @@
             "headers": ["Handlung", "Leitung", "Autor", "Mitglied"],
             "rows": [
               ["Veröffentlichten Stand lesen", "ja", "ja", "ja"],
-              ["An Entwürfen mitwirken", "direkt", "als Vorschlag", "nein"],
+              ["Am Arbeitsstand mitwirken", "direkt", "als Vorschlag", "nein"],
               ["Kontexte und Dokumente anlegen oder löschen", "ja", "nein", "nein"],
               ["Neue Version veröffentlichen", "ja", "nein", "nein"],
               ["Freigaben vergeben", "ja", "nein", "nein"]
@@ -289,11 +289,11 @@
       ],
       "sections": [
         {
-          "heading": "Entwurf und veröffentlichter Stand",
+          "heading": "Arbeitsstand und veröffentlichte Version",
           "paragraphs": [
-            "Änderungen entstehen im Entwurf und werden dort gespeichert. Speichern erzeugt keine neue Version; erst das Veröffentlichen erzeugt eine.",
-            "Eine neue Version veröffentlicht ausschließlich die Leitung des Bereichs, dem das Dokument zugeordnet ist. Autoren wirken am Entwurf mit, indem sie Änderungen als Vorschläge einbringen; veröffentlichen dürfen sie nicht.",
-            "Solange ein Dokument unveröffentlicht ist, sehen es nur Schreibberechtigte. Nach der Veröffentlichung sehen Leser den geltenden Stand, nicht den laufenden Entwurf."
+            "Änderungen entstehen am Arbeitsstand und werden dort gespeichert. Speichern erzeugt keine neue Version; erst das Veröffentlichen erzeugt eine.",
+            "Eine neue Version veröffentlicht ausschließlich die Leitung des Bereichs, dem das Dokument zugeordnet ist. Autoren wirken am Arbeitsstand mit, indem sie Änderungen als Vorschläge einbringen; veröffentlichen dürfen sie nicht.",
+            "Solange ein Dokument unveröffentlicht ist, sehen es nur Schreibberechtigte. Nach der Veröffentlichung sehen Leser den geltenden Stand, nicht den laufenden Arbeitsstand."
           ]
         },
         {
@@ -325,35 +325,35 @@
     },
     "lifecycle": {
       "lead": [
-        "Der Lebenszyklus eines Dokuments folgt festen Stationen: am Entwurf arbeiten, ihn freigabefähig machen, veröffentlichen. Danach gilt der neue Stand für die Leser, bis die nächste Runde am Entwurf beginnt. Im persönlichen Bereich entfallen Autor und Leitung – dort durchläuft der Eigentümer die Stationen allein."
+        "Der Lebenszyklus eines Dokuments folgt festen Stationen: am Arbeitsstand arbeiten, ihn freigabefähig machen, veröffentlichen. Danach gilt der neue Stand für die Leser, bis die nächste Runde am Arbeitsstand beginnt. Im persönlichen Bereich entfallen Autor und Leitung – dort durchläuft der Eigentümer die Stationen allein."
       ],
       "sections": [
         {
-          "heading": "Am Entwurf arbeiten",
+          "heading": "Am Arbeitsstand arbeiten",
           "paragraphs": [
-            "Jede inhaltliche Änderung entsteht zuerst im Entwurf. Dort wird im Editor gearbeitet und gespeichert. Speichern hält den Zwischenstand fest, erzeugt aber noch keine neue Version für die Leser.",
-            "Aus dem Dokument heraus lässt sich der Inhalt als PDF exportieren – unabhängig davon, ob gerade am Entwurf oder am veröffentlichten Stand gearbeitet wird."
+            "Jede inhaltliche Änderung entsteht zuerst am Arbeitsstand. Dort wird im Editor gearbeitet und gespeichert. Speichern hält den Zwischenstand fest, erzeugt aber noch keine neue Version für die Leser.",
+            "Aus dem Dokument heraus lässt sich der Inhalt als PDF exportieren – unabhängig davon, ob gerade am Arbeitsstand oder an der veröffentlichten Version gearbeitet wird."
           ]
         },
         {
           "heading": "Autoren und Leitung",
           "paragraphs": [
-            "In der Organisation teilen sich Autoren und Leitung denselben Entwurf. Autoren schlagen Änderungen vor; die Leitung schreibt direkt und entscheidet über die Vorschläge: annehmen oder ablehnen.",
-            "Solange Vorschläge offen sind, bleibt die nächste Station blockiert: Veröffentlichen ist erst möglich, wenn der Entwurf ohne offene Vorschläge dasteht."
+            "In der Organisation teilen sich Autoren und Leitung denselben Arbeitsstand. Autoren schlagen Änderungen vor; die Leitung schreibt direkt und entscheidet über die Vorschläge: annehmen oder ablehnen.",
+            "Solange Vorschläge offen sind, bleibt die nächste Station blockiert: Veröffentlichen ist erst möglich, wenn der Arbeitsstand ohne offene Vorschläge dasteht."
           ]
         },
         {
           "heading": "Neue Version und Historie",
           "paragraphs": [
-            "Veröffentlichen schließt den Zyklus für diese Runde: Der Entwurf wird zur neuen Version. Die Leitung des Bereichs löst diesen Schritt aus.",
-            "Wer lesen darf, sieht danach den geltenden Stand und kann frühere Versionen nachvollziehen. Den laufenden Entwurf und offene Vorschläge sehen Leser nicht – die nächste Bearbeitungsrunde beginnt wieder im Entwurf."
+            "Veröffentlichen schließt den Zyklus für diese Runde: Der Arbeitsstand wird zur neuen Version. Die Leitung des Bereichs löst diesen Schritt aus.",
+            "Wer lesen darf, sieht danach den geltenden Stand und kann frühere Versionen nachvollziehen. Den laufenden Arbeitsstand und offene Vorschläge sehen Leser nicht – die nächste Bearbeitungsrunde beginnt wieder am Arbeitsstand."
           ]
         }
       ]
     },
     "collaboration": {
       "lead": [
-        "Wissen in der Organisation entsteht gemeinsam. Am Dokument stehen dafür mehrere Wege offen: diskutieren, den Entwurf mitgestalten, gezielt Zugriff geben oder Vorarbeit aus dem persönlichen Bereich in die Organisation bringen."
+        "Wissen in der Organisation entsteht gemeinsam. Am Dokument stehen dafür mehrere Wege offen: diskutieren, den Arbeitsstand mitgestalten, gezielt Zugriff geben oder Vorarbeit aus dem persönlichen Bereich in die Organisation bringen."
       ],
       "sections": [
         {
@@ -364,9 +364,9 @@
           ]
         },
         {
-          "heading": "Am Entwurf mitarbeiten",
+          "heading": "Am Arbeitsstand mitarbeiten",
           "paragraphs": [
-            "Autoren gestalten den gemeinsamen Entwurf mit und bringen Änderungen als Vorschläge ein. Die Leitung entscheidet über die Vorschläge und führt den Entwurf damit weiter."
+            "Autoren gestalten den gemeinsamen Arbeitsstand mit und bringen Änderungen als Vorschläge ein. Die Leitung entscheidet über die Vorschläge und führt den Arbeitsstand damit weiter."
           ]
         },
         {
@@ -380,7 +380,7 @@
           "heading": "Vom Persönlichen in die Organisation",
           "paragraphs": [
             "Im persönlichen Bereich lässt sich Wissen ausarbeiten und anschließend in die Organisation bringen. Die Leitung des Zielbereichs entscheidet über die Verschiebeanfrage.",
-            "Nach der Aufnahme kann dieselbe Person dort als Autor weiter am Entwurf mitwirken."
+            "Nach der Aufnahme kann dieselbe Person dort als Autor weiter am Arbeitsstand mitwirken."
           ]
         }
       ]
