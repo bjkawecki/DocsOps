@@ -5,6 +5,8 @@ export const jobPayloadSchemas = {
     documentId: z.cuid(),
     versionId: z.cuid(),
     requestedByUserId: z.cuid(),
+    /** Meta-line date locale; resolved at enqueue from UI/prefs/Accept-Language. */
+    locale: z.enum(['en', 'de']).optional(),
   }),
   'search.reindex.incremental': z.object({
     contextId: z.cuid().optional(),

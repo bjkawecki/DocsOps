@@ -46,6 +46,13 @@ export const documentIdParamSchema = z.object({
   documentId: z.cuid(),
 });
 
+/** Optional body locale for PDF meta line (publish / export-pdf). */
+export const pdfExportLocaleBodySchema = z
+  .object({
+    locale: z.enum(['en', 'de']).optional(),
+  })
+  .passthrough();
+
 /** Params: documentId + versionId (for version routes). */
 export const versionIdParamSchema = z.object({
   documentId: z.cuid(),

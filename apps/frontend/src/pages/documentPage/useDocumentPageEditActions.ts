@@ -3,6 +3,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { TFunction } from 'i18next';
 import type { SetURLSearchParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
 import {
@@ -91,6 +92,7 @@ export function useDocumentPageEditActions({
   setLeadDraftDirty,
   setAckPublishedVersion,
 }: UseDocumentPageEditActionsArgs) {
+  const { i18n } = useTranslation();
   // Sync metadata form from the document query only outside an active edit session.
   // Live collaboration refetch must not wipe in-progress title/description/tag edits.
   useEffect(() => {
@@ -286,8 +288,11 @@ export function useDocumentPageEditActions({
     if (!documentId) return;
     setPublishLoading(true);
     try {
+      const locale = i18n.language.toLowerCase().startsWith('de') ? 'de' : 'en';
       const res = await apiFetch(`/api/v1/documents/${documentId}/publish`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale }),
       });
       if (res.ok) {
         const published = (await res.json()) as DocumentResponse;

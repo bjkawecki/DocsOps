@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPdfResponsibleMetaLine,
   formatPdfMetaDate,
+  localeFromAcceptLanguage,
+  localeFromPreferences,
+  resolvePdfExportLocale,
   resolvePdfMetaLocale,
 } from './pdfExportMeta.js';
 
@@ -11,6 +14,46 @@ describe('resolvePdfMetaLocale', () => {
     expect(resolvePdfMetaLocale({ locale: 'en' })).toBe('en');
     expect(resolvePdfMetaLocale(null)).toBe('en');
     expect(resolvePdfMetaLocale({ locale: 'fr' })).toBe('en');
+  });
+});
+
+describe('localeFromPreferences / localeFromAcceptLanguage', () => {
+  it('returns null when preference unset', () => {
+    expect(localeFromPreferences(null)).toBeNull();
+    expect(localeFromPreferences({})).toBeNull();
+  });
+
+  it('parses Accept-Language', () => {
+    expect(localeFromAcceptLanguage('de-DE,de;q=0.9,en;q=0.8')).toBe('de');
+    expect(localeFromAcceptLanguage('en-US,en;q=0.9')).toBe('en');
+    expect(localeFromAcceptLanguage(undefined)).toBeNull();
+  });
+});
+
+describe('resolvePdfExportLocale', () => {
+  it('prefers body, then preferences, then Accept-Language', () => {
+    expect(
+      resolvePdfExportLocale({
+        bodyLocale: 'de',
+        preferences: { locale: 'en' },
+        acceptLanguage: 'en',
+      })
+    ).toBe('de');
+    expect(
+      resolvePdfExportLocale({
+        bodyLocale: null,
+        preferences: { locale: 'de' },
+        acceptLanguage: 'en',
+      })
+    ).toBe('de');
+    expect(
+      resolvePdfExportLocale({
+        bodyLocale: null,
+        preferences: null,
+        acceptLanguage: 'de-DE,de;q=0.9',
+      })
+    ).toBe('de');
+    expect(resolvePdfExportLocale({})).toBe('en');
   });
 });
 

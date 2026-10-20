@@ -27,7 +27,7 @@
 
 7. **Logo-Upload:** PNG/JPEG, max. 2 MB; Seitenverhältnis Breite:Höhe **2:1–6:1** (empfohlen 3:1–5:1); Skalierung im Header auf 12 mm Höhe.
 8. **Versionierte PDFs:** Bei Publish wird `documents.export.pdf` für die neue `DocumentVersion` enqueued; Speicherung in `pdfObjectKey` + `pdfResponsibleLabel` (Scope-Leads zum Erzeugungszeitpunkt). Download im Versionsverlauf ohne Neu-Rendern. Manueller Export regeneriert die aktuelle Version.
-9. **Sichtbare Meta-Zeile** unter dem Titel: `Name(n), Datum, Version n` (ohne Lead-Namen: nur Datum und Version). Datum nach Locale des Export-Anforderers (`en`: `YYYY-MM-DD`, `de`: `TT.MM.JJJJ`).
+9. **Sichtbare Meta-Zeile** unter dem Titel: `Name(n), Datum, Version n` (ohne Lead-Namen: nur Datum und Version). Datum nach Locale beim Enqueue (`en`: `YYYY-MM-DD`, `de`: `TT.MM.JJJJ`): Request-Body (`locale` aus UI) → `preferences.locale` → `Accept-Language` → `en`.
 10. **Schreibschutz:** nach Typst `qpdf` mit leerem User-Passwort, Modify/Annotate aus (kein Öffnungs-Passwort; kein eIDAS).
 
 ## Konsequenzen

@@ -123,11 +123,14 @@ export async function exportDocumentToPdf(
     version.document.id
   );
   const responsibleLabel = responsibleNames.join(', ');
-  const requester = await context.prisma.user.findUnique({
-    where: { id: payload.requestedByUserId },
-    select: { preferences: true },
-  });
-  const metaLocale = resolvePdfMetaLocale(requester?.preferences);
+  let metaLocale = payload.locale;
+  if (metaLocale !== 'de' && metaLocale !== 'en') {
+    const requester = await context.prisma.user.findUnique({
+      where: { id: payload.requestedByUserId },
+      select: { preferences: true },
+    });
+    metaLocale = resolvePdfMetaLocale(requester?.preferences);
+  }
   const metaLine = buildPdfResponsibleMetaLine({
     responsibleNames,
     versionNumber: version.versionNumber,

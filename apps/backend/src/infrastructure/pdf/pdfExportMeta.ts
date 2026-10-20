@@ -105,13 +105,47 @@ export async function resolveDocumentPdfResponsibleNames(
 
 export type PdfMetaLocale = 'en' | 'de';
 
-/** Locale for PDF meta line from user preferences; default English. */
-export function resolvePdfMetaLocale(preferences: unknown): PdfMetaLocale {
+/** Explicit preference locale, or null when unset. */
+export function localeFromPreferences(preferences: unknown): PdfMetaLocale | null {
   if (preferences != null && typeof preferences === 'object' && !Array.isArray(preferences)) {
     const locale = (preferences as { locale?: unknown }).locale;
     if (locale === 'de' || locale === 'en') return locale;
   }
+  return null;
+}
+
+/** First supported tag in an Accept-Language header, or null. */
+export function localeFromAcceptLanguage(header: string | undefined | null): PdfMetaLocale | null {
+  if (header == null || header.trim() === '') return null;
+  for (const part of header.split(',')) {
+    const tag = part.split(';')[0]?.trim().toLowerCase();
+    if (!tag) continue;
+    const base = tag.split('-')[0];
+    if (base === 'de' || base === 'en') return base;
+  }
+  return null;
+}
+
+/**
+ * Locale for PDF meta line at enqueue time.
+ * Order matches UI: request body → preferences → Accept-Language → en.
+ */
+export function resolvePdfExportLocale(input: {
+  bodyLocale?: string | null;
+  preferences?: unknown;
+  acceptLanguage?: string | null;
+}): PdfMetaLocale {
+  if (input.bodyLocale === 'de' || input.bodyLocale === 'en') return input.bodyLocale;
+  const fromPref = localeFromPreferences(input.preferences);
+  if (fromPref != null) return fromPref;
+  const fromHeader = localeFromAcceptLanguage(input.acceptLanguage);
+  if (fromHeader != null) return fromHeader;
   return 'en';
+}
+
+/** Locale for PDF meta line from user preferences; default English. */
+export function resolvePdfMetaLocale(preferences: unknown): PdfMetaLocale {
+  return localeFromPreferences(preferences) ?? 'en';
 }
 
 /** Format publish date for the PDF meta line (UTC calendar day). */

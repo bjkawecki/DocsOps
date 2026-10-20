@@ -26,7 +26,12 @@ import {
 } from '../services/lifecycle/documentService.js';
 import { blockDocumentV0ToMarkdown } from '../services/blocks/blocksToMarkdown.js';
 import { parseBlockDocumentFromDb } from '../services/blocks/documentBlocksBackfill.js';
-import { documentIdParamSchema, versionIdParamSchema } from '../schemas/documents.js';
+import {
+  documentIdParamSchema,
+  pdfExportLocaleBodySchema,
+  versionIdParamSchema,
+} from '../schemas/documents.js';
+import { resolvePdfExportLocale } from '../../../infrastructure/pdf/pdfExportMeta.js';
 import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import {
@@ -62,10 +67,23 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
       try {
         const result = await publishDocument(prisma, documentId, userId);
         try {
+          const body = pdfExportLocaleBodySchema.parse(
+            request.body != null && typeof request.body === 'object' ? request.body : {}
+          );
+          const requester = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { preferences: true },
+          });
+          const locale = resolvePdfExportLocale({
+            bodyLocale: body.locale,
+            preferences: requester?.preferences,
+            acceptLanguage: request.headers['accept-language'],
+          });
           await enqueueJob('documents.export.pdf', {
             documentId,
             versionId: result.currentPublishedVersionId,
             requestedByUserId: userId,
+            locale,
           });
         } catch (error) {
           request.log.warn(

@@ -26,7 +26,7 @@ import {
 } from './pdfExportNotification';
 
 export function useDocumentPage() {
-  const { t } = useTranslation(['documents', 'common']);
+  const { t, i18n } = useTranslation(['documents', 'common']);
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -358,7 +358,12 @@ export function useDocumentPage() {
     if (!documentId) return;
     setPdfExportLoading(true);
     try {
-      const res = await apiFetch(`/api/v1/documents/${documentId}/export-pdf`, { method: 'POST' });
+      const locale = i18n.language.toLowerCase().startsWith('de') ? 'de' : 'en';
+      const res = await apiFetch(`/api/v1/documents/${documentId}/export-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale }),
+      });
       if (!res.ok) {
         if (res.status === 503) {
           void notifyApiErrorResponse(res, {
