@@ -134,7 +134,6 @@
       "generatePdf": "Generate PDF",
       "regeneratePdf": "Regenerate PDF",
       "exportingPdf": "Queuing PDF export…",
-      "pdfPending": "PDF generating…",
       "assignContext": "Assign to context",
       "moveContext": "Move to context",
       "withdrawMoveRequest": "Withdraw move request",

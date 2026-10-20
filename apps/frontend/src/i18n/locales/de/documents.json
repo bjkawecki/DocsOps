@@ -134,7 +134,6 @@
       "generatePdf": "PDF erzeugen",
       "regeneratePdf": "PDF erneut erzeugen",
       "exportingPdf": "PDF-Export wird eingereiht…",
-      "pdfPending": "PDF wird erstellt…",
       "assignContext": "Kontext zuweisen",
       "moveContext": "In Kontext verschieben",
       "withdrawMoveRequest": "Verschiebeanfrage zurückziehen",

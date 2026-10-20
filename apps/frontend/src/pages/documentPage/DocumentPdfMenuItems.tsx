@@ -24,7 +24,7 @@ async function downloadDocumentPdf(documentId: string, title: string): Promise<v
   URL.revokeObjectURL(url);
 }
 
-/** PDF download for readers; regenerate/generate only when `canPublish` (lead / admin). */
+/** PDF download always listed when published (disabled until ready); regenerate only for leads. */
 export function DocumentPdfMenuItems({
   documentId,
   data,
@@ -41,20 +41,16 @@ export function DocumentPdfMenuItems({
 
   return (
     <>
-      {hasPdf ? (
-        <Menu.Item
-          leftSection={<IconDownload size={iconSize} />}
-          onClick={() => {
-            void downloadDocumentPdf(documentId, data.title);
-          }}
-        >
-          {t('documentPage.menu.downloadPdf')}
-        </Menu.Item>
-      ) : canRegenerate ? null : (
-        <Menu.Item leftSection={<IconDownload size={iconSize} />} disabled>
-          {t('documentPage.menu.pdfPending')}
-        </Menu.Item>
-      )}
+      <Menu.Item
+        leftSection={<IconDownload size={iconSize} />}
+        disabled={!hasPdf}
+        onClick={() => {
+          if (!hasPdf) return;
+          void downloadDocumentPdf(documentId, data.title);
+        }}
+      >
+        {t('documentPage.menu.downloadPdf')}
+      </Menu.Item>
       {canRegenerate && (
         <Menu.Item
           leftSection={<IconRefresh size={iconSize} />}
