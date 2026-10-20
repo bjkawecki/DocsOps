@@ -154,5 +154,14 @@
     "draftCreatedTitle": "Entwurf angelegt",
     "draftCreatedMessage": "Weiterleitung zum Entwurf.",
     "errorTitle": "Fehler"
+  },
+  "mostRead": {
+    "scopeUnavailable": "Bereich nicht verfügbar.",
+    "loading": "Wird geladen…",
+    "loadFailed": "Meistgelesene Dokumente konnten nicht geladen werden.",
+    "empty": "Noch keine Leseaktivität.",
+    "documentColumn": "Dokument",
+    "readerDaysColumn": "Lesetage",
+    "readerDaysAria": "{{count}} Lesetage"
   }
 }

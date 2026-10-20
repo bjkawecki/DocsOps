@@ -1,5 +1,6 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
 import type { TrashArchiveScope } from '../trashArchive/trashArchiveTypes.js';
@@ -22,6 +23,7 @@ type Props = {
  * Lead-only top published documents by all-time reader-days.
  */
 export function MostReadListContent({ scope, companyId, departmentId, teamId }: Props) {
+  const { t } = useTranslation('contexts');
   const params = new URLSearchParams({ scope });
   if (scope === 'company' && companyId) params.set('companyId', companyId);
   if (scope === 'department' && departmentId) params.set('departmentId', departmentId);
@@ -46,7 +48,7 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
   if (!enabled) {
     return (
       <Text size="sm" c="dimmed">
-        Scope not available.
+        {t('mostRead.scopeUnavailable')}
       </Text>
     );
   }
@@ -54,7 +56,7 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
   if (isPending) {
     return (
       <Text size="sm" c="dimmed">
-        Loading…
+        {t('mostRead.loading')}
       </Text>
     );
   }
@@ -62,7 +64,7 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
   if (isError) {
     return (
       <Text size="sm" c="red">
-        Failed to load most read documents.
+        {t('mostRead.loadFailed')}
       </Text>
     );
   }
@@ -71,7 +73,7 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
   if (items.length === 0) {
     return (
       <Text size="sm" c="dimmed">
-        No reader activity yet.
+        {t('mostRead.empty')}
       </Text>
     );
   }
@@ -80,10 +82,10 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
     <Stack gap="xs" w="100%">
       <Group justify="space-between" px={4} gap="md">
         <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-          Document
+          {t('mostRead.documentColumn')}
         </Text>
         <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-          Reader-days
+          {t('mostRead.readerDaysColumn')}
         </Text>
       </Group>
       {items.map((item) => (
@@ -96,7 +98,6 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
           mih={44}
           align="center"
         >
-          {' '}
           <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
             <Anchor component={Link} to={`/documents/${item.id}`} size="sm" fw={500} truncate>
               {item.title}
@@ -109,7 +110,7 @@ export function MostReadListContent({ scope, companyId, departmentId, teamId }: 
             size="sm"
             c="dimmed"
             style={{ flexShrink: 0 }}
-            aria-label={`${item.viewCount} reader-days`}
+            aria-label={t('mostRead.readerDaysAria', { count: item.viewCount })}
           >
             {item.viewCount}
           </Text>

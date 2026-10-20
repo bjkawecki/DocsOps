@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Alert, Anchor, Container, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { Alert, Container, Group, Loader, Stack, Text, Title } from '@mantine/core';
 import { IconSparkles } from '@tabler/icons-react';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
 import { useAppVersion } from '../../hooks/useAppVersion';
@@ -90,7 +89,7 @@ export function WhatsNewPage() {
         )}
 
         {!listPending && !listError && !detailsPending && releases.length === 0 && (
-          <Text size="sm" c="dimmed">
+          <Text size="md" c="dimmed">
             {t('shell:whatsNew.empty')}
           </Text>
         )}
@@ -107,12 +106,6 @@ export function WhatsNewPage() {
             ))}
           </Stack>
         )}
-
-        <Text size="sm" c="dimmed">
-          <Anchor component={Link} to="/help/what-is-docsops" size="sm">
-            {t('shell:whatsNew.helpLink')}
-          </Anchor>
-        </Text>
       </Stack>
     </Container>
   );

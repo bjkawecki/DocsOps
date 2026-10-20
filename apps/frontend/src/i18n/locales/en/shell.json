@@ -65,7 +65,6 @@
     "loadErrorTitle": "Could not load release notes",
     "loadErrorBody": "Please try again later.",
     "empty": "No release notes available yet.",
-    "helpLink": "Help & guides →",
     "latestBadge": "Latest"
   },
   "toasts": {

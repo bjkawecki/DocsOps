@@ -65,7 +65,6 @@
     "loadErrorTitle": "Release-Hinweise konnten nicht geladen werden",
     "loadErrorBody": "Bitte später erneut versuchen.",
     "empty": "Noch keine Release-Hinweise verfügbar.",
-    "helpLink": "Hilfe & Anleitungen →",
     "latestBadge": "Neueste"
   },
   "toasts": {

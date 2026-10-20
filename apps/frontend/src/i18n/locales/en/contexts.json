@@ -154,5 +154,14 @@
     "draftCreatedTitle": "Draft created",
     "draftCreatedMessage": "Redirecting to draft.",
     "errorTitle": "Error"
+  },
+  "mostRead": {
+    "scopeUnavailable": "Scope not available.",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load most read documents.",
+    "empty": "No reader activity yet.",
+    "documentColumn": "Document",
+    "readerDaysColumn": "Reader-days",
+    "readerDaysAria": "{{count}} reader-days"
   }
 }

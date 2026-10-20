@@ -20,7 +20,7 @@ export const releaseMarkdownComponents: Partial<Components> = {
     </Title>
   ),
   h2: ({ children }) => (
-    <Text component="h2" size="md" fw={600} mt="sm" mb={4} lh={1.4}>
+    <Text component="h2" size="lg" fw={600} mt="md" mb={6} lh={1.4}>
       {children}
     </Text>
   ),
@@ -29,39 +29,39 @@ export const releaseMarkdownComponents: Partial<Components> = {
     const sectionIcon = whatsNewSectionIcon(title);
     if (!sectionIcon) {
       return (
-        <Text component="h3" size="sm" fw={600} mt="sm" mb={4} lh={1.4}>
+        <Text component="h3" size="md" fw={600} mt="md" mb={6} lh={1.4}>
           {children}
         </Text>
       );
     }
     const { Icon, color } = sectionIcon;
     return (
-      <Group gap={6} mt="sm" mb={4} align="center" wrap="nowrap">
-        <Icon size={16} color={color} aria-hidden style={{ flexShrink: 0 }} />
-        <Text component="h3" size="sm" fw={600} lh={1.4}>
+      <Group gap={8} mt="md" mb={6} align="center" wrap="nowrap">
+        <Icon size={18} color={color} aria-hidden style={{ flexShrink: 0 }} />
+        <Text component="h3" size="md" fw={600} lh={1.4}>
           {children}
         </Text>
       </Group>
     );
   },
   p: ({ children }) => (
-    <Text component="p" size="sm" mb="xs" lh={1.45}>
+    <Text component="p" size="md" mb="sm" lh={1.55}>
       {children}
     </Text>
   ),
   ul: ({ children }) => (
-    <Box component="ul" mb="xs" pl="1.1rem" m={0} style={{ lineHeight: 1.45 }}>
+    <Box component="ul" mb="sm" pl="1.25rem" m={0} style={{ lineHeight: 1.55 }}>
       {children}
     </Box>
   ),
   ol: ({ children }) => (
-    <Box component="ol" mb="xs" pl="1.1rem" m={0} style={{ lineHeight: 1.45 }}>
+    <Box component="ol" mb="sm" pl="1.25rem" m={0} style={{ lineHeight: 1.55 }}>
       {children}
     </Box>
   ),
   li: ({ children }) => (
-    <Box component="li" mb={3} style={{ lineHeight: 1.45 }}>
-      <Text span size="sm" lh={1.45}>
+    <Box component="li" mb={6} style={{ lineHeight: 1.55 }}>
+      <Text span size="md" lh={1.55}>
         {children}
       </Text>
     </Box>
@@ -73,7 +73,7 @@ export const releaseMarkdownComponents: Partial<Components> = {
   ),
   a: ({ href, children }) =>
     href ? (
-      <Anchor href={href} target="_blank" rel="noreferrer noopener" size="sm">
+      <Anchor href={href} target="_blank" rel="noreferrer noopener" size="md">
         {children}
       </Anchor>
     ) : (
