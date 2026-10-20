@@ -1,10 +1,10 @@
 /* SSoT for document-like reading (document view, Help, Templates preview).
  * Do not add parallel scales (e.g. .content-reading). See .cursor/rules/document-reading-typography.mdc
  *
- * Reading font: --document-font-family (sans = Open Sans default; serif = Georgia via
+ * Reading font: --document-font-family (sans = IBM Plex Sans default; serif = Georgia via
  * document.documentElement[data-document-reading-font="serif"]). */
 :root {
-  --document-font-family: 'Open Sans', system-ui, sans-serif;
+  --document-font-family: 'IBM Plex Sans', system-ui, sans-serif;
 }
 
 :root[data-document-reading-font='serif'] {
@@ -15,16 +15,26 @@
   font-family: var(--document-font-family);
   font-size: var(--mantine-font-size-xl);
   line-height: 1.65;
+  /* Softer body than theme text; headings stay full contrast. */
+  --document-body-color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-1));
+  color: var(--document-body-color);
 }
 
 /* Mantine Text/Title set theme Inter + own size – force reading font metrics. */
 .document-content .mantine-Text-root,
 .document-content .mantine-List-root,
-.document-content .mantine-List-itemLabel,
+.document-content .mantine-List-itemLabel {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
 .document-content .mantine-Anchor-root {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  /* Link color stays --mantine-color-anchor (links.css); do not inherit body gray. */
 }
 
 /* Heading scale (§28a Leser-Typografie) – override Mantine Title vars + element metrics.
@@ -38,6 +48,7 @@
   font-size: calc(2rem * var(--mantine-scale));
   font-weight: 700;
   line-height: 1.25;
+  color: var(--mantine-color-text);
   margin: 1.4em 0 0.4em;
 }
 
@@ -50,6 +61,7 @@
   font-size: calc(1.5rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.3;
+  color: var(--mantine-color-text);
   /* More space above than below so H2 groups with following content. */
   margin: 1.5em 0 0.45em;
 }
@@ -63,6 +75,7 @@
   font-size: calc(1.25rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.35;
+  color: var(--mantine-color-text);
   margin: 1.1em 0 0.3em;
 }
 
@@ -75,6 +88,7 @@
   font-size: calc(1.1rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.4;
+  color: var(--mantine-color-text);
   margin: 1em 0 0.3em;
 }
 
@@ -87,6 +101,7 @@
   font-size: calc(1.05rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.4;
+  color: var(--mantine-color-text);
   margin: 0.95em 0 0.25em;
 }
 
@@ -99,6 +114,7 @@
   font-size: calc(1rem * var(--mantine-scale));
   font-weight: 650;
   line-height: 1.45;
+  color: var(--mantine-color-text);
   margin: 0.9em 0 0.25em;
 }
 

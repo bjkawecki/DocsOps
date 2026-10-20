@@ -87,12 +87,7 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
       const inline = renderInlineBlockContent(node.content);
       if (inline) {
         return (
-          <Text
-            size="lg"
-            c="var(--mantine-color-text)"
-            component="p"
-            style={{ whiteSpace: 'pre-wrap' }}
-          >
+          <Text size="lg" component="p" style={{ whiteSpace: 'pre-wrap' }}>
             {inline}
           </Text>
         );
@@ -100,12 +95,7 @@ function renderNode(node: BlockNodeV0, ctx: PreviewCtx): ReactNode {
       const t = walkNode(node);
       if (!t.trim()) return null;
       return (
-        <Text
-          size="lg"
-          c="var(--mantine-color-text)"
-          component="p"
-          style={{ whiteSpace: 'pre-wrap' }}
-        >
+        <Text size="lg" component="p" style={{ whiteSpace: 'pre-wrap' }}>
           {t}
         </Text>
       );
