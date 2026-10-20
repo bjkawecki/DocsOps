@@ -27,6 +27,8 @@ export type TypstPdfAssetFile = {
 export type TypstPdfExportOptions = {
   markdown: string;
   title?: string | null;
+  /** Short line under the title (responsible / version / date). */
+  metaLine?: string | null;
   typstBin?: string;
   typstArgs?: string[];
   /** Binary assets written under the compile workdir before `typst compile`. */
@@ -56,13 +58,30 @@ export function withTypstPackageCacheArgs(extraArgs: string[]): string[] {
   return ['--package-cache-path', cachePath, ...extraArgs];
 }
 
-/** Prepends document title as H1 when the body does not already start with one. */
-export function buildMarkdownForPdfExport(markdown: string, title?: string | null): string {
+/**
+ * Prepends document title as H1 when missing, and an optional meta line
+ * (responsible / version / date) directly under the title.
+ */
+export function buildMarkdownForPdfExport(
+  markdown: string,
+  title?: string | null,
+  metaLine?: string | null
+): string {
   const body = markdown.trim();
   const trimmedTitle = title?.trim();
-  if (!trimmedTitle) return body;
-  if (body.startsWith('# ')) return body;
-  return `# ${trimmedTitle}\n\n${body}`;
+  const meta = metaLine?.trim() || null;
+
+  let withTitle = body;
+  if (trimmedTitle && !body.startsWith('# ')) {
+    withTitle = `# ${trimmedTitle}\n\n${body}`;
+  }
+  if (!meta) return withTitle;
+
+  const lines = withTitle.split('\n');
+  if (lines[0]?.startsWith('# ')) {
+    return [lines[0], '', meta, '', ...lines.slice(1)].join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+  return `${meta}\n\n${withTitle}`;
 }
 
 export function themeFromCompanyRow(
@@ -95,7 +114,7 @@ export async function renderMarkdownToPdfBuffer(options: TypstPdfExportOptions):
       await writeFile(abs, asset.data);
     }
 
-    const markdown = buildMarkdownForPdfExport(options.markdown, options.title);
+    const markdown = buildMarkdownForPdfExport(options.markdown, options.title, options.metaLine);
     await writeFile(contentPath, markdown, 'utf8');
     await writeFile(mainPath, buildTypstMainSource(theme), 'utf8');
 

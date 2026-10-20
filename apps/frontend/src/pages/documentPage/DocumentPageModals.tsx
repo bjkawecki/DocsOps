@@ -1,6 +1,23 @@
-import { ActionIcon, Button, Group, Modal, Select, Stack, Text, TextInput } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Tooltip,
+} from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+export type ManageTagItem = {
+  id: string;
+  name: string;
+  documentCount: number;
+};
 
 type Props = {
   deleteOpened: boolean;
@@ -24,15 +41,11 @@ type Props = {
   moveTargetIsCrossOwner: boolean;
   moveContextLoading: boolean;
   onMoveContext: () => void;
-  createTagOpened: boolean;
-  closeCreateTag: () => void;
-  newTagName: string;
-  setNewTagName: (v: string) => void;
-  createTagLoading: boolean;
-  onCreateTag: () => void;
   manageTagsOpened: boolean;
   closeManageTags: () => void;
-  tags: { id: string; name: string }[];
+  tags: ManageTagItem[];
+  createTagLoading: boolean;
+  onCreateTag: (name: string) => Promise<string | null>;
   onDeleteTag: (tagId: string) => void;
 };
 
@@ -58,18 +71,24 @@ export function DocumentPageModals({
   moveTargetIsCrossOwner,
   moveContextLoading,
   onMoveContext,
-  createTagOpened,
-  closeCreateTag,
-  newTagName,
-  setNewTagName,
-  createTagLoading,
-  onCreateTag,
   manageTagsOpened,
   closeManageTags,
   tags,
+  createTagLoading,
+  onCreateTag,
   onDeleteTag,
 }: Props) {
   const { t } = useTranslation('documents');
+  const [manageNewTagName, setManageNewTagName] = useState('');
+
+  const submitManageCreate = () => {
+    const name = manageNewTagName.trim();
+    if (!name) return;
+    void onCreateTag(name).then((id) => {
+      if (id) setManageNewTagName('');
+    });
+  };
+
   return (
     <>
       <Modal opened={deleteOpened} onClose={closeDelete} title={t('modals.deleteTitle')} centered>
@@ -168,56 +187,71 @@ export function DocumentPageModals({
       </Modal>
 
       <Modal
-        opened={createTagOpened}
-        onClose={closeCreateTag}
-        title={t('modals.createTagTitle')}
-        centered
-      >
-        <Stack gap="md">
-          <TextInput
-            label={t('modals.tagNameLabel')}
-            value={newTagName}
-            onChange={(e) => setNewTagName(e.currentTarget.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void onCreateTag()}
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button variant="default" onClick={closeCreateTag}>
-              {t('modals.cancel')}
-            </Button>
-            <Button loading={createTagLoading} onClick={() => void onCreateTag()}>
-              {t('modals.create')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <Modal
         opened={manageTagsOpened}
-        onClose={closeManageTags}
+        onClose={() => {
+          setManageNewTagName('');
+          closeManageTags();
+        }}
         title={t('modals.manageTagsTitle')}
         centered
       >
-        <Stack gap="xs">
-          {tags.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              {t('modals.noTagsYet')}
-            </Text>
-          ) : (
-            tags.map((tag) => (
-              <Group key={tag.id} justify="space-between">
-                <Text size="sm">{tag.name}</Text>
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  size="sm"
-                  onClick={() => void onDeleteTag(tag.id)}
-                  aria-label={t('modals.deleteTagAria', { name: tag.name })}
-                >
-                  <IconTrash size={14} />
-                </ActionIcon>
-              </Group>
-            ))
-          )}
+        <Stack gap="md">
+          <Group align="flex-end" gap="xs" wrap="nowrap">
+            <TextInput
+              label={t('modals.tagNameLabel')}
+              value={manageNewTagName}
+              onChange={(e) => setManageNewTagName(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submitManageCreate();
+                }
+              }}
+              style={{ flex: 1 }}
+            />
+            <Button
+              loading={createTagLoading}
+              disabled={!manageNewTagName.trim()}
+              onClick={submitManageCreate}
+            >
+              {t('modals.create')}
+            </Button>
+          </Group>
+          <Stack gap="xs">
+            {tags.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                {t('modals.noTagsYet')}
+              </Text>
+            ) : (
+              tags.map((tag) => {
+                const inUse = tag.documentCount > 0;
+                const deleteBtn = (
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    size="sm"
+                    disabled={inUse}
+                    onClick={() => void onDeleteTag(tag.id)}
+                    aria-label={t('modals.deleteTagAria', { name: tag.name })}
+                  >
+                    <IconTrash size={14} />
+                  </ActionIcon>
+                );
+                return (
+                  <Group key={tag.id} justify="space-between">
+                    <Text size="sm">{tag.name}</Text>
+                    {inUse ? (
+                      <Tooltip label={t('modals.tagInUseTooltip', { count: tag.documentCount })}>
+                        {deleteBtn}
+                      </Tooltip>
+                    ) : (
+                      deleteBtn
+                    )}
+                  </Group>
+                );
+              })
+            )}
+          </Stack>
         </Stack>
       </Modal>
     </>

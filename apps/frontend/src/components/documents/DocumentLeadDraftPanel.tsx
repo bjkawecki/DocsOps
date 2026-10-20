@@ -9,6 +9,7 @@ import {
 export type DocumentLeadDraftPanelHandle = {
   saveDraft: () => Promise<boolean>;
   loadLatestServerDraft: () => void;
+  openRawJson: () => void;
 };
 
 export const DocumentLeadDraftPanel = forwardRef<
@@ -24,6 +25,7 @@ export const DocumentLeadDraftPanel = forwardRef<
     dirty,
     handleSave,
     remotePending,
+    setRawJsonOpened,
     ...viewProps
   } = s;
 
@@ -37,8 +39,11 @@ export const DocumentLeadDraftPanel = forwardRef<
       loadLatestServerDraft: () => {
         if (remotePending) applyIncoming(remotePending.revision, remotePending.doc);
       },
+      openRawJson: () => {
+        setRawJsonOpened(true);
+      },
     }),
-    [applyIncoming, canEdit, dirty, handleSave, remotePending]
+    [applyIncoming, canEdit, dirty, handleSave, remotePending, setRawJsonOpened]
   );
 
   if (q.isPending) {
@@ -71,6 +76,7 @@ export const DocumentLeadDraftPanel = forwardRef<
       applyIncoming={applyIncoming}
       handleSave={handleSave}
       canEdit={canEdit}
+      setRawJsonOpened={setRawJsonOpened}
     />
   );
 });

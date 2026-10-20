@@ -4,6 +4,29 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { flattenHelpTopics } from './helpTopics.js';
 
+const navButtonStyles = {
+  root: {
+    flex: '0 0 auto',
+    width: 'auto',
+    height: 36,
+    minHeight: 36,
+    paddingTop: 0,
+    paddingBottom: 0,
+  },
+  inner: {
+    height: '100%',
+    alignItems: 'center',
+  },
+  section: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    lineHeight: 0,
+  },
+  label: {
+    lineHeight: 1.25,
+  },
+};
+
 /** Previous / next article controls under help reading content. */
 export function HelpArticleNav() {
   const { t } = useTranslation('help');
@@ -18,13 +41,12 @@ export function HelpArticleNav() {
 
   return (
     <Group
+      className="help-article-nav"
       justify="space-between"
-      align="stretch"
+      align="center"
       gap="md"
       wrap="wrap"
-      mt="xl"
-      pt="md"
-      style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
+      mt="md"
     >
       {previous != null ? (
         <Button
@@ -33,12 +55,12 @@ export function HelpArticleNav() {
           variant="light"
           color="gray"
           leftSection={<IconArrowLeft size={16} stroke={1.5} />}
-          style={{ flex: '1 1 12rem' }}
+          styles={navButtonStyles}
         >
-          {t('nav.previous')}: {t(`topics.${previous.id}`)}
+          {t('nav.previous')}
         </Button>
       ) : (
-        <span style={{ flex: '1 1 12rem' }} />
+        <span />
       )}
       {next != null ? (
         <Button
@@ -47,12 +69,12 @@ export function HelpArticleNav() {
           variant="light"
           color="gray"
           rightSection={<IconArrowRight size={16} stroke={1.5} />}
-          style={{ flex: '1 1 12rem' }}
+          styles={navButtonStyles}
         >
-          {t('nav.next')}: {t(`topics.${next.id}`)}
+          {t('nav.next')}
         </Button>
       ) : (
-        <span style={{ flex: '1 1 12rem' }} />
+        <span />
       )}
     </Group>
   );

@@ -26,6 +26,7 @@ export type DocumentResponse = {
   contextId: string | null;
   documentTypeKey?: string | null;
   archivedAt: string | null;
+  deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;

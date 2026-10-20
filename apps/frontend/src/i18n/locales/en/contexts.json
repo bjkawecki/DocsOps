@@ -14,6 +14,7 @@
   "switcher": {
     "ariaLabel": "Switch context",
     "selectContext": "Select context",
+    "noContext": "No context",
     "processes": "Processes",
     "processesEmpty": "No processes yet.",
     "projects": "Projects",
@@ -42,13 +43,15 @@
   "entry": {
     "emptyTitle": "No processes or projects yet",
     "emptyBodyCanManage": "Create a process or project to get started, or a draft document.",
-    "emptyBodyReadOnly": "There are no processes or projects in this scope yet."
+    "emptyBodyReadOnly": "There are no processes or projects in this scope yet.",
+    "documentsWithoutContext": "Documents without a process or project",
+    "contextsHeading": "Processes and projects"
   },
   "createMenu": {
     "draft": "Draft",
     "ariaLabel": "Create process or project",
-    "process": "Process",
-    "project": "Project"
+    "process": "New process",
+    "project": "New project"
   },
   "routePages": {
     "noCompany": "No company available."

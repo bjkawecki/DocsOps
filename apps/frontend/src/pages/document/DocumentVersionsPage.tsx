@@ -35,6 +35,8 @@ type VersionItem = {
   createdAt: string;
   createdById: string | null;
   createdByName: string | null;
+  pdfReady?: boolean;
+  pdfResponsibleLabel?: string | null;
 };
 
 type VersionDetail = VersionItem & {
@@ -236,16 +238,46 @@ export function DocumentVersionsPage() {
                       <Text size="sm">
                         {new Date(v.createdAt).toLocaleString()}
                         {v.createdByName ? ` · ${v.createdByName}` : ''}
+                        {v.pdfResponsibleLabel ? ` · ${v.pdfResponsibleLabel}` : ''}
                       </Text>
                     </Group>
-                    <Button
-                      variant="subtle"
-                      size="compact-xs"
-                      component={Link}
-                      to={`/documents/${documentId}/versions?version=${v.id}`}
-                    >
-                      {t('versionsPage.view')}
-                    </Button>
+                    <Group gap="xs" wrap="nowrap">
+                      {v.pdfReady ? (
+                        <Button
+                          variant="subtle"
+                          size="compact-xs"
+                          onClick={() => {
+                            void (async () => {
+                              const res = await apiFetch(
+                                `/api/v1/documents/${documentId}/versions/${v.id}/pdf`
+                              );
+                              if (!res.ok) return;
+                              const blob = await res.blob();
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `v${v.versionNumber}.pdf`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            })();
+                          }}
+                        >
+                          {t('versionsPage.downloadPdf')}
+                        </Button>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          {t('versionsPage.pdfPending')}
+                        </Text>
+                      )}
+                      <Button
+                        variant="subtle"
+                        size="compact-xs"
+                        component={Link}
+                        to={`/documents/${documentId}/versions?version=${v.id}`}
+                      >
+                        {t('versionsPage.view')}
+                      </Button>
+                    </Group>
                   </Group>
                 ))}
               </Stack>

@@ -250,13 +250,20 @@
   background: color-mix(in srgb, var(--mantine-color-text) 4%, var(--mantine-color-default));
 }
 
+[data-mantine-color-scheme='light'] .pulse-feed-row:hover,
+[data-mantine-color-scheme='light'] .pulse-feed-row:focus-visible {
+  background: color-mix(in srgb, var(--mantine-color-text) 7%, var(--mantine-color-default));
+  border-color: var(--mantine-color-gray-5);
+}
+
 .pulse-feed-row-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
-  height: 22px;
-  margin-top: 2px;
+  /* Match headline line box so glyph centers with the title, not a taller 22px cell. */
+  height: calc(var(--pulse-type-feed) * 1.4);
+  margin-top: 0;
 }
 
 .pulse-feed-row-icon-svg {
@@ -294,6 +301,17 @@
   flex: 0 0 auto;
   min-width: 36px;
   min-height: 36px;
+  /* Idle: keep default chrome (border + surface) so it reads as a control on white cards. */
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.pulse-feed-row-action:hover:not(:disabled):not([data-disabled]) {
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-filled);
+  border-color: color-mix(in srgb, var(--mantine-primary-color-filled) 35%, transparent);
 }
 
 .pulse-feed-row-action--blink {
@@ -334,7 +352,7 @@
 
   .pulse-feed-row-icon {
     width: 22px;
-    height: 22px;
+    height: calc(var(--pulse-type-feed) * 1.4);
   }
 }
 
@@ -701,7 +719,6 @@ a.pulse-start-here-link.pulse-explore-link,
   display: inline-flex;
   flex-shrink: 0;
   color: var(--mantine-color-dimmed);
-  opacity: 0.7;
   line-height: 0;
   margin-top: 0.2em;
 }
@@ -710,7 +727,7 @@ a.pulse-start-here-link.pulse-explore-link,
   letter-spacing: normal;
   line-height: 1.35;
   min-width: 0;
-  opacity: 0.7;
+  /* Dimmed token alone (no extra opacity) – 0.7 wash failed AA (~3.5:1 on body). */
   white-space: normal;
   overflow-wrap: break-word;
 }

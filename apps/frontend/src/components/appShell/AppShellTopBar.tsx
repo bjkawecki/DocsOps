@@ -182,7 +182,7 @@ export function AppShellTopBar({
             ? t('account.notificationsUnread', { count: unreadNotificationsCount })
             : label
         }
-        style={{ color: 'var(--mantine-primary-color-4)' }}
+        style={{ color: 'var(--mantine-primary-color-filled)' }}
       >
         {badge && hasNotifBadge ? (
           <Box className="app-shell-sidebar-icon-wrap" component="span">
@@ -249,7 +249,7 @@ export function AppShellTopBar({
               aria-label={t('account.settings')}
               aria-pressed={settingsActive}
               onClick={toggleSettings}
-              style={{ color: 'var(--mantine-primary-color-4)' }}
+              style={{ color: 'var(--mantine-primary-color-filled)' }}
             >
               <IconSettings size={18} stroke={1.75} />
             </ActionIcon>

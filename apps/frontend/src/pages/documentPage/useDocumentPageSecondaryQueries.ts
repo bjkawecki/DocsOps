@@ -37,7 +37,7 @@ export function useDocumentPageSecondaryQueries(args: {
     queryFn: async () => {
       const res = await apiFetch(`/api/v1/tags?ownerId=${contextOwnerId}`);
       if (!res.ok) throw new Error('Failed to load tags');
-      return res.json() as Promise<{ id: string; name: string }[]>;
+      return res.json() as Promise<{ id: string; name: string; documentCount: number }[]>;
     },
     enabled: !!contextOwnerId,
   });
@@ -173,7 +173,11 @@ export function useDocumentPageSecondaryQueries(args: {
     refetchIntervalInBackground: true,
   });
 
-  const tags = tagsData ?? [];
+  const tags = (tagsData ?? []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    documentCount: t.documentCount ?? 0,
+  }));
   const tagOptions = tags.map((t) => ({ value: t.id, label: t.name }));
   const assignContextOptions = (assignContextsData ?? []).map((c) => ({
     value: c.contextId,

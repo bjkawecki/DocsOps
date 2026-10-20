@@ -5,6 +5,10 @@ import {
   type RequestWithUser,
 } from '../../../auth/middleware.js';
 import { patchPreferencesBodySchema } from '../../schemas/me.js';
+import {
+  loadPreferencesPruningDeletedRecentDocuments,
+  pruneDeletedDocumentsFromRecentItemsByScope,
+} from '../../services/pruneRecentDeletedDocuments.js';
 import type { UserPreferences } from './route-types.js';
 import { userPreferencesFromJson, dedupeRecentPreferencesItems } from './route-helpers.js';
 
@@ -15,7 +19,13 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
       where: { id: userId },
       select: { preferences: true },
     });
-    return reply.send(userPreferencesFromJson(user.preferences));
+    const prefs = await loadPreferencesPruningDeletedRecentDocuments(
+      request.server.prisma,
+      userId,
+      user.preferences,
+      userPreferencesFromJson
+    );
+    return reply.send(prefs);
   });
 
   app.patch('/me/preferences', { preHandler: requireAuthPreHandler }, async (request, reply) => {
@@ -33,6 +43,11 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
       for (const [scopeKey, list] of Object.entries(body.recentItemsByScope)) {
         recentItemsByScope[scopeKey] = dedupeRecentPreferencesItems(list);
       }
+      const { pruned } = await pruneDeletedDocumentsFromRecentItemsByScope(
+        request.server.prisma,
+        recentItemsByScope
+      );
+      recentItemsByScope = pruned ?? {};
     }
     const merged: UserPreferences = {
       ...currentPrefs,

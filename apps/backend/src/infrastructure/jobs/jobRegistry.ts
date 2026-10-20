@@ -1,10 +1,5 @@
 import type { PrismaClient } from '../../../generated/prisma/client.js';
-import { randomUUID } from 'node:crypto';
-import { renderMarkdownToPdfBuffer, themeFromCompanyRow } from '../pdf/typstPdfExport.js';
-import type { Readable } from 'node:stream';
 import { jobPayloadSchemas, type JobPayloadByType, type JobType } from './jobTypes.js';
-import { initStorage, type StorageService } from '../storage/index.js';
-import { canRead } from '../../domains/documents/permissions/canRead.js';
 import {
   runFullReindex,
   runIncrementalReindex,
@@ -12,12 +7,6 @@ import {
 import { dispatchNotificationEvent } from '../../domains/notifications/services/notificationDispatchService.js';
 import { runUserNotificationRetention } from '../../domains/notifications/services/notificationRetentionService.js';
 import { backfillAllDocumentBlocks } from '../../domains/documents/services/blocks/documentBlocksBackfill.js';
-import { documentMarkdownFromRow } from '../../domains/documents/services/query/documentMarkdownSnapshot.js';
-import {
-  collectAttachmentIdsFromMarkdown,
-  extensionFromFilename,
-  rewriteAttachmentTokensForPdf,
-} from '../../domains/documents/services/blocks/pdfAttachmentMarkdown.js';
 import { runOperationalBackup } from '../../domains/admin/services/operationalBackupService.js';
 import { runApplySystemUpdate } from '../../domains/admin/services/adminSystemUpdateApplyService.js';
 import { runWatchSystemUpdate } from '../../domains/admin/services/adminSystemUpdateWatchService.js';
@@ -25,33 +14,7 @@ import { runOperationalRestore } from '../../domains/admin/services/operationalR
 import { runPlatformExport } from '../../domains/admin/services/platformExportService.js';
 import { runPlatformImport } from '../../domains/admin/services/platformImportService.js';
 import { deliverAdminBroadcastById } from '../../domains/admin/services/adminBroadcastNotificationService.js';
-import {
-  getCompanyPdfBrandingRow,
-  resolvePdfBrandingCompanyIdForDocument,
-} from '../../domains/organisation/services/companyPdfBrandingService.js';
-
-async function readableToBuffer(body: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of body) {
-    if (Buffer.isBuffer(chunk)) {
-      chunks.push(chunk);
-    } else if (typeof chunk === 'string') {
-      chunks.push(Buffer.from(chunk));
-    } else {
-      chunks.push(Buffer.from(chunk as Uint8Array));
-    }
-  }
-  return Buffer.concat(chunks);
-}
-
-let storagePromise: Promise<StorageService | null> | null = null;
-
-async function getStorage(): Promise<StorageService | null> {
-  if (storagePromise == null) {
-    storagePromise = initStorage();
-  }
-  return storagePromise;
-}
+import { exportDocumentToPdf } from './documentPdfExportJob.js';
 
 export type JobLogger = {
   info: (obj: unknown, msg?: string) => void;
@@ -78,106 +41,6 @@ function notImplementedHandler(
 ): Promise<void> {
   context.logger.info({ jobName, payload }, 'Job received (handler not implemented yet)');
   return Promise.resolve();
-}
-
-async function exportDocumentToPdf(
-  payload: JobPayloadByType['documents.export.pdf'],
-  context: JobContext
-): Promise<void> {
-  const canExport = await canRead(context.prisma, payload.requestedByUserId, payload.documentId);
-  if (!canExport) {
-    throw new Error('Permission denied for PDF export');
-  }
-
-  const document = await context.prisma.document.findFirst({
-    where: { id: payload.documentId, deletedAt: null },
-    select: {
-      id: true,
-      title: true,
-      publishedAt: true,
-      draftBlocks: true,
-      currentPublishedVersion: { select: { blocks: true } },
-    },
-  });
-  if (!document) {
-    throw new Error('Document not found');
-  }
-  const markdownBody = documentMarkdownFromRow({
-    publishedAt: document.publishedAt,
-    draftBlocks: document.draftBlocks,
-    currentPublishedVersion: document.currentPublishedVersion,
-  });
-
-  const storage = await getStorage();
-  if (!storage) {
-    throw new Error('Storage not available');
-  }
-
-  const attachmentIds = collectAttachmentIdsFromMarkdown(markdownBody);
-  const relativePathById = new Map<string, string>();
-  const assetFiles: { relativePath: string; data: Buffer }[] = [];
-
-  for (const attachmentId of attachmentIds) {
-    const attachment = await context.prisma.documentAttachment.findFirst({
-      where: { id: attachmentId, documentId: document.id },
-      select: { id: true, objectKey: true, filename: true },
-    });
-    if (!attachment) {
-      throw new Error(`Attachment not found for PDF export: ${attachmentId}`);
-    }
-    const object = await storage.getObject(attachment.objectKey);
-    if (!object) {
-      throw new Error(`Attachment object missing in storage: ${attachmentId}`);
-    }
-    const ext = extensionFromFilename(attachment.filename) || '.bin';
-    const relativePath = `attachments/${attachment.id}${ext}`;
-    relativePathById.set(attachment.id, relativePath);
-    assetFiles.push({
-      relativePath,
-      data: await readableToBuffer(object.Body),
-    });
-  }
-
-  const markdownForPdf = rewriteAttachmentTokensForPdf(markdownBody, relativePathById);
-
-  const brandingCompanyId = await resolvePdfBrandingCompanyIdForDocument(
-    context.prisma,
-    document.id
-  );
-  const brandingRow =
-    brandingCompanyId != null
-      ? await getCompanyPdfBrandingRow(context.prisma, brandingCompanyId)
-      : null;
-  const theme = themeFromCompanyRow(brandingRow);
-  if (theme.logoObjectKey != null && theme.logoRelativePath != null) {
-    const logoObject = await storage.getObject(theme.logoObjectKey);
-    if (logoObject) {
-      assetFiles.push({
-        relativePath: theme.logoRelativePath,
-        data: await readableToBuffer(logoObject.Body),
-      });
-    }
-  }
-
-  const pdfBuffer = await renderMarkdownToPdfBuffer({
-    markdown: markdownForPdf,
-    title: document.title,
-    assetFiles,
-    theme,
-  });
-
-  const objectKey = `exports/documents/${document.id}/${Date.now()}-${randomUUID()}.pdf`;
-  await storage.uploadStream(objectKey, pdfBuffer, 'application/pdf');
-
-  await context.prisma.document.update({
-    where: { id: document.id },
-    data: { pdfUrl: objectKey },
-  });
-
-  context.logger.info(
-    { documentId: document.id, objectKey },
-    'Stored exported PDF and updated document.pdfUrl'
-  );
 }
 
 async function reindexIncremental(

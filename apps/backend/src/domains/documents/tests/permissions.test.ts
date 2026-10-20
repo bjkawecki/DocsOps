@@ -8,6 +8,7 @@ import {
   canDeleteDocument,
   canPublishDocument,
   canEditLeadDraft,
+  canLeadCanonEditDocument,
   canReadLeadDraft,
 } from '../permissions/index.js';
 import { hashPassword } from '../../auth/services/password.js';
@@ -380,6 +381,29 @@ describe('Permissions (canRead, canWrite)', () => {
     it('scope author without publish → canEditLeadDraft true', async () => {
       expect(await canEditLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
       expect(await canPublishDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
+      expect(await canLeadCanonEditDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
+    });
+
+    it('scope lead → canLeadCanonEditDocument true', async () => {
+      expect(await canLeadCanonEditDocument(prisma, supervisorId, docProcessId)).toBe(true);
+    });
+
+    it('context-free personal creator → canEditLeadDraft and canLeadCanonEdit true', async () => {
+      const freeDoc = await prisma.document.create({
+        data: {
+          title: `Context-free ${TS}`,
+          createdById: personalOwnerUserId,
+          draftBlocks: emptyBlockDocumentJson(),
+        },
+      });
+      try {
+        expect(await canEditLeadDraft(prisma, personalOwnerUserId, freeDoc.id)).toBe(true);
+        expect(await canReadLeadDraft(prisma, personalOwnerUserId, freeDoc.id)).toBe(true);
+        expect(await canPublishDocument(prisma, personalOwnerUserId, freeDoc.id)).toBe(false);
+        expect(await canLeadCanonEditDocument(prisma, personalOwnerUserId, freeDoc.id)).toBe(true);
+      } finally {
+        await prisma.document.delete({ where: { id: freeDoc.id } });
+      }
     });
 
     it('reader without author role → canEditLeadDraft false', async () => {

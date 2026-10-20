@@ -217,7 +217,8 @@ export function LeadDraftLinkPopover({
   const button = (
     <ActionIcon
       size={28}
-      variant={active ? 'filled' : 'light'}
+      variant={active ? 'filled' : 'subtle'}
+      color={active ? undefined : 'gray'}
       disabled={disabled}
       onClick={() => setOpened((o) => !o)}
       aria-label={t('editorToolbar.link')}

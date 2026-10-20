@@ -101,9 +101,17 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
   ) {
     const [, bumpToolbar] = useReducer((n: number) => n + 1, 0);
     const dirtyRef = useRef(false);
+    /** Editor-equivalent baseline so undo-to-synced clears dirty (not raw server JSON). */
+    const dirtyBaselineRef = useRef(baselineFingerprint);
     const onDirtyChangeRef = useRef(onDirtyChange);
     const onSaveShortcutRef = useRef(onSaveShortcut);
     const onSubmitShortcutRef = useRef(onSubmitShortcut);
+
+    const reportDirty = useCallback((dirty: boolean) => {
+      if (dirtyRef.current === dirty) return;
+      dirtyRef.current = dirty;
+      onDirtyChangeRef.current?.(dirty);
+    }, []);
     const [chromeHost, setChromeHost] = useState<Element | null>(null);
     const authorMode = editorMode === 'author';
     const [hoverTarget, setHoverTarget] = useState<SuggestionHoverTarget | null>(null);
@@ -213,14 +221,6 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       extensions,
       editable,
       content: blockDocumentToTiptapJson(sourceDocument, { documentId }),
-      onUpdate: ({ editor: e }) => {
-        const current = tiptapJsonToBlockDocument(e.getJSON());
-        const dirty = JSON.stringify(current) !== baselineFingerprint;
-        if (dirtyRef.current !== dirty) {
-          dirtyRef.current = dirty;
-          onDirtyChangeRef.current?.(dirty);
-        }
-      },
       editorProps: {
         attributes: {
           spellcheck: 'true',
@@ -242,6 +242,18 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
         },
       },
     });
+
+    useEffect(() => {
+      if (!editor) return;
+      const onEditorUpdate = () => {
+        const current = JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));
+        reportDirty(current !== dirtyBaselineRef.current);
+      };
+      editor.on('update', onEditorUpdate);
+      return () => {
+        editor.off('update', onEditorUpdate);
+      };
+    }, [editor, reportDirty]);
 
     useLayoutEffect(() => {
       setChromeHost(document.querySelector('[data-document-edit-sticky-chrome]'));
@@ -301,8 +313,11 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       if (!editor) return;
       const nextJson = blockDocumentToTiptapJson(sourceDocument, { documentId });
       const cur = editor.getJSON();
-      if (JSON.stringify(cur) === JSON.stringify(nextJson)) return;
-      editor.commands.setContent(nextJson, false);
+      if (JSON.stringify(cur) !== JSON.stringify(nextJson)) {
+        editor.commands.setContent(nextJson, false);
+      }
+      // Baseline must match what undo restores (editor round-trip), not raw server JSON.
+      dirtyBaselineRef.current = JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));
       dirtyRef.current = false;
       onDirtyChangeRef.current?.(false);
     }, [contentFingerprint, documentId, editor, sourceDocument]);
@@ -363,6 +378,9 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
                 !isSuggestionPersisted(suggestionInteractions.persistedDocument, suggestionId)
               ) {
                 if (withdrawLocalSuggestionInEditor(editor, suggestionId)) {
+                  // Keep dirtyRef in sync so undo can clear the unsaved indicator.
+                  dirtyRef.current = true;
+                  onDirtyChangeRef.current?.(true);
                   suggestionInteractions.onLocalChange?.();
                 }
                 return;

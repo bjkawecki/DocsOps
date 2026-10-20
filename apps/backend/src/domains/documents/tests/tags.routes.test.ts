@@ -21,7 +21,10 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
   let userId: string;
   let ownerId: string;
   let tagForDeleteId: string;
+  let tagInUseId: string;
+  let docWithTagId: string;
   const tag409Name = `Tag-409-${TS}`;
+  const tagInUseName = `Tag-In-Use-${TS}`;
 
   beforeAll(async () => {
     app = await buildApp();
@@ -45,13 +48,29 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     await prisma.tag.create({
       data: { name: tag409Name, ownerId },
     });
+    const tagInUse = await prisma.tag.create({
+      data: { name: tagInUseName, ownerId },
+    });
+    tagInUseId = tagInUse.id;
+    const doc = await prisma.document.create({
+      data: {
+        title: `Tagged Doc ${TS}`,
+        createdById: userId,
+        documentTags: { create: [{ tagId: tagInUse.id }] },
+      },
+    });
+    docWithTagId = doc.id;
   });
 
   afterAll(async () => {
+    if (docWithTagId) {
+      await prisma.documentTag.deleteMany({ where: { documentId: docWithTagId } });
+      await prisma.document.deleteMany({ where: { id: docWithTagId } });
+    }
     await prisma.tag.deleteMany({
       where: {
         name: {
-          in: [tag409Name, `Tag-To-Delete-${TS}`, `Tag-Success-${TS}`],
+          in: [tag409Name, `Tag-To-Delete-${TS}`, `Tag-Success-${TS}`, tagInUseName],
         },
       },
     });
@@ -95,10 +114,12 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
       headers: { cookie },
     });
     expect(res.statusCode).toBe(200);
-    const body = res.json() as { id: string; name: string }[];
+    const body = res.json() as { id: string; name: string; documentCount: number }[];
     expect(Array.isArray(body)).toBe(true);
     expect(body.length).toBeGreaterThanOrEqual(2);
-    expect(body.every((t) => t.id && t.name)).toBe(true);
+    expect(body.every((t) => t.id && t.name && typeof t.documentCount === 'number')).toBe(true);
+    const inUse = body.find((t) => t.id === tagInUseId);
+    expect(inUse?.documentCount).toBe(1);
   });
 
   it('POST /api/v1/tags ohne Auth → 401', async () => {
@@ -179,6 +200,24 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
       headers: { cookie },
     });
     expect(res.statusCode).toBe(204);
+  });
+
+  it('DELETE /api/v1/tags/:tagId bei Verwendung in Dokument → 409', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { email: `tags-user-${TS}@example.com`, password: PASSWORD },
+    });
+    expect(loginRes.statusCode).toBe(204);
+    const cookie = getCookieHeader(loginRes.headers['set-cookie']);
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/api/v1/tags/${tagInUseId}`,
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(409);
+    const body = res.json() as { error?: string };
+    expect(body.error).toMatch(/used|document/i);
   });
 
   it('DELETE /api/v1/tags/:tagId bei unbekanntem Tag → 404', async () => {

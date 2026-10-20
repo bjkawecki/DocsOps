@@ -1,5 +1,4 @@
 import type { FastifyInstance } from 'fastify';
-import { z } from 'zod';
 import {
   requireAuthPreHandler,
   preHandlerWrap,
@@ -29,158 +28,22 @@ import { blockDocumentV0ToMarkdown } from '../services/blocks/blocksToMarkdown.j
 import { parseBlockDocumentFromDb } from '../services/blocks/documentBlocksBackfill.js';
 import { documentIdParamSchema, versionIdParamSchema } from '../schemas/documents.js';
 import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
-import { enqueueJob, getJobById } from '../../../infrastructure/jobs/client.js';
+import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import {
   excludeUserIds,
   listUserIdsWhoCanReadDocument,
 } from '../../notifications/services/notificationRecipients.js';
 import { notifyDocumentPublishedCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
 import {
-  buildPdfDownloadFilename,
   buildDocumentDetailResponse,
   enqueueIncrementalReindexForDocumentSafe,
   enqueueNotificationEvent,
 } from '../services/route-support/documentRouteSupport.js';
 import { requireStorageAndDocumentAttachment } from './document-attachment-route-helpers.js';
-
-const QUEUE_RETRY_AFTER_SECONDS = 15;
-const exportPdfStatusParamsSchema = z.object({
-  documentId: z.cuid(),
-  jobId: z.string().min(1),
-});
+import { registerPublicationPdfRoutes } from './publicationPdf.routes.js';
 
 export const registerPublicationRoutes = (app: FastifyInstance): void => {
-  /** GET PDF download: proxy stream for internal object keys; redirect only for absolute external URLs. */
-  app.get<{ Params: { documentId: string } }>(
-    '/documents/:documentId/pdf',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
-    },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const { documentId } = documentIdParamSchema.parse(request.params);
-      const doc = await prisma.document.findFirst({
-        where: { id: documentId },
-        select: { title: true, pdfUrl: true },
-      });
-      if (!doc) return reply.status(404).send({ error: 'Document not found' });
-      const pdfUrl = doc.pdfUrl?.trim() ?? '';
-      if (!pdfUrl) return reply.status(404).send({ error: 'PDF not available' });
-      if (/^https?:\/\//i.test(pdfUrl)) {
-        return reply.redirect(pdfUrl, 302);
-      }
-      const storage = request.server.storage;
-      if (!storage) return reply.status(503).send({ error: 'Storage not available' });
-      const object = await storage.getObject(pdfUrl);
-      if (!object) return reply.status(404).send({ error: 'PDF object not found in storage' });
-      const filename = buildPdfDownloadFilename(doc.title, documentId);
-      reply.header('Content-Type', object.ContentType ?? 'application/pdf');
-      reply.header('Content-Disposition', `attachment; filename="${filename}"`);
-      // Stable path; content changes per export – do not let browsers reuse an old PDF.
-      reply.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-      reply.header('ETag', `"${pdfUrl}"`);
-      return reply.send(object.Body);
-    }
-  );
-
-  /** POST PDF export job: queue background generation and return job id for polling. */
-  app.post<{ Params: { documentId: string } }>(
-    '/documents/:documentId/export-pdf',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
-    },
-    async (request, reply) => {
-      const userId = getEffectiveUserId(request as RequestWithUser);
-      const { documentId } = documentIdParamSchema.parse(request.params);
-
-      let jobId: string;
-      try {
-        jobId = await enqueueJob('documents.export.pdf', {
-          documentId,
-          requestedByUserId: userId,
-        });
-      } catch (error) {
-        request.log.warn(
-          { error, documentId, userId },
-          'Queue unavailable while starting PDF export job'
-        );
-        return reply.header('Retry-After', String(QUEUE_RETRY_AFTER_SECONDS)).status(503).send({
-          error: 'Queue/worker currently unavailable. Please retry shortly.',
-          code: 'QUEUE_UNAVAILABLE',
-        });
-      }
-
-      return reply.status(202).send({
-        jobId,
-        status: 'queued',
-      });
-    }
-  );
-
-  /** GET PDF export job status incl. download URL when completed. */
-  app.get<{ Params: { documentId: string; jobId: string } }>(
-    '/documents/:documentId/export-pdf/:jobId',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('read'))],
-    },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const { documentId, jobId } = exportPdfStatusParamsSchema.parse(request.params);
-
-      const job = await getJobById('documents.export.pdf', jobId);
-      if (!job) {
-        return reply.status(404).send({ error: 'Export job not found' });
-      }
-
-      const payloadDocumentId =
-        typeof job.data === 'object' && job.data != null && 'documentId' in job.data
-          ? (job.data.documentId as string)
-          : null;
-      if (payloadDocumentId !== documentId) {
-        return reply.status(404).send({ error: 'Export job not found for document' });
-      }
-
-      const doc = await prisma.document.findUnique({
-        where: { id: documentId },
-        select: { pdfUrl: true },
-      });
-      if (!doc) return reply.status(404).send({ error: 'Document not found' });
-
-      const state = job.state;
-      const isDone = state === 'completed';
-      const responseStatus =
-        state === 'created' || state === 'retry'
-          ? 'queued'
-          : state === 'active'
-            ? 'running'
-            : state === 'completed'
-              ? 'succeeded'
-              : state === 'failed'
-                ? 'failed'
-                : state === 'cancelled'
-                  ? 'cancelled'
-                  : state;
-
-      return reply.send({
-        jobId,
-        status: responseStatus,
-        state,
-        completedAt: job.completedOn ?? null,
-        failedAt: null,
-        pdfReady: isDone && Boolean(doc.pdfUrl),
-        downloadUrl:
-          isDone && doc.pdfUrl
-            ? `/api/v1/documents/${documentId}/pdf?v=${encodeURIComponent(doc.pdfUrl)}`
-            : null,
-        error:
-          state === 'failed' && job.output && typeof job.output === 'object'
-            ? 'message' in job.output
-              ? (job.output.message as string)
-              : 'Job failed'
-            : null,
-      });
-    }
-  );
+  registerPublicationPdfRoutes(app);
 
   /** POST Publish – Lead-Draft als Version veröffentlichen (v1 oder nächste Version). */
   app.post<{ Params: { documentId: string } }>(
@@ -198,6 +61,18 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
 
       try {
         const result = await publishDocument(prisma, documentId, userId);
+        try {
+          await enqueueJob('documents.export.pdf', {
+            documentId,
+            versionId: result.currentPublishedVersionId,
+            requestedByUserId: userId,
+          });
+        } catch (error) {
+          request.log.warn(
+            { error, documentId, versionId: result.currentPublishedVersionId },
+            'Queue unavailable while enqueueing PDF export after publish'
+          );
+        }
         const doc = await prisma.document.findUnique({
           where: { id: documentId },
           include: {
@@ -344,6 +219,8 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
           createdAt: true,
           createdById: true,
           createdBy: { select: { name: true } },
+          pdfObjectKey: true,
+          pdfResponsibleLabel: true,
         },
       });
       const items = versions.map((v) => ({
@@ -352,6 +229,8 @@ export const registerPublicationRoutes = (app: FastifyInstance): void => {
         createdAt: v.createdAt,
         createdById: v.createdById ?? null,
         createdByName: v.createdBy?.name ?? null,
+        pdfReady: Boolean(v.pdfObjectKey),
+        pdfResponsibleLabel: v.pdfResponsibleLabel ?? null,
       }));
       return reply.send({ items });
     }

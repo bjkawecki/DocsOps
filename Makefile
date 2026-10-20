@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test landing-dev landing-build landing-build-lab landing-build-public landing-preview release release-overwrite up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test test-backend test-frontend test-e2e landing-dev landing-build landing-build-lab landing-build-public landing-preview release release-overwrite up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -26,7 +26,10 @@ help:
 	@echo "  make worker       Job-Worker im Dev-Modus starten (PDF export, pg-boss; Typst auf PATH)"
 	@echo "  make build        Backend bauen"
 	@echo "  make start        Backend starten (nach build)"
-	@echo "  make test         Backend-Tests ausführen (Vitest)"
+	@echo "  make test            Alias für test-backend"
+	@echo "  make test-backend    Backend-Tests (Vitest)"
+	@echo "  make test-frontend   Frontend-Tests (Vitest)"
+	@echo "  make test-e2e        Playwright-E2E (Stack muss laufen, z. B. make up; nutzt .env ADMIN_* + :5000)"
 	@echo "  make landing-dev     Landing Dev (http://127.0.0.1:5174; setzt VITE_SITE_URL lokal)"
 	@echo "  make landing-build   Landing-Build → apps/landing/dist (lokale VITE_SITE_URL)"
 	@echo "  make landing-build-lab  Landing für VM-Lab → dist-local (docsops.local)"
@@ -89,8 +92,24 @@ build:
 start:
 	pnpm --filter backend start
 
-test:
+test: test-backend
+
+test-backend:
 	pnpm --filter backend test
+
+test-frontend:
+	pnpm --filter frontend test
+
+# Local stack via Caddy (:5000). Override with DOCSOPS_E2E_BASE_URL / DOCSOPS_E2E_ADMIN_*.
+# Credentials: explicit E2E env, else ADMIN_* from .env (same as browser login).
+test-e2e:
+	@set -a; \
+	[ -f .env ] && . ./.env; \
+	set +a; \
+	DOCSOPS_E2E_BASE_URL="$${DOCSOPS_E2E_BASE_URL:-http://127.0.0.1:5000}" \
+	DOCSOPS_E2E_ADMIN_EMAIL="$${DOCSOPS_E2E_ADMIN_EMAIL:-$${ADMIN_EMAIL}}" \
+	DOCSOPS_E2E_ADMIN_PASSWORD="$${DOCSOPS_E2E_ADMIN_PASSWORD:-$${ADMIN_PASSWORD}}" \
+	pnpm --filter docsops-e2e test
 
 # Local marketing landing (SEO emit needs VITE_SITE_URL; no silent app fallback).
 LANDING_LOCAL_SITE_URL ?= http://127.0.0.1:5174

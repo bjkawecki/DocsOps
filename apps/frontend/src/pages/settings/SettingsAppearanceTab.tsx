@@ -21,9 +21,9 @@ import type {
   DocumentReadingFontPreference,
   UserPreferences,
 } from '../../components/system/ThemeFromPreferences';
-import { SettingsContentCard } from './SettingsContentCard.js';
 import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
 import { meQueryKey, useMe } from '../../hooks/useMe';
+import { contrastOnAccent } from '../../lib/contrastRatio.js';
 import {
   getPrimaryColorAccent,
   PRIMARY_COLOR_PRESET_LABELS,
@@ -33,24 +33,14 @@ import {
   type PrimaryColorPreset,
   type TextSizePreference,
 } from '../../theme';
+import { SettingsContentCard } from './SettingsContentCard.js';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
 import {
   SETTINGS_CARD_STACK_GAP,
   SETTINGS_FIELD_LABEL_GAP,
   settingsCardDomId,
 } from './settingsLayout.js';
-import { SettingsCardTitle } from './SettingsCardTitle.js';
 
-/** Readable label/icon color on a preset accent background. */
-function contrastOnAccent(hex: string): string {
-  const raw = hex.replace('#', '');
-  if (raw.length !== 6) return '#fff';
-  const r = Number.parseInt(raw.slice(0, 2), 16);
-  const g = Number.parseInt(raw.slice(2, 4), 16);
-  const b = Number.parseInt(raw.slice(4, 6), 16);
-  // Relative luminance (sRGB)
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return luminance > 0.55 ? 'var(--mantine-color-black)' : 'var(--mantine-color-white)';
-}
 export function SettingsAppearanceTab() {
   const { t } = useTranslation('settings');
   const queryClient = useQueryClient();

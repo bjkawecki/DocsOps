@@ -68,7 +68,7 @@ export function AdminTeamsTableSection({
                         component="button"
                         type="button"
                         variant="link"
-                        c="var(--mantine-primary-color-4)"
+                        c="var(--mantine-color-anchor)"
                         className="admin-link-hover"
                         size="sm"
                         style={{

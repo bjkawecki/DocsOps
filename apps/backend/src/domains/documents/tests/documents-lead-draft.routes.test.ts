@@ -203,6 +203,44 @@ describe('Documents routes / lead-draft', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('Context-free creator PATCH canon text -> 200', async () => {
+    const freeDoc = await prisma.document.create({
+      data: {
+        title: 'Context-free lead draft',
+        createdById: context.scopeLeadId,
+        draftBlocks: exampleBlockDocumentV0 as object,
+        draftRevision: 0,
+      },
+    });
+    try {
+      const cookie = await context.loginAsScopeLead();
+      const getRes = await context.app.inject({
+        method: 'GET',
+        url: `/api/v1/documents/${freeDoc.id}/lead-draft`,
+        headers: { cookie },
+      });
+      expect(getRes.statusCode).toBe(200);
+      const current = getRes.json() as { blocks: BlockDocument; draftRevision: number };
+      const modified = structuredClone(current.blocks);
+      const block = modified.blocks[0];
+      if (block?.content?.[0]?.meta) {
+        block.content[0].meta = { text: 'Personal canon edit' };
+      }
+      const res = await context.app.inject({
+        method: 'PATCH',
+        url: `/api/v1/documents/${freeDoc.id}/lead-draft`,
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: JSON.stringify({
+          expectedRevision: current.draftRevision,
+          blocks: modified,
+        }),
+      });
+      expect(res.statusCode).toBe(200);
+    } finally {
+      await prisma.document.delete({ where: { id: freeDoc.id } });
+    }
+  });
+
   it('Lead PATCH mit falscher expectedRevision -> 409', async () => {
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({

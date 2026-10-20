@@ -168,9 +168,19 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     const tags = await prisma.tag.findMany({
       where: { ownerId },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { documentTags: true } },
+      },
     });
-    return reply.send(tags);
+    return reply.send(
+      tags.map(({ id, name, _count }) => ({
+        id,
+        name,
+        documentCount: _count.documentTags,
+      }))
+    );
   });
 
   /** POST Tag anlegen – ownerId oder contextId im Body, canCreateTagForOwner. Bei doppeltem Namen im Scope 409. */
@@ -207,7 +217,7 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     return reply.status(201).send(tag);
   });
 
-  /** DELETE Tag – canCreateTagForOwner(tag.ownerId). DocumentTag wird per Cascade entfernt. */
+  /** DELETE Tag – canCreateTagForOwner(tag.ownerId). Refuses if any document still uses the tag. */
   app.delete('/tags/:tagId', { preHandler: requireAuthPreHandler }, async (request, reply) => {
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);
@@ -219,6 +229,12 @@ export const registerGrantsTagsRoutes = (app: FastifyInstance): void => {
     if (!tag) return reply.status(404).send({ error: 'Tag not found' });
     const canDelete = await canCreateTagForOwner(prisma, userId, tag.ownerId);
     if (!canDelete) return reply.status(403).send({ error: 'No permission to delete this tag' });
+    const documentCount = await prisma.documentTag.count({ where: { tagId } });
+    if (documentCount > 0) {
+      return reply.status(409).send({
+        error: 'Tag is still used by one or more documents and cannot be deleted.',
+      });
+    }
     await prisma.tag.delete({ where: { id: tagId } });
     return reply.status(204).send();
   });

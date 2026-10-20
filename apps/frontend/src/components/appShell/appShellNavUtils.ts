@@ -28,7 +28,7 @@ export type AppShellNavLinkStyles = {
   label: Record<string, unknown>;
 };
 
-/** Shared styles for app-shell sidebar nav links (heavier weight than content sidebars). */
+/** Shared styles for app-shell sidebar nav links (align with theme NavLink weight). */
 export function getNavLinkStyles(): AppShellNavLinkStyles {
   return {
     root: {
@@ -39,7 +39,7 @@ export function getNavLinkStyles(): AppShellNavLinkStyles {
     },
     label: {
       fontSize: 'var(--mantine-font-size-md)',
-      fontWeight: 600,
+      fontWeight: 500,
     },
   };
 }

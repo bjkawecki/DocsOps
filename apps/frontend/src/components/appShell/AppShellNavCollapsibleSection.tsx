@@ -121,7 +121,7 @@ export function AppShellNavCollapsibleSection({
           aria-controls={panelId}
         >
           {icon}
-          <Text size="xs" c="dimmed" fw={600} truncate style={{ flex: 1, textAlign: 'left' }}>
+          <Text size="xs" c="dimmed" fw={500} truncate style={{ flex: 1, textAlign: 'left' }}>
             {label}
           </Text>
           {middleSection}

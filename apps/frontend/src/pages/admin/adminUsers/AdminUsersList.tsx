@@ -216,7 +216,7 @@ export function AdminUsersList({
                           component="button"
                           type="button"
                           variant="link"
-                          c="var(--mantine-primary-color-4)"
+                          c="var(--mantine-color-anchor)"
                           size="sm"
                           className="admin-link-hover"
                           style={{
@@ -264,7 +264,7 @@ export function AdminUsersList({
                           component="button"
                           type="button"
                           size="xs"
-                          c="var(--mantine-primary-color-4)"
+                          c="var(--mantine-color-anchor)"
                           className="admin-link-hover"
                           style={{
                             cursor: 'pointer',

@@ -63,14 +63,12 @@ function registerMeDocumentsRoutes(app: FastifyInstance): void {
       const query = meDocumentsListQuerySchema.parse(request.query);
 
       const personalContextIds = await getPersonalContextIds(prisma, userId);
-
-      if (personalContextIds.length === 0) {
-        return reply.send(emptyMeDocumentsListBody(query));
-      }
-
       const where = {
-        contextId: { in: personalContextIds },
         ...activeMeDocumentsWhereBase(query),
+        OR: [
+          ...(personalContextIds.length > 0 ? [{ contextId: { in: personalContextIds } }] : []),
+          { contextId: null, createdById: userId },
+        ],
       };
 
       return sendMeDocumentsPage(prisma, reply, where, query);

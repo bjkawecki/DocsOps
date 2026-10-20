@@ -21,6 +21,8 @@ export type DocumentLeadDraftPanelProps = {
   documentId: string;
   refetchWhenVisible: boolean;
   canPublish: boolean;
+  /** Pass explicitly: null = context-free personal draft (owner edits as lead). */
+  contextId: string | null;
   currentUserId?: string;
   currentUserName?: string;
   isAdmin?: boolean;
@@ -39,6 +41,7 @@ export function useDocumentLeadDraftPanelState({
   documentId,
   refetchWhenVisible,
   canPublish,
+  contextId,
   currentUserId,
   currentUserName,
   isAdmin = false,
@@ -370,7 +373,8 @@ export function useDocumentLeadDraftPanelState({
     pendingSuggestionCount,
     knownServerRevision,
     isRevisionStale,
-    editorMode: canPublish ? ('lead' as const) : ('author' as const),
+    // Context-free personal drafts cannot publish yet, but the owner is the lead – no suggestions.
+    editorMode: canPublish || contextId === null ? ('lead' as const) : ('author' as const),
     publishedVersionIsStale,
     currentPublishedVersionNumber,
     ackPublishedVersion,

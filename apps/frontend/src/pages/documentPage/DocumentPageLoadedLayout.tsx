@@ -1,4 +1,4 @@
-import { Box, Card, Container, Flex, Stack, Text } from '@mantine/core';
+import { Box, Card, Container, Flex, Stack } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
@@ -26,6 +26,7 @@ import { contextUrl } from '../contextWorkspace/contextPaths.js';
 import type { DocumentResponse, PdfExportJobStatusResponse } from './documentPageTypes';
 import { DocumentSidebarMeta } from './buildDocumentMetadataItems';
 import { DocumentContextDocsNav } from './DocumentContextDocsNav.js';
+import { DocumentPersonalUngroupedDocsNav } from './DocumentPersonalUngroupedDocsNav.js';
 import { DocumentTocNav } from './DocumentTocNav.js';
 import { DocumentPageToolbarActions } from './DocumentPageToolbarActions.js';
 import { DocumentEditMobileActionBar } from './DocumentEditMobileActionBar.js';
@@ -78,8 +79,9 @@ export type DocumentPageLoadedLayoutProps = {
   moveDecisionLoading: boolean;
   onMoveRequestDecision: (action: 'accept' | 'reject' | 'withdraw') => void;
   openDelete: () => void;
-  openCreateTag: () => void;
   openManageTags: () => void;
+  onCreateTag: (name: string) => Promise<string | null>;
+  createTagLoading: boolean;
   publishedVersionIsStale: boolean;
   ackPublishedVersion: number | null;
   latestPublishedVersion: number;
@@ -132,8 +134,9 @@ export function DocumentPageLoadedLayout({
   moveDecisionLoading,
   onMoveRequestDecision,
   openDelete,
-  openCreateTag,
   openManageTags,
+  onCreateTag,
+  createTagLoading,
   publishedVersionIsStale,
   ackPublishedVersion,
   latestPublishedVersion,
@@ -179,9 +182,7 @@ export function DocumentPageLoadedLayout({
       leadDraftPanelRef={leadDraftPanelRef}
       leadDraftLastSynced={leadDraftLastSynced}
       leadDraftDirty={leadDraftDirty}
-      metadataDirty={metadataDirty}
       leadDraftPendingSuggestions={leadDraftPendingSuggestions}
-      saveLoading={saveLoading}
       publishLoading={publishLoading}
       canEnterEditMode={canEnterEditMode}
       showPublishButton={showPublishButton}
@@ -192,7 +193,6 @@ export function DocumentPageLoadedLayout({
       startHereScopes={startHereScopes}
       startHereBusy={startHereBusy}
       handleCancelEdit={handleCancelEdit}
-      handleSave={handleSave}
       handleEditClick={handleEditClick}
       handlePublish={handlePublish}
       handleStartPdfExport={handleStartPdfExport}
@@ -204,6 +204,7 @@ export function DocumentPageLoadedLayout({
       openDelete={openDelete}
       onSetStartHere={(scope) => void setStartHere.mutateAsync(scope)}
       onClearStartHere={(scope) => void clearStartHere.mutateAsync(scope)}
+      isAdmin={me?.user?.isAdmin === true}
     />
   );
 
@@ -214,15 +215,8 @@ export function DocumentPageLoadedLayout({
     editTab,
     editFocusMobile || viewFocusMobile ? 'floating' : 'chrome',
     leadDraftDirty,
-    metadataDirty,
-    // Metadata form values must be in syncKey: chrome actions freeze handleSave closures.
-    editTitle,
-    editDescription,
-    editTagIds.join(','),
-    editTypeId ?? '',
     leadDraftLastSynced,
     leadDraftPendingSuggestions,
-    saveLoading,
     publishLoading,
     canEnterEditMode,
     showPublishButton,
@@ -267,7 +261,7 @@ export function DocumentPageLoadedLayout({
           compactNavOpenRef={viewFocusMobile ? compactNavOpenRef : undefined}
           nav={
             <Stack gap="md" w="100%">
-              {data.contextId != null && ownerScope != null && (
+              {ownerScope != null && (
                 <ContextSwitcherSelect
                   owner={ownerScope}
                   value={data.contextId}
@@ -280,13 +274,15 @@ export function DocumentPageLoadedLayout({
                 <DocumentTocNav numberedHeadings={numberedHeadings} />
               )}
               <DocumentSidebarMeta data={data} />
-              {data.contextId != null && (
+              {data.contextId != null ? (
                 <DocumentContextDocsNav
                   contextId={data.contextId}
                   currentDocumentId={documentId}
                   contextType={data.contextType}
                 />
-              )}
+              ) : ownerScope?.type === 'personal' ? (
+                <DocumentPersonalUngroupedDocsNav currentDocumentId={documentId} />
+              ) : null}
             </Stack>
           }
         >
@@ -324,27 +320,16 @@ export function DocumentPageLoadedLayout({
                       <Card className="document-page-card" w="100%" padding={0}>
                         <Box style={{ maxWidth: '100%' }}>
                           {data.publishedBlocks != null &&
-                          data.publishedBlocks.blocks.length > 0 ? (
-                            publishedPlainFromBlocks ? (
-                              <DocumentBlocksPreview
-                                doc={data.publishedBlocks}
-                                documentId={documentId}
-                                documentTitle={data.title}
-                              />
-                            ) : (
-                              <Box mb="md" className="document-content">
-                                <DocumentReadingTitle title={data.title} />
-                                <Text size="sm" c="dimmed">
-                                  {t('documentPage.noExtractableText')}
-                                </Text>
-                              </Box>
-                            )
+                          data.publishedBlocks.blocks.length > 0 &&
+                          publishedPlainFromBlocks ? (
+                            <DocumentBlocksPreview
+                              doc={data.publishedBlocks}
+                              documentId={documentId}
+                              documentTitle={data.title}
+                            />
                           ) : (
                             <Box mb="md" className="document-content">
                               <DocumentReadingTitle title={data.title} />
-                              <Text size="sm" c="dimmed">
-                                {t('documentPage.noPublishedContent')}
-                              </Text>
                             </Box>
                           )}
                         </Box>
@@ -385,6 +370,7 @@ export function DocumentPageLoadedLayout({
                           ackPublishedVersion={ackPublishedVersion}
                           onReloadPublishedContent={onReloadPublishedContent}
                           me={me}
+                          leadDraftDirty={leadDraftDirty}
                           setLeadDraftDirty={setLeadDraftDirty}
                           setLeadDraftLastSynced={setLeadDraftLastSynced}
                           setLeadDraftPendingSuggestions={setLeadDraftPendingSuggestions}
@@ -397,8 +383,12 @@ export function DocumentPageLoadedLayout({
                           tagOptions={tagOptions}
                           editTagIds={editTagIds}
                           setEditTagIds={setEditTagIds}
-                          openCreateTag={openCreateTag}
                           openManageTags={openManageTags}
+                          onCreateTag={onCreateTag}
+                          createTagLoading={createTagLoading}
+                          metadataDirty={metadataDirty}
+                          saveLoading={saveLoading}
+                          onSaveMetadata={handleSave}
                         />
                       </Card>
                     </Box>
@@ -455,9 +445,7 @@ export function DocumentPageLoadedLayout({
           editTab={editTab}
           leadDraftPanelRef={leadDraftPanelRef}
           leadDraftDirty={leadDraftDirty}
-          metadataDirty={metadataDirty}
           leadDraftPendingSuggestions={leadDraftPendingSuggestions}
-          saveLoading={saveLoading}
           publishLoading={publishLoading}
           showPublishButton={showPublishButton}
           hasNoContext={hasNoContext}
@@ -467,7 +455,6 @@ export function DocumentPageLoadedLayout({
           startHereScopes={startHereScopes}
           startHereBusy={startHereBusy}
           handleCancelEdit={handleCancelEdit}
-          handleSave={handleSave}
           handlePublish={handlePublish}
           handleStartPdfExport={handleStartPdfExport}
           handleArchive={handleArchive}
@@ -478,6 +465,7 @@ export function DocumentPageLoadedLayout({
           openDelete={openDelete}
           onSetStartHere={(scope) => void setStartHere.mutateAsync(scope)}
           onClearStartHere={(scope) => void clearStartHere.mutateAsync(scope)}
+          isAdmin={me?.user?.isAdmin === true}
         />
       ) : null}
     </>

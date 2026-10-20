@@ -1,0 +1,41 @@
+/**
+ * Global light theme: body slightly shaded, cards on white surfaces;
+ * dimmed text stronger for readability; borders stay soft (gray-4).
+ * !important so this wins over Mantine's runtime-injected theme variables.
+ *
+ * Contrast pairs: keep in sync with `lightThemeContrast.pairs.ts`.
+ */
+[data-mantine-color-scheme='light'] {
+  --mantine-color-body: var(--mantine-color-gray-1) !important;
+  --mantine-color-default: var(--mantine-color-white) !important;
+  /* gray-0 on white cards is nearly invisible; gray-2 gives clear row hover. */
+  --mantine-color-default-hover: var(--mantine-color-gray-2) !important;
+  --mantine-color-default-color: var(--mantine-color-gray-9) !important;
+  --mantine-color-default-border: var(--mantine-color-gray-4) !important;
+  --mantine-color-dimmed: var(--mantine-color-gray-7) !important;
+  --mantine-color-placeholder: var(--mantine-color-gray-6) !important;
+  --mantine-color-anchor: var(--mantine-primary-color-7) !important;
+  --mantine-color-text: var(--mantine-color-gray-9) !important;
+  /*
+   * Light-variant labels: shade 7 on Mantine’s tinted light bg is ~4.4:1 (axe).
+   * Shade 8 clears WCAG AA 4.5:1 for xs buttons (e.g. Pulse filter chips).
+   */
+  --mantine-primary-color-light-color: var(--mantine-primary-color-8) !important;
+  --mantine-color-blue-light-color: var(--mantine-color-blue-8) !important;
+  --mantine-color-green-light-color: var(--mantine-color-green-8) !important;
+  --mantine-color-violet-light-color: var(--mantine-color-violet-8) !important;
+  --mantine-color-teal-light-color: var(--mantine-color-teal-8) !important;
+  --mantine-color-indigo-light-color: var(--mantine-color-indigo-8) !important;
+  --mantine-color-amber-light-color: var(--mantine-color-amber-8) !important;
+  --mantine-color-sky-light-color: var(--mantine-color-sky-8) !important;
+  --mantine-color-rose-light-color: var(--mantine-color-rose-8) !important;
+  --mantine-color-orange-light-color: var(--mantine-color-orange-8) !important;
+  --mantine-color-fuchsia-light-color: var(--mantine-color-fuchsia-8) !important;
+}
+
+/* Shell chrome on white surface so navbar/topbar separate from gray-1 body. */
+[data-mantine-color-scheme='light'] .mantine-AppShell-navbar,
+[data-mantine-color-scheme='light'] .app-shell-top-bar,
+[data-mantine-color-scheme='light'] .app-shell-navbar-chrome {
+  background-color: var(--mantine-color-default);
+}

@@ -1,8 +1,10 @@
+import { imageSize } from 'image-size';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import type { StorageService } from '../../../infrastructure/storage/index.js';
 import {
   PDF_LOGO_MAX_BYTES,
   isAllowedPdfLogoContentType,
+  isValidPdfLogoAspectRatio,
   logoExtensionForContentType,
   type CompanyPdfBrandingRow,
 } from '../../../infrastructure/pdf/pdfBrandingTheme.js';
@@ -118,6 +120,20 @@ export async function uploadCompanyPdfLogo(
   }
   if (body.length > PDF_LOGO_MAX_BYTES) {
     throw new CompanyPdfLogoInvalidError('Logo too large (max 2 MB)');
+  }
+
+  let dimensions: { width?: number; height?: number };
+  try {
+    dimensions = imageSize(body);
+  } catch {
+    throw new CompanyPdfLogoInvalidError('Could not read image dimensions');
+  }
+  const width = dimensions.width ?? 0;
+  const height = dimensions.height ?? 0;
+  if (!isValidPdfLogoAspectRatio(width, height)) {
+    throw new CompanyPdfLogoInvalidError(
+      'Logo aspect ratio must be between 2:1 and 6:1 (width:height); recommended 3:1–5:1'
+    );
   }
 
   const current = await prisma.company.findUnique({

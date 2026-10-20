@@ -209,7 +209,12 @@ export function LeadDraftEditorToolbarCompact({
               <Menu.Target>
                 <Tooltip label={t('editorToolbar.moreTools')} withArrow>
                   <span className={classes.toolHit}>
-                    <ActionIcon size={28} variant="light" aria-label={t('editorToolbar.moreTools')}>
+                    <ActionIcon
+                      size={28}
+                      variant="subtle"
+                      color="gray"
+                      aria-label={t('editorToolbar.moreTools')}
+                    >
                       <IconPlus size={ICON_SIZE} stroke={1.75} />
                     </ActionIcon>
                   </span>

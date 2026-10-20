@@ -114,7 +114,7 @@ export function AppShellNavbar({
               {s.showOrganizationNav ? (
                 <>
                   {!isMiniRail ? (
-                    <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
+                    <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
                       {t('nav.organization')}
                     </Text>
                   ) : null}
@@ -145,7 +145,7 @@ export function AppShellNavbar({
                 </>
               ) : null}
               {!isMiniRail ? (
-                <Text size="sm" fw={600} c="dimmed" mt={14} mb={2}>
+                <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
                   {t('nav.personal')}
                 </Text>
               ) : null}

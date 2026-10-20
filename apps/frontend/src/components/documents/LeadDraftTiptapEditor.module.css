@@ -9,8 +9,8 @@
 .chrome {
   /* Sticky is on .document-page-edit-sticky-stack (tabs + chrome portal host). */
   margin: 0;
-  background-color: var(--mantine-color-body);
-  padding-top: var(--mantine-spacing-sm);
+  background-color: transparent;
+  padding-top: 0;
   padding-bottom: var(--mantine-spacing-xs);
 }
 
@@ -19,11 +19,13 @@
 }
 
 .editorShell {
-  /* Edit-only frame around the draft body (not the sticky tabs/toolbar). */
+  /* Only writing surface uses white paper; chrome stays on body. */
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
-  background: transparent;
+  background: var(--mantine-color-default);
   overflow: visible;
+  /* Align with sticky-stack horizontal inset (card--edit has padding 0). */
+  margin-inline: var(--mantine-spacing-lg);
   padding: 0.75rem 1rem;
 }
 

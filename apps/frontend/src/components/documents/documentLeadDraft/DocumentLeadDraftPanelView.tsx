@@ -29,7 +29,6 @@ export function DocumentLeadDraftPanelView({
   otherEditors,
   rawJsonOpened,
   setRawJsonOpened,
-  isAdmin,
   knownServerRevision,
   isRevisionStale,
   editorMode,
@@ -53,49 +52,47 @@ export function DocumentLeadDraftPanelView({
   const sessionLoading = !!canEdit && editorMode === 'author' && !currentUserId;
 
   const chromePrefix = (
-    <Stack gap="sm" mb="sm">
-      <DraftCollaborationBanner
-        canPublish={!!canPublish}
-        remotePending={remotePending}
-        dirty={dirty}
-        knownServerRevision={knownServerRevision}
-        appliedRevision={appliedRevision}
-        incomingRevision={incomingRevision}
-        onLoadLatest={() => void handleLoadLatest()}
-        onKeepMine={() => setRemotePending(null)}
-      />
+    <>
       <DraftSyncMetaBar
-        appliedRevision={appliedRevision}
-        incomingRevision={incomingRevision}
         dirty={dirty}
         isRevisionStale={isRevisionStale}
         knownServerRevision={knownServerRevision}
-        canEdit={!!canEdit}
-        editorMode={editorMode}
         otherEditors={otherEditors}
       />
-      {sessionLoading && (
-        <Text size="xs" c="dimmed">
-          {t('leadDraft.loadingSession')}
-        </Text>
-      )}
-      {canEdit && draftLooksEmpty && publishedFallbackAvailable && (
-        <Alert color="yellow" title={t('leadDraft.draftEmptyTitle')}>
-          <Stack gap="xs">
-            <Text size="sm">{t('leadDraft.draftEmptyBody')}</Text>
-            <Group gap="xs">
-              <Button
-                size="xs"
-                variant="filled"
-                onClick={() => void handleResetDraftFromPublished()}
-              >
-                {t('leadDraft.resetToPublished')}
-              </Button>
-            </Group>
-          </Stack>
-        </Alert>
-      )}
-    </Stack>
+      <Stack gap="sm" mb="sm">
+        <DraftCollaborationBanner
+          canPublish={!!canPublish}
+          remotePending={remotePending}
+          dirty={dirty}
+          knownServerRevision={knownServerRevision}
+          appliedRevision={appliedRevision}
+          incomingRevision={incomingRevision}
+          onLoadLatest={() => void handleLoadLatest()}
+          onKeepMine={() => setRemotePending(null)}
+        />
+        {sessionLoading && (
+          <Text size="xs" c="dimmed">
+            {t('leadDraft.loadingSession')}
+          </Text>
+        )}
+        {canEdit && draftLooksEmpty && publishedFallbackAvailable && (
+          <Alert color="yellow" title={t('leadDraft.draftEmptyTitle')}>
+            <Stack gap="xs">
+              <Text size="sm">{t('leadDraft.draftEmptyBody')}</Text>
+              <Group gap="xs">
+                <Button
+                  size="xs"
+                  variant="filled"
+                  onClick={() => void handleResetDraftFromPublished()}
+                >
+                  {t('leadDraft.resetToPublished')}
+                </Button>
+              </Group>
+            </Stack>
+          </Alert>
+        )}
+      </Stack>
+    </>
   );
 
   return (
@@ -125,19 +122,6 @@ export function DocumentLeadDraftPanelView({
           onLocalChange: () => setDirty(true),
         }}
       />
-      {isAdmin && (
-        <Group justify="flex-end" style={{ flexShrink: 0 }} mt="xs">
-          <Button
-            size="xs"
-            variant="subtle"
-            onClick={() => {
-              setRawJsonOpened(true);
-            }}
-          >
-            {t('leadDraft.viewRawJson')}
-          </Button>
-        </Group>
-      )}
       <Modal
         opened={rawJsonOpened}
         onClose={() => setRawJsonOpened(false)}

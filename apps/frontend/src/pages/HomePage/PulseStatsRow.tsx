@@ -91,7 +91,7 @@ type Props = {
 };
 
 /**
- * Soft greeting + updates status; xs outline/filled filter buttons in accent color.
+ * Soft greeting + updates status; xs filter chips (primary outline idle, filled when active).
  */
 export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Props) {
   const { t } = useTranslation('documents');
@@ -144,16 +144,6 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
                 size="xs"
                 color={primaryColor}
                 variant={active ? 'filled' : 'outline'}
-                styles={
-                  active
-                    ? undefined
-                    : {
-                        root: {
-                          borderColor: `var(--mantine-color-${primaryColor}-filled)`,
-                          color: `var(--mantine-color-${primaryColor}-filled)`,
-                        },
-                      }
-                }
                 onClick={() => onSelectKind(active ? null : def.kind)}
                 aria-pressed={active}
               >

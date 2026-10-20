@@ -21,19 +21,28 @@
 ## Nicht-Ziele (v1)
 
 - Department/Team-Themes, SVG-Logo, Schrift-Upload, freier Footer-Text, PDF-Live-Vorschau in der UI.
+- eIDAS / kryptografische Signatur (AES/QES).
+
+## Erweiterungen (nach v1)
+
+7. **Logo-Upload:** PNG/JPEG, max. 2 MB; Seitenverhältnis Breite:Höhe **2:1–6:1** (empfohlen 3:1–5:1); Skalierung im Header auf 12 mm Höhe.
+8. **Versionierte PDFs:** Bei Publish wird `documents.export.pdf` für die neue `DocumentVersion` enqueued; Speicherung in `pdfObjectKey` + `pdfResponsibleLabel` (Scope-Leads zum Erzeugungszeitpunkt). Download im Versionsverlauf ohne Neu-Rendern. Manueller Export regeneriert die aktuelle Version.
+9. **Sichtbare Meta-Zeile** unter dem Titel: `Responsible: … · Version n · YYYY-MM-DD` (englische Produktstrings; ohne Lead-Namen: `n/a`).
+10. **Schreibschutz:** nach Typst `qpdf` mit leerem User-Passwort, Modify/Annotate aus (kein Öffnungs-Passwort; kein eIDAS).
 
 ## Konsequenzen
 
-| Bereich  | Konsequenz                       |
-| -------- | -------------------------------- |
-| Prisma   | Migration Company-PDF-Felder     |
-| Worker   | Theme + Logo vor `typst compile` |
-| Org-API  | Branding-Endpunkte + Permissions |
-| Frontend | Shared `CompanyPdfBrandingForm`  |
+| Bereich  | Konsequenz                                                                           |
+| -------- | ------------------------------------------------------------------------------------ |
+| Prisma   | Migration Company-PDF-Felder; `DocumentVersion.pdfObjectKey` / `pdfResponsibleLabel` |
+| Worker   | Theme + Logo vor `typst compile`; qpdf Write-Protect                                 |
+| Org-API  | Branding-Endpunkte + Permissions                                                     |
+| Frontend | Shared `CompanyPdfBrandingForm`; Versions-PDF-Download                               |
 
 ## Changelog
 
-| Datum      | Änderung                                                       |
-| ---------- | -------------------------------------------------------------- |
-| 2026-08-01 | Erstfassung (akzeptiert, v1)                                   |
-| 2026-08-01 | Logo im Page-Header (links/rechts), explizite H1/H2-Skalierung |
+| Datum      | Änderung                                                           |
+| ---------- | ------------------------------------------------------------------ |
+| 2026-08-01 | Erstfassung (akzeptiert, v1)                                       |
+| 2026-08-01 | Logo im Page-Header (links/rechts), explizite H1/H2-Skalierung     |
+| 2026-10-20 | Logo-Aspekt, Publish-PDF pro Version, Lead-Zeile, qpdf-Permissions |

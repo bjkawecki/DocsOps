@@ -11,6 +11,7 @@ import {
   refreshContextOwnerDisplayForOwner,
 } from '../../../organisation/services/contextOwnerDisplay.js';
 import type { MeIdentityTeam, MeResponse } from './route-types.js';
+import { loadPreferencesPruningDeletedRecentDocuments } from '../../services/pruneRecentDeletedDocuments.js';
 import { userPreferencesFromJson } from './route-helpers.js';
 
 function registerMeProfileRoutes(app: FastifyInstance): void {
@@ -151,7 +152,12 @@ function registerMeProfileRoutes(app: FastifyInstance): void {
         departmentAuthors,
         companyLeads,
       },
-      preferences: userPreferencesFromJson(user.preferences),
+      preferences: await loadPreferencesPruningDeletedRecentDocuments(
+        request.server.prisma,
+        userId,
+        user.preferences,
+        userPreferencesFromJson
+      ),
       ...(req.effectiveUserId
         ? {
             impersonation: {

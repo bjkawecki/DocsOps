@@ -24,6 +24,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import './styles/links.css';
 import './styles/table-rows.css';
 import './styles/theme-dark.css';
+import './styles/theme-light.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

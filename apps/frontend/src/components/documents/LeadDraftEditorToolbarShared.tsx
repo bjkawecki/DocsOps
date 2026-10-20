@@ -22,7 +22,8 @@ export function ToolIcon({
   const control = (
     <ActionIcon
       size={28}
-      variant={active ? 'filled' : 'light'}
+      variant={active ? 'filled' : 'subtle'}
+      color={active ? undefined : 'gray'}
       disabled={disabled}
       onClick={onClick}
       aria-label={label}
@@ -51,7 +52,8 @@ export function HeadingTool({
       <span className={classes.toolHit}>
         <ActionIcon
           size={28}
-          variant={active ? 'filled' : 'light'}
+          variant={active ? 'filled' : 'subtle'}
+          color={active ? undefined : 'gray'}
           onClick={onClick}
           aria-label={label}
         >

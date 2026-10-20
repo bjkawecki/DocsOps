@@ -14,6 +14,7 @@
   "switcher": {
     "ariaLabel": "Kontext wechseln",
     "selectContext": "Kontext auswählen",
+    "noContext": "Kein Kontext",
     "processes": "Prozesse",
     "processesEmpty": "Noch keine Prozesse.",
     "projects": "Projekte",
@@ -42,13 +43,15 @@
   "entry": {
     "emptyTitle": "Noch keine Prozesse oder Projekte",
     "emptyBodyCanManage": "Lege einen Prozess oder ein Projekt an, um zu starten, oder erstelle einen Entwurf.",
-    "emptyBodyReadOnly": "In diesem Bereich gibt es noch keine Prozesse oder Projekte."
+    "emptyBodyReadOnly": "In diesem Bereich gibt es noch keine Prozesse oder Projekte.",
+    "documentsWithoutContext": "Dokumente ohne Prozess oder Projekt",
+    "contextsHeading": "Prozesse und Projekte"
   },
   "createMenu": {
     "draft": "Entwurf",
     "ariaLabel": "Prozess oder Projekt anlegen",
-    "process": "Prozess",
-    "project": "Projekt"
+    "process": "Neuer Prozess",
+    "project": "Neues Projekt"
   },
   "routePages": {
     "noCompany": "Kein Unternehmen verfügbar."

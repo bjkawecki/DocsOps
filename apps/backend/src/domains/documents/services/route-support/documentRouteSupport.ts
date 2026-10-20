@@ -249,7 +249,10 @@ export function buildDocumentDetailResponse(args: {
             }
           : owner?.teamId != null
             ? { type: 'team' as const, id: owner.teamId, name: owner.displayName ?? 'Team' }
-            : null;
+            : // Context-free drafts exist only in the personal area.
+              doc.contextId == null
+              ? { type: 'personal' as const, name: 'Personal' }
+              : null;
 
   let contextType: 'process' | 'project' | 'subcontext' = 'process';
   let contextName = '';

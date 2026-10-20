@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const jobPayloadSchemas = {
   'documents.export.pdf': z.object({
     documentId: z.cuid(),
+    versionId: z.cuid(),
     requestedByUserId: z.cuid(),
   }),
   'search.reindex.incremental': z.object({

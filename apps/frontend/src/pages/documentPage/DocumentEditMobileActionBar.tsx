@@ -12,6 +12,7 @@ import {
   IconDownload,
   IconFlag,
   IconFlagOff,
+  IconBraces,
   IconHistory,
   IconTarget,
   IconTrash,
@@ -30,9 +31,7 @@ export type DocumentEditMobileActionBarProps = {
   editTab: 'draft' | 'metadata' | 'access';
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   leadDraftDirty: boolean;
-  metadataDirty: boolean;
   leadDraftPendingSuggestions: number;
-  saveLoading: boolean;
   publishLoading: boolean;
   showPublishButton: boolean;
   hasNoContext: boolean;
@@ -42,7 +41,6 @@ export type DocumentEditMobileActionBarProps = {
   startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
   startHereBusy: boolean;
   handleCancelEdit: () => void;
-  handleSave: () => Promise<void>;
   handlePublish: () => Promise<void>;
   handleStartPdfExport: () => Promise<void>;
   handleArchive: () => Promise<void>;
@@ -59,6 +57,7 @@ export type DocumentEditMobileActionBarProps = {
     scopeType: 'team' | 'department' | 'company';
     scopeId: string;
   }) => void;
+  isAdmin?: boolean;
 };
 
 /**
@@ -70,9 +69,7 @@ export function DocumentEditMobileActionBar({
   editTab,
   leadDraftPanelRef,
   leadDraftDirty,
-  metadataDirty,
   leadDraftPendingSuggestions,
-  saveLoading,
   publishLoading,
   showPublishButton,
   hasNoContext,
@@ -82,7 +79,6 @@ export function DocumentEditMobileActionBar({
   startHereScopes,
   startHereBusy,
   handleCancelEdit,
-  handleSave,
   handlePublish,
   handleStartPdfExport,
   handleArchive,
@@ -93,16 +89,9 @@ export function DocumentEditMobileActionBar({
   openDelete,
   onSetStartHere,
   onClearStartHere,
+  isAdmin = false,
 }: DocumentEditMobileActionBarProps) {
   const { t } = useTranslation(['documents', 'common', 'shell']);
-
-  const saveDisabled =
-    (editTab === 'draft' && !leadDraftDirty) ||
-    (editTab === 'metadata' && !metadataDirty) ||
-    editTab === 'access';
-
-  const onSave = () =>
-    void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave());
 
   const moreMenu = (
     <>
@@ -230,6 +219,14 @@ export function DocumentEditMobileActionBar({
           {t('documentPage.menu.unarchive')}
         </Menu.Item>
       )}
+      {isAdmin && editTab === 'draft' && (
+        <Menu.Item
+          leftSection={<IconBraces size={12} />}
+          onClick={() => leadDraftPanelRef.current?.openRawJson()}
+        >
+          {t('documentPage.menu.viewRawJson')}
+        </Menu.Item>
+      )}
       {data.canDelete && <Menu.Divider />}
       {data.canDelete && (
         <Menu.Item color="red" leftSection={<IconTrash size={12} />} onClick={openDelete}>
@@ -249,12 +246,11 @@ export function DocumentEditMobileActionBar({
     },
     {
       key: 'save',
-      label: t('documentPage.toolbar.save'),
+      label: t('documentPage.toolbar.saveDraft'),
       icon: <IconDeviceFloppy size={16} stroke={1.5} />,
       tone: 'save',
-      loading: saveLoading,
-      disabled: saveDisabled,
-      onClick: onSave,
+      disabled: !leadDraftDirty,
+      onClick: () => void leadDraftPanelRef.current?.saveDraft(),
     },
     {
       key: 'more',

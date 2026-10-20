@@ -10,6 +10,9 @@ export const PDF_BRANDING_DEFAULT_LOGO_POSITION = 'left' as const;
 /** Extra top margin when a header logo is present (logo height + gap). */
 export const PDF_LOGO_HEADER_EXTRA_TOP_MM = 16;
 export const PDF_LOGO_HEADER_HEIGHT_MM = 12;
+/** Accepted width:height range for PDF logos (recommended 3:1–5:1). */
+export const PDF_LOGO_ASPECT_RATIO_MIN = 2;
+export const PDF_LOGO_ASPECT_RATIO_MAX = 6;
 
 export type PdfLogoContentType = (typeof PDF_LOGO_ALLOWED_CONTENT_TYPES)[number];
 export type PdfLogoPosition = (typeof PDF_LOGO_POSITIONS)[number];
@@ -52,6 +55,15 @@ export function isValidPdfLogoPosition(value: string): value is PdfLogoPosition 
 
 export function isAllowedPdfLogoContentType(value: string): value is PdfLogoContentType {
   return (PDF_LOGO_ALLOWED_CONTENT_TYPES as readonly string[]).includes(value);
+}
+
+/** True when width/height is within the accepted landscape range (inclusive). */
+export function isValidPdfLogoAspectRatio(width: number, height: number): boolean {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return false;
+  }
+  const ratio = width / height;
+  return ratio >= PDF_LOGO_ASPECT_RATIO_MIN && ratio <= PDF_LOGO_ASPECT_RATIO_MAX;
 }
 
 export function logoExtensionForContentType(contentType: PdfLogoContentType): '.png' | '.jpg' {

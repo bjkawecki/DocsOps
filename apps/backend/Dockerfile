@@ -58,11 +58,11 @@ COPY docker/install-typst-alpine.sh /tmp/install-typst-alpine.sh
 RUN TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
   && rm /tmp/install-typst-alpine.sh
 
-# Job worker: PDF export (typst) + backup tools
+# Job worker: PDF export (typst + qpdf write-protect) + backup tools
 FROM runtime-base AS worker
-RUN apk add --no-cache postgresql-client zstd tar
+RUN apk add --no-cache postgresql-client zstd tar qpdf
 COPY --from=typst-fetch /usr/local/bin/typst /usr/local/bin/typst
-RUN typst --version
+RUN typst --version && qpdf --version
 ENV NODE_ENV=production
 COPY docker/entrypoint-worker-prod.sh /entrypoint-worker.sh
 RUN chmod +x /entrypoint-worker.sh

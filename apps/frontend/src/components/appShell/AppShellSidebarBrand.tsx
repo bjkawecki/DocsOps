@@ -49,7 +49,7 @@ export function AppShellSidebarBrand({
         <Text component="span" style={{ lineHeight: 1 }}>
           <Text
             component="span"
-            c={resolvedColorScheme === 'dark' ? 'white' : 'dimmed'}
+            c={resolvedColorScheme === 'dark' ? 'white' : 'gray.7'}
             style={{ fontWeight: 600, fontSize: '0.9375rem', letterSpacing: '-0.02em' }}
           >
             Docs

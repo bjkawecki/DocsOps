@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { Prisma } from '../../../../generated/prisma/client.js';
 import { prisma } from '../../../db.js';
+import * as jobsClient from '../../../infrastructure/jobs/client.js';
 import { exampleBlockDocumentV0 } from '../services/blocks/blockSchema.js';
 import {
   createDocumentsTestContext,
@@ -29,6 +30,7 @@ describe('Documents routes / publication', () => {
   });
 
   it('POST /documents/:documentId/publish als Scope-Lead -> 200', async () => {
+    const enqueueSpy = vi.spyOn(jobsClient, 'enqueueJob').mockResolvedValue('job-test-id');
     const cookie = await context.loginAsScopeLead();
     const res = await context.app.inject({
       method: 'POST',
@@ -42,6 +44,14 @@ describe('Documents routes / publication', () => {
     };
     expect(body.publishedAt).not.toBeNull();
     expect(body.currentPublishedVersionId).not.toBeNull();
+    expect(enqueueSpy).toHaveBeenCalledWith(
+      'documents.export.pdf',
+      expect.objectContaining({
+        documentId: context.draftDocId,
+        versionId: body.currentPublishedVersionId,
+      })
+    );
+    enqueueSpy.mockRestore();
 
     const doc = await prisma.document.findUnique({
       where: { id: context.draftDocId },

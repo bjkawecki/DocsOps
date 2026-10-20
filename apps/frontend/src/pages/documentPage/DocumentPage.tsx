@@ -77,8 +77,9 @@ export function DocumentPage() {
           void vm.handleMoveRequestDecision(action);
         }}
         openDelete={vm.openDelete}
-        openCreateTag={vm.openCreateTag}
         openManageTags={vm.openManageTags}
+        onCreateTag={vm.handleCreateTag}
+        createTagLoading={vm.createTagLoading}
         publishedVersionIsStale={vm.publishedVersionIsStale}
         ackPublishedVersion={vm.ackPublishedVersion}
         latestPublishedVersion={vm.latestPublishedVersion}
@@ -114,17 +115,11 @@ export function DocumentPage() {
         onMoveContext={() => {
           void vm.handleMoveContext();
         }}
-        createTagOpened={vm.createTagOpened}
-        closeCreateTag={vm.closeCreateTag}
-        newTagName={vm.newTagName}
-        setNewTagName={vm.setNewTagName}
-        createTagLoading={vm.createTagLoading}
-        onCreateTag={() => {
-          void vm.handleCreateTag();
-        }}
         manageTagsOpened={vm.manageTagsOpened}
         closeManageTags={vm.closeManageTags}
         tags={vm.tags}
+        createTagLoading={vm.createTagLoading}
+        onCreateTag={vm.handleCreateTag}
         onDeleteTag={(id) => {
           void vm.handleDeleteTag(id);
         }}

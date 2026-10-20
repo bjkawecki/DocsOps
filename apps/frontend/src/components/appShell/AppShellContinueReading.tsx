@@ -167,7 +167,7 @@ export function AppShellContinueReading({ isMiniRail, onNavigate }: Props) {
   return (
     <Box mt={14} px={4}>
       <Group justify="space-between" align="center" gap="xs" wrap="nowrap" mb={2}>
-        <Text size="sm" fw={600} c="dimmed" style={{ flexShrink: 0 }}>
+        <Text size="sm" fw={500} c="dimmed" style={{ flexShrink: 0 }}>
           {t('shell:continueReading.title')}
         </Text>
         {showSeeAll ? (

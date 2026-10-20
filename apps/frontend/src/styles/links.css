@@ -1,24 +1,21 @@
-/* Link color follows theme primary (index 4). Visited matches unvisited (no lighter fade). */
-:root {
-  --mantine-color-anchor: var(--mantine-primary-color-4);
-}
+/* Link color follows semantic anchor (theme-light/dark). Visited matches unvisited. */
 
 /* Exclude Button-as-Link so filled variants keep Mantine contrast (--button-color). */
 a:not(.mantine-Button-root),
 a:not(.mantine-Button-root):visited,
 .mantine-Anchor-root,
 .mantine-Anchor-root:visited {
-  color: var(--mantine-primary-color-4);
+  color: var(--mantine-color-anchor);
 }
 
 /* Shared content links (cards, Recently viewed): one source of truth for color + underline. */
 .app-content-link,
 .app-content-link:visited {
-  color: var(--mantine-primary-color-4);
+  color: var(--mantine-color-anchor);
   text-decoration: underline;
 }
 .app-content-link:hover {
-  color: var(--mantine-primary-color-3);
+  color: var(--mantine-primary-color-filled);
 }
 
 /* Card links (Overview + Context cards): always underline + primary color (single source of truth). */
@@ -36,23 +33,23 @@ a:not(.mantine-Button-root):visited,
 .mantine-Card-root a.mantine-Button-root[data-variant='light']:visited,
 .mantine-Card-root a.mantine-Button-root[data-variant='transparent'],
 .mantine-Card-root a.mantine-Button-root[data-variant='transparent']:visited {
-  color: var(--mantine-primary-color-4);
+  color: var(--mantine-color-anchor);
 }
 .mantine-Card-root a.mantine-Button-root[data-variant='subtle']:hover,
 .mantine-Card-root a.mantine-Button-root[data-variant='light']:hover,
 .mantine-Card-root a.mantine-Button-root[data-variant='transparent']:hover {
-  color: var(--mantine-primary-color-3);
+  color: var(--mantine-primary-color-filled);
 }
 
-/* Card text links (not in tables): hover = one shade lighter */
+/* Card text links (not in tables): hover = filled accent */
 .mantine-Card-root a:hover,
 .mantine-Card-root .mantine-Anchor-root:hover {
-  color: var(--mantine-primary-color-3);
+  color: var(--mantine-primary-color-filled);
 }
 .mantine-Card-root .mantine-Table-root a:hover,
 .mantine-Card-root .mantine-Table-root .mantine-Anchor-root:hover,
 .mantine-Card-root table a:hover {
-  color: var(--mantine-primary-color-4);
+  color: var(--mantine-color-anchor);
 }
 
 /* Context workspace sibling nav – strong idle contrast, soft primary active fill. */

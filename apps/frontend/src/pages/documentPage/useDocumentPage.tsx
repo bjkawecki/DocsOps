@@ -42,9 +42,7 @@ export function useDocumentPage() {
   /** Picker type id (`builtin:…` or custom cuid); null = no type. */
   const [editTypeId, setEditTypeId] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [createTagOpened, { open: openCreateTag, close: closeCreateTag }] = useDisclosure(false);
   const [manageTagsOpened, { open: openManageTags, close: closeManageTags }] = useDisclosure(false);
-  const [newTagName, setNewTagName] = useState('');
   const [createTagLoading, setCreateTagLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
   const [editInitialSnapshot, setEditInitialSnapshot] = useState<{
@@ -249,6 +247,7 @@ export function useDocumentPage() {
 
   useEffect(() => {
     if (!data?.id || !recentActions || !data.scope) return;
+    if (data.deletedAt != null) return;
     const scope =
       data.scope.type === 'personal'
         ? { type: 'personal' as const }
@@ -266,7 +265,7 @@ export function useDocumentPage() {
       },
       scope
     );
-  }, [data?.id, data?.title, data?.contextName, data?.scope, recentActions]);
+  }, [data?.id, data?.title, data?.contextName, data?.scope, data?.deletedAt, recentActions]);
 
   useEffect(() => {
     if (!pdfExportStatus || !documentId) return;
@@ -308,40 +307,52 @@ export function useDocumentPage() {
     draftDiffersFromPublished,
   ]);
 
-  const handleCreateTag = async () => {
-    const name = newTagName.trim();
-    if (!name || !contextOwnerId) return;
-    setCreateTagLoading(true);
-    try {
-      const res = await apiFetch('/api/v1/tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, ownerId: contextOwnerId }),
-      });
-      if (res.status === 201) {
-        const tag = (await res.json()) as { id: string; name: string };
-        void queryClient.invalidateQueries({ queryKey: ['tags', contextOwnerId] });
-        setEditTagIds((prev) => [...prev, tag.id]);
-        setNewTagName('');
-        closeCreateTag();
+  const handleCreateTag = useCallback(
+    async (rawName: string): Promise<string | null> => {
+      const name = rawName.trim();
+      if (!name) return null;
+      if (!contextOwnerId) {
         notifications.show({
-          title: t('documentPage.toasts.tagCreatedTitle'),
-          message: tag.name,
-          color: 'green',
-        });
-      } else if (res.status === 409) {
-        void notifyApiErrorResponse(res, {
-          title: t('documentPage.toasts.tagExistsTitle'),
-          defaultMessage: t('documentPage.toasts.tagExistsMessage'),
+          title: t('documentPage.toasts.tagNeedsContextTitle'),
+          message: t('documentPage.toasts.tagNeedsContextMessage'),
           color: 'yellow',
         });
-      } else {
-        void notifyApiErrorResponse(res);
+        return null;
       }
-    } finally {
-      setCreateTagLoading(false);
-    }
-  };
+      setCreateTagLoading(true);
+      try {
+        const res = await apiFetch('/api/v1/tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, ownerId: contextOwnerId }),
+        });
+        if (res.status === 201) {
+          const tag = (await res.json()) as { id: string; name: string };
+          void queryClient.invalidateQueries({ queryKey: ['tags', contextOwnerId] });
+          setEditTagIds((prev) => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
+          notifications.show({
+            title: t('documentPage.toasts.tagCreatedTitle'),
+            message: tag.name,
+            color: 'green',
+          });
+          return tag.id;
+        }
+        if (res.status === 409) {
+          void notifyApiErrorResponse(res, {
+            title: t('documentPage.toasts.tagExistsTitle'),
+            defaultMessage: t('documentPage.toasts.tagExistsMessage'),
+            color: 'yellow',
+          });
+          return null;
+        }
+        void notifyApiErrorResponse(res);
+        return null;
+      } finally {
+        setCreateTagLoading(false);
+      }
+    },
+    [contextOwnerId, queryClient, t]
+  );
 
   const handleStartPdfExport = async () => {
     if (!documentId) return;
@@ -382,7 +393,17 @@ export function useDocumentPage() {
         message: t('documentPage.toasts.tagDeletedMessage'),
         color: 'green',
       });
+      return;
     }
+    if (res.status === 409) {
+      void notifyApiErrorResponse(res, {
+        title: t('documentPage.toasts.tagInUseTitle'),
+        defaultMessage: t('documentPage.toasts.tagInUseMessage'),
+        color: 'yellow',
+      });
+      return;
+    }
+    if (!res.ok) void notifyApiErrorResponse(res);
   };
 
   useDocumentPageKeyboardEffects({
@@ -437,14 +458,9 @@ export function useDocumentPage() {
     closeDelete,
     openDelete,
     deleteLoading,
-    createTagOpened,
-    closeCreateTag,
-    openCreateTag,
     manageTagsOpened,
     closeManageTags,
     openManageTags,
-    newTagName,
-    setNewTagName,
     createTagLoading,
     assignContextOpened,
     openAssignContext,

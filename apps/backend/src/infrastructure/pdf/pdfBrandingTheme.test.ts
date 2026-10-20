@@ -4,6 +4,7 @@ import {
   PDF_BRANDING_DEFAULT_MARGIN_MM,
   PDF_BRANDING_DEFAULT_PRIMARY_COLOR,
   buildTypstMainSource,
+  isValidPdfLogoAspectRatio,
   isValidPdfLogoPosition,
   isValidPdfMarginMm,
   isValidPdfPrimaryColor,
@@ -22,6 +23,16 @@ describe('pdfBrandingTheme', () => {
     expect(isValidPdfLogoPosition('left')).toBe(true);
     expect(isValidPdfLogoPosition('right')).toBe(true);
     expect(isValidPdfLogoPosition('center')).toBe(false);
+  });
+
+  it('validates logo aspect ratio between 2:1 and 6:1', () => {
+    expect(isValidPdfLogoAspectRatio(300, 100)).toBe(true);
+    expect(isValidPdfLogoAspectRatio(200, 100)).toBe(true);
+    expect(isValidPdfLogoAspectRatio(600, 100)).toBe(true);
+    expect(isValidPdfLogoAspectRatio(199, 100)).toBe(false);
+    expect(isValidPdfLogoAspectRatio(601, 100)).toBe(false);
+    expect(isValidPdfLogoAspectRatio(100, 100)).toBe(false);
+    expect(isValidPdfLogoAspectRatio(0, 100)).toBe(false);
   });
 
   it('uses platform defaults when company is null', () => {

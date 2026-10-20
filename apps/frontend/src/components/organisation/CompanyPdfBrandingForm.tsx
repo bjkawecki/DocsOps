@@ -103,8 +103,30 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
       notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
   });
 
+  const validateLogoFile = async (file: File): Promise<string | null> => {
+    const type = (file.type || '').toLowerCase();
+    if (type !== 'image/png' && type !== 'image/jpeg' && type !== 'image/jpg') {
+      return t('company.pdfBranding.logoInvalidType');
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      return t('company.pdfBranding.logoInvalidSize');
+    }
+    const bitmap = await createImageBitmap(file);
+    try {
+      const ratio = bitmap.width / bitmap.height;
+      if (ratio < 2 || ratio > 6) {
+        return t('company.pdfBranding.logoInvalidAspect');
+      }
+    } finally {
+      bitmap.close();
+    }
+    return null;
+  };
+
   const uploadLogo = useMutation({
     mutationFn: async (file: File) => {
+      const validationError = await validateLogoFile(file);
+      if (validationError) throw new Error(validationError);
       const res = await apiFetch(`/api/v1/companies/${companyId}/pdf-logo`, {
         method: 'POST',
         headers: {
@@ -183,6 +205,9 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
       <Stack gap={6}>
         <Text size="sm" fw={500}>
           {t('company.pdfBranding.logoLabel')}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {t('company.pdfBranding.logoDescription')}
         </Text>
         {logoPreviewUrl ? (
           <Image src={logoPreviewUrl} alt="PDF logo" maw={180} fit="contain" />

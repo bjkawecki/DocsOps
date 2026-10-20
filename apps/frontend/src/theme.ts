@@ -231,12 +231,18 @@ export const PRIMARY_COLOR_PALETTES: Record<PrimaryColorPreset, ColorScale> = {
   fuchsia: [...fuchsiaScale],
 };
 
-/** Accent shade index used as theme `primaryShade` (and for UI previews). */
-export const PRIMARY_COLOR_ACCENT_SHADE = 4;
+/** Accent shade in dark scheme (landing-aligned sky for default blue). */
+export const PRIMARY_COLOR_ACCENT_SHADE_DARK = 4;
 
-/** Hex accent for a preset (matches theme primary shade). */
+/** Accent shade in light scheme (AA on white / gray-1 body; blue-5 is too light). */
+export const PRIMARY_COLOR_ACCENT_SHADE_LIGHT = 7;
+
+/** Alias of light accent (Settings previews). */
+export const PRIMARY_COLOR_ACCENT_SHADE = PRIMARY_COLOR_ACCENT_SHADE_LIGHT;
+
+/** Hex accent for a preset (Settings / swatches = light accent). */
 export function getPrimaryColorAccent(preset: PrimaryColorPreset): string {
-  return PRIMARY_COLOR_PALETTES[preset][PRIMARY_COLOR_ACCENT_SHADE];
+  return PRIMARY_COLOR_PALETTES[preset][PRIMARY_COLOR_ACCENT_SHADE_LIGHT];
 }
 
 /**
@@ -253,7 +259,10 @@ export function createAppTheme(
   return createTheme({
     primaryColor,
     ...(scale !== 1 ? { scale } : {}),
-    primaryShade: PRIMARY_COLOR_ACCENT_SHADE /* Sky primary = #4690f7 at index 4 */,
+    primaryShade: {
+      light: PRIMARY_COLOR_ACCENT_SHADE_LIGHT,
+      dark: PRIMARY_COLOR_ACCENT_SHADE_DARK,
+    },
     defaultRadius: 'sm',
     /** Inter: free neo-grotesque close to Meter’s Suisse Int’l (commercial). */
     fontFamily: uiFont,

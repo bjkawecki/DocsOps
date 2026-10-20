@@ -16,6 +16,7 @@ import {
   IconDownload,
   IconFlag,
   IconFlagOff,
+  IconBraces,
 } from '@tabler/icons-react';
 import {
   DESKTOP_MIN_WIDTH,
@@ -32,9 +33,7 @@ export type DocumentPageToolbarActionsProps = {
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   leadDraftLastSynced: string | null;
   leadDraftDirty: boolean;
-  metadataDirty: boolean;
   leadDraftPendingSuggestions: number;
-  saveLoading: boolean;
   publishLoading: boolean;
   canEnterEditMode: boolean;
   showPublishButton: boolean;
@@ -45,7 +44,6 @@ export type DocumentPageToolbarActionsProps = {
   startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
   startHereBusy: boolean;
   handleCancelEdit: () => void;
-  handleSave: () => Promise<void>;
   handleEditClick: () => void;
   handlePublish: () => Promise<void>;
   handleStartPdfExport: () => Promise<void>;
@@ -63,6 +61,8 @@ export type DocumentPageToolbarActionsProps = {
     scopeType: 'team' | 'department' | 'company';
     scopeId: string;
   }) => void;
+  /** Admin-only: open raw draft JSON (edit / draft tab). */
+  isAdmin?: boolean;
 };
 
 /** Breadcrumb-row actions: edit/save/publish plus the overflow menu (versions, PDF, move, start here, archive, delete). */
@@ -74,9 +74,7 @@ export function DocumentPageToolbarActions({
   leadDraftPanelRef,
   leadDraftLastSynced,
   leadDraftDirty,
-  metadataDirty,
   leadDraftPendingSuggestions,
-  saveLoading,
   publishLoading,
   canEnterEditMode,
   showPublishButton,
@@ -87,7 +85,6 @@ export function DocumentPageToolbarActions({
   startHereScopes,
   startHereBusy,
   handleCancelEdit,
-  handleSave,
   handleEditClick,
   handlePublish,
   handleStartPdfExport,
@@ -99,20 +96,13 @@ export function DocumentPageToolbarActions({
   openDelete,
   onSetStartHere,
   onClearStartHere,
+  isAdmin = false,
 }: DocumentPageToolbarActionsProps) {
   const { t } = useTranslation(['documents', 'common']);
   const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const iconBtnSize = isDesktop ? 36 : 44;
   const compactChrome = !isWide;
-
-  const saveDisabled =
-    (editTab === 'draft' && !leadDraftDirty) ||
-    (editTab === 'metadata' && !metadataDirty) ||
-    editTab === 'access';
-
-  const onSave = () =>
-    void (editTab === 'draft' ? leadDraftPanelRef.current?.saveDraft() : handleSave());
 
   const showCompactPublishInMenu = mode === 'edit' && showPublishButton && compactChrome;
   const showCompactPendingInMenu =
@@ -134,16 +124,14 @@ export function DocumentPageToolbarActions({
             {t('documentPage.toolbar.cancel')}
           </Button>
           <Button
+            variant="outline"
             size={compactChrome ? 'compact-md' : 'sm'}
-            loading={saveLoading}
-            disabled={saveDisabled}
-            onClick={onSave}
+            disabled={!leadDraftDirty}
+            onClick={() => void leadDraftPanelRef.current?.saveDraft()}
           >
-            {editTab === 'draft' && !compactChrome
-              ? t('documentPage.toolbar.saveDraft')
-              : t('documentPage.toolbar.save')}
+            {t('documentPage.toolbar.saveDraft')}
           </Button>
-          {!compactChrome && editTab === 'draft' && leadDraftLastSynced && (
+          {!compactChrome && leadDraftLastSynced && (
             <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
               {t('documentPage.toolbar.lastSynced', {
                 time: new Date(leadDraftLastSynced).toLocaleTimeString(),
@@ -323,6 +311,14 @@ export function DocumentPageToolbarActions({
               onClick={() => void handleUnarchive()}
             >
               {t('documentPage.menu.unarchive')}
+            </Menu.Item>
+          )}
+          {isAdmin && mode === 'edit' && editTab === 'draft' && (
+            <Menu.Item
+              leftSection={<IconBraces size={14} />}
+              onClick={() => leadDraftPanelRef.current?.openRawJson()}
+            >
+              {t('documentPage.menu.viewRawJson')}
             </Menu.Item>
           )}
           {data.canDelete && <Menu.Divider />}

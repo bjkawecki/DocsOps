@@ -492,6 +492,10 @@ model DocumentVersion {
   blocks                    Json?
   blocksSchemaVersion       Int?
   versionNumber             Int
+  /// MinIO/S3 object key for the published PDF snapshot (set asynchronously after publish).
+  pdfObjectKey              String?
+  /// Scope-lead names frozen when the PDF was rendered (comma-separated).
+  pdfResponsibleLabel       String?
   createdAt                 DateTime  @default(now())
   createdById               String?
   createdBy                 User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)

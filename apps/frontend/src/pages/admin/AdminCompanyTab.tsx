@@ -316,7 +316,7 @@ export function AdminCompanyTab() {
                       component="button"
                       type="button"
                       variant="link"
-                      c="var(--mantine-primary-color-4)"
+                      c="var(--mantine-color-anchor)"
                       size="sm"
                       className="admin-link-hover"
                       style={{

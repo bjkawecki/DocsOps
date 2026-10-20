@@ -4,7 +4,7 @@ import {
   requireDocumentAccess,
   canReadLeadDraft,
   canEditLeadDraft,
-  canPublishDocument,
+  canLeadCanonEditDocument,
 } from '../permissions/index.js';
 import { getLeadDraftForUser, patchLeadDraft } from '../services/lifecycle/leadDraftService.js';
 import { patchLeadDraftBodySchema } from '../schemas/documents.js';
@@ -79,7 +79,7 @@ export const registerLeadDraftRoutes = (app: FastifyInstance): void => {
         }
       }
 
-      const isPublishLead = await canPublishDocument(prisma, userId, documentId);
+      const isPublishLead = await canLeadCanonEditDocument(prisma, userId, documentId);
       const patchResult = await patchLeadDraft(
         prisma,
         documentId,

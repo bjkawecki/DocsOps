@@ -36,7 +36,8 @@ type ContextOption = {
 
 type ContextSwitcherSelectProps = {
   owner: RecentScope;
-  value: string;
+  /** Current context id, or `null` for context-free personal drafts. */
+  value: string | null;
   onChange: (contextId: string) => void;
 };
 
@@ -173,9 +174,10 @@ export function ContextSwitcherSelect({ owner, value, onChange }: ContextSwitche
   }, [projectsData?.items]);
 
   const selectedLabel = useMemo(() => {
+    if (value == null) return t('switcher.noContext');
     const all = [...processes, ...projects];
     return all.find((o) => o.value === value)?.label ?? null;
-  }, [processes, projects, value]);
+  }, [processes, projects, value, t]);
 
   const loading = processesLoading || projectsLoading;
   const hasAny = processes.length > 0 || projects.length > 0;

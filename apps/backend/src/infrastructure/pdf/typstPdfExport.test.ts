@@ -14,6 +14,12 @@ describe('buildMarkdownForPdfExport', () => {
   it('returns trimmed body when title is empty', () => {
     expect(buildMarkdownForPdfExport('  Hello  ', null)).toBe('Hello');
   });
+
+  it('inserts meta line under title', () => {
+    expect(
+      buildMarkdownForPdfExport('Body', 'Doc', 'Responsible: A · Version 1 · 2026-10-20')
+    ).toBe('# Doc\n\nResponsible: A · Version 1 · 2026-10-20\n\nBody');
+  });
 });
 
 describe('renderMarkdownToPdfBuffer', () => {
