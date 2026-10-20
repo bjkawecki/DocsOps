@@ -60,10 +60,13 @@ RUN TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
 
 # Job worker: PDF export (typst + qpdf write-protect) + backup tools
 FROM runtime-base AS worker
-RUN apk add --no-cache postgresql-client zstd tar qpdf font-liberation
+RUN apk add --no-cache postgresql-client zstd tar qpdf fontconfig font-liberation \
+  && fc-cache -f
 COPY --from=typst-fetch /usr/local/bin/typst /usr/local/bin/typst
 RUN typst --version && qpdf --version
 ENV NODE_ENV=production
+# Liberation Sans/Serif for company PDF branding (ADR 007).
+ENV TYPST_FONT_PATH=/usr/share/fonts/liberation
 COPY docker/entrypoint-worker-prod.sh /entrypoint-worker.sh
 RUN chmod +x /entrypoint-worker.sh
 ENTRYPOINT ["/entrypoint-worker.sh"]

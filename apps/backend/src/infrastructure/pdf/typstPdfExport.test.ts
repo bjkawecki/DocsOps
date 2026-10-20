@@ -24,12 +24,18 @@ describe('buildMarkdownForPdfExport', () => {
 
 describe('renderMarkdownToPdfBuffer', () => {
   const previousTypstArgs = process.env.TYPST_ARGS;
+  const previousTypstFontPath = process.env.TYPST_FONT_PATH;
 
   afterEach(() => {
     if (previousTypstArgs === undefined) {
       delete process.env.TYPST_ARGS;
     } else {
       process.env.TYPST_ARGS = previousTypstArgs;
+    }
+    if (previousTypstFontPath === undefined) {
+      delete process.env.TYPST_FONT_PATH;
+    } else {
+      process.env.TYPST_FONT_PATH = previousTypstFontPath;
     }
   });
 
@@ -69,6 +75,23 @@ describe('renderMarkdownToPdfBuffer', () => {
         readOutputFn: vi.fn(),
       })
     ).rejects.toThrow(/Typst binary not found/);
+  });
+
+  it('passes TYPST_FONT_PATH as --font-path', async () => {
+    delete process.env.TYPST_ARGS;
+    process.env.TYPST_FONT_PATH = '/usr/share/fonts/truetype/liberation';
+    const execFileFn = vi.fn().mockResolvedValue({ stdout: '', stderr: '' });
+
+    await renderMarkdownToPdfBuffer({
+      markdown: 'x',
+      execFileFn,
+      readOutputFn: vi.fn().mockResolvedValue(Buffer.from('%PDF')),
+    });
+
+    const [, args] = execFileFn.mock.calls[0] as [string, string[]];
+    const fontPathIdx = args.indexOf('--font-path');
+    expect(fontPathIdx).toBeGreaterThan(-1);
+    expect(args[fontPathIdx + 1]).toBe('/usr/share/fonts/truetype/liberation');
   });
 
   it('passes TYPST_ARGS from environment', async () => {

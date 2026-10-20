@@ -59,6 +59,25 @@ export function withTypstPackageCacheArgs(extraArgs: string[]): string[] {
 }
 
 /**
+ * Append `--font-path` entries from `TYPST_FONT_PATH` (colon-separated).
+ * Needed so Typst finds Liberation fonts for PDF branding (sans/serif).
+ */
+export function withTypstFontPathArgs(extraArgs: string[]): string[] {
+  const raw = process.env.TYPST_FONT_PATH?.trim();
+  if (!raw) return extraArgs;
+  const paths = raw
+    .split(':')
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  if (paths.length === 0) return extraArgs;
+  const args = [...extraArgs];
+  for (const fontPath of paths) {
+    args.push('--font-path', fontPath);
+  }
+  return args;
+}
+
+/**
  * Prepends document title as H1 when missing, and an optional meta line
  * (responsible / version / date) directly under the title.
  */
@@ -96,7 +115,9 @@ export function themeFromCompanyRow(
  */
 export async function renderMarkdownToPdfBuffer(options: TypstPdfExportOptions): Promise<Buffer> {
   const typstCommand = options.typstBin?.trim() || process.env.TYPST_BIN?.trim() || 'typst';
-  const typstExtraArgs = withTypstPackageCacheArgs(options.typstArgs ?? parseTypstArgsFromEnv());
+  const typstExtraArgs = withTypstFontPathArgs(
+    withTypstPackageCacheArgs(options.typstArgs ?? parseTypstArgsFromEnv())
+  );
   const execFn = options.execFileFn ?? execFileAsync;
   const readOutput = options.readOutputFn ?? ((path: string) => readFile(path));
   const timeoutMs = options.timeoutMs ?? DEFAULT_COMPILE_TIMEOUT_MS;
