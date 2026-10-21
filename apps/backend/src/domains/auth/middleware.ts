@@ -77,6 +77,29 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
 }
 
 /**
+ * PreHandler: after requireAuth. Blocks the *effective* user when they are a platform admin
+ * (impersonation of a non-admin is allowed). For personal/shared/approvals and similar
+ * member product surfaces.
+ */
+export async function requireNonPlatformAdmin(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const req = request as RequestWithUser;
+  if (!req.user) {
+    return reply.status(401).send({ error: 'Nicht angemeldet' });
+  }
+  const userId = getEffectiveUserId(req);
+  const actor = await request.server.prisma.user.findUnique({
+    where: { id: userId },
+    select: { isAdmin: true },
+  });
+  if (actor?.isAdmin) {
+    return reply.status(403).send({ error: 'Platform admin cannot access this resource' });
+  }
+}
+
+/**
  * Für preHandler-Option: Fastify awaited PreHandler-Promises; manche Typen erwarten void.
  * Verwendung: preHandler: requireAuthPreHandler bzw. requireAdminPreHandler.
  */
@@ -85,6 +108,10 @@ export const requireAuthPreHandler = requireAuth as (
   reply: FastifyReply
 ) => void;
 export const requireAdminPreHandler = requireAdmin as (
+  req: FastifyRequest,
+  reply: FastifyReply
+) => void;
+export const requireNonPlatformAdminPreHandler = requireNonPlatformAdmin as (
   req: FastifyRequest,
   reply: FastifyReply
 ) => void;

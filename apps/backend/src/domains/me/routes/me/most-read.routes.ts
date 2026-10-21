@@ -26,6 +26,17 @@ function registerMeMostReadRoutes(app: FastifyInstance): void {
     const userId = getEffectiveUserId(request as RequestWithUser);
     const query = meMostReadQuerySchema.parse(request.query);
 
+    // Platform admin: company most-read only (no personal/department/team product surfaces).
+    if (query.scope !== 'company') {
+      const actor = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isAdmin: true },
+      });
+      if (actor?.isAdmin) {
+        return reply.status(403).send({ error: 'Platform admin cannot access this resource' });
+      }
+    }
+
     if (query.scope === 'personal') {
       const result = await getMostReadDocuments(prisma, userId, { type: 'personal' });
       return reply.send(result);

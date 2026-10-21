@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
 import {
   requireAuthPreHandler,
+  requireNonPlatformAdminPreHandler,
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../../auth/middleware.js';
@@ -56,7 +57,7 @@ async function sendMeDocumentsPage(
 function registerMeDocumentsRoutes(app: FastifyInstance): void {
   app.get(
     '/me/personal-documents',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNonPlatformAdminPreHandler] },
     async (request, reply) => {
       const prisma = request.server.prisma;
       const userId = getEffectiveUserId(request as RequestWithUser);
@@ -75,23 +76,27 @@ function registerMeDocumentsRoutes(app: FastifyInstance): void {
     }
   );
 
-  app.get('/me/shared-documents', { preHandler: requireAuthPreHandler }, async (request, reply) => {
-    const prisma = request.server.prisma;
-    const userId = getEffectiveUserId(request as RequestWithUser);
-    const query = meDocumentsListQuerySchema.parse(request.query);
+  app.get(
+    '/me/shared-documents',
+    { preHandler: [requireAuthPreHandler, requireNonPlatformAdminPreHandler] },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      const query = meDocumentsListQuerySchema.parse(request.query);
 
-    const documentIds = await getSharedDocumentIds(prisma, userId);
-    if (documentIds.length === 0) {
-      return reply.send(emptyMeDocumentsListBody(query));
+      const documentIds = await getSharedDocumentIds(prisma, userId);
+      if (documentIds.length === 0) {
+        return reply.send(emptyMeDocumentsListBody(query));
+      }
+
+      const where = {
+        id: { in: documentIds },
+        ...activeMeDocumentsWhereBase(query),
+      };
+
+      return sendMeDocumentsPage(prisma, reply, where, query);
     }
-
-    const where = {
-      id: { in: documentIds },
-      ...activeMeDocumentsWhereBase(query),
-    };
-
-    return sendMeDocumentsPage(prisma, reply, where, query);
-  });
+  );
 
   app.get(
     '/me/can-write-in-scope',
@@ -155,100 +160,104 @@ function registerMeDocumentsRoutes(app: FastifyInstance): void {
     }
   );
 
-  app.get('/me/drafts', { preHandler: requireAuthPreHandler }, async (request, reply) => {
-    const prisma = request.server.prisma;
-    const userId = getEffectiveUserId(request as RequestWithUser);
-    const query = meDraftsQuerySchema.parse(request.query);
+  app.get(
+    '/me/drafts',
+    { preHandler: [requireAuthPreHandler, requireNonPlatformAdminPreHandler] },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      const query = meDraftsQuerySchema.parse(request.query);
 
-    const [scope, writable] = await Promise.all([
-      getDraftsScope(prisma, userId, query),
-      getWritableScope(prisma, userId),
-    ]);
+      const [scope, writable] = await Promise.all([
+        getDraftsScope(prisma, userId, query),
+        getWritableScope(prisma, userId),
+      ]);
 
-    const writableContextSet = new Set(writable.contextIds);
-    const writableDocumentSet = new Set(writable.documentIdsFromGrants);
-    const includeContextFreeDrafts =
-      query.scope === 'personal' ||
-      (!query.scope && !query.companyId && !query.departmentId && !query.teamId);
-    const inScopeWritableContextIds = scope.scopeContextIds.filter((id) =>
-      writableContextSet.has(id)
-    );
-    const inScopeWritableDocumentIds = [
-      ...scope.scopeDocumentIds.filter((id) => writableDocumentSet.has(id)),
-      ...(includeContextFreeDrafts ? writable.documentIdsFromCreator : []),
-    ];
+      const writableContextSet = new Set(writable.contextIds);
+      const writableDocumentSet = new Set(writable.documentIdsFromGrants);
+      const includeContextFreeDrafts =
+        query.scope === 'personal' ||
+        (!query.scope && !query.companyId && !query.departmentId && !query.teamId);
+      const inScopeWritableContextIds = scope.scopeContextIds.filter((id) =>
+        writableContextSet.has(id)
+      );
+      const inScopeWritableDocumentIds = [
+        ...scope.scopeDocumentIds.filter((id) => writableDocumentSet.has(id)),
+        ...(includeContextFreeDrafts ? writable.documentIdsFromCreator : []),
+      ];
 
-    const draftDocWhere =
-      inScopeWritableContextIds.length > 0 || inScopeWritableDocumentIds.length > 0
-        ? {
-            deletedAt: null,
-            archivedAt: null,
-            publishedAt: null,
-            OR: [
-              ...(inScopeWritableContextIds.length > 0
-                ? [{ contextId: { in: inScopeWritableContextIds } }]
-                : []),
-              ...(inScopeWritableDocumentIds.length > 0
-                ? [{ id: { in: inScopeWritableDocumentIds } }]
-                : []),
-            ] as { contextId?: { in: string[] }; id?: { in: string[] } }[],
-          }
-        : null;
+      const draftDocWhere =
+        inScopeWritableContextIds.length > 0 || inScopeWritableDocumentIds.length > 0
+          ? {
+              deletedAt: null,
+              archivedAt: null,
+              publishedAt: null,
+              OR: [
+                ...(inScopeWritableContextIds.length > 0
+                  ? [{ contextId: { in: inScopeWritableContextIds } }]
+                  : []),
+                ...(inScopeWritableDocumentIds.length > 0
+                  ? [{ id: { in: inScopeWritableDocumentIds } }]
+                  : []),
+              ] as { contextId?: { in: string[] }; id?: { in: string[] } }[],
+            }
+          : null;
 
-    const [draftDocumentsRaw, totalDrafts] =
-      draftDocWhere != null
-        ? await Promise.all([
-            prisma.document.findMany({
-              where: draftDocWhere,
-              select: {
-                id: true,
-                title: true,
-                contextId: true,
-                updatedAt: true,
-                createdAt: true,
-                context: {
-                  select: {
-                    process: { select: { owner: { select: ownerScopeSelect } } },
-                    project: { select: { owner: { select: ownerScopeSelect } } },
-                    subcontext: {
-                      select: { project: { select: { owner: { select: ownerScopeSelect } } } },
+      const [draftDocumentsRaw, totalDrafts] =
+        draftDocWhere != null
+          ? await Promise.all([
+              prisma.document.findMany({
+                where: draftDocWhere,
+                select: {
+                  id: true,
+                  title: true,
+                  contextId: true,
+                  updatedAt: true,
+                  createdAt: true,
+                  context: {
+                    select: {
+                      process: { select: { owner: { select: ownerScopeSelect } } },
+                      project: { select: { owner: { select: ownerScopeSelect } } },
+                      subcontext: {
+                        select: { project: { select: { owner: { select: ownerScopeSelect } } } },
+                      },
                     },
                   },
                 },
-              },
-              take: query.limit,
-              skip: query.offset,
-              orderBy: { updatedAt: 'desc' },
-            }),
-            prisma.document.count({ where: draftDocWhere }),
-          ])
-        : [[], 0];
-    const draftDocuments = draftDocumentsRaw.map((doc) => {
-      const owner =
-        doc.context?.process?.owner ??
-        doc.context?.project?.owner ??
-        doc.context?.subcontext?.project?.owner ??
-        null;
-      const scopeFromOwner = getScopeFromOwner(owner);
-      return {
-        id: doc.id,
-        title: doc.title,
-        contextId: doc.contextId,
-        updatedAt: doc.updatedAt,
-        createdAt: doc.createdAt,
-        scopeType: scopeFromOwner.scopeType,
-        scopeId: scopeFromOwner.scopeId,
-        scopeName: scopeFromOwner.scopeName,
-      };
-    });
+                take: query.limit,
+                skip: query.offset,
+                orderBy: { updatedAt: 'desc' },
+              }),
+              prisma.document.count({ where: draftDocWhere }),
+            ])
+          : [[], 0];
+      const draftDocuments = draftDocumentsRaw.map((doc) => {
+        const owner =
+          doc.context?.process?.owner ??
+          doc.context?.project?.owner ??
+          doc.context?.subcontext?.project?.owner ??
+          null;
+        const scopeFromOwner = getScopeFromOwner(owner);
+        return {
+          id: doc.id,
+          title: doc.title,
+          contextId: doc.contextId,
+          updatedAt: doc.updatedAt,
+          createdAt: doc.createdAt,
+          scopeType: scopeFromOwner.scopeType,
+          scopeId: scopeFromOwner.scopeId,
+          scopeName: scopeFromOwner.scopeName,
+        };
+      });
 
-    return reply.send({
-      draftDocuments,
-      total: totalDrafts,
-      limit: query.limit,
-      offset: query.offset,
-    });
-  });
+      return reply.send({
+        draftDocuments,
+        total: totalDrafts,
+        limit: query.limit,
+        offset: query.offset,
+      });
+    }
+  );
 }
 
 export { registerMeDocumentsRoutes };

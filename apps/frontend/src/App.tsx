@@ -31,6 +31,7 @@ import { NotificationsPage } from './pages/account/NotificationsPage';
 import { NotFoundPage } from './pages/misc/NotFoundPage';
 import { AuthGuard } from './components/guards/AuthGuard';
 import { AdminGuard } from './components/guards/AdminGuard';
+import { DenyPlatformAdminGuard } from './components/guards/DenyPlatformAdminGuard';
 import { ThemeFromPreferences } from './components/system/ThemeFromPreferences';
 import { ErrorBoundary } from './components/system/ErrorBoundary';
 import { ADMIN_DEFAULT_PATH, adminLegacyRedirects } from './pages/admin/adminNavConfig.js';
@@ -130,33 +131,45 @@ function App() {
             <Route path="catalog" element={<CatalogPage />} />
             <Route path="templates" element={<DocumentTemplatesPage />} />
             <Route path="document-templates" element={<Navigate to="/templates" replace />} />
-            <Route path="team" element={<TeamRedirectPage />} />
-            <Route path="team/:teamId" element={<TeamContextPage />} />
-            <Route path="team/:teamId/trash" element={<TeamTrashArchivePage kind="trash" />} />
-            <Route path="team/:teamId/archive" element={<TeamTrashArchivePage kind="archive" />} />
-            <Route path="team/:teamId/most-read" element={<TeamMostReadPage />} />
-            <Route path="department" element={<DepartmentRedirectPage />} />
-            <Route path="department/:departmentId" element={<DepartmentContextPage />} />
-            <Route
-              path="department/:departmentId/trash"
-              element={<DepartmentTrashArchivePage kind="trash" />}
-            />
-            <Route
-              path="department/:departmentId/archive"
-              element={<DepartmentTrashArchivePage kind="archive" />}
-            />
-            <Route path="department/:departmentId/most-read" element={<DepartmentMostReadPage />} />
             <Route path="company" element={<CompanyPage />} />
-            <Route path="company/trash" element={<CompanyTrashArchivePage kind="trash" />} />
-            <Route path="company/archive" element={<CompanyTrashArchivePage kind="archive" />} />
             <Route path="company/most-read" element={<CompanyMostReadPage />} />
-            <Route path="personal" element={<PersonalPage />} />
-            <Route path="personal/trash" element={<PersonalTrashArchivePage kind="trash" />} />
-            <Route path="personal/archive" element={<PersonalTrashArchivePage kind="archive" />} />
-            <Route path="personal/most-read" element={<PersonalMostReadPage />} />
-            <Route path="shared" element={<SharedPage />} />
-            <Route path="approvals" element={<ApprovalsPage />} />
-            <Route path="reviews" element={<Navigate to="/approvals" replace />} />
+            {/* Member/lead product surfaces – platform admin redirected to /company */}
+            <Route element={<DenyPlatformAdminGuard />}>
+              <Route path="team" element={<TeamRedirectPage />} />
+              <Route path="team/:teamId" element={<TeamContextPage />} />
+              <Route path="team/:teamId/trash" element={<TeamTrashArchivePage kind="trash" />} />
+              <Route
+                path="team/:teamId/archive"
+                element={<TeamTrashArchivePage kind="archive" />}
+              />
+              <Route path="team/:teamId/most-read" element={<TeamMostReadPage />} />
+              <Route path="department" element={<DepartmentRedirectPage />} />
+              <Route path="department/:departmentId" element={<DepartmentContextPage />} />
+              <Route
+                path="department/:departmentId/trash"
+                element={<DepartmentTrashArchivePage kind="trash" />}
+              />
+              <Route
+                path="department/:departmentId/archive"
+                element={<DepartmentTrashArchivePage kind="archive" />}
+              />
+              <Route
+                path="department/:departmentId/most-read"
+                element={<DepartmentMostReadPage />}
+              />
+              <Route path="company/trash" element={<CompanyTrashArchivePage kind="trash" />} />
+              <Route path="company/archive" element={<CompanyTrashArchivePage kind="archive" />} />
+              <Route path="personal" element={<PersonalPage />} />
+              <Route path="personal/trash" element={<PersonalTrashArchivePage kind="trash" />} />
+              <Route
+                path="personal/archive"
+                element={<PersonalTrashArchivePage kind="archive" />}
+              />
+              <Route path="personal/most-read" element={<PersonalMostReadPage />} />
+              <Route path="shared" element={<SharedPage />} />
+              <Route path="approvals" element={<ApprovalsPage />} />
+              <Route path="reviews" element={<Navigate to="/approvals" replace />} />
+            </Route>
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsRouteRedirect />} />
             <Route path="whats-new" element={<WhatsNewPage />} />

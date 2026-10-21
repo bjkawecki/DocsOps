@@ -14,6 +14,22 @@ import { meArchiveQuerySchema, meTrashQuerySchema } from '../../schemas/me.js';
 import type { ScopeRef } from '../../../organisation/permissions/scopeResolution.js';
 import type { MeTrashArchiveItem } from './route-types.js';
 
+async function rejectPlatformAdminOutsideCompanyTrash(
+  prisma: PrismaClient,
+  userId: string,
+  scope: string,
+  reply: FastifyReply
+): Promise<boolean> {
+  if (scope === 'company') return false;
+  const actor = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isAdmin: true },
+  });
+  if (!actor?.isAdmin) return false;
+  void reply.status(403).send({ error: 'Platform admin cannot access this resource' });
+  return true;
+}
+
 function personalDocumentOwnerOr(userId: string) {
   return [
     { context: { process: { owner: { ownerUserId: userId } } } },
@@ -189,6 +205,9 @@ function registerMeTrashArchiveRoutes(app: FastifyInstance): void {
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);
     const query = meTrashQuerySchema.parse(request.query);
+    if (await rejectPlatformAdminOutsideCompanyTrash(prisma, userId, query.scope, reply)) {
+      return;
+    }
 
     const allItems: MeTrashArchiveItem[] = [];
 
@@ -220,6 +239,9 @@ function registerMeTrashArchiveRoutes(app: FastifyInstance): void {
     const prisma = request.server.prisma;
     const userId = getEffectiveUserId(request as RequestWithUser);
     const query = meArchiveQuerySchema.parse(request.query);
+    if (await rejectPlatformAdminOutsideCompanyTrash(prisma, userId, query.scope, reply)) {
+      return;
+    }
 
     const allItems: MeTrashArchiveItem[] = [];
 
