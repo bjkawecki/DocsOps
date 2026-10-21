@@ -396,7 +396,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 
 #### 5. CI Frontend- / E2E-Tests
 
-[x] **Umgesetzt:** Playwright-Paket `apps/e2e` (Login → Catalog → Dokument). Läuft im Release-Workflow **nach** `install-test` gegen denselben Stack (`DOCSOPS_TLS_MODE=off`, `ci-seed.yml` / DEMO_MODE, Login als Seed-Member). Ersetzt den Install-Smoke nicht.
+[x] **Umgesetzt:** Playwright-Paket `apps/e2e` (Demo-Rollenwahl Team Member → Catalog → Dokument). Läuft im Release-Workflow **nach** `install-test` gegen denselben Stack (`DOCSOPS_TLS_MODE=off`, `ci-seed.yml` / DEMO_MODE). Ersetzt den Install-Smoke nicht.
 
 #### Einordnung
 

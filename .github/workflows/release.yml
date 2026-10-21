@@ -216,8 +216,6 @@ jobs:
       - name: App E2E (Playwright)
         env:
           DOCSOPS_E2E_BASE_URL: http://127.0.0.1:8080
-          DOCSOPS_E2E_USER_EMAIL: member@demo.docsops.local
-          DOCSOPS_E2E_USER_PASSWORD: DocsOps1
         run: |
           corepack enable
           pnpm install --frozen-lockfile
