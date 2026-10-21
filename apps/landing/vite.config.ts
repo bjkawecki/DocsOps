@@ -28,11 +28,21 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            react: ['react', 'react-dom', 'react-router-dom'],
-            mantine: ['@mantine/core', '@mantine/hooks'],
-            xyflow: ['@xyflow/react'],
-            markdown: ['react-markdown', 'remark-gfm'],
+          // Vite 8 / Rolldown: object form no longer accepted; map by module id.
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('@mantine')) return 'mantine';
+            if (id.includes('@xyflow')) return 'xyflow';
+            if (id.includes('react-markdown') || id.includes('remark-gfm')) return 'markdown';
+            if (
+              id.includes('/react-dom/') ||
+              id.includes('/react-router') ||
+              id.includes('/scheduler/') ||
+              id.includes('/react/')
+            ) {
+              return 'react';
+            }
+            return undefined;
           },
         },
       },

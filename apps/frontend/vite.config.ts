@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 /** Wenn du nur `pnpm --filter frontend dev` startest: /api → Backend (Standard 8080 wie `make dev`). */
 const devApiTarget = process.env.VITE_DEV_PROXY_API ?? 'http://127.0.0.1:8080';
@@ -47,4 +47,4 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', 'dist'],
   },
-} as Parameters<typeof defineConfig>[0] & { test?: object });
+});

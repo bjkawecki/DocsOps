@@ -35,9 +35,12 @@ export function DocumentPreviewMermaid({ source }: Props) {
     void (async () => {
       try {
         const mermaid = (await import('mermaid')).default;
+        // Mermaid 12 defaults to ELK layout + neo look; keep 11.x appearance.
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: 'strict',
+          layout: 'dagre',
+          look: 'classic',
           theme: colorScheme === 'dark' ? 'dark' : 'default',
         });
         const renderId = `mermaid-${reactId}-${Date.now()}`;

@@ -30,17 +30,19 @@ describe('Start here (scope start-document + resolve)', () => {
     writerCookie = await ctx.loginAsWriter();
 
     const pw = await hashPassword('testpass');
+    const teamLeadEmail = `team-lead-start-${Date.now()}@example.com`;
+    const memberEmail = `member-start-${Date.now()}@example.com`;
     const teamLead = await prisma.user.create({
       data: {
         name: 'Team Lead StartHere',
-        email: `team-lead-start-${Date.now()}@example.com`,
+        email: teamLeadEmail,
         passwordHash: pw,
       },
     });
     const member = await prisma.user.create({
       data: {
         name: 'Member StartHere',
-        email: `member-start-${Date.now()}@example.com`,
+        email: memberEmail,
         passwordHash: pw,
       },
     });
@@ -111,8 +113,8 @@ describe('Start here (scope start-document + resolve)', () => {
       expect(res.statusCode).toBe(204);
       return getCookieHeader(res.headers['set-cookie']);
     };
-    teamLeadCookie = await login(teamLead.email);
-    memberCookie = await login(member.email);
+    teamLeadCookie = await login(teamLeadEmail);
+    memberCookie = await login(memberEmail);
   });
 
   afterAll(async () => {
