@@ -90,10 +90,13 @@ async function uploadViaWebDav(
       hostHeader: config.hostHeader,
     });
   } catch (error) {
-    const cause =
+    const nestedCause =
       error instanceof Error && error.cause instanceof Error ? error.cause.message : undefined;
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`WebDAV upload request failed: ${message}${cause ? ` (${cause})` : ''}`);
+    throw new Error(
+      `WebDAV upload request failed: ${message}${nestedCause ? ` (${nestedCause})` : ''}`,
+      { cause: error }
+    );
   }
 
   if (result.statusCode < 200 || result.statusCode >= 300) {

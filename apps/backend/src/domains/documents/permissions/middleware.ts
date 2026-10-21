@@ -44,7 +44,7 @@ export function requireDocumentAccess(
       }
       return;
     }
-    let allowed = false;
+    let allowed: boolean;
     if (mode === 'read') {
       allowed = await canRead(prisma, userId, doc);
     } else if (mode === 'write') {

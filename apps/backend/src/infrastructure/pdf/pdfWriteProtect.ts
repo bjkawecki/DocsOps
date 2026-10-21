@@ -50,7 +50,8 @@ export async function applyPdfWriteProtection(pdfBuffer: Buffer): Promise<Buffer
           : undefined;
       if (code === 'ENOENT') {
         throw new Error(
-          `qpdf binary not found ("${qpdfBin}"). Install qpdf on the worker image or set QPDF_BIN.`
+          `qpdf binary not found ("${qpdfBin}"). Install qpdf on the worker image or set QPDF_BIN.`,
+          { cause: error }
         );
       }
       throw error;

@@ -95,7 +95,11 @@ module.exports = tseslint.config(
   {
     files: ['apps/frontend/**/*.tsx'],
     plugins: { 'react-hooks': reactHooks },
-    rules: reactHooks.configs.recommended.rules,
+    // Classic hooks only; React Compiler rules from plugin v7 stay off until a dedicated cleanup.
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
   },
   // In Tests: res.json() liefert typisch unknown/any; Type-Assertions sind nötig für no-unsafe-*
   {

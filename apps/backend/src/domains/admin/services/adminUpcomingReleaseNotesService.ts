@@ -43,7 +43,7 @@ export async function fetchUpcomingReleaseMarkdown(args: {
     };
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new Error('Release notes fetch timed out');
+      throw new Error('Release notes fetch timed out', { cause: err });
     }
     throw err;
   } finally {

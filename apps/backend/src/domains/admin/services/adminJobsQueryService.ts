@@ -312,7 +312,7 @@ export async function getAdminJobsHealth(prisma: PrismaClient) {
     `);
     lastHeartbeat = heartbeatRows[0]?.last_heartbeat ?? null;
   } catch {
-    lastHeartbeat = null;
+    // keep lastHeartbeat null when heartbeat table is unavailable
   }
   const workerConnected =
     lastHeartbeat != null && Date.now() - new Date(lastHeartbeat).getTime() < 60 * 1000;

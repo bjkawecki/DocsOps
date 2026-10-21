@@ -196,8 +196,8 @@ export const registerCatalogRoutes = (app: FastifyInstance): void => {
         ...(args?.skip !== undefined ? { skip: args.skip } : {}),
       });
 
-    let rawItems: Awaited<ReturnType<typeof fetchCatalogRows>> = [];
-    let totalCount = 0;
+    let rawItems: Awaited<ReturnType<typeof fetchCatalogRows>>;
+    let totalCount: number;
     if (rankedSearchOrder != null) {
       rawItems = await fetchCatalogRows();
       const orderIndexById = new Map(rankedSearchOrder.map((id, index) => [id, index]));
@@ -224,7 +224,7 @@ export const registerCatalogRoutes = (app: FastifyInstance): void => {
     const mapDoc = (doc: Awaited<ReturnType<typeof fetchCatalogRows>>[number]) => {
       const ctx = doc.context;
       let contextType: 'process' | 'project' | 'subcontext' = 'process';
-      let contextName = '';
+      let contextName: string;
       let ownerDisplay = 'Personal';
       let ownerHref: string | null = null;
       let contextProcessId: string | null = null;

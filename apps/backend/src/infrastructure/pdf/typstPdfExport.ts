@@ -152,7 +152,8 @@ export async function renderMarkdownToPdfBuffer(options: TypstPdfExportOptions):
           : undefined;
       if (code === 'ENOENT') {
         throw new Error(
-          `Typst binary not found ("${typstCommand}"). Rebuild the docsops-job-worker image (typst) or set TYPST_BIN.`
+          `Typst binary not found ("${typstCommand}"). Rebuild the docsops-job-worker image (typst) or set TYPST_BIN.`,
+          { cause: error }
         );
       }
       throw error;

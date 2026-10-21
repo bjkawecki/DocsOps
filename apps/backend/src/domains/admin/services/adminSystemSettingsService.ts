@@ -298,7 +298,7 @@ export async function getSmtpTransportConfig(
     return null;
   }
 
-  let password: string | null = null;
+  let password: string | null;
   try {
     const decrypted = decryptJson<{ password?: string }>(row.smtpPasswordCiphertext);
     password = typeof decrypted.password === 'string' ? decrypted.password : null;

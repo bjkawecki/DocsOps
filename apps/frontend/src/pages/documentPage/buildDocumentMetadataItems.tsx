@@ -50,7 +50,7 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
     ? new Date(data.publishedAt).toLocaleDateString(undefined)
     : null;
 
-  let statusLine: string | null = null;
+  let statusLine: string | null;
   if (data.publishedAt) {
     const versionPart =
       versionNumber != null ? t('sidebar.version', { number: versionNumber }) : null;
