@@ -194,7 +194,7 @@ export function LoginPage() {
             </Stack>
           ) : null}
 
-          <Collapse in={!demoMode || passwordOpen}>
+          <Collapse expanded={!demoMode || passwordOpen}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();

@@ -21,7 +21,6 @@ import {
   sendAtFieldLabel,
   useBroadcastTargetOptions,
   type BroadcastDraft,
-  type BroadcastTargetKind,
 } from './adminBroadcastTypes.js';
 
 type AdminBroadcastCreateModalProps = {
@@ -105,7 +104,7 @@ export function AdminBroadcastCreateModal({
           onChange={(v) =>
             onDraftChange({
               ...draft,
-              targetKind: (v as BroadcastTargetKind | null) ?? 'all',
+              targetKind: v ?? 'all',
               userIds: v === 'users' ? draft.userIds : [],
             })
           }
@@ -130,7 +129,7 @@ export function AdminBroadcastCreateModal({
           onChange={(value) =>
             onDraftChange({
               ...draft,
-              deliveryMode: value as BroadcastDraft['deliveryMode'],
+              deliveryMode: value,
               ...(value === 'scheduled' ? { sendAtLocal: defaultFutureDatetimeLocal() } : {}),
             })
           }

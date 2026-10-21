@@ -87,7 +87,7 @@ export function WhatsNewReleaseCard({ release, isLatest, defaultExpanded = false
         </UnstyledButton>
 
         {hasBody && (
-          <Collapse in={opened}>
+          <Collapse expanded={opened}>
             <Stack id={`release-body-${release.version}`} gap={0} pt="xs" pl={28}>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={releaseMarkdownComponents}>
                 {release.markdown}

@@ -116,7 +116,7 @@ function PeerCollapsibleSection({
           <IconChevronRight size={14} style={{ flexShrink: 0 }} aria-hidden />
         )}
       </UnstyledButton>
-      <Collapse in={open}>
+      <Collapse expanded={open}>
         <Box style={nestedListStyle}>
           <Stack gap={6} align="stretch" w="100%">
             {children}
@@ -200,7 +200,7 @@ function ProjectNavItem({
           {expanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
         </UnstyledButton>
       </Box>
-      <Collapse in={expanded}>
+      <Collapse expanded={expanded}>
         <Box
           style={{
             borderLeft: '1px solid var(--mantine-color-default-border)',

@@ -80,7 +80,7 @@ function OneClickUpdateSetupAlert({
         </Group>
       </UnstyledButton>
 
-      <Collapse in={expanded}>
+      <Collapse expanded={expanded}>
         <Stack gap="sm" pt="sm" style={{ minWidth: 0 }}>
           <Text size="sm" fw={500}>
             {t('system.updateStepsModal.missingOnInstance')}

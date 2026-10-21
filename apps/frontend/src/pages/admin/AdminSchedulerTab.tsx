@@ -289,7 +289,7 @@ export function AdminSchedulerTab() {
     <Box>
       <Radio.Group
         value={cronMode}
-        onChange={(value) => setCronMode(value as CronMode)}
+        onChange={(value) => setCronMode(value)}
         label={t('scheduler.cronMode.label')}
         mb="md"
       >
@@ -424,7 +424,7 @@ export function AdminSchedulerTab() {
                               if (!value) return;
                               setCronFormInputs((prev) => ({
                                 ...prev,
-                                [name]: { ...formValue, preset: value as CronPreset },
+                                [name]: { ...formValue, preset: value },
                               }));
                             }}
                             style={{

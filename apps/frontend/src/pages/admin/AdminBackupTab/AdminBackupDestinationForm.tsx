@@ -56,7 +56,7 @@ export function AdminBackupDestinationForm({ destination, onSave }: Props) {
           label={t('backup.destinations.form.typeLabel')}
           value={form.type}
           disabled={isEdit}
-          onChange={(v) => v && set('type', v as DestinationFormState['type'])}
+          onChange={(v) => v && set('type', v)}
           data={[
             { value: 'S3_COMPATIBLE', label: t('backup.destinations.form.typeS3') },
             { value: 'SSH', label: t('backup.destinations.form.typeSsh') },

@@ -61,7 +61,7 @@ export function AdminSystemUpcomingReleasePreview({ status }: Props) {
           </Group>
         </UnstyledButton>
 
-        <Collapse in={opened}>
+        <Collapse expanded={opened}>
           <Stack gap="sm" pt="xs">
             {hasError && (
               <Alert color="yellow" title={t('system.upcomingRelease.loadErrorTitle')}>

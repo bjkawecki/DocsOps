@@ -81,7 +81,7 @@ export function ContentSidebarCollapsibleSection({
           <IconChevronRight size={14} style={{ flexShrink: 0 }} aria-hidden />
         )}
       </UnstyledButton>
-      <Collapse in={open}>
+      <Collapse expanded={open}>
         <Box style={nestedListStyle}>
           <Stack gap={2} align="stretch" w="100%">
             {children}

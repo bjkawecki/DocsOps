@@ -132,7 +132,7 @@ export function AppShellNavCollapsibleSection({
           )}
         </UnstyledButton>
       </Box>
-      <Collapse in={expanded}>
+      <Collapse expanded={expanded}>
         <Box id={panelId} style={nestedBoxStyle}>
           {children}
         </Box>

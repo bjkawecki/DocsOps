@@ -54,7 +54,7 @@ export function TemplatesSidebarGroup({ sectionId, label, defaultOpen = true, ch
           <IconChevronRight size={14} style={{ flexShrink: 0 }} aria-hidden />
         )}
       </UnstyledButton>
-      <Collapse in={open}>
+      <Collapse expanded={open}>
         <Stack gap={2} align="stretch" w="100%" mt={2}>
           {children}
         </Stack>

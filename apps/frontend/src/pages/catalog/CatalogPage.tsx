@@ -315,7 +315,7 @@ export function CatalogPage() {
         value={sortBy}
         onChange={(value) => {
           if (!value) return;
-          setSort(value as SortBy, value === 'relevance' ? 'desc' : undefined);
+          setSort(value, value === 'relevance' ? 'desc' : undefined);
         }}
         style={{ minWidth: 150 }}
       />

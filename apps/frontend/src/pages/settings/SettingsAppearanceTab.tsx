@@ -150,9 +150,7 @@ export function SettingsAppearanceTab() {
           </Stack>
           <SegmentedControl
             value={theme}
-            onChange={(value) =>
-              patchPreferences.mutate({ theme: value as 'light' | 'dark' | 'auto' })
-            }
+            onChange={(value) => patchPreferences.mutate({ theme: value })}
             data={[
               { label: t('appearance.themeLight'), value: 'light' },
               { label: t('appearance.themeDark'), value: 'dark' },
@@ -190,7 +188,7 @@ export function SettingsAppearanceTab() {
             onChange={(value) => {
               if (value !== null && (PRIMARY_COLOR_PRESETS as readonly string[]).includes(value)) {
                 patchPreferences.mutate({
-                  primaryColor: value as PrimaryColorPreset,
+                  primaryColor: value,
                 });
               }
             }}
@@ -205,7 +203,7 @@ export function SettingsAppearanceTab() {
             disabled={patchPreferences.isPending}
             w={200}
             renderOption={({ option }) => {
-              const preset = option.value as PrimaryColorPreset;
+              const preset = option.value;
               return (
                 <Group gap="xs" wrap="nowrap">
                   <ColorSwatch color={getPrimaryColorAccent(preset)} size={14} withShadow={false} />
@@ -238,9 +236,7 @@ export function SettingsAppearanceTab() {
             </Stack>
             <SegmentedControl
               value={textSize}
-              onChange={(value) =>
-                patchPreferences.mutate({ textSize: value as TextSizePreference })
-              }
+              onChange={(value) => patchPreferences.mutate({ textSize: value })}
               data={(Object.keys(TEXT_SIZE_OPTION_LABELS) as TextSizePreference[]).map((value) => ({
                 value,
                 label: TEXT_SIZE_OPTION_LABELS[value],
@@ -277,7 +273,7 @@ export function SettingsAppearanceTab() {
             value={documentReadingFont}
             onChange={(value) =>
               patchPreferences.mutate({
-                documentReadingFont: value as DocumentReadingFontPreference,
+                documentReadingFont: value,
               })
             }
             data={[

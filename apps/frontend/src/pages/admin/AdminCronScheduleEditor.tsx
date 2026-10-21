@@ -9,7 +9,6 @@ import {
   parseCronToForm,
   type CronFormState,
   type CronMode,
-  type CronPreset,
   toSelectOptions,
   WEEKDAY_OPTIONS,
 } from './adminCronScheduleUtils.js';
@@ -41,11 +40,7 @@ export function AdminCronScheduleEditor({
 }: AdminCronScheduleEditorProps) {
   return (
     <Stack gap="sm">
-      <Radio.Group
-        value={cronMode}
-        onChange={(value) => onCronModeChange(value as CronMode)}
-        label="Cron mode"
-      >
+      <Radio.Group value={cronMode} onChange={(value) => onCronModeChange(value)} label="Cron mode">
         <Group gap="md">
           <Radio value="text" label="Text" />
           <Radio value="form" label="Form" />
@@ -74,7 +69,7 @@ export function AdminCronScheduleEditor({
               ]}
               onChange={(value) => {
                 if (!value) return;
-                onFormChange({ ...formValue, preset: value as CronPreset });
+                onFormChange({ ...formValue, preset: value });
               }}
               style={{
                 width: PRESET_FIELD_WIDTH,

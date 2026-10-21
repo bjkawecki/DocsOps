@@ -253,7 +253,7 @@ export function LeadDraftLinkPopover({
                 fullWidth
                 value={mode}
                 onChange={(value) => {
-                  setMode(value as LinkMode);
+                  setMode(value);
                   setHrefError(null);
                 }}
                 data={[

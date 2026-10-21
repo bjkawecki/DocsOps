@@ -70,7 +70,7 @@ export function DocumentChromeCollapsiblePanel({
           />
         )}
       </UnstyledButton>
-      <Collapse in={open}>
+      <Collapse expanded={open}>
         <Box mt={6}>{children}</Box>
       </Collapse>
     </Box>

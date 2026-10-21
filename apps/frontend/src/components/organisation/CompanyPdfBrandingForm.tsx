@@ -215,7 +215,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
         </Text>
         <SegmentedControl
           value={fontFamily}
-          onChange={(value) => setFontFamily(value as 'sans' | 'serif')}
+          onChange={(value) => setFontFamily(value)}
           data={[
             { label: t('company.pdfBranding.fontSans'), value: 'sans' },
             { label: t('company.pdfBranding.fontSerif'), value: 'serif' },
@@ -238,7 +238,7 @@ export function CompanyPdfBrandingForm({ companyId }: Props) {
         )}
         <SegmentedControl
           value={logoPosition}
-          onChange={(value) => setLogoPosition(value as 'left' | 'right')}
+          onChange={(value) => setLogoPosition(value)}
           data={[
             { label: t('company.pdfBranding.positionLeft'), value: 'left' },
             { label: t('company.pdfBranding.positionRight'), value: 'right' },

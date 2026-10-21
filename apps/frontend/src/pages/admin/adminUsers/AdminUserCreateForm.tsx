@@ -101,7 +101,7 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
             { value: 'leader', label: t('users.createForm.teamRoleLeader') },
           ]}
           value={teamRole}
-          onChange={(v) => v && setTeamRole(v as 'member' | 'leader')}
+          onChange={(v) => v && setTeamRole(v)}
         />
       )}
       {departmentId && (

@@ -375,7 +375,7 @@ export function DocumentTemplatesPage() {
           size="xs"
           fullWidth
           value={sourceFilter}
-          onChange={(v) => setSourceFilter(v as SourceFilter)}
+          onChange={(v) => setSourceFilter(v)}
           data={[
             { label: t('documents:catalog.allTypes'), value: 'all' },
             { label: t('documents:typePicker.sourceBuiltin'), value: 'builtin' },

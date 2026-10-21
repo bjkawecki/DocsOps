@@ -204,7 +204,7 @@ export function NewDocumentModal({
           <Radio.Group
             label={t('modals.newDocument.createDraftLabel')}
             value={mode}
-            onChange={(v) => setMode(v as DraftMode)}
+            onChange={(v) => setMode(v)}
             description={t('modals.newDocument.createDraftDescription')}
           >
             <Stack gap="xs" mt="xs">

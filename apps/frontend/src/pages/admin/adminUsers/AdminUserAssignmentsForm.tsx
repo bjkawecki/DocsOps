@@ -361,7 +361,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
           { value: 'Lead', label: teamRoleLabel(t, 'Lead') },
         ]}
         value={teamRole}
-        onChange={(v) => v && setTeamRole(v as TeamRole)}
+        onChange={(v) => v && setTeamRole(v)}
         disabled={!teamId}
         size="sm"
       />
