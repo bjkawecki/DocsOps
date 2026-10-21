@@ -116,7 +116,7 @@ async function canWriteInOwnerScope(
 
 /**
  * Checks if the user may create a process/project for the given owner (companyId, departmentId, teamId or ownerUserId).
- * Personal (ownerUserId): only the user themselves. Org: Admin, Company/Department/Team Lead as per hierarchy.
+ * Personal (ownerUserId): only the user themselves. Org: Company/Department/Team Lead as per hierarchy (not platform admin).
  */
 export async function canCreateProcessOrProjectForOwner(
   prisma: PrismaClient,
@@ -125,13 +125,13 @@ export async function canCreateProcessOrProjectForOwner(
 ): Promise<boolean> {
   const user = await loadActiveUser(prisma, userId);
   if (!user) return false;
-  if (user.isAdmin) return true;
   return canWriteInOwnerScope(prisma, user, userId, opts);
 }
 
 /**
  * Checks if the user may write the context (create/edit/delete Process/Project/Subcontext).
- * isAdmin; or Owner of personal context (ownerUserId); or Company/Department/Team Lead of owner unit.
+ * Owner of personal context (ownerUserId); or Company/Department/Team Lead of owner unit.
+ * Platform admin does not write contexts.
  */
 export async function canWriteContext(
   prisma: PrismaClient,
@@ -142,14 +142,12 @@ export async function canWriteContext(
   if (!row) return false;
   const { user, ctx } = row;
 
-  if (user.isAdmin) return true;
-
   return canWriteInOwnerScope(prisma, user, userId, ownerScopeOptionsFromContext(ctx));
 }
 
 /**
  * Checks if the user may read the context (list documents, view context).
- * isAdmin; or Owner of personal context (ownerUserId); or Company/Department Lead or Team member of owner unit.
+ * Admin: org scopes only; personal owner; or Company/Department Lead or Team member of owner unit.
  */
 export async function canReadContext(
   prisma: PrismaClient,
@@ -159,8 +157,6 @@ export async function canReadContext(
   const row = await loadActiveUserAndContext(prisma, userId, contextId);
   if (!row) return false;
   const { user, ctx } = row;
-
-  if (user.isAdmin) return true;
 
   return canReadOwnerScopeResolved(prisma, user, userId, ownerScopeOptionsFromContext(ctx));
 }
@@ -198,7 +194,6 @@ export async function canReadScopeForOwner(
   if (!opts) return false;
   const user = await loadActiveUser(prisma, userId);
   if (!user) return false;
-  if (user.isAdmin) return true;
   return canReadOwnerScopeResolved(prisma, user, userId, opts);
 }
 

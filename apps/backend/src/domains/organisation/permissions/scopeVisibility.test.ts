@@ -83,6 +83,13 @@ describe('evaluateScopeCapability', () => {
   });
 
   describe('lead', () => {
+    it('admin is not scope lead', () => {
+      const admin = emptyUser({ isAdmin: true });
+      expect(evaluateScopeCapability(admin, companyHierarchy, 'lead')).toBe(false);
+      expect(evaluateScopeCapability(admin, deptHierarchy, 'lead')).toBe(false);
+      expect(evaluateScopeCapability(admin, teamHierarchy, 'lead')).toBe(false);
+    });
+
     it('company lead is scope lead for company, department, and team', () => {
       const user = companyLeadUser();
       expect(evaluateScopeCapability(user, companyHierarchy, 'lead')).toBe(true);

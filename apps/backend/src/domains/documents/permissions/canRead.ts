@@ -81,6 +81,14 @@ export function hasDocumentGrantRole(
   return false;
 }
 
+/** True when the document sits in an org-owned context (not personal / context-free). */
+export function isOrgOwnedDocument(doc: DocumentForPermission): boolean {
+  if (doc.contextId == null || doc.context == null) return false;
+  const owner = getDocumentOwner(doc);
+  if (!owner || owner.ownerUserId != null) return false;
+  return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
+}
+
 export function evaluateBaseDocumentPermission(
   doc: DocumentForPermission,
   user: UserForPermission,
@@ -88,7 +96,11 @@ export function evaluateBaseDocumentPermission(
   role: GrantRole,
   teamIds: Set<string>
 ): boolean | null {
-  if (user.isAdmin) return true;
+  if (user.isAdmin) {
+    // Platform admin: org read only; never write via isAdmin.
+    if (role !== GrantRole.Read) return false;
+    return isOrgOwnedDocument(doc);
+  }
   if (doc.contextId == null || doc.context == null) {
     if (doc.createdById === userId) return true;
     return hasDocumentGrantRole(doc, userId, role, teamIds, getUserDepartmentIds(user));

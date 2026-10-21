@@ -144,23 +144,27 @@ export function AppShellNavbar({
                   />
                 </>
               ) : null}
-              {!isMiniRail ? (
-                <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
-                  {t('nav.personal')}
-                </Text>
+              {!s.isAdmin ? (
+                <>
+                  {!isMiniRail ? (
+                    <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
+                      {t('nav.personal')}
+                    </Text>
+                  ) : null}
+                  <AppShellSidebarNavLink
+                    to="/personal"
+                    label={t('nav.personal')}
+                    active={isOrgNavActive('/personal', s.location.pathname, navScope, {
+                      type: 'personal',
+                    })}
+                    leftSection={<IconUser size={20} />}
+                    navLinkStyles={s.navLinkStyles}
+                    isMiniRail={isMiniRail}
+                    badgeCount={s.personalCount}
+                    onNavigate={onNavigate}
+                  />
+                </>
               ) : null}
-              <AppShellSidebarNavLink
-                to="/personal"
-                label={t('nav.personal')}
-                active={isOrgNavActive('/personal', s.location.pathname, navScope, {
-                  type: 'personal',
-                })}
-                leftSection={<IconUser size={20} />}
-                navLinkStyles={s.navLinkStyles}
-                isMiniRail={isMiniRail}
-                badgeCount={s.personalCount}
-                onNavigate={onNavigate}
-              />
               {s.showApprovalsNav ? (
                 <AppShellSidebarNavLink
                   to="/approvals"

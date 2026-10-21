@@ -15,7 +15,6 @@ export async function canModerateDocumentComments(
 ): Promise<boolean> {
   const user = await loadUser(prisma, userId);
   if (!user || user.deletedAt !== null) return false;
-  if (user.isAdmin) return true;
   if (doc.contextId != null) {
     return canWriteContext(prisma, userId, doc.contextId);
   }

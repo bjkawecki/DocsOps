@@ -64,7 +64,9 @@ Rollen auf Workspace-Ebene: **Owner**, **Admin**, **Member**. Auf Space-Ebene: *
 
 ### 4.1 Architektur und Struktur
 
+- **Eine Instanz = eine Firma** (kein Multi-Company in derselben Installation; vgl. [Rechtesystem](datenmodell/Rechtesystem.md#instanz-und-firma-invariante)).
 - **Organisationshierarchie:** Company → Department → Team; dazu **persönliche Kontexte** (Prozesse/Projekte mit Owner = User).
+- **Admin:** technischer Verwaltungsaccount (Org/Plattform); liest Organisationsdokumente, schreibt keine Fachdokumente (im Gegensatz zu Docmost-Workspace-Admin mit inhaltlichen Vollrechten).
 - **Kontexte:** Prozess, Projekt, Unterkontext (Subcontext). Jeder Kontext gehört genau einer **Owner-Unit** (Company, Department, Team oder User). Dokumente gehören **immer genau einem Kontext** und damit einem Bereich.
 - **Dokumente:** Markdown-Inhalt, Tags, **explizite Zugriffsrechte** pro Dokument (Grants für User, Team, Department mit Rolle Read oder Write).
 - **Rollen:** Team Lead, Department Lead, Company Lead („Scope-Lead“); **Leserechte werden nach oben vererbt**, **Schreibrechte sind lokal** (nur Lead der Owner-Unit oder expliziter Writer-Grant). Keine Quer-Vererbung zwischen parallelen Units.

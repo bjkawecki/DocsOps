@@ -120,10 +120,10 @@ describe('Pinned permissions (canPinForScope, getVisiblePinnedScopeIds)', () => 
   });
 
   describe('canPinForScope', () => {
-    it('Admin darf für beliebigen Scope pin/unpin', async () => {
-      expect(await canPinForScope(prisma, adminId, 'team', teamId)).toBe(true);
-      expect(await canPinForScope(prisma, adminId, 'department', departmentId)).toBe(true);
-      expect(await canPinForScope(prisma, adminId, 'company', companyId)).toBe(true);
+    it('Admin darf nicht pin/unpin (kein Scope-Lead)', async () => {
+      expect(await canPinForScope(prisma, adminId, 'team', teamId)).toBe(false);
+      expect(await canPinForScope(prisma, adminId, 'department', departmentId)).toBe(false);
+      expect(await canPinForScope(prisma, adminId, 'company', companyId)).toBe(false);
     });
 
     it('Team Lead darf nur für eigenes Team pin/unpin', async () => {

@@ -3,7 +3,7 @@ import { canWriteContext } from '../../organisation/permissions/contextPermissio
 
 /**
  * Checks if the user may publish the document (set publishedAt, create first version).
- * Only scope lead (and admin, owner of personal context) – same as canWriteContext on the document's context.
+ * Only scope lead (or owner of personal context) – same as canWriteContext on the document's context.
  */
 export async function canPublishDocument(
   prisma: PrismaClient,

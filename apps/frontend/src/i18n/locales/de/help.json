@@ -229,7 +229,7 @@
     },
     "admin": {
       "lead": [
-        "Der Admin verwaltet die DocsOps-Instanz. Die Admin-Rolle ist eine Plattformrolle, keine Nutzerrolle in der Organisation."
+        "Der Admin ist ein technischer Verwaltungsaccount für die DocsOps-Instanz. Die Admin-Rolle ist eine Plattformrolle, keine Nutzerrolle in der Organisation."
       ],
       "sections": [
         {
@@ -239,17 +239,24 @@
           ]
         },
         {
+          "heading": "Lesen ohne Fachschreiben",
+          "paragraphs": [
+            "Der Admin darf das Organisationswissen der Firma lesen – Kontexte und Dokumente unter Unternehmen, Abteilungen und Teams. Er legt keine fachlichen Dokumente oder Kontexte an, bearbeitet sie nicht und hat keinen persönlichen Bereich. Veröffentlichen und Leitungsaufgaben gehören zu den Nutzerrollen.",
+            "Wer in der Organisation fachlich mitarbeitet, nutzt dafür einen zweiten Account mit Nutzerrolle. Derselbe Admin-Account ist dafür nicht gedacht."
+          ]
+        },
+        {
           "heading": "Wer Admin sein sollte",
           "paragraphs": [
-            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung. Beide Aufgaben in einer Person zu bündeln vermischt Plattformbetrieb und organisatorische Leitung auf Unternehmensebene. Deshalb sollte dieselbe Person nicht beides sein; die Unternehmensleitung braucht die Admin-Rolle nicht."
+            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur täglichen Dokumentarbeit. Plattformbetrieb und fachliche Mitarbeit in einer Person zu bündeln vermischt technische Verwaltung mit inhaltlicher Verantwortung. Deshalb gehören Admin-Rechte und Nutzerrolle auf getrennte Accounts."
           ]
         }
       ]
     },
     "userRoles": {
       "lead": [
-        "Nutzerrollen gelten in der Organisation. Sie unterscheiden sich von der Admin-Rolle: der Admin verwaltet die Plattform; Nutzerrollen bestimmen, welche Rechte ein Nutzer in den Bereichen hat und welche Verantwortung daraus folgt.",
-        "DocsOps kennt drei Nutzerrollen: Leitung, Autor und Mitglied."
+        "Nutzerrollen gelten in der Organisation. Sie unterscheiden sich vom Admin: der Admin ist ein technischer Verwaltungsaccount ohne Fachschreiben; Nutzerrollen bestimmen, welche Rechte ein Mitglied in den Bereichen hat und welche Verantwortung daraus folgt.",
+        "DocsOps kennt drei Nutzerrollen: Leitung, Autor und Mitglied. Wer Admin ist, erhält keine dieser Nutzerrollen auf demselben Account."
       ],
       "sections": [
         {

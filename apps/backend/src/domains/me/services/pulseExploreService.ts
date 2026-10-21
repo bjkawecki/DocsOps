@@ -298,8 +298,10 @@ async function buildCandidates(prisma: PrismaClient, userId: string): Promise<Sc
     candidates.push(...(await adminOrgScopeCandidates(prisma)));
   }
 
-  candidates.push({ key: 'drafts', title: 'Your drafts', kind: 'drafts' });
-  candidates.push({ key: 'your-documents', title: 'Your documents', kind: 'your-documents' });
+  if (!user.isAdmin) {
+    candidates.push({ key: 'drafts', title: 'Your drafts', kind: 'drafts' });
+    candidates.push({ key: 'your-documents', title: 'Your documents', kind: 'your-documents' });
+  }
 
   return candidates;
 }

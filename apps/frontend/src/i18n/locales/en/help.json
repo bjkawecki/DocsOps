@@ -229,7 +229,7 @@
     },
     "admin": {
       "lead": [
-        "The admin manages the DocsOps instance. The admin role is a platform role, not a user role in the organisation."
+        "The admin is a technical administration account for the DocsOps instance. The admin role is a platform role, not a user role in the organisation."
       ],
       "sections": [
         {
@@ -239,17 +239,24 @@
           ]
         },
         {
+          "heading": "Read without content writing",
+          "paragraphs": [
+            "The admin may read the organisation’s knowledge – contexts and documents under the company, departments, and teams. The admin does not create or edit content documents or contexts and has no personal space. Publishing and lead duties belong to user roles.",
+            "Anyone who contributes content in the organisation uses a second account with a user role. The admin account itself is not meant for that work."
+          ]
+        },
+        {
           "heading": "Who should be admin",
           "paragraphs": [
-            "The admin role belongs to whoever operates and configures the instance – not to company leadership. Combining both in one person mixes platform operations with organisational lead at company level. That is why the same person should not be both; company leadership does not need the admin role."
+            "The admin role belongs to whoever operates and configures the instance – not to company leadership and not to day-to-day document work. Combining platform operations and content work on one account mixes technical administration with content responsibility. That is why admin rights and a user role belong on separate accounts."
           ]
         }
       ]
     },
     "userRoles": {
       "lead": [
-        "User roles apply in the organisation. They differ from the admin role: the admin manages the platform; user roles determine which rights a user has in scopes and which responsibility follows from that.",
-        "DocsOps has three user roles: lead, author, and member."
+        "User roles apply in the organisation. They differ from the admin: the admin is a technical administration account without content writing; user roles determine which rights a member has in scopes and which responsibility follows from that.",
+        "DocsOps has three user roles: lead, author, and member. An admin account does not also hold one of these user roles."
       ],
       "sections": [
         {

@@ -4,6 +4,12 @@ Einheitliche Beschreibung des Rechtesystems: Konzeption (Grundprinzipien, Units,
 
 ---
 
+## Instanz und Firma (Invariante)
+
+**Eine DocsOps-Instanz betreibt genau eine Firma.** Es gibt kein Multi-Company und keinen Multi-Tenant innerhalb derselben Instanz. Weitere Firmen bedeuten weitere Instanzen, nicht eine zweite `Company` in derselben Datenbank als Produktfeature. Die Admin-UI legt höchstens die erste Firma an; ein weiterer Create ist abgelehnt.
+
+---
+
 ## Teil I – Konzeption
 
 ### 1. Grundprinzip
@@ -69,7 +75,7 @@ Drei Ebenen nicht vermengen:
 
 **Archive:** Archivierte Dokumente (`archivedAt` gesetzt) werden aus normalen Listen ausgeblendet. Archivieren/Entarchivieren (PATCH archivedAt) darf, wer Schreibrecht hat (canWrite). Kontexte (Process/Project) haben ebenfalls `archivedAt`; beim Archivieren kaskadiert der Status auf alle Dokumente des Kontexts.
 
-**Sichtbarkeit Drafts / Trash / Archive (§4b):** Die Tabs Drafts, Trash und Archive werden angezeigt, wenn der Nutzer **Admin** oder **Scope-Lead** ist (Company Lead, Department Lead, Team Lead; Rechte gelten nach unten: Company Lead sieht die Tabs auch in Departments/Teams seiner Firma). Leser ohne Lead-Rolle sehen diese Tabs nicht. Einträge in **Drafts**, die auf Review oder Freigabe warten, nur für Nutzer mit Schreibrecht (writable). GET /me/trash und GET /me/archive unterstützen die Scopes **personal**, **company**, **department** und **team**; bei fehlendem Zugriff liefern sie eine **leere Liste** (kein 403).
+**Sichtbarkeit Drafts / Trash / Archive (§4b):** Die Tabs Drafts, Trash und Archive werden angezeigt, wenn der Nutzer **Scope-Lead** ist (Company Lead, Department Lead, Team Lead; Rechte gelten nach unten: Company Lead sieht die Tabs auch in Departments/Teams seiner Firma). **Plattform-Admin allein** sieht diese Schreib-Tabs nicht (kein Lead-Workflow). Leser ohne Lead-Rolle sehen diese Tabs nicht. Einträge in **Drafts**, die auf Review oder Freigabe warten, nur für Nutzer mit Schreibrecht (writable). GET /me/trash und GET /me/archive unterstützen die Scopes **personal**, **company**, **department** und **team**; bei fehlendem Zugriff liefern sie eine **leere Liste** (kein 403).
 
 ---
 
@@ -82,7 +88,9 @@ Pro Unit (Team, Department, Company) existieren Rollen:
 
 **Company-Lead** ist eine Governance-Rolle: Leserecht auf alle Organisations-Kontexte (siehe unten), kein automatisches globales Schreibrecht.
 
-**Eine Rolle pro Person:** Plattform-**Admin** (`isAdmin`) oder genau **eine** organisatorische Scope-Rolle (`CompanyLead`, `DepartmentLead`, `TeamLead`, `TeamMember`) – nicht kombinierbar. Team Lead erfordert keine Team-Mitgliedschaft; Lead und Member sind auf Team-Ebene mutual exclusive. Zuordnungs-APIs und Admin-User-`isAdmin`-Grant enforced das per 409.
+**Plattform-Admin (`isAdmin`):** Technischer Verwaltungsaccount für Installation, Betrieb, Nutzer, Organisationsstruktur (Company/Department/Team anlegen und löschen) und plattformweite Einstellungen (inkl. Document Types/Templates). **Kein** Fach-Schreibaccount: kein `canWrite` auf Dokumente oder Kontexte, kein Anlegen von Prozessen/Projekten/Dokumenten, kein Publish, kein persönlicher Nutzerspace, kein Author/Lead/Member. **Lesen:** alle Organisations-Kontexte und -Dokumente der Instanz-Firma; **nicht** persönliche Kontexte (`ownerUserId`). Facharbeit derselben natürlichen Person läuft über einen **zweiten Personen-Account** mit Nutzerrolle. Impersonation ist nur Entwicklungs-/Debug-Hilfsmittel, kein Betriebs-Support-Pfad.
+
+**Eine Rolle pro Account:** Plattform-**Admin** (`isAdmin`) oder genau **eine** organisatorische Scope-Rolle (`CompanyLead`, `DepartmentLead`, `TeamLead`, `TeamMember`) – nicht kombinierbar. Team Lead erfordert keine Team-Mitgliedschaft; Lead und Member sind auf Team-Ebene mutual exclusive. Zuordnungs-APIs und Admin-User-`isAdmin`-Grant enforced das per 409.
 
 **Anzeige-Labels (kein Rechtewechsel):** Plattform-Admins können unter Admin → Platform → Roles Singular/Plural-Bezeichnungen für `companyLead`, `departmentLead`, `teamLead`, `teamMember` setzen (eine Sprache für die gesamte Instanz). Capability-Keys und Permissions bleiben unverändert; leere Felder nutzen die i18n-Defaults. Labels erreichen Clients über `GET /api/v1/system/public-config` (`orgRoleLabels`).
 
@@ -116,7 +124,7 @@ Schreibrechte sind nicht vererbbar.
 
 **Document Grants:** Nur noch **Read** – für Cross-Scope-Zugriff (externe Teams/Departments). Verwaltung durch Scope Lead im Document-Access-Tab.
 
-**Erstellen und Löschen** (Dokumente anlegen oder löschen, Kontexte anlegen oder löschen) sind **nur** dem **Scope-Lead** (und Admin, Owner von persönlichem Prozess/Projekt via ownerUserId) vorbehalten. Scope Authors berechtigen **nicht** zum Anlegen, Löschen oder Publish.
+**Erstellen und Löschen** (Dokumente anlegen oder löschen, fachliche Kontexte Prozess/Projekt anlegen oder löschen) sind **nur** dem **Scope-Lead** (und Owner von persönlichem Prozess/Projekt via ownerUserId) vorbehalten. **Admin** legt keine fachlichen Kontexte oder Dokumente an. Scope Authors berechtigen **nicht** zum Anlegen, Löschen oder Publish.
 
 **Beispiel:** Department-Lead liest Team-Dokument (Vererbung), bearbeitet es nicht (kein Team-Author). Ein Team Author im Owner-Team kann Inline-Vorschläge im Draft anlegen; der Lead entscheidet Accept/Decline und published.
 
@@ -126,7 +134,7 @@ Schreibrechte sind nicht vererbbar.
 
 - **Reader:** Expliziter Lese-Grant (GrantRole Read) für Cross-Scope-Zugriff.
 - **Author (Scope Author):** TeamAuthor / DepartmentAuthor — Inline-Vorschläge im Lead-Draft (Insert/Delete-Marks); Accept/Decline nur Lead; **nicht** Publish/Create/Delete.
-- **Create/Delete/Publish:** Scope Lead, Admin, persönlicher Owner.
+- **Create/Delete/Publish (Fachinhalt):** Scope Lead, persönlicher Owner (nicht Plattform-Admin).
 
 ---
 
@@ -144,9 +152,9 @@ Eine **Kommentar-Sektion** pro Dokument ermöglicht Diskussion und Feedback am D
 
 - **Lesen:** Wer das Dokument lesen darf (`canRead`), darf alle Kommentare zu diesem Dokument lesen.
 - **Kommentieren (Anlegen, eigene bearbeiten/löschen):** Wer das Dokument lesen darf (`canRead`), darf Kommentare anlegen sowie **eigene** Kommentare bearbeiten und löschen. Kommentar-Rechte gelten damit überall dort, wo Leserechte gelten.
-- **Löschen (fremde Kommentare):** Nur **Scope-Lead** des Kontexts des Dokuments (Team Lead, Department Lead, Company Lead der Owner-Unit), Owner von persönlichem Prozess/Projekt (ownerUserId) und **Admin** dürfen beliebige Kommentare löschen (Moderation).
+- **Löschen (fremde Kommentare):** Nur **Scope-Lead** des Kontexts des Dokuments (Team Lead, Department Lead, Company Lead der Owner-Unit) bzw. Owner von persönlichem Prozess/Projekt (ownerUserId) dürfen beliebige Kommentare löschen (Moderation). Plattform-Admin nicht.
 
-Implementierung: `canReadComment(userId, documentId)` = canRead(documentId); `canCreateComment` / `canEditOwnComment` / `canDeleteOwnComment` = canRead(documentId); `canDeleteAnyComment` = canWriteContext(contextId) oder isAdmin. Datenmodell siehe [Pseudocode §3b](Pseudocode%20Datenmodell.md#3b-kommentar-sektion-geplant) und [Prisma-Schema-Entwurf §9](../../plan/Prisma-Schema-Entwurf.md#9-kommentar-sektion-geplant).
+Implementierung: `canReadComment(userId, documentId)` = canRead(documentId); `canCreateComment` / `canEditOwnComment` / `canDeleteOwnComment` = canRead(documentId); `canDeleteAnyComment` = canWriteContext(contextId). Datenmodell siehe [Pseudocode §3b](Pseudocode%20Datenmodell.md#3b-kommentar-sektion-geplant) und [Prisma-Schema-Entwurf §9](../../plan/Prisma-Schema-Entwurf.md#9-kommentar-sektion-geplant).
 
 ---
 
@@ -190,9 +198,9 @@ Der Zugriff wird über **explizite Zuweisung** (Grants) und **abgeleitete Rollen
 
 Ein Nutzer hat Leserecht auf ein Dokument, wenn eine der folgenden Bedingungen zutrifft (in dieser Reihenfolge geprüft):
 
-1. **isAdmin:** Leserecht auf alle Dokumente (und typischerweise Schreibrecht).
+1. **isAdmin:** Leserecht auf Dokumente in **Organisations-Kontexten** (Owner Company, Department oder Team). **Kein** Leserecht auf persönliche Kontexte (`ownerUserId`) und kein Schreibrecht über diese Rolle.
 
-2. **Company Lead:** Der Nutzer ist Company Lead einer Firma. **Zielmodell:** Leserecht auf alle Dokumente in Organisations-Kontexten (Prozesse, Projekte, Unterkontexte) – unabhängig davon, ob Owner Company, Department oder Team ist. **Kein** Leserecht auf persönliche Kontexte (Prozesse/Projekte mit ownerUserId; immer privat, sofern kein expliziter Grant).  
+2. **Company Lead:** Der Nutzer ist Company Lead der Instanz-Firma. **Zielmodell:** Leserecht auf alle Dokumente in Organisations-Kontexten (Prozesse, Projekte, Unterkontexte) – unabhängig davon, ob Owner Company, Department oder Team ist. **Kein** Leserecht auf persönliche Kontexte (Prozesse/Projekte mit ownerUserId; immer privat, sofern kein expliziter Grant).  
    _Hinweis: Aktuell prüft die Implementierung für Company Lead nur Kontexte mit Company-Owner; die Erweiterung auf alle Organisations-Kontexte ist vorgesehen._
 
 3. **Department Lead:** Leserecht auf alle Dokumente in Kontexten, die seiner Abteilung oder einem ihrer Teams als Owner gehören (Prozesse, Projekte, Unterkontexte). Kein Leserecht auf persönliche Kontexte (ownerUserId).
@@ -201,7 +209,7 @@ Ein Nutzer hat Leserecht auf ein Dokument, wenn eine der folgenden Bedingungen z
 
 5. **Explizite Grants:** Dokument dem Nutzer (DocumentGrantUser Read), einem seiner Teams als Mitglied (DocumentGrantTeam Read) oder seiner Abteilung (DocumentGrantDepartment Read) zugestanden.
 
-Prüfreihenfolge: isAdmin und deletedAt → Company Lead → Department Lead → Owner persönlicher Kontext (ownerUserId) → explizite Grants.
+Prüfreihenfolge: deletedAt → isAdmin (nur Org-Read) → Company Lead → Department Lead → Owner persönlicher Kontext (ownerUserId) → explizite Grants.
 
 ---
 
@@ -211,17 +219,19 @@ Prüfreihenfolge: isAdmin und deletedAt → Company Lead → Department Lead →
 
 Ein Nutzer hat Schreibrecht auf ein Dokument, wenn:
 
-1. **isAdmin:** Schreibrecht auf alle Dokumente.
+1. **Owner von persönlichem Prozess/Projekt (ownerUserId):** Besitzer des Kontexts; Schreibrecht auf alle Dokumente in diesem Prozess/Projekt.
 
-2. **Owner von persönlichem Prozess/Projekt (ownerUserId):** Besitzer des Kontexts; Schreibrecht auf alle Dokumente in diesem Prozess/Projekt.
+2. **Scope Author / Scope Lead / Company Lead** nach den lokalen Regeln der Owner-Unit (siehe Teil I).
 
 3. **Explizite Grants:** DocumentGrantUser mit Write; DocumentGrantTeam mit Write nur, wenn Nutzer **Team Lead** dieses Teams ist; DocumentGrantDepartment mit Write für Nutzer dieser Abteilung.
+
+**isAdmin verleiht kein Schreibrecht** auf Dokumente.
 
 ---
 
 ### Löschen (Dokument)
 
-Ein Nutzer darf ein Dokument (Soft-Delete) nur löschen, wenn er **Scope-Lead** des zugehörigen Kontexts ist (bzw. isAdmin oder Owner von persönlichem Prozess/Projekt via ownerUserId). Ein **expliziter Writer-Grant** berechtigt **nicht** zum Löschen. Implementierung: `canDeleteDocument(prisma, userId, documentId)` – entspricht der Prüfung, ob der Nutzer den Kontext schreiben darf (`canWriteContext` auf den Kontext des Dokuments).
+Ein Nutzer darf ein Dokument (Soft-Delete) nur löschen, wenn er **Scope-Lead** des zugehörigen Kontexts ist (bzw. Owner von persönlichem Prozess/Projekt via ownerUserId). **isAdmin** berechtigt nicht zum Löschen von Fachdokumenten. Ein **expliziter Writer-Grant** berechtigt **nicht** zum Löschen. Implementierung: `canDeleteDocument(prisma, userId, documentId)` – entspricht der Prüfung, ob der Nutzer den Kontext schreiben darf (`canWriteContext` auf den Kontext des Dokuments).
 
 ---
 
@@ -235,7 +245,7 @@ Dokument D1 liegt im Projekt P1; Owner von P1 ist Team T1. Zugriffsrechte am Dok
 
 Zusätzlich zu canRead/canWrite gelten **hierarchische Rechte** für Kontexte und die Organisationsstruktur („Lesen/schreiben“ inkl. Anlegen der Ressource):
 
-- **Admin (isAdmin):** Darf alles. Company, Department und Team können nur von Admins angelegt und gelöscht werden.
+- **Admin (isAdmin):** Liest Organisations-Kontexte/Dokumente der Instanz-Firma. Legt Company, Department und Team an und löscht sie (Org-Struktur). **Kein** Anlegen/Schreiben/Löschen fachlicher Prozesse, Projekte oder Dokumente; kein persönlicher Scope.
 
 - **Company Lead:** Darf für seine Company Prozesse und Projekte mit Company-Owner lesen, schreiben und anlegen. (Governance: Zielmodell siehe Teil I – Leserecht auf alle Organisations-Kontexte.)
 
@@ -247,8 +257,8 @@ Zusätzlich zu canRead/canWrite gelten **hierarchische Rechte** für Kontexte un
 
 ### Pinned
 
-An- und Abpinnen von Einträgen (Dokumente, Prozesse, Projekte) pro Scope (Team, Department, Company) dürfen nur **Scope-Lead** (Team Lead für Team-Scope, Department Lead für Department-Scope, Company Lead für Company-Scope) und Admin. Pins lesen (z. B. im Dashboard anzeigen) dürfen alle, die den jeweiligen Scope sehen (Team-Mitglieder sehen Team-Pins, Department-Mitglieder Department-Pins, usw.). Schema siehe [Prisma-Schema-Entwurf §7 (Pinned)](../../plan/Prisma-Schema-Entwurf.md#7-pinned-geplant).
+An- und Abpinnen von Einträgen (Dokumente, Prozesse, Projekte) pro Scope (Team, Department, Company) dürfen nur **Scope-Lead** (Team Lead für Team-Scope, Department Lead für Department-Scope, Company Lead für Company-Scope). Pins lesen (z. B. im Dashboard anzeigen) dürfen alle, die den jeweiligen Scope sehen (Team-Mitglieder sehen Team-Pins, Department-Mitglieder Department-Pins, usw.). Schema siehe [Prisma-Schema-Entwurf §7 (Pinned)](../../plan/Prisma-Schema-Entwurf.md#7-pinned-geplant).
 
-Dokument-Erstellung (POST) prüft `canWriteContext` (nur Scope-Lead). Dokument-Löschen (DELETE) prüft `canDeleteDocument` (ebenfalls nur Scope-Lead, nicht Writer-Grant).
+Dokument-Erstellung (POST) prüft `canWriteContext` (nur Scope-Lead / persönlicher Owner). Dokument-Löschen (DELETE) prüft `canDeleteDocument` (ebenfalls nur Scope-Lead / persönlicher Owner, nicht Writer-Grant, nicht Admin).
 
-Die Implementierung liegt unter `apps/backend/src/permissions/` (canRead, canWrite, canDeleteDocument, canReadContext, canWriteContext, requireDocumentAccess). Dokument-Routen nutzen die Middleware `requireDocumentAccess('read'|'write')` bzw. für DELETE die Prüfung `canDeleteDocument`; Kontext-Routen prüfen canReadContext/canWriteContext (Kern-API Abschnitt 5).
+Die Implementierung liegt unter `apps/backend/src/domains/*/permissions/` (canRead, canWrite, canDeleteDocument, canReadContext, canWriteContext, requireDocumentAccess). Dokument-Routen nutzen die Middleware `requireDocumentAccess('read'|'write')` bzw. für DELETE die Prüfung `canDeleteDocument`; Kontext-Routen prüfen canReadContext/canWriteContext (Kern-API Abschnitt 5).

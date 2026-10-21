@@ -4,6 +4,7 @@ Kurzfassung des Produktmodells. Details: [Rechtesystem](datenmodell/Rechtesystem
 
 ## 1. Grundidee
 
+- **Eine Instanz = eine Firma.** Kein Multi-Company innerhalb derselben Installation; Details: [Rechtesystem – Instanz und Firma](datenmodell/Rechtesystem.md#instanz-und-firma-invariante).
 - Interne Dokumentationsplattform mit **Organisationshierarchie im Produkt** (Firma → Abteilung → Team).
 - DocsOps **trennt Zusammenarbeit von Veröffentlichung:** Autoren arbeiten am Entwurf bzw. mit Vorschlägen; die **Leitung des Geltungsbereichs** veröffentlicht. Leser sehen den **offiziellen, versionierten Stand** – nicht den laufenden Entwurf.
 - Zwei **Kontextarten:** **Prozess** („wie wir arbeiten“, dauerhaft) und **Projekt** („woran wir arbeiten“ / Ist-Stand, zeitlich gebunden). Die Wahl der Kontextart ist formbezogen; die Wahl zwischen konkreten Kontexten ist thematisch.
@@ -39,7 +40,7 @@ User-Scope (persönlich) – parallel zur Org-Hierarchie
 - **Member** – liest im eigenen Scope (nach Vererbungsregeln); keine Kontext-/Dokument-Anlage.
 - **Scope Author** (Team Author / Department Author) – arbeitet am Lead-Draft nur über **Inline-Vorschläge**; kein Create/Delete/Publish.
 - **Scope Lead** (Team / Department / Company Lead) – Create/Delete im Scope, Lead-Draft direkt bearbeiten, Vorschläge Accept/Decline, **Publish**.
-- **Admin** – Plattformverwaltung; typischerweise volle Dokumentrechte.
+- **Admin** – technischer Verwaltungsaccount (Nutzer, Org-Struktur, Plattform); liest Organisationsdokumente der Instanz-Firma; **kein** Schreiben/Anlegen von Fachdokumenten oder persönlichem Space. Facharbeit über einen zweiten Personen-Account.
 
 Details und Ausschlüsse (Lead vs. Member, Exclusive Roles): [Rechtesystem §4](datenmodell/Rechtesystem.md).
 

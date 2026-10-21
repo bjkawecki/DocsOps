@@ -1,11 +1,11 @@
 import type { MeResponse } from '../api/me-types';
 
 /**
- * Trash and Archive tabs: Admin or Scope-Lead (Company/Department/Team; rights flow down).
- * Use with page-specific canManage (which includes company lead for dept/team).
+ * Trash and Archive tabs: Scope-Lead only (Company/Department/Team; rights flow down).
+ * Platform admin alone does not get lead write tabs.
  */
-export function canShowTrashArchiveTabs(me: MeResponse | undefined, canManage: boolean): boolean {
-  return me?.user?.isAdmin === true || canManage;
+export function canShowTrashArchiveTabs(_me: MeResponse | undefined, canManage: boolean): boolean {
+  return canManage;
 }
 
 /**

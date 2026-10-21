@@ -41,7 +41,7 @@ export function CompanyPage() {
     enabled: effectiveCompanyId != null,
   });
 
-  const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0 || isAdmin;
+  const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0;
 
   if (mePending) {
     return (

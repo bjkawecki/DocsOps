@@ -27,7 +27,6 @@ export function DepartmentContextPage() {
   });
 
   const companyId = department?.companyId ?? department?.company?.id;
-  const isAdmin = me?.user?.isAdmin === true;
   const isDepartmentLead =
     (me?.identity?.departmentLeads?.length ?? 0) > 0 &&
     me?.identity?.departmentLeads?.some((d) => d.id === departmentId);
@@ -35,7 +34,7 @@ export function DepartmentContextPage() {
     companyId != null &&
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
-  const canManage = !!(isAdmin || isDepartmentLead || isCompanyLead);
+  const canManage = !!(isDepartmentLead || isCompanyLead);
 
   if (mePending || departmentPending) {
     return (

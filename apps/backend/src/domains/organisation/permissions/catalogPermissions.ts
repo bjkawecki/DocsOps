@@ -41,17 +41,24 @@ function buildOwnerOrConditions(
   ];
 }
 
-async function loadAllActiveContextIds(prisma: PrismaClient): Promise<string[]> {
+/** Active contexts owned by company/department/team (excludes personal ownerUserId). */
+async function loadAllOrgActiveContextIds(prisma: PrismaClient): Promise<string[]> {
+  const orgOwner = {
+    OR: [{ companyId: { not: null } }, { departmentId: { not: null } }, { teamId: { not: null } }],
+  };
   const [processes, projects, subcontexts] = await Promise.all([
     prisma.process.findMany({
-      where: { deletedAt: null, archivedAt: null },
+      where: { deletedAt: null, archivedAt: null, owner: orgOwner },
       select: { contextId: true },
     }),
     prisma.project.findMany({
-      where: { deletedAt: null, archivedAt: null },
+      where: { deletedAt: null, archivedAt: null, owner: orgOwner },
       select: { contextId: true },
     }),
-    prisma.subcontext.findMany({ select: { contextId: true } }),
+    prisma.subcontext.findMany({
+      where: { project: { owner: orgOwner } },
+      select: { contextId: true },
+    }),
   ]);
   return mergeContextIds(processes, projects, subcontexts);
 }
@@ -170,7 +177,7 @@ export async function getReadableCatalogScope(
   const uniqueDepartmentIds = uniqueStrings(departmentIds);
 
   if (user.isAdmin) {
-    const contextIds = await loadAllActiveContextIds(prisma);
+    const contextIds = await loadAllOrgActiveContextIds(prisma);
     return { contextIds, documentIdsFromGrants: [] };
   }
 
@@ -264,21 +271,8 @@ export async function getWritableCatalogScope(
   const departmentIdsFromAuthors = user.authorOfDepartments.map((d) => d.departmentId);
 
   if (user.isAdmin) {
-    const [contextIds, contextFreeDrafts] = await Promise.all([
-      loadAllActiveContextIds(prisma),
-      prisma.document.findMany({
-        where: {
-          contextId: null,
-          publishedAt: null,
-          deletedAt: null,
-          archivedAt: null,
-          createdById: userId,
-        },
-        select: { id: true },
-      }),
-    ]);
-    const documentIdsFromCreator = contextFreeDrafts.map((d) => d.id);
-    return { contextIds, documentIdsFromGrants: [], documentIdsFromCreator };
+    // Platform admin does not write documents or contexts.
+    return { contextIds: [], documentIdsFromGrants: [], documentIdsFromCreator: [] };
   }
 
   const ownerOrConditions = buildOwnerOrConditions(
@@ -305,7 +299,7 @@ export async function getWritableCatalogScope(
 
 /**
  * Context IDs where the user may publish / resolve suggestions (scope lead or personal owner).
- * Admins receive `{ isAdmin: true }` without enumerating contexts.
+ * Platform admin is not a publisher (`isAdmin` flag kept for callers; always false for publish scope).
  */
 export async function getPublishableContextIds(
   prisma: PrismaClient,
@@ -314,9 +308,6 @@ export async function getPublishableContextIds(
   const user = await loadUser(prisma, userId);
   if (!user || user.deletedAt !== null) {
     return { isAdmin: false, contextIds: [] };
-  }
-  if (user.isAdmin) {
-    return { isAdmin: true, contextIds: [] };
   }
 
   const companyIds = user.companyLeads.map((c) => c.companyId);

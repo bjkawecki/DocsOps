@@ -47,7 +47,10 @@ export function evaluateScopeCapability(
   hierarchy: ScopeHierarchy,
   capability: ScopeCapability
 ): boolean {
-  if (user.isAdmin) return true;
+  // Admin may view/read org scopes, but is never a scope lead (no write/draft tabs).
+  if (user.isAdmin) {
+    return capability === 'view' || capability === 'readOwner';
+  }
 
   const effectiveCapability = capability === 'readOwner' ? 'view' : capability;
   const { companyId, departmentId, teamId } = hierarchy;
@@ -216,8 +219,10 @@ export function canReadOwnerScope(
   userId: string,
   owner: OwnerScopeInput
 ): boolean {
-  if (owner.ownerUserId != null && owner.ownerUserId === userId) return true;
-  if (user.isAdmin) return true;
+  if (owner.ownerUserId != null) return owner.ownerUserId === userId;
+  if (user.isAdmin) {
+    return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
+  }
   const hierarchy = hierarchyFromOwnerInput(user, owner);
   if (!hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId) return false;
   return evaluateScopeCapability(user, hierarchy, 'readOwner');
@@ -232,8 +237,10 @@ export async function canReadOwnerScopeResolved(
   userId: string,
   owner: OwnerScopeInput
 ): Promise<boolean> {
-  if (owner.ownerUserId != null && owner.ownerUserId === userId) return true;
-  if (user.isAdmin) return true;
+  if (owner.ownerUserId != null) return owner.ownerUserId === userId;
+  if (user.isAdmin) {
+    return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
+  }
   const hierarchy = await resolveHierarchyFromOwnerInput(prisma, user, owner);
   if (!hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId) return false;
   return evaluateScopeCapability(user, hierarchy, 'readOwner');

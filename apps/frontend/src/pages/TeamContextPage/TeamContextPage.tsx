@@ -27,7 +27,6 @@ export function TeamContextPage() {
 
   const departmentId = team?.departmentId ?? team?.department?.id;
   const companyId = team?.department?.companyId ?? team?.department?.company?.id;
-  const isAdmin = me?.user?.isAdmin === true;
   const isTeamLead =
     (me?.identity?.teams?.length ?? 0) > 0 &&
     me?.identity?.teams?.some((t) => t.teamId === teamId && t.role === 'leader');
@@ -39,7 +38,7 @@ export function TeamContextPage() {
     companyId != null &&
     (me?.identity?.companyLeads?.length ?? 0) > 0 &&
     me?.identity?.companyLeads?.some((c) => c.id === companyId);
-  const canManage = !!(isAdmin || isTeamLead || isDepartmentLead || isCompanyLead);
+  const canManage = !!(isTeamLead || isDepartmentLead || isCompanyLead);
 
   if (mePending || teamPending) {
     return (

@@ -9,7 +9,7 @@ export type VisiblePinnedScopes = {
 
 /**
  * Prüft, ob der Nutzer für den angegebenen Scope (Team/Department/Company) an- oder abpinnen darf.
- * Nur Scope-Lead (Team Lead, Department Lead, Company Lead) und Admin.
+ * Nur Scope-Lead (Team Lead, Department Lead, Company Lead).
  */
 export async function canPinForScope(
   prisma: PrismaClient,
@@ -19,8 +19,6 @@ export async function canPinForScope(
 ): Promise<boolean> {
   const user = await loadUser(prisma, userId);
   if (!user || user.deletedAt !== null) return false;
-
-  if (user.isAdmin) return true;
 
   switch (scopeType) {
     case 'team':

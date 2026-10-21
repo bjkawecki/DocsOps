@@ -246,15 +246,13 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('isAdmin → canRead/canWrite true', async () => {
+  it('isAdmin → canRead org true, canWrite false; personal canRead false', async () => {
     // Update + Prüfung in einer Transaktion, damit parallele Suites (z. B. admin.test updateMany) den Admin nicht überschreiben
     await prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id: adminId }, data: { isAdmin: true } });
       expect(await canRead(tx, adminId, docProcessId)).toBe(true);
-    });
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: adminId }, data: { isAdmin: true } });
-      expect(await canWrite(tx, adminId, docProcessId)).toBe(true);
+      expect(await canWrite(tx, adminId, docProcessId)).toBe(false);
+      expect(await canRead(tx, adminId, docPersonalId)).toBe(false);
     });
   });
 
@@ -326,8 +324,8 @@ describe('Permissions (canRead, canWrite)', () => {
       // Other test files (e.g. admin.test) may set isAdmin false globally; ensure our admin is admin.
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
-    it('isAdmin → canDeleteDocument true', async () => {
-      expect(await canDeleteDocument(prisma, adminId, docProcessId)).toBe(true);
+    it('isAdmin → canDeleteDocument false', async () => {
+      expect(await canDeleteDocument(prisma, adminId, docProcessId)).toBe(false);
     });
 
     it('Scope-Lead (Department Lead) → canDeleteDocument true', async () => {
@@ -356,8 +354,8 @@ describe('Permissions (canRead, canWrite)', () => {
     beforeAll(async () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
-    it('isAdmin → canPublishDocument true', async () => {
-      expect(await canPublishDocument(prisma, adminId, docProcessId)).toBe(true);
+    it('isAdmin → canPublishDocument false', async () => {
+      expect(await canPublishDocument(prisma, adminId, docProcessId)).toBe(false);
     });
     it('Scope-Lead (Department Lead) → canPublishDocument true', async () => {
       expect(await canPublishDocument(prisma, supervisorId, docProcessId)).toBe(true);

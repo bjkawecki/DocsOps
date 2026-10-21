@@ -47,8 +47,7 @@ export function deriveOwnerScopeCanManage(
   owner: BreadcrumbOwner | null | undefined
 ): boolean {
   if (!me || !owner) return false;
-  if (me.user?.isAdmin) return true;
-  if (owner.ownerUserId) return true;
+  if (owner.ownerUserId) return owner.ownerUserId === me.user?.id;
   if (owner.companyId != null && me.identity?.companyLeads?.some((c) => c.id === owner.companyId)) {
     return true;
   }
