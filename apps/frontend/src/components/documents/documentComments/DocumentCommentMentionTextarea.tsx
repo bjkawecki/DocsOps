@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Box, Select, Stack, Text, Textarea } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client.js';
 
 type MentionCandidate = { id: string; name: string };
@@ -25,6 +26,7 @@ export function DocumentCommentMentionTextarea({
   minRows = 2,
   maxLength = 16_000,
 }: Props) {
+  const { t } = useTranslation('documents');
   const candidatesQuery = useQuery({
     queryKey: ['documents', documentId, 'comment-mention-candidates'] as const,
     enabled,
@@ -32,7 +34,7 @@ export function DocumentCommentMentionTextarea({
       const res = await apiFetch(`/api/v1/documents/${documentId}/comments/mention-candidates`);
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to load mention candidates');
+        throw new Error(err.error ?? t('comments.loadMentionCandidatesFailed'));
       }
       const body = (await res.json()) as { items: MentionCandidate[] };
       return body.items;
@@ -60,7 +62,7 @@ export function DocumentCommentMentionTextarea({
         <Box>
           <Select
             size="xs"
-            placeholder="Mention someone with access…"
+            placeholder={t('comments.mentionSelectPlaceholder')}
             searchable
             clearable
             data={candidates.map((c) => ({ value: c.id, label: c.name }))}
@@ -75,8 +77,7 @@ export function DocumentCommentMentionTextarea({
         </Box>
       ) : null}
       <Text size="xs" c="dimmed">
-        Use @ to mention someone with read access. Mentions and thread participants receive
-        notifications.
+        {t('comments.mentionHint')}
       </Text>
     </Stack>
   );

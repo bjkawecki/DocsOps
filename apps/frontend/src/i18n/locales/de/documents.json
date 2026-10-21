@@ -293,7 +293,10 @@
     "sectionLabel": "Abschnitt: {{section}}",
     "edited": "bearbeitet",
     "confirmDelete": "Diesen Kommentar löschen?",
-    "toastTitle": "Kommentar"
+    "toastTitle": "Kommentar",
+    "mentionSelectPlaceholder": "Jemanden mit Zugriff erwähnen…",
+    "mentionHint": "Mit @ jemanden mit Lesezugriff erwähnen. Erwähnte Personen und Thread-Teilnehmer erhalten Benachrichtigungen.",
+    "loadMentionCandidatesFailed": "Erwähnbare Personen konnten nicht geladen werden"
   },
   "leadDraft": {
     "newPublishedVersionTitle": "Neue veröffentlichte Version",

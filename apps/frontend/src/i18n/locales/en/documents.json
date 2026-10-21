@@ -293,7 +293,10 @@
     "sectionLabel": "Section: {{section}}",
     "edited": "edited",
     "confirmDelete": "Delete this comment?",
-    "toastTitle": "Comment"
+    "toastTitle": "Comment",
+    "mentionSelectPlaceholder": "Mention someone with access…",
+    "mentionHint": "Use @ to mention someone with read access. Mentions and thread participants receive notifications.",
+    "loadMentionCandidatesFailed": "Failed to load mention candidates"
   },
   "leadDraft": {
     "newPublishedVersionTitle": "New published version",
