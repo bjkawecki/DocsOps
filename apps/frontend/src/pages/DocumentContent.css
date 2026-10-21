@@ -12,12 +12,23 @@
 }
 
 .document-content {
-  font-family: var(--document-font-family);
-  font-size: var(--mantine-font-size-xl);
-  line-height: 1.65;
+  /* Desktop reading scale; compact override below (narrow phones). */
+  --document-body-fz: var(--mantine-font-size-xl);
+  --document-h1-fz: calc(2rem * var(--mantine-scale));
+  --document-h2-fz: calc(1.5rem * var(--mantine-scale));
+  --document-h3-fz: calc(1.25rem * var(--mantine-scale));
+  --document-h4-fz: calc(1.1rem * var(--mantine-scale));
+  --document-h5-fz: calc(1.05rem * var(--mantine-scale));
+  --document-h6-fz: calc(1rem * var(--mantine-scale));
   /* Softer body than theme text; headings stay full contrast. */
   --document-body-color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-1));
+  font-family: var(--document-font-family);
+  font-size: var(--document-body-fz);
+  line-height: 1.65;
   color: var(--document-body-color);
+  /* Long German compounds (e.g. Dokumentationsrichtlinie) must not overflow the card. */
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 /* Mantine Text/Title set theme Inter + own size – force reading font metrics. */
@@ -41,81 +52,100 @@
  * Multiply by --mantine-scale so Settings text size also enlarges document headings. */
 .document-content h1,
 .document-content .mantine-Title-root[data-order='1'] {
-  --title-fz: calc(2rem * var(--mantine-scale));
+  --title-fz: var(--document-h1-fz);
   --title-fw: 700;
   --title-lh: 1.25;
   font-family: inherit;
-  font-size: calc(2rem * var(--mantine-scale));
+  font-size: var(--document-h1-fz);
   font-weight: 700;
   line-height: 1.25;
   color: var(--mantine-color-text);
   margin: 1.4em 0 0.4em;
+  max-width: 100%;
 }
 
 .document-content h2,
 .document-content .mantine-Title-root[data-order='2'] {
-  --title-fz: calc(1.5rem * var(--mantine-scale));
+  --title-fz: var(--document-h2-fz);
   --title-fw: 650;
   --title-lh: 1.3;
   font-family: inherit;
-  font-size: calc(1.5rem * var(--mantine-scale));
+  font-size: var(--document-h2-fz);
   font-weight: 650;
   line-height: 1.3;
   color: var(--mantine-color-text);
   /* More space above than below so H2 groups with following content. */
   margin: 1.5em 0 0.45em;
+  max-width: 100%;
 }
 
 .document-content h3,
 .document-content .mantine-Title-root[data-order='3'] {
-  --title-fz: calc(1.25rem * var(--mantine-scale));
+  --title-fz: var(--document-h3-fz);
   --title-fw: 650;
   --title-lh: 1.35;
   font-family: inherit;
-  font-size: calc(1.25rem * var(--mantine-scale));
+  font-size: var(--document-h3-fz);
   font-weight: 650;
   line-height: 1.35;
   color: var(--mantine-color-text);
   margin: 1.1em 0 0.3em;
+  max-width: 100%;
 }
 
 .document-content h4,
 .document-content .mantine-Title-root[data-order='4'] {
-  --title-fz: calc(1.1rem * var(--mantine-scale));
+  --title-fz: var(--document-h4-fz);
   --title-fw: 650;
   --title-lh: 1.4;
   font-family: inherit;
-  font-size: calc(1.1rem * var(--mantine-scale));
+  font-size: var(--document-h4-fz);
   font-weight: 650;
   line-height: 1.4;
   color: var(--mantine-color-text);
   margin: 1em 0 0.3em;
+  max-width: 100%;
 }
 
 .document-content h5,
 .document-content .mantine-Title-root[data-order='5'] {
-  --title-fz: calc(1.05rem * var(--mantine-scale));
+  --title-fz: var(--document-h5-fz);
   --title-fw: 650;
   --title-lh: 1.4;
   font-family: inherit;
-  font-size: calc(1.05rem * var(--mantine-scale));
+  font-size: var(--document-h5-fz);
   font-weight: 650;
   line-height: 1.4;
   color: var(--mantine-color-text);
   margin: 0.95em 0 0.25em;
+  max-width: 100%;
 }
 
 .document-content h6,
 .document-content .mantine-Title-root[data-order='6'] {
-  --title-fz: calc(1rem * var(--mantine-scale));
+  --title-fz: var(--document-h6-fz);
   --title-fw: 650;
   --title-lh: 1.45;
   font-family: inherit;
-  font-size: calc(1rem * var(--mantine-scale));
+  font-size: var(--document-h6-fz);
   font-weight: 650;
   line-height: 1.45;
   color: var(--mantine-color-text);
   margin: 0.9em 0 0.25em;
+  max-width: 100%;
+}
+
+/* Narrow: smaller body + headings (Plan-Mobile-UX below `sm` / 48em). */
+@media (max-width: 47.99em) {
+  .document-content {
+    --document-body-fz: var(--mantine-font-size-lg);
+    --document-h1-fz: calc(1.55rem * var(--mantine-scale));
+    --document-h2-fz: calc(1.3rem * var(--mantine-scale));
+    --document-h3-fz: calc(1.15rem * var(--mantine-scale));
+    --document-h4-fz: calc(1.05rem * var(--mantine-scale));
+    --document-h5-fz: calc(1rem * var(--mantine-scale));
+    --document-h6-fz: calc(0.95rem * var(--mantine-scale));
+  }
 }
 
 .document-content p {
