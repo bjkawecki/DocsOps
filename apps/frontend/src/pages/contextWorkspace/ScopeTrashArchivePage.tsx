@@ -1,20 +1,10 @@
-import { Box, Container, Paper, Text } from '@mantine/core';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate } from 'react-router-dom';
 import { ArchiveTabContent, TrashTabContent } from '../../components/trashArchive';
-import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
-import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import type { AppShellBreadcrumbItem } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
-import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
-import { useMe } from '../../hooks/useMe';
-import { canShowTrashArchiveTabs } from '../../lib/canShowWriteTabs';
+import type { TrashArchiveScope } from '../../components/trashArchive/trashArchiveTypes.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
-import { scopeToUrl } from '../../lib/scopeNav.js';
-import { ScopeContextSidebar } from './ScopeContextSidebar.js';
-import { scopeArchiveUrl, scopeMostReadUrl, scopeTrashUrl } from './contextPaths.js';
-import { useScopeSidebarNav } from './useScopeSidebarNav.js';
+import { ScopeLeadListPageChrome } from './ScopeLeadListPageChrome.js';
 
 export type ScopeTrashArchiveKind = 'trash' | 'archive';
 
@@ -42,73 +32,29 @@ export function ScopeTrashArchivePage({
   departmentId,
   teamId,
 }: Props) {
-  const { t } = useTranslation(['contexts', 'common', 'shell']);
-  const navTitle = t('shell:nav.organization');
-  const compactNavOpenRef = useRef<(() => void) | null>(null);
-  const { data: me, isPending } = useMe();
-  const allowed = canShowTrashArchiveTabs(me, canManage);
-  const { processes, projects, drafts } = useScopeSidebarNav(navScope);
-  const trailSuffix = useMemo((): AppShellBreadcrumbItem[] => {
-    return [
-      {
-        key: kind,
-        label: kind === 'trash' ? t('sidebar.trash') : t('sidebar.archive'),
-      },
-    ];
-  }, [kind, t]);
-  useRegisterScopePageChrome(navScope, scopeLabel, null, trailSuffix);
-
-  const trashArchive = {
-    trashTo: scopeTrashUrl(navScope),
-    archiveTo: scopeArchiveUrl(navScope),
-    mostReadTo: scopeMostReadUrl(navScope),
-  };
-
-  const handleContextNavClick = () => {
-    // Link navigation only; no selection toggle on trash/archive.
-  };
-
-  if (isPending) {
-    return (
-      <Text size="sm" c="dimmed">
-        {t('common:status.loading')}
-      </Text>
-    );
-  }
-  if (!allowed) {
-    return <Navigate to={scopeToUrl(navScope)} replace />;
-  }
+  const { t } = useTranslation('contexts');
+  const breadcrumb = useMemo(
+    (): AppShellBreadcrumbItem => ({
+      key: kind,
+      label: kind === 'trash' ? t('sidebar.trash') : t('sidebar.archive'),
+    }),
+    [kind, t]
+  );
 
   const contentProps = { scope: trashScope, companyId, departmentId, teamId };
 
   return (
-    <Container fluid maw={1600} px="md" mb="xl">
-      <Paper withBorder={false} p={0} radius="md">
-        <PageMobileActionsHost navTitle={navTitle} compactNavOpenRef={compactNavOpenRef}>
-          <ResponsiveContentNav
-            title={navTitle}
-            compactNavOpenRef={compactNavOpenRef}
-            nav={
-              <ScopeContextSidebar
-                processes={processes}
-                projects={projects}
-                drafts={drafts}
-                activeContextId={null}
-                onContextNavClick={handleContextNavClick}
-                trashArchive={trashArchive}
-              />
-            }
-          >
-            <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-              {kind === 'trash' ? (
-                <TrashTabContent {...contentProps} />
-              ) : (
-                <ArchiveTabContent {...contentProps} />
-              )}
-            </Box>
-          </ResponsiveContentNav>
-        </PageMobileActionsHost>
-      </Paper>
-    </Container>
+    <ScopeLeadListPageChrome
+      navScope={navScope}
+      scopeLabel={scopeLabel}
+      canManage={canManage}
+      breadcrumb={breadcrumb}
+    >
+      {kind === 'trash' ? (
+        <TrashTabContent {...contentProps} />
+      ) : (
+        <ArchiveTabContent {...contentProps} />
+      )}
+    </ScopeLeadListPageChrome>
   );
 }
