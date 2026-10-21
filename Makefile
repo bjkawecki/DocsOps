@@ -6,8 +6,6 @@
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
 JSCPD_IGNORE ?= "**/node_modules/**,**/dist/**,**/coverage/**,**/generated/**,**/*.test.ts,**/*.test.tsx"
-TSPRUNE_BACKEND_IGNORE ?= "(^apps/backend/generated/|\\.test\\.|vitest\\.config\\.ts)"
-TSPRUNE_FRONTEND_IGNORE ?= "(\\.test\\.|\\.spec\\.|stories\\.)"
 DEADCODE_STRICT ?= 0
 
 # Standard-Ziel: Hilfe anzeigen
@@ -50,12 +48,12 @@ help:
 	@echo "  make duplicates-backend  Duplikate im Backend prüfen + Markdown-Ranking"
 	@echo "  make duplicates-frontend Duplikate im Frontend prüfen + Markdown-Ranking"
 	@echo "  make duplicates-all      Beide Duplikat-Checks nacheinander ausführen"
-	@echo "  make deadcode-backend    Toten Code im Backend prüfen + Markdown-Report"
-	@echo "  make deadcode-frontend   Toten Code im Frontend prüfen + Markdown-Report"
+	@echo "  make deadcode-backend    Dead Code Backend (knip) + Markdown-Report"
+	@echo "  make deadcode-frontend   Dead Code Frontend (knip) + Markdown-Report"
 	@echo "  make deadcode-all        Beide Dead-Code-Checks nacheinander ausführen"
-	@echo "  make deadcode-backend-strict  Strikter Dead-Code-Report Backend (weniger Rauschen)"
-	@echo "  make deadcode-frontend-strict Strikter Dead-Code-Report Frontend (weniger Rauschen)"
-	@echo "  make deadcode-all-strict      Strikte Dead-Code-Reports für beide Scopes"
+	@echo "  make deadcode-backend-strict  Strikter knip-Report Backend (weniger Rauschen)"
+	@echo "  make deadcode-frontend-strict Strikter knip-Report Frontend (weniger Rauschen)"
+	@echo "  make deadcode-all-strict      Strikte knip-Reports für beide Scopes"
 	@echo "  make clean        node_modules und Build-Artefakte entfernen"
 	@echo ""
 
@@ -205,16 +203,14 @@ duplicates-all: duplicates-backend duplicates-frontend
 
 deadcode-backend:
 	@mkdir -p reports/deadcode/backend
-	pnpm exec ts-prune -p apps/backend/tsconfig.json -i $(TSPRUNE_BACKEND_IGNORE) > reports/deadcode/backend/ts-prune.txt || true
 	pnpm exec knip --reporter json > reports/deadcode/backend/knip-all.json || true
-	node scripts/deadcode-report-to-markdown.mjs --scope backend --strict $(DEADCODE_STRICT) --tsprune reports/deadcode/backend/ts-prune.txt --knip reports/deadcode/backend/knip-all.json --output reports/deadcode/backend/deadcode-report.md
+	node scripts/deadcode-report-to-markdown.mjs --scope backend --strict $(DEADCODE_STRICT) --knip reports/deadcode/backend/knip-all.json --output reports/deadcode/backend/deadcode-report.md
 	@echo "Fertig: reports/deadcode/backend/deadcode-report.md"
 
 deadcode-frontend:
 	@mkdir -p reports/deadcode/frontend
-	pnpm exec ts-prune -p apps/frontend/tsconfig.json -i $(TSPRUNE_FRONTEND_IGNORE) > reports/deadcode/frontend/ts-prune.txt || true
 	pnpm exec knip --reporter json > reports/deadcode/frontend/knip-all.json || true
-	node scripts/deadcode-report-to-markdown.mjs --scope frontend --strict $(DEADCODE_STRICT) --tsprune reports/deadcode/frontend/ts-prune.txt --knip reports/deadcode/frontend/knip-all.json --output reports/deadcode/frontend/deadcode-report.md
+	node scripts/deadcode-report-to-markdown.mjs --scope frontend --strict $(DEADCODE_STRICT) --knip reports/deadcode/frontend/knip-all.json --output reports/deadcode/frontend/deadcode-report.md
 	@echo "Fertig: reports/deadcode/frontend/deadcode-report.md"
 
 deadcode-all: deadcode-backend deadcode-frontend

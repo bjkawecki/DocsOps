@@ -35,28 +35,6 @@ function isStrictNoiseFile(file) {
   );
 }
 
-function readTsPruneLines(content, scope, strict) {
-  const lines = content
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-  const rows = [];
-  for (const line of lines) {
-    const match = line.match(/^(.+?):(\d+)\s*-\s*(.+)$/);
-    if (!match) continue;
-    const file = rel(match[1]);
-    if (!inScope(file, scope)) continue;
-    const lineNo = Number(match[2]);
-    const symbol = match[3];
-    if (strict) {
-      if (isStrictNoiseFile(file)) continue;
-      if (symbol.includes('(used in module)')) continue;
-    }
-    rows.push({ file, line: lineNo, symbol });
-  }
-  return rows;
-}
-
 function knipItemCount(item) {
   const keys = [
     'dependencies',
@@ -74,6 +52,13 @@ function knipItemCount(item) {
     'duplicates',
   ];
   return keys.reduce((sum, key) => sum + (Array.isArray(item?.[key]) ? item[key].length : 0), 0);
+}
+
+function namesOf(items) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => (typeof item === 'string' ? item : item?.name))
+    .filter((name) => typeof name === 'string' && name.length > 0);
 }
 
 function toIssueRows(knipJson, scope, strict) {
@@ -95,36 +80,38 @@ function toIssueRows(knipJson, scope, strict) {
       files: (issue.files ?? []).length,
       types: (issue.types ?? []).length,
       duplicates: (issue.duplicates ?? []).length,
+      exportNames: namesOf(issue.exports),
+      typeNames: namesOf(issue.types),
+      depNames: [...namesOf(issue.dependencies), ...namesOf(issue.devDependencies)],
     };
     if (strict) {
       const actionable =
-        issueSummary.exports + issueSummary.unresolved + issueSummary.unlisted + issueSummary.files;
+        issueSummary.exports +
+        issueSummary.types +
+        issueSummary.unresolved +
+        issueSummary.unlisted +
+        issueSummary.files +
+        issueSummary.deps;
       if (actionable === 0) continue;
     }
-    rows.push({
-      ...issueSummary,
-    });
+    rows.push(issueSummary);
   }
   return rows.sort((a, b) => b.count - a.count || a.file.localeCompare(b.file));
 }
 
 const scope = arg('--scope', 'backend');
-const tsPrunePath = arg('--tsprune');
 const knipPath = arg('--knip');
 const outputPath = arg('--output');
 const strict = isStrictEnabled(arg('--strict', '0'));
 
-if (!tsPrunePath || !knipPath || !outputPath) {
+if (!knipPath || !outputPath) {
   console.error(
-    'Usage: node scripts/deadcode-report-to-markdown.mjs --scope backend|frontend --tsprune <file> --knip <file> --output <file>'
+    'Usage: node scripts/deadcode-report-to-markdown.mjs --scope backend|frontend --knip <file> --output <file> [--strict 0|1]'
   );
   process.exit(1);
 }
 
-const [tsPruneContent, knipContent] = await Promise.all([
-  fs.readFile(tsPrunePath, 'utf8').catch(() => ''),
-  fs.readFile(knipPath, 'utf8').catch(() => '{"issues":[]}'),
-]);
+const knipContent = await fs.readFile(knipPath, 'utf8').catch(() => '{"issues":[]}');
 
 let knipJson;
 try {
@@ -133,7 +120,6 @@ try {
   knipJson = { issues: [] };
 }
 
-const tsPruneRows = readTsPruneLines(tsPruneContent, scope, strict);
 const knipRows = toIssueRows(knipJson, scope, strict);
 
 const now = new Date().toISOString();
@@ -141,28 +127,12 @@ let out = '';
 out += `# Dead Code Report (${scope})\n\n`;
 out += `- Erzeugt: ${now}\n`;
 out += `- Modus: **${strict ? 'strict' : 'standard'}**\n`;
-out += `- ts-prune Treffer: **${tsPruneRows.length}**\n`;
-out += `- knip Treffer (Dateien mit Issues): **${knipRows.length}**\n\n`;
+out += `- Werkzeug: **knip**\n`;
+out += `- Dateien mit Issues: **${knipRows.length}**\n\n`;
 
-out += '## ts-prune (ungenutzte Exporte)\n\n';
-if (tsPruneRows.length === 0) {
-  out += 'Keine Treffer im gewaehlten Scope.\n\n';
-} else {
-  out += '| Datei | Zeile | Symbol |\n';
-  out += '|---|---:|---|\n';
-  for (const row of tsPruneRows.slice(0, 300)) {
-    out += `| \`${row.file}\` | ${row.line} | \`${String(row.symbol).replaceAll('|', '\\|')}\` |\n`;
-  }
-  if (tsPruneRows.length > 300) {
-    out += `\n... und ${tsPruneRows.length - 300} weitere ts-prune Treffer.\n\n`;
-  } else {
-    out += '\n';
-  }
-}
-
-out += '## knip (Datei-/Dependency-/Export-Issues)\n\n';
+out += '## Übersicht\n\n';
 if (knipRows.length === 0) {
-  out += 'Keine Treffer im gewaehlten Scope.\n';
+  out += 'Keine Treffer im gewählten Scope.\n';
 } else {
   out +=
     '| Rang | Datei | Gesamt | Exports | Types | Deps | Unresolved | Unlisted | Files | Duplicates |\n';
@@ -171,7 +141,27 @@ if (knipRows.length === 0) {
     out += `| ${idx + 1} | \`${row.file}\` | ${row.count} | ${row.exports} | ${row.types} | ${row.deps} | ${row.unresolved} | ${row.unlisted} | ${row.files} | ${row.duplicates} |\n`;
   });
   if (knipRows.length > 200) {
-    out += `\n... und ${knipRows.length - 200} weitere knip-Dateien mit Issues.\n`;
+    out += `\n... und ${knipRows.length - 200} weitere Dateien mit Issues.\n`;
+  }
+
+  out += '\n## Details (Top 15)\n\n';
+  out +=
+    'Viele „unused exports/types“ sind oft nur unnötig `export`ed und weiterhin **in derselben Datei** genutzt (Zod-Schemas, interne Helfer). Prüfen: Export entfernen vs. wirklich löschen.\n\n';
+  for (const row of knipRows.slice(0, 15)) {
+    out += `### \`${row.file}\`\n\n`;
+    if (row.exportNames.length > 0) {
+      out += `- Exports: ${row.exportNames.map((n) => `\`${n}\``).join(', ')}\n`;
+    }
+    if (row.typeNames.length > 0) {
+      out += `- Types: ${row.typeNames.map((n) => `\`${n}\``).join(', ')}\n`;
+    }
+    if (row.depNames.length > 0) {
+      out += `- Deps: ${row.depNames.map((n) => `\`${n}\``).join(', ')}\n`;
+    }
+    if (row.exportNames.length === 0 && row.typeNames.length === 0 && row.depNames.length === 0) {
+      out += `- (siehe Unresolved/Unlisted/Files/Duplicates in der Übersicht)\n`;
+    }
+    out += '\n';
   }
 }
 
