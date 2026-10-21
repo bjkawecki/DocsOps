@@ -1,7 +1,7 @@
 # docs-ops – Makefile
 # Nutzung: make [Ziel]. Ohne Ziel: make help
 
-.PHONY: help install lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test test-backend test-frontend test-e2e landing-dev landing-build landing-build-lab landing-build-public landing-preview release release-overwrite up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
+.PHONY: help install outdated audit check-deps lint lint-backend lint-frontend lint-landing format format-check check clean dev worker build start test test-backend test-frontend test-e2e landing-dev landing-build landing-build-lab landing-build-public landing-preview release release-overwrite up up-fg down down-volumes infra migrate admin-create duplicates-backend duplicates-frontend duplicates-all deadcode-backend deadcode-frontend deadcode-all deadcode-backend-strict deadcode-frontend-strict deadcode-all-strict
 
 JSCPD_MIN_LINES ?= 8
 JSCPD_MIN_TOKENS ?= 60
@@ -15,13 +15,16 @@ help:
 	@echo "docs-ops – verfügbare Ziele:"
 	@echo ""
 	@echo "  make install       Abhängigkeiten installieren (pnpm install)"
+	@echo "  make outdated     Veraltete Abhängigkeiten anzeigen (pnpm outdated -r)"
+	@echo "  make audit        Sicherheitslücken in Abhängigkeiten prüfen (pnpm audit)"
+	@echo "  make check-deps   outdated + audit (nicht Teil von make check; oft Exit ≠ 0)"
 	@echo "  make lint         ESLint gesamt (Backend + Frontend)"
 	@echo "  make lint-backend ESLint nur für Backend"
 	@echo "  make lint-frontend ESLint nur für Frontend"
 	@echo "  make lint-landing  ESLint nur für Landing Page"
 	@echo "  make format       Prettier ausführen (Dateien anpassen)"
 	@echo "  make format-check Prettier nur prüfen (keine Änderungen)"
-	@echo "  make check        Lint + Format-Check (wie CI)"
+	@echo "  make check        Lint + Format-Check (wie CI; ohne outdated/audit)"
 	@echo "  make dev          Backend im Dev-Modus starten (tsx watch)"
 	@echo "  make worker       Job-Worker im Dev-Modus starten (PDF export, pg-boss; Typst auf PATH)"
 	@echo "  make build        Backend bauen"
@@ -58,6 +61,22 @@ help:
 
 install:
 	pnpm install
+
+# Exit code != 0 when packages are outdated (useful for CI later).
+outdated:
+	pnpm outdated -r
+
+# Exit code != 0 when known vulnerabilities are reported.
+audit:
+	pnpm audit
+
+# Dependency hygiene; keep out of `check` so everyday/CI stays green while deps lag.
+# Both commands always run; non-zero if either reports findings.
+check-deps:
+	@status=0; \
+	pnpm outdated -r || status=$$?; \
+	pnpm audit || status=$$?; \
+	exit $$status
 
 lint:
 	pnpm run lint
