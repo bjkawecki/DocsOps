@@ -1,19 +1,17 @@
-import { Alert, Button, Group, Loader, Stack, Switch, Text } from '@mantine/core';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { notifications } from '@mantine/notifications';
+import { Alert, Button, Group, Loader, Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiFetch } from '../../api/client';
-import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
 import { SettingsContentCard } from './SettingsContentCard.js';
-import { meQueryKey, useMe } from '../../hooks/useMe';
+import { useMe } from '../../hooks/useMe';
 import { SettingsCardTitle } from './SettingsCardTitle.js';
+import { SettingsPreferenceSwitchRow } from './SettingsPreferenceSwitchRow.js';
 import {
   SETTINGS_CARD_ROW_GAP,
   SETTINGS_CARD_STACK_GAP,
   closeSettingsSearchParams,
   settingsCardDomId,
 } from './settingsLayout.js';
+import { usePatchMePreferences } from './usePatchMePreferences.js';
 
 type NotificationPrefKey =
   | 'documentChanges'
@@ -48,37 +46,15 @@ function readDocumentCommentsPref(
 
 export function SettingsNotificationsTab() {
   const { t } = useTranslation('settings');
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data: me, isPending: mePending, isError: meError, error: meErr } = useMe();
 
-  const patchPreferences = useMutation({
-    mutationFn: async (body: Partial<UserPreferences>) => {
-      const res = await apiFetch('/api/v1/me/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to save preferences');
-      }
-      return (await res.json()) as UserPreferences;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: meQueryKey });
-      notifications.show({
-        title: t('notifications.toasts.updatedTitle'),
-        message: t('notifications.toasts.updatedMessage'),
-        color: 'green',
-      });
-    },
-    onError: (error: Error) => {
-      notifications.show({
-        title: t('notifications.toasts.saveFailedTitle'),
-        message: error.message,
-        color: 'red',
-      });
+  const patchPreferences = usePatchMePreferences({
+    toastKeys: {
+      updatedTitle: 'notifications.toasts.updatedTitle',
+      updatedMessage: 'notifications.toasts.updatedMessage',
+      saveFailedTitle: 'notifications.toasts.saveFailedTitle',
     },
   });
 
@@ -163,95 +139,51 @@ export function SettingsNotificationsTab() {
             {t('notifications.descriptions.reminders')}
           </Text>
           <Stack gap={SETTINGS_CARD_ROW_GAP}>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.documentChanges')}
-              </Text>
-              <Switch
-                checked={inApp.documentChanges ?? true}
-                onChange={(event) =>
-                  updateNotificationSetting('inApp', 'documentChanges', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.comments')}
-              </Text>
-              <Switch
-                checked={readDocumentCommentsPref(inApp, true)}
-                onChange={(event) =>
-                  updateNotificationSetting(
-                    'inApp',
-                    'documentComments',
-                    event.currentTarget.checked
-                  )
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.draftRequests')}
-              </Text>
-              <Switch
-                checked={inApp.draftRequests ?? true}
-                onChange={(event) =>
-                  updateNotificationSetting('inApp', 'draftRequests', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.reminders')}
-              </Text>
-              <Switch
-                checked={inApp.reminders ?? true}
-                onChange={(event) =>
-                  updateNotificationSetting('inApp', 'reminders', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.organization')}
-              </Text>
-              <Switch
-                checked={inApp.orgChanges ?? true}
-                onChange={(event) =>
-                  updateNotificationSetting('inApp', 'orgChanges', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.announcements')}
-              </Text>
-              <Switch
-                checked={readNotificationPref(inApp, 'announcements', true)}
-                onChange={(event) =>
-                  updateNotificationSetting('inApp', 'announcements', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.documentChanges')}
+              checked={inApp.documentChanges ?? true}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('inApp', 'documentChanges', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.comments')}
+              checked={readDocumentCommentsPref(inApp, true)}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) =>
+                updateNotificationSetting('inApp', 'documentComments', checked)
+              }
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.draftRequests')}
+              checked={inApp.draftRequests ?? true}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('inApp', 'draftRequests', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.reminders')}
+              checked={inApp.reminders ?? true}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('inApp', 'reminders', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.organization')}
+              checked={inApp.orgChanges ?? true}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('inApp', 'orgChanges', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.announcements')}
+              checked={readNotificationPref(inApp, 'announcements', true)}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('inApp', 'announcements', checked)}
+            />
             {isAdmin && (
-              <Group justify="space-between" wrap="nowrap" gap="md">
-                <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                  {t('notifications.labels.operations')}
-                </Text>
-                <Switch
-                  checked={readNotificationPref(inApp, 'operations', true)}
-                  onChange={(event) =>
-                    updateNotificationSetting('inApp', 'operations', event.currentTarget.checked)
-                  }
-                  disabled={patchPreferences.isPending}
-                />
-              </Group>
+              <SettingsPreferenceSwitchRow
+                label={t('notifications.labels.operations')}
+                checked={readNotificationPref(inApp, 'operations', true)}
+                disabled={patchPreferences.isPending}
+                onChange={(checked) => updateNotificationSetting('inApp', 'operations', checked)}
+              />
             )}
           </Stack>
         </Stack>
@@ -264,96 +196,52 @@ export function SettingsNotificationsTab() {
         <Stack gap={SETTINGS_CARD_STACK_GAP}>
           <SettingsCardTitle jumpId="notifications-email" />
           <Stack gap={SETTINGS_CARD_ROW_GAP}>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.documentChanges')}
-              </Text>
-              <Switch
-                checked={email.documentChanges ?? false}
-                onChange={(event) =>
-                  updateNotificationSetting('email', 'documentChanges', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.comments')}
-              </Text>
-              <Switch
-                checked={readDocumentCommentsPref(email, false)}
-                onChange={(event) =>
-                  updateNotificationSetting(
-                    'email',
-                    'documentComments',
-                    event.currentTarget.checked
-                  )
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.draftRequests')}
-              </Text>
-              <Switch
-                checked={email.draftRequests ?? false}
-                onChange={(event) =>
-                  updateNotificationSetting('email', 'draftRequests', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.reminders')}
-              </Text>
-              <Switch
-                checked={email.reminders ?? false}
-                onChange={(event) =>
-                  updateNotificationSetting('email', 'reminders', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.announcements')}
-              </Text>
-              <Switch
-                checked={readNotificationPref(email, 'announcements', false)}
-                onChange={(event) =>
-                  updateNotificationSetting('email', 'announcements', event.currentTarget.checked)
-                }
-                disabled={patchPreferences.isPending}
-              />
-            </Group>
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.documentChanges')}
+              checked={email.documentChanges ?? false}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('email', 'documentChanges', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.comments')}
+              checked={readDocumentCommentsPref(email, false)}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) =>
+                updateNotificationSetting('email', 'documentComments', checked)
+              }
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.draftRequests')}
+              checked={email.draftRequests ?? false}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('email', 'draftRequests', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.reminders')}
+              checked={email.reminders ?? false}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('email', 'reminders', checked)}
+            />
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.announcements')}
+              checked={readNotificationPref(email, 'announcements', false)}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('email', 'announcements', checked)}
+            />
             {isAdmin && (
-              <Group justify="space-between" wrap="nowrap" gap="md">
-                <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                  {t('notifications.labels.operations')}
-                </Text>
-                <Switch
-                  checked={readNotificationPref(email, 'operations', false)}
-                  onChange={(event) =>
-                    updateNotificationSetting('email', 'operations', event.currentTarget.checked)
-                  }
-                  disabled={patchPreferences.isPending}
-                />
-              </Group>
-            )}
-            <Group justify="space-between" wrap="nowrap" gap="md">
-              <Text size="sm" fw={500} style={{ flex: 1, minWidth: 0 }}>
-                {t('notifications.labels.organization')}
-              </Text>
-              <Switch
-                checked={email.orgChanges ?? false}
-                onChange={(event) =>
-                  updateNotificationSetting('email', 'orgChanges', event.currentTarget.checked)
-                }
+              <SettingsPreferenceSwitchRow
+                label={t('notifications.labels.operations')}
+                checked={readNotificationPref(email, 'operations', false)}
                 disabled={patchPreferences.isPending}
+                onChange={(checked) => updateNotificationSetting('email', 'operations', checked)}
               />
-            </Group>
+            )}
+            <SettingsPreferenceSwitchRow
+              label={t('notifications.labels.organization')}
+              checked={email.orgChanges ?? false}
+              disabled={patchPreferences.isPending}
+              onChange={(checked) => updateNotificationSetting('email', 'orgChanges', checked)}
+            />
           </Stack>
         </Stack>
       </SettingsContentCard>

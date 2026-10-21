@@ -1,10 +1,7 @@
 import { Alert, Loader, Stack, Switch, Text } from '@mantine/core';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
-import { apiFetch } from '../../api/client';
 import type { UserPreferences } from '../../components/system/ThemeFromPreferences';
-import { meQueryKey, useMe } from '../../hooks/useMe';
+import { useMe } from '../../hooks/useMe';
 import { SettingsContentCard } from './SettingsContentCard.js';
 import { SettingsCardTitle } from './SettingsCardTitle.js';
 import {
@@ -12,6 +9,7 @@ import {
   SETTINGS_CARD_STACK_GAP,
   settingsCardDomId,
 } from './settingsLayout.js';
+import { usePatchMePreferences } from './usePatchMePreferences.js';
 
 type PulsePrefKey =
   'showDrafts' | 'showReviews' | 'showNewDocuments' | 'showUpdatedDocuments' | 'showComments';
@@ -34,37 +32,15 @@ function readPulsePref(
 
 export function SettingsPulseTab() {
   const { t } = useTranslation('settings');
-  const queryClient = useQueryClient();
   const { data: me, isPending: mePending, isError: meError, error: meErr } = useMe();
 
-  const patchPreferences = useMutation({
-    mutationFn: async (body: Partial<UserPreferences>) => {
-      const res = await apiFetch('/api/v1/me/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? 'Failed to save preferences');
-      }
-      return (await res.json()) as UserPreferences;
+  const patchPreferences = usePatchMePreferences({
+    toastKeys: {
+      updatedTitle: 'pulse.toasts.updatedTitle',
+      updatedMessage: 'pulse.toasts.updatedMessage',
+      saveFailedTitle: 'pulse.toasts.saveFailedTitle',
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: meQueryKey });
-      void queryClient.invalidateQueries({ queryKey: ['me', 'pulse'] });
-      notifications.show({
-        title: t('pulse.toasts.updatedTitle'),
-        message: t('pulse.toasts.updatedMessage'),
-        color: 'green',
-      });
-    },
-    onError: (error: Error) => {
-      notifications.show({
-        title: t('pulse.toasts.saveFailedTitle'),
-        message: error.message,
-        color: 'red',
-      });
-    },
+    extraInvalidateKeys: [['me', 'pulse']],
   });
 
   if (mePending) {

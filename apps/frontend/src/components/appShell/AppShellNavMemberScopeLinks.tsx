@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
+import { IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import { isOrgNavActive, type AppShellNavLinkStyles } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
+import { AppShellNavCompanyLink } from './AppShellNavCompanyLink.js';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
@@ -33,7 +34,6 @@ export function AppShellNavMemberScopeLinks({
     userDepartmentId !== undefined ? departmentCounts[userDepartmentId] : undefined;
   const teamBadge = userTeamId !== undefined ? teamCounts[userTeamId] : undefined;
 
-  const companyActive = isOrgNavActive('/company', pathname, navScope, { type: 'company' });
   const departmentActive = userDepartmentId
     ? isOrgNavActive(`/department/${userDepartmentId}`, pathname, navScope, {
         type: 'department',
@@ -49,13 +49,10 @@ export function AppShellNavMemberScopeLinks({
 
   return (
     <>
-      <AppShellScopeNavLink
-        to="/company"
-        label={t('nav.company')}
-        active={companyActive}
-        leftSection={<IconBuildingSkyscraper size={20} />}
+      <AppShellNavCompanyLink
+        pathname={pathname}
         navLinkStyles={navLinkStyles}
-        badgeCount={companyCount}
+        companyCount={companyCount}
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
       />

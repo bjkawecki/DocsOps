@@ -1,5 +1,5 @@
-import { Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
+import { AdminOrgUnitDeleteModal } from '../AdminOrgUnitDeleteModal.js';
 import type { DepartmentWithCompany } from './adminDepartmentsTabTypes';
 
 export type AdminDepartmentDeleteModalProps = {
@@ -19,20 +19,14 @@ export function AdminDepartmentDeleteModal({
 }: AdminDepartmentDeleteModalProps) {
   const { t } = useTranslation('admin');
   return (
-    <Modal opened={opened} onClose={onClose} title={t('departments.deleteModal.title')} size="sm">
-      {department && (
-        <Stack>
-          <Text size="sm">{t('departments.deleteModal.body', { name: department.name })}</Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={onClose}>
-              {t('common:actions.cancel')}
-            </Button>
-            <Button color="red" onClick={onConfirmDelete} loading={deleteLoading}>
-              {t('common:actions.delete')}
-            </Button>
-          </Group>
-        </Stack>
-      )}
-    </Modal>
+    <AdminOrgUnitDeleteModal
+      opened={opened}
+      title={t('departments.deleteModal.title')}
+      body={department ? t('departments.deleteModal.body', { name: department.name }) : ''}
+      hasEntity={department != null}
+      onClose={onClose}
+      onConfirmDelete={onConfirmDelete}
+      deleteLoading={deleteLoading}
+    />
   );
 }

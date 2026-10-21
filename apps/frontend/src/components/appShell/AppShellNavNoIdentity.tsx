@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { IconBuildingSkyscraper, IconSitemap, IconUsersGroup } from '@tabler/icons-react';
+import { IconSitemap, IconUsersGroup } from '@tabler/icons-react';
 import { isOrgNavActive, type AppShellNavLinkStyles } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
+import { AppShellNavCompanyLink } from './AppShellNavCompanyLink.js';
 import { AppShellScopeNavLink } from './AppShellScopeNavLink';
 
 type Props = {
@@ -26,13 +27,10 @@ export function AppShellNavNoIdentity({
   const navScope = useAppShellNavScope();
   return (
     <>
-      <AppShellScopeNavLink
-        to="/company"
-        label={t('nav.company')}
-        active={isOrgNavActive('/company', pathname, navScope, { type: 'company' })}
-        leftSection={<IconBuildingSkyscraper size={20} />}
+      <AppShellNavCompanyLink
+        pathname={pathname}
         navLinkStyles={navLinkStyles}
-        badgeCount={companyCount}
+        companyCount={companyCount}
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
       />
