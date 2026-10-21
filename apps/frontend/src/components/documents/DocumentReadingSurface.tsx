@@ -6,7 +6,7 @@ type Props = {
 };
 
 /**
- * Shared reading chrome for document-like pages (Help, etc.).
+ * Shared reading chrome for document-like pages (Help, Templates, etc.).
  * Typography SSoT: `.document-content` in DocumentContent.css – do not add parallel scales.
  */
 export function DocumentReadingSurface({ children }: Props) {

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Card,
   Container,
   Flex,
   Group,
@@ -35,6 +34,7 @@ import type {
   TemplateSection,
 } from '../../components/documents/documentTypeTypes.js';
 import { DocumentBlocksPreview } from '../../components/documents/DocumentBlocksPreview.js';
+import { DocumentReadingSurface } from '../../components/documents/DocumentReadingSurface.js';
 import { buildTemplateTypePreviewDocument } from '../../components/documents/buildTemplateTypePreviewDocument.js';
 import { localizedDocumentTypeLabel } from '../../components/documents/localizedDocumentTypeLabel.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
@@ -447,6 +447,7 @@ export function DocumentTemplatesPage() {
           <ResponsiveContentNav
             title={sectionTitle}
             nav={nav}
+            stickyNav
             compactNavOpenRef={isWide ? undefined : compactNavOpenRef}
           >
             <Box className="document-page-main">
@@ -459,15 +460,19 @@ export function DocumentTemplatesPage() {
                 style={{ overflow: 'visible' }}
               >
                 <Box className="document-page-reading">
-                  <Box className="document-page-scroll">
+                  <Box className="document-page-scroll document-page-scroll--templates">
                     {selectedType == null ? (
-                      <Text size="sm" c="dimmed">
-                        {t('templates:detail.selectPrompt')}
-                      </Text>
+                      <DocumentReadingSurface>
+                        <Box p="md">
+                          <Text size="sm" c="dimmed">
+                            {t('templates:detail.selectPrompt')}
+                          </Text>
+                        </Box>
+                      </DocumentReadingSurface>
                     ) : (
-                      <Stack gap="md" align="stretch" w="100%">
+                      <DocumentReadingSurface>
                         {isWide && selectedType.source === 'custom' ? (
-                          <Group justify="flex-end">
+                          <Group justify="flex-end" px="md" pt="md" pb={0}>
                             <Button
                               size="sm"
                               color="red"
@@ -479,16 +484,14 @@ export function DocumentTemplatesPage() {
                             </Button>
                           </Group>
                         ) : null}
-                        <Card className="document-page-card" w="100%" padding={0}>
-                          <DocumentBlocksPreview
-                            doc={buildTemplateTypePreviewDocument(selectedType, {
-                              locale,
-                              displayLabel: localizedDocumentTypeLabel(selectedType, locale),
-                            })}
-                            documentId={`template-type:${selectedType.id}`}
-                          />
-                        </Card>
-                      </Stack>
+                        <DocumentBlocksPreview
+                          doc={buildTemplateTypePreviewDocument(selectedType, {
+                            locale,
+                            displayLabel: localizedDocumentTypeLabel(selectedType, locale),
+                          })}
+                          documentId={`template-type:${selectedType.id}`}
+                        />
+                      </DocumentReadingSurface>
                     )}
                   </Box>
                 </Box>

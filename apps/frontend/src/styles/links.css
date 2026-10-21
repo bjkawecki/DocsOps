@@ -1,8 +1,16 @@
 /* Link color follows semantic anchor (theme-light/dark). Visited matches unvisited. */
 
-/* Exclude Button-as-Link so filled variants keep Mantine contrast (--button-color). */
-a:not(.mantine-Button-root),
-a:not(.mantine-Button-root):visited,
+/*
+ * Exclude controls + NavLinks + continue rows from anchor color.
+ * NavLink must be excluded here: each :not(.class) raises specificity; a third
+ * :not() alone previously beat [data-sidebar-nav] a.mantine-NavLink-root (0,2,1).
+ */
+a:not(.mantine-Button-root):not(.mantine-ActionIcon-root):not(.mantine-NavLink-root):not(
+    .app-shell-continue-item
+  ),
+a:not(.mantine-Button-root):not(.mantine-ActionIcon-root):not(.mantine-NavLink-root):not(
+    .app-shell-continue-item
+  ):visited,
 .mantine-Anchor-root,
 .mantine-Anchor-root:visited {
   color: var(--mantine-color-anchor);
@@ -19,8 +27,21 @@ a:not(.mantine-Button-root):visited,
 }
 
 /* Card links (Overview + Context cards): always underline + primary color (single source of truth). */
-.mantine-Card-root a:not(.mantine-Button-root) {
+.mantine-Card-root a:not(.mantine-Button-root):not(.mantine-NavLink-root) {
   text-decoration: underline;
+}
+
+/* Content-sidebar NavLinks in Cards: idle body text; active = primary (not global anchor). */
+.mantine-Card-root a.mantine-NavLink-root,
+.mantine-Card-root a.mantine-NavLink-root:visited,
+.mantine-Card-root a.mantine-NavLink-root:hover {
+  color: var(--mantine-color-text);
+  text-decoration: none;
+}
+.mantine-Card-root a.mantine-NavLink-root[data-active],
+.mantine-Card-root a.mantine-NavLink-root[data-active]:visited,
+.mantine-Card-root a.mantine-NavLink-root[data-active]:hover {
+  color: var(--mantine-primary-color-filled);
 }
 
 /*
@@ -41,8 +62,15 @@ a:not(.mantine-Button-root):visited,
   color: var(--mantine-primary-color-filled);
 }
 
-/* Card text links (not in tables): hover = filled accent */
-.mantine-Card-root a:hover,
+/* Help prev/next (gray light Link-Buttons in reading Card): restore Mantine button label color. */
+.mantine-Card-root .help-article-nav a.mantine-Button-root,
+.mantine-Card-root .help-article-nav a.mantine-Button-root:visited,
+.mantine-Card-root .help-article-nav a.mantine-Button-root:hover {
+  color: var(--button-color);
+}
+
+/* Card text links (not in tables): hover = filled accent. Skip NavLinks (content sidebars). */
+.mantine-Card-root a:hover:not(.mantine-Button-root):not(.mantine-NavLink-root),
 .mantine-Card-root .mantine-Anchor-root:hover {
   color: var(--mantine-primary-color-filled);
 }
@@ -81,13 +109,15 @@ a:not(.mantine-Button-root):visited,
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active],
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active] {
+  --nl-bg: var(--app-nav-active-bg);
   color: var(--mantine-primary-color-filled);
-  background-color: var(--mantine-primary-color-light);
+  background-color: var(--app-nav-active-bg);
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active]:hover,
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active]:hover {
+  --nl-bg: var(--app-nav-active-bg);
   color: var(--mantine-primary-color-filled);
-  background-color: var(--mantine-primary-color-light-hover, var(--mantine-primary-color-light));
+  background-color: var(--app-nav-active-bg);
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active] .mantine-NavLink-section,
 [data-context-sibling-nav]
@@ -119,7 +149,8 @@ a:not(.mantine-Button-root):visited,
   text-decoration: none;
 }
 
-/* Sidebar: links keep default text color (no primary color), except active. */
+/* Sidebar: idle = body text; active = primary. Must beat global a { color: anchor }
+ * (a:not():not() is 0,2,1 – plain [data-sidebar-nav] .mantine-NavLink-root loses). */
 [data-sidebar-nav] a,
 [data-sidebar-nav] a:visited,
 [data-sidebar-nav] .mantine-Anchor-root,
@@ -127,11 +158,16 @@ a:not(.mantine-Button-root):visited,
   color: inherit;
 }
 
-[data-sidebar-nav] .mantine-NavLink-root {
-  color: inherit;
+[data-sidebar-nav] a.mantine-NavLink-root,
+[data-sidebar-nav] a.mantine-NavLink-root:visited,
+[data-sidebar-nav] a.mantine-NavLink-root:hover:not([data-active]) {
+  color: var(--mantine-color-text);
+  text-decoration: none;
 }
 
-[data-sidebar-nav] .mantine-NavLink-root[data-active] {
+[data-sidebar-nav] a.mantine-NavLink-root[data-active],
+[data-sidebar-nav] a.mantine-NavLink-root[data-active]:visited,
+[data-sidebar-nav] a.mantine-NavLink-root[data-active]:hover {
   color: var(--mantine-primary-color-filled);
 }
 

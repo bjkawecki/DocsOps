@@ -40,9 +40,24 @@
     "setAsAuthor": "Als Autor festlegen",
     "setAsMemberInTeam": "Mitglied · {{team}}",
     "peopleOnlineSummary": "{{count}} · {{online}} online",
-    "companySummary": "{{departments}} Abteilungen · {{people}} Personen · {{online}} aktiv",
-    "departmentDetailSummary": "{{teams}} Teams · {{people}} Personen · {{online}} aktiv",
-    "teamDetailSummary": "{{people}} Personen · {{online}} aktiv"
+    "departmentCount_one": "{{count}} Abteilung",
+    "departmentCount_other": "{{count}} Abteilungen",
+    "peopleCount_one": "{{count}} Person",
+    "peopleCount_other": "{{count}} Personen",
+    "teamCount_one": "{{count}} Team",
+    "teamCount_other": "{{count}} Teams",
+    "teamsHeading_one": "Team",
+    "teamsHeading_other": "Teams",
+    "onlineActiveCount_one": "{{count}} aktiv",
+    "onlineActiveCount_other": "{{count}} aktiv",
+    "presence": {
+      "online": "Online",
+      "activeJustNow": "Gerade aktiv",
+      "activeMinutesAgo": "Aktiv vor {{count}} Min.",
+      "lastSeenHoursAgo": "Zuletzt vor {{count}} Std.",
+      "lastSeenDaysAgo": "Zuletzt vor {{count}} T.",
+      "lastSeenOn": "Zuletzt {{date}}"
+    }
   },
   "orgRoles": {
     "companyLead": {

@@ -124,7 +124,7 @@ export function PulseStatsRow({ stats, activeKind, onSelectKind, userName }: Pro
               <IconCircleCheck size={34} stroke={1.35} />
             </span>
           ) : null}
-          <Text className="pulse-stats-status" fw={700}>
+          <Text className="pulse-stats-status" fw={700} fz={22}>
             {statusText}
           </Text>
         </div>

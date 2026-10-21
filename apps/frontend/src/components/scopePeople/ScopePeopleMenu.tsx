@@ -39,25 +39,34 @@ type PersonAction = {
 
 type PersonLineProps = {
   person: ScopePersonRow;
+  /**
+   * Secondary role label. Omit to derive team roles from `person.roles`.
+   * Pass `null` when a section heading already names the role.
+   */
+  roleText?: string | null;
   actions?: PersonAction[];
   actionsDisabled?: boolean;
 };
 
-function PersonLine({ person, actions, actionsDisabled }: PersonLineProps) {
+function PersonLine({ person, roleText, actions, actionsDisabled }: PersonLineProps) {
   const { t } = useTranslation('common');
   const roleLabel = useOrgRoleLabel();
-  const presence = formatPresence(person.isOnline, person.lastActiveAt);
-  const roleText =
-    person.roles?.includes('lead') && person.roles.includes('member')
-      ? `${roleLabel('teamLead')}, ${roleLabel('teamMember')}`
-      : person.roles?.includes('lead')
-        ? roleLabel('teamLead')
-        : person.roles?.includes('author')
-          ? t('scopePeople.roleAuthor')
-          : person.roles?.includes('member')
-            ? roleLabel('teamMember')
-            : null;
-  const detail = [roleText, presence].filter(Boolean).join(' · ');
+  const presence = formatPresence(person.isOnline, person.lastActiveAt, t);
+
+  const resolvedRole =
+    roleText !== undefined
+      ? roleText
+      : person.roles?.includes('lead') && person.roles.includes('member')
+        ? `${roleLabel('teamLead')}, ${roleLabel('teamMember')}`
+        : person.roles?.includes('lead')
+          ? roleLabel('teamLead')
+          : person.roles?.includes('author')
+            ? t('scopePeople.roleAuthor')
+            : person.roles?.includes('member')
+              ? roleLabel('teamMember')
+              : null;
+
+  const detail = [resolvedRole, presence].filter(Boolean).join(' · ');
 
   return (
     <Group gap="sm" wrap="nowrap" align="center" justify="space-between">
@@ -147,11 +156,11 @@ export function ScopePeopleMenu({
     }
     if (scope === 'company' && companyQuery.data) {
       const { departmentCount, peopleCount, onlineCount } = companyQuery.data.summary;
-      return t('common:scopePeople.companySummary', {
-        departments: departmentCount,
-        people: peopleCount,
-        online: onlineCount,
-      });
+      return [
+        t('common:scopePeople.departmentCount', { count: departmentCount }),
+        t('common:scopePeople.peopleCount', { count: peopleCount }),
+        t('common:scopePeople.onlineActiveCount', { count: onlineCount }),
+      ].join(' · ');
     }
     return null;
   }, [scope, teamQuery.data, deptQuery.data, companyQuery.data, t]);
@@ -251,10 +260,10 @@ export function ScopePeopleMenu({
             {deptQuery.data.departmentLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  {roleLabel('departmentLead', { form: 'plural' })}
+                  {roleLabel('departmentLead', { count: deptQuery.data.departmentLeads.length })}
                 </Text>
                 {deptQuery.data.departmentLeads.map((person) => (
-                  <PersonLine key={person.id} person={person} />
+                  <PersonLine key={person.id} person={person} roleText={null} />
                 ))}
                 <Divider />
               </>
@@ -268,6 +277,7 @@ export function ScopePeopleMenu({
                   <PersonLine
                     key={`author-${person.id}`}
                     person={person}
+                    roleText={null}
                     actions={deptAuthorActions(person)}
                     actionsDisabled={mutationsPending}
                   />
@@ -282,7 +292,11 @@ export function ScopePeopleMenu({
                 </Text>
                 <Stack gap="xs" pl="xs">
                   {team.teamLeads.map((person) => (
-                    <PersonLine key={`lead-${person.id}`} person={person} />
+                    <PersonLine
+                      key={`lead-${person.id}`}
+                      person={person}
+                      roleText={roleLabel('teamLead')}
+                    />
                   ))}
                   {team.members.map((person) => (
                     <PersonLine
@@ -307,45 +321,57 @@ export function ScopePeopleMenu({
             {companyQuery.data.companyLeads.length > 0 && (
               <>
                 <Text size="xs" tt="uppercase" c="dimmed" fw={600}>
-                  {roleLabel('companyLead', { form: 'plural' })}
+                  {roleLabel('companyLead', { count: companyQuery.data.companyLeads.length })}
                 </Text>
                 {companyQuery.data.companyLeads.map((person) => (
-                  <PersonLine key={person.id} person={person} />
+                  <PersonLine key={person.id} person={person} roleText={null} />
                 ))}
                 <Divider />
               </>
             )}
-            {companyQuery.data.departments.map((dept) => (
-              <Box key={dept.id}>
-                <Text size="sm" fw={600}>
-                  {dept.name}
-                </Text>
-                <Text size="xs" c="dimmed" mb={4}>
-                  {t('common:scopePeople.departmentDetailSummary', {
-                    teams: dept.teamCount,
-                    people: dept.peopleCount,
-                    online: dept.onlineCount,
-                  })}
-                </Text>
-                {dept.departmentLeads.length > 0 && (
-                  <Stack gap="xs" pl="xs" mb="xs">
-                    {dept.departmentLeads.map((person) => (
-                      <PersonLine key={person.id} person={person} />
-                    ))}
-                  </Stack>
-                )}
-                <Stack gap={4} pl="xs">
-                  {dept.teams.map((team) => (
-                    <Text key={team.id} size="xs" c="dimmed">
-                      {team.name} ·{' '}
-                      {t('common:scopePeople.teamDetailSummary', {
-                        people: team.peopleCount,
-                        online: team.onlineCount,
-                      })}
+            {companyQuery.data.departments.map((dept, deptIndex) => (
+              <Stack key={dept.id} gap="xs">
+                {deptIndex > 0 ? <Divider /> : null}
+                {/* Same section chrome as Unternehmensleitung: uppercase dimmed + rows */}
+                <Group justify="space-between" align="baseline" gap="xs" wrap="nowrap">
+                  <Text
+                    size="xs"
+                    tt="uppercase"
+                    c="dimmed"
+                    fw={600}
+                    lineClamp={1}
+                    style={{ minWidth: 0 }}
+                  >
+                    {dept.name}
+                  </Text>
+                  <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+                    {[
+                      t('common:scopePeople.teamCount', { count: dept.teamCount }),
+                      t('common:scopePeople.peopleCount', { count: dept.peopleCount }),
+                    ].join(' · ')}
+                  </Text>
+                </Group>
+                {dept.departmentLeads.map((person) => (
+                  <PersonLine key={person.id} person={person} roleText={null} />
+                ))}
+                {dept.teams.length > 0 ? (
+                  <>
+                    <Text size="xs" tt="uppercase" c="dimmed" fw={600} mt={4}>
+                      {t('common:scopePeople.teamsHeading', { count: dept.teams.length })}
                     </Text>
-                  ))}
-                </Stack>
-              </Box>
+                    {dept.teams.map((team) => (
+                      <Group key={team.id} gap="sm" wrap="nowrap" align="center">
+                        <Text size="sm" fw={500} lineClamp={1} style={{ minWidth: 0, flex: 1 }}>
+                          {team.name}
+                        </Text>
+                        <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+                          {t('common:scopePeople.peopleCount', { count: team.peopleCount })}
+                        </Text>
+                      </Group>
+                    ))}
+                  </>
+                ) : null}
+              </Stack>
             ))}
           </>
         )}
@@ -362,7 +388,18 @@ export function ScopePeopleMenu({
           leftSection={<IconUsers size={16} />}
           rightSection={
             summaryText != null ? (
-              <Badge variant="light" size="sm">
+              <Badge
+                size="sm"
+                variant="light"
+                styles={{
+                  root: {
+                    /* Light: active wash; dark: lighter pill than nav active */
+                    backgroundColor: 'light-dark(var(--app-nav-active-bg), #4d545b)',
+                    color:
+                      'light-dark(var(--mantine-primary-color-filled), var(--mantine-color-text))',
+                  },
+                }}
+              >
                 {summaryText}
               </Badge>
             ) : undefined

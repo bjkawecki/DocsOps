@@ -1,28 +1,42 @@
 const ONLINE_THRESHOLD_MS = 5 * 60_000;
 
+type PresenceT = (key: string, options?: Record<string, unknown>) => string;
+
 /**
- * Formats presence for scope people UI (English).
- * Returns null when offline and no last activity timestamp is known.
+ * Formats presence for scope people UI.
+ * Pass `t` bound to the `common` namespace (keys under `scopePeople.presence.*`).
  */
-export function formatPresence(isOnline: boolean, lastActiveAt: string | null): string | null {
-  if (isOnline) return 'Online';
+export function formatPresence(
+  isOnline: boolean,
+  lastActiveAt: string | null,
+  t: PresenceT
+): string | null {
+  if (isOnline) return t('scopePeople.presence.online');
   if (lastActiveAt == null) return null;
 
   const last = new Date(lastActiveAt);
   const diffMs = Date.now() - last.getTime();
-  if (diffMs < 0) return 'Online';
+  if (diffMs < 0) return t('scopePeople.presence.online');
 
   const diffMinutes = Math.floor(diffMs / 60_000);
-  if (diffMinutes < 1) return 'Active just now';
-  if (diffMinutes < 60) return `Active ${diffMinutes}m ago`;
+  if (diffMinutes < 1) return t('scopePeople.presence.activeJustNow');
+  if (diffMinutes < 60) {
+    return t('scopePeople.presence.activeMinutesAgo', { count: diffMinutes });
+  }
 
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+  if (diffHours < 24) {
+    return t('scopePeople.presence.lastSeenHoursAgo', { count: diffHours });
+  }
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `Last seen ${diffDays}d ago`;
+  if (diffDays < 7) {
+    return t('scopePeople.presence.lastSeenDaysAgo', { count: diffDays });
+  }
 
-  return `Last seen ${last.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  return t('scopePeople.presence.lastSeenOn', {
+    date: last.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+  });
 }
 
 /** Client-side online hint when API flag is stale (optional fallback). */

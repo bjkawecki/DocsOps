@@ -40,9 +40,24 @@
     "setAsAuthor": "Set as author",
     "setAsMemberInTeam": "Member · {{team}}",
     "peopleOnlineSummary": "{{count}} · {{online}} online",
-    "companySummary": "{{departments}} depts · {{people}} people · {{online}} active",
-    "departmentDetailSummary": "{{teams}} teams · {{people}} people · {{online}} active",
-    "teamDetailSummary": "{{people}} people · {{online}} active"
+    "departmentCount_one": "{{count}} dept",
+    "departmentCount_other": "{{count}} depts",
+    "peopleCount_one": "{{count}} person",
+    "peopleCount_other": "{{count}} people",
+    "teamCount_one": "{{count}} team",
+    "teamCount_other": "{{count}} teams",
+    "teamsHeading_one": "Team",
+    "teamsHeading_other": "Teams",
+    "onlineActiveCount_one": "{{count}} active",
+    "onlineActiveCount_other": "{{count}} active",
+    "presence": {
+      "online": "Online",
+      "activeJustNow": "Active just now",
+      "activeMinutesAgo": "Active {{count}}m ago",
+      "lastSeenHoursAgo": "Last seen {{count}}h ago",
+      "lastSeenDaysAgo": "Last seen {{count}}d ago",
+      "lastSeenOn": "Last seen {{date}}"
+    }
   },
   "orgRoles": {
     "companyLead": {

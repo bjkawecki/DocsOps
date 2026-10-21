@@ -11,6 +11,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconClock, IconFileText } from '@tabler/icons-react';
+import { useCallback, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useMe } from '../../hooks/useMe.js';
@@ -42,6 +43,45 @@ type Props = {
   onNavigate: () => void;
 };
 
+/** Tooltip only when the label is visually truncated. */
+function TruncationTooltip({ label, children }: { label: string; children: ReactElement }) {
+  const labelRef = useRef<HTMLDivElement | null>(null);
+  const [truncated, setTruncated] = useState(false);
+
+  const measure = useCallback(() => {
+    const el = labelRef.current?.querySelector<HTMLElement>(
+      '.app-shell-continue-item-label, .app-shell-continue-item-title'
+    );
+    if (!el) {
+      setTruncated(false);
+      return;
+    }
+    setTruncated(el.scrollWidth > el.clientWidth + 1);
+  }, []);
+
+  useLayoutEffect(() => {
+    measure();
+    const el = labelRef.current;
+    if (el == null || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [label, measure]);
+
+  const wrapped = (
+    <div ref={labelRef} style={{ minWidth: 0, width: '100%' }}>
+      {children}
+    </div>
+  );
+
+  if (!truncated) return wrapped;
+  return (
+    <Tooltip label={label} position="right" withArrow>
+      {wrapped}
+    </Tooltip>
+  );
+}
+
 type CompactListProps = {
   items: AggregatedRecentItem[];
   onActivate: () => void;
@@ -53,7 +93,7 @@ function ContinueCompactList({ items, onActivate }: CompactListProps) {
       {items.map((item) => {
         const label = itemLabel(item);
         return (
-          <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
+          <TruncationTooltip key={`${item.type}-${item.id}`} label={label}>
             <UnstyledButton
               component={Link}
               to={documentPath(item)}
@@ -62,11 +102,11 @@ function ContinueCompactList({ items, onActivate }: CompactListProps) {
               aria-label={label}
             >
               <IconFileText size={ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
-              <Text size="md" fw={600} className="app-shell-continue-item-label">
+              <Text size="md" fw={500} className="app-shell-continue-item-label">
                 {label}
               </Text>
             </UnstyledButton>
-          </Tooltip>
+          </TruncationTooltip>
         );
       })}
     </Stack>
@@ -86,7 +126,7 @@ function ContinueDetailedList({ items, onActivate, metaLineFor }: DetailedListPr
         const label = itemLabel(item);
         const meta = metaLineFor(item);
         return (
-          <Tooltip key={`${item.type}-${item.id}`} label={label} position="right" withArrow>
+          <TruncationTooltip key={`${item.type}-${item.id}`} label={label}>
             <UnstyledButton
               component={Link}
               to={documentPath(item)}
@@ -98,7 +138,7 @@ function ContinueDetailedList({ items, onActivate, metaLineFor }: DetailedListPr
                 <IconFileText size={DETAILED_ITEM_ICON_SIZE} stroke={1.5} aria-hidden />
               </span>
               <span className="app-shell-continue-item-text">
-                <Text size="md" fw={600} className="app-shell-continue-item-title" component="span">
+                <Text size="md" fw={500} className="app-shell-continue-item-title" component="span">
                   {label}
                 </Text>
                 {meta ? (
@@ -113,7 +153,7 @@ function ContinueDetailedList({ items, onActivate, metaLineFor }: DetailedListPr
                 ) : null}
               </span>
             </UnstyledButton>
-          </Tooltip>
+          </TruncationTooltip>
         );
       })}
     </Stack>

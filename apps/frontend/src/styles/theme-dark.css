@@ -12,7 +12,9 @@
   --mantine-color-placeholder: var(--mantine-color-dark-3) !important;
   --mantine-color-anchor: var(--mantine-primary-color-4) !important;
   --mantine-color-default: var(--mantine-color-dark-8) !important;
-  --mantine-color-default-hover: var(--mantine-color-dark-5) !important;
+  /* Hover wash (lists, idle nav hover). Active nav = slate from live ref (not #4d545b). */
+  --mantine-color-default-hover: #3a3a3a !important;
+  --app-nav-active-bg: #3b4045;
   --mantine-color-default-color: var(--mantine-color-white) !important;
   --mantine-color-default-border: var(--mantine-color-dark-4) !important;
   --mantine-color-dimmed: var(--mantine-color-dark-1) !important;

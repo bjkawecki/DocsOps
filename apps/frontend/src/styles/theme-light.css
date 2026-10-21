@@ -10,6 +10,8 @@
   --mantine-color-default: var(--mantine-color-white) !important;
   /* gray-0 on white cards is nearly invisible; gray-2 gives clear row hover. */
   --mantine-color-default-hover: var(--mantine-color-gray-2) !important;
+  /* Nav / sibling active wash (blue tint); hover stays gray-2 above. */
+  --app-nav-active-bg: #eaeffa;
   --mantine-color-default-color: var(--mantine-color-gray-9) !important;
   --mantine-color-default-border: var(--mantine-color-gray-4) !important;
   --mantine-color-dimmed: var(--mantine-color-gray-7) !important;
