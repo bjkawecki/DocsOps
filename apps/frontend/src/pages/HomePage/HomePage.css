@@ -176,9 +176,17 @@
 }
 
 .pulse-feed-row-subject {
+  display: block;
   font-size: var(--pulse-type-feed);
   line-height: 1.4;
-  color: color-mix(in srgb, var(--mantine-color-text) 78%, var(--mantine-color-dimmed));
+  color: color-mix(in srgb, var(--mantine-color-text) 88%, var(--mantine-color-dimmed));
+}
+
+.pulse-feed-row-location {
+  display: block;
+  font-size: var(--pulse-type-meta);
+  line-height: 1.35;
+  color: var(--mantine-color-dimmed);
 }
 
 .pulse-feed {

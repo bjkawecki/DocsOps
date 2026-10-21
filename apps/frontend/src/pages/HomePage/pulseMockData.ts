@@ -57,12 +57,26 @@ function buildMockBody(kind: PulseItemKind, meta: PulseItem['meta']): string {
   }
 }
 
+function inferMockScopeType(
+  scopeName: string | undefined
+): NonNullable<PulseItem['meta']['scopeType']> {
+  const name = scopeName?.trim().toLowerCase() ?? '';
+  if (name === 'personal') return 'personal';
+  if (name === 'platform' || name === 'company') return 'company';
+  return 'team';
+}
+
 function item(
   partial: Omit<PulseItem, 'href' | 'body'> & { href?: string; body?: string }
 ): PulseItem {
+  const meta = {
+    ...partial.meta,
+    scopeType: partial.meta.scopeType ?? inferMockScopeType(partial.meta.scopeName),
+  };
   return {
     ...partial,
-    body: partial.body ?? buildMockBody(partial.kind, partial.meta),
+    meta,
+    body: partial.body ?? buildMockBody(partial.kind, meta),
     href: partial.href ?? `/documents/${partial.documentId}`,
   };
 }

@@ -164,9 +164,14 @@ function PulseFeedItem({ item, mock, dismissing, onDismissStart, onDismissComple
         <span className="pulse-feed-row-headline">
           <span className="pulse-feed-row-keyword">{display.keyword}</span>
         </span>
-        <Text className="pulse-feed-row-subject" lineClamp={2} component="span">
+        <Text className="pulse-feed-row-subject" lineClamp={1} component="span">
           {display.subject}
         </Text>
+        {display.location != null ? (
+          <Text className="pulse-feed-row-location" lineClamp={1} component="span">
+            {display.location}
+          </Text>
+        ) : null}
       </span>
       <span className="pulse-feed-row-end">
         <span className="pulse-feed-row-time">{formatPulseOccurredAt(item.occurredAt, t)}</span>

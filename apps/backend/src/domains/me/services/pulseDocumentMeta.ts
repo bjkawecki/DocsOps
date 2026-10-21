@@ -1,9 +1,12 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { getScopeFromOwner, ownerScopeSelect } from '../routes/me/route-helpers.js';
 
+export type PulseScopeType = 'team' | 'department' | 'company' | 'personal';
+
 export type PulseDocMeta = {
   id: string;
   title: string;
+  scopeType: PulseScopeType;
   scopeName: string;
   contextName: string | null;
   contextTypeLabel: string | null;
@@ -52,6 +55,7 @@ export async function loadPulseDocumentMeta(
     map.set(doc.id, {
       id: doc.id,
       title: doc.title.trim() === doc.id ? '' : doc.title,
+      scopeType: scope.scopeType,
       scopeName: scope.scopeName,
       contextName: doc.context?.displayName?.trim() || null,
       contextTypeLabel: formatPulseContextType(doc.context?.contextType ?? null),
@@ -70,6 +74,7 @@ export function pulseDocMetaOrFallback(
   return {
     id: documentId,
     title: fallbackTitle?.trim() || '',
+    scopeType: 'personal',
     scopeName: 'Personal',
     contextName: null,
     contextTypeLabel: null,

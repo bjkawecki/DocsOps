@@ -38,6 +38,7 @@ export type PulseItem = {
   occurredAt: string;
   documentId: string;
   meta: {
+    scopeType?: 'team' | 'department' | 'company' | 'personal';
     scopeName?: string;
     contextName?: string;
     commentCount?: number;

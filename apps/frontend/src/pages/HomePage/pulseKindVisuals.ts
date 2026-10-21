@@ -54,25 +54,34 @@ export type PulseDisplay = {
   keyword: string;
   /** Optional event detail after the keyword (usually empty). */
   detail: string;
-  /** Document title plus scope/context. */
+  /** Document title (single line, truncated in UI). */
   subject: string;
+  /** Scope · context (dimmed); null when nothing to show. */
+  location: string | null;
 };
 
-function subjectLine(
-  item: Pick<PulseItem, 'title' | 'documentId' | 'meta'>,
-  t: TranslateFn
-): string {
+function documentTitle(item: Pick<PulseItem, 'title' | 'documentId'>, t: TranslateFn): string {
   const raw = item.title.trim();
   // Never surface document IDs as titles (fallback / untitled docs).
-  const title = raw && raw !== item.documentId ? raw : '';
+  if (raw && raw !== item.documentId) return raw;
+  return t('common:status.untitled');
+}
+
+function scopePart(item: Pick<PulseItem, 'meta'>, t: TranslateFn): string | null {
+  const scopeType = item.meta.scopeType;
+  if (scopeType === 'company') return t('home.pulseSubject.scopeCompany');
+  if (scopeType === 'personal') return t('home.pulseSubject.scopePersonal');
+  const name = item.meta.scopeName?.trim();
+  return name || null;
+}
+
+function locationLine(item: Pick<PulseItem, 'meta'>, t: TranslateFn): string | null {
   const parts: string[] = [];
-  if (title) parts.push(title);
-  const scope = item.meta.scopeName?.trim();
+  const scope = scopePart(item, t);
   const ctx = item.meta.contextName?.trim();
-  if (scope) parts.push(t('home.pulseSubject.scope', { scope }));
-  if (ctx) parts.push(t('home.pulseSubject.context', { context: ctx }));
-  if (parts.length === 0) return t('common:status.untitled');
-  return parts.join(' · ');
+  if (scope) parts.push(scope);
+  if (ctx) parts.push(ctx);
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>, t: TranslateFn): string {
@@ -84,8 +93,7 @@ function categoryKeyword(item: Pick<PulseItem, 'kind' | 'meta'>, t: TranslateFn)
 }
 
 /**
- * Line 1 = category label; line 2 = optional document title · Scope: … · Context: ….
- * Document IDs are never shown as titles.
+ * Line 1 = category; line 2 = document title; line 3 = scope · context (dimmed).
  */
 export function getPulseDisplay(
   item: Pick<PulseItem, 'kind' | 'title' | 'documentId' | 'body' | 'meta'>,
@@ -94,6 +102,7 @@ export function getPulseDisplay(
   return {
     keyword: categoryKeyword(item, t),
     detail: '',
-    subject: subjectLine(item, t),
+    subject: documentTitle(item, t),
+    location: locationLine(item, t),
   };
 }

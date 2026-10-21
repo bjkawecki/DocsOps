@@ -107,8 +107,8 @@
       "documentComments": "Comments"
     },
     "pulseSubject": {
-      "scope": "Scope: {{scope}}",
-      "context": "Context: {{context}}"
+      "scopeCompany": "Company",
+      "scopePersonal": "Personal"
     }
   },
   "documentPage": {

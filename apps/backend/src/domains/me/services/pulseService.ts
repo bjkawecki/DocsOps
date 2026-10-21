@@ -14,6 +14,8 @@ import {
   formatPulseContextType,
   loadPulseDocumentMeta,
   pulseDocMetaOrFallback,
+  type PulseDocMeta,
+  type PulseScopeType,
 } from './pulseDocumentMeta.js';
 import { resolvePulseSettings, type PulseSettings } from './pulseSettings.js';
 import { buildPulseBody } from './pulseTemplates.js';
@@ -49,6 +51,15 @@ export type PulseStats = {
   commentsLast24h: number;
 };
 
+export type PulseItemMeta = {
+  scopeType?: PulseScopeType;
+  scopeName?: string;
+  contextName?: string;
+  commentCount?: number;
+  pendingSuggestionCount?: number;
+  decision?: 'merged' | 'rejected';
+};
+
 export type PulseItem = {
   id: string;
   kind: PulseItemKind;
@@ -57,14 +68,29 @@ export type PulseItem = {
   href: string;
   occurredAt: string;
   documentId: string;
-  meta: {
-    scopeName?: string;
-    contextName?: string;
-    commentCount?: number;
-    pendingSuggestionCount?: number;
-    decision?: 'merged' | 'rejected';
-  };
+  meta: PulseItemMeta;
 };
+
+function locationMeta(
+  scopeType: PulseScopeType,
+  scopeName: string,
+  contextName: string | null | undefined,
+  extra?: Omit<PulseItemMeta, 'scopeType' | 'scopeName' | 'contextName'>
+): PulseItemMeta {
+  return {
+    scopeType,
+    scopeName,
+    ...(contextName ? { contextName } : {}),
+    ...extra,
+  };
+}
+
+function locationMetaFromDoc(
+  meta: PulseDocMeta,
+  extra?: Omit<PulseItemMeta, 'scopeType' | 'scopeName' | 'contextName'>
+): PulseItemMeta {
+  return locationMeta(meta.scopeType, meta.scopeName, meta.contextName, extra);
+}
 
 export type PulseResponse = {
   stats: PulseStats;
@@ -221,7 +247,7 @@ export async function getMePulse(
         href: `/documents/${doc.id}`,
         occurredAt,
         documentId: doc.id,
-        meta: { scopeName: scope.scopeName, ...(contextName ? { contextName } : {}) },
+        meta: locationMeta(scope.scopeType, scope.scopeName, contextName),
       });
     }
   }
@@ -245,10 +271,9 @@ export async function getMePulse(
         href: `/documents/${r.documentId}?mode=edit&tab=draft`,
         occurredAt,
         documentId: r.documentId,
-        meta: {
-          scopeName: r.scopeName,
+        meta: locationMeta(r.scopeType, r.scopeName, null, {
           pendingSuggestionCount: r.pendingSuggestionCount,
-        },
+        }),
       });
     }
 
@@ -272,11 +297,7 @@ export async function getMePulse(
         href: `/documents/${documentId}`,
         occurredAt,
         documentId,
-        meta: {
-          scopeName: meta.scopeName,
-          ...(meta.contextName ? { contextName: meta.contextName } : {}),
-          decision,
-        },
+        meta: locationMetaFromDoc(meta, { decision }),
       });
     }
   }
@@ -301,10 +322,7 @@ export async function getMePulse(
         href: `/documents/${documentId}`,
         occurredAt,
         documentId,
-        meta: {
-          scopeName: meta.scopeName,
-          ...(meta.contextName ? { contextName: meta.contextName } : {}),
-        },
+        meta: locationMetaFromDoc(meta),
       });
     }
   }
@@ -329,10 +347,7 @@ export async function getMePulse(
         href: `/documents/${documentId}`,
         occurredAt,
         documentId,
-        meta: {
-          scopeName: meta.scopeName,
-          ...(meta.contextName ? { contextName: meta.contextName } : {}),
-        },
+        meta: locationMetaFromDoc(meta),
       });
     }
   }
@@ -358,11 +373,7 @@ export async function getMePulse(
         href: `/documents/${documentId}`,
         occurredAt,
         documentId,
-        meta: {
-          scopeName: meta.scopeName,
-          ...(meta.contextName ? { contextName: meta.contextName } : {}),
-          commentCount: group.count,
-        },
+        meta: locationMetaFromDoc(meta, { commentCount: group.count }),
       });
     }
   }
