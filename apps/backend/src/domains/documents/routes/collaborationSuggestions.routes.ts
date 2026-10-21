@@ -12,14 +12,20 @@ import {
   patchDraftSuggestionBodySchema,
 } from '../schemas/documents.js';
 import { routePrismaUserDocumentId } from './collaboration-route-helpers.js';
-import { notifyLeadDraftCollaborationChanged } from '../services/collaboration/documentCollaborationLiveNotify.js';
+import {
+  replyDraftSuggestionMutationError,
+  replyDraftSuggestionMutationSuccess,
+} from './collaborationSuggestions-route-helpers.js';
+
+const suggestionMutationPreHandler = [
+  requireAuthPreHandler,
+  preHandlerWrap(requireDocumentAccess('readOrWrite')),
+] as const;
 
 export const registerSuggestionRoutes = (app: FastifyInstance): void => {
   app.post<{ Params: { documentId: string; suggestionId: string } }>(
     '/documents/:documentId/draft/suggestions/:suggestionId/accept',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
-    },
+    { preHandler: [...suggestionMutationPreHandler] },
     async (request, reply) => {
       const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
       const { suggestionId } = request.params;
@@ -37,37 +43,15 @@ export const registerSuggestionRoutes = (app: FastifyInstance): void => {
         isLead
       );
       if (!result.ok) {
-        if (result.error === 'not_found')
-          return reply.status(404).send({ error: 'Document not found' });
-        if (result.error === 'suggestion_not_found') {
-          return reply.status(404).send({ error: 'Suggestion not found' });
-        }
-        if (result.error === 'conflict') {
-          return reply.status(409).send({
-            error: 'Lead-Draft was changed concurrently.',
-            code: 'DRAFT_REVISION_CONFLICT',
-          });
-        }
-        return reply.status(409).send({ error: result.error });
+        return replyDraftSuggestionMutationError(reply, result.error, 'Forbidden');
       }
-      reply.header('ETag', `"${result.draftRevision}"`);
-      notifyLeadDraftCollaborationChanged(prisma, documentId, userId, {
-        draftRevision: result.draftRevision,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
-      return reply.send({
-        draftRevision: result.draftRevision,
-        blocks: result.blocks,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
+      return replyDraftSuggestionMutationSuccess(reply, prisma, documentId, userId, result);
     }
   );
 
   app.post<{ Params: { documentId: string; suggestionId: string } }>(
     '/documents/:documentId/draft/suggestions/:suggestionId/decline',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
-    },
+    { preHandler: [...suggestionMutationPreHandler] },
     async (request, reply) => {
       const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
       const { suggestionId } = request.params;
@@ -85,37 +69,15 @@ export const registerSuggestionRoutes = (app: FastifyInstance): void => {
         isLead
       );
       if (!result.ok) {
-        if (result.error === 'not_found')
-          return reply.status(404).send({ error: 'Document not found' });
-        if (result.error === 'suggestion_not_found') {
-          return reply.status(404).send({ error: 'Suggestion not found' });
-        }
-        if (result.error === 'conflict') {
-          return reply.status(409).send({
-            error: 'Lead-Draft was changed concurrently.',
-            code: 'DRAFT_REVISION_CONFLICT',
-          });
-        }
-        return reply.status(409).send({ error: result.error });
+        return replyDraftSuggestionMutationError(reply, result.error, 'Forbidden');
       }
-      reply.header('ETag', `"${result.draftRevision}"`);
-      notifyLeadDraftCollaborationChanged(prisma, documentId, userId, {
-        draftRevision: result.draftRevision,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
-      return reply.send({
-        draftRevision: result.draftRevision,
-        blocks: result.blocks,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
+      return replyDraftSuggestionMutationSuccess(reply, prisma, documentId, userId, result);
     }
   );
 
   app.patch<{ Params: { documentId: string; suggestionId: string } }>(
     '/documents/:documentId/draft/suggestions/:suggestionId',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
-    },
+    { preHandler: [...suggestionMutationPreHandler] },
     async (request, reply) => {
       const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
       const { suggestionId } = request.params;
@@ -129,40 +91,19 @@ export const registerSuggestionRoutes = (app: FastifyInstance): void => {
         body.text
       );
       if (!result.ok) {
-        if (result.error === 'not_found')
-          return reply.status(404).send({ error: 'Document not found' });
-        if (result.error === 'suggestion_not_found') {
-          return reply.status(404).send({ error: 'Suggestion not found' });
-        }
-        if (result.error === 'forbidden') {
-          return reply.status(403).send({ error: 'You cannot edit this suggestion.' });
-        }
-        if (result.error === 'conflict') {
-          return reply.status(409).send({
-            error: 'Lead-Draft was changed concurrently.',
-            code: 'DRAFT_REVISION_CONFLICT',
-          });
-        }
-        return reply.status(409).send({ error: result.error });
+        return replyDraftSuggestionMutationError(
+          reply,
+          result.error,
+          'You cannot edit this suggestion.'
+        );
       }
-      reply.header('ETag', `"${result.draftRevision}"`);
-      notifyLeadDraftCollaborationChanged(prisma, documentId, userId, {
-        draftRevision: result.draftRevision,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
-      return reply.send({
-        draftRevision: result.draftRevision,
-        blocks: result.blocks,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
+      return replyDraftSuggestionMutationSuccess(reply, prisma, documentId, userId, result);
     }
   );
 
   app.delete<{ Params: { documentId: string; suggestionId: string } }>(
     '/documents/:documentId/draft/suggestions/:suggestionId',
-    {
-      preHandler: [requireAuthPreHandler, preHandlerWrap(requireDocumentAccess('readOrWrite'))],
-    },
+    { preHandler: [...suggestionMutationPreHandler] },
     async (request, reply) => {
       const { prisma, userId, documentId } = routePrismaUserDocumentId(request);
       const { suggestionId } = request.params;
@@ -175,32 +116,13 @@ export const registerSuggestionRoutes = (app: FastifyInstance): void => {
         userId
       );
       if (!result.ok) {
-        if (result.error === 'not_found')
-          return reply.status(404).send({ error: 'Document not found' });
-        if (result.error === 'suggestion_not_found') {
-          return reply.status(404).send({ error: 'Suggestion not found' });
-        }
-        if (result.error === 'forbidden') {
-          return reply.status(403).send({ error: 'You cannot withdraw this suggestion.' });
-        }
-        if (result.error === 'conflict') {
-          return reply.status(409).send({
-            error: 'Lead-Draft was changed concurrently.',
-            code: 'DRAFT_REVISION_CONFLICT',
-          });
-        }
-        return reply.status(409).send({ error: result.error });
+        return replyDraftSuggestionMutationError(
+          reply,
+          result.error,
+          'You cannot withdraw this suggestion.'
+        );
       }
-      reply.header('ETag', `"${result.draftRevision}"`);
-      notifyLeadDraftCollaborationChanged(prisma, documentId, userId, {
-        draftRevision: result.draftRevision,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
-      return reply.send({
-        draftRevision: result.draftRevision,
-        blocks: result.blocks,
-        pendingSuggestionCount: result.pendingSuggestionCount,
-      });
+      return replyDraftSuggestionMutationSuccess(reply, prisma, documentId, userId, result);
     }
   );
 };
