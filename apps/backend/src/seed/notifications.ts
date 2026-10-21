@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Prisma } from '../../generated/prisma/client.js';
 import type { PrismaClient } from '../../generated/prisma/client.js';
+import { canRead } from '../domains/documents/permissions/canRead.js';
 
 type SeedNotif = {
   eventType: string;
@@ -9,14 +10,15 @@ type SeedNotif = {
 
 /**
  * Unread sample inbox rows so Home Updates/Comments are visible after CSV seed.
- * Targets platform admins and the first company-lead seed user when present.
+ * Targets platform admins and demo company-lead / member when present.
+ * Each recipient only gets samples for documents they can read (admin: company-owned).
  */
 export async function seedHomeDemoNotifications(prisma: PrismaClient): Promise<void> {
   const docs = await prisma.document.findMany({
     where: { deletedAt: null, publishedAt: { not: null } },
     select: { id: true, title: true },
     orderBy: { createdAt: 'asc' },
-    take: 4,
+    take: 40,
   });
   if (docs.length === 0) return;
 
@@ -49,49 +51,57 @@ export async function seedHomeDemoNotifications(prisma: PrismaClient): Promise<v
   }
   if (recipientIds.size === 0) return;
 
-  const d0 = docs[0];
-  const d1 = docs[1] ?? d0;
-  const d2 = docs[2] ?? d0;
-  if (d0 == null) return;
-
-  const samples: SeedNotif[] = [
-    {
-      eventType: 'document-published',
-      payload: {
-        documentId: d0.id,
-        documentTitle: d0.title,
-      },
-    },
-    {
-      eventType: 'document-updated',
-      payload: {
-        documentId: d1.id,
-        documentTitle: d1.title,
-      },
-    },
-    {
-      eventType: 'document-comment-created',
-      payload: {
-        documentId: d2.id,
-        documentTitle: d2.title,
-        commentId: randomUUID(),
-        commentPreview: 'Demo-Kommentar für die Inbox (Erwähnung).',
-        kind: 'mention',
-      },
-    },
-    {
-      eventType: 'document-comment-created',
-      payload: {
-        documentId: d0.id,
-        documentTitle: d0.title,
-        commentId: randomUUID(),
-        commentPreview: 'Demo-Antwort in einem Kommentar-Thread.',
-        kind: 'reply',
-      },
-    },
-  ];
-
   for (const userId of recipientIds) {
+    const readable: Array<{ id: string; title: string }> = [];
+    for (const doc of docs) {
+      if (!(await canRead(prisma, userId, doc.id))) continue;
+      readable.push(doc);
+      if (readable.length >= 3) break;
+    }
+    if (readable.length === 0) continue;
+
+    const d0 = readable[0];
+    const d1 = readable[1] ?? d0;
+    const d2 = readable[2] ?? d0;
+    if (d0 == null) continue;
+
+    const samples: SeedNotif[] = [
+      {
+        eventType: 'document-published',
+        payload: {
+          documentId: d0.id,
+          documentTitle: d0.title,
+        },
+      },
+      {
+        eventType: 'document-updated',
+        payload: {
+          documentId: d1.id,
+          documentTitle: d1.title,
+        },
+      },
+      {
+        eventType: 'document-comment-created',
+        payload: {
+          documentId: d2.id,
+          documentTitle: d2.title,
+          commentId: randomUUID(),
+          commentPreview: 'Demo-Kommentar für die Inbox (Erwähnung).',
+          kind: 'mention',
+        },
+      },
+      {
+        eventType: 'document-comment-created',
+        payload: {
+          documentId: d0.id,
+          documentTitle: d0.title,
+          commentId: randomUUID(),
+          commentPreview: 'Demo-Antwort in einem Kommentar-Thread.',
+          kind: 'reply',
+        },
+      },
+    ];
+
     for (const sample of samples) {
       await prisma.$executeRaw(Prisma.sql`
         INSERT INTO user_notification (id, user_id, event_type, payload, created_at, read_at)

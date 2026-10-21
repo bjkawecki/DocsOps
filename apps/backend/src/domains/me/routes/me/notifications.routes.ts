@@ -6,6 +6,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../../auth/middleware.js';
+import { purgeUnreadableDocumentNotifications } from '../../../notifications/services/notificationInboxAccess.js';
 import {
   markAllNotificationsReadBodySchema,
   meNotificationsQuerySchema,
@@ -17,6 +18,11 @@ function registerMeNotificationRoutes(app: FastifyInstance): void {
   app.get('/me/notifications', { preHandler: requireAuthPreHandler }, async (request, reply) => {
     const userId = getEffectiveUserId(request as RequestWithUser);
     const query = meNotificationsQuerySchema.parse(request.query);
+
+    const purged = await purgeUnreadableDocumentNotifications(request.server.prisma, userId);
+    if (purged > 0) {
+      await notifyNotificationUnreadChanged(request.server.prisma, userId);
+    }
 
     const unreadFilter = query.unreadOnly ? Prisma.sql`AND read_at IS NULL` : Prisma.empty;
     const categoryFilter = notificationsCategorySql(query.category);

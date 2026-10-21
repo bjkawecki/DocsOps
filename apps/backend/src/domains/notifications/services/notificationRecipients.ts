@@ -1,9 +1,15 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { GrantRole } from '../../../../generated/prisma/client.js';
 import type { DocumentForPermission } from '../../documents/permissions/documentLoad.js';
-import { canRead, getDocumentOwner, loadDocument } from '../../documents/permissions/canRead.js';
+import {
+  canRead,
+  getDocumentOwner,
+  isCompanyOwnedDocument,
+  loadDocument,
+} from '../../documents/permissions/canRead.js';
 import { canWrite } from '../../documents/permissions/canWrite.js';
 import { canReadLeadDraft } from '../../documents/permissions/canEditLeadDraft.js';
+import { canWriteContext } from '../../organisation/permissions/contextPermissions.js';
 import {
   contextWithOwnerInclude,
   ownerFromContextRow,
@@ -190,7 +196,10 @@ async function collectDocumentCandidateIdsByRole(
   role: GrantRole
 ): Promise<Set<string>> {
   const ids = new Set<string>();
-  await addActiveAdminIds(prisma, ids);
+  // Platform admin: company-owned read only (never write via isAdmin).
+  if (role === GrantRole.Read && isCompanyOwnedDocument(doc)) {
+    await addActiveAdminIds(prisma, ids);
+  }
 
   if (doc.contextId == null || doc.context == null) {
     if (doc.createdById) ids.add(doc.createdById);
@@ -294,8 +303,7 @@ export async function listUserIdsWhoCanWriteContext(
   if (!ctx) return [];
 
   const owner = ownerFromContextRow(ctx);
-  if (!owner)
-    return filterActiveUserIds(prisma, [...(await collectWriteContextUserIds(prisma, null))]);
+  if (!owner) return [];
 
   const scopedOwner = ownerScopeFromOwnerRow(owner);
   const ids = await collectWriteContextUserIds(prisma, {
@@ -304,7 +312,12 @@ export async function listUserIdsWhoCanWriteContext(
     teamId: scopedOwner.teamId,
     ownerUserId: scopedOwner.ownerUserId,
   });
-  return filterActiveUserIds(prisma, ids);
+  const active = await filterActiveUserIds(prisma, ids);
+  const verified: string[] = [];
+  for (const uid of active) {
+    if (await canWriteContext(prisma, uid, contextId)) verified.push(uid);
+  }
+  return verified;
 }
 
 async function collectWriteContextUserIds(
@@ -317,7 +330,7 @@ async function collectWriteContextUserIds(
   } | null
 ): Promise<string[]> {
   const ids = new Set<string>();
-  await addActiveAdminIds(prisma, ids);
+  // Platform admin does not write contexts – never a candidate here.
   if (!owner) return [...ids];
 
   if (owner.ownerUserId) ids.add(owner.ownerUserId);

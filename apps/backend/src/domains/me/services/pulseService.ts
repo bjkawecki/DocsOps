@@ -1,5 +1,6 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { Prisma } from '../../../../generated/prisma/client.js';
+import { purgeUnreadableDocumentNotifications } from '../../notifications/services/notificationInboxAccess.js';
 import type { PulseItemKind, MePulseQuery } from '../schemas/me.js';
 import { listMeReviews } from './meReviewsService.js';
 import { getScopeFromOwner, ownerScopeSelect } from '../routes/me/route-helpers.js';
@@ -126,6 +127,8 @@ export async function getMePulse(
   const now = new Date();
   const items: PulseItem[] = [];
   const stats = emptyStats();
+
+  await purgeUnreadableDocumentNotifications(prisma, userId);
 
   const [newRows, updatedRows, commentRows, decidedRows, draftDocs, reviews] = await Promise.all([
     settings.showNewDocuments
