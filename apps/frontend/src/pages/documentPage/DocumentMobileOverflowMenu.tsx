@@ -20,7 +20,7 @@ export type DocumentStartHereScope = {
   scopeId: string;
 };
 
-export type DocumentMobileOverflowMenuProps = {
+export type DocumentOverflowMenuCoreProps = {
   documentId: string;
   data: DocumentResponse;
   hasNoContext: boolean;
@@ -37,6 +37,10 @@ export type DocumentMobileOverflowMenuProps = {
   openDelete: () => void;
   onSetStartHere: (scope: DocumentStartHereScope) => void;
   onClearStartHere: (scope: DocumentStartHereScope) => void;
+};
+
+export type DocumentMobileOverflowMenuProps = DocumentOverflowMenuCoreProps & {
+  iconSize?: number;
   /** Edit-only items before History (e.g. publish). */
   leadingItems?: ReactNode;
   /** Items after archive/unarchive, before trash (e.g. raw JSON). */
@@ -63,6 +67,7 @@ export function DocumentMobileOverflowMenu({
   openDelete,
   onSetStartHere,
   onClearStartHere,
+  iconSize = 12,
   leadingItems,
   trailingBeforeDelete,
 }: DocumentMobileOverflowMenuProps) {
@@ -74,7 +79,7 @@ export function DocumentMobileOverflowMenu({
       <Menu.Item
         component={Link}
         to={`/documents/${documentId}/versions`}
-        leftSection={<IconHistory size={12} />}
+        leftSection={<IconHistory size={iconSize} />}
       >
         {t('documentPage.menu.history')}
       </Menu.Item>
@@ -82,22 +87,22 @@ export function DocumentMobileOverflowMenu({
         documentId={documentId}
         data={data}
         pdfExportLoading={pdfExportLoading}
-        iconSize={12}
+        iconSize={iconSize}
         handleStartPdfExport={handleStartPdfExport}
       />
       {hasNoContext && data.canWrite && (
-        <Menu.Item leftSection={<IconTarget size={12} />} onClick={openAssignContext}>
+        <Menu.Item leftSection={<IconTarget size={iconSize} />} onClick={openAssignContext}>
           {t('documentPage.menu.assignContext')}
         </Menu.Item>
       )}
       {!hasNoContext && (data.canMove || data.canRequestMove) && !data.pendingMoveRequest && (
-        <Menu.Item leftSection={<IconArrowsExchange size={12} />} onClick={openMoveContext}>
+        <Menu.Item leftSection={<IconArrowsExchange size={iconSize} />} onClick={openMoveContext}>
           {t('documentPage.menu.moveContext')}
         </Menu.Item>
       )}
       {data.pendingMoveRequest?.canWithdraw && (
         <Menu.Item
-          leftSection={<IconArrowsExchange size={12} />}
+          leftSection={<IconArrowsExchange size={iconSize} />}
           disabled={moveDecisionLoading}
           onClick={() => onMoveRequestDecision('withdraw')}
         >
@@ -106,7 +111,7 @@ export function DocumentMobileOverflowMenu({
       )}
       {data.pendingMoveRequest?.canAccept && (
         <Menu.Item
-          leftSection={<IconArrowsExchange size={12} />}
+          leftSection={<IconArrowsExchange size={iconSize} />}
           disabled={moveDecisionLoading}
           onClick={() => onMoveRequestDecision('accept')}
         >
@@ -115,7 +120,7 @@ export function DocumentMobileOverflowMenu({
       )}
       {data.pendingMoveRequest?.canReject && (
         <Menu.Item
-          leftSection={<IconArrowsExchange size={12} />}
+          leftSection={<IconArrowsExchange size={iconSize} />}
           disabled={moveDecisionLoading}
           onClick={() => onMoveRequestDecision('reject')}
         >
@@ -132,7 +137,7 @@ export function DocumentMobileOverflowMenu({
         scope.isCurrent ? (
           <Menu.Item
             key={`${scope.scopeType}:${scope.scopeId}`}
-            leftSection={<IconFlagOff size={12} />}
+            leftSection={<IconFlagOff size={iconSize} />}
             disabled={startHereBusy}
             onClick={() => onClearStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })}
           >
@@ -141,7 +146,7 @@ export function DocumentMobileOverflowMenu({
         ) : (
           <Menu.Item
             key={`${scope.scopeType}:${scope.scopeId}`}
-            leftSection={<IconFlag size={12} />}
+            leftSection={<IconFlag size={iconSize} />}
             disabled={startHereBusy}
             onClick={() => onSetStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })}
           >
@@ -150,13 +155,16 @@ export function DocumentMobileOverflowMenu({
         )
       )}
       {data.canWrite && !data.archivedAt && (
-        <Menu.Item leftSection={<IconArchive size={12} />} onClick={() => void handleArchive()}>
+        <Menu.Item
+          leftSection={<IconArchive size={iconSize} />}
+          onClick={() => void handleArchive()}
+        >
           {t('documentPage.menu.archive')}
         </Menu.Item>
       )}
       {data.canWrite && data.archivedAt && (
         <Menu.Item
-          leftSection={<IconArchiveOff size={12} />}
+          leftSection={<IconArchiveOff size={iconSize} />}
           onClick={() => void handleUnarchive()}
         >
           {t('documentPage.menu.unarchive')}
@@ -165,7 +173,7 @@ export function DocumentMobileOverflowMenu({
       {trailingBeforeDelete}
       {data.canDelete && <Menu.Divider />}
       {data.canDelete && (
-        <Menu.Item color="red" leftSection={<IconTrash size={12} />} onClick={openDelete}>
+        <Menu.Item color="red" leftSection={<IconTrash size={iconSize} />} onClick={openDelete}>
           {t('documentPage.menu.moveToTrash')}
         </Menu.Item>
       )}

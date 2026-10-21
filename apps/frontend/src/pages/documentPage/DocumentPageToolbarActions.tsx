@@ -1,33 +1,19 @@
 import { ActionIcon, Button, Group, Menu, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { Link } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconArchive,
-  IconArchiveOff,
-  IconPencil,
-  IconTarget,
-  IconArrowsExchange,
-  IconTrash,
-  IconCloudUpload,
-  IconHistory,
-  IconDotsVertical,
-  IconFlag,
-  IconFlagOff,
-  IconBraces,
-} from '@tabler/icons-react';
+import { IconBraces, IconCloudUpload, IconDotsVertical, IconPencil } from '@tabler/icons-react';
 import {
   DESKTOP_MIN_WIDTH,
   WIDE_MIN_WIDTH,
 } from '../../components/appShell/appShellLayoutConstants.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import type { DocumentResponse } from './documentPageTypes';
-import { DocumentPdfMenuItems } from './DocumentPdfMenuItems.js';
+import {
+  DocumentMobileOverflowMenu,
+  type DocumentOverflowMenuCoreProps,
+} from './DocumentMobileOverflowMenu.js';
 
-export type DocumentPageToolbarActionsProps = {
-  documentId: string;
-  data: DocumentResponse;
+export type DocumentPageToolbarActionsProps = DocumentOverflowMenuCoreProps & {
   mode: 'view' | 'edit';
   editTab: 'draft' | 'metadata' | 'access';
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
@@ -37,29 +23,9 @@ export type DocumentPageToolbarActionsProps = {
   publishLoading: boolean;
   canEnterEditMode: boolean;
   showPublishButton: boolean;
-  hasNoContext: boolean;
-  pdfExportLoading: boolean;
-  moveDecisionLoading: boolean;
-  startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
-  startHereBusy: boolean;
   handleCancelEdit: () => void;
   handleEditClick: () => void;
   handlePublish: () => Promise<void>;
-  handleStartPdfExport: () => Promise<void>;
-  handleArchive: () => Promise<void>;
-  handleUnarchive: () => Promise<void>;
-  openAssignContext: () => void;
-  openMoveContext: () => void;
-  onMoveRequestDecision: (action: 'accept' | 'reject' | 'withdraw') => void;
-  openDelete: () => void;
-  onSetStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
-  onClearStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
   /** Admin-only: open raw draft JSON (edit / draft tab). */
   isAdmin?: boolean;
 };
@@ -109,6 +75,40 @@ export function DocumentPageToolbarActions({
     data.canPublish &&
     !showPublishButton &&
     leadDraftPendingSuggestions > 0;
+
+  const leadingItems = (
+    <>
+      {showCompactPublishInMenu && (
+        <Menu.Item
+          leftSection={<IconCloudUpload size={14} />}
+          disabled={publishLoading}
+          onClick={() => void handlePublish()}
+        >
+          {data.publishedAt
+            ? t('documentPage.toolbar.publishChanges')
+            : t('documentPage.toolbar.publish')}
+        </Menu.Item>
+      )}
+      {showCompactPendingInMenu && (
+        <Menu.Item disabled>
+          {t('documentPage.toolbar.resolvePendingSuggestions', {
+            count: leadDraftPendingSuggestions,
+          })}
+        </Menu.Item>
+      )}
+      {(showCompactPublishInMenu || showCompactPendingInMenu) && <Menu.Divider />}
+    </>
+  );
+
+  const trailingBeforeDelete =
+    isAdmin && mode === 'edit' && editTab === 'draft' ? (
+      <Menu.Item
+        leftSection={<IconBraces size={14} />}
+        onClick={() => leadDraftPanelRef.current?.openRawJson()}
+      >
+        {t('documentPage.menu.viewRawJson')}
+      </Menu.Item>
+    ) : null;
 
   return (
     <Group gap="xs" wrap="nowrap">
@@ -184,133 +184,27 @@ export function DocumentPageToolbarActions({
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
-          {showCompactPublishInMenu && (
-            <Menu.Item
-              leftSection={<IconCloudUpload size={14} />}
-              disabled={publishLoading}
-              onClick={() => void handlePublish()}
-            >
-              {data.publishedAt
-                ? t('documentPage.toolbar.publishChanges')
-                : t('documentPage.toolbar.publish')}
-            </Menu.Item>
-          )}
-          {showCompactPendingInMenu && (
-            <Menu.Item disabled>
-              {t('documentPage.toolbar.resolvePendingSuggestions', {
-                count: leadDraftPendingSuggestions,
-              })}
-            </Menu.Item>
-          )}
-          {(showCompactPublishInMenu || showCompactPendingInMenu) && <Menu.Divider />}
-          <Menu.Item
-            component={Link}
-            to={`/documents/${documentId}/versions`}
-            leftSection={<IconHistory size={14} />}
-          >
-            {t('documentPage.menu.history')}
-          </Menu.Item>
-          <DocumentPdfMenuItems
+          <DocumentMobileOverflowMenu
             documentId={documentId}
             data={data}
+            hasNoContext={hasNoContext}
             pdfExportLoading={pdfExportLoading}
+            moveDecisionLoading={moveDecisionLoading}
+            startHereScopes={startHereScopes}
+            startHereBusy={startHereBusy}
             handleStartPdfExport={handleStartPdfExport}
+            handleArchive={handleArchive}
+            handleUnarchive={handleUnarchive}
+            openAssignContext={openAssignContext}
+            openMoveContext={openMoveContext}
+            onMoveRequestDecision={onMoveRequestDecision}
+            openDelete={openDelete}
+            onSetStartHere={onSetStartHere}
+            onClearStartHere={onClearStartHere}
+            iconSize={14}
+            leadingItems={leadingItems}
+            trailingBeforeDelete={trailingBeforeDelete}
           />
-          {hasNoContext && data.canWrite && (
-            <Menu.Item leftSection={<IconTarget size={14} />} onClick={openAssignContext}>
-              {t('documentPage.menu.assignContext')}
-            </Menu.Item>
-          )}
-          {!hasNoContext && (data.canMove || data.canRequestMove) && !data.pendingMoveRequest && (
-            <Menu.Item leftSection={<IconArrowsExchange size={14} />} onClick={openMoveContext}>
-              {t('documentPage.menu.moveContext')}
-            </Menu.Item>
-          )}
-          {data.pendingMoveRequest?.canWithdraw && (
-            <Menu.Item
-              leftSection={<IconArrowsExchange size={14} />}
-              disabled={moveDecisionLoading}
-              onClick={() => onMoveRequestDecision('withdraw')}
-            >
-              {t('documentPage.menu.withdrawMoveRequest')}
-            </Menu.Item>
-          )}
-          {data.pendingMoveRequest?.canAccept && (
-            <Menu.Item
-              leftSection={<IconArrowsExchange size={14} />}
-              disabled={moveDecisionLoading}
-              onClick={() => onMoveRequestDecision('accept')}
-            >
-              {t('documentPage.menu.acceptMoveRequest')}
-            </Menu.Item>
-          )}
-          {data.pendingMoveRequest?.canReject && (
-            <Menu.Item
-              leftSection={<IconArrowsExchange size={14} />}
-              disabled={moveDecisionLoading}
-              onClick={() => onMoveRequestDecision('reject')}
-            >
-              {t('documentPage.menu.rejectMoveRequest')}
-            </Menu.Item>
-          )}
-          {data.pendingMoveRequest && (
-            <Menu.Item component={Link} to="/approvals?tab=moves">
-              {t('documentPage.menu.openInApprovals')}
-            </Menu.Item>
-          )}
-          {startHereScopes.length > 0 && <Menu.Divider />}
-          {startHereScopes.map((scope) =>
-            scope.isCurrent ? (
-              <Menu.Item
-                key={`${scope.scopeType}:${scope.scopeId}`}
-                leftSection={<IconFlagOff size={14} />}
-                disabled={startHereBusy}
-                onClick={() =>
-                  onClearStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })
-                }
-              >
-                {t('documentPage.menu.removeStartHere', { scope: scope.scopeName })}
-              </Menu.Item>
-            ) : (
-              <Menu.Item
-                key={`${scope.scopeType}:${scope.scopeId}`}
-                leftSection={<IconFlag size={14} />}
-                disabled={startHereBusy}
-                onClick={() =>
-                  onSetStartHere({ scopeType: scope.scopeType, scopeId: scope.scopeId })
-                }
-              >
-                {t('documentPage.menu.setStartHere', { scope: scope.scopeName })}
-              </Menu.Item>
-            )
-          )}
-          {data.canWrite && !data.archivedAt && (
-            <Menu.Item leftSection={<IconArchive size={14} />} onClick={() => void handleArchive()}>
-              {t('documentPage.menu.archive')}
-            </Menu.Item>
-          )}
-          {data.canWrite && data.archivedAt && (
-            <Menu.Item
-              leftSection={<IconArchiveOff size={14} />}
-              onClick={() => void handleUnarchive()}
-            >
-              {t('documentPage.menu.unarchive')}
-            </Menu.Item>
-          )}
-          {isAdmin && mode === 'edit' && editTab === 'draft' && (
-            <Menu.Item
-              leftSection={<IconBraces size={14} />}
-              onClick={() => leadDraftPanelRef.current?.openRawJson()}
-            >
-              {t('documentPage.menu.viewRawJson')}
-            </Menu.Item>
-          )}
-          {data.canDelete && <Menu.Divider />}
-          {data.canDelete && (
-            <Menu.Item color="red" leftSection={<IconTrash size={14} />} onClick={openDelete}>
-              {t('documentPage.menu.moveToTrash')}
-            </Menu.Item>
-          )}
         </Menu.Dropdown>
       </Menu>
     </Group>

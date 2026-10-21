@@ -10,8 +10,9 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconPencil } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { AdminOrgUnitManagePanel } from '../AdminOrgUnitManagePanel.js';
 import { formatBytes } from './adminDepartmentsTabFormat';
 import type { DepartmentStatsRes, DepartmentWithCompany } from './adminDepartmentsTabTypes';
 
@@ -192,24 +193,11 @@ export function AdminDepartmentEditModal({
           </Card>
         </Tabs.Panel>
         <Tabs.Panel value="manage" pt="md">
-          <Card withBorder padding="md">
-            <Text size="sm" fw={600} mb="xs">
-              {t('shared.manage')}
-            </Text>
-            <Text size="xs" c="dimmed" mb="md">
-              {t('shared.manageHint')}
-            </Text>
-            <Button
-              size="sm"
-              variant="filled"
-              color="red"
-              leftSection={<IconTrash size={14} />}
-              onClick={onRequestDelete}
-              loading={deleteFromManageLoading}
-            >
-              {t('departments.editModal.manage.deleteButton')}
-            </Button>
-          </Card>
+          <AdminOrgUnitManagePanel
+            deleteButtonLabel={t('departments.editModal.manage.deleteButton')}
+            onRequestDelete={onRequestDelete}
+            deleteLoading={deleteFromManageLoading}
+          />
         </Tabs.Panel>
       </Tabs>
     </Modal>

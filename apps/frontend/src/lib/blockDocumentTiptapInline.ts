@@ -7,7 +7,11 @@ import {
   type BlockTextLink,
 } from './blockLinkHref.js';
 import { randomId } from './randomId.js';
-import { mergeAdjacentSuggestionLeaves } from './blockDocumentTiptapExportHelpers.js';
+import {
+  mergeAdjacentSuggestionLeaves,
+  readSuggestion,
+  type BlockSuggestion,
+} from './blockDocumentTiptapExportHelpers.js';
 
 /** Shared low-level helpers (text leaves, marks/suggestions/links, paragraph/list nodes) used by both conversion directions. */
 
@@ -15,49 +19,20 @@ export type TiptapConvertContext = {
   documentId?: string;
 };
 
-type InlineMark = 'bold' | 'italic' | 'code';
+export type { BlockSuggestion };
 
-export type BlockSuggestion = {
-  id: string;
-  kind: 'insert' | 'delete';
-  authorId: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
-  createdAt: string;
-};
+type InlineMark = 'bold' | 'italic' | 'code';
 
 export function newId(): string {
   return randomId();
 }
 
+export { readSuggestion };
+
 function readMarks(meta: Record<string, unknown> | undefined): InlineMark[] {
   const raw = meta?.marks;
   if (!Array.isArray(raw)) return [];
   return raw.filter((m): m is InlineMark => m === 'bold' || m === 'italic' || m === 'code');
-}
-
-export function readSuggestion(meta: Record<string, unknown> | undefined): BlockSuggestion | null {
-  const raw = meta?.suggestion;
-  if (!raw || typeof raw !== 'object') return null;
-  const s = raw as Record<string, unknown>;
-  if (
-    typeof s.id !== 'string' ||
-    (s.kind !== 'insert' && s.kind !== 'delete') ||
-    typeof s.authorId !== 'string' ||
-    typeof s.createdAt !== 'string' ||
-    (s.status !== 'pending' &&
-      s.status !== 'accepted' &&
-      s.status !== 'rejected' &&
-      s.status !== 'withdrawn')
-  ) {
-    return null;
-  }
-  return {
-    id: s.id,
-    kind: s.kind,
-    authorId: s.authorId,
-    status: s.status,
-    createdAt: s.createdAt,
-  };
 }
 
 export function textLeaf(

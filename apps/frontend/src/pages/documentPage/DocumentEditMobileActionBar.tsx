@@ -13,40 +13,20 @@ import {
   type PageMobileAction,
 } from '../../components/ui/PageMobileActionBar.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
-import type { DocumentResponse } from './documentPageTypes';
-import { DocumentMobileOverflowMenu } from './DocumentMobileOverflowMenu.js';
+import {
+  DocumentMobileOverflowMenu,
+  type DocumentOverflowMenuCoreProps,
+} from './DocumentMobileOverflowMenu.js';
 
-export type DocumentEditMobileActionBarProps = {
-  documentId: string;
-  data: DocumentResponse;
+export type DocumentEditMobileActionBarProps = DocumentOverflowMenuCoreProps & {
   editTab: 'draft' | 'metadata' | 'access';
   leadDraftPanelRef: RefObject<DocumentLeadDraftPanelHandle | null>;
   leadDraftDirty: boolean;
   leadDraftPendingSuggestions: number;
   publishLoading: boolean;
   showPublishButton: boolean;
-  hasNoContext: boolean;
-  pdfExportLoading: boolean;
-  moveDecisionLoading: boolean;
-  startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
-  startHereBusy: boolean;
   handleCancelEdit: () => void;
   handlePublish: () => Promise<void>;
-  handleStartPdfExport: () => Promise<void>;
-  handleArchive: () => Promise<void>;
-  handleUnarchive: () => Promise<void>;
-  openAssignContext: () => void;
-  openMoveContext: () => void;
-  onMoveRequestDecision: (action: 'accept' | 'reject' | 'withdraw') => void;
-  openDelete: () => void;
-  onSetStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
-  onClearStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
   isAdmin?: boolean;
 };
 

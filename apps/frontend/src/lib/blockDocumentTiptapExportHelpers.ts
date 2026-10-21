@@ -1,6 +1,6 @@
 import type { BlockNodeV0 } from '../api/document-types.js';
 
-type BlockSuggestion = {
+export type BlockSuggestion = {
   id: string;
   kind: 'insert' | 'delete';
   authorId: string;
@@ -8,7 +8,7 @@ type BlockSuggestion = {
   createdAt: string;
 };
 
-function readSuggestion(meta: Record<string, unknown> | undefined): BlockSuggestion | null {
+export function readSuggestion(meta: Record<string, unknown> | undefined): BlockSuggestion | null {
   const raw = meta?.suggestion;
   if (!raw || typeof raw !== 'object') return null;
   const s = raw as Record<string, unknown>;

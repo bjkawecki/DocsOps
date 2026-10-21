@@ -5,36 +5,16 @@ import {
   type PageMobileAction,
 } from '../../components/ui/PageMobileActionBar.js';
 import { buildPageMobileNavAction } from '../../components/ui/pageMobileNav.js';
-import type { DocumentResponse } from './documentPageTypes';
-import { DocumentMobileOverflowMenu } from './DocumentMobileOverflowMenu.js';
+import {
+  DocumentMobileOverflowMenu,
+  type DocumentOverflowMenuCoreProps,
+} from './DocumentMobileOverflowMenu.js';
 
-export type DocumentViewMobileActionBarProps = {
-  documentId: string;
-  data: DocumentResponse;
+export type DocumentViewMobileActionBarProps = DocumentOverflowMenuCoreProps & {
   navTitle: string;
   onOpenNav: () => void;
   canEnterEditMode: boolean;
-  hasNoContext: boolean;
-  pdfExportLoading: boolean;
-  moveDecisionLoading: boolean;
-  startHereScopes: NonNullable<DocumentResponse['startHereScopes']>;
-  startHereBusy: boolean;
   handleEditClick: () => void;
-  handleStartPdfExport: () => Promise<void>;
-  handleArchive: () => Promise<void>;
-  handleUnarchive: () => Promise<void>;
-  openAssignContext: () => void;
-  openMoveContext: () => void;
-  onMoveRequestDecision: (action: 'accept' | 'reject' | 'withdraw') => void;
-  openDelete: () => void;
-  onSetStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
-  onClearStartHere: (scope: {
-    scopeType: 'team' | 'department' | 'company';
-    scopeId: string;
-  }) => void;
 };
 
 /** Compact view-mode chrome: content nav, edit, and overflow menu via PageMobileActionBar. */
