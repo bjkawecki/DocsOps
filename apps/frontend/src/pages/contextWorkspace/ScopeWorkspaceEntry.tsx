@@ -1,6 +1,6 @@
 import { Anchor, Box, Center, Container, Loader, Menu, Paper, Stack, Text } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconBriefcase, IconPlus, IconRoute } from '@tabler/icons-react';
+import { IconBriefcase, IconFilePlus, IconPlus, IconRoute } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -203,6 +203,9 @@ export function ScopeWorkspaceEntry({
         tone: 'create',
         menu: (
           <>
+            <Menu.Item leftSection={<IconFilePlus size={16} />} onClick={openDocumentModal}>
+              {t('createMenu.draft')}
+            </Menu.Item>
             <Menu.Item
               leftSection={<IconRoute size={16} />}
               onClick={() => {
@@ -225,7 +228,7 @@ export function ScopeWorkspaceEntry({
         ),
       },
     ];
-  }, [openContextModal, showMobileCreate, t]);
+  }, [openContextModal, openDocumentModal, showMobileCreate, t]);
 
   // Hooks must run every render (before Loader early-return) – syncKey in chrome avoids action loops.
   useRegisterScopePageChrome(scope, scopeLabel, isWide ? chromeActions : null);
