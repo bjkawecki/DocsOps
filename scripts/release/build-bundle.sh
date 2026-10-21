@@ -75,6 +75,7 @@ copy_file "${ROOT}/deploy/docker-compose.demo.yml" "${BUNDLE_ROOT}/deploy/docker
 copy_file "${ROOT}/deploy/docker-compose.lab.yml" "${BUNDLE_ROOT}/deploy/docker-compose.lab.yml"
 copy_file "${ROOT}/deploy/docker-compose.demo-public.yml" "${BUNDLE_ROOT}/deploy/docker-compose.demo-public.yml"
 copy_file "${ROOT}/deploy/docker-compose.ci.yml" "${BUNDLE_ROOT}/deploy/docker-compose.ci.yml"
+copy_file "${ROOT}/deploy/docker-compose.ci-seed.yml" "${BUNDLE_ROOT}/deploy/docker-compose.ci-seed.yml"
 copy_file "${ROOT}/deploy/Caddyfile.prod" "${BUNDLE_ROOT}/deploy/Caddyfile.prod"
 copy_file "${ROOT}/deploy/Caddyfile.prod.internal" "${BUNDLE_ROOT}/deploy/Caddyfile.prod.internal"
 copy_file "${ROOT}/deploy/Caddyfile.prod.acme" "${BUNDLE_ROOT}/deploy/Caddyfile.prod.acme"
