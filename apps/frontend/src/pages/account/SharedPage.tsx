@@ -3,7 +3,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
@@ -16,6 +16,7 @@ import {
 } from '../../components/contexts/ContextDocumentsTable';
 import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
+import { useMe } from '../../hooks/useMe';
 import { useMeDrafts } from '../../hooks/useMeDrafts';
 import { SharedScopeSidebar, type SharedSidebarDoc } from './SharedScopeSidebar.js';
 
@@ -73,11 +74,13 @@ function mapSharedDocToTableRow(d: SharedDocItem): ContextDocumentsTableRow {
 /** Shared inbox: left scope/doc nav + documents table (same chrome as context workspace). */
 export function SharedPage() {
   const { t } = useTranslation('shell');
+  const { data: me } = useMe();
   useRegisterScopePageChrome(SHARED_SCOPE);
   const [searchParams] = useSearchParams();
   const isWideViewport = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const compactNavOpenRef = useRef<(() => void) | null>(null);
   const navTitle = t('nav.shared');
+  const isPlatformAdmin = me?.user?.isAdmin === true;
 
   const docsPage = readDocsListPage(searchParams);
   const docsLimit = readDocsListLimit(searchParams);
@@ -90,6 +93,7 @@ export function SharedPage() {
       if (!res.ok) throw new Error('Failed to load shared documents');
       return (await res.json()) as { items: SharedDocItem[]; total: number };
     },
+    enabled: !isPlatformAdmin,
   });
 
   const { data: sharedDocsRes, isPending: docsPending } = useQuery({
@@ -101,7 +105,7 @@ export function SharedPage() {
       if (!res.ok) throw new Error('Failed to load shared documents');
       return (await res.json()) as SharedDocsPage;
     },
-    enabled: isWideViewport,
+    enabled: isWideViewport && !isPlatformAdmin,
   });
 
   const {
@@ -125,10 +129,13 @@ export function SharedPage() {
       const nextOffset = last.offset + last.items.length;
       return nextOffset < last.total ? nextOffset : undefined;
     },
-    enabled: !isWideViewport,
+    enabled: !isWideViewport && !isPlatformAdmin,
   });
 
-  const { data: draftsData } = useMeDrafts({ scope: 'shared' }, { limit: 20 });
+  const { data: draftsData } = useMeDrafts(
+    { scope: 'shared' },
+    { limit: 20, enabled: !isPlatformAdmin }
+  );
 
   const sidebarDocs: SharedSidebarDoc[] = useMemo(
     () =>
@@ -169,6 +176,10 @@ export function SharedPage() {
   );
 
   const docsLoading = isWideViewport ? docsPending : docsInfinitePending;
+
+  if (isPlatformAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">

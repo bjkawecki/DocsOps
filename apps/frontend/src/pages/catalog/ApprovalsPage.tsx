@@ -4,7 +4,7 @@ import { notifications } from '@mantine/notifications';
 import { IconClipboardCheck } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
@@ -14,6 +14,7 @@ import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavSco
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
 import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
+import { useMe } from '../../hooks/useMe';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { useMeMoveRequests, type MeMoveRequestItem } from '../../hooks/useMeMoveRequests';
 import { formatTableDate } from '../../lib/formatDate';
@@ -288,6 +289,7 @@ function MoveRequestsTable({
 /** Approvals hub: Reviews (suggestions) + Move requests via content sidebar. */
 export function ApprovalsPage() {
   const { t } = useTranslation('approvals');
+  const { data: me } = useMe();
   useSetAppShellBreadcrumbs([
     {
       key: 'approvals',
@@ -302,9 +304,19 @@ export function ApprovalsPage() {
   const queryClient = useQueryClient();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const { data, isPending, isError } = useMeReviews({ limit: 100, offset: 0 });
-  const inbound = useMeMoveRequests({ direction: 'inbound', status: 'pending', limit: 100 });
-  const outbound = useMeMoveRequests({ direction: 'outbound', status: 'pending', limit: 100 });
+  const isPlatformAdmin = me?.user?.isAdmin === true;
+  const { data, isPending, isError } = useMeReviews(
+    { limit: 100, offset: 0 },
+    { enabled: !isPlatformAdmin }
+  );
+  const inbound = useMeMoveRequests(
+    { direction: 'inbound', status: 'pending', limit: 100 },
+    { enabled: !isPlatformAdmin }
+  );
+  const outbound = useMeMoveRequests(
+    { direction: 'outbound', status: 'pending', limit: 100 },
+    { enabled: !isPlatformAdmin }
+  );
 
   const pending = data?.pendingForReview ?? [];
   const inboundItems = inbound.data?.items ?? [];
@@ -355,6 +367,10 @@ export function ApprovalsPage() {
       setBusyId(null);
     }
   };
+
+  if (isPlatformAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Container fluid maw={1600} px="md" mb="xl">

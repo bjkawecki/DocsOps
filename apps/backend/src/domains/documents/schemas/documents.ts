@@ -51,7 +51,7 @@ export const pdfExportLocaleBodySchema = z
   .object({
     locale: z.enum(['en', 'de']).optional(),
   })
-  .passthrough();
+  .loose();
 
 /** Params: documentId + versionId (for version routes). */
 export const versionIdParamSchema = z.object({

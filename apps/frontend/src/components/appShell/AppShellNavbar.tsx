@@ -165,7 +165,7 @@ export function AppShellNavbar({
                   />
                 </>
               ) : null}
-              {s.showApprovalsNav ? (
+              {!s.isAdmin && s.showApprovalsNav ? (
                 <AppShellSidebarNavLink
                   to="/approvals"
                   label={t('nav.approvals')}
@@ -182,18 +182,20 @@ export function AppShellNavbar({
                   onNavigate={onNavigate}
                 />
               ) : null}
-              <AppShellSidebarNavLink
-                to="/shared"
-                label={t('nav.shared')}
-                active={isOrgNavActive('/shared', s.location.pathname, navScope, {
-                  type: 'shared',
-                })}
-                leftSection={<IconShare size={20} />}
-                navLinkStyles={s.navLinkStyles}
-                isMiniRail={isMiniRail}
-                badgeCount={s.sharedCount}
-                onNavigate={onNavigate}
-              />
+              {!s.isAdmin ? (
+                <AppShellSidebarNavLink
+                  to="/shared"
+                  label={t('nav.shared')}
+                  active={isOrgNavActive('/shared', s.location.pathname, navScope, {
+                    type: 'shared',
+                  })}
+                  leftSection={<IconShare size={20} />}
+                  navLinkStyles={s.navLinkStyles}
+                  isMiniRail={isMiniRail}
+                  badgeCount={s.sharedCount}
+                  onNavigate={onNavigate}
+                />
+              ) : null}
               <AppShellContinueReading isMiniRail={isMiniRail} onNavigate={onNavigate} />
             </Stack>
           </MantineAppShell.Section>

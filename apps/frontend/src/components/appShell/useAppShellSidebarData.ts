@@ -44,7 +44,6 @@ export function useAppShellSidebarData() {
     me?.identity?.departmentAuthors?.[0]?.id ??
     me?.identity?.departmentLeads?.[0]?.id;
   const hasReviewRights =
-    isAdmin ||
     isCompanyLead ||
     isDepartmentLead ||
     (me?.identity?.teams?.some((t) => t.role === 'leader') ?? false);
@@ -176,7 +175,7 @@ export function useAppShellSidebarData() {
       const data = (await res.json()) as { total: number };
       return data.total;
     },
-    enabled: !!me?.identity,
+    enabled: !!me?.identity && !isAdmin,
   });
 
   const { data: sharedCount } = useQuery({
@@ -187,17 +186,20 @@ export function useAppShellSidebarData() {
       const data = (await res.json()) as { total: number };
       return data.total;
     },
-    enabled: !!me?.identity,
+    enabled: !!me?.identity && !isAdmin,
   });
 
-  const { data: reviewsData } = useMeReviews({ limit: 1, offset: 0 }, { enabled: hasReviewRights });
+  const { data: reviewsData } = useMeReviews(
+    { limit: 1, offset: 0 },
+    { enabled: hasReviewRights && !isAdmin }
+  );
   const { data: inboundMovesData } = useMeMoveRequests(
     { direction: 'inbound', status: 'pending', limit: 1 },
-    { enabled: !!me?.identity }
+    { enabled: !!me?.identity && !isAdmin }
   );
   const { data: outboundMovesData } = useMeMoveRequests(
     { direction: 'outbound', status: 'pending', limit: 1 },
-    { enabled: !!me?.identity }
+    { enabled: !!me?.identity && !isAdmin }
   );
 
   const { data: templatesManageAccess } = useQuery({
@@ -215,7 +217,8 @@ export function useAppShellSidebarData() {
   const outboundMovesPending = outboundMovesData?.total ?? 0;
   const approvalsCount =
     reviewsPending + inboundMovesPending > 0 ? reviewsPending + inboundMovesPending : undefined;
-  const showApprovalsNav = hasReviewRights || inboundMovesPending > 0 || outboundMovesPending > 0;
+  const showApprovalsNav =
+    !isAdmin && (hasReviewRights || inboundMovesPending > 0 || outboundMovesPending > 0);
 
   const scopeCountQueries = useQueries({
     queries: [
