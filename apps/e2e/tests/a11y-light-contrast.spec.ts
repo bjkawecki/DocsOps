@@ -1,8 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const email = process.env.DOCSOPS_E2E_ADMIN_EMAIL?.trim() || 'ci-admin@example.com';
-const password = process.env.DOCSOPS_E2E_ADMIN_PASSWORD?.trim() || 'ci-admin-password-12';
+/** Same seeded member as smoke (CSV + DEMO_MODE in CI). */
+const email = process.env.DOCSOPS_E2E_USER_EMAIL?.trim() || 'member@demo.docsops.local';
+const password = process.env.DOCSOPS_E2E_USER_PASSWORD?.trim() || 'DocsOps1';
 
 test.describe('Light mode color contrast', () => {
   test('home page color-contrast with light theme', async ({ page }) => {

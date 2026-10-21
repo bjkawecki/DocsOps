@@ -400,7 +400,7 @@ Mit bestehender `/etc/docsops/docsops.env` wird diese im Non-interactive-Modus s
 
 Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilfe via `--help`.
 
-**CI:** `deploy/docker-compose.ci.yml` mappt Caddy auf Port **8080** (`DOCSOPS_EXTRA_COMPOSE_FILES`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`). Nach Health: Playwright E2E (`apps/e2e`) Login → Catalog → Dokument.
+**CI:** `deploy/docker-compose.ci.yml` mappt Caddy auf Port **8080**; `deploy/docker-compose.ci-seed.yml` setzt `DEMO_MODE` (CSV-Seed). `DOCSOPS_EXTRA_COMPOSE_FILES=deploy/docker-compose.ci.yml:deploy/docker-compose.ci-seed.yml`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`. Nach Health: Playwright E2E (`apps/e2e`) als Seed-Member (`member@demo.docsops.local`) Login → Catalog → Dokument.
 
 ---
 

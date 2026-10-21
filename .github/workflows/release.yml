@@ -191,7 +191,8 @@ jobs:
           DOCSOPS_ASSUME_YES: '1'
           DOCSOPS_INSTALL_CONFIRMED: '1'
           DOCSOPS_USE_EXISTING_CONFIG: '0'
-          DOCSOPS_EXTRA_COMPOSE_FILES: deploy/docker-compose.ci.yml
+          # ci.yml: port 8080; ci-seed.yml: DEMO_MODE CSV seed for member E2E login
+          DOCSOPS_EXTRA_COMPOSE_FILES: deploy/docker-compose.ci.yml:deploy/docker-compose.ci-seed.yml
           DOCSOPS_HEALTH_URL: http://127.0.0.1:8080/health
           DOCSOPS_TLS_MODE: 'off'
           ADMIN_EMAIL: ci-admin@example.com
@@ -215,8 +216,8 @@ jobs:
       - name: App E2E (Playwright)
         env:
           DOCSOPS_E2E_BASE_URL: http://127.0.0.1:8080
-          DOCSOPS_E2E_ADMIN_EMAIL: ci-admin@example.com
-          DOCSOPS_E2E_ADMIN_PASSWORD: ci-admin-password-12
+          DOCSOPS_E2E_USER_EMAIL: member@demo.docsops.local
+          DOCSOPS_E2E_USER_PASSWORD: DocsOps1
         run: |
           corepack enable
           pnpm install --frozen-lockfile
@@ -234,6 +235,7 @@ jobs:
               -f "${CI_DIR}/docker-compose.yml" \
               -f "${CI_DIR}/deploy/docker-compose.prod.yml" \
               -f "${CI_DIR}/deploy/docker-compose.ci.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.ci-seed.yml" \
               down -v --remove-orphans 2>/dev/null || true
           fi
           sudo rm -rf "$CI_DIR"

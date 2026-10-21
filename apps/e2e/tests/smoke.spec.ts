@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-const email = process.env.DOCSOPS_E2E_ADMIN_EMAIL?.trim() || 'ci-admin@example.com';
-const password = process.env.DOCSOPS_E2E_ADMIN_PASSWORD?.trim() || 'ci-admin-password-12';
+/** Seeded team member (CSV); platform admin has no catalog docs without org membership. */
+const email = process.env.DOCSOPS_E2E_USER_EMAIL?.trim() || 'member@demo.docsops.local';
+const password = process.env.DOCSOPS_E2E_USER_PASSWORD?.trim() || 'DocsOps1';
 
 test.describe('DocsOps smoke', () => {
   test('login, open catalog, open a document', async ({ page }) => {
@@ -16,7 +17,6 @@ test.describe('DocsOps smoke', () => {
     await expect(page).toHaveURL(/\/catalog/);
     await expect(page.locator('main')).toBeVisible({ timeout: 30_000 });
 
-    // Platform admin cannot create documents; open an existing catalog entry.
     const catalogRes = await page.request.get('/api/v1/documents?limit=20');
     expect(catalogRes.ok()).toBeTruthy();
     const catalog = (await catalogRes.json()) as { items: { id: string; title: string }[] };
