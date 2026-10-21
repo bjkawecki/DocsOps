@@ -6,10 +6,7 @@ const COUNT = Math.max(1, Number(process.env.JOB_LOADTEST_COUNT ?? 200));
 const CONCURRENCY = Math.max(1, Number(process.env.JOB_LOADTEST_CONCURRENCY ?? 20));
 const TIMEOUT_MS = Math.max(5_000, Number(process.env.JOB_LOADTEST_TIMEOUT_MS ?? 120_000));
 const TASK = (process.env.JOB_LOADTEST_TASK ?? 'temporary-assets') as
-  | 'temporary-assets'
-  | 'failed-jobs'
-  | 'orphaned-exports'
-  | 'user-notifications-retention';
+  'temporary-assets' | 'failed-jobs' | 'orphaned-exports' | 'user-notifications-retention';
 
 async function withPool<T>(
   items: number[],

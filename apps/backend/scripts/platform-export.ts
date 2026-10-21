@@ -17,7 +17,6 @@ import {
   sha256File,
 } from '../src/domains/admin/services/platformMigration/platformManifest.js';
 import { exportDomainDataToDirectory } from '../src/domains/admin/services/platformMigration/exportDomainData.js';
-import type { Prisma } from '../generated/prisma/client.js';
 
 function parseArgs(argv: string[]): { out: string | null } {
   let out: string | null = null;
@@ -84,7 +83,7 @@ async function main(): Promise<void> {
         archiveSha256: archiveSha,
         sizeBytes: BigInt(archiveStat.size),
         localObjectKey: null,
-        manifestJson: manifest as Prisma.InputJsonValue,
+        manifestJson: manifest,
         finishedAt: new Date(),
         errorMessage: null,
       },

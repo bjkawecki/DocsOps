@@ -28,8 +28,7 @@ async function main(): Promise<void> {
       } catch {
         /* ignore */
       }
-      const code =
-        e && typeof e === 'object' && 'code' in e ? String((e as { code: unknown }).code) : '';
+      const code = e && typeof e === 'object' && 'code' in e ? String(e.code) : '';
       if (i === 1 || i % 10 === 0) {
         console.warn(
           `wait-for-database: Versuch ${i}/${maxAttempts} … (${code || 'connect failed'})`

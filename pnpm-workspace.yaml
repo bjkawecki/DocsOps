@@ -4,8 +4,8 @@ packages:
 engineStrict: true
 
 overrides:
-  '@types/react': ^19.0.0
-  '@types/react-dom': ^19.0.0
+  '@types/react': ^19.3.0
+  '@types/react-dom': ^19.3.0
 
 allowBuilds:
   '@prisma/engines': true

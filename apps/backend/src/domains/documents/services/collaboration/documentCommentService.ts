@@ -185,8 +185,7 @@ export async function updateDocumentComment(
 }
 
 export type DeleteCommentResult =
-  | { ok: true }
-  | { ok: false; error: 'not_found' | 'forbidden' | 'already_deleted' };
+  { ok: true } | { ok: false; error: 'not_found' | 'forbidden' | 'already_deleted' };
 
 export async function deleteDocumentComment(
   prisma: PrismaClient,

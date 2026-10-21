@@ -38,7 +38,7 @@ export async function enqueueJob<K extends JobType>(
   const sendOptions: { startAfter?: Date; singletonKey?: string } = {};
   if (options?.startAfter != null) sendOptions.startAfter = options.startAfter;
   if (options?.singletonKey != null) sendOptions.singletonKey = options.singletonKey;
-  const jobId = await pgBoss.send(jobType, payload as object, sendOptions);
+  const jobId = await pgBoss.send(jobType, payload, sendOptions);
   if (!jobId) throw new Error(`Failed to enqueue job: ${jobType}`);
   return jobId;
 }
@@ -64,8 +64,8 @@ export async function retryJob<K extends JobType>(jobType: K, jobId: string): Pr
 
 export async function getSchedules(jobType?: JobType): Promise<unknown[]> {
   const pgBoss = await getBoss();
-  if (jobType) return (await pgBoss.getSchedules(jobType)) as unknown[];
-  return (await pgBoss.getSchedules()) as unknown[];
+  if (jobType) return await pgBoss.getSchedules(jobType);
+  return await pgBoss.getSchedules();
 }
 
 export async function upsertSchedule<K extends JobType>(args: {

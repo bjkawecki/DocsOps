@@ -70,7 +70,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       await writeAuditSafe(request as RequestWithUser, {
         action: 'settings-update',
         status: 'success',
-        details: body as Record<string, unknown>,
+        details: body,
       });
       return reply.send(settings);
     } catch (error) {
@@ -90,7 +90,7 @@ const adminBackupsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       await writeAuditSafe(request as RequestWithUser, {
         action: 'schedule-update',
         status: 'success',
-        details: body as Record<string, unknown>,
+        details: body,
       });
       return reply.send(schedule);
     } catch (error) {

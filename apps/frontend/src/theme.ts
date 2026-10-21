@@ -25,16 +25,7 @@ export function textSizeToScale(textSize: TextSizePreference | undefined): numbe
 
 /** User-selectable primary color preset names. */
 export type PrimaryColorPreset =
-  | 'blue'
-  | 'green'
-  | 'violet'
-  | 'teal'
-  | 'indigo'
-  | 'amber'
-  | 'sky'
-  | 'rose'
-  | 'orange'
-  | 'fuchsia';
+  'blue' | 'green' | 'violet' | 'teal' | 'indigo' | 'amber' | 'sky' | 'rose' | 'orange' | 'fuchsia';
 
 /** All preset names for UI (e.g. Settings dropdown). */
 export const PRIMARY_COLOR_PRESETS: readonly PrimaryColorPreset[] = [

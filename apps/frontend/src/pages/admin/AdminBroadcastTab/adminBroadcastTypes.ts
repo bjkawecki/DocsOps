@@ -3,12 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 
 export type BroadcastTargetKind =
-  | 'all'
-  | 'admins'
-  | 'company_leads'
-  | 'department_leads'
-  | 'team_leads'
-  | 'users';
+  'all' | 'admins' | 'company_leads' | 'department_leads' | 'team_leads' | 'users';
 
 export type BroadcastDeliveryMode = 'now' | 'scheduled';
 

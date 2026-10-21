@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMantineTheme, type MantineColor } from '@mantine/core';
+import { useMantineTheme } from '@mantine/core';
 import type { CSSProperties } from 'react';
 
 /**
@@ -8,7 +8,7 @@ import type { CSSProperties } from 'react';
  */
 export function usePulseEmptyIllustrationVars(): CSSProperties {
   const theme = useMantineTheme();
-  const primary = theme.primaryColor as MantineColor;
+  const primary = theme.primaryColor;
 
   return useMemo(() => {
     const p = (shade: number) => `var(--mantine-color-${primary}-${shade})`;
@@ -36,6 +36,6 @@ export function usePulseEmptyIllustrationVars(): CSSProperties {
       '--pulse-empty-15': `color-mix(in srgb, ${p(9)} 60%, ${text})`,
       '--pulse-empty-16': `color-mix(in srgb, ${p(9)} 80%, ${text})`,
     };
-    return vars as CSSProperties;
+    return vars;
   }, [primary]);
 }

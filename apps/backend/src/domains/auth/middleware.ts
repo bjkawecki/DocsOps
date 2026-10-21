@@ -89,9 +89,9 @@ export const requireAdminPreHandler = requireAdmin as (
   reply: FastifyReply
 ) => void;
 
-/** Einen async PreHandler für die Option preHandler typ-kompatibel machen. */
+/** Async PreHandler für Fastify-Route-Optionen (Promise bleibt für Fehlerbehandlung erhalten). */
 export function preHandlerWrap(
   fn: (req: FastifyRequest, reply: FastifyReply) => Promise<void>
-): (req: FastifyRequest, reply: FastifyReply) => void {
-  return fn as (req: FastifyRequest, reply: FastifyReply) => void;
+): (req: FastifyRequest, reply: FastifyReply) => Promise<void> {
+  return fn;
 }

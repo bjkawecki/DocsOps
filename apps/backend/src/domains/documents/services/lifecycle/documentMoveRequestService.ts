@@ -182,7 +182,7 @@ export async function acceptMoveRequest(
 
   return {
     request: updatedRequest,
-    document: updatedDocument as DocumentMetadataUpdateResult,
+    document: updatedDocument,
     fromContextId: req.fromContextId,
     toContextId: req.toContextId,
   };

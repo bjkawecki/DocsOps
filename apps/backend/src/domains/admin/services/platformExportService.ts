@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
+import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { buildZstdTarArchive } from '../../../infrastructure/backup/archiveBuilder.js';
@@ -125,7 +125,7 @@ export async function runPlatformExport(
         archiveSha256: archiveSha,
         sizeBytes: BigInt(archiveStat.size),
         localObjectKey: localKey,
-        manifestJson: manifest as Prisma.InputJsonValue,
+        manifestJson: manifest,
         finishedAt: new Date(),
         errorMessage: null,
       },

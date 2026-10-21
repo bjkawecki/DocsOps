@@ -130,8 +130,7 @@ function fromPreferences(
  */
 export function getAggregatedRecentItems(
   recentItemsByScope:
-    | Record<string, { type: string; id: string; name?: string; contextName?: string }[]>
-    | undefined,
+    Record<string, { type: string; id: string; name?: string; contextName?: string }[]> | undefined,
   limit = 10,
   options?: { types?: readonly RecentItemType[] }
 ): AggregatedRecentItem[] {

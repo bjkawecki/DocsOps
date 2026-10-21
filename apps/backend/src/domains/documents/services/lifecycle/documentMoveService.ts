@@ -127,7 +127,7 @@ export async function moveDocument(
   });
 
   return {
-    document: updated as DocumentMetadataUpdateResult,
+    document: updated,
     fromContextId,
     toContextId: targetContextId,
   };

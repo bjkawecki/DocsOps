@@ -30,8 +30,7 @@ export type LeadDraftView = {
 };
 
 export type GetLeadDraftResult =
-  | { ok: true; view: LeadDraftView }
-  | { ok: false; error: 'not_found' | 'forbidden' };
+  { ok: true; view: LeadDraftView } | { ok: false; error: 'not_found' | 'forbidden' };
 
 export async function getLeadDraftForUser(
   prisma: PrismaClient,

@@ -89,7 +89,7 @@ function registerMePreferencesRoutes(app: FastifyInstance): void {
 
     await request.server.prisma.user.update({
       where: { id: userId },
-      data: { preferences: merged as object },
+      data: { preferences: merged },
     });
     return reply.send(merged);
   });

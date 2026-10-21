@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import type { Prisma, PrismaClient } from '../../../../generated/prisma/client.js';
+import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
@@ -149,8 +149,7 @@ export async function runPlatformImport(
     const preImportUsers = merge ? [] : await capturePreImportUserSnapshots(prisma);
     let importStarted = false;
     let mergeStats = null as
-      | Awaited<ReturnType<typeof importDomainDataFromDirectory>>['mergeStats']
-      | null;
+      Awaited<ReturnType<typeof importDomainDataFromDirectory>>['mergeStats'] | null;
 
     try {
       importStarted = true;
@@ -210,7 +209,7 @@ export async function runPlatformImport(
           transferPasswordHashes,
           merge,
           ...(merge ? { mergeStats } : {}),
-        } as Prisma.InputJsonValue,
+        },
       },
     });
 

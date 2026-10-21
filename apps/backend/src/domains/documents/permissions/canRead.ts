@@ -169,7 +169,7 @@ export async function loadUser(
       companyLeads: { select: { companyId: true } },
     },
   });
-  return user as UserForPermission | null;
+  return user;
 }
 
 /** Lädt Document per ID (exportiert für canWrite). */
@@ -181,7 +181,7 @@ export async function loadDocument(
     where: { id: documentId },
     include: DOCUMENT_FOR_PERMISSION_INCLUDE,
   });
-  return doc as DocumentForPermission | null;
+  return doc;
 }
 
 export async function loadPermissionSubject(

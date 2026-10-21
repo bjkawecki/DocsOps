@@ -224,9 +224,7 @@ export async function updateSystemSettings(
       : parseOrgRoleLabels(existing?.orgRoleLabels);
 
   const orgRoleLabelsJson: Prisma.InputJsonValue | typeof Prisma.DbNull =
-    Object.keys(nextOrgRoleLabels).length > 0
-      ? (nextOrgRoleLabels as Prisma.InputJsonValue)
-      : Prisma.DbNull;
+    Object.keys(nextOrgRoleLabels).length > 0 ? nextOrgRoleLabels : Prisma.DbNull;
 
   const updated = await prisma.systemSettings.upsert({
     where: { id: 'default' },

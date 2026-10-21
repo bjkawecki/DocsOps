@@ -25,7 +25,7 @@ const pinnedRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
     const scopeConditions: { scopeType: PinnedScopeType; scopeId: string }[] = [];
     if (q.scopeType && q.scopeId) {
-      scopeConditions.push({ scopeType: q.scopeType as PinnedScopeType, scopeId: q.scopeId });
+      scopeConditions.push({ scopeType: q.scopeType, scopeId: q.scopeId });
     } else {
       teamIds.forEach((id) =>
         scopeConditions.push({ scopeType: PinnedScopeType.team, scopeId: id })
@@ -136,7 +136,7 @@ const pinnedRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     const existing = await prisma.documentPinnedInScope.findUnique({
       where: {
         scopeType_scopeId_documentId: {
-          scopeType: body.scopeType as PinnedScopeType,
+          scopeType: body.scopeType,
           scopeId: body.scopeId,
           documentId: body.documentId,
         },
@@ -156,7 +156,7 @@ const pinnedRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     const created = await prisma.documentPinnedInScope.create({
       data: {
         documentId: body.documentId,
-        scopeType: body.scopeType as PinnedScopeType,
+        scopeType: body.scopeType,
         scopeId: body.scopeId,
         order: body.order ?? 0,
         pinnedById: userId,

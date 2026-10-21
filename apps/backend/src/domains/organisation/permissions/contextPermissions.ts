@@ -33,7 +33,7 @@ async function loadContext(
     where: { id: contextId },
     include: contextWithOwnerInclude,
   });
-  return ctx as ContextWithOwner | null;
+  return ctx;
 }
 
 async function loadActiveUserAndContext(

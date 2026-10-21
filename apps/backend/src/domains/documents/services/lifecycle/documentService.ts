@@ -283,7 +283,7 @@ export async function updateDocumentMetadata(
     data: updatePayload,
     select: DOCUMENT_PATCH_SELECT,
   });
-  return updated as DocumentMetadataUpdateResult;
+  return updated;
 }
 
 /**
@@ -305,7 +305,7 @@ export async function updateDocumentTypeKey(
     data: { documentTypeKey },
     select: DOCUMENT_PATCH_SELECT,
   });
-  return updated as DocumentMetadataUpdateResult;
+  return updated;
 }
 
 export class DocumentNotFoundError extends Error {

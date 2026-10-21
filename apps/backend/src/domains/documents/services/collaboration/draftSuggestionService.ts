@@ -41,8 +41,7 @@ async function loadDraftRow(prisma: PrismaClient, documentId: string, expectedRe
 function resolveBeforeBlocks(draftBlocks: unknown, publishedBlocks: unknown): BlockDocument {
   return (
     parseBlockDocumentFromDb(draftBlocks) ??
-    parseBlockDocumentFromDb(publishedBlocks) ??
-    ({ schemaVersion: 0, blocks: [] } as BlockDocument)
+    parseBlockDocumentFromDb(publishedBlocks) ?? { schemaVersion: 0, blocks: [] }
   );
 }
 

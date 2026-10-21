@@ -82,11 +82,11 @@ flowchart TD
 - `apps/backend/src/services/documents/` – `blockSchema.ts` / `blockDocumentSchema.ts`, `markdownToBlocks.ts`, `blocksToMarkdown.ts`, `blocksPlaintext.ts`.
 - Tests: `blockSchema.test.ts`, `blockSerialization.test.ts`.
 
-| PR        | Inhalt                                                                                                       |
+| PR | Inhalt |
 | --------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **PR-2a** | Zod-Schema für Top-Level-Dokument + `blocks[]`, `schemaVersion`; striktes Parse, klare Fehlermeldungen       | **`blockSchema.ts`** + Re-Export **`blockDocumentSchema.ts`**                                                                                                      |
+| **PR-2a** | Zod-Schema für Top-Level-Dokument + `blocks[]`, `schemaVersion`; striktes Parse, klare Fehlermeldungen | **`blockSchema.ts`** + Re-Export **`blockDocumentSchema.ts`** |
 | **PR-2b** | **Markdown → Blocks** (Import-Pfad für Migration und Upload) + **Blocks → Markdown** (Export für PDF/Pandoc) | **`markdownToBlocks.ts`** (`markdownToBlockDocumentV0`), **`blocksToMarkdown.ts`** (`blockDocumentV0ToMarkdown`) – minimaler Parser, kein vollständiger CommonMark |
-| **PR-2c** | Plaintext/FTS-Vorbereitung: eine Funktion „searchable string aus Blocks“ (für EPIC-7)                        | **`blocksPlaintext.ts`** (`blockDocumentV0ToSearchableText`)                                                                                                       |
+| **PR-2c** | Plaintext/FTS-Vorbereitung: eine Funktion „searchable string aus Blocks“ (für EPIC-7) | **`blocksPlaintext.ts`** (`blockDocumentV0ToSearchableText`) |
 
 Keine Änderung an Fastify-Routen nötig, wenn nur Library + Tests.
 
@@ -103,11 +103,11 @@ Keine Änderung an Fastify-Routen nötig, wenn nur Library + Tests.
 - `apps/backend/src/jobs/jobRegistry.ts`, `apps/backend/src/jobs/jobTypes.ts`
 - `apps/backend/src/routes/documents.ts`, `apps/backend/src/services/documents/documentService.ts`, `apps/backend/src/seed.ts`
 
-| PR        | Inhalt                                                                                                                                                   |
+| PR | Inhalt |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PR-3a** | Idempotenter Batch-Job: `Document` / `DocumentVersion` mit Markdown → befüllt `publishedBlocks` (oder nur Versionen, je nach ADR), setzt `schemaVersion` | **`DocumentVersion.blocks`** + `blocksSchemaVersion: 0`; Job + Script; Filter `blocks`/`draftBlocks` = DB-Null (`Prisma.DbNull`)                                                                                                                           |
-| **PR-3b** | **GET-Lesepfad:** Wenn Blocks vorhanden → API liefert Blocks (oder beides: `content` deprecated + `blocks`); wenn nicht → weiter Markdown (Fallback)     | **`GET /documents/:documentId`:** `draftRevision`, `blocks` (aus `draftBlocks`), `publishedBlocks` + `publishedBlocksSchemaVersion` (aktuelle Version); **`GET .../versions/:versionId`:** `blocks`, `blocksSchemaVersion`; Markdown `content` unverändert |
-| **PR-3c** | Optional: Draft-Initialisierung aus letztem Published für neue Lead-Draft-Spalten                                                                        | **`backfillDocumentDraftBlocks`** aus aktuellem `Document.content` (analog zu Versionen)                                                                                                                                                                   |
+| **PR-3a** | Idempotenter Batch-Job: `Document` / `DocumentVersion` mit Markdown → befüllt `publishedBlocks` (oder nur Versionen, je nach ADR), setzt `schemaVersion` | **`DocumentVersion.blocks`** + `blocksSchemaVersion: 0`; Job + Script; Filter `blocks`/`draftBlocks` = DB-Null (`Prisma.DbNull`) |
+| **PR-3b** | **GET-Lesepfad:** Wenn Blocks vorhanden → API liefert Blocks (oder beides: `content` deprecated + `blocks`); wenn nicht → weiter Markdown (Fallback) | **`GET /documents/:documentId`:** `draftRevision`, `blocks` (aus `draftBlocks`), `publishedBlocks` + `publishedBlocksSchemaVersion` (aktuelle Version); **`GET .../versions/:versionId`:** `blocks`, `blocksSchemaVersion`; Markdown `content` unverändert |
+| **PR-3c** | Optional: Draft-Initialisierung aus letztem Published für neue Lead-Draft-Spalten | **`backfillDocumentDraftBlocks`** aus aktuellem `Document.content` (analog zu Versionen) |
 
 Betrifft v. a.: `apps/backend/src/routes/documents.ts`, `apps/backend/src/routes/schemas/documents.ts` (Response-Shape), ggf. `apps/backend/src/services/documents/documentService.ts`.
 

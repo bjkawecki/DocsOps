@@ -16,20 +16,20 @@
   "dependencies": {
     "@mantine/core": "^8.3.15",
     "@mantine/hooks": "^8.3.15",
-    "@tabler/icons-react": "^3.25.0",
-    "@xyflow/react": "^12.11.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "@tabler/icons-react": "^3.49.0",
+    "@xyflow/react": "^12.12.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-markdown": "^9.1.0",
     "react-router-dom": "^7.18.4",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "playwright": "^1.51.0",
-    "tsx": "^4.19.3",
+    "playwright": "^1.64.1",
+    "tsx": "^4.23.15",
     "typescript": "~5.6.3",
     "vite": "^7.3.7"
   }

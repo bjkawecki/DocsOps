@@ -14,11 +14,7 @@ import {
 } from './settingsLayout.js';
 
 type PulsePrefKey =
-  | 'showDrafts'
-  | 'showReviews'
-  | 'showNewDocuments'
-  | 'showUpdatedDocuments'
-  | 'showComments';
+  'showDrafts' | 'showReviews' | 'showNewDocuments' | 'showUpdatedDocuments' | 'showComments';
 
 const PULSE_SWITCH_KEYS: PulsePrefKey[] = [
   'showDrafts',

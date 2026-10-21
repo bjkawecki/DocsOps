@@ -1,11 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type {
-  PrismaClient,
-  BackupDestination,
-  Prisma,
-} from '../../../../generated/prisma/client.js';
+import type { PrismaClient, BackupDestination } from '../../../../generated/prisma/client.js';
 import { refreshMaintenanceLiveState } from '../../../infrastructure/liveEvents/refreshMaintenanceLiveState.js';
 import {
   releaseMaintenanceLockIfOwned,
@@ -214,7 +210,7 @@ export async function runOperationalBackup(
         sizeBytes: BigInt(archiveStat.size),
         remotePath,
         localObjectKey: localKey,
-        manifestJson: manifest as Prisma.InputJsonValue,
+        manifestJson: manifest,
         finishedAt: new Date(),
         errorMessage: null,
       },

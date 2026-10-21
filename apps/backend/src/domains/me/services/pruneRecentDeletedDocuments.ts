@@ -75,7 +75,7 @@ export async function loadPreferencesPruningDeletedRecentDocuments(
   };
   await prisma.user.update({
     where: { id: userId },
-    data: { preferences: next as object },
+    data: { preferences: next },
   });
   return next;
 }

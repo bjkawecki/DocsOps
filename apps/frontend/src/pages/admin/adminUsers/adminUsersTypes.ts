@@ -46,13 +46,7 @@ export type CompaniesRes = { items: { id: string }[] };
 export type DepartmentsRes = { items: DepartmentWithTeams[] };
 
 export type SortByField =
-  | 'name'
-  | 'email'
-  | 'isAdmin'
-  | 'deletedAt'
-  | 'role'
-  | 'teams'
-  | 'departments';
+  'name' | 'email' | 'isAdmin' | 'deletedAt' | 'role' | 'teams' | 'departments';
 export type SortOrder = 'asc' | 'desc';
 
 export type UserStatsRes = {

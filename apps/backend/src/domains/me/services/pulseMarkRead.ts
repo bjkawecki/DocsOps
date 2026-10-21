@@ -9,8 +9,7 @@ const COMMENT_EVENT_TYPES = ['document-comment-created'] as const;
 const DECIDED_EVENT_TYPES = ['draft-request-merged', 'draft-request-rejected'] as const;
 
 export type MarkPulseItemReadResult =
-  | { ok: true; marked: number }
-  | { ok: false; status: 400 | 404; error: string };
+  { ok: true; marked: number } | { ok: false; status: 400 | 404; error: string };
 
 /**
  * Marks underlying unread notifications for activity / review-decided pulse items.

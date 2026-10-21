@@ -201,7 +201,7 @@ export async function replaceDocumentUserGrants(
       data: args.grants.map((g) => ({
         documentId: args.documentId,
         userId: g.userId,
-        role: g.role as GrantRole,
+        role: g.role,
       })),
       skipDuplicates: true,
     });
@@ -232,7 +232,7 @@ export async function replaceDocumentTeamGrants(
       data: args.grants.map((g) => ({
         documentId: args.documentId,
         teamId: g.teamId,
-        role: g.role as GrantRole,
+        role: g.role,
       })),
       skipDuplicates: true,
     });
@@ -263,7 +263,7 @@ export async function replaceDocumentDepartmentGrants(
       data: args.grants.map((g) => ({
         documentId: args.documentId,
         departmentId: g.departmentId,
-        role: g.role as GrantRole,
+        role: g.role,
       })),
       skipDuplicates: true,
     });

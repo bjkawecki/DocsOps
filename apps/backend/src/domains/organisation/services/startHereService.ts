@@ -52,8 +52,7 @@ async function loadDocumentOwnerScope(
 }
 
 export type SetStartHereResult =
-  | { ok: true }
-  | { ok: false; status: 403 | 404 | 400; error: string };
+  { ok: true } | { ok: false; status: 403 | 404 | 400; error: string };
 
 export async function setStartDocument(
   prisma: PrismaClient,

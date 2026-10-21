@@ -181,7 +181,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         action: 'job-retry-failed-batch',
         status: 'success',
         targetJobName: body.jobName?.trim() || null,
-        details: result as unknown as Record<string, unknown>,
+        details: result,
       });
       return reply.send(result);
     } catch (error) {
@@ -267,7 +267,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
       const key = body.key?.trim() || undefined;
       if (!body.enabled) {
         try {
-          await removeAdminJobSchedule(jobName as JobType, key);
+          await removeAdminJobSchedule(jobName, key);
         } catch (error) {
           request.log.warn(
             { error, jobName, key },
@@ -296,7 +296,7 @@ const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
             ? (body.payload ?? { mode: 'schedule' })
             : (body.payload ?? {});
         await upsertAdminJobSchedule({
-          jobType: jobName as JobType,
+          jobType: jobName,
           cron: body.cron!,
           payload: schedulePayload,
           tz: body.tz?.trim() || undefined,
