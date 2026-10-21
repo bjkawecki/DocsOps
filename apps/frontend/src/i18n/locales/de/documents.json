@@ -391,7 +391,8 @@
     "context": "Kontext",
     "noContext": "Kein Kontext",
     "overview": "Übersicht",
-    "untitledDocument": "Dokument"
+    "untitledDocument": "Dokument",
+    "personal": "Persönlich"
   },
   "sidebar": {
     "contents": "Inhalt",

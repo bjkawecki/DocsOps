@@ -65,7 +65,7 @@
         {
           "heading": "Sidebar",
           "paragraphs": [
-            "The sidebar holds the application navigation: Home, Catalog, the entries for company, department, and team, and the personal area.",
+            "The sidebar holds the application navigation: Home, Catalog, and under Areas the entries for company, department, team, and the personal area.",
             "The sidebar also provides search for finding content by title or keyword. Account and settings are reached via the sidebar or the profile menu."
           ]
         },
@@ -74,7 +74,7 @@
           "paragraphs": [
             "The home page shows news and relevant notices about what is currently happening in DocsOps.",
             "The catalog lists accessible documents and contexts. Through it, content can be found without first choosing a scope.",
-            "The company, department, and team entries in the sidebar open the content of the respective organisational unit. The personal area is for one’s own preparatory work outside those units."
+            "Under Areas one opens the content of company, department, and team as well as the personal area. The personal area is for one’s own preparatory work outside the organisational units."
           ]
         },
         {

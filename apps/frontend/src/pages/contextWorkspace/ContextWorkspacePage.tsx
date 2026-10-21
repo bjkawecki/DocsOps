@@ -177,7 +177,10 @@ export function ContextWorkspacePage() {
     [ownerCompanyId, ownerDepartmentId, ownerTeamId, ownerUserId]
   );
   const scopeName =
-    data?.owner.displayName ?? (scope ? scopeToLabel(scope) : t('workspace.overviewFallback'));
+    scope?.type === 'personal'
+      ? t('scopeKind.personal')
+      : (data?.owner.displayName ??
+        (scope ? scopeToLabel(scope) : t('workspace.overviewFallback')));
   const {
     processes: sidebarProcesses,
     projects: sidebarProjects,
@@ -409,6 +412,7 @@ export function ContextWorkspacePage() {
                 activeContextId={contextSelected ? contextId : null}
                 onContextNavClick={handleContextNavClick}
                 trashArchive={trashArchive}
+                showPersonalAreaPeers={scope?.type === 'personal'}
               />
             }
           >

@@ -1,8 +1,8 @@
 {
-  "breadcrumb": "Approvals",
+  "breadcrumb": "Open items",
   "loading": "Loading…",
   "nav": {
-    "ariaLabel": "Approvals navigation",
+    "ariaLabel": "Open items navigation",
     "reviews": "Reviews",
     "moveRequests": "Move requests"
   },

@@ -1,24 +1,32 @@
-import { Badge, Box, Button, Container, Group, Paper, Stack, Table, Text } from '@mantine/core';
+import { Badge, Box, Button, Group, NavLink, Stack, Table, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconClipboardCheck } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { IconInbox } from '@tabler/icons-react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
-import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
-import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
-import { useCompactContentNavFab } from '../../components/ui/pageMobileNav.js';
-import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { useMeMoveRequests, type MeMoveRequestItem } from '../../hooks/useMeMoveRequests';
 import { formatTableDate } from '../../lib/formatDate';
-import { ApprovalsScopeSidebar, type ApprovalsSidebarDoc } from './ApprovalsScopeSidebar.js';
+import { PersonalAreaPageChrome } from '../account/PersonalAreaPageChrome.js';
+
+const nestedListStyle: CSSProperties = {
+  borderLeft: '1px solid var(--mantine-color-default-border)',
+  marginLeft: 14,
+  paddingLeft: 8,
+  marginTop: 4,
+};
+
+const navLinkFullWidth = {
+  borderRadius: 'var(--mantine-radius-sm)',
+  width: '100%',
+} as const;
 
 function documentDraftLink(documentId: string): string {
   return `/documents/${documentId}?mode=edit&tab=draft`;
@@ -286,18 +294,10 @@ function MoveRequestsTable({
   );
 }
 
-/** Approvals hub: Reviews (suggestions) + Move requests via content sidebar. */
+/** Approvals hub in personal shell: Reviews + Move requests. */
 export function ApprovalsPage() {
-  const { t } = useTranslation('approvals');
+  const { t } = useTranslation(['approvals', 'shell']);
   const { data: me } = useMe();
-  useSetAppShellBreadcrumbs([
-    {
-      key: 'approvals',
-      label: t('breadcrumb'),
-      icon: <IconClipboardCheck size={14} stroke={1.5} />,
-    },
-  ]);
-  useSetAppShellNavScope(null);
 
   const [searchParams] = useSearchParams();
   const section = searchParams.get('tab') === 'moves' ? 'moves' : 'reviews';
@@ -318,22 +318,54 @@ export function ApprovalsPage() {
     { enabled: !isPlatformAdmin }
   );
 
-  const pending = data?.pendingForReview ?? [];
+  const pending = useMemo(() => data?.pendingForReview ?? [], [data?.pendingForReview]);
   const inboundItems = inbound.data?.items ?? [];
   const outboundItems = outbound.data?.items ?? [];
   const movesCount = inboundItems.length + outboundItems.length;
-  const { contentNavOpenRefProp, navFab } = useCompactContentNavFab(t('breadcrumb'));
 
-  const sidebarDocs: ApprovalsSidebarDoc[] = useMemo(
-    () =>
-      (data?.pendingForReview ?? []).map((item) => ({
-        id: item.documentId,
-        title: item.documentTitle?.trim() || t('reviews.untitledDocument'),
-        scopeKey: scopeKeyForReview(item),
-        scopeLabel: item.scopeName?.trim() || t('reviews.otherScope'),
-      })),
-    [data?.pendingForReview, t]
-  );
+  const reviewsNested = useMemo(() => {
+    if (section !== 'reviews' || pending.length === 0) return null;
+    const map = new Map<string, { label: string; docs: { id: string; title: string }[] }>();
+    for (const item of pending) {
+      const key = scopeKeyForReview(item);
+      const label = item.scopeName?.trim() || t('approvals:reviews.otherScope');
+      const title = item.documentTitle?.trim() || t('approvals:reviews.untitledDocument');
+      const existing = map.get(key);
+      if (existing) {
+        existing.docs.push({ id: item.documentId, title });
+      } else {
+        map.set(key, { label, docs: [{ id: item.documentId, title }] });
+      }
+    }
+    const groups = [...map.entries()]
+      .map(([key, value]) => ({ key, ...value }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    return (
+      <Box style={nestedListStyle}>
+        <Stack gap={6} align="stretch" w="100%">
+          {groups.map((group) => (
+            <Box key={group.key}>
+              <Text size="xs" c="dimmed" fw={600} px={8} mb={4} truncate>
+                {group.label}
+              </Text>
+              <Stack gap={2} align="stretch" w="100%">
+                {group.docs.map((d) => (
+                  <NavLink
+                    key={d.id}
+                    component={Link}
+                    to={documentDraftLink(d.id)}
+                    label={d.title}
+                    variant="subtle"
+                    style={navLinkFullWidth}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+    );
+  }, [pending, section, t]);
 
   const invalidateMoves = () => {
     void queryClient.invalidateQueries({ queryKey: ['me', 'move-requests'] });
@@ -368,95 +400,102 @@ export function ApprovalsPage() {
     }
   };
 
+  const trailSuffix = useMemo(
+    () => [
+      {
+        key: 'approvals',
+        label: t('approvals:breadcrumb'),
+        to: '/personal/approvals',
+        icon: <IconInbox size={14} stroke={1.5} />,
+      },
+      {
+        key: section === 'moves' ? 'moves' : 'reviews',
+        label: section === 'moves' ? t('approvals:nav.moveRequests') : t('approvals:nav.reviews'),
+      },
+    ],
+    [section, t]
+  );
+
   if (isPlatformAdmin) {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <Container fluid maw={1600} px="md" mb="xl">
-      <Paper withBorder={false} p={0} radius="md">
-        <ResponsiveContentNav
-          title={t('breadcrumb')}
-          compactNavOpenRef={contentNavOpenRefProp}
-          nav={
-            <ApprovalsScopeSidebar
-              section={section}
-              documents={sidebarDocs}
-              reviewsCount={pending.length}
-              movesCount={movesCount}
-            />
-          }
-        >
-          <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-            {section === 'reviews' ? (
-              isError ? (
-                <Text size="sm" c="red">
-                  {t('reviews.loadFailed')}
-                </Text>
-              ) : isPending ? (
-                <Text size="sm" c="dimmed">
-                  {t('loading')}
-                </Text>
-              ) : (
-                <PendingReviewsTable items={pending} emptyLabel={t('reviews.empty')} />
-              )
+    <PersonalAreaPageChrome
+      trailSuffix={trailSuffix}
+      reviewsNested={reviewsNested}
+      reviewsCount={pending.length}
+      movesCount={movesCount}
+    >
+      {section === 'reviews' ? (
+        isError ? (
+          <Text size="sm" c="red">
+            {t('approvals:reviews.loadFailed')}
+          </Text>
+        ) : isPending ? (
+          <Text size="sm" c="dimmed">
+            {t('approvals:loading')}
+          </Text>
+        ) : (
+          <PendingReviewsTable items={pending} emptyLabel={t('approvals:reviews.empty')} />
+        )
+      ) : (
+        <Stack gap="lg">
+          <Box>
+            <Text fw={600} mb="xs">
+              {t('approvals:moves.inbound')}
+            </Text>
+            {inbound.isError ? (
+              <Text size="sm" c="red">
+                {t('approvals:moves.inboundLoadFailed')}
+              </Text>
+            ) : inbound.isPending ? (
+              <Text size="sm" c="dimmed">
+                {t('approvals:loading')}
+              </Text>
             ) : (
-              <Stack gap="lg">
-                <Box>
-                  <Text fw={600} mb="xs">
-                    {t('moves.inbound')}
-                  </Text>
-                  {inbound.isError ? (
-                    <Text size="sm" c="red">
-                      {t('moves.inboundLoadFailed')}
-                    </Text>
-                  ) : inbound.isPending ? (
-                    <Text size="sm" c="dimmed">
-                      {t('loading')}
-                    </Text>
-                  ) : (
-                    <MoveRequestsTable
-                      items={inboundItems}
-                      emptyLabel={t('moves.inboundEmpty')}
-                      busyId={busyId}
-                      onAccept={(item) => void decide(item, 'accept', t('moves.toasts.accepted'))}
-                      onReject={(item) => void decide(item, 'reject', t('moves.toasts.rejected'))}
-                      onWithdraw={() => undefined}
-                    />
-                  )}
-                </Box>
-                <Box>
-                  <Text fw={600} mb="xs">
-                    {t('moves.outbound')}
-                  </Text>
-                  {outbound.isError ? (
-                    <Text size="sm" c="red">
-                      {t('moves.outboundLoadFailed')}
-                    </Text>
-                  ) : outbound.isPending ? (
-                    <Text size="sm" c="dimmed">
-                      {t('loading')}
-                    </Text>
-                  ) : (
-                    <MoveRequestsTable
-                      items={outboundItems}
-                      emptyLabel={t('moves.outboundEmpty')}
-                      busyId={busyId}
-                      onAccept={() => undefined}
-                      onReject={() => undefined}
-                      onWithdraw={(item) =>
-                        void decide(item, 'withdraw', t('moves.toasts.withdrawn'))
-                      }
-                    />
-                  )}
-                </Box>
-              </Stack>
+              <MoveRequestsTable
+                items={inboundItems}
+                emptyLabel={t('approvals:moves.inboundEmpty')}
+                busyId={busyId}
+                onAccept={(item) =>
+                  void decide(item, 'accept', t('approvals:moves.toasts.accepted'))
+                }
+                onReject={(item) =>
+                  void decide(item, 'reject', t('approvals:moves.toasts.rejected'))
+                }
+                onWithdraw={() => undefined}
+              />
             )}
           </Box>
-        </ResponsiveContentNav>
-      </Paper>
-      {navFab}
-    </Container>
+          <Box>
+            <Text fw={600} mb="xs">
+              {t('approvals:moves.outbound')}
+            </Text>
+            {outbound.isError ? (
+              <Text size="sm" c="red">
+                {t('approvals:moves.outboundLoadFailed')}
+              </Text>
+            ) : outbound.isPending ? (
+              <Text size="sm" c="dimmed">
+                {t('approvals:loading')}
+              </Text>
+            ) : (
+              <MoveRequestsTable
+                items={outboundItems}
+                emptyLabel={t('approvals:moves.outboundEmpty')}
+                busyId={busyId}
+                onAccept={() => undefined}
+                onReject={() => undefined}
+                onWithdraw={(item) =>
+                  void decide(item, 'withdraw', t('approvals:moves.toasts.withdrawn'))
+                }
+              />
+            )}
+          </Box>
+        </Stack>
+      )}
+    </PersonalAreaPageChrome>
   );
 }
 

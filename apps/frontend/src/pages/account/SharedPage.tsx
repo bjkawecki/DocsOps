@@ -1,11 +1,11 @@
-import { Box, Container, Paper, Text } from '@mantine/core';
+import { Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
+import { IconShare } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
-import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import {
   ContextDocumentsTable,
@@ -14,11 +14,8 @@ import {
   readDocsListPage,
   type ContextDocumentsTableRow,
 } from '../../components/contexts/ContextDocumentsTable';
-import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
-import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { useMe } from '../../hooks/useMe';
-import { useMeDrafts } from '../../hooks/useMeDrafts';
-import { SharedScopeSidebar, type SharedSidebarDoc } from './SharedScopeSidebar.js';
+import { PersonalAreaPageChrome } from './PersonalAreaPageChrome.js';
 
 type SharedDocItem = {
   id: string;
@@ -42,26 +39,6 @@ type SharedDocsPage = {
   offset: number;
 };
 
-const SHARED_SCOPE = { type: 'shared' as const };
-
-function scopeLabelForDoc(doc: SharedDocItem): { scopeKey: string; scopeLabel: string } {
-  const owner = doc.context?.ownerDisplayName?.trim();
-  const contextName = doc.context?.displayName?.trim();
-  if (owner && contextName) {
-    return {
-      scopeKey: `${owner}::${doc.contextId ?? 'none'}`,
-      scopeLabel: `${owner} · ${contextName}`,
-    };
-  }
-  if (owner) {
-    return { scopeKey: owner, scopeLabel: owner };
-  }
-  if (contextName && doc.contextId) {
-    return { scopeKey: doc.contextId, scopeLabel: contextName };
-  }
-  return { scopeKey: 'unknown', scopeLabel: 'Other' };
-}
-
 function mapSharedDocToTableRow(d: SharedDocItem): ContextDocumentsTableRow {
   return {
     id: d.id,
@@ -71,30 +48,17 @@ function mapSharedDocToTableRow(d: SharedDocItem): ContextDocumentsTableRow {
   };
 }
 
-/** Shared inbox: left scope/doc nav + documents table (same chrome as context workspace). */
+/** Shared documents inbox inside the personal area shell. */
 export function SharedPage() {
   const { t } = useTranslation('shell');
   const { data: me } = useMe();
-  useRegisterScopePageChrome(SHARED_SCOPE);
   const [searchParams] = useSearchParams();
   const isWideViewport = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
-  const compactNavOpenRef = useRef<(() => void) | null>(null);
-  const navTitle = t('nav.shared');
   const isPlatformAdmin = me?.user?.isAdmin === true;
 
   const docsPage = readDocsListPage(searchParams);
   const docsLimit = readDocsListLimit(searchParams);
   const docsOffset = (docsPage - 1) * docsLimit;
-
-  const { data: sidebarDocsRes } = useQuery({
-    queryKey: ['me', 'shared-documents', 'sidebar'],
-    queryFn: async () => {
-      const res = await apiFetch('/api/v1/me/shared-documents?limit=100&offset=0');
-      if (!res.ok) throw new Error('Failed to load shared documents');
-      return (await res.json()) as { items: SharedDocItem[]; total: number };
-    },
-    enabled: !isPlatformAdmin,
-  });
 
   const { data: sharedDocsRes, isPending: docsPending } = useQuery({
     queryKey: ['me', 'shared-documents', docsLimit, docsOffset],
@@ -132,25 +96,6 @@ export function SharedPage() {
     enabled: !isWideViewport && !isPlatformAdmin,
   });
 
-  const { data: draftsData } = useMeDrafts(
-    { scope: 'shared' },
-    { limit: 20, enabled: !isPlatformAdmin }
-  );
-
-  const sidebarDocs: SharedSidebarDoc[] = useMemo(
-    () =>
-      (sidebarDocsRes?.items ?? []).map((d) => {
-        const { scopeKey, scopeLabel } = scopeLabelForDoc(d);
-        return {
-          id: d.id,
-          title: d.title?.trim() || 'Untitled',
-          scopeKey,
-          scopeLabel,
-        };
-      }),
-    [sidebarDocsRes?.items]
-  );
-
   const documents: ContextDocumentsTableRow[] = useMemo(() => {
     const items = isWideViewport
       ? (sharedDocsRes?.items ?? [])
@@ -166,15 +111,6 @@ export function SharedPage() {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const sidebarDrafts = useMemo(
-    () =>
-      (draftsData?.draftDocuments ?? []).map((d) => ({
-        id: d.id,
-        title: d.title?.trim() || 'Untitled',
-      })),
-    [draftsData?.draftDocuments]
-  );
-
   const docsLoading = isWideViewport ? docsPending : docsInfinitePending;
 
   if (isPlatformAdmin) {
@@ -182,33 +118,30 @@ export function SharedPage() {
   }
 
   return (
-    <Container fluid maw={1600} px="md" mb="xl">
-      <Paper withBorder={false} p={0} radius="md">
-        <PageMobileActionsHost navTitle={navTitle} compactNavOpenRef={compactNavOpenRef}>
-          <ResponsiveContentNav
-            title={navTitle}
-            compactNavOpenRef={isWideViewport ? undefined : compactNavOpenRef}
-            nav={<SharedScopeSidebar documents={sidebarDocs} drafts={sidebarDrafts} />}
-          >
-            <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-              {docsLoading ? (
-                <Text size="sm" c="dimmed">
-                  Loading documents…
-                </Text>
-              ) : (
-                <ContextDocumentsTable
-                  documents={documents}
-                  total={sharedDocsTotal}
-                  hasMore={!isWideViewport && !!hasNextPage}
-                  onLoadMore={loadMoreDocuments}
-                  loadingMore={isFetchingNextPage}
-                  emptyMessage="No documents shared with you yet."
-                />
-              )}
-            </Box>
-          </ResponsiveContentNav>
-        </PageMobileActionsHost>
-      </Paper>
-    </Container>
+    <PersonalAreaPageChrome
+      trailSuffix={[
+        {
+          key: 'shared',
+          label: t('nav.shared'),
+          icon: <IconShare size={14} stroke={1.5} />,
+        },
+      ]}
+      sharedCount={sharedDocsTotal}
+    >
+      {docsLoading ? (
+        <Text size="sm" c="dimmed">
+          Loading documents…
+        </Text>
+      ) : (
+        <ContextDocumentsTable
+          documents={documents}
+          total={sharedDocsTotal}
+          hasMore={!isWideViewport && !!hasNextPage}
+          onLoadMore={loadMoreDocuments}
+          loadingMore={isFetchingNextPage}
+          emptyMessage="No documents shared with you yet."
+        />
+      )}
+    </PersonalAreaPageChrome>
   );
 }

@@ -13,6 +13,7 @@ import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
+import { PersonalAreaPeerNav } from '../account/PersonalAreaPeerNav.js';
 import { contextUrl, readSidebarSectionOpen, writeSidebarSectionOpen } from './contextPaths.js';
 
 export type SidebarContextItem = {
@@ -49,6 +50,12 @@ type ScopeContextSidebarProps = {
   onContextNavClick: (contextId: string, event: MouseEvent<HTMLElement>) => void;
   /** Lead/admin only: Trash + Archive as peer rows (not under Projects). */
   trashArchive?: SidebarTrashArchiveLinks | null;
+  /** Personal cluster: Offene Vorgänge + Geteilte Dokumente below Projekte. */
+  showPersonalAreaPeers?: boolean;
+  reviewsNested?: ReactNode;
+  reviewsCount?: number;
+  movesCount?: number;
+  sharedCount?: number;
 };
 
 const ICON_SIZE = 16;
@@ -238,6 +245,11 @@ export function ScopeContextSidebar({
   activeContextId,
   onContextNavClick,
   trashArchive = null,
+  showPersonalAreaPeers = false,
+  reviewsNested,
+  reviewsCount,
+  movesCount,
+  sharedCount,
 }: ScopeContextSidebarProps) {
   const { t } = useTranslation('contexts');
   const { pathname } = useLocation();
@@ -295,6 +307,15 @@ export function ScopeContextSidebar({
             ))
           )}
         </PeerCollapsibleSection>
+
+        {showPersonalAreaPeers ? (
+          <PersonalAreaPeerNav
+            reviewsNested={reviewsNested}
+            reviewsCount={reviewsCount}
+            movesCount={movesCount}
+            sharedCount={sharedCount}
+          />
+        ) : null}
 
         {drafts != null && drafts.length > 0 && (
           <PeerCollapsibleSection

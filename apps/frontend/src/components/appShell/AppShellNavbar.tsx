@@ -1,12 +1,5 @@
 import { AppShell as MantineAppShell, Stack, Box, Text, Divider } from '@mantine/core';
-import {
-  IconHome,
-  IconListSearch,
-  IconUser,
-  IconShare,
-  IconClipboardCheck,
-  IconTemplate,
-} from '@tabler/icons-react';
+import { IconHome, IconListSearch, IconUser, IconTemplate } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { AppShellRoleBasedNav } from './AppShellRoleBasedNav.js';
 import { AppShellSidebarNavLink } from './AppShellSidebarNavLink.js';
@@ -15,7 +8,7 @@ import { AppShellNavbarToolRow } from './AppShellNavbarToolRow.js';
 import { AppShellSidebarCollapseControl } from './AppShellSidebarCollapseControl.js';
 import { AppShellContinueReading } from './AppShellContinueReading.js';
 import { AdminAppVersionLabel } from '../AdminAppVersionLabel.js';
-import { isActive, isOrgNavActive } from './appShellNavUtils.js';
+import { isActive, isPersonalAreaNavActive } from './appShellNavUtils.js';
 import { useAppShellNavScope } from './AppShellNavScopeContext.js';
 import { MAIN_NAV_ID, SIDEBAR_MINI_GAP } from './appShellLayoutConstants.js';
 import type { useAppShellSidebarData } from './useAppShellSidebarData.js';
@@ -111,90 +104,52 @@ export function AppShellNavbar({
                   onNavigate={onNavigate}
                 />
               ) : null}
-              {s.showOrganizationNav ? (
+              {s.showOrganizationNav || !s.isAdmin ? (
                 <>
                   {!isMiniRail ? (
                     <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
-                      {t('nav.organization')}
+                      {t('nav.areas')}
                     </Text>
                   ) : null}
-                  <AppShellRoleBasedNav
-                    pathname={s.location.pathname}
-                    navLinkStyles={s.navLinkStyles}
-                    me={s.me}
-                    isAdmin={s.isAdmin}
-                    isCompanyLead={s.isCompanyLead}
-                    isDepartmentLead={s.isDepartmentLead}
-                    departmentId={s.departmentId}
-                    userTeamId={s.userTeamId}
-                    userDepartmentId={s.userDepartmentId}
-                    companyDepartments={s.companyDepartments}
-                    departmentTeams={s.departmentTeams}
-                    companyCount={s.companyCount}
-                    departmentCounts={s.departmentCounts}
-                    teamCounts={s.teamCounts}
-                    departmentsSectionExpanded={s.departmentsSectionExpanded}
-                    setDepartmentsSectionExpanded={s.setDepartmentsSectionExpanded}
-                    teamsSectionExpanded={s.teamsSectionExpanded}
-                    setTeamsSectionExpanded={s.setTeamsSectionExpanded}
-                    expandedDepartmentIds={s.expandedDepartmentIds}
-                    setExpandedDepartmentIds={s.setExpandedDepartmentIds}
-                    isMiniRail={isMiniRail}
-                    onNavigate={onNavigate}
-                  />
-                </>
-              ) : null}
-              {!s.isAdmin ? (
-                <>
-                  {!isMiniRail ? (
-                    <Text size="sm" fw={500} c="dimmed" mt={14} mb={2}>
-                      {t('nav.personal')}
-                    </Text>
+                  {s.showOrganizationNav ? (
+                    <AppShellRoleBasedNav
+                      pathname={s.location.pathname}
+                      navLinkStyles={s.navLinkStyles}
+                      me={s.me}
+                      isAdmin={s.isAdmin}
+                      isCompanyLead={s.isCompanyLead}
+                      isDepartmentLead={s.isDepartmentLead}
+                      departmentId={s.departmentId}
+                      userTeamId={s.userTeamId}
+                      userDepartmentId={s.userDepartmentId}
+                      companyDepartments={s.companyDepartments}
+                      departmentTeams={s.departmentTeams}
+                      companyCount={s.companyCount}
+                      departmentCounts={s.departmentCounts}
+                      teamCounts={s.teamCounts}
+                      departmentsSectionExpanded={s.departmentsSectionExpanded}
+                      setDepartmentsSectionExpanded={s.setDepartmentsSectionExpanded}
+                      teamsSectionExpanded={s.teamsSectionExpanded}
+                      setTeamsSectionExpanded={s.setTeamsSectionExpanded}
+                      expandedDepartmentIds={s.expandedDepartmentIds}
+                      setExpandedDepartmentIds={s.setExpandedDepartmentIds}
+                      isMiniRail={isMiniRail}
+                      onNavigate={onNavigate}
+                    />
                   ) : null}
-                  <AppShellSidebarNavLink
-                    to="/personal"
-                    label={t('nav.personal')}
-                    active={isOrgNavActive('/personal', s.location.pathname, navScope, {
-                      type: 'personal',
-                    })}
-                    leftSection={<IconUser size={20} />}
-                    navLinkStyles={s.navLinkStyles}
-                    isMiniRail={isMiniRail}
-                    badgeCount={s.personalCount}
-                    onNavigate={onNavigate}
-                  />
+                  {!s.isAdmin ? (
+                    <AppShellSidebarNavLink
+                      to="/personal"
+                      label={t('nav.personal')}
+                      active={isPersonalAreaNavActive(s.location.pathname, navScope)}
+                      leftSection={<IconUser size={20} />}
+                      navLinkStyles={s.navLinkStyles}
+                      isMiniRail={isMiniRail}
+                      badgeCount={s.personalCount}
+                      onNavigate={onNavigate}
+                    />
+                  ) : null}
                 </>
-              ) : null}
-              {!s.isAdmin && s.showApprovalsNav ? (
-                <AppShellSidebarNavLink
-                  to="/approvals"
-                  label={t('nav.approvals')}
-                  title={t('nav.approvalsTitle')}
-                  ariaLabel={t('nav.approvalsAria')}
-                  active={
-                    isActive('/approvals', s.location.pathname) ||
-                    isActive('/reviews', s.location.pathname)
-                  }
-                  leftSection={<IconClipboardCheck size={20} />}
-                  navLinkStyles={s.navLinkStyles}
-                  isMiniRail={isMiniRail}
-                  badgeCount={s.approvalsCount}
-                  onNavigate={onNavigate}
-                />
-              ) : null}
-              {!s.isAdmin ? (
-                <AppShellSidebarNavLink
-                  to="/shared"
-                  label={t('nav.shared')}
-                  active={isOrgNavActive('/shared', s.location.pathname, navScope, {
-                    type: 'shared',
-                  })}
-                  leftSection={<IconShare size={20} />}
-                  navLinkStyles={s.navLinkStyles}
-                  isMiniRail={isMiniRail}
-                  badgeCount={s.sharedCount}
-                  onNavigate={onNavigate}
-                />
               ) : null}
               <AppShellContinueReading isMiniRail={isMiniRail} onNavigate={onNavigate} />
             </Stack>

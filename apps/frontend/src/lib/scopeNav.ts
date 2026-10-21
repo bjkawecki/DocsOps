@@ -24,7 +24,7 @@ export function ownerToScopeForBreadcrumb(owner: BreadcrumbOwner): RecentScope |
  */
 export function scopeToUrl(scope: RecentScope): string {
   if (scope.type === 'personal') return '/personal';
-  if (scope.type === 'shared') return '/shared';
+  if (scope.type === 'shared') return '/personal/shared';
   if (scope.type === 'company') return '/company';
   if (scope.type === 'department') return `/department/${scope.id}`;
   if (scope.type === 'team') return `/team/${scope.id}`;

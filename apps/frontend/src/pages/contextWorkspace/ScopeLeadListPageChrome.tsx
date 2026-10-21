@@ -75,6 +75,7 @@ export function ScopeLeadListPageChrome({
                   // Link navigation only; no selection toggle on these pages.
                 }}
                 trashArchive={trashArchive}
+                showPersonalAreaPeers={navScope.type === 'personal'}
               />
             }
           >

@@ -1,8 +1,8 @@
 {
-  "breadcrumb": "Freigaben",
+  "breadcrumb": "Offene Vorgänge",
   "loading": "Laden…",
   "nav": {
-    "ariaLabel": "Freigaben-Navigation",
+    "ariaLabel": "Navigation Offene Vorgänge",
     "reviews": "Prüfungen",
     "moveRequests": "Verschiebeanfragen"
   },

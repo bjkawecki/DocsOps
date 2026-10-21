@@ -98,7 +98,9 @@ export function buildDocumentBreadcrumbItems(
   const contextMeta = buildContextMeta(doc, t);
   const scopeWithName = doc.scope as RecentScope & { name?: string | null };
   const scopeName =
-    scopeWithName?.name ?? (scope ? scopeToLabel(scope) : t('breadcrumbs.overview'));
+    scope?.type === 'personal'
+      ? t('breadcrumbs.personal')
+      : (scopeWithName?.name ?? (scope ? scopeToLabel(scope) : t('breadcrumbs.overview')));
   const documentTitle = doc.title?.trim() || t('breadcrumbs.untitledDocument');
   const ScopeIcon =
     scope?.type === 'company'

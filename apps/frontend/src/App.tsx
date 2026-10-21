@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Center, Loader } from '@mantine/core';
 import { AppShell } from './components/appShell/AppShell';
 import { HomePage } from './pages/HomePage';
@@ -36,6 +36,12 @@ import { ThemeFromPreferences } from './components/system/ThemeFromPreferences';
 import { ErrorBoundary } from './components/system/ErrorBoundary';
 import { ADMIN_DEFAULT_PATH, adminLegacyRedirects } from './pages/admin/adminNavConfig.js';
 import { flattenHelpTopics, HELP_DEFAULT_PATH } from './pages/help/helpTopics.js';
+
+/** Preserve query/hash when renaming legacy paths (e.g. /approvals?tab=moves). */
+function RedirectWithSearch({ to }: { to: string }) {
+  const location = useLocation();
+  return <Navigate to={`${to}${location.search}${location.hash}`} replace />;
+}
 
 const DocumentPage = lazy(() =>
   import('./pages/document/DocumentPage').then((m) => ({ default: m.DocumentPage }))
@@ -166,9 +172,11 @@ function App() {
                 element={<PersonalTrashArchivePage kind="archive" />}
               />
               <Route path="personal/most-read" element={<PersonalMostReadPage />} />
-              <Route path="shared" element={<SharedPage />} />
-              <Route path="approvals" element={<ApprovalsPage />} />
-              <Route path="reviews" element={<Navigate to="/approvals" replace />} />
+              <Route path="personal/approvals" element={<ApprovalsPage />} />
+              <Route path="personal/shared" element={<SharedPage />} />
+              <Route path="shared" element={<RedirectWithSearch to="/personal/shared" />} />
+              <Route path="approvals" element={<RedirectWithSearch to="/personal/approvals" />} />
+              <Route path="reviews" element={<RedirectWithSearch to="/personal/approvals" />} />
             </Route>
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsRouteRedirect />} />

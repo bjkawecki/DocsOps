@@ -23,6 +23,24 @@ export function isOrgNavActive(
   return true;
 }
 
+/** Main-nav Persönlich is active for the personal cluster: personal, shared, approvals. */
+export function isPersonalAreaNavActive(
+  pathname: string,
+  navScope: { type: string; id?: string } | null
+): boolean {
+  if (isOrgNavActive('/personal', pathname, navScope, { type: 'personal' })) return true;
+  if (isOrgNavActive('/personal/shared', pathname, navScope, { type: 'shared' })) return true;
+  if (isOrgNavActive('/shared', pathname, navScope, { type: 'shared' })) return true;
+  if (
+    isActive('/personal/approvals', pathname) ||
+    isActive('/approvals', pathname) ||
+    isActive('/reviews', pathname)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export type AppShellNavLinkStyles = {
   root: Record<string, unknown>;
   label: Record<string, unknown>;

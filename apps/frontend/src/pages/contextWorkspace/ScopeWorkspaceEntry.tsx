@@ -311,6 +311,7 @@ export function ScopeWorkspaceEntry({
                   // Link navigation only; no selection toggle on the personal landing.
                 }}
                 trashArchive={trashArchive}
+                showPersonalAreaPeers={isPersonal}
               />
             }
           >

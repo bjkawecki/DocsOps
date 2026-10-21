@@ -65,7 +65,7 @@
         {
           "heading": "Seitenleiste",
           "paragraphs": [
-            "Die Seitenleiste enthält die Navigation der Anwendung: Start, Katalog, die Einträge zu Unternehmen, Abteilung und Team sowie den persönlichen Bereich.",
+            "Die Seitenleiste enthält die Navigation der Anwendung: Start, Katalog und unter Bereiche die Einträge zu Unternehmen, Abteilung, Team und dem persönlichen Bereich.",
             "In der Seitenleiste liegt außerdem die Suche zum Auffinden von Inhalten nach Titel oder Stichwort. Konto und Einstellungen erreicht man über die Seitenleiste bzw. das Profilmenü."
           ]
         },
@@ -74,7 +74,7 @@
           "paragraphs": [
             "Die Startseite zeigt Neuigkeiten und relevante Hinweise zum aktuellen Geschehen in DocsOps.",
             "Der Katalog listet die zugänglichen Dokumente und Kontexte. Über ihn lassen sich Inhalte finden, ohne zuvor einen Bereich zu wählen.",
-            "Über die Einträge zu Unternehmen, Abteilung und Team in der Seitenleiste öffnet man die Inhalte der jeweiligen Organisationseinheit. Der persönliche Bereich dient der eigenen Vorarbeit außerhalb dieser Einheiten."
+            "Unter Bereiche öffnet man die Inhalte von Unternehmen, Abteilung und Team sowie den persönlichen Bereich. Der persönliche Bereich dient der eigenen Vorarbeit außerhalb der Organisationseinheiten."
           ]
         },
         {

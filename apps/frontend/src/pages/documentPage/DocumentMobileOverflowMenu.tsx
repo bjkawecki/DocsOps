@@ -128,7 +128,7 @@ export function DocumentMobileOverflowMenu({
         </Menu.Item>
       )}
       {data.pendingMoveRequest && (
-        <Menu.Item component={Link} to="/approvals?tab=moves">
+        <Menu.Item component={Link} to="/personal/approvals?tab=moves">
           {t('documentPage.menu.openInApprovals')}
         </Menu.Item>
       )}
