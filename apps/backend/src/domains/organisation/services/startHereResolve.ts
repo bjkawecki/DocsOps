@@ -70,87 +70,6 @@ async function tryResolveCandidate(
 }
 
 /**
- * When admin has no team/dept assignment (same idea as Explore adminOrgScopeCandidates),
- * still surface start docs from the first org units.
- */
-async function adminOrgStartCandidates(prisma: PrismaClient): Promise<{
-  teams: TeamStartCandidate[];
-  depts: DeptStartCandidate[];
-  companies: CompanyStartCandidate[];
-}> {
-  const company = await prisma.company.findFirst({
-    select: {
-      id: true,
-      name: true,
-      startDocumentId: true,
-      departments: {
-        select: {
-          id: true,
-          name: true,
-          startDocumentId: true,
-          companyId: true,
-          teams: {
-            select: {
-              id: true,
-              name: true,
-              startDocumentId: true,
-              departmentId: true,
-            },
-            orderBy: { name: 'asc' },
-            take: 1,
-          },
-        },
-        orderBy: { name: 'asc' },
-        take: 1,
-      },
-    },
-    orderBy: { name: 'asc' },
-  });
-  if (!company) return { teams: [], depts: [], companies: [] };
-
-  const teams: TeamStartCandidate[] = [];
-  const depts: DeptStartCandidate[] = [];
-  const companies: CompanyStartCandidate[] = [
-    { id: company.id, name: company.name, startDocumentId: company.startDocumentId },
-  ];
-
-  const dept = company.departments[0];
-  if (dept) {
-    depts.push({
-      id: dept.id,
-      name: dept.name,
-      startDocumentId: dept.startDocumentId,
-      company: {
-        id: company.id,
-        name: company.name,
-        startDocumentId: company.startDocumentId,
-      },
-    });
-    const team = dept.teams[0];
-    if (team) {
-      teams.push({
-        id: team.id,
-        name: team.name,
-        startDocumentId: team.startDocumentId,
-        department: {
-          id: dept.id,
-          name: dept.name,
-          startDocumentId: dept.startDocumentId,
-          companyId: company.id,
-          company: {
-            id: company.id,
-            name: company.name,
-            startDocumentId: company.startDocumentId,
-          },
-        },
-      });
-    }
-  }
-
-  return { teams, depts, companies };
-}
-
-/**
  * List Start here for the user: all readable published docs, Teams → Depts → Companies (name asc).
  */
 export async function listStartHereForUser(
@@ -262,13 +181,8 @@ export async function listStartHereForUser(
     companiesById.set(c.company.id, c.company);
   }
 
-  const hasOrgAssignment = teamsById.size > 0 || deptsById.size > 0 || companiesById.size > 0;
-  if (!hasOrgAssignment && user.isAdmin) {
-    const fallback = await adminOrgStartCandidates(prisma);
-    for (const t of fallback.teams) teamsById.set(t.id, t);
-    for (const d of fallback.depts) deptsById.set(d.id, d);
-    for (const c of fallback.companies) companiesById.set(c.id, c);
-  } else if (user.isAdmin && companiesById.size === 0) {
+  // Platform admin has no org membership: company Start here only (no dept/team fallback).
+  if (user.isAdmin && companiesById.size === 0) {
     const all = await prisma.company.findMany({
       select: { id: true, name: true, startDocumentId: true },
       orderBy: { name: 'asc' },

@@ -309,7 +309,7 @@ describe('Start here (scope start-document + resolve)', () => {
     expect(deptOpt?.isCurrent).toBe(true);
   });
 
-  it('admin without membership gets team/dept/company start items via org fallback', async () => {
+  it('admin without membership gets company start item only', async () => {
     await prisma.team.update({
       where: { id: ctx.teamId },
       data: { startDocumentId: teamOwnedDocId },
@@ -350,9 +350,9 @@ describe('Start here (scope start-document + resolve)', () => {
       items: Array<{ scopeType: string; documentId: string }>;
     };
     const types = body.items.map((i) => i.scopeType);
-    expect(types).toContain('team');
-    expect(types).toContain('department');
     expect(types).toContain('company');
+    expect(types).not.toContain('team');
+    expect(types).not.toContain('department');
 
     await prisma.session.deleteMany({ where: { userId: admin.id } });
     await prisma.user.delete({ where: { id: admin.id } });

@@ -10,6 +10,8 @@ type Props = {
   companyCount: number | undefined;
   isMiniRail?: boolean;
   onNavigate?: () => void;
+  /** Platform admin / no membership: company link only. */
+  companyOnly?: boolean;
 };
 
 export function AppShellNavNoIdentity({
@@ -18,6 +20,7 @@ export function AppShellNavNoIdentity({
   companyCount,
   isMiniRail = false,
   onNavigate,
+  companyOnly = false,
 }: Props) {
   const { t } = useTranslation('shell');
   const navScope = useAppShellNavScope();
@@ -33,24 +36,28 @@ export function AppShellNavNoIdentity({
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
       />
-      <AppShellScopeNavLink
-        to="/department"
-        label={t('nav.department')}
-        active={isOrgNavActive('/department', pathname, navScope, { type: 'department' })}
-        leftSection={<IconSitemap size={20} />}
-        navLinkStyles={navLinkStyles}
-        isMiniRail={isMiniRail}
-        onNavigate={onNavigate}
-      />
-      <AppShellScopeNavLink
-        to="/team"
-        label={t('nav.team')}
-        active={isOrgNavActive('/team', pathname, navScope, { type: 'team' })}
-        leftSection={<IconUsersGroup size={20} />}
-        navLinkStyles={navLinkStyles}
-        isMiniRail={isMiniRail}
-        onNavigate={onNavigate}
-      />
+      {!companyOnly ? (
+        <>
+          <AppShellScopeNavLink
+            to="/department"
+            label={t('nav.department')}
+            active={isOrgNavActive('/department', pathname, navScope, { type: 'department' })}
+            leftSection={<IconSitemap size={20} />}
+            navLinkStyles={navLinkStyles}
+            isMiniRail={isMiniRail}
+            onNavigate={onNavigate}
+          />
+          <AppShellScopeNavLink
+            to="/team"
+            label={t('nav.team')}
+            active={isOrgNavActive('/team', pathname, navScope, { type: 'team' })}
+            leftSection={<IconUsersGroup size={20} />}
+            navLinkStyles={navLinkStyles}
+            isMiniRail={isMiniRail}
+            onNavigate={onNavigate}
+          />
+        </>
+      ) : null}
     </>
   );
 }

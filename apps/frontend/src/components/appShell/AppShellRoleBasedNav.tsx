@@ -66,7 +66,7 @@ export function AppShellRoleBasedNav({
     );
   }
 
-  if ((isCompanyLead || isAdmin) && companyDepartments?.items) {
+  if (isCompanyLead && companyDepartments?.items) {
     return (
       <AppShellNavCompanyDepartments
         pathname={pathname}
@@ -81,6 +81,20 @@ export function AppShellRoleBasedNav({
         setTeamsSectionExpanded={setTeamsSectionExpanded}
         isMiniRail={isMiniRail}
         onNavigate={onNavigate}
+      />
+    );
+  }
+
+  // Platform admin has no org membership: company link only (no department/team placeholders).
+  if (isAdmin && !isCompanyLead && !isDepartmentLead && !userTeamId && !userDepartmentId) {
+    return (
+      <AppShellNavNoIdentity
+        pathname={pathname}
+        navLinkStyles={navLinkStyles}
+        companyCount={companyCount}
+        isMiniRail={isMiniRail}
+        onNavigate={onNavigate}
+        companyOnly
       />
     );
   }

@@ -89,6 +89,14 @@ export function isOrgOwnedDocument(doc: DocumentForPermission): boolean {
   return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
 }
 
+/** True when the document owner is the company itself (not department/team/personal). */
+export function isCompanyOwnedDocument(doc: DocumentForPermission): boolean {
+  if (doc.contextId == null || doc.context == null) return false;
+  const owner = getDocumentOwner(doc);
+  if (!owner || owner.ownerUserId != null) return false;
+  return owner.companyId != null && owner.departmentId == null && owner.teamId == null;
+}
+
 export function evaluateBaseDocumentPermission(
   doc: DocumentForPermission,
   user: UserForPermission,
@@ -97,9 +105,9 @@ export function evaluateBaseDocumentPermission(
   teamIds: Set<string>
 ): boolean | null {
   if (user.isAdmin) {
-    // Platform admin: org read only; never write via isAdmin.
+    // Platform admin: company-owned read only; never write via isAdmin; no dept/team docs.
     if (role !== GrantRole.Read) return false;
-    return isOrgOwnedDocument(doc);
+    return isCompanyOwnedDocument(doc);
   }
   if (doc.contextId == null || doc.context == null) {
     if (doc.createdById === userId) return true;

@@ -246,14 +246,34 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('isAdmin → canRead org true, canWrite false; personal canRead false', async () => {
+  it('isAdmin → canRead company-owned only; dept/personal false; canWrite false', async () => {
     // Update + Prüfung in einer Transaktion, damit parallele Suites (z. B. admin.test updateMany) den Admin nicht überschreiben
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: adminId }, data: { isAdmin: true } });
-      expect(await canRead(tx, adminId, docProcessId)).toBe(true);
-      expect(await canWrite(tx, adminId, docProcessId)).toBe(false);
-      expect(await canRead(tx, adminId, docPersonalId)).toBe(false);
+    const companyOwner = await prisma.owner.create({ data: { companyId } });
+    const ctxCompany = await prisma.context.create({ data: {} });
+    await prisma.process.create({
+      data: { name: `Company Process ${TS}`, contextId: ctxCompany.id, ownerId: companyOwner.id },
     });
+    const docCompany = await prisma.document.create({
+      data: {
+        title: `Doc Company ${TS}`,
+        draftBlocks: emptyBlockDocumentJson(),
+        contextId: ctxCompany.id,
+      },
+    });
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({ where: { id: adminId }, data: { isAdmin: true } });
+        expect(await canRead(tx, adminId, docCompany.id)).toBe(true);
+        expect(await canRead(tx, adminId, docProcessId)).toBe(false);
+        expect(await canWrite(tx, adminId, docCompany.id)).toBe(false);
+        expect(await canRead(tx, adminId, docPersonalId)).toBe(false);
+      });
+    } finally {
+      await prisma.document.deleteMany({ where: { id: docCompany.id } });
+      await prisma.process.deleteMany({ where: { contextId: ctxCompany.id } });
+      await prisma.context.deleteMany({ where: { id: ctxCompany.id } });
+      await prisma.owner.deleteMany({ where: { id: companyOwner.id } });
+    }
   });
 
   it('deleted User → canRead/canWrite false', async () => {

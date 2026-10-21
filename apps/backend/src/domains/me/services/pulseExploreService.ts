@@ -109,58 +109,20 @@ function dedupeExploreItemsById(items: PulseExploreItem[]): PulseExploreItem[] {
 }
 
 /**
- * When the user has no team/dept/company assignment (typical seed admin),
- * still offer real org scopes they can read (admin: all active contexts).
+ * When the admin has no org membership, offer company units only
+ * (company-level read; no department/team without membership).
  */
 async function adminOrgScopeCandidates(prisma: PrismaClient): Promise<ScopeCandidate[]> {
-  const company = await prisma.company.findFirst({
-    select: {
-      id: true,
-      name: true,
-      departments: {
-        select: {
-          id: true,
-          name: true,
-          teams: {
-            select: { id: true, name: true },
-            orderBy: { name: 'asc' },
-            take: 1,
-          },
-        },
-        orderBy: { name: 'asc' },
-        take: 1,
-      },
-    },
+  const companies = await prisma.company.findMany({
+    select: { id: true, name: true },
     orderBy: { name: 'asc' },
   });
-  if (!company) return [];
-
-  const candidates: ScopeCandidate[] = [];
-  const dept = company.departments[0];
-  const team = dept?.teams[0];
-  if (team) {
-    candidates.push({
-      key: `team:${team.id}`,
-      title: team.name,
-      kind: 'team',
-      filter: { teamId: team.id },
-    });
-  }
-  if (dept) {
-    candidates.push({
-      key: `department:${dept.id}`,
-      title: dept.name,
-      kind: 'department',
-      filter: { departmentId: dept.id },
-    });
-  }
-  candidates.push({
+  return companies.map((company) => ({
     key: `company:${company.id}`,
     title: company.name,
-    kind: 'company',
+    kind: 'company' as const,
     filter: { companyId: company.id },
-  });
-  return candidates;
+  }));
 }
 
 async function buildCandidates(prisma: PrismaClient, userId: string): Promise<ScopeCandidate[]> {

@@ -47,9 +47,10 @@ export function evaluateScopeCapability(
   hierarchy: ScopeHierarchy,
   capability: ScopeCapability
 ): boolean {
-  // Admin may view/read org scopes, but is never a scope lead (no write/draft tabs).
+  // Platform admin: company unit only (like a company-level reader). Never dept/team, never lead.
   if (user.isAdmin) {
-    return capability === 'view' || capability === 'readOwner';
+    if (capability === 'lead') return false;
+    return Boolean(hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId);
   }
 
   const effectiveCapability = capability === 'readOwner' ? 'view' : capability;
@@ -109,7 +110,8 @@ export function evaluateScopePeopleCapability(
   user: LoadedUser,
   hierarchy: ScopeHierarchy
 ): boolean {
-  if (user.isAdmin) return true;
+  // Admin has no org membership / lead role – no people roster via isAdmin.
+  if (user.isAdmin) return false;
 
   const { companyId, departmentId, teamId } = hierarchy;
 
@@ -221,7 +223,13 @@ export function canReadOwnerScope(
 ): boolean {
   if (owner.ownerUserId != null) return owner.ownerUserId === userId;
   if (user.isAdmin) {
-    return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
+    // Company-owned content only (not department/team/personal).
+    return (
+      owner.companyId != null &&
+      owner.departmentId == null &&
+      owner.teamId == null &&
+      owner.ownerUserId == null
+    );
   }
   const hierarchy = hierarchyFromOwnerInput(user, owner);
   if (!hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId) return false;
@@ -239,7 +247,12 @@ export async function canReadOwnerScopeResolved(
 ): Promise<boolean> {
   if (owner.ownerUserId != null) return owner.ownerUserId === userId;
   if (user.isAdmin) {
-    return owner.companyId != null || owner.departmentId != null || owner.teamId != null;
+    return (
+      owner.companyId != null &&
+      owner.departmentId == null &&
+      owner.teamId == null &&
+      owner.ownerUserId == null
+    );
   }
   const hierarchy = await resolveHierarchyFromOwnerInput(prisma, user, owner);
   if (!hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId) return false;

@@ -48,14 +48,10 @@ export async function getVisiblePinnedScopeIds(
   }
 
   if (user.isAdmin) {
-    const [teams, departments, companies] = await Promise.all([
-      prisma.team.findMany({ select: { id: true } }),
-      prisma.department.findMany({ select: { id: true } }),
-      prisma.company.findMany({ select: { id: true } }),
-    ]);
+    const companies = await prisma.company.findMany({ select: { id: true } });
     return {
-      teamIds: teams.map((t) => t.id),
-      departmentIds: departments.map((d) => d.id),
+      teamIds: [],
+      departmentIds: [],
       companyIds: companies.map((c) => c.id),
     };
   }

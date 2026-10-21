@@ -41,28 +41,6 @@ function buildOwnerOrConditions(
   ];
 }
 
-/** Active contexts owned by company/department/team (excludes personal ownerUserId). */
-async function loadAllOrgActiveContextIds(prisma: PrismaClient): Promise<string[]> {
-  const orgOwner = {
-    OR: [{ companyId: { not: null } }, { departmentId: { not: null } }, { teamId: { not: null } }],
-  };
-  const [processes, projects, subcontexts] = await Promise.all([
-    prisma.process.findMany({
-      where: { deletedAt: null, archivedAt: null, owner: orgOwner },
-      select: { contextId: true },
-    }),
-    prisma.project.findMany({
-      where: { deletedAt: null, archivedAt: null, owner: orgOwner },
-      select: { contextId: true },
-    }),
-    prisma.subcontext.findMany({
-      where: { project: { owner: orgOwner } },
-      select: { contextId: true },
-    }),
-  ]);
-  return mergeContextIds(processes, projects, subcontexts);
-}
-
 async function loadScopedContextIds(
   prisma: PrismaClient,
   userId: string,
@@ -177,7 +155,14 @@ export async function getReadableCatalogScope(
   const uniqueDepartmentIds = uniqueStrings(departmentIds);
 
   if (user.isAdmin) {
-    const contextIds = await loadAllOrgActiveContextIds(prisma);
+    // Company-owned contexts only (same visibility as company-level readers).
+    const companies = await prisma.company.findMany({ select: { id: true } });
+    const companyIds = companies.map((c) => c.id);
+    const contextIds = await loadScopedContextIds(
+      prisma,
+      userId,
+      buildOwnerOrConditions(companyIds, [], [])
+    );
     return { contextIds, documentIdsFromGrants: [] };
   }
 

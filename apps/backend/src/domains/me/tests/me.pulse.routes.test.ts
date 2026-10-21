@@ -359,9 +359,11 @@ describe('GET /api/v1/me/pulse/explore', () => {
     expect(drafts!.items.some((i) => i.id === ctx.draftDocId)).toBe(true);
   });
 
-  it('uses org scopes for platform admin without memberships', async () => {
+  it('uses company scope for platform admin without memberships', async () => {
     const { hashPassword } = await import('../../auth/services/password.js');
     const { getCookieHeader } = await import('../../documents/tests/helpers/httpTestHelpers.js');
+    const { blockDocumentJsonFromMarkdown } =
+      await import('../../documents/services/blocks/documentBlocksBackfill.js');
     const email = `explore-admin-${Date.now()}@example.com`;
     const password = 'testpass';
     const admin = await prisma.user.create({
@@ -372,33 +374,83 @@ describe('GET /api/v1/me/pulse/explore', () => {
         passwordHash: await hashPassword(password),
       },
     });
-    const loginRes = await ctx.app.inject({
-      method: 'POST',
-      url: '/api/v1/auth/login',
-      payload: { email, password },
+    // Dedicated company sorts first so Explore's max-columns cap still includes it.
+    const company = await prisma.company.create({
+      data: { name: `AAA Admin Explore ${Date.now()}` },
     });
-    expect(loginRes.statusCode).toBe(204);
-    const adminCookie = getCookieHeader(loginRes.headers['set-cookie']);
-    const res = await ctx.app.inject({
-      method: 'GET',
-      url: '/api/v1/me/pulse/explore',
-      headers: { cookie: adminCookie },
+    const companyOwner = await prisma.owner.create({ data: { companyId: company.id } });
+    const companyCtx = await prisma.context.create({ data: {} });
+    await prisma.process.create({
+      data: {
+        name: `Company Explore Process ${Date.now()}`,
+        contextId: companyCtx.id,
+        ownerId: companyOwner.id,
+      },
     });
-    expect(res.statusCode).toBe(200);
-    const body = res.json() as {
-      columns: Array<{ key: string; items: Array<{ id: string }> }>;
-    };
-    expect(body.columns.length).toBeGreaterThanOrEqual(1);
-    expect(
-      body.columns.some(
-        (c) =>
-          c.key.startsWith('company:') ||
-          c.key.startsWith('department:') ||
-          c.key.startsWith('team:')
-      )
-    ).toBe(true);
-    expect(body.columns.some((c) => c.items.some((i) => i.id === ctx.publishedDocId))).toBe(true);
-
-    await prisma.user.delete({ where: { id: admin.id } });
+    const companyDoc = await prisma.$transaction(async (tx) => {
+      const blocksJson = blockDocumentJsonFromMarkdown('# Company\n\nPublished for admin explore');
+      const document = await tx.document.create({
+        data: {
+          title: `Company Explore Doc ${Date.now()}`,
+          draftBlocks: blocksJson,
+          contextId: companyCtx.id,
+        },
+      });
+      const version = await tx.documentVersion.create({
+        data: {
+          documentId: document.id,
+          blocks: blocksJson,
+          blocksSchemaVersion: 0,
+          versionNumber: 1,
+          createdById: ctx.scopeLeadId,
+        },
+      });
+      await tx.document.update({
+        where: { id: document.id },
+        data: {
+          publishedAt: new Date(),
+          currentPublishedVersionId: version.id,
+        },
+      });
+      return document;
+    });
+    try {
+      const loginRes = await ctx.app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email, password },
+      });
+      expect(loginRes.statusCode).toBe(204);
+      const adminCookie = getCookieHeader(loginRes.headers['set-cookie']);
+      const res = await ctx.app.inject({
+        method: 'GET',
+        url: '/api/v1/me/pulse/explore',
+        headers: { cookie: adminCookie },
+      });
+      expect(res.statusCode).toBe(200);
+      const body = res.json() as {
+        columns: Array<{ key: string; items: Array<{ id: string }> }>;
+      };
+      expect(body.columns.some((c) => c.key === `company:${company.id}`)).toBe(true);
+      expect(body.columns.some((c) => c.key.startsWith('department:'))).toBe(false);
+      expect(body.columns.some((c) => c.key.startsWith('team:'))).toBe(false);
+      expect(body.columns.some((c) => c.items.some((i) => i.id === companyDoc.id))).toBe(true);
+      expect(body.columns.some((c) => c.items.some((i) => i.id === ctx.publishedDocId))).toBe(
+        false
+      );
+    } finally {
+      await prisma.document.update({
+        where: { id: companyDoc.id },
+        data: { publishedAt: null, currentPublishedVersionId: null },
+      });
+      await prisma.documentVersion.deleteMany({ where: { documentId: companyDoc.id } });
+      await prisma.document.deleteMany({ where: { id: companyDoc.id } });
+      await prisma.process.deleteMany({ where: { contextId: companyCtx.id } });
+      await prisma.context.deleteMany({ where: { id: companyCtx.id } });
+      await prisma.owner.deleteMany({ where: { id: companyOwner.id } });
+      await prisma.company.deleteMany({ where: { id: company.id } });
+      await prisma.session.deleteMany({ where: { userId: admin.id } });
+      await prisma.user.delete({ where: { id: admin.id } });
+    }
   });
 });

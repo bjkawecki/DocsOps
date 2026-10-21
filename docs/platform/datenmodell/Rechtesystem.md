@@ -88,7 +88,7 @@ Pro Unit (Team, Department, Company) existieren Rollen:
 
 **Company-Lead** ist eine Governance-Rolle: Leserecht auf alle Organisations-Kontexte (siehe unten), kein automatisches globales Schreibrecht.
 
-**Plattform-Admin (`isAdmin`):** Technischer Verwaltungsaccount für Installation, Betrieb, Nutzer, Organisationsstruktur (Company/Department/Team anlegen und löschen) und plattformweite Einstellungen (inkl. Document Types/Templates). **Kein** Fach-Schreibaccount: kein `canWrite` auf Dokumente oder Kontexte, kein Anlegen von Prozessen/Projekten/Dokumenten, kein Publish, kein persönlicher Nutzerspace, kein Author/Lead/Member. **Lesen:** alle Organisations-Kontexte und -Dokumente der Instanz-Firma; **nicht** persönliche Kontexte (`ownerUserId`). Facharbeit derselben natürlichen Person läuft über einen **zweiten Personen-Account** mit Nutzerrolle. Impersonation ist nur Entwicklungs-/Debug-Hilfsmittel, kein Betriebs-Support-Pfad.
+**Plattform-Admin (`isAdmin`):** Technischer Verwaltungsaccount für Installation, Betrieb, Nutzer, Organisationsstruktur (Company/Department/Team anlegen und löschen) und plattformweite Einstellungen (inkl. Document Types/Templates). **Kein** Fach-Schreibaccount: kein `canWrite` auf Dokumente oder Kontexte, kein Anlegen von Prozessen/Projekten/Dokumenten (auch keine context-freien Drafts), kein Publish, kein persönlicher Nutzerspace, kein Author/Lead/Member. **Lesen:** wie ein Firmen-Leser nur die **Company-Unit** und **company-eigene** Kontexte/Dokumente; **nicht** Department-/Team-Scopes oder -Dokumente ohne echte Org-Mitgliedschaft; **nicht** persönliche Kontexte (`ownerUserId`). Org-Struktur-APIs unter `/admin` bleiben davon getrennt. Facharbeit derselben natürlichen Person läuft über einen **zweiten Personen-Account** mit Nutzerrolle. Impersonation ist nur Entwicklungs-/Debug-Hilfsmittel, kein Betriebs-Support-Pfad.
 
 **Eine Rolle pro Account:** Plattform-**Admin** (`isAdmin`) oder genau **eine** organisatorische Scope-Rolle (`CompanyLead`, `DepartmentLead`, `TeamLead`, `TeamMember`) – nicht kombinierbar. Team Lead erfordert keine Team-Mitgliedschaft; Lead und Member sind auf Team-Ebene mutual exclusive. Zuordnungs-APIs und Admin-User-`isAdmin`-Grant enforced das per 409.
 
@@ -198,7 +198,7 @@ Der Zugriff wird über **explizite Zuweisung** (Grants) und **abgeleitete Rollen
 
 Ein Nutzer hat Leserecht auf ein Dokument, wenn eine der folgenden Bedingungen zutrifft (in dieser Reihenfolge geprüft):
 
-1. **isAdmin:** Leserecht auf Dokumente in **Organisations-Kontexten** (Owner Company, Department oder Team). **Kein** Leserecht auf persönliche Kontexte (`ownerUserId`) und kein Schreibrecht über diese Rolle.
+1. **isAdmin:** Leserecht nur auf Dokumente mit **Company-Owner** (nicht Department-/Team-Owner, nicht persönlich). **Kein** Leserecht auf persönliche Kontexte (`ownerUserId`) und kein Schreibrecht über diese Rolle.
 
 2. **Company Lead:** Der Nutzer ist Company Lead der Instanz-Firma. **Zielmodell:** Leserecht auf alle Dokumente in Organisations-Kontexten (Prozesse, Projekte, Unterkontexte) – unabhängig davon, ob Owner Company, Department oder Team ist. **Kein** Leserecht auf persönliche Kontexte (Prozesse/Projekte mit ownerUserId; immer privat, sofern kein expliziter Grant).  
    _Hinweis: Aktuell prüft die Implementierung für Company Lead nur Kontexte mit Company-Owner; die Erweiterung auf alle Organisations-Kontexte ist vorgesehen._
@@ -209,7 +209,7 @@ Ein Nutzer hat Leserecht auf ein Dokument, wenn eine der folgenden Bedingungen z
 
 5. **Explizite Grants:** Dokument dem Nutzer (DocumentGrantUser Read), einem seiner Teams als Mitglied (DocumentGrantTeam Read) oder seiner Abteilung (DocumentGrantDepartment Read) zugestanden.
 
-Prüfreihenfolge: deletedAt → isAdmin (nur Org-Read) → Company Lead → Department Lead → Owner persönlicher Kontext (ownerUserId) → explizite Grants.
+Prüfreihenfolge: deletedAt → isAdmin (nur Company-Owner-Read) → Company Lead → Department Lead → Owner persönlicher Kontext (ownerUserId) → explizite Grants.
 
 ---
 
@@ -245,7 +245,7 @@ Dokument D1 liegt im Projekt P1; Owner von P1 ist Team T1. Zugriffsrechte am Dok
 
 Zusätzlich zu canRead/canWrite gelten **hierarchische Rechte** für Kontexte und die Organisationsstruktur („Lesen/schreiben“ inkl. Anlegen der Ressource):
 
-- **Admin (isAdmin):** Liest Organisations-Kontexte/Dokumente der Instanz-Firma. Legt Company, Department und Team an und löscht sie (Org-Struktur). **Kein** Anlegen/Schreiben/Löschen fachlicher Prozesse, Projekte oder Dokumente; kein persönlicher Scope.
+- **Admin (isAdmin):** Liest die Company-Unit und company-eigene Kontexte/Dokumente. Legt Company, Department und Team an und löscht sie (Org-Struktur unter `/admin`). **Kein** Anlegen/Schreiben/Löschen fachlicher Prozesse, Projekte oder Dokumente; kein persönlicher Scope; keine Navigation in Department/Team ohne Org-Rolle.
 
 - **Company Lead:** Darf für seine Company Prozesse und Projekte mit Company-Owner lesen, schreiben und anlegen. (Governance: Zielmodell siehe Teil I – Leserecht auf alle Organisations-Kontexte.)
 

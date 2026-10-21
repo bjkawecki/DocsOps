@@ -8,7 +8,8 @@ test.describe('Light mode color contrast', () => {
   test('home page color-contrast with light theme', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    // Mantine PasswordInput visibility toggle aria-label also contains "password".
+    await page.locator('#login-password').fill(password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
 

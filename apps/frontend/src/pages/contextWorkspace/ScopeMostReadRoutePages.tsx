@@ -28,7 +28,7 @@ export function CompanyMostReadPage() {
   });
 
   const effectiveCompanyId = companyIdFromLead ?? companyIdFromTeam ?? firstCompany?.id;
-  const canManage = isAdmin || (me?.identity?.companyLeads?.length ?? 0) > 0;
+  const canManage = (me?.identity?.companyLeads?.length ?? 0) > 0;
 
   const { data: company } = useQuery({
     queryKey: ['companies', effectiveCompanyId],
@@ -70,9 +70,7 @@ export function CompanyMostReadPage() {
 export function DepartmentMostReadPage() {
   const { departmentId } = useParams<{ departmentId: string }>();
   const { data: me } = useMe();
-  const isAdmin = me?.user?.isAdmin === true;
   const canManage =
-    isAdmin ||
     (me?.identity?.departmentLeads?.some((d) => d.id === departmentId) ?? false) ||
     (me?.identity?.companyLeads?.length ?? 0) > 0;
   if (!departmentId) return null;
@@ -89,9 +87,7 @@ export function DepartmentMostReadPage() {
 export function TeamMostReadPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const { data: me } = useMe();
-  const isAdmin = me?.user?.isAdmin === true;
   const canManage =
-    isAdmin ||
     (me?.identity?.teams?.some((t) => t.teamId === teamId && t.role === 'leader') ?? false) ||
     (me?.identity?.departmentLeads?.length ?? 0) > 0 ||
     (me?.identity?.companyLeads?.length ?? 0) > 0;

@@ -156,10 +156,10 @@ describe('Pinned permissions (canPinForScope, getVisiblePinnedScopeIds)', () => 
   });
 
   describe('getVisiblePinnedScopeIds', () => {
-    it('Admin sieht alle Scopes', async () => {
+    it('Admin sieht nur Company-Scopes', async () => {
       const scopes = await getVisiblePinnedScopeIds(prisma, adminId);
-      expect(scopes.teamIds).toContain(teamId);
-      expect(scopes.departmentIds).toContain(departmentId);
+      expect(scopes.teamIds).toEqual([]);
+      expect(scopes.departmentIds).toEqual([]);
       expect(scopes.companyIds).toContain(companyId);
     });
 

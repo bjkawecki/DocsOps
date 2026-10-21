@@ -75,7 +75,8 @@ export function useAppShellSidebarData() {
       if (!res.ok) throw new Error('Failed to load departments');
       return res.json() as Promise<DepartmentsRes>;
     },
-    enabled: !!effectiveCompanyId && (isCompanyLead || isAdmin),
+    // Company lead only – platform admin is not a company lead and must not load the full dept tree.
+    enabled: !!effectiveCompanyId && isCompanyLead,
   });
 
   const { data: departmentTeams } = useQuery<TeamsRes>({

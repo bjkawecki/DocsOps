@@ -146,6 +146,14 @@ export const registerContentRoutes = (app: FastifyInstance): void => {
     const userId = getEffectiveUserId(request as RequestWithUser);
     const body = createDocumentBodySchema.parse(request.body);
 
+    const actor = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true },
+    });
+    if (actor?.isAdmin) {
+      return reply.status(403).send({ error: 'Platform admin cannot create documents' });
+    }
+
     if (body.contextId == null) {
       try {
         const created = await createDocument(prisma, {

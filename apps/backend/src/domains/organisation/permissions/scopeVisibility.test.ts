@@ -57,10 +57,11 @@ const companyHierarchy: ScopeHierarchy = { companyId: COMPANY };
 
 describe('evaluateScopeCapability', () => {
   describe('view', () => {
-    it('admin can view any scope', () => {
+    it('admin can view company only, not department or team', () => {
       const admin = emptyUser({ isAdmin: true });
-      expect(evaluateScopeCapability(admin, teamHierarchy, 'view')).toBe(true);
       expect(evaluateScopeCapability(admin, companyHierarchy, 'view')).toBe(true);
+      expect(evaluateScopeCapability(admin, deptHierarchy, 'view')).toBe(false);
+      expect(evaluateScopeCapability(admin, teamHierarchy, 'view')).toBe(false);
     });
 
     it('company lead can view team without membership', () => {
