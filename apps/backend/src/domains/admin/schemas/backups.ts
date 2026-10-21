@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 export const backupDestinationIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const backupRunIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const listBackupRunsQuerySchema = z.object({
@@ -15,12 +16,12 @@ export const listBackupRunsQuerySchema = z.object({
 });
 
 export const createBackupBodySchema = z.object({
-  destinationId: z.cuid().optional(),
+  destinationId: cuidSchema.optional(),
 });
 
 export const patchBackupSettingsBodySchema = z.object({
   retentionCount: z.number().int().min(1).max(365).optional(),
-  defaultDestinationId: z.cuid().nullable().optional(),
+  defaultDestinationId: cuidSchema.nullable().optional(),
 });
 
 export const patchBackupScheduleBodySchema = z.object({

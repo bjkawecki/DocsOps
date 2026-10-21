@@ -1,25 +1,26 @@
 import { z } from 'zod';
+import { cuidSchema } from '../validation/cuidSchema.js';
 
 export const jobPayloadSchemas = {
   'documents.export.pdf': z.object({
-    documentId: z.cuid(),
-    versionId: z.cuid(),
-    requestedByUserId: z.cuid(),
+    documentId: cuidSchema,
+    versionId: cuidSchema,
+    requestedByUserId: cuidSchema,
     /** Meta-line date locale; resolved at enqueue from UI/prefs/Accept-Language. */
     locale: z.enum(['en', 'de']).optional(),
   }),
   'search.reindex.incremental': z.object({
-    contextId: z.cuid().optional(),
-    documentId: z.cuid().optional(),
+    contextId: cuidSchema.optional(),
+    documentId: cuidSchema.optional(),
     trigger: z.enum(['document-created', 'document-updated', 'document-deleted', 'manual']),
   }),
   'search.reindex.full': z.object({
-    requestedByUserId: z.cuid().optional(),
+    requestedByUserId: cuidSchema.optional(),
     reason: z.enum(['scheduled', 'manual']).default('scheduled'),
   }),
   'notifications.send': z.object({
     eventType: z.string().min(1).max(120),
-    targetUserIds: z.array(z.cuid()).max(1000),
+    targetUserIds: z.array(cuidSchema).max(1000),
     payload: z.record(z.string(), z.unknown()).default({}),
   }),
   'notifications.admin-broadcast': z.object({
@@ -32,50 +33,50 @@ export const jobPayloadSchemas = {
       'orphaned-exports',
       'user-notifications-retention',
     ]),
-    requestedByUserId: z.cuid().optional(),
+    requestedByUserId: cuidSchema.optional(),
   }),
   /** EPIC-3: Markdown → Block-JSON für `DocumentVersion.blocks` und `Document.draftBlocks` (idempotent). */
   'documents.blocks.backfill': z.object({
-    documentId: z.cuid().optional(),
+    documentId: cuidSchema.optional(),
     limit: z.number().int().positive().max(500).optional(),
   }),
   'maintenance.backup': z.discriminatedUnion('mode', [
     z.object({
       mode: z.literal('manual'),
-      backupRunId: z.cuid(),
-      destinationId: z.cuid().optional(),
-      requestedByUserId: z.cuid().optional(),
+      backupRunId: cuidSchema,
+      destinationId: cuidSchema.optional(),
+      requestedByUserId: cuidSchema.optional(),
     }),
     z.object({
       mode: z.literal('schedule'),
-      destinationId: z.cuid().optional(),
+      destinationId: cuidSchema.optional(),
     }),
     z.object({
       mode: z.literal('pre_update'),
-      backupRunId: z.cuid(),
-      updateRunId: z.cuid(),
-      requestedByUserId: z.cuid(),
-      destinationId: z.cuid().optional(),
+      backupRunId: cuidSchema,
+      updateRunId: cuidSchema,
+      requestedByUserId: cuidSchema,
+      destinationId: cuidSchema.optional(),
     }),
   ]),
   'maintenance.apply-update': z.object({
-    updateRunId: z.cuid(),
+    updateRunId: cuidSchema,
   }),
   'maintenance.watch-update': z.object({
-    updateRunId: z.cuid(),
+    updateRunId: cuidSchema,
   }),
   'maintenance.restore': z.object({
-    restoreRunId: z.cuid(),
+    restoreRunId: cuidSchema,
     source: z.enum(['history', 'upload']),
-    backupRunId: z.cuid().optional(),
+    backupRunId: cuidSchema.optional(),
     uploadObjectKey: z.string().min(1).max(1024).optional(),
   }),
   'maintenance.platform-export': z.object({
-    platformExportRunId: z.cuid(),
-    requestedByUserId: z.cuid().optional(),
+    platformExportRunId: cuidSchema,
+    requestedByUserId: cuidSchema.optional(),
   }),
   'maintenance.platform-import': z.object({
-    platformImportRunId: z.cuid(),
+    platformImportRunId: cuidSchema,
     source: z.enum(['upload', 'push']),
     uploadObjectKey: z.string().min(1).max(1024),
     options: z

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 export const listAdminJobsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -7,7 +8,7 @@ export const listAdminJobsQuerySchema = z.object({
   state: z
     .enum(['created', 'retry', 'active', 'completed', 'cancelled', 'failed', 'expired'])
     .optional(),
-  requestedByUserId: z.cuid().optional(),
+  requestedByUserId: cuidSchema.optional(),
   search: z.string().min(1).max(255).optional(),
 });
 

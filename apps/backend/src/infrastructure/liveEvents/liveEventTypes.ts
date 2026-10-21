@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../validation/cuidSchema.js';
 
 export const LIVE_EVENT_VERSION = 1 as const;
 
@@ -11,7 +12,7 @@ export const publicMaintenanceStatusPayloadSchema = z.object({
 export type PublicMaintenanceStatusPayload = z.infer<typeof publicMaintenanceStatusPayloadSchema>;
 
 export const documentCollaborationChangedPayloadSchema = z.object({
-  documentId: z.cuid(),
+  documentId: cuidSchema,
   draftRevision: z.number().int().nonnegative().optional(),
   pendingSuggestionCount: z.number().int().nonnegative().optional(),
   publishedVersionNumber: z.number().int().positive().optional(),
@@ -23,7 +24,7 @@ export type DocumentCollaborationChangedPayload = z.infer<
 >;
 
 export const documentDraftPresencePayloadSchema = z.object({
-  documentId: z.cuid(),
+  documentId: cuidSchema,
   editors: z.array(
     z.object({
       userId: z.string().min(1),
@@ -65,7 +66,7 @@ export type LiveClientEvent = z.infer<typeof liveClientEventSchema>;
 export const liveNotifyTargetSchema = z.discriminatedUnion('target', [
   z.object({
     target: z.literal('user'),
-    userId: z.cuid(),
+    userId: cuidSchema,
     event: liveClientEventSchema,
   }),
   z.object({

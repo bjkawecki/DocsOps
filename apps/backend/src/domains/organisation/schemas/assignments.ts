@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 /** Query: Pagination für Zuordnungslisten (limit, offset). Default limit=100. */
 export const assignmentListQuerySchema = z.object({
@@ -8,43 +9,43 @@ export const assignmentListQuerySchema = z.object({
 
 /** Params: teamId. */
 export const teamIdParamSchema = z.object({
-  teamId: z.cuid(),
+  teamId: cuidSchema,
 });
 
 /** Params: companyId. */
 export const companyIdParamSchema = z.object({
-  companyId: z.cuid(),
+  companyId: cuidSchema,
 });
 
 /** Params: departmentId. */
 export const departmentIdParamSchema = z.object({
-  departmentId: z.cuid(),
+  departmentId: cuidSchema,
 });
 
 /** Params: teamId + userId (z. B. DELETE /teams/:teamId/members/:userId). */
 export const teamIdUserIdParamSchema = z.object({
-  teamId: z.cuid(),
-  userId: z.cuid(),
+  teamId: cuidSchema,
+  userId: cuidSchema,
 });
 
 /** Params: companyId + userId (DELETE /companies/:companyId/company-leads/:userId). */
 export const companyIdUserIdParamSchema = z.object({
-  companyId: z.cuid(),
-  userId: z.cuid(),
+  companyId: cuidSchema,
+  userId: cuidSchema,
 });
 
 /** Params: departmentId + userId (DELETE /departments/:departmentId/department-leads/:userId). */
 export const departmentIdUserIdParamSchema = z.object({
-  departmentId: z.cuid(),
-  userId: z.cuid(),
+  departmentId: cuidSchema,
+  userId: cuidSchema,
 });
 
 /** Body: User-Zuordnung (POST members, team-leads, department-leads). */
 export const addAssignmentBodySchema = z.object({
-  userId: z.cuid(),
+  userId: cuidSchema,
 });
 
 /** Query: teamId required when demoting a department author back to team member. */
 export const demoteDepartmentAuthorQuerySchema = z.object({
-  teamId: z.cuid(),
+  teamId: cuidSchema,
 });

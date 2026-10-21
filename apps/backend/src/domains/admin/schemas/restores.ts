@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 export const restoreRunIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const listRestoreRunsQuerySchema = z.object({
@@ -10,5 +11,5 @@ export const listRestoreRunsQuerySchema = z.object({
 });
 
 export const restoreFromBackupParamSchema = z.object({
-  backupRunId: z.cuid(),
+  backupRunId: cuidSchema,
 });

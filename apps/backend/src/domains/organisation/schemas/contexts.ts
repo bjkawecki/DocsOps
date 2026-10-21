@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import { paginationQuerySchema, type PaginationQuery } from './organisation.js';
 
 export { paginationQuerySchema };
@@ -6,25 +7,25 @@ export type { PaginationQuery };
 
 /** Query: Liste Prozesse (Pagination + optional nach Company/Department/Team/User filtern). */
 export const processListQuerySchema = paginationQuerySchema.extend({
-  companyId: z.cuid().optional(),
-  departmentId: z.cuid().optional(),
-  teamId: z.cuid().optional(),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
   ownerUserId: z.enum(['me']).optional(),
 });
 
 /** Query: Liste Projekte (Pagination + optional nach Company/Department/Team/User filtern). */
 export const projectListQuerySchema = paginationQuerySchema.extend({
-  companyId: z.cuid().optional(),
-  departmentId: z.cuid().optional(),
-  teamId: z.cuid().optional(),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
   ownerUserId: z.enum(['me']).optional(),
 });
 
 const createProcessProjectBase = z.object({
   name: z.string().min(1).max(255),
-  companyId: z.cuid().optional(),
-  departmentId: z.cuid().optional(),
-  teamId: z.cuid().optional(),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
   personal: z.literal(true).optional(),
 });
 
@@ -71,6 +72,6 @@ export const createSubcontextBodySchema = z.object({
 });
 
 /** Params. */
-export const processIdParamSchema = z.object({ processId: z.cuid() });
-export const projectIdParamSchema = z.object({ projectId: z.cuid() });
-export const subcontextIdParamSchema = z.object({ subcontextId: z.cuid() });
+export const processIdParamSchema = z.object({ processId: cuidSchema });
+export const projectIdParamSchema = z.object({ projectId: cuidSchema });
+export const subcontextIdParamSchema = z.object({ subcontextId: cuidSchema });

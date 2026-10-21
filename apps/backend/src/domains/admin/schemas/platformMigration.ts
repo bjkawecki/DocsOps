@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 export const platformExportRunIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const platformImportRunIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const listPlatformExportRunsQuerySchema = z.object({
@@ -29,7 +30,7 @@ export const platformExportPushBodySchema = z.object({
 });
 
 export const platformImportReceiveSlotIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 export const platformImportReceiveTokenParamSchema = z.object({

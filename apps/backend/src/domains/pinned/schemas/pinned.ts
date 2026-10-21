@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 export const pinnedScopeTypeSchema = z.enum(['team', 'department', 'company']);
 
@@ -10,13 +11,13 @@ export const listPinnedQuerySchema = z.object({
 
 /** Params: pinned item id. */
 export const pinnedIdParamSchema = z.object({
-  id: z.cuid(),
+  id: cuidSchema,
 });
 
 /** Body: Document in Scope anpinnen. */
 export const createPinnedBodySchema = z.object({
   scopeType: pinnedScopeTypeSchema,
   scopeId: z.string().min(1),
-  documentId: z.cuid(),
+  documentId: cuidSchema,
   order: z.number().int().min(0).optional(),
 });

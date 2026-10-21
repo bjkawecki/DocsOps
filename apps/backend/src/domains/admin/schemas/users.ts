@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 
 /** Sortable fields for GET /admin/users (DB columns + relation-based). */
 export const adminUsersSortBySchema = z.enum([
@@ -44,7 +45,7 @@ export const resetPasswordBodySchema = z.object({
 
 /** Params: userId. */
 export const userIdParamSchema = z.object({
-  userId: z.cuid(),
+  userId: cuidSchema,
 });
 
 /** Query: GET /admin/users/:userId/documents – Pagination + optional search. */

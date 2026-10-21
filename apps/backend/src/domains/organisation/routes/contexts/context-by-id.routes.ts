@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { cuidSchema } from '../../../../infrastructure/validation/cuidSchema.js';
 import {
   requireAuthPreHandler,
   getEffectiveUserId,
@@ -7,7 +8,7 @@ import {
 } from '../../../auth/middleware.js';
 import { gateReadContextWithWriteHint } from './context-entity-route-helpers.js';
 
-const contextIdParamSchema = z.object({ contextId: z.cuid() });
+const contextIdParamSchema = z.object({ contextId: cuidSchema });
 
 /**
  * GET /contexts/:contextId – unified payload for SPA workspace (process | project | subcontext).

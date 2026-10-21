@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import {
   PDF_BRANDING_MARGIN_MM_MAX,
   PDF_BRANDING_MARGIN_MM_MIN,
@@ -75,20 +76,20 @@ export const createTeamBodySchema = z.object({
 /** Body: Team aktualisieren (Name und/oder Abteilung wechseln). */
 export const updateTeamBodySchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  departmentId: z.cuid().optional(),
+  departmentId: cuidSchema.optional(),
 });
 
 /** Params: companyId. */
 export const companyIdParamSchema = z.object({
-  companyId: z.cuid(),
+  companyId: cuidSchema,
 });
 
 /** Params: departmentId. */
 export const departmentIdParamSchema = z.object({
-  departmentId: z.cuid(),
+  departmentId: cuidSchema,
 });
 
 /** Params: teamId. */
 export const teamIdParamSchema = z.object({
-  teamId: z.cuid(),
+  teamId: cuidSchema,
 });

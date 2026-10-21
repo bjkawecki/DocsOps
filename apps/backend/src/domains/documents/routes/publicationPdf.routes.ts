@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import {
   requireAuthPreHandler,
   preHandlerWrap,
@@ -18,7 +19,7 @@ import { buildPdfDownloadFilename } from '../services/route-support/documentRout
 
 const QUEUE_RETRY_AFTER_SECONDS = 15;
 const exportPdfStatusParamsSchema = z.object({
-  documentId: z.cuid(),
+  documentId: cuidSchema,
   jobId: z.string().min(1),
 });
 

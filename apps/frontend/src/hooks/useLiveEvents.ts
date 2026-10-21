@@ -73,11 +73,11 @@ async function handleDocumentCollaborationChanged(
   }
 
   await Promise.all([
-    queryClient.fetchQuery({
+    queryClient.query({
       queryKey: ['document', documentId],
       queryFn: () => fetchDocument(documentId),
     }),
-    queryClient.fetchQuery({
+    queryClient.query({
       queryKey: leadDraftQueryKey(documentId),
       queryFn: () => fetchLeadDraft(documentId),
     }),

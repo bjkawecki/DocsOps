@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import { blockDocumentSchema } from '../services/blocks/blockSchema.js';
 import { paginationQuerySchema } from '../../organisation/schemas/organisation.js';
 
@@ -10,14 +11,14 @@ function normalizeToCuidArray(v: unknown): string[] {
   if (typeof v === 'string') return [v];
   return [];
 }
-const cuidArray = z.preprocess(normalizeToCuidArray, z.array(z.cuid()));
+const cuidArray = z.preprocess(normalizeToCuidArray, z.array(cuidSchema));
 
 /** Query: GET /documents (catalog list) – pagination + filters + sort. */
 export const catalogDocumentsQuerySchema = paginationQuerySchema.extend({
   contextType: z.enum(['process', 'project']).optional(),
-  companyId: z.cuid().optional(),
-  departmentId: z.cuid().optional(),
-  teamId: z.cuid().optional(),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
   tagIds: cuidArray.optional().default([]),
   search: z.string().min(1).optional(),
   /** If true, only return documents that have been published (publishedAt set). */
@@ -38,12 +39,12 @@ export const catalogDocumentsQuerySchema = paginationQuerySchema.extend({
 
 /** Params: contextId. */
 export const contextIdParamSchema = z.object({
-  contextId: z.cuid(),
+  contextId: cuidSchema,
 });
 
 /** Params: documentId. */
 export const documentIdParamSchema = z.object({
-  documentId: z.cuid(),
+  documentId: cuidSchema,
 });
 
 /** Optional body locale for PDF meta line (publish / export-pdf). */
@@ -55,22 +56,22 @@ export const pdfExportLocaleBodySchema = z
 
 /** Params: documentId + versionId (for version routes). */
 export const versionIdParamSchema = z.object({
-  documentId: z.cuid(),
-  versionId: z.cuid(),
+  documentId: cuidSchema,
+  versionId: cuidSchema,
 });
 
 /** Params: documentId + attachmentId (for attachment routes). */
 export const attachmentIdParamSchema = z.object({
-  documentId: z.cuid(),
-  attachmentId: z.cuid(),
+  documentId: cuidSchema,
+  attachmentId: cuidSchema,
 });
 
 /** Body: Dokument anlegen (immer als Draft). contextId optional = context-free draft (only creator visible). */
 export const createDocumentBodySchema = z
   .object({
     title: z.string().min(1).max(500),
-    contextId: z.cuid().optional(),
-    tagIds: z.array(z.cuid()).optional().default([]),
+    contextId: cuidSchema.optional(),
+    tagIds: z.array(cuidSchema).optional().default([]),
     description: z.string().max(500).trim().optional(),
     /** Built-in `builtin:<slug>` or custom type cuid / `custom:<cuid>`. Sets type without seeding unless templateId set. */
     typeId: z.string().min(1).max(80).optional(),
@@ -92,21 +93,21 @@ export type UpdateDocumentTypeBody = z.infer<typeof updateDocumentTypeBodySchema
 /** Body: Dokument-Metadaten aktualisieren (title, contextId, description, tagIds). Lifecycle nur über dedizierte Endpoints. */
 export const updateDocumentBodySchema = z.object({
   title: z.string().min(1).max(500).optional(),
-  contextId: z.cuid().optional().nullable(),
-  tagIds: z.array(z.cuid()).optional(),
+  contextId: cuidSchema.optional().nullable(),
+  tagIds: z.array(cuidSchema).optional(),
   description: z.string().max(500).trim().optional().nullable(),
 });
 
 /** Body: POST /documents/:id/move – same-owner Sofort-Move. */
 export const moveDocumentBodySchema = z.object({
-  targetContextId: z.cuid(),
+  targetContextId: cuidSchema,
 });
 
 export type MoveDocumentBody = z.infer<typeof moveDocumentBodySchema>;
 
 /** Body: POST /documents/:id/move-requests – cross-owner move approval request. */
 export const createMoveRequestBodySchema = z.object({
-  targetContextId: z.cuid(),
+  targetContextId: cuidSchema,
   note: z.string().max(2000).trim().optional().nullable(),
 });
 
@@ -120,8 +121,8 @@ export const decideMoveRequestBodySchema = z.object({
 export type DecideMoveRequestBody = z.infer<typeof decideMoveRequestBodySchema>;
 
 export const moveRequestIdParamSchema = z.object({
-  documentId: z.cuid(),
-  requestId: z.cuid(),
+  documentId: cuidSchema,
+  requestId: cuidSchema,
 });
 
 /** Body: PATCH Lead-Draft (Block-JSON); Optimistic Lock über `expectedRevision` (optional abgestimmt mit If-Match). */
@@ -143,7 +144,7 @@ export const grantRoleSchema = z.enum(['Read', 'Write']);
 
 function grantEntrySchema<T extends 'userId' | 'teamId' | 'departmentId'>(idKey: T) {
   return z.object({
-    [idKey]: z.cuid(),
+    [idKey]: cuidSchema,
     role: grantRoleSchema,
   }) as z.ZodObject<
     {
@@ -175,13 +176,13 @@ export const putGrantsDepartmentsBodySchema = grantsReplaceBodySchema('departmen
 
 /** Params: tagId. */
 export const tagIdParamSchema = z.object({
-  tagId: z.cuid(),
+  tagId: cuidSchema,
 });
 
 /** Query: GET /tags – Scope via ownerId oder contextId (mindestens einer nötig). */
 export const getTagsQuerySchema = z.object({
-  ownerId: z.cuid().optional(),
-  contextId: z.cuid().optional(),
+  ownerId: cuidSchema.optional(),
+  contextId: cuidSchema.optional(),
 });
 
 /** Body: Tag anlegen (scope-gebunden). ownerId oder contextId (wird auf ownerId aufgelöst). */
@@ -192,8 +193,8 @@ export const createTagBodySchema = z
       .min(1)
       .max(100)
       .transform((s) => s.trim()),
-    ownerId: z.cuid().optional(),
-    contextId: z.cuid().optional(),
+    ownerId: cuidSchema.optional(),
+    contextId: cuidSchema.optional(),
   })
   .refine((data) => data.ownerId != null || data.contextId != null, {
     message: 'ownerId or contextId is required',
@@ -203,8 +204,8 @@ const DOCUMENT_COMMENT_TEXT_MAX = 16_000;
 
 /** Params: documentId + commentId. */
 export const documentCommentIdParamSchema = z.object({
-  documentId: z.cuid(),
-  commentId: z.cuid(),
+  documentId: cuidSchema,
+  commentId: cuidSchema,
 });
 
 /** Body: POST document comment. */
@@ -214,7 +215,7 @@ export const createDocumentCommentBodySchema = z
       .string()
       .transform((s) => s.trim())
       .pipe(z.string().min(1).max(DOCUMENT_COMMENT_TEXT_MAX)),
-    parentId: z.cuid().optional(),
+    parentId: cuidSchema.optional(),
     /** Heading slug from active document blocks; only for top-level comments. */
     anchorHeadingId: z.string().min(1).max(200).optional(),
   })

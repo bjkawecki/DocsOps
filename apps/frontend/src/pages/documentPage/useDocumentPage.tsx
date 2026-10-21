@@ -199,7 +199,7 @@ export function useDocumentPage() {
 
   const handleReloadPublishedContent = useCallback(async () => {
     if (!documentId) return;
-    const fresh = await queryClient.fetchQuery({
+    const fresh = await queryClient.query({
       queryKey: ['document', documentId],
       queryFn: () => fetchDocument(documentId),
     });

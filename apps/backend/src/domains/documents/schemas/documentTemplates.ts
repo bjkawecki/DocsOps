@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import { templateSectionsSchema } from '../services/templates/documentTemplateService.js';
 
 export const listDocumentTypesQuerySchema = z.object({
-  contextId: z.cuid().optional(),
+  contextId: cuidSchema.optional(),
   oftenUsedIn: z.enum(['process', 'project']).optional(),
 });
 
@@ -12,7 +13,7 @@ export const createCustomDocumentTypeBodySchema = z.object({
   oftenUsedIn: z.enum(['process', 'project']).nullable().optional(),
   deLabel: z.string().min(1).max(120).nullable().optional(),
   scopeType: z.enum(['platform', 'company', 'department', 'team']),
-  scopeId: z.cuid().optional().nullable(),
+  scopeId: cuidSchema.optional().nullable(),
   exampleTitle: z.string().min(1).max(500),
   sections: templateSectionsSchema,
 });
@@ -38,5 +39,5 @@ export const updateCustomDocumentTypeBodySchema = z
   );
 
 export const customDocumentTypeIdParamSchema = z.object({
-  typeId: z.cuid(),
+  typeId: cuidSchema,
 });

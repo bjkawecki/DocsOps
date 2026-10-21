@@ -5,6 +5,7 @@ import {
   type RequestWithUser,
 } from '../../auth/middleware.js';
 import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
 import {
   companyIdParamSchema,
   departmentIdParamSchema,
@@ -17,7 +18,7 @@ import {
 } from '../services/startHereService.js';
 
 const setStartDocumentBodySchema = z.object({
-  documentId: z.cuid(),
+  documentId: cuidSchema,
 });
 
 async function handleSet(
