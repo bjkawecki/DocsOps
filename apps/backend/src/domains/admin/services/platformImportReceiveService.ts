@@ -1,16 +1,15 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Readable } from 'node:stream';
-import { createWriteStream } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import { assertDemoMutationsAllowed } from '../../../config/demoModeGuard.js';
-import { extractZstdTarArchive } from '../../../infrastructure/backup/archiveExtract.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
-import { runPlatformImportPreflight } from './platformMigration/platformImportPreflight.js';
-import { uploadPlatformImportArchive } from './platformImportService.js';
+import {
+  platformImportPreflightUpdateData,
+  uploadExtractAndPreflightPlatformImport,
+} from './platformImportUploadPreflight.js';
 
 export const PLATFORM_IMPORT_RECEIVE_SLOT_TTL_MS = 60 * 60 * 1000;
 export const PLATFORM_IMPORT_RECEIVE_PATH_PREFIX = '/api/v1/platform-import-receive/';
@@ -169,28 +168,19 @@ export async function receivePlatformImportPush(
 
   try {
     try {
-      await pipeline(args.fileStream, createWriteStream(archivePath));
-      await uploadPlatformImportArchive(storage, archivePath, run.id);
-
-      await prisma.platformImportRun.update({
-        where: { id: run.id },
-        data: { uploadObjectKey },
+      const { preflight, status } = await uploadExtractAndPreflightPlatformImport(prisma, {
+        storage,
+        runId: run.id,
+        fileStream: args.fileStream,
+        archivePath,
+        bundleDir,
+        uploadObjectKey,
       });
-
-      await extractZstdTarArchive(archivePath, bundleDir);
-      const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
-        enforceEmpty: false,
-      });
-      const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
 
       await prisma.$transaction([
         prisma.platformImportRun.update({
           where: { id: run.id },
-          data: {
-            status,
-            preflightJson: preflight,
-            errorMessage: preflight.ok ? null : preflight.errors.join('; '),
-          },
+          data: platformImportPreflightUpdateData(preflight, status),
         }),
         prisma.platformImportReceiveSlot.update({
           where: { id: slot.id },

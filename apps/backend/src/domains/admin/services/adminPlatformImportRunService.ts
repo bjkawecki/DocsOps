@@ -15,39 +15,15 @@ import { enqueueJob, cancelJob } from '../../../infrastructure/jobs/client.js';
 import { extractZstdTarArchive } from '../../../infrastructure/backup/archiveExtract.js';
 import {
   getPlatformImportUploadMaxBytes,
-  uploadPlatformImportArchive,
   validateTransferPasswordHashesOption,
 } from './platformImportService.js';
 import { runPlatformImportPreflight } from './platformMigration/platformImportPreflight.js';
 import type { PlatformImportPreflightResult } from './platformMigration/platformImportPreflight.js';
-
-function serializeImportRun(run: {
-  id: string;
-  status: string;
-  source: string;
-  uploadObjectKey: string | null;
-  triggeredByUserId: string | null;
-  preflightJson: unknown;
-  optionsJson: unknown;
-  errorMessage: string | null;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  createdAt: Date;
-}) {
-  return {
-    id: run.id,
-    status: run.status,
-    source: run.source,
-    uploadObjectKey: run.uploadObjectKey,
-    triggeredByUserId: run.triggeredByUserId,
-    preflightJson: run.preflightJson,
-    optionsJson: run.optionsJson,
-    errorMessage: run.errorMessage,
-    startedAt: run.startedAt,
-    finishedAt: run.finishedAt,
-    createdAt: run.createdAt,
-  };
-}
+import {
+  platformImportPreflightUpdateData,
+  uploadExtractAndPreflightPlatformImport,
+} from './platformImportUploadPreflight.js';
+import { serializePlatformImportRun } from './platformMigrationRunSerialize.js';
 
 export function getPlatformImportUploadMaxBytesFromEnv(): number {
   return getPlatformImportUploadMaxBytes();
@@ -66,7 +42,7 @@ export async function listPlatformImportRuns(
     prisma.platformImportRun.count(),
   ]);
   return {
-    items: items.map(serializeImportRun),
+    items: items.map(serializePlatformImportRun),
     total,
     limit: query.limit,
     offset: query.offset,
@@ -76,7 +52,7 @@ export async function listPlatformImportRuns(
 export async function getPlatformImportRun(prisma: PrismaClient, id: string) {
   const run = await prisma.platformImportRun.findUnique({ where: { id } });
   if (!run) return null;
-  return serializeImportRun(run);
+  return serializePlatformImportRun(run);
 }
 
 export async function triggerPlatformImportUpload(
@@ -111,27 +87,18 @@ export async function triggerPlatformImportUpload(
 
   try {
     try {
-      await pipeline(args.fileStream, createWriteStream(archivePath));
-      await uploadPlatformImportArchive(storage, archivePath, run.id);
+      const { preflight, status } = await uploadExtractAndPreflightPlatformImport(prisma, {
+        storage,
+        runId: run.id,
+        fileStream: args.fileStream,
+        archivePath,
+        bundleDir,
+        uploadObjectKey,
+      });
 
       await prisma.platformImportRun.update({
         where: { id: run.id },
-        data: { uploadObjectKey },
-      });
-
-      await extractZstdTarArchive(archivePath, bundleDir);
-      const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
-        enforceEmpty: false,
-      });
-
-      const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
-      await prisma.platformImportRun.update({
-        where: { id: run.id },
-        data: {
-          status,
-          preflightJson: preflight,
-          errorMessage: preflight.ok ? null : preflight.errors.join('; '),
-        },
+        data: platformImportPreflightUpdateData(preflight, status),
       });
 
       return {
@@ -175,15 +142,10 @@ export async function runPlatformImportPreflightForRun(prisma: PrismaClient, id:
     const preflight = await runPlatformImportPreflight(prisma, bundleDir, {
       enforceEmpty: false,
     });
-
     const status = preflight.ok ? 'awaiting_confirm' : 'preflight_failed';
     await prisma.platformImportRun.update({
       where: { id },
-      data: {
-        status,
-        preflightJson: preflight,
-        errorMessage: preflight.ok ? null : preflight.errors.join('; '),
-      },
+      data: platformImportPreflightUpdateData(preflight, status),
     });
 
     return { preflight, status };

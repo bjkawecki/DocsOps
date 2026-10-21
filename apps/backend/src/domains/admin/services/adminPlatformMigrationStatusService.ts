@@ -6,62 +6,10 @@ import {
   getPublicMaintenanceStatus,
 } from '../../../infrastructure/maintenance/maintenanceModeService.js';
 import { isMinioAvailableForPlatformMigration } from './platformExportService.js';
-
-function serializeExportRun(run: {
-  id: string;
-  status: string;
-  triggeredByUserId: string | null;
-  archiveSha256: string | null;
-  sizeBytes: bigint | null;
-  localObjectKey: string | null;
-  errorMessage: string | null;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  createdAt: Date;
-  manifestJson: unknown;
-}) {
-  return {
-    id: run.id,
-    status: run.status,
-    triggeredByUserId: run.triggeredByUserId,
-    archiveSha256: run.archiveSha256,
-    sizeBytes: run.sizeBytes != null ? Number(run.sizeBytes) : null,
-    localObjectKey: run.localObjectKey,
-    errorMessage: run.errorMessage,
-    startedAt: run.startedAt,
-    finishedAt: run.finishedAt,
-    createdAt: run.createdAt,
-    manifestJson: run.manifestJson,
-  };
-}
-
-function serializeImportRun(run: {
-  id: string;
-  status: string;
-  source: string;
-  uploadObjectKey: string | null;
-  triggeredByUserId: string | null;
-  preflightJson: unknown;
-  optionsJson: unknown;
-  errorMessage: string | null;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  createdAt: Date;
-}) {
-  return {
-    id: run.id,
-    status: run.status,
-    source: run.source,
-    uploadObjectKey: run.uploadObjectKey,
-    triggeredByUserId: run.triggeredByUserId,
-    preflightJson: run.preflightJson,
-    optionsJson: run.optionsJson,
-    errorMessage: run.errorMessage,
-    startedAt: run.startedAt,
-    finishedAt: run.finishedAt,
-    createdAt: run.createdAt,
-  };
-}
+import {
+  serializePlatformExportRun,
+  serializePlatformImportRun,
+} from './platformMigrationRunSerialize.js';
 
 export async function getPlatformMigrationStatus(prisma: PrismaClient) {
   const [
@@ -133,9 +81,9 @@ export async function getPlatformMigrationStatus(prisma: PrismaClient) {
       documents: documentCount,
       attachmentFiles: attachmentFileCount,
     },
-    activeExportRun: activeExport ? serializeExportRun(activeExport) : null,
-    lastExportRun: lastExport ? serializeExportRun(lastExport) : null,
-    activeImportRun: activeImport ? serializeImportRun(activeImport) : null,
-    lastImportRun: lastImport ? serializeImportRun(lastImport) : null,
+    activeExportRun: activeExport ? serializePlatformExportRun(activeExport) : null,
+    lastExportRun: lastExport ? serializePlatformExportRun(lastExport) : null,
+    activeImportRun: activeImport ? serializePlatformImportRun(activeImport) : null,
+    lastImportRun: lastImport ? serializePlatformImportRun(lastImport) : null,
   };
 }

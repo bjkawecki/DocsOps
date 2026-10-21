@@ -10,34 +10,7 @@ import { cancelJob } from '../../../infrastructure/jobs/client.js';
 import { initStorage } from '../../../infrastructure/storage/index.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import { isMinioAvailableForPlatformMigration } from './platformExportService.js';
-
-function serializeExportRun(run: {
-  id: string;
-  status: string;
-  triggeredByUserId: string | null;
-  archiveSha256: string | null;
-  sizeBytes: bigint | null;
-  localObjectKey: string | null;
-  errorMessage: string | null;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  createdAt: Date;
-  manifestJson: unknown;
-}) {
-  return {
-    id: run.id,
-    status: run.status,
-    triggeredByUserId: run.triggeredByUserId,
-    archiveSha256: run.archiveSha256,
-    sizeBytes: run.sizeBytes != null ? Number(run.sizeBytes) : null,
-    localObjectKey: run.localObjectKey,
-    errorMessage: run.errorMessage,
-    startedAt: run.startedAt,
-    finishedAt: run.finishedAt,
-    createdAt: run.createdAt,
-    manifestJson: run.manifestJson,
-  };
-}
+import { serializePlatformExportRun } from './platformMigrationRunSerialize.js';
 
 export async function listPlatformExportRuns(
   prisma: PrismaClient,
@@ -54,7 +27,7 @@ export async function listPlatformExportRuns(
     prisma.platformExportRun.count({ where }),
   ]);
   return {
-    items: items.map(serializeExportRun),
+    items: items.map(serializePlatformExportRun),
     total,
     limit: query.limit,
     offset: query.offset,
@@ -64,7 +37,7 @@ export async function listPlatformExportRuns(
 export async function getPlatformExportRun(prisma: PrismaClient, id: string) {
   const run = await prisma.platformExportRun.findUnique({ where: { id } });
   if (!run) return null;
-  return serializeExportRun(run);
+  return serializePlatformExportRun(run);
 }
 
 export async function triggerPlatformExport(
