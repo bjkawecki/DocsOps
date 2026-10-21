@@ -360,7 +360,10 @@
     "inlineCode": "Inline code",
     "inlineFormatDisabled": "Inline formatting applies only to your suggested text, not existing content.",
     "link": "Link",
-    "moreTools": "More tools"
+    "moreTools": "More tools",
+    "expandToolbar": "Show formatting tools",
+    "collapseToolbar": "Hide formatting tools",
+    "toolbarCollapsedLabel": "Formatting"
   },
   "typePicker": {
     "noType": "No type",

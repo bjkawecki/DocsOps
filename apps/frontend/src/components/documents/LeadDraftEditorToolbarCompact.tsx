@@ -6,6 +6,8 @@ import {
   IconArrowForwardUp,
   IconBold,
   IconChartDots3,
+  IconChevronDown,
+  IconChevronUp,
   IconCode,
   IconColumnInsertRight,
   IconFileCode,
@@ -21,7 +23,7 @@ import {
   IconTableOff,
   IconTypography,
 } from '@tabler/icons-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   authorSelectionAllowsInlineFormat,
@@ -53,9 +55,29 @@ export function LeadDraftEditorToolbarCompact({
   documentId,
 }: Props) {
   const { t } = useTranslation('documents');
+  const [expanded, setExpanded] = useState(false);
   const inlineDisabled = authorMode && !authorSelectionAllowsInlineFormat(editor, authorId);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const authorInlineDisabledReason = t('editorToolbar.inlineFormatDisabled');
+
+  if (!expanded) {
+    return (
+      <div className={`${classes.row} ${classes.rowCompact} ${classes.rowCompactCollapsed}`}>
+        <button
+          type="button"
+          className={classes.collapseToggle}
+          aria-expanded={false}
+          aria-label={t('editorToolbar.expandToolbar')}
+          onClick={() => setExpanded(true)}
+        >
+          <span className={classes.collapseToggleLabel}>
+            {t('editorToolbar.toolbarCollapsedLabel')}
+          </span>
+          <IconChevronDown size={18} stroke={1.75} aria-hidden />
+        </button>
+      </div>
+    );
+  }
 
   const linkControl = (
     <LeadDraftLinkPopover
@@ -133,6 +155,9 @@ export function LeadDraftEditorToolbarCompact({
   return (
     <div className={`${classes.row} ${classes.rowCompact}`}>
       <div className={classes.clusterTools}>
+        <ToolIcon label={t('editorToolbar.collapseToolbar')} onClick={() => setExpanded(false)}>
+          <IconChevronUp size={ICON_SIZE} stroke={1.75} />
+        </ToolIcon>
         <ToolIcon
           label={t('editorToolbar.undo')}
           disabled={!editor.can().undo()}

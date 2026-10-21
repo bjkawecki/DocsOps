@@ -18,11 +18,51 @@
   padding: 4px;
 }
 
+.rowCompactCollapsed {
+  padding: 0;
+  border: none;
+  background: transparent;
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
 .rowCompact .clusterTools {
   flex-wrap: wrap;
   min-height: 44px;
   gap: 2px;
   width: 100%;
+}
+
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: transparent;
+  color: var(--mantine-color-text);
+  font: inherit;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapseToggle:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.collapseToggle:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.collapseToggleLabel {
+  flex: 1;
+  min-width: 0;
 }
 
 .cluster {
