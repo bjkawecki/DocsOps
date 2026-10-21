@@ -49,6 +49,6 @@ export function withdrawLocalSuggestionInEditor(editor: Editor, suggestionId: st
   editor.view.dispatch(tr);
 
   const normalized = tiptapJsonToBlockDocument(editor.getJSON());
-  editor.commands.setContent(blockDocumentToTiptapJson(normalized), false);
+  editor.commands.setContent(blockDocumentToTiptapJson(normalized), { emitUpdate: false });
   return true;
 }

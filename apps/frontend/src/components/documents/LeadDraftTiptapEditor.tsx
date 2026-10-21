@@ -3,7 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import { SuggestionFriendlyCode } from '../../tiptap/suggestionFriendlyCode.js';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Table from '@tiptap/extension-table';
+import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
@@ -314,7 +314,7 @@ export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Pro
       const nextJson = blockDocumentToTiptapJson(sourceDocument, { documentId });
       const cur = editor.getJSON();
       if (JSON.stringify(cur) !== JSON.stringify(nextJson)) {
-        editor.commands.setContent(nextJson, false);
+        editor.commands.setContent(nextJson, { emitUpdate: false });
       }
       // Baseline must match what undo restores (editor round-trip), not raw server JSON.
       dirtyBaselineRef.current = JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));

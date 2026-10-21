@@ -6,6 +6,9 @@ engineStrict: true
 overrides:
   '@types/react': ^19.3.0
   '@types/react-dom': ^19.3.0
+  # TipTap 3 / @tiptap/pm – keep a single ProseMirror copy (avoids duplicate type identities)
+  prosemirror-model: 1.25.12
+  prosemirror-view: 1.42.6
 
 allowBuilds:
   '@prisma/engines': true

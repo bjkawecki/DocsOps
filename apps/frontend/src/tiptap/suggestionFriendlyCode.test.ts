@@ -41,7 +41,7 @@ describe('SuggestionFriendlyCode', () => {
     });
 
     const leaf = editor.getJSON().content?.[0]?.content?.[0];
-    const markTypes = (leaf?.marks ?? []).map((m) => m.type).sort();
+    const markTypes = (leaf?.marks ?? []).map((m: { type: string }) => m.type).sort();
     expect(markTypes).toEqual(['code', 'suggestionInsert']);
     editor.destroy();
   });

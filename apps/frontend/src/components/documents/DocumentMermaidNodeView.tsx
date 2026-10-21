@@ -32,7 +32,7 @@ export function DocumentMermaidNodeView({ editor, deleteNode }: NodeViewProps) {
         ) : null}
       </div>
       <pre className={classes.editorPre}>
-        <NodeViewContent as="code" className={classes.editorCode} />
+        <NodeViewContent<'code'> as="code" className={classes.editorCode} />
       </pre>
     </NodeViewWrapper>
   );

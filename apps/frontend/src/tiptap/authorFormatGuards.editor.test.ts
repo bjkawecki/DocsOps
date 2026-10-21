@@ -19,7 +19,7 @@ function createAuthorEditor(content: Record<string, unknown>) {
 
 function leafMarks(editor: Editor) {
   const leaf = editor.getJSON().content?.[0]?.content?.[0];
-  return (leaf?.marks ?? []).map((m) => m.type).sort();
+  return (leaf?.marks ?? []).map((m: { type: string }) => m.type).sort();
 }
 
 describe('toggleAuthorInlineMark (editor)', () => {
