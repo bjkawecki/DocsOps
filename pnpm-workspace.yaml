@@ -2,7 +2,6 @@ packages:
   - 'apps/*'
 
 engineStrict: true
-confirmModulesPurge: false
 
 overrides:
   '@types/react': ^19.0.0
