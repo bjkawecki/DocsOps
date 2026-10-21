@@ -239,16 +239,9 @@
           ]
         },
         {
-          "heading": "Lesen ohne Fachschreiben",
-          "paragraphs": [
-            "Der Admin darf das Organisationswissen der Firma lesen – Kontexte und Dokumente unter Unternehmen, Abteilungen und Teams. Er legt keine fachlichen Dokumente oder Kontexte an, bearbeitet sie nicht und hat keinen persönlichen Bereich. Veröffentlichen und Leitungsaufgaben gehören zu den Nutzerrollen.",
-            "Wer in der Organisation fachlich mitarbeitet, nutzt dafür einen zweiten Account mit Nutzerrolle. Derselbe Admin-Account ist dafür nicht gedacht."
-          ]
-        },
-        {
           "heading": "Wer Admin sein sollte",
           "paragraphs": [
-            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur täglichen Dokumentarbeit. Plattformbetrieb und fachliche Mitarbeit in einer Person zu bündeln vermischt technische Verwaltung mit inhaltlicher Verantwortung. Deshalb gehören Admin-Rechte und Nutzerrolle auf getrennte Accounts."
+            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur fachlichen Dokumentarbeit. Sie ist eine Verwaltungsrolle und nicht zum Schreiben von Organisationswissen gedacht. Wer beides wahrnimmt, hält Admin-Rechte und Nutzerrolle auf getrennten Accounts, damit technische Verwaltung und inhaltliche Verantwortung nicht vermischt werden."
           ]
         }
       ]
