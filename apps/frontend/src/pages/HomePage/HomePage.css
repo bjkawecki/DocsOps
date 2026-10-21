@@ -11,34 +11,52 @@
   --pulse-type-meta: 0.75rem; /* 12px */
 }
 
-/* Fill mode: empty feed – lock main pane scroll, illustration absolute */
-.app-shell-main-body:has(.pulse-home--explore-fill) {
-  overflow: hidden;
+/*
+ * Fill mode (empty feed): on wide, lock scroll so the illustration can pin to the
+ * viewport bottom. Compact has no illustration (PulseExploreBlock visibleFrom lg) –
+ * keep normal outlet scroll + bottom pad so long Einstieg/Explore lists are not clipped.
+ */
+@media (min-width: 75em) {
+  .app-shell-main-body:has(.pulse-home--explore-fill) {
+    overflow: hidden;
+  }
+
+  .app-shell-outlet:has(.pulse-home--explore-fill) {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pulse-home--explore-fill {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding-bottom: 0 !important;
+  }
+
+  .pulse-home--explore-fill .pulse-home-main,
+  .pulse-home--explore-fill .pulse-home-feed-wrap {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
 }
 
-.app-shell-outlet:has(.pulse-home--explore-fill) {
-  flex: 1 1 0%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+@media (max-width: 74.9875em) {
+  .pulse-home--explore-fill {
+    box-sizing: border-box;
+    /* Beat Mantine pb prop + former fill flush; reserve room above system chrome. */
+    padding-bottom: max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem)) !important;
+  }
 
-.pulse-home--explore-fill {
-  flex: 1 1 0%;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
-  padding-bottom: 0 !important;
-}
-
-.pulse-home--explore-fill .pulse-home-main,
-.pulse-home--explore-fill .pulse-home-feed-wrap {
-  flex: 1 1 0%;
-  min-height: 0;
+  .pulse-explore--fill {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 62em) {
