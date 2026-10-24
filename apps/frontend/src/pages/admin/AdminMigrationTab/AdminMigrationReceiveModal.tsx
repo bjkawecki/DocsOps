@@ -114,7 +114,11 @@ export function AdminMigrationReceiveModal({ opened, onClose, onContinueImport }
           {t('migration.receiveModal.description')}
         </Text>
 
-        {demoDisabled ? <Alert color="yellow">{t('demo.limitedAdmin')}</Alert> : null}
+        {demoDisabled ? (
+          <Alert color="orange" variant="outline">
+            {t('demo.limitedAdmin')}
+          </Alert>
+        ) : null}
 
         {created == null ? (
           <Button

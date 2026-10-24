@@ -154,7 +154,7 @@ export function LoginPage() {
                 {DEMO_ROLES.map((role) => (
                   <Button
                     key={role}
-                    variant="light"
+                    variant="default"
                     size="md"
                     fullWidth
                     disabled={pending}

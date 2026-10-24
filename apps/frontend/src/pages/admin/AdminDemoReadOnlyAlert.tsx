@@ -12,7 +12,7 @@ export function AdminDemoReadOnlyAlert({
   const { data: publicConfig } = usePublicConfig();
   if (publicConfig?.demoMode !== true) return null;
   return (
-    <Alert color="yellow" variant="light">
+    <Alert color="orange" variant="outline">
       {t(messageKey)}
     </Alert>
   );
