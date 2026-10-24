@@ -280,9 +280,9 @@ export const sponsorCopy = {
 } as const;
 
 export const vergleichHubCopy = {
-  title: 'Confluence vs. DocsOps',
-  metaDescription: 'Confluence und DocsOps im Vergleich – aus der Praxis mit beiden.',
-  intro: ['Aus der Praxis mit beiden – nicht aus Spec-Sheets.'],
+  title: 'DocsOps vs. Confluence',
+  metaDescription: 'Confluence und DocsOps im Vergleich – aus dem Alltag mit beiden.',
+  intro: ['Beobachtungen aus dem Alltag mit Confluence und DocsOps.'],
 } as const;
 
 export const modellNavLinks = [
@@ -295,7 +295,7 @@ export const modellNavLinks = [
 /** Navbar Philosophie ▾ – full labels; footer “DocsOps vs.” column uses short opponent names. */
 export const philosophieNavLinks = [
   { label: 'Unser Ansatz', href: '/philosophie' },
-  { label: 'Confluence vs. DocsOps', href: '/vergleich' },
+  { label: 'DocsOps vs. Confluence', href: '/vergleich' },
 ] as const;
 
 export const docsopsVsFooterLinks = [{ label: 'Confluence', href: '/vergleich' }] as const;

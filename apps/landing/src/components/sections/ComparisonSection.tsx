@@ -12,6 +12,7 @@ type Props = {
   showTitle?: boolean;
 };
 
+/** Spaltenreihenfolge: Gegner zuerst, eigenes Produkt rechts. */
 export function ComparisonSection({ showTitle = true }: Props) {
   return (
     <Box id="comparison" className="landing-section" component="section">

@@ -27,39 +27,74 @@ import { LandingNavAnchor, LandingNavLink } from '../LandingNavLink';
 
 const navbarProjectLinks = projectNavLinks;
 
-type NavMenuTriggerProps = {
+function navMenuClassName(active: boolean, className?: string) {
+  return [
+    'landing-nav-link',
+    'landing-nav-link--menu',
+    active ? 'landing-nav-link--active' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function NavMenuLabel({ label }: { label: string }) {
+  return (
+    <Group gap={4} wrap="nowrap" align="center">
+      <span>{label}</span>
+      <IconChevronDown className="landing-nav-chevron" size={14} stroke={2} aria-hidden />
+    </Group>
+  );
+}
+
+type NavMenuLinkTriggerProps = {
+  label: string;
+  active: boolean;
+  href: string;
+} & Omit<ComponentPropsWithoutRef<'a'>, 'href'>;
+
+/** Link + hover menu (e.g. So funktioniert’s → /#scope). */
+const NavMenuLinkTrigger = forwardRef<HTMLAnchorElement, NavMenuLinkTriggerProps>(
+  function NavMenuLinkTrigger({ label, active, href, className, ...others }, ref) {
+    return (
+      <Anchor
+        ref={ref}
+        href={href}
+        className={navMenuClassName(active, className)}
+        aria-haspopup="menu"
+        aria-current={active ? 'page' : undefined}
+        underline="never"
+        {...others}
+      >
+        <NavMenuLabel label={label} />
+      </Anchor>
+    );
+  }
+);
+
+type NavMenuButtonTriggerProps = {
   label: string;
   active: boolean;
   menuLabel: string;
 } & ComponentPropsWithoutRef<'button'>;
 
-const NavMenuTrigger = forwardRef<HTMLButtonElement, NavMenuTriggerProps>(function NavMenuTrigger(
-  { label, active, menuLabel, className, ...others },
-  ref
-) {
-  return (
-    <UnstyledButton
-      ref={ref}
-      type="button"
-      className={[
-        'landing-nav-link',
-        'landing-nav-link--menu',
-        active ? 'landing-nav-link--active' : '',
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      aria-haspopup="menu"
-      aria-label={menuLabel}
-      {...others}
-    >
-      <Group gap={4} wrap="nowrap" align="center">
-        <span>{label}</span>
-        <IconChevronDown className="landing-nav-chevron" size={14} stroke={2} aria-hidden />
-      </Group>
-    </UnstyledButton>
-  );
-});
+/** Menu-only trigger (no navigation) – default cursor, not link pointer. */
+const NavMenuButtonTrigger = forwardRef<HTMLButtonElement, NavMenuButtonTriggerProps>(
+  function NavMenuButtonTrigger({ label, active, menuLabel, className, ...others }, ref) {
+    return (
+      <UnstyledButton
+        ref={ref}
+        type="button"
+        className={navMenuClassName(active, className)}
+        aria-haspopup="menu"
+        aria-label={menuLabel}
+        {...others}
+      >
+        <NavMenuLabel label={label} />
+      </UnstyledButton>
+    );
+  }
+);
 
 export function Navbar() {
   const demoUrl = getDemoUrl();
@@ -92,13 +127,16 @@ export function Navbar() {
             </Group>
 
             <Group gap="lg" visibleFrom="sm" wrap="nowrap">
-              <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
+              <Menu
+                trigger="hover"
+                openDelay={80}
+                closeDelay={120}
+                withinPortal
+                offset={6}
+                classNames={{ dropdown: 'landing-nav-menu', item: 'landing-nav-menu-item' }}
+              >
                 <Menu.Target>
-                  <NavMenuTrigger
-                    label={navbarCopy.modell}
-                    active={isHome}
-                    menuLabel={`${navbarCopy.modell} öffnen`}
-                  />
+                  <NavMenuLinkTrigger label={navbarCopy.modell} active={isHome} href="/#scope" />
                 </Menu.Target>
                 <Menu.Dropdown>
                   {modellNavLinks.map((link) => (
@@ -109,9 +147,16 @@ export function Navbar() {
                 </Menu.Dropdown>
               </Menu>
 
-              <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
+              <Menu
+                trigger="hover"
+                openDelay={80}
+                closeDelay={120}
+                withinPortal
+                offset={6}
+                classNames={{ dropdown: 'landing-nav-menu', item: 'landing-nav-menu-item' }}
+              >
                 <Menu.Target>
-                  <NavMenuTrigger
+                  <NavMenuButtonTrigger
                     label={navbarCopy.philosophie}
                     active={philosophieActive}
                     menuLabel={`${navbarCopy.philosophie} öffnen`}
