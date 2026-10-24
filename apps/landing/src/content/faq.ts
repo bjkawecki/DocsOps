@@ -1,50 +1,31 @@
 export type FaqItem = {
   question: string;
   answer: string;
-  /** Terms rendered in accent color within the answer. */
-  highlights?: readonly string[];
   /** Optional CTA after the answer (e.g. install page). */
   link?: { to: string; label: string };
 };
 
+/** FAQ on home: Einwände und Einstieg – kein Modell-/Feature-Nachschlag, kein Vergleich. */
 export const faqItems: FaqItem[] = [
   {
-    question: 'Passt DocsOps zu meiner Organisation?',
+    question: 'Für wen ist DocsOps gedacht?',
     answer:
-      'Ja, wenn Sie mit Firma, Abteilung und Team, benannten Leitungen und einem freigegebenen Wissensstand arbeiten. Weniger geeignet, wenn Sie vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell brauchen.',
-    highlights: ['Wissensstand', 'Wiki-Fläche'],
+      'DocsOps richtet sich an Organisationen, in denen klar sein muss, was gilt und wer dafür verantwortlich ist. Der Wissensstand soll nachvollziehbar bleiben, auch wenn viele mitarbeiten. Weniger geeignet ist DocsOps, wenn vor allem eine freie Fläche zum gemeinsamen Schreiben zählt und feste Zuständigkeit wenig Rolle spielt.',
   },
   {
-    question: 'Was unterscheidet DocsOps von ähnlichen Programmen?',
+    question: 'Was brauche ich für den Betrieb?',
     answer:
-      'Andere Programme setzen oft auf freie Spaces oder Wiki-Seiten ohne festes Organisationsmodell; wer schreiben darf, ändert meist sofort den Stand für alle. DocsOps folgt Firma, Abteilung und Team: Autoren schlagen Änderungen vor, die Leitung gibt die verbindliche Fassung frei.',
-    highlights: ['Wiki-Seiten', 'verbindliche Fassung'],
-    link: { to: '/vergleich', label: 'Zum Vergleich mit Confluence' },
+      'DocsOps läuft auf Ihrer Infrastruktur: Sie stellen Server, Datenbank und Backup bereit und kümmern sich um Updates. Es gibt kein Cloud-Abo und kein Managed Hosting durch uns. Die Anwendung ist Open Source und bleibt unter Ihrer Kontrolle.',
   },
   {
-    question: 'Warum nicht einfach Confluence?',
+    question: 'Was kostet DocsOps?',
     answer:
-      'Confluence ist stark, wenn Sie Spaces, Plugins und die Atlassian-Welt brauchen. DocsOps ist für Organisationen gedacht, die Firma, Abteilung und Team sowie eine freigegebene Fassung im Produkt wollen – self-hosted, ohne Cloud-Pflicht.',
-    highlights: ['freigegebene Fassung', 'self-hosted'],
-    link: { to: '/vergleich', label: 'DocsOps und Confluence im Vergleich' },
-  },
-  {
-    question: 'Wie strukturiert DocsOps mein Wissen?',
-    answer:
-      'Über Kontexte: Prozesse beschreiben dauerhafte Abläufe (wie Sie arbeiten). Projekte bündeln den Ist-Stand zu einem Thema, Produkt oder Vorhaben. Jedes Dokument gehört zu genau einem solchen Kontext.',
-    highlights: ['Prozesse', 'Projekte'],
-  },
-  {
-    question: 'Wie stellt DocsOps Verbindlichkeit her?',
-    answer:
-      'Indem Mitwirken und Veröffentlichen getrennt bleiben. Autoren formulieren im Entwurf Vorschläge; die Leitung des Geltungsbereichs nimmt an oder verwirft und veröffentlicht. Leser sehen ausschließlich die freigegebene Version.',
-    highlights: ['Entwurf', 'Leitung', 'freigegebene Version'],
-  },
-  {
-    question: 'Wie kann ich DocsOps nutzen – und was kostet es?',
-    answer:
-      'DocsOps ist Open Source unter MIT, kostenlos nutzbar und für Self-hosting auf Ihrer Infrastruktur gedacht. Daten und Betrieb bleiben bei Ihnen.',
-    highlights: ['Open Source', 'Self-hosting'],
+      'Die Software steht unter MIT-Lizenz und ist kostenlos nutzbar. Es gibt keine Seat-Lizenz. Kosten entstehen bei Ihnen durch Betrieb und Pflege der Instanz – Rechenleistung, Speicher und die Zeit für Updates.',
     link: { to: '/install', label: 'Zur Installationsanleitung' },
+  },
+  {
+    question: 'Kann ich DocsOps erst ausprobieren?',
+    answer:
+      'Ja. Die Live-Demo zeigt den Ablauf ohne eigene Einrichtung. Was dort steht, ist nicht Ihr Wissensstand und eignet sich nicht für produktive Dokumente. Für den Einsatz mit Ihren Daten und Rechten brauchen Sie eine eigene Installation.',
   },
 ];

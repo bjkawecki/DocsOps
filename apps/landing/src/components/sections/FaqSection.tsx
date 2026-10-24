@@ -4,31 +4,6 @@ import { Link } from 'react-router-dom';
 import { faqItems } from '../../content/faq';
 import { faqCopy } from '../../content/siteCopy';
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function renderAnswerWithHighlights(text: string, highlights: readonly string[]) {
-  if (highlights.length === 0) {
-    return text;
-  }
-
-  const terms = [...highlights].sort((a, b) => b.length - a.length);
-  const pattern = new RegExp(`(${terms.map(escapeRegExp).join('|')})`, 'g');
-  const parts = text.split(pattern);
-
-  return parts.map((part, index) => {
-    if (terms.includes(part)) {
-      return (
-        <Text key={`${part}-${index}`} span className="landing-section-intro-term">
-          {part}
-        </Text>
-      );
-    }
-    return part;
-  });
-}
-
 export function FaqSection() {
   const firstQuestion = faqItems[0]?.question ?? '';
   const [opened, setOpened] = useState<string[]>(firstQuestion ? [firstQuestion] : []);
@@ -69,7 +44,7 @@ export function FaqSection() {
               <Accordion.Control>{item.question}</Accordion.Control>
               <Accordion.Panel>
                 <Text size="md" c="gray.2" lh={1.65} className="landing-faq-answer">
-                  {renderAnswerWithHighlights(item.answer, item.highlights ?? [])}
+                  {item.answer}
                 </Text>
                 {item.link ? (
                   <Anchor
