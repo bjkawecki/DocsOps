@@ -1,8 +1,8 @@
 # Startseiten-Vergleich: DocsOps · Confluence · Docmost
 
-**Status:** Daten vorbereitet – **aktuell nicht auf der Landing-Startseite** (zurückgestellt). Leitlinie: [Positionierung-und-Landing.md](../Positionierung-und-Landing.md). Reaktivieren, wenn Tabellen-Labels überarbeitet sind.
+**Status:** Auf der Landing unter **`/vergleich`** (nicht als volle Startseiten-Section). Leitlinie: [Positionierung-und-Landing.md](../Positionierung-und-Landing.md).
 
-**Verwendung (später):** Kompakte Tabelle auf der Landing-Startseite (3 Spalten) oder nur auf `/vergleich`.
+**Verwendung:** Kompakte Tabelle DocsOps · Confluence · Docmost auf `/vergleich`; Code: `apps/landing/src/content/comparison.ts`.
 
 ## Positionierung (Kern these)
 

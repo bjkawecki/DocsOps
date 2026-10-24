@@ -141,7 +141,7 @@ Abteilung IT
 5. **Beispiel** (`#einordnen`)
 6. Footer
 
-**Vorübergehend nicht auf der Startseite:** Vergleichstabelle (Tools), FAQ – Daten unter `docs/marketing/vergleich/`.
+**Vergleichstabelle:** auf **`/vergleich`**, nicht als volle Startseiten-Section. Daten unter `docs/marketing/vergleich/`.
 
 **Ersetzt:** Feature-Kachel-Grid (6 Kacheln), Sponsoren, CTA-Band.
 
@@ -197,7 +197,7 @@ Vage Tabellenzeilen vermeiden. Stattdessen verständliche Labels:
 | Entwürfe & veröffentlichte Versionen | Versionierung              |
 | Hierarchisches Kollaborationsmodell  | Vorschläge & Lead-Freigabe |
 
-Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) (Landing-Kern: Confluence, Docmost) – **vorbereitet, nicht auf Landing**. Erweitert: [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md) (Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl).
+Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) (Landing-Kern: Confluence, Docmost) – **auf `/vergleich`**. Erweitert: [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md) (Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl).
 
 ---
 
@@ -241,7 +241,7 @@ Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 - [x] Rollen: Anker `#rollen`, Titel Rollenbasierte Zusammenarbeit
 - [x] Beispiel IT / Software X / A11y (Phase E)
 - [x] Philosophie-Seite `/philosophie` (Ansatz, Was das bedeutet, Kurz gesagt)
-- [ ] Gegenüberstellung Confluence vs DocsOps auf der Landing (sachlich, teils Augenzwinkern; siehe Umsetzungs-Todo §19)
+- [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (siehe Umsetzungs-Todo §19)
 - [ ] Demo-Seed: Beispiel IT / Software X / Stand Barrierefreiheit
 
 ---

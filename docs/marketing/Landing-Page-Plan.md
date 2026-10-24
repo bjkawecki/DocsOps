@@ -14,7 +14,7 @@
 - **Vertrauen:** Self-hosted, Open Source (MIT), Impressum/Datenschutz.
 - **Konvertieren:** Story verstehen → Philosophie (optional) → Live-Demo oder `/install`.
 
-**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, Vergleichstabelle auf der Startseite.
+**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/vergleich`).
 
 ---
 
@@ -50,20 +50,20 @@
 9. **Abschluss-CTA** (Demo · Installation)
 10. Footer (Version-Badge → `/changelog`)
 
-**Zurückgestellt auf `/`:** Feature-Grid, Vergleichstabelle.
+**Zurückgestellt auf `/`:** Feature-Grid. Vergleichstabelle: **`/vergleich`**.
 
 ### Routen
 
-| Route                        | Inhalt                                                               |
-| ---------------------------- | -------------------------------------------------------------------- |
-| `/`                          | Startseite                                                           |
-| `/philosophie`               | Philosophie (Abgrenzung indirekt, keine Vergleichs-CTA)              |
-| `/warum`, `/ansatz`          | Redirect → `/philosophie`                                            |
-| `/install`                   | Marketing-Install (curl, Voraussetzungen, Link zu `docs/install.md`) |
-| `/changelog`                 | Root-`CHANGELOG.md` (Build-Import)                                   |
-| `/sponsor`                   | Sponsor us. (externe Links per Env)                                  |
-| `/vergleich`                 | Hub (**ohne Navbar/Footer-Link**, Demnächst)                         |
-| `/impressum`, `/datenschutz` | Strukturierte Platzhalter (`legalCopy.ts`) – vor Go-live ausfüllen   |
+| Route                        | Inhalt                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `/`                          | Startseite                                                                   |
+| `/philosophie`               | Philosophie (Abgrenzung indirekt, keine Vergleichs-CTA)                      |
+| `/warum`, `/ansatz`          | Redirect → `/philosophie`                                                    |
+| `/install`                   | Marketing-Install (curl, Voraussetzungen, Link zu `docs/install.md`)         |
+| `/changelog`                 | Root-`CHANGELOG.md` (Build-Import)                                           |
+| `/sponsor`                   | Sponsor us. (externe Links per Env)                                          |
+| `/vergleich`                 | DocsOps · Confluence · Docmost (Tabelle + Reibungspunkte); Nav unter Projekt |
+| `/impressum`, `/datenschutz` | Strukturierte Platzhalter (`legalCopy.ts`) – vor Go-live ausfüllen           |
 
 ---
 
@@ -84,9 +84,10 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ## 5. Vergleich & FAQ
 
-- Kein `/vergleich` in Navigation; Abgrenzung indirekt auf `/philosophie`.
-- Tabellendaten bleiben in [vergleich/](./vergleich/) für spätere Head-to-head-Seiten.
-- FAQ ist auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
+- **`/vergleich`:** Hauptort der Gegenüberstellung (Confluence/Docmost-Tabelle); in Navbar/Footer unter Projekt bzw. Produkt.
+- Startseite: kein großes Vergleichs-Grid; FAQ verweist auf `/vergleich`.
+- Abgrenzung Haltung: `/philosophie`. Tabellendaten: [vergleich/](./vergleich/).
+- FAQ auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
 
 ---
 
@@ -107,7 +108,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 - [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
 - [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
 - [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
-- [ ] Gegenüberstellung Confluence vs DocsOps (Section und/oder `/vergleich`; sachlich, teils Augenzwinkern; Daten: `vergleich/startseite-confluence-docmost.md`)
+- [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (Tabelle + Reibungspunkte; FAQ-Link)
 - [ ] Demo-Seed-Story
 
 ### Technik

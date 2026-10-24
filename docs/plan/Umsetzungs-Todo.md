@@ -419,7 +419,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
 [x] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
 [x] **Landing Go-live:** Deploy auf `docsops.de`; DNS/Caddy; Impressum/Datenschutz im Landing-Code; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
-[ ] **Landing: Confluence vs DocsOps:** Gegenüberstellung auf der Landing (Section und/oder `/vergleich`) – Kernkontrast Governance/Org-Modell vs. Wiki-All-in-one; sachlich, teils mit Augenzwinkern; Datenbasis [vergleich/startseite-confluence-docmost.md](../marketing/vergleich/startseite-confluence-docmost.md) und [Positionierung-und-Landing](../marketing/Positionierung-und-Landing.md) §6. Keine Feature-Checkbox-Schlacht.
+[x] **Landing: Confluence vs DocsOps:** Gegenüberstellung auf **`/vergleich`** (nicht als volle Startseiten-Section) – Tabelle DocsOps · Confluence · Docmost, kurze Reibungspunkte, FAQ-Link, Nav unter Projekt; Datenbasis [vergleich/startseite-confluence-docmost.md](../marketing/vergleich/startseite-confluence-docmost.md). Startseite bleibt Modell-Erklärung.
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
 
@@ -448,7 +448,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, fünf Rollen); öffentliche Demo unter `demo.docsops.de`.
 [x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Offen in §19: Landing-Vergleich Confluence vs DocsOps. Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Landing-Vergleich Confluence vs DocsOps auf `/vergleich` (erledigt). Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
 
 ---
 

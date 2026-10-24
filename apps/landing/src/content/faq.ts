@@ -19,6 +19,14 @@ export const faqItems: FaqItem[] = [
     answer:
       'Andere Programme setzen oft auf freie Spaces oder Wiki-Seiten ohne festes Organisationsmodell; wer schreiben darf, ändert meist sofort den Stand für alle. DocsOps folgt Firma, Abteilung und Team: Autoren schlagen Änderungen vor, die Leitung gibt die verbindliche Fassung frei.',
     highlights: ['Wiki-Seiten', 'verbindliche Fassung'],
+    link: { to: '/vergleich', label: 'Zum Vergleich mit Confluence' },
+  },
+  {
+    question: 'Warum nicht einfach Confluence?',
+    answer:
+      'Confluence ist stark, wenn Sie Spaces, Plugins und die Atlassian-Welt brauchen. DocsOps ist für Organisationen gedacht, die Firma, Abteilung und Team sowie eine freigegebene Fassung im Produkt wollen – self-hosted, ohne Cloud-Pflicht.',
+    highlights: ['freigegebene Fassung', 'self-hosted'],
+    link: { to: '/vergleich', label: 'DocsOps und Confluence im Vergleich' },
   },
   {
     question: 'Wie strukturiert DocsOps mein Wissen?',

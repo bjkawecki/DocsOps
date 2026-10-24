@@ -15,13 +15,13 @@ Planung und Inhalte für Landing Page, Demo und öffentliche Kommunikation (§19
 | [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd)     | Mermaid: Rechte / Rollen & Veröffentlichung                         |
 | [antwort.md](./antwort.md)                                           | Roh-Notiz Positionierungsdiskussion (Referenz)                      |
 
-## Vergleich (vorbereitet, Landing zurückgestellt)
+## Vergleich (Landing: `/vergleich`)
 
-| Dokument                                                                                   | Inhalt                                               |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) | Tabellendaten Confluence + Docmost (Landing-Kern)    |
-| [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md)           | Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl |
-| [Vergleich-DocsOps-Docmost.md](../platform/Vergleich-DocsOps-Docmost.md)                   | Ausführlicher interner Vergleich                     |
+| Dokument                                                                                   | Inhalt                                                    |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) | Tabellendaten Confluence + Docmost (Landing `/vergleich`) |
+| [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md)           | Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl      |
+| [Vergleich-DocsOps-Docmost.md](../platform/Vergleich-DocsOps-Docmost.md)                   | Ausführlicher interner Vergleich                          |
 
 ## Sonstiges
 

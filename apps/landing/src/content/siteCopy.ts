@@ -169,12 +169,14 @@ export const featuresSectionCopy = {
   title: 'Features',
 } as const;
 
-/** Startseite zurückgestellt – `ComparisonSection` */
+/** Tabelle auf `/vergleich` – `ComparisonSection` */
 export const comparisonCopy = {
-  title: 'Vergleich',
+  title: 'Struktur und Kontrolle',
+  subline:
+    'DocsOps im Vergleich zu Confluence und Docmost. Weniger leere Wiki-Fläche, mehr Leitplanken für Organisation und Verbindlichkeit.',
+  columnCriterion: 'Kriterium',
   footnote:
     'Markenzeichen der genannten Produkte gehören den jeweiligen Anbietern. Angaben ohne Gewähr.',
-  linkLabel: 'Ausführliche Vergleiche',
 } as const;
 
 /** FAQ on home – `FaqSection` */
@@ -281,12 +283,38 @@ export const sponsorCopy = {
 } as const;
 
 export const vergleichHubCopy = {
-  title: 'Vergleiche',
+  title: 'DocsOps im Vergleich',
   metaDescription:
-    'DocsOps im Vergleich zu anderen Dokumentations- und Wiki-Tools – Head-to-head-Seiten folgen schrittweise.',
-  intro:
-    'Ausführliche Head-to-head-Vergleiche zu einzelnen Tools folgen schrittweise. Die Startseiten-Tabelle ist vorübergehend zurückgestellt.',
+    'DocsOps und Confluence: Org-Modell, Verbindlichkeit, Self-hosting. Kurze Gegenüberstellung ohne Feature-Schlacht.',
+  intro: [
+    'Viele Teams kennen Confluence aus dem Alltag: Spaces wachsen, Seiten stapeln sich, und neue Kolleginnen und Kollegen finden sich erst nach Wochen zurecht.',
+    'DocsOps setzt auf Firma, Abteilung und Team sowie auf eine freigegebene Fassung. Die Tabelle fasst den Kontrast zusammen. Darunter stehen typische Reibungspunkte und wie DocsOps darauf antwortet.',
+  ],
+  whyTitle: 'Typische Reibungspunkte',
+  whyPoints: [
+    {
+      title: 'Veraltete Seiten und Duplikate',
+      body: 'Wenn jede Änderung sofort für alle gilt, entstehen schnell parallele Wahrheiten. In DocsOps bleiben Entwurf und freigegebene Fassung getrennt; die Leitung setzt den verbindlichen Stand.',
+    },
+    {
+      title: 'Spaces ohne Organisationsmodell',
+      body: 'Ohne festes Informationsmodell wird die Fläche schnell unübersichtlich. DocsOps verankert Firma, Abteilung, Team und Kontexte im Produkt.',
+    },
+    {
+      title: 'Einstieg für neue Mitarbeitende',
+      body: 'Verschachtelte Spaces und Seitenbäume kosten Orientierung. Die Org-Hierarchie gibt einen klaren Einstieg in Bereiche und Zuständigkeiten.',
+    },
+    {
+      title: 'Cloud, Kosten und sensible Inhalte',
+      body: 'DocsOps ist Open Source und für Self-hosting gedacht. Betrieb und Daten bleiben bei Ihnen. Rechte lassen sich je Dokument setzen, nicht nur auf Bereichsebene.',
+    },
+  ],
+  moreTitle: 'Weitere Vergleiche',
+  moreIntro:
+    'Weitere Head-to-head-Seiten folgen. Docmost ist in der Tabelle oben bereits mit abgebildet.',
   comingSoon: 'Demnächst',
+  backHint: 'Zurück zur Erklärung des Modells:',
+  backLink: 'Startseite',
 } as const;
 
 export const modellNavLinks = [
@@ -297,6 +325,7 @@ export const modellNavLinks = [
 ] as const;
 
 export const projectNavLinks = [
+  { label: 'Vergleich', href: '/vergleich', external: false },
   { label: 'GitHub', href: 'github', external: true },
   { label: 'Changelog', href: '/changelog', external: false },
   { label: 'Unterstützen', href: '/sponsor', external: false },
@@ -316,6 +345,7 @@ export const footerCopy = {
   links: {
     philosophie: 'Philosophie',
     installation: 'Installation',
+    vergleich: 'Vergleich',
     demo: 'Live-Demo',
     github: 'GitHub',
     changelog: 'Changelog',
