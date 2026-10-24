@@ -9,52 +9,50 @@ export type ComparisonRow = {
   confluenceNote?: string;
 };
 
-/** Compact head-to-head for `/vergleich` (DocsOps vs. Confluence). */
+/**
+ * Kritik-Gegenüberstellung auf `/vergleich`.
+ * ✓ = Kritik trifft zu · ✗ = so nicht angelegt.
+ */
 export const comparisonRows: ComparisonRow[] = [
   {
-    label: 'Self-hosted / On-Prem',
-    docsops: 'yes',
-    confluence: 'partial',
-    confluenceNote: 'oft Cloud',
+    label: 'Veraltete Seiten, Duplikate, niemand räumt auf',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Open Source',
-    docsops: 'yes',
-    docsopsNote: 'MIT',
-    confluence: 'no',
+    label: 'Keine feste Struktur im Produkt',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Firma, Abteilung, Team',
-    detail: 'Org-Modell im Produkt',
-    docsops: 'yes',
-    confluence: 'no',
+    label: 'Teuer',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Zugriff je Dokument',
-    docsops: 'yes',
-    confluence: 'partial',
+    label: 'Spaces und Pages schwer für Einsteiger',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Nur Leads veröffentlichen',
-    detail: 'verbindliche Fassung',
-    docsops: 'yes',
-    confluence: 'no',
+    label: 'Cloud-Zwang',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Vorschläge & Lead-Freigabe',
-    docsops: 'yes',
-    confluence: 'partial',
+    label: 'Aufgeblähtes UI',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Versionierung',
-    detail: 'Entwurf und freigegebene Fassung',
-    docsops: 'yes',
-    confluence: 'partial',
+    label: 'Probleme mit der Sicherheit',
+    docsops: 'no',
+    confluence: 'yes',
   },
   {
-    label: 'Leitplanken statt leerer Fläche',
-    docsops: 'yes',
-    confluence: 'no',
+    label: 'Vom Editor besser nicht anfangen',
+    docsops: 'no',
+    confluence: 'yes',
   },
 ];
 

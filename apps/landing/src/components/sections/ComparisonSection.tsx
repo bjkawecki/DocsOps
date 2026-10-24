@@ -26,8 +26,8 @@ export function ComparisonSection({ showTitle = true }: Props) {
           <Table.Thead>
             <Table.Tr>
               <Table.Th w="50%">{comparisonCopy.columnCriterion}</Table.Th>
-              <Table.Th w="25%">DocsOps</Table.Th>
               <Table.Th w="25%">Confluence</Table.Th>
+              <Table.Th w="25%">DocsOps</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -42,10 +42,10 @@ export function ComparisonSection({ showTitle = true }: Props) {
                   </Box>
                 </Table.Td>
                 <Table.Td>
-                  <ComparisonCell value={row.docsops} note={row.docsopsNote} />
+                  <ComparisonCell value={row.confluence} note={row.confluenceNote} />
                 </Table.Td>
                 <Table.Td>
-                  <ComparisonCell value={row.confluence} note={row.confluenceNote} />
+                  <ComparisonCell value={row.docsops} note={row.docsopsNote} />
                 </Table.Td>
               </Table.Tr>
             ))}

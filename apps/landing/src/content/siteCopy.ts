@@ -172,7 +172,8 @@ export const featuresSectionCopy = {
 /** Tabelle auf `/vergleich` – `ComparisonSection` */
 export const comparisonCopy = {
   title: 'Struktur und Kontrolle',
-  columnCriterion: 'Feature',
+  /** Erste Spalte ohne Header (Kritikzeilen, kein Feature-Label). */
+  columnCriterion: '',
 } as const;
 
 /** FAQ on home – `FaqSection` */
@@ -280,12 +281,8 @@ export const sponsorCopy = {
 
 export const vergleichHubCopy = {
   title: 'DocsOps vs. Confluence',
-  metaDescription:
-    'DocsOps und Confluence: Organisation im Produkt, freigegebene Fassung, Self-hosting.',
-  intro: [
-    'In Confluence entstehen schnell viele Spaces und Seiten. Was gilt und wer dafür verantwortlich ist, muss die Organisation oft selbst erfinden.',
-    'DocsOps ordnet Dokumentation entlang von Firma, Abteilung und Team. Autoren arbeiten am Entwurf; die Leitung veröffentlicht die Fassung, auf die sich andere stützen. Self-hosted bleibt der Betrieb bei Ihnen.',
-  ],
+  metaDescription: 'Confluence und DocsOps im Vergleich – aus der Praxis mit beiden.',
+  intro: ['Aus der Praxis mit beiden – nicht aus Spec-Sheets.'],
 } as const;
 
 export const modellNavLinks = [

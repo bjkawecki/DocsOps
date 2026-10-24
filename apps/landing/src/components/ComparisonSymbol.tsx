@@ -3,9 +3,9 @@ import { IconCircleCheck, IconCircleDashed, IconCircleX } from '@tabler/icons-re
 import type { ComparisonValue } from '../content/comparison';
 
 const LABELS: Record<ComparisonValue, string> = {
-  yes: 'Ja',
+  yes: 'Trifft zu',
   partial: 'Teilweise',
-  no: 'Nein',
+  no: 'Trifft nicht zu',
 };
 
 type ComparisonSymbolProps = {
