@@ -1,7 +1,7 @@
 export const heroCopy = {
   pageTitle: 'DocsOps – Betriebswissen verbindlich dokumentieren',
   metaDescription:
-    'Internes Wissen übersichtlich pflegen. Feste Org-Struktur statt beliebiger Wiki-Ablage. Rollenbasierte Freigaben. Open Source und zum Selbst-Hosten. Live-Demo ansehen ➔',
+    'Internes Wissen in Firma, Abteilung und Team pflegen. Feste Org-Struktur statt Wiki-Ablage; Vorschläge und Freigabe getrennt. Open Source, zum Selbst-Hosten.',
   headlineLead: 'Ihr Betriebswissen.',
   headlineQualities: ['Hierarchisch', 'Strukturiert', 'Verbindlich'] as const,
   headlineTail: 'dokumentiert',

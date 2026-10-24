@@ -239,9 +239,48 @@
           ]
         },
         {
+          "heading": "Der Admin-Bereich",
+          "paragraphs": [
+            "Der Admin-Bereich gliedert die Verwaltungsaufgaben in vier Gruppen. Jede Gruppe bündelt zusammengehörige Aufgaben der Instanzverwaltung."
+          ],
+          "subsections": [
+            {
+              "heading": "Organisation",
+              "paragraphs": [
+                "Unter Organisation werden die Konten und die Gliederung der Instanz geführt: Nutzer, Teams, Abteilungen und das Unternehmen."
+              ]
+            },
+            {
+              "heading": "Betrieb",
+              "paragraphs": [
+                "Unter Betrieb liegen die laufenden und geplanten Aufgaben der Instanz: Hintergrundaufgaben und der Zeitplaner. Darüber bleibt sichtbar, welche Arbeit ansteht oder bereits gelaufen ist."
+              ]
+            },
+            {
+              "heading": "Daten",
+              "paragraphs": [
+                "Unter Daten liegen Sicherungskopie und Migration der Instanz. Damit lässt sich der Instanzstand bewahren oder auf eine andere Umgebung übertragen."
+              ]
+            },
+            {
+              "heading": "Plattform",
+              "paragraphs": [
+                "Unter Plattform liegen instanzweite Einstellungen und Hinweise: System, E-Mail, Anzeigenamen der Rollen und Mitteilungen an die gesamte Instanz. Diese Einstellungen gelten für die Instanz insgesamt, nicht für einzelne Fachbereiche."
+              ]
+            }
+          ]
+        },
+        {
+          "heading": "Lesen ohne Fachschreiben",
+          "paragraphs": [
+            "Der Admin darf Organisationswissen lesen – Kontexte und Dokumente unter Unternehmen, Abteilungen und Teams. Er legt keine Fachdokumente oder Kontexte an, bearbeitet sie nicht und hat keinen persönlichen Bereich. Veröffentlichen und Leitung gehören zu den Nutzerrollen.",
+            "Wer in der Organisation inhaltlich mitwirkt, nutzt dafür einen zweiten Account mit Nutzerrolle. Der Admin-Account selbst ist dafür nicht gedacht."
+          ]
+        },
+        {
           "heading": "Wer Admin sein sollte",
           "paragraphs": [
-            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur fachlichen Dokumentarbeit. Sie ist eine Verwaltungsrolle und nicht zum Schreiben von Organisationswissen gedacht. Wer beides wahrnimmt, hält Admin-Rechte und Nutzerrolle auf getrennten Accounts, damit technische Verwaltung und inhaltliche Verantwortung nicht vermischt werden."
+            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur fachlichen Dokumentarbeit. Wer beides wahrnimmt, hält Admin-Rechte und Nutzerrolle auf getrennten Accounts, damit technische Verwaltung und inhaltliche Verantwortung nicht vermischt werden."
           ]
         }
       ]

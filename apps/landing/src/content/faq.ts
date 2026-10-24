@@ -17,8 +17,8 @@ export const faqItems: FaqItem[] = [
   {
     question: 'Was unterscheidet DocsOps von ähnlichen Programmen?',
     answer:
-      'Andere Lösungen setzen häufig auf Spaces oder Wiki-Seiten: flexible Ablage ohne festes Organisationsmodell, und wer schreiben darf, ändert meist sofort den Stand für alle. DocsOps bildet Firma, Abteilung und Team ab, ordnet Dokumente in Prozess- oder Projekt-Kontexte und trennt Mitwirken von Veröffentlichen: Autoren schlagen vor, die Leitung gibt die verbindliche Fassung frei.',
-    highlights: ['Wiki-Seiten', 'Mitwirken', 'Veröffentlichen'],
+      'Andere Programme setzen oft auf freie Spaces oder Wiki-Seiten ohne festes Organisationsmodell; wer schreiben darf, ändert meist sofort den Stand für alle. DocsOps folgt Firma, Abteilung und Team: Autoren schlagen Änderungen vor, die Leitung gibt die verbindliche Fassung frei.',
+    highlights: ['Wiki-Seiten', 'verbindliche Fassung'],
   },
   {
     question: 'Wie strukturiert DocsOps mein Wissen?',

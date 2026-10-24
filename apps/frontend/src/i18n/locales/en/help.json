@@ -239,6 +239,38 @@
           ]
         },
         {
+          "heading": "The admin area",
+          "paragraphs": [
+            "The admin area organises administration into four groups. Each group bundles related instance-administration tasks."
+          ],
+          "subsections": [
+            {
+              "heading": "Organisation",
+              "paragraphs": [
+                "Under Organisation, accounts and the instance structure are managed: users, teams, departments, and the company."
+              ]
+            },
+            {
+              "heading": "Operations",
+              "paragraphs": [
+                "Under Operations sit the instance’s running and scheduled work: background jobs and the scheduler. That keeps visible which work is pending or has already run."
+              ]
+            },
+            {
+              "heading": "Data",
+              "paragraphs": [
+                "Under Data sit backup and migration of the instance. That lets the instance state be preserved or moved to another environment."
+              ]
+            },
+            {
+              "heading": "Platform",
+              "paragraphs": [
+                "Under Platform sit instance-wide settings and notices: system, mail, role display names, and messages to the whole instance. These settings apply to the instance as a whole, not to individual content scopes."
+              ]
+            }
+          ]
+        },
+        {
           "heading": "Read without content writing",
           "paragraphs": [
             "The admin may read the organisation’s knowledge – contexts and documents under the company, departments, and teams. The admin does not create or edit content documents or contexts and has no personal space. Publishing and lead duties belong to user roles.",
@@ -248,7 +280,7 @@
         {
           "heading": "Who should be admin",
           "paragraphs": [
-            "The admin role belongs to whoever operates and configures the instance – not to company leadership and not to day-to-day document work. Combining platform operations and content work on one account mixes technical administration with content responsibility. That is why admin rights and a user role belong on separate accounts."
+            "The admin role belongs to whoever operates and configures the instance – not to company leadership and not to day-to-day document work. Anyone who does both keeps admin rights and a user role on separate accounts, so technical administration and content responsibility stay apart."
           ]
         }
       ]
