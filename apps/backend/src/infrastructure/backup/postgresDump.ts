@@ -22,7 +22,18 @@ function execErrorText(error: unknown): string {
 }
 
 /**
- * Map pg_dump failures to stable codes. Never surface argv / DATABASE_URL (credentials).
+ * Safe version pair from pg_dump stderr (no argv / connection string).
+ * Example: "server version: 18.4; pg_dump version: 15.19"
+ */
+export function extractPgDumpVersionDetail(text: string): string | null {
+  const match = text.match(/server version:\s*([\d.]+)\s*;\s*pg_dump version:\s*([\d.]+)/i);
+  if (!match) return null;
+  return `server version: ${match[1]}; pg_dump version: ${match[2]}`;
+}
+
+/**
+ * Map pg_dump failures to stable codes (+ optional safe detail line).
+ * Never surface argv / DATABASE_URL (credentials).
  */
 export function wrapPgDumpError(error: unknown): Error {
   if (
@@ -35,7 +46,11 @@ export function wrapPgDumpError(error: unknown): Error {
   }
   const text = execErrorText(error);
   if (/server version mismatch|pg_dump version/i.test(text)) {
-    return new Error(BACKUP_PG_DUMP_VERSION_MISMATCH, { cause: error });
+    const detail = extractPgDumpVersionDetail(text);
+    const message = detail
+      ? `${BACKUP_PG_DUMP_VERSION_MISMATCH}\n${detail}`
+      : BACKUP_PG_DUMP_VERSION_MISMATCH;
+    return new Error(message, { cause: error });
   }
   return new Error(BACKUP_PG_DUMP_FAILED, { cause: error });
 }

@@ -475,6 +475,8 @@
     },
     "errors": {
       "BACKUP_PG_DUMP_VERSION_MISMATCH": "The backup tool does not match the database version. Rebuild the worker image with a matching PostgreSQL client.",
+      "BACKUP_PG_DUMP_VERSION_MISMATCH_DETAIL": "Database (server): {{serverVersion}}. Backup tool (pg_dump): {{pgDumpVersion}}. pg_dump must be at least the server major version.",
+      "BACKUP_PG_DUMP_VERSION_MISMATCH_HINT": "pg_dump must be at least the database major version. Rebuild the worker image with a matching PostgreSQL client and run the backup again.",
       "BACKUP_PG_DUMP_NOT_FOUND": "Backup tool (pg_dump) is missing on the worker. Rebuild the image or set PG_DUMP_BIN.",
       "BACKUP_PG_DUMP_FAILED": "Database backup failed. See worker logs for details."
     }

@@ -475,6 +475,8 @@
     },
     "errors": {
       "BACKUP_PG_DUMP_VERSION_MISMATCH": "Das Backup-Werkzeug passt nicht zur Datenbankversion. Worker-Image mit passendem PostgreSQL-Client neu bauen.",
+      "BACKUP_PG_DUMP_VERSION_MISMATCH_DETAIL": "Datenbank (Server): {{serverVersion}}. Backup-Werkzeug (pg_dump): {{pgDumpVersion}}. pg_dump muss mindestens die Major-Version des Servers haben.",
+      "BACKUP_PG_DUMP_VERSION_MISMATCH_HINT": "pg_dump muss mindestens die Major-Version der Datenbank haben. Worker-Image mit passendem PostgreSQL-Client neu bauen und den Lauf erneut starten.",
       "BACKUP_PG_DUMP_NOT_FOUND": "Backup-Werkzeug (pg_dump) fehlt im Worker. Image neu bauen oder PG_DUMP_BIN setzen.",
       "BACKUP_PG_DUMP_FAILED": "Datenbank-Backup ist fehlgeschlagen. Details stehen in den Worker-Logs."
     }

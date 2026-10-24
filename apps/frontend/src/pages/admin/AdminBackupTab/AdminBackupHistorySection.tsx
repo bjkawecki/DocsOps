@@ -137,7 +137,7 @@ export function AdminBackupHistorySection({
                               size="sm"
                               style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                             >
-                              {formatBackupErrorMessage(run.errorMessage, t)}
+                              {formatBackupErrorMessage(run.errorMessage, t, { detailed: true })}
                             </Text>
                           </Popover.Dropdown>
                         </Popover>

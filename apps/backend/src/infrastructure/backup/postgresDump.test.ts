@@ -3,6 +3,7 @@ import {
   BACKUP_PG_DUMP_FAILED,
   BACKUP_PG_DUMP_NOT_FOUND,
   BACKUP_PG_DUMP_VERSION_MISMATCH,
+  extractPgDumpVersionDetail,
   wrapPgDumpError,
 } from './postgresDump.js';
 
@@ -12,7 +13,7 @@ describe('wrapPgDumpError', () => {
     expect(wrapPgDumpError(err).message).toBe(BACKUP_PG_DUMP_NOT_FOUND);
   });
 
-  it('maps version mismatch without leaking command argv', () => {
+  it('maps version mismatch with safe version detail, without leaking argv', () => {
     const err = Object.assign(
       new Error('Command failed: pg_dump --dbname postgresql://app:secret@postgres:5432/docsops'),
       {
@@ -21,7 +22,9 @@ describe('wrapPgDumpError', () => {
       }
     );
     const wrapped = wrapPgDumpError(err);
-    expect(wrapped.message).toBe(BACKUP_PG_DUMP_VERSION_MISMATCH);
+    expect(wrapped.message).toBe(
+      `${BACKUP_PG_DUMP_VERSION_MISMATCH}\nserver version: 18.4; pg_dump version: 15.19`
+    );
     expect(wrapped.message).not.toMatch(/secret|postgresql:\/\//);
   });
 
@@ -30,5 +33,17 @@ describe('wrapPgDumpError', () => {
       stderr: 'pg_dump: error: connection refused',
     });
     expect(wrapPgDumpError(err).message).toBe(BACKUP_PG_DUMP_FAILED);
+  });
+});
+
+describe('extractPgDumpVersionDetail', () => {
+  it('extracts server and pg_dump versions', () => {
+    expect(
+      extractPgDumpVersionDetail('pg_dump: detail: server version: 18.4; pg_dump version: 15.19')
+    ).toBe('server version: 18.4; pg_dump version: 15.19');
+  });
+
+  it('returns null when versions are missing', () => {
+    expect(extractPgDumpVersionDetail('connection refused')).toBeNull();
   });
 });
