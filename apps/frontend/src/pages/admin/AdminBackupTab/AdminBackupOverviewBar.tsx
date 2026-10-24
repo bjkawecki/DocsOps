@@ -52,6 +52,18 @@ export function AdminBackupOverviewBar({
           ? t('backup.overview.workerOk')
           : t('backup.overview.workerDisconnected')}
       </Badge>
+      {status.pgDumpCompatible === false ? (
+        <Tooltip
+          label={t('backup.overview.pgDumpMismatchTooltip', {
+            postgresVersion: status.postgresVersion ?? '–',
+            pgDumpVersion: status.pgDumpVersion ?? '–',
+          })}
+        >
+          <Badge color="red" variant="filled">
+            {t('backup.overview.pgDumpMismatch')}
+          </Badge>
+        </Tooltip>
+      ) : null}
 
       <Tooltip label={t('backup.overview.retentionTooltip')}>
         <NumberInput

@@ -13,6 +13,9 @@ export type BackupStatus = {
   defaultDestinationId: string | null;
   autoBackupConfigured: boolean;
   schedule: { enabled: boolean; cron: string | null; tz: string | null };
+  postgresVersion?: string | null;
+  pgDumpVersion?: string | null;
+  pgDumpCompatible?: boolean | null;
 };
 
 export type CredentialFieldLengths = {

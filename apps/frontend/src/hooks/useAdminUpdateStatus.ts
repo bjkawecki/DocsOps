@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import type {
   AdminSystemCheckUpdatesResponse,
+  AdminSystemRuntime,
   AdminSystemSettings,
   AdminSystemUpdateStatus,
   AdminUpdateRun,
@@ -12,6 +13,7 @@ import { appVersionQueryKey } from './useAppVersion.js';
 import { publicConfigQueryKey } from './usePublicConfig.js';
 
 export const adminUpdateStatusQueryKey = ['admin', 'system', 'update-status'] as const;
+export const adminSystemRuntimeQueryKey = ['admin', 'system', 'runtime'] as const;
 export const adminSystemSettingsQueryKey = ['admin', 'system', 'settings'] as const;
 
 async function fetchAdminUpdateStatus(): Promise<AdminSystemUpdateStatus> {
@@ -20,6 +22,14 @@ async function fetchAdminUpdateStatus(): Promise<AdminSystemUpdateStatus> {
     throw new Error('Could not load update status');
   }
   return res.json() as Promise<AdminSystemUpdateStatus>;
+}
+
+async function fetchAdminSystemRuntime(): Promise<AdminSystemRuntime> {
+  const res = await apiFetch('/api/v1/admin/system/runtime');
+  if (!res.ok) {
+    throw new Error('Could not load system runtime');
+  }
+  return res.json() as Promise<AdminSystemRuntime>;
 }
 
 async function fetchAdminSystemSettings(): Promise<AdminSystemSettings> {
@@ -90,6 +100,16 @@ export function useAdminUpdateStatus(options?: { enabled?: boolean }) {
     enabled: options?.enabled !== false,
     staleTime: 5_000,
     refetchInterval: (query) => (query.state.data?.activeUpdateRun != null ? 3000 : false),
+  });
+}
+
+export function useAdminSystemRuntime(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: adminSystemRuntimeQueryKey,
+    queryFn: fetchAdminSystemRuntime,
+    enabled: options?.enabled !== false,
+    staleTime: 10_000,
+    refetchInterval: 30_000,
   });
 }
 

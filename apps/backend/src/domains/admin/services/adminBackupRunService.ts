@@ -18,6 +18,8 @@ import { isMinioAvailableForBackup } from './operationalBackupService.js';
 import { getEffectiveRetentionCount } from '../../../infrastructure/backup/retention.js';
 import { enqueueJob } from '../../../infrastructure/jobs/client.js';
 import { isBackupEncryptionConfigured } from '../../../infrastructure/crypto/secretBox.js';
+import { isPgDumpCompatibleWithServer } from '../../../infrastructure/backup/pgDumpVersion.js';
+import { readPostgresServerVersion, readWorkerPgDumpVersion } from './adminSystemRuntimeService.js';
 import {
   isSupersededFailedMaintenanceRun,
   purgeSupersededFailedMaintenanceRuns,
@@ -47,13 +49,24 @@ function serializeBackupRun(run: {
 }
 
 export async function getBackupStatus(prisma: PrismaClient) {
-  const [minioAvailable, health, maintenance, lock, settings, retentionCount] = await Promise.all([
+  const [
+    minioAvailable,
+    health,
+    maintenance,
+    lock,
+    settings,
+    retentionCount,
+    postgresVersion,
+    pgDumpVersionRaw,
+  ] = await Promise.all([
     isMinioAvailableForBackup(),
     getAdminJobsHealth(prisma),
     getPublicMaintenanceStatus(prisma),
     getMaintenanceLock(prisma),
     getBackupSettings(prisma),
     getEffectiveRetentionCount(prisma),
+    readPostgresServerVersion(prisma),
+    readWorkerPgDumpVersion(prisma),
   ]);
 
   let schedule: { enabled: boolean; cron: string | null; tz: string | null } = {
@@ -77,6 +90,8 @@ export async function getBackupStatus(prisma: PrismaClient) {
     // queue unavailable
   }
 
+  const pgDumpVersion = health.workerConnected ? pgDumpVersionRaw : null;
+
   return {
     minioAvailable,
     workerConnected: health.workerConnected,
@@ -89,6 +104,9 @@ export async function getBackupStatus(prisma: PrismaClient) {
     defaultDestinationId: settings.defaultDestinationId,
     autoBackupConfigured: settings.autoBackupConfigured,
     schedule,
+    postgresVersion,
+    pgDumpVersion,
+    pgDumpCompatible: isPgDumpCompatibleWithServer(postgresVersion, pgDumpVersion),
   };
 }
 

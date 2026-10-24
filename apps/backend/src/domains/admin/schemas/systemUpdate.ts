@@ -71,3 +71,14 @@ export type AdminSystemMailTestBody = z.infer<typeof adminSystemMailTestBodySche
 export const adminSystemMailTestResponseSchema = z.object({
   ok: z.literal(true),
 });
+
+export const adminSystemRuntimeSchema = z.object({
+  installedVersion: z.string().min(1),
+  postgresVersion: z.string().nullable(),
+  pgDumpVersion: z.string().nullable(),
+  pgDumpCompatible: z.boolean().nullable(),
+  workerConnected: z.boolean(),
+  minioAvailable: z.boolean(),
+});
+
+export type AdminSystemRuntime = z.infer<typeof adminSystemRuntimeSchema>;

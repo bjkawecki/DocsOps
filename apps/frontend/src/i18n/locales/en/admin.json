@@ -236,6 +236,8 @@
       "minioUnavailable": "MinIO unavailable",
       "workerOk": "Job worker OK",
       "workerDisconnected": "Job worker disconnected",
+      "pgDumpMismatch": "pg_dump does not match DB",
+      "pgDumpMismatchTooltip": "Database {{postgresVersion}}, pg_dump {{pgDumpVersion}}. Rebuild the worker image with a matching PostgreSQL client.",
       "retentionTooltip": "Successful backups to keep",
       "retentionLabel": "Retention",
       "defaultDestinationLabel": "Default external destination",
@@ -1059,9 +1061,21 @@
       "githubRelease": "GitHub release"
     },
     "versionTable": {
+      "component": "Component",
+      "value": "Value",
+      "docsops": "DocsOps",
       "installed": "Installed",
       "latestRelease": "Latest release",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "postgres": "PostgreSQL",
+      "pgDump": "pg_dump (worker)",
+      "pgDumpMismatch": "Does not match DB",
+      "worker": "Job worker",
+      "workerConnected": "Connected",
+      "workerDisconnected": "Disconnected",
+      "minio": "MinIO",
+      "minioAvailable": "Available",
+      "minioUnavailable": "Unavailable"
     },
     "statusAlerts": {
       "updateFailedTitle": "Update failed",

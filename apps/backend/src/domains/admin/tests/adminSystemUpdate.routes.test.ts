@@ -108,6 +108,31 @@ describe('Admin system update routes', () => {
     return getCookieHeader(res);
   }
 
+  it('GET /admin/system/runtime returns environment fields for admin', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/admin/system/runtime',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as {
+      installedVersion: string;
+      postgresVersion: string | null;
+      pgDumpVersion: string | null;
+      pgDumpCompatible: boolean | null;
+      workerConnected: boolean;
+      minioAvailable: boolean;
+    };
+    expect(typeof body.installedVersion).toBe('string');
+    expect(body.installedVersion.length).toBeGreaterThan(0);
+    expect(typeof body.workerConnected).toBe('boolean');
+    expect(typeof body.minioAvailable).toBe('boolean');
+    expect(body.postgresVersion === null || typeof body.postgresVersion === 'string').toBe(true);
+    expect(body.pgDumpVersion === null || typeof body.pgDumpVersion === 'string').toBe(true);
+    expect(body.pgDumpCompatible === null || typeof body.pgDumpCompatible === 'boolean').toBe(true);
+  });
+
   it('GET /admin/system/update-status returns 401 without session', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/system/update-status' });
     expect(res.statusCode).toBe(401);

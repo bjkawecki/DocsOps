@@ -236,6 +236,8 @@
       "minioUnavailable": "MinIO nicht verfügbar",
       "workerOk": "Job-Worker OK",
       "workerDisconnected": "Job-Worker nicht verbunden",
+      "pgDumpMismatch": "pg_dump passt nicht zur DB",
+      "pgDumpMismatchTooltip": "Datenbank {{postgresVersion}}, pg_dump {{pgDumpVersion}}. Worker-Image mit passendem PostgreSQL-Client neu bauen.",
       "retentionTooltip": "Anzahl aufzubewahrender erfolgreicher Backups",
       "retentionLabel": "Aufbewahrung",
       "defaultDestinationLabel": "Standard-externes Ziel",
@@ -1059,9 +1061,21 @@
       "githubRelease": "GitHub-Release"
     },
     "versionTable": {
+      "component": "Komponente",
+      "value": "Wert",
+      "docsops": "DocsOps",
       "installed": "Installiert",
       "latestRelease": "Neuestes Release",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "postgres": "PostgreSQL",
+      "pgDump": "pg_dump (Worker)",
+      "pgDumpMismatch": "Passt nicht zur DB",
+      "worker": "Job-Worker",
+      "workerConnected": "Verbunden",
+      "workerDisconnected": "Nicht verbunden",
+      "minio": "MinIO",
+      "minioAvailable": "Verfügbar",
+      "minioUnavailable": "Nicht verfügbar"
     },
     "statusAlerts": {
       "updateFailedTitle": "Update fehlgeschlagen",

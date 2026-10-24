@@ -11,6 +11,7 @@ export type {
 
 export type {
   AdminSystemCheckUpdatesResponse,
+  AdminSystemRuntime,
   AdminSystemSettings,
   AdminSystemUpdateStatus,
   PatchAdminSystemSettingsBody,

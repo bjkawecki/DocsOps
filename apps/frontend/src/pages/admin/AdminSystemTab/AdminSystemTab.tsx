@@ -9,6 +9,7 @@ import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConst
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import {
+  useAdminSystemRuntime,
   useAdminSystemSettings,
   useCheckForUpdates,
   useAdminUpdateStatus,
@@ -25,6 +26,7 @@ export function AdminSystemTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const statusQuery = useAdminUpdateStatus();
+  const runtimeQuery = useAdminSystemRuntime();
   const settingsQuery = useAdminSystemSettings();
   const checkMutation = useCheckForUpdates();
   const patchSettingsMutation = usePatchAdminSystemSettings();
@@ -172,7 +174,7 @@ export function AdminSystemTab() {
             settingsSaving={patchSettingsMutation.isPending}
             onToggleChecks={(enabled) => void handleToggleChecks(enabled)}
           />
-          <AdminSystemVersionTable status={status} />
+          <AdminSystemVersionTable status={status} runtime={runtimeQuery.data} />
           <AdminSystemUpcomingReleasePreview status={status} />
         </>
       ) : null}

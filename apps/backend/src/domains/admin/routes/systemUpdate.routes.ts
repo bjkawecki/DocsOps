@@ -10,6 +10,7 @@ import {
   adminSystemCheckUpdatesResponseSchema,
   adminSystemMailTestBodySchema,
   adminSystemMailTestResponseSchema,
+  adminSystemRuntimeSchema,
   adminSystemSettingsSchema,
   adminSystemUpdateStatusSchema,
   patchAdminSystemSettingsBodySchema,
@@ -21,6 +22,7 @@ import {
   SmtpSettingsValidationError,
   updateSystemSettings,
 } from '../services/adminSystemSettingsService.js';
+import { getAdminSystemRuntime } from '../services/adminSystemRuntimeService.js';
 import {
   checkAdminSystemUpdatesAndNotify,
   getAdminSystemUpdateStatus,
@@ -51,6 +53,11 @@ const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   app.get('/admin/system/update-status', { preHandler: preAdmin }, async (request, reply) => {
     const status = await getAdminSystemUpdateStatus(request.server.prisma);
     return reply.send(adminSystemUpdateStatusSchema.parse(status));
+  });
+
+  app.get('/admin/system/runtime', { preHandler: preAdmin }, async (request, reply) => {
+    const runtime = await getAdminSystemRuntime(request.server.prisma);
+    return reply.send(adminSystemRuntimeSchema.parse(runtime));
   });
 
   app.post(

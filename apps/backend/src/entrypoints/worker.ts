@@ -1,6 +1,7 @@
 import { createBoss } from '../infrastructure/jobs/bossFactory.js';
 import { ensureQueues, registerWorkers } from '../infrastructure/jobs/startWorker.js';
 import { prisma } from '../infrastructure/db/prisma.js';
+import { detectLocalPgDumpVersion } from '../infrastructure/backup/pgDumpVersion.js';
 import { ensureDefaultBackupDestinationFromEnv } from '../domains/admin/services/adminBackupDestinationBootstrap.js';
 import { consumeNotificationEmailOutbox } from '../domains/notifications/services/notificationEmailOutboxService.js';
 
@@ -36,6 +37,7 @@ const NOTIFICATION_EMAIL_CONSUMER_BATCH_SIZE = Math.max(
 const WORKER_INSTANCE_ID = `${process.env.HOSTNAME ?? 'worker'}-${process.pid}`;
 let heartbeatInterval: NodeJS.Timeout | null = null;
 let emailConsumerInterval: NodeJS.Timeout | null = null;
+let workerPgDumpVersion: string | null = null;
 
 async function ensureHeartbeatTable(): Promise<void> {
   await prisma.$executeRawUnsafe(`
@@ -44,19 +46,26 @@ async function ensureHeartbeatTable(): Promise<void> {
       heartbeat_at TIMESTAMPTZ NOT NULL
     )
   `);
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE worker_heartbeat
+    ADD COLUMN IF NOT EXISTS pg_dump_version TEXT
+  `);
 }
 
 async function writeHeartbeat(): Promise<void> {
   await prisma.$executeRaw`
-    INSERT INTO worker_heartbeat (instance_id, heartbeat_at)
-    VALUES (${WORKER_INSTANCE_ID}, NOW())
+    INSERT INTO worker_heartbeat (instance_id, heartbeat_at, pg_dump_version)
+    VALUES (${WORKER_INSTANCE_ID}, NOW(), ${workerPgDumpVersion})
     ON CONFLICT (instance_id)
-    DO UPDATE SET heartbeat_at = EXCLUDED.heartbeat_at
+    DO UPDATE SET
+      heartbeat_at = EXCLUDED.heartbeat_at,
+      pg_dump_version = EXCLUDED.pg_dump_version
   `;
 }
 
 async function startHeartbeatLoop(): Promise<void> {
   await ensureHeartbeatTable();
+  workerPgDumpVersion = await detectLocalPgDumpVersion();
   await writeHeartbeat();
   heartbeatInterval = setInterval(() => {
     void writeHeartbeat().catch((error: unknown) => {
