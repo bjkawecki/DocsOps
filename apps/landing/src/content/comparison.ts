@@ -50,7 +50,7 @@ export const comparisonRows: ComparisonRow[] = [
     confluence: 'yes',
   },
   {
-    label: 'Vom Editor besser nicht anfangen',
+    label: 'Vom Editor will ich gar nicht erst anfangen',
     docsops: 'no',
     confluence: 'yes',
   },
