@@ -26,7 +26,7 @@ export function ComparisonSymbol({ value, note }: ComparisonSymbolProps) {
     );
 
   return (
-    <Box aria-label={label} title={label} style={{ display: 'inline-flex', alignItems: 'center' }}>
+    <Box aria-label={label} style={{ display: 'inline-flex', alignItems: 'center' }}>
       {icon}
       {note ? (
         <Text component="span" size="sm" c="dimmed" ml={6}>

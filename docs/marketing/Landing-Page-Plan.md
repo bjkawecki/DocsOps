@@ -69,14 +69,18 @@
 
 ## 4. Navbar & Footer
 
-**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** · **Projekt** ▾ · **Live-Demo**
+**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** ▾ · GitHub · Changelog · Unterstützen · **Live-Demo**
 
 - So funktioniert’s: `#scope`, `#kontext`, `#rollen`, `#einordnen`
-- Projekt: GitHub ↗, Changelog, Sponsor us., Install-Doku ↗
+- Philosophie: Unser Ansatz (`/philosophie`), DocsOps vs. Confluence (`/vergleich`)
 
 **Navbar (Mobile):** Burger/Drawer mit gleichen Links + Demo-CTA.
 
-**Footer:** Produkt · So funktioniert’s · Projekt · Rechtliches · `vX.Y.Z` → Changelog
+**Footer:** Produkt · **DocsOps vs.** · Projekt · Rechtliches · `vX.Y.Z` → Changelog
+
+- Produkt: So funktioniert’s (`/#scope`), Unser Ansatz, Installation, Live-Demo
+- DocsOps vs.: Confluence (später weitere Gegner); Eintrag nur Opponent-Name
+- Projekt: GitHub, Changelog, Unterstützen, Autor-Link
 
 Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
@@ -84,7 +88,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ## 5. Vergleich & FAQ
 
-- **`/vergleich`:** Hauptort der Gegenüberstellung (Confluence/Docmost-Tabelle); in Navbar/Footer unter Projekt bzw. Produkt.
+- **`/vergleich`:** Hauptort der Gegenüberstellung; Navbar unter Philosophie ▾; Footer-Spalte **DocsOps vs.**
 - Startseite: kein großes Vergleichs-Grid; FAQ verweist auf `/vergleich`.
 - Abgrenzung Haltung: `/philosophie`. Tabellendaten: [vergleich/](./vergleich/).
 - FAQ auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).

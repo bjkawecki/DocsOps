@@ -1,4 +1,4 @@
-import { Box, Stack, Table, Text, Title, Tooltip } from '@mantine/core';
+import { Box, Table, Text, Title } from '@mantine/core';
 import { ComparisonSymbol } from '../ComparisonSymbol';
 import { comparisonRows } from '../../content/comparison';
 import { comparisonCopy } from '../../content/siteCopy';
@@ -21,63 +21,37 @@ export function ComparisonSection({ showTitle = true }: Props) {
         </Title>
       ) : null}
 
-      <Text c="dimmed" size="md" maw={720} mb="lg">
-        {comparisonCopy.subline}
-      </Text>
-
       <Box style={{ overflowX: 'auto' }}>
         <Table className="landing-comparison-table" layout="fixed">
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w="44%">{comparisonCopy.columnCriterion}</Table.Th>
-              <Table.Th w="18%">DocsOps</Table.Th>
-              <Table.Th w="19%">Confluence</Table.Th>
-              <Table.Th w="19%">Docmost</Table.Th>
+              <Table.Th w="50%">{comparisonCopy.columnCriterion}</Table.Th>
+              <Table.Th w="25%">DocsOps</Table.Th>
+              <Table.Th w="25%">Confluence</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {comparisonRows.map((row) => {
-              const label = (
-                <Box>
-                  <Text className="landing-comparison-feature">{row.label}</Text>
-                  {row.detail ? (
-                    <Text className="landing-comparison-detail">{row.detail}</Text>
-                  ) : null}
-                </Box>
-              );
-
-              return (
-                <Table.Tr key={row.label}>
-                  <Table.Td>
-                    {row.tooltip ? (
-                      <Tooltip label={row.tooltip} multiline w={280} withArrow>
-                        <Box>{label}</Box>
-                      </Tooltip>
-                    ) : (
-                      label
-                    )}
-                  </Table.Td>
-                  <Table.Td>
-                    <ComparisonCell value={row.docsops} note={row.docsopsNote} />
-                  </Table.Td>
-                  <Table.Td>
-                    <ComparisonCell value={row.confluence} note={row.confluenceNote} />
-                  </Table.Td>
-                  <Table.Td>
-                    <ComparisonCell value={row.docmost} />
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
+            {comparisonRows.map((row) => (
+              <Table.Tr key={row.label}>
+                <Table.Td>
+                  <Box>
+                    <Text className="landing-comparison-feature">{row.label}</Text>
+                    {row.detail ? (
+                      <Text className="landing-comparison-detail">{row.detail}</Text>
+                    ) : null}
+                  </Box>
+                </Table.Td>
+                <Table.Td>
+                  <ComparisonCell value={row.docsops} note={row.docsopsNote} />
+                </Table.Td>
+                <Table.Td>
+                  <ComparisonCell value={row.confluence} note={row.confluenceNote} />
+                </Table.Td>
+              </Table.Tr>
+            ))}
           </Table.Tbody>
         </Table>
       </Box>
-
-      <Stack gap="sm" mt="lg">
-        <Text size="sm" c="dimmed">
-          {comparisonCopy.footnote}
-        </Text>
-      </Stack>
     </Box>
   );
 }

@@ -5,8 +5,8 @@ import { LandingExternalLink } from '../LandingExternalLink';
 import { getAppVersion, getDemoUrl, resolveProjectNavHref } from '../../config/env';
 import {
   authorSiteLink,
+  docsopsVsFooterLinks,
   footerCopy,
-  modellNavLinks,
   projectNavLinks,
 } from '../../content/siteCopy';
 
@@ -51,9 +51,9 @@ export function Footer() {
               <Text fw={600} className="landing-footer-heading">
                 {footerCopy.productTitle}
               </Text>
-              <FooterLink href="/philosophie">{footerCopy.links.philosophie}</FooterLink>
+              <FooterAnchor href="/#scope">{footerCopy.links.howItWorks}</FooterAnchor>
+              <FooterLink href="/philosophie">{footerCopy.links.ourApproach}</FooterLink>
               <FooterLink href="/install">{footerCopy.links.installation}</FooterLink>
-              <FooterLink href="/sponsor">{footerCopy.links.sponsor}</FooterLink>
               <LandingExternalLink href={demoUrl} className="landing-footer-link" underline="never">
                 {footerCopy.links.demo}
               </LandingExternalLink>
@@ -61,12 +61,12 @@ export function Footer() {
 
             <Stack gap="xs">
               <Text fw={600} className="landing-footer-heading">
-                {footerCopy.modellTitle}
+                {footerCopy.docsopsVsTitle}
               </Text>
-              {modellNavLinks.map((link) => (
-                <FooterAnchor key={link.href} href={link.href}>
+              {docsopsVsFooterLinks.map((link) => (
+                <FooterLink key={link.href} href={link.href}>
                   {link.label}
-                </FooterAnchor>
+                </FooterLink>
               ))}
             </Stack>
 
@@ -74,28 +74,26 @@ export function Footer() {
               <Text fw={600} className="landing-footer-heading">
                 {footerCopy.projectTitle}
               </Text>
-              {projectNavLinks
-                .filter((link) => link.href !== '/sponsor')
-                .map((link) => {
-                  const resolved = resolveProjectNavHref(link.href);
-                  if (resolved.external) {
-                    return (
-                      <LandingExternalLink
-                        key={link.label}
-                        href={resolved.url}
-                        className="landing-footer-link"
-                        underline="never"
-                      >
-                        {link.label}
-                      </LandingExternalLink>
-                    );
-                  }
+              {projectNavLinks.map((link) => {
+                const resolved = resolveProjectNavHref(link.href);
+                if (resolved.external) {
                   return (
-                    <FooterLink key={link.label} href={resolved.url}>
+                    <LandingExternalLink
+                      key={link.label}
+                      href={resolved.url}
+                      className="landing-footer-link"
+                      underline="never"
+                    >
                       {link.label}
-                    </FooterLink>
+                    </LandingExternalLink>
                   );
-                })}
+                }
+                return (
+                  <FooterLink key={link.label} href={resolved.url}>
+                    {link.label}
+                  </FooterLink>
+                );
+              })}
               <LandingExternalLink
                 href={authorSiteLink.href}
                 className="landing-footer-link"

@@ -950,6 +950,16 @@
   backdrop-filter: blur(8px);
 }
 
+.landing-navbar button.landing-nav-link--menu {
+  cursor: pointer;
+  background: none;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  font: inherit;
+  line-height: inherit;
+}
+
 .landing-navbar a.landing-nav-link,
 .landing-navbar .landing-nav-link {
   position: relative;
@@ -962,24 +972,38 @@
   border-bottom: 2px solid transparent;
 }
 
+.landing-navbar .landing-nav-chevron {
+  flex-shrink: 0;
+  transition: transform 140ms ease;
+}
+
+.landing-navbar .landing-nav-link--menu:hover .landing-nav-chevron,
+.landing-navbar .landing-nav-link--menu[data-expanded] .landing-nav-chevron,
+.landing-navbar .landing-nav-link--menu[aria-expanded='true'] .landing-nav-chevron {
+  transform: rotate(180deg);
+}
+
 .landing-navbar a.landing-nav-link:hover,
-.landing-navbar .landing-nav-link:hover {
+.landing-navbar .landing-nav-link:hover,
+.landing-navbar .landing-nav-link--menu:hover,
+.landing-navbar .landing-nav-link--menu[data-expanded],
+.landing-navbar .landing-nav-link--menu[aria-expanded='true'] {
   color: var(--mantine-color-gray-0);
   border-bottom-color: color-mix(in srgb, var(--mantine-color-blue-4) 55%, transparent);
 }
 
 .landing-navbar a.landing-nav-link--active,
 .landing-navbar .landing-nav-link--active,
-.landing-navbar a.landing-nav-link[aria-current='page'] {
+.landing-navbar a.landing-nav-link[aria-current='page'],
+.landing-navbar a.landing-nav-link--active:hover,
+.landing-navbar .landing-nav-link--active:hover,
+.landing-navbar a.landing-nav-link[aria-current='page']:hover,
+.landing-navbar .landing-nav-link--menu.landing-nav-link--active:hover,
+.landing-navbar .landing-nav-link--menu.landing-nav-link--active[data-expanded],
+.landing-navbar .landing-nav-link--menu.landing-nav-link--active[aria-expanded='true'] {
   color: var(--mantine-color-white);
   font-weight: 600;
   border-bottom-color: var(--mantine-color-blue-4);
-}
-
-.landing-navbar a.landing-nav-link--active:hover,
-.landing-navbar .landing-nav-link--active:hover {
-  color: var(--mantine-color-white);
-  border-bottom-color: var(--mantine-color-blue-3);
 }
 
 .landing-nav-link {

@@ -9,21 +9,65 @@ import {
   Menu,
   Stack,
   Text,
+  UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { IconChevronDown } from '@tabler/icons-react';
+import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getDemoUrl, resolveProjectNavHref } from '../../config/env';
-import { modellNavLinks, navbarCopy, projectNavLinks } from '../../content/siteCopy';
+import {
+  modellNavLinks,
+  navbarCopy,
+  philosophieNavLinks,
+  projectNavLinks,
+} from '../../content/siteCopy';
 import { LandingExternalButton, LandingExternalLink } from '../LandingExternalLink';
 import { LandingNavAnchor, LandingNavLink } from '../LandingNavLink';
 
 const navbarProjectLinks = projectNavLinks;
+
+type NavMenuTriggerProps = {
+  label: string;
+  active: boolean;
+  menuLabel: string;
+} & ComponentPropsWithoutRef<'button'>;
+
+const NavMenuTrigger = forwardRef<HTMLButtonElement, NavMenuTriggerProps>(function NavMenuTrigger(
+  { label, active, menuLabel, className, ...others },
+  ref
+) {
+  return (
+    <UnstyledButton
+      ref={ref}
+      type="button"
+      className={[
+        'landing-nav-link',
+        'landing-nav-link--menu',
+        active ? 'landing-nav-link--active' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      aria-haspopup="menu"
+      aria-label={menuLabel}
+      {...others}
+    >
+      <Group gap={4} wrap="nowrap" align="center">
+        <span>{label}</span>
+        <IconChevronDown className="landing-nav-chevron" size={14} stroke={2} aria-hidden />
+      </Group>
+    </UnstyledButton>
+  );
+});
 
 export function Navbar() {
   const demoUrl = getDemoUrl();
   const location = useLocation();
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
   const isHome = location.pathname === '/';
+  const philosophieActive =
+    location.pathname === '/philosophie' || location.pathname === '/vergleich';
 
   return (
     <>
@@ -50,14 +94,11 @@ export function Navbar() {
             <Group gap="lg" visibleFrom="sm" wrap="nowrap">
               <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
                 <Menu.Target>
-                  <Anchor
-                    href="/#scope"
-                    className={`landing-nav-link${isHome ? ' landing-nav-link--active' : ''}`}
-                    aria-current={isHome ? 'page' : undefined}
-                    underline="never"
-                  >
-                    {navbarCopy.modell}
-                  </Anchor>
+                  <NavMenuTrigger
+                    label={navbarCopy.modell}
+                    active={isHome}
+                    menuLabel={`${navbarCopy.modell} öffnen`}
+                  />
                 </Menu.Target>
                 <Menu.Dropdown>
                   {modellNavLinks.map((link) => (
@@ -67,7 +108,24 @@ export function Navbar() {
                   ))}
                 </Menu.Dropdown>
               </Menu>
-              <LandingNavLink to="/philosophie">{navbarCopy.philosophie}</LandingNavLink>
+
+              <Menu trigger="hover" openDelay={80} closeDelay={120} withinPortal>
+                <Menu.Target>
+                  <NavMenuTrigger
+                    label={navbarCopy.philosophie}
+                    active={philosophieActive}
+                    menuLabel={`${navbarCopy.philosophie} öffnen`}
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {philosophieNavLinks.map((link) => (
+                    <Menu.Item key={link.href} component={Link} to={link.href}>
+                      {link.label}
+                    </Menu.Item>
+                  ))}
+                </Menu.Dropdown>
+              </Menu>
+
               {navbarProjectLinks.map((link) => {
                 const resolved = resolveProjectNavHref(link.href);
                 if (resolved.external) {
@@ -111,9 +169,14 @@ export function Navbar() {
               {link.label}
             </LandingNavAnchor>
           ))}
-          <LandingNavLink to="/philosophie" onClick={closeDrawer}>
+          <Text fw={600} size="sm" c="gray.5" tt="uppercase" mt="xs">
             {navbarCopy.philosophie}
-          </LandingNavLink>
+          </Text>
+          {philosophieNavLinks.map((link) => (
+            <LandingNavLink key={link.href} to={link.href} onClick={closeDrawer}>
+              {link.label}
+            </LandingNavLink>
+          ))}
           {navbarProjectLinks.map((link) => {
             const resolved = resolveProjectNavHref(link.href);
             if (resolved.external) {

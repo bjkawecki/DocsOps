@@ -172,11 +172,7 @@ export const featuresSectionCopy = {
 /** Tabelle auf `/vergleich` – `ComparisonSection` */
 export const comparisonCopy = {
   title: 'Struktur und Kontrolle',
-  subline:
-    'DocsOps im Vergleich zu Confluence und Docmost. Weniger leere Wiki-Fläche, mehr Leitplanken für Organisation und Verbindlichkeit.',
-  columnCriterion: 'Kriterium',
-  footnote:
-    'Markenzeichen der genannten Produkte gehören den jeweiligen Anbietern. Angaben ohne Gewähr.',
+  columnCriterion: 'Feature',
 } as const;
 
 /** FAQ on home – `FaqSection` */
@@ -283,38 +279,13 @@ export const sponsorCopy = {
 } as const;
 
 export const vergleichHubCopy = {
-  title: 'DocsOps im Vergleich',
+  title: 'DocsOps vs. Confluence',
   metaDescription:
-    'DocsOps und Confluence: Org-Modell, Verbindlichkeit, Self-hosting. Kurze Gegenüberstellung ohne Feature-Schlacht.',
+    'DocsOps und Confluence: Organisation im Produkt, freigegebene Fassung, Self-hosting.',
   intro: [
-    'Viele Teams kennen Confluence aus dem Alltag: Spaces wachsen, Seiten stapeln sich, und neue Kolleginnen und Kollegen finden sich erst nach Wochen zurecht.',
-    'DocsOps setzt auf Firma, Abteilung und Team sowie auf eine freigegebene Fassung. Die Tabelle fasst den Kontrast zusammen. Darunter stehen typische Reibungspunkte und wie DocsOps darauf antwortet.',
+    'In Confluence entstehen schnell viele Spaces und Seiten. Was gilt und wer dafür verantwortlich ist, muss die Organisation oft selbst erfinden.',
+    'DocsOps ordnet Dokumentation entlang von Firma, Abteilung und Team. Autoren arbeiten am Entwurf; die Leitung veröffentlicht die Fassung, auf die sich andere stützen. Self-hosted bleibt der Betrieb bei Ihnen.',
   ],
-  whyTitle: 'Typische Reibungspunkte',
-  whyPoints: [
-    {
-      title: 'Veraltete Seiten und Duplikate',
-      body: 'Wenn jede Änderung sofort für alle gilt, entstehen schnell parallele Wahrheiten. In DocsOps bleiben Entwurf und freigegebene Fassung getrennt; die Leitung setzt den verbindlichen Stand.',
-    },
-    {
-      title: 'Spaces ohne Organisationsmodell',
-      body: 'Ohne festes Informationsmodell wird die Fläche schnell unübersichtlich. DocsOps verankert Firma, Abteilung, Team und Kontexte im Produkt.',
-    },
-    {
-      title: 'Einstieg für neue Mitarbeitende',
-      body: 'Verschachtelte Spaces und Seitenbäume kosten Orientierung. Die Org-Hierarchie gibt einen klaren Einstieg in Bereiche und Zuständigkeiten.',
-    },
-    {
-      title: 'Cloud, Kosten und sensible Inhalte',
-      body: 'DocsOps ist Open Source und für Self-hosting gedacht. Betrieb und Daten bleiben bei Ihnen. Rechte lassen sich je Dokument setzen, nicht nur auf Bereichsebene.',
-    },
-  ],
-  moreTitle: 'Weitere Vergleiche',
-  moreIntro:
-    'Weitere Head-to-head-Seiten folgen. Docmost ist in der Tabelle oben bereits mit abgebildet.',
-  comingSoon: 'Demnächst',
-  backHint: 'Zurück zur Erklärung des Modells:',
-  backLink: 'Startseite',
 } as const;
 
 export const modellNavLinks = [
@@ -324,8 +295,15 @@ export const modellNavLinks = [
   { label: 'Beispiel', href: '/#einordnen' },
 ] as const;
 
+/** Navbar Philosophie ▾ – full labels; footer “DocsOps vs.” column uses short opponent names. */
+export const philosophieNavLinks = [
+  { label: 'Unser Ansatz', href: '/philosophie' },
+  { label: 'DocsOps vs. Confluence', href: '/vergleich' },
+] as const;
+
+export const docsopsVsFooterLinks = [{ label: 'Confluence', href: '/vergleich' }] as const;
+
 export const projectNavLinks = [
-  { label: 'Vergleich', href: '/vergleich', external: false },
   { label: 'GitHub', href: 'github', external: true },
   { label: 'Changelog', href: '/changelog', external: false },
   { label: 'Unterstützen', href: '/sponsor', external: false },
@@ -339,13 +317,13 @@ export const authorSiteLink = {
 
 export const footerCopy = {
   productTitle: 'Produkt',
+  docsopsVsTitle: 'DocsOps vs.',
   projectTitle: 'Projekt',
   legalTitle: 'Rechtliches',
-  modellTitle: 'So funktioniert’s',
   links: {
-    philosophie: 'Philosophie',
+    howItWorks: 'So funktioniert’s',
+    ourApproach: 'Unser Ansatz',
     installation: 'Installation',
-    vergleich: 'Vergleich',
     demo: 'Live-Demo',
     github: 'GitHub',
     changelog: 'Changelog',
