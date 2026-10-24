@@ -241,7 +241,7 @@ Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 - [x] Rollen: Anker `#rollen`, Titel Rollenbasierte Zusammenarbeit
 - [x] Beispiel IT / Software X / A11y (Phase E)
 - [x] Philosophie-Seite `/philosophie` (Ansatz, Was das bedeutet, Kurz gesagt)
-- [ ] Vergleichstabelle & FAQ wieder einbinden
+- [ ] Gegenüberstellung Confluence vs DocsOps auf der Landing (sachlich, teils Augenzwinkern; siehe Umsetzungs-Todo §19)
 - [ ] Demo-Seed: Beispiel IT / Software X / Stand Barrierefreiheit
 
 ---

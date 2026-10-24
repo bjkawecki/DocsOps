@@ -151,6 +151,8 @@ Admins legen **Backup destinations** an (Credentials verschlüsselt in der DB, n
 
 **Kein `rclone` im Image (v1):** Spart extra Binary, Subprocess-Debugging und generische Remote-Configs; S3 + SSH decken Self-hosted ab. `rclone` nur erwägen, wenn später viele Cloud-Anbieter ohne eigene Integration nötig sind.
 
+**Wichtigste Alternativen zu AWS S3 (weiterhin Typ `s3_compatible` bzw. SSH/WebDAV):** Hetzner Object Storage, Cloudflare R2, Backblaze B2, Wasabi, externes MinIO; Offsite per SSH/SFTP (z. B. Storage Box, NAS); WebDAV (Nextcloud/ownCloud). Azure Blob / GCS nur bei Bedarf (Connector/rclone). Todos: Umsetzungs-Todo §25 Phase 3.
+
 SSRF-Schutz bei konfigurierbaren URLs (keine internen Ziele, nur `https`/`sftp` wo sinnvoll).
 
 ### Webhook (optional, v1)

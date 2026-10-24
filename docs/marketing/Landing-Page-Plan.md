@@ -107,7 +107,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 - [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
 - [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
 - [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
-- [ ] Vergleichstabelle reaktivieren (optional)
+- [ ] Gegenüberstellung Confluence vs DocsOps (Section und/oder `/vergleich`; sachlich, teils Augenzwinkern; Daten: `vergleich/startseite-confluence-docmost.md`)
 - [ ] Demo-Seed-Story
 
 ### Technik
