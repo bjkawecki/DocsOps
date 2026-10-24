@@ -133,16 +133,21 @@ export function AdminBackupDestinationsPanel({
                   <Table.Td>
                     <Group gap={4} justify="flex-end" wrap="nowrap">
                       {d.enabled && defaultDestinationId !== d.id ? (
-                        <Button size="xs" variant="subtle" onClick={() => onSetDefault(d.id)}>
+                        <Button
+                          size="xs"
+                          variant="light"
+                          color="gray"
+                          onClick={() => onSetDefault(d.id)}
+                        >
                           {t('backup.destinations.setDefault')}
                         </Button>
                       ) : null}
-                      <Button size="xs" variant="subtle" onClick={() => openEdit(d)}>
+                      <Button size="xs" variant="light" color="gray" onClick={() => openEdit(d)}>
                         {t('backup.destinations.edit')}
                       </Button>
                       <Button
                         size="xs"
-                        variant="subtle"
+                        variant="filled"
                         color="red"
                         onClick={() => setDeleteTarget(d)}
                       >

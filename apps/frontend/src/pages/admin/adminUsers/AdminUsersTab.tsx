@@ -11,6 +11,7 @@ import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConst
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey, useMe } from '../../../hooks/useMe';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { AdminUserCreateForm } from './AdminUserCreateForm';
 import { AdminUserDetailTabs } from './AdminUserDetailTabs';
 import { AdminUsersList } from './AdminUsersList';
@@ -29,6 +30,7 @@ import type {
 export function AdminUsersTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState<number>(() => {
@@ -270,25 +272,32 @@ export function AdminUsersTab() {
         label: t('actions.createUser'),
         icon: <IconPlus size={16} stroke={1.5} />,
         tone: 'create',
+        disabled: demoMode,
         onClick: openCreate,
       },
     ],
-    [openCreate, t]
+    [demoMode, openCreate, t]
   );
   useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
 
   const chromeActions = useMemo(
     () => (
-      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreate}
+        disabled={demoMode}
+      >
         {t('actions.createUser')}
       </Button>
     ),
-    [openCreate, t]
+    [demoMode, openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, 'admin-users-create');
+  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, `admin-users-create:${demoMode}`);
 
   return (
     <Box>
+      <AdminDemoReadOnlyAlert />
       <AdminUsersList
         includeDeactivated={includeDeactivated}
         onIncludeDeactivatedChange={(v) => {

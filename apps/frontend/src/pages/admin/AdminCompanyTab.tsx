@@ -21,8 +21,9 @@ import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
-import { adminApiErrorMessage, throwAdminApiError } from './adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from './AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from './adminApiError.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
@@ -68,6 +69,7 @@ function formatBytes(n: number): string {
 export function AdminCompanyTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
@@ -287,10 +289,11 @@ export function AdminCompanyTab() {
         label: t('actions.createCompany'),
         icon: <IconPlus size={16} stroke={1.5} />,
         tone: 'create',
+        disabled: demoMode,
         onClick: openCreate,
       },
     ],
-    [openCreate, t]
+    [demoMode, openCreate, t]
   );
   useRegisterPageMobileExtraActions(
     mobileExtraActions,
@@ -299,15 +302,20 @@ export function AdminCompanyTab() {
 
   const chromeActions = useMemo(
     () => (
-      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreate}>
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreate}
+        disabled={demoMode}
+      >
         {t('actions.createCompany')}
       </Button>
     ),
-    [openCreate, t]
+    [demoMode, openCreate, t]
   );
   useSetAppShellBreadcrumbActions(
     isWide && !companiesPending && companies.length === 0 ? chromeActions : null,
-    `admin-company-create:${companies.length}`
+    `admin-company-create:${companies.length}:${demoMode}`
   );
 
   if (companiesPending) {
@@ -320,6 +328,7 @@ export function AdminCompanyTab() {
 
   return (
     <Box>
+      <AdminDemoReadOnlyAlert />
       {company == null ? (
         <Alert color="blue" mb="md">
           {t('company.noCompanyAlert')}

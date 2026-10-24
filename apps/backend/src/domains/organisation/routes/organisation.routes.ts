@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   requireAuthPreHandler,
   requireAdminPreHandler,
@@ -27,6 +28,12 @@ import {
   listCompanyDepartmentsPaged,
   listDepartmentTeamsPaged,
 } from './organisation-route-helpers.js';
+
+const preAdminWrite = [
+  requireAuthPreHandler,
+  requireAdminPreHandler,
+  requireNotDemoMutatingPreHandler,
+];
 
 const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   // --- Companies ---
@@ -66,21 +73,17 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     return reply.send({ items, total, limit: query.limit, offset: query.offset });
   });
 
-  app.post(
-    '/companies',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const count = await request.server.prisma.company.count();
-      if (count > 0) {
-        return reply.status(409).send({ error: 'Only one company can be created.' });
-      }
-      const body = createCompanyBodySchema.parse(request.body);
-      const company = await request.server.prisma.company.create({
-        data: { name: body.name },
-      });
-      return reply.status(201).send(company);
+  app.post('/companies', { preHandler: preAdminWrite }, async (request, reply) => {
+    const count = await request.server.prisma.company.count();
+    if (count > 0) {
+      return reply.status(409).send({ error: 'Only one company can be created.' });
     }
-  );
+    const body = createCompanyBodySchema.parse(request.body);
+    const company = await request.server.prisma.company.create({
+      data: { name: body.name },
+    });
+    return reply.status(201).send(company);
+  });
 
   app.get(
     '/companies/:companyId',
@@ -105,54 +108,46 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   );
 
-  app.patch(
-    '/companies/:companyId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const { companyId } = companyIdParamSchema.parse(request.params);
-      const body = updateCompanyBodySchema.parse(request.body);
-      const company = await prisma.company.update({
-        where: { id: companyId },
-        data: body,
+  app.patch('/companies/:companyId', { preHandler: preAdminWrite }, async (request, reply) => {
+    const prisma = request.server.prisma;
+    const { companyId } = companyIdParamSchema.parse(request.params);
+    const body = updateCompanyBodySchema.parse(request.body);
+    const company = await prisma.company.update({
+      where: { id: companyId },
+      data: body,
+    });
+    if (Object.keys(body).length > 0) {
+      const owners = await prisma.owner.findMany({
+        where: { companyId },
+        select: { id: true },
       });
-      if (Object.keys(body).length > 0) {
-        const owners = await prisma.owner.findMany({
-          where: { companyId },
-          select: { id: true },
-        });
-        for (const o of owners) {
-          await setOwnerDisplayName(prisma, o.id);
-          await refreshContextOwnerDisplayForOwner(prisma, o.id);
-        }
+      for (const o of owners) {
+        await setOwnerDisplayName(prisma, o.id);
+        await refreshContextOwnerDisplayForOwner(prisma, o.id);
       }
-      return reply.send(company);
     }
-  );
+    return reply.send(company);
+  });
 
-  app.delete(
-    '/companies/:companyId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const { companyId } = companyIdParamSchema.parse(request.params);
-      try {
-        await request.server.prisma.documentPinnedInScope.deleteMany({
-          where: { scopeType: 'company', scopeId: companyId },
+  app.delete('/companies/:companyId', { preHandler: preAdminWrite }, async (request, reply) => {
+    const { companyId } = companyIdParamSchema.parse(request.params);
+    try {
+      await request.server.prisma.documentPinnedInScope.deleteMany({
+        where: { scopeType: 'company', scopeId: companyId },
+      });
+      await request.server.prisma.company.delete({ where: { id: companyId } });
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e.code === 'P2003') {
+        return reply.status(409).send({
+          code: 'COMPANY_HAS_DEPARTMENTS',
+          error: 'Company cannot be deleted while departments exist.',
         });
-        await request.server.prisma.company.delete({ where: { id: companyId } });
-      } catch (err: unknown) {
-        const e = err as { code?: string };
-        if (e.code === 'P2003') {
-          return reply.status(409).send({
-            code: 'COMPANY_HAS_DEPARTMENTS',
-            error: 'Company cannot be deleted while departments exist.',
-          });
-        }
-        throw err;
       }
-      return reply.status(204).send();
+      throw err;
     }
-  );
+    return reply.status(204).send();
+  });
 
   app.get(
     '/companies/:companyId/departments',
@@ -168,7 +163,7 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.post(
     '/companies/:companyId/departments',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
+    { preHandler: preAdminWrite },
     async (request, reply) => {
       const { companyId } = companyIdParamSchema.parse(request.params);
       const body = createDepartmentBodySchema.parse(request.body);
@@ -198,34 +193,30 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   );
 
-  app.patch(
-    '/departments/:departmentId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const { departmentId } = departmentIdParamSchema.parse(request.params);
-      const body = updateDepartmentBodySchema.parse(request.body);
-      const department = await prisma.department.update({
-        where: { id: departmentId },
-        data: body,
+  app.patch('/departments/:departmentId', { preHandler: preAdminWrite }, async (request, reply) => {
+    const prisma = request.server.prisma;
+    const { departmentId } = departmentIdParamSchema.parse(request.params);
+    const body = updateDepartmentBodySchema.parse(request.body);
+    const department = await prisma.department.update({
+      where: { id: departmentId },
+      data: body,
+    });
+    if (Object.keys(body).length > 0) {
+      const owners = await prisma.owner.findMany({
+        where: { departmentId },
+        select: { id: true },
       });
-      if (Object.keys(body).length > 0) {
-        const owners = await prisma.owner.findMany({
-          where: { departmentId },
-          select: { id: true },
-        });
-        for (const o of owners) {
-          await setOwnerDisplayName(prisma, o.id);
-          await refreshContextOwnerDisplayForOwner(prisma, o.id);
-        }
+      for (const o of owners) {
+        await setOwnerDisplayName(prisma, o.id);
+        await refreshContextOwnerDisplayForOwner(prisma, o.id);
       }
-      return reply.send(department);
     }
-  );
+    return reply.send(department);
+  });
 
   app.delete(
     '/departments/:departmentId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
+    { preHandler: preAdminWrite },
     async (request, reply) => {
       const { departmentId } = departmentIdParamSchema.parse(request.params);
       try {
@@ -261,7 +252,7 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.post(
     '/departments/:departmentId/teams',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
+    { preHandler: preAdminWrite },
     async (request, reply) => {
       const { departmentId } = departmentIdParamSchema.parse(request.params);
       const body = createTeamBodySchema.parse(request.body);
@@ -286,54 +277,46 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     return reply.send(team);
   });
 
-  app.patch(
-    '/teams/:teamId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const prisma = request.server.prisma;
-      const { teamId } = teamIdParamSchema.parse(request.params);
-      const body = updateTeamBodySchema.parse(request.body);
-      const team = await prisma.team.update({
-        where: { id: teamId },
-        data: body,
+  app.patch('/teams/:teamId', { preHandler: preAdminWrite }, async (request, reply) => {
+    const prisma = request.server.prisma;
+    const { teamId } = teamIdParamSchema.parse(request.params);
+    const body = updateTeamBodySchema.parse(request.body);
+    const team = await prisma.team.update({
+      where: { id: teamId },
+      data: body,
+    });
+    if (Object.keys(body).length > 0) {
+      const owners = await prisma.owner.findMany({
+        where: { teamId },
+        select: { id: true },
       });
-      if (Object.keys(body).length > 0) {
-        const owners = await prisma.owner.findMany({
-          where: { teamId },
-          select: { id: true },
-        });
-        for (const o of owners) {
-          await setOwnerDisplayName(prisma, o.id);
-          await refreshContextOwnerDisplayForOwner(prisma, o.id);
-        }
+      for (const o of owners) {
+        await setOwnerDisplayName(prisma, o.id);
+        await refreshContextOwnerDisplayForOwner(prisma, o.id);
       }
-      return reply.send(team);
     }
-  );
+    return reply.send(team);
+  });
 
-  app.delete(
-    '/teams/:teamId',
-    { preHandler: [requireAuthPreHandler, requireAdminPreHandler] },
-    async (request, reply) => {
-      const { teamId } = teamIdParamSchema.parse(request.params);
-      try {
-        await request.server.prisma.documentPinnedInScope.deleteMany({
-          where: { scopeType: 'team', scopeId: teamId },
+  app.delete('/teams/:teamId', { preHandler: preAdminWrite }, async (request, reply) => {
+    const { teamId } = teamIdParamSchema.parse(request.params);
+    try {
+      await request.server.prisma.documentPinnedInScope.deleteMany({
+        where: { scopeType: 'team', scopeId: teamId },
+      });
+      await request.server.prisma.team.delete({ where: { id: teamId } });
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e.code === 'P2003') {
+        return reply.status(409).send({
+          code: 'TEAM_HAS_CONTEXTS',
+          error: 'Team cannot be deleted while processes or projects (owner) are assigned to it.',
         });
-        await request.server.prisma.team.delete({ where: { id: teamId } });
-      } catch (err: unknown) {
-        const e = err as { code?: string };
-        if (e.code === 'P2003') {
-          return reply.status(409).send({
-            code: 'TEAM_HAS_CONTEXTS',
-            error: 'Team cannot be deleted while processes or projects (owner) are assigned to it.',
-          });
-        }
-        throw err;
       }
-      return reply.status(204).send();
+      throw err;
     }
-  );
+    return reply.status(204).send();
+  });
 
   return Promise.resolve();
 };

@@ -4,6 +4,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import { canManageTeamAuthors, canManageDepartmentAuthors } from '../permissions/index.js';
 import { canViewScope } from '../permissions/scopeVisibility.js';
 import {
@@ -41,7 +42,7 @@ const assignmentsAuthorsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.post(
     '/teams/:teamId/authors',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId } = teamIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -61,7 +62,7 @@ const assignmentsAuthorsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete(
     '/teams/:teamId/authors/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId, userId: targetUserId } = teamIdUserIdParamSchema.parse(request.params);
       const actorUserId = getEffectiveUserId(request as RequestWithUser);
@@ -96,7 +97,7 @@ const assignmentsAuthorsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.post(
     '/departments/:departmentId/authors',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { departmentId } = departmentIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -116,7 +117,7 @@ const assignmentsAuthorsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete(
     '/departments/:departmentId/authors/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { departmentId, userId: targetUserId } = departmentIdUserIdParamSchema.parse(
         request.params

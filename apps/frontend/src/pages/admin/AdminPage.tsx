@@ -15,7 +15,6 @@ import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { AdminContentSidebar } from './AdminContentSidebar.js';
 import { ADMIN_DEFAULT_PATH, findAdminNavItem, getAdminNavGroups } from './adminNavConfig.js';
-import { usePublicConfig } from '../../hooks/usePublicConfig.js';
 import './AdminPage.css';
 
 export function AdminPage() {
@@ -23,9 +22,7 @@ export function AdminPage() {
   const location = useLocation();
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const compactNavOpenRef = useRef<(() => void) | null>(null);
-  const { data: publicConfig } = usePublicConfig();
-  const demoMode = publicConfig?.demoMode === true;
-  const navGroups = useMemo(() => getAdminNavGroups(demoMode), [demoMode]);
+  const navGroups = useMemo(() => getAdminNavGroups(), []);
   const currentItem = findAdminNavItem(location.pathname, navGroups);
 
   const breadcrumbs = useMemo((): AppShellBreadcrumbItem[] => {
@@ -59,6 +56,7 @@ export function AdminPage() {
           <ResponsiveContentNav
             title={sectionTitle}
             nav={<AdminContentSidebar />}
+            stickyNav
             compactNavOpenRef={isWide ? undefined : compactNavOpenRef}
           >
             <Box style={{ flex: 1, minWidth: 0, width: '100%' }} className="admin-page-content">

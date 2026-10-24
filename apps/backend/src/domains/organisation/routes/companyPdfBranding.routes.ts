@@ -5,6 +5,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import { canViewScope } from '../permissions/scopeVisibility.js';
 import { canManageCompanyPdfBranding } from '../permissions/assignmentPermissions.js';
 import {
@@ -73,7 +74,7 @@ const companyPdfBrandingRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.patch(
     '/companies/:companyId/pdf-branding',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { companyId } = companyIdParamSchema.parse(request.params);
       if (!(await requirePdfBrandingManage(request as RequestWithUser, reply, companyId))) return;
@@ -101,7 +102,7 @@ const companyPdfBrandingRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
   }>(
     '/companies/:companyId/pdf-logo',
     {
-      preHandler: requireAuthPreHandler,
+      preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler],
       bodyLimit: PDF_LOGO_MAX_BYTES,
     },
     async (request, reply) => {
@@ -137,7 +138,7 @@ const companyPdfBrandingRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
   app.delete(
     '/companies/:companyId/pdf-logo',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { companyId } = companyIdParamSchema.parse(request.params);
       if (!(await requirePdfBrandingManage(request as RequestWithUser, reply, companyId))) return;

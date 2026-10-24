@@ -9,6 +9,7 @@ import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/Ap
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { AdminMigrationExportModal } from './AdminMigrationExportModal';
 import { AdminMigrationImportModal } from './AdminMigrationImportModal';
 import { AdminMigrationOverview } from './AdminMigrationOverview';
@@ -21,6 +22,7 @@ import { getExportDisabledReason, getImportDisabledReason } from './migrationUiH
 export function AdminMigrationTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [exportOpened, { open: openExport, close: closeExport }] = useDisclosure(false);
   const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
@@ -57,8 +59,8 @@ export function AdminMigrationTab() {
   const status = statusQuery.data;
   const exportDisabledReason = getExportDisabledReason(status, statusQuery.isLoading, t);
   const importDisabledReason = getImportDisabledReason(status, statusQuery.isLoading, t);
-  const exportDisabled = exportDisabledReason != null;
-  const importDisabled = importDisabledReason != null;
+  const exportDisabled = demoMode || exportDisabledReason != null;
+  const importDisabled = demoMode || importDisabledReason != null;
   const receiveDisabled = importDisabled;
 
   const openImportFresh = useCallback(() => {
@@ -153,6 +155,7 @@ export function AdminMigrationTab() {
 
   return (
     <Stack gap="md">
+      <AdminDemoReadOnlyAlert />
       {statusQuery.isError ? (
         <Alert color="red" variant="filled">
           {t('migration.loadError')}

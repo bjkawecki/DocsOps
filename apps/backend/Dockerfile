@@ -60,7 +60,8 @@ RUN TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-alpine.sh \
 
 # Job worker: PDF export (typst + qpdf write-protect) + backup tools
 FROM runtime-base AS worker
-RUN apk add --no-cache postgresql-client zstd tar qpdf fontconfig font-liberation \
+# Must match postgres major (docker-compose: postgres:18-alpine).
+RUN apk add --no-cache postgresql18-client zstd tar qpdf fontconfig font-liberation \
   && fc-cache -f
 COPY --from=typst-fetch /usr/local/bin/typst /usr/local/bin/typst
 RUN typst --version && qpdf --version

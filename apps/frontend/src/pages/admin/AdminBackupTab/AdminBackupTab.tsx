@@ -18,7 +18,9 @@ import { AdminBackupHistorySection } from './AdminBackupHistorySection';
 import { AdminBackupOverviewBar } from './AdminBackupOverviewBar';
 import { AdminBackupSettingsModal, type BackupSettingsTab } from './AdminBackupSettingsModal';
 import { AdminBackupStatusAlerts } from './AdminBackupStatusAlerts';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { formatActiveJobStatus } from './backupRestoreHelpers';
+import { formatBackupErrorMessage } from './backupErrorMessage.js';
 import { useAdminBackupSettingsMutations } from './useAdminBackupSettingsMutations';
 import {
   type BackupRun,
@@ -52,6 +54,7 @@ export function AdminBackupTab() {
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const demoMode = useDemoMode();
   const [settingsInitialTab, setSettingsInitialTab] = useState<BackupSettingsTab>('general');
   const [settingsOpened, { open: openSettings, close: closeSettings }] = useDisclosure(false);
   const [enableAutoOpened, { open: openEnableAuto, close: closeEnableAuto }] = useDisclosure(false);
@@ -230,7 +233,7 @@ export function AdminBackupTab() {
         if (isSupersededMaintenanceFailure(run)) continue;
         notifications.show({
           title: t('backup.toasts.backupFailedTitle'),
-          message: run.errorMessage ?? t('backup.toasts.unknownError'),
+          message: formatBackupErrorMessage(run.errorMessage, t),
           color: 'red',
           autoClose: 10_000,
         });
@@ -360,7 +363,8 @@ export function AdminBackupTab() {
     status != null &&
     status.minioAvailable &&
     status.encryptionConfigured &&
-    !status.maintenanceActive;
+    !status.maintenanceActive &&
+    !demoMode;
 
   const handleBackupNow = useCallback(() => {
     createBackup.mutate(status?.defaultDestinationId ?? undefined);
@@ -463,20 +467,26 @@ export function AdminBackupTab() {
 
   return (
     <Stack gap="md">
+      <AdminDemoReadOnlyAlert />
       <AdminBackupStatusAlerts status={status} />
 
       <AdminBackupOverviewBar
         status={status}
         destinations={destinations}
         activeJobStatus={showActiveJobStatus}
-        canEnableAuto={canEnableAuto}
+        canEnableAuto={canEnableAuto && !demoMode}
         enableBlockReason={enableBlockReason}
         scheduleSaving={patchSchedule.isPending}
-        onRetentionChange={(retentionCount) => patchSettings.mutate({ retentionCount })}
-        onDefaultDestinationChange={(defaultDestinationId) =>
-          patchSettings.mutate({ defaultDestinationId })
-        }
+        onRetentionChange={(retentionCount) => {
+          if (demoMode) return;
+          patchSettings.mutate({ retentionCount });
+        }}
+        onDefaultDestinationChange={(defaultDestinationId) => {
+          if (demoMode) return;
+          patchSettings.mutate({ defaultDestinationId });
+        }}
         onAutoToggle={(enabled) => {
+          if (demoMode) return;
           if (enabled) {
             openEnableAuto();
           } else {

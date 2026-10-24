@@ -1,4 +1,4 @@
-import { Alert, Box, NavLink, Stack, Text } from '@mantine/core';
+import { Box, NavLink, Stack } from '@mantine/core';
 import {
   IconBuildingSkyscraper,
   IconDatabase,
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import { ContentSidebarCollapsibleSection } from '../../components/ui/ContentSidebarCollapsibleSection.js';
-import { usePublicConfig } from '../../hooks/usePublicConfig.js';
+import { AdminDemoReadOnlyAlert } from './AdminDemoReadOnlyAlert.js';
 import { findAdminNavGroup, getAdminNavGroups } from './adminNavConfig.js';
 
 const ICON_SIZE = 16;
@@ -39,9 +39,7 @@ function groupIcon(groupId: 'organisation' | 'operations' | 'data' | 'platform')
 export function AdminContentSidebar() {
   const { t } = useTranslation('admin');
   const location = useLocation();
-  const { data: publicConfig } = usePublicConfig();
-  const demoMode = publicConfig?.demoMode === true;
-  const navGroups = useMemo(() => getAdminNavGroups(demoMode), [demoMode]);
+  const navGroups = useMemo(() => getAdminNavGroups(), []);
   const activeGroup = findAdminNavGroup(location.pathname, navGroups);
 
   const activeGroupIds = useMemo(() => new Set([activeGroup.id]), [activeGroup.id]);
@@ -49,11 +47,7 @@ export function AdminContentSidebar() {
   return (
     <ContentCardWrapper fullHeight={false}>
       <Stack gap="md" component="nav" align="stretch" w="100%" aria-label="Admin">
-        {demoMode ? (
-          <Alert color="blue" variant="light" p="sm">
-            <Text size="sm">{t('demo.limitedAdmin')}</Text>
-          </Alert>
-        ) : null}
+        <AdminDemoReadOnlyAlert />
         {navGroups.map((group) => (
           <ContentSidebarCollapsibleSection
             key={group.id}

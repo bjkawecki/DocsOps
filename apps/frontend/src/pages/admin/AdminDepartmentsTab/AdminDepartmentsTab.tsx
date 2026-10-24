@@ -7,8 +7,9 @@ import type { Department } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
-import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
@@ -34,6 +35,7 @@ import { CreateDepartmentForm } from './CreateDepartmentForm';
 export function AdminDepartmentsTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [page, setPage] = useState(1);
@@ -334,7 +336,7 @@ export function AdminDepartmentsTab() {
     setDepartmentCardEditing(true);
   }, [editingDepartment, leadsForEdit]);
 
-  const createDepartmentDisabled = companies.length === 0;
+  const createDepartmentDisabled = demoMode || companies.length === 0;
   const mobileExtraActions = useMemo(
     (): PageMobileAction[] => [
       {
@@ -378,6 +380,7 @@ export function AdminDepartmentsTab() {
 
   return (
     <Box>
+      <AdminDemoReadOnlyAlert />
       <AdminDepartmentsToolbar
         filterText={filterText}
         onFilterTextChange={(value) => {

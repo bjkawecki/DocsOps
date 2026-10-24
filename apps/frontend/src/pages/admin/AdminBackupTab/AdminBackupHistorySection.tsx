@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AdminBackupDeleteFailedModal } from './AdminBackupDeleteFailedModal';
 import { AdminBackupDeleteModal } from './AdminBackupDeleteModal';
 import { BACKUP_STATUS_COLOR, type BackupRun } from './adminBackupTypes';
+import { formatBackupErrorMessage } from './backupErrorMessage.js';
 import {
   formatBackupRunStatusLabel,
   formatExternalDestinationLabel,
@@ -136,7 +137,7 @@ export function AdminBackupHistorySection({
                               size="sm"
                               style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
                             >
-                              {run.errorMessage}
+                              {formatBackupErrorMessage(run.errorMessage, t)}
                             </Text>
                           </Popover.Dropdown>
                         </Popover>

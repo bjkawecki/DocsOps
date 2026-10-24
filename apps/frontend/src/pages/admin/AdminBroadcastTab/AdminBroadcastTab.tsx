@@ -10,6 +10,7 @@ import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/Ap
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { AdminBroadcastCreateModal } from './AdminBroadcastCreateModal.js';
 import { AdminBroadcastTableSection } from './AdminBroadcastTableSection.js';
 import { AdminBroadcastToolbar } from './AdminBroadcastToolbar.js';
@@ -46,6 +47,7 @@ const emptyDraft = (): BroadcastDraft => ({
 export function AdminBroadcastTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [limit, setLimit] = useState(readInitialLimit);
   const [offset, setOffset] = useState(0);
@@ -124,9 +126,10 @@ export function AdminBroadcastTab() {
   }, [currentPage, pageCount]);
 
   const openCreateBroadcast = useCallback(() => {
+    if (demoMode) return;
     setDraft(emptyDraft());
     setCreateOpen(true);
-  }, []);
+  }, [demoMode]);
 
   const mobileExtraActions = useMemo(
     (): PageMobileAction[] => [
@@ -135,25 +138,35 @@ export function AdminBroadcastTab() {
         label: t('actions.createMessage'),
         icon: <IconPlus size={16} stroke={1.5} />,
         tone: 'create',
+        disabled: demoMode,
         onClick: openCreateBroadcast,
       },
     ],
-    [openCreateBroadcast, t]
+    [demoMode, openCreateBroadcast, t]
   );
   useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
 
   const chromeActions = useMemo(
     () => (
-      <Button size="xs" leftSection={<IconPlus size={14} />} onClick={openCreateBroadcast}>
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreateBroadcast}
+        disabled={demoMode}
+      >
         {t('actions.createMessage')}
       </Button>
     ),
-    [openCreateBroadcast, t]
+    [demoMode, openCreateBroadcast, t]
   );
-  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, 'admin-broadcast-create');
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-broadcast-create:${demoMode}`
+  );
 
   return (
     <Stack gap="md">
+      <AdminDemoReadOnlyAlert />
       <AdminBroadcastToolbar
         total={total}
         limit={limit}

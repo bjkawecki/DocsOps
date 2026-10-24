@@ -7,8 +7,9 @@ import type { Team } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
-import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
@@ -36,6 +37,7 @@ import { CreateTeamForm } from './CreateTeamForm';
 export function AdminTeamsTab() {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
   const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(null);
@@ -486,7 +488,7 @@ export function AdminTeamsTab() {
     invalidateAssignments,
   ]);
 
-  const createTeamDisabled = !companyId || departments.length === 0;
+  const createTeamDisabled = demoMode || !companyId || departments.length === 0;
   const mobileExtraActions = useMemo(
     (): PageMobileAction[] => [
       {
@@ -522,6 +524,7 @@ export function AdminTeamsTab() {
 
   return (
     <Box>
+      <AdminDemoReadOnlyAlert />
       <AdminTeamsToolbar
         filterText={filterText}
         onFilterTextChange={(value) => {

@@ -4,8 +4,15 @@
 FROM node:24-bookworm-slim
 ARG TYPST_VERSION=0.13.1
 COPY docker/install-typst-debian.sh /tmp/install-typst-debian.sh
+# postgresql-client-18 from PGDG (must match postgres:18-alpine); bookworm only ships client 15.
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends wget postgresql-client zstd tar xz-utils ca-certificates qpdf fontconfig fonts-liberation \
+  && apt-get install -y --no-install-recommends wget gnupg zstd tar xz-utils ca-certificates qpdf fontconfig fonts-liberation \
+  && wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+  && echo 'deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' \
+    > /etc/apt/sources.list.d/pgdg.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends postgresql-client-18 \
   && fc-cache -f \
   && TYPST_VERSION="${TYPST_VERSION}" sh /tmp/install-typst-debian.sh \
   && rm /tmp/install-typst-debian.sh \

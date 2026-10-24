@@ -1,5 +1,6 @@
 import type { PrismaClient } from '../../../../generated/prisma/client.js';
 import {
+  decryptJson,
   encryptJson,
   isBackupEncryptionConfigured,
 } from '../../../infrastructure/crypto/secretBox.js';
@@ -15,10 +16,62 @@ import type {
 } from '../schemas/backups.js';
 import type { z } from 'zod';
 
+const CREDENTIAL_LENGTH_KEYS = [
+  'accessKeyId',
+  'secretAccessKey',
+  'username',
+  'password',
+  'privateKey',
+] as const;
+
+export type CredentialFieldLengths = Partial<
+  Record<(typeof CREDENTIAL_LENGTH_KEYS)[number], number>
+>;
+
+const destinationPublicSelect = {
+  id: true,
+  name: true,
+  type: true,
+  enabled: true,
+  configJson: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export function assertBackupEncryptionReady(): void {
   if (!isBackupEncryptionConfigured()) {
     throw new Error('BACKUP_ENCRYPTION_KEY is not configured');
   }
+}
+
+/** Lengths of stored secret fields only (never values) for edit-form masks. */
+export function credentialFieldLengthsFromCiphertext(
+  ciphertext: string | null | undefined
+): CredentialFieldLengths {
+  if (!ciphertext || !isBackupEncryptionConfigured()) return {};
+  try {
+    const creds = decryptJson<Record<string, unknown>>(ciphertext);
+    const out: CredentialFieldLengths = {};
+    for (const key of CREDENTIAL_LENGTH_KEYS) {
+      const value = creds[key];
+      if (typeof value === 'string' && value.length > 0) {
+        out[key] = value.length;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function withCredentialFieldLengths<T extends { credentialsCiphertext?: string | null }>(
+  row: T
+): Omit<T, 'credentialsCiphertext'> & { credentialFieldLengths: CredentialFieldLengths } {
+  const { credentialsCiphertext, ...rest } = row;
+  return {
+    ...rest,
+    credentialFieldLengths: credentialFieldLengthsFromCiphertext(credentialsCiphertext),
+  };
 }
 
 function enrichS3DestinationConfig<T extends { endpoint: string; bucket: string; region?: string }>(
@@ -46,19 +99,14 @@ function validateDestinationInput(body: z.infer<typeof createBackupDestinationBo
 }
 
 export async function listBackupDestinations(prisma: PrismaClient) {
-  const items = await prisma.backupDestination.findMany({
+  const rows = await prisma.backupDestination.findMany({
     orderBy: { name: 'asc' },
     select: {
-      id: true,
-      name: true,
-      type: true,
-      enabled: true,
-      configJson: true,
-      createdAt: true,
-      updatedAt: true,
+      ...destinationPublicSelect,
+      credentialsCiphertext: true,
     },
   });
-  return { items };
+  return { items: rows.map(withCredentialFieldLengths) };
 }
 
 export async function createBackupDestination(
@@ -67,7 +115,7 @@ export async function createBackupDestination(
 ) {
   assertBackupEncryptionReady();
   validateDestinationInput(body);
-  return prisma.backupDestination.create({
+  const created = await prisma.backupDestination.create({
     data: {
       name: body.name,
       type: body.type,
@@ -77,15 +125,11 @@ export async function createBackupDestination(
       credentialsCiphertext: encryptJson(body.credentials),
     },
     select: {
-      id: true,
-      name: true,
-      type: true,
-      enabled: true,
-      configJson: true,
-      createdAt: true,
-      updatedAt: true,
+      ...destinationPublicSelect,
+      credentialsCiphertext: true,
     },
   });
+  return withCredentialFieldLengths(created);
 }
 
 export async function updateBackupDestination(
@@ -113,7 +157,7 @@ export async function updateBackupDestination(
       ? enrichS3DestinationConfig(body.config)
       : body.config;
 
-  return prisma.backupDestination.update({
+  const updated = await prisma.backupDestination.update({
     where: { id },
     data: {
       ...(body.name != null ? { name: body.name } : {}),
@@ -122,15 +166,11 @@ export async function updateBackupDestination(
       ...(body.credentials != null ? { credentialsCiphertext: encryptJson(body.credentials) } : {}),
     },
     select: {
-      id: true,
-      name: true,
-      type: true,
-      enabled: true,
-      configJson: true,
-      createdAt: true,
-      updatedAt: true,
+      ...destinationPublicSelect,
+      credentialsCiphertext: true,
     },
   });
+  return withCredentialFieldLengths(updated);
 }
 
 export async function deleteBackupDestination(prisma: PrismaClient, id: string): Promise<boolean> {

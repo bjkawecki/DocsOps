@@ -7,6 +7,7 @@ import {
   EMPTY_DESTINATION_FORM,
   type DestinationFormState,
 } from './adminBackupDestinationForm';
+import { secretMaskPlaceholder } from './secretMaskPlaceholder.js';
 
 export const BACKUP_DESTINATION_FORM_ID = 'backup-destination-form';
 
@@ -19,15 +20,27 @@ function addPlaceholder(isEdit: boolean, example: string): string | undefined {
   return isEdit ? undefined : example;
 }
 
-function secretPlaceholder(isEdit: boolean, t: TranslateFn, example?: string): string | undefined {
-  if (isEdit) return t('backup.destinations.form.secretPlaceholderEdit');
+function secretFieldPlaceholder(
+  isEdit: boolean,
+  length: number | undefined,
+  example?: string
+): string | undefined {
+  if (isEdit) return secretMaskPlaceholder(length) ?? example;
   return example;
+}
+
+function secretFieldDescription(isEdit: boolean, length: number | undefined, t: TranslateFn) {
+  if (isEdit && length != null && length > 0) {
+    return t('backup.destinations.form.secretKeepHint');
+  }
+  return undefined;
 }
 
 export function AdminBackupDestinationForm({ destination, onSave }: Props) {
   const { t } = useTranslation('admin');
   const [form, setForm] = useState<DestinationFormState>(EMPTY_DESTINATION_FORM);
   const isEdit = destination != null;
+  const lengths = destination?.credentialFieldLengths;
 
   useEffect(() => {
     setForm(destination ? destinationFormFromDestination(destination) : EMPTY_DESTINATION_FORM);
@@ -98,18 +111,20 @@ export function AdminBackupDestinationForm({ destination, onSave }: Props) {
               label={t('backup.destinations.form.s3AccessKeyLabel')}
               value={form.s3AccessKey}
               onChange={(e) => set('s3AccessKey', e.currentTarget.value)}
-              placeholder={secretPlaceholder(
+              placeholder={secretFieldPlaceholder(
                 isEdit,
-                t,
+                lengths?.accessKeyId,
                 t('backup.destinations.form.s3AccessKeyPlaceholder')
               )}
+              description={secretFieldDescription(isEdit, lengths?.accessKeyId, t)}
             />
             <TextInput
               label={t('backup.destinations.form.s3SecretKeyLabel')}
               type="password"
               value={form.s3SecretKey}
               onChange={(e) => set('s3SecretKey', e.currentTarget.value)}
-              placeholder={secretPlaceholder(isEdit, t)}
+              placeholder={secretFieldPlaceholder(isEdit, lengths?.secretAccessKey)}
+              description={secretFieldDescription(isEdit, lengths?.secretAccessKey, t)}
             />
           </>
         ) : form.type === 'SSH' ? (
@@ -138,16 +153,22 @@ export function AdminBackupDestinationForm({ destination, onSave }: Props) {
               label={t('backup.destinations.form.sshUserLabel')}
               value={form.sshUser}
               onChange={(e) => set('sshUser', e.currentTarget.value)}
-              placeholder={addPlaceholder(isEdit, t('backup.destinations.form.sshUserPlaceholder'))}
+              placeholder={secretFieldPlaceholder(
+                isEdit,
+                lengths?.username,
+                t('backup.destinations.form.sshUserPlaceholder')
+              )}
+              description={secretFieldDescription(isEdit, lengths?.username, t)}
             />
             <TextInput
               label={t('backup.destinations.form.sshPasswordLabel')}
               type="password"
               value={form.sshPassword}
               onChange={(e) => set('sshPassword', e.currentTarget.value)}
-              placeholder={secretPlaceholder(isEdit, t)}
+              placeholder={secretFieldPlaceholder(isEdit, lengths?.password)}
               description={
-                isEdit ? undefined : t('backup.destinations.form.sshPasswordDescription')
+                secretFieldDescription(isEdit, lengths?.password, t) ??
+                (isEdit ? undefined : t('backup.destinations.form.sshPasswordDescription'))
               }
             />
             <Textarea
@@ -155,13 +176,14 @@ export function AdminBackupDestinationForm({ destination, onSave }: Props) {
               value={form.sshPrivateKey}
               onChange={(e) => set('sshPrivateKey', e.currentTarget.value)}
               minRows={3}
-              placeholder={secretPlaceholder(
+              placeholder={secretFieldPlaceholder(
                 isEdit,
-                t,
+                lengths?.privateKey,
                 t('backup.destinations.form.sshPrivateKeyPlaceholder')
               )}
               description={
-                isEdit ? undefined : t('backup.destinations.form.sshPrivateKeyDescription')
+                secretFieldDescription(isEdit, lengths?.privateKey, t) ??
+                (isEdit ? undefined : t('backup.destinations.form.sshPrivateKeyDescription'))
               }
             />
           </>
@@ -207,17 +229,20 @@ export function AdminBackupDestinationForm({ destination, onSave }: Props) {
               label={t('backup.destinations.form.webdavUsernameLabel')}
               value={form.webdavUsername}
               onChange={(e) => set('webdavUsername', e.currentTarget.value)}
-              placeholder={addPlaceholder(
+              placeholder={secretFieldPlaceholder(
                 isEdit,
+                lengths?.username,
                 t('backup.destinations.form.webdavUsernamePlaceholder')
               )}
+              description={secretFieldDescription(isEdit, lengths?.username, t)}
             />
             <TextInput
               label={t('backup.destinations.form.webdavPasswordLabel')}
               type="password"
               value={form.webdavPassword}
               onChange={(e) => set('webdavPassword', e.currentTarget.value)}
-              placeholder={secretPlaceholder(isEdit, t)}
+              placeholder={secretFieldPlaceholder(isEdit, lengths?.password)}
+              description={secretFieldDescription(isEdit, lengths?.password, t)}
             />
           </>
         )}

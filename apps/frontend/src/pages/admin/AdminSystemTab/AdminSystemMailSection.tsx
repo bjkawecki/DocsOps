@@ -26,6 +26,7 @@ import {
   usePatchAdminSystemSettings,
   useSendAdminSmtpTestEmail,
 } from '../../../hooks/useAdminUpdateStatus.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 
 type Props = {
   settings: AdminSystemSettings;
@@ -37,6 +38,7 @@ type Props = {
 export function AdminSystemMailSection({ settings }: Props) {
   const { t } = useTranslation('admin');
   const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const demoMode = useDemoMode();
   const { data: me } = useMe();
   const patchMutation = usePatchAdminSystemSettings();
   const testMutation = useSendAdminSmtpTestEmail();
@@ -71,6 +73,7 @@ export function AdminSystemMailSection({ settings }: Props) {
   }, [me?.user?.email, testTo]);
 
   const handleSave = async () => {
+    if (demoMode) return;
     const portNum = typeof smtpPort === 'number' ? smtpPort : Number.parseInt(String(smtpPort), 10);
     try {
       await patchMutation.mutateAsync({
@@ -97,6 +100,7 @@ export function AdminSystemMailSection({ settings }: Props) {
   };
 
   const handleTest = async () => {
+    if (demoMode) return;
     try {
       await testMutation.mutateAsync({ to: testTo.trim() || undefined });
       notifications.show({ color: 'green', message: t('system.mail.testSentMessage') });
@@ -113,7 +117,7 @@ export function AdminSystemMailSection({ settings }: Props) {
   const handleTestRef = useRef(handleTest);
   handleTestRef.current = handleTest;
 
-  const testDisabled = !settings.smtpEnabled && !smtpEnabled;
+  const testDisabled = demoMode || (!settings.smtpEnabled && !smtpEnabled);
 
   const mobileExtraActions = useMemo(
     (): PageMobileAction[] => [
@@ -132,10 +136,11 @@ export function AdminSystemMailSection({ settings }: Props) {
         icon: <IconDeviceFloppy size={16} stroke={1.5} />,
         tone: 'save',
         loading: patchMutation.isPending,
+        disabled: demoMode,
         onClick: () => void handleSaveRef.current(),
       },
     ],
-    [patchMutation.isPending, testDisabled, testMutation.isPending, t]
+    [demoMode, patchMutation.isPending, testDisabled, testMutation.isPending, t]
   );
   useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
 
@@ -146,6 +151,7 @@ export function AdminSystemMailSection({ settings }: Props) {
           loading={patchMutation.isPending}
           onClick={() => void handleSaveRef.current()}
           size="xs"
+          disabled={demoMode}
         >
           {t('actions.saveMailSettings')}
         </Button>
@@ -160,104 +166,112 @@ export function AdminSystemMailSection({ settings }: Props) {
         </Button>
       </Group>
     ),
-    [patchMutation.isPending, testMutation.isPending, testDisabled, t]
+    [demoMode, patchMutation.isPending, testMutation.isPending, testDisabled, t]
   );
   useSetAppShellBreadcrumbActions(
     isWide ? chromeActions : null,
-    `admin-mail:${patchMutation.isPending}:${testMutation.isPending}:${testDisabled}`
+    `admin-mail:${demoMode}:${patchMutation.isPending}:${testMutation.isPending}:${testDisabled}`
   );
 
   return (
-    <Paper withBorder p="md" radius="md">
-      <Stack gap="md">
-        <div>
-          <Title order={4}>{t('system.mail.sectionTitle')}</Title>
-          <Text size="sm" c="dimmed">
-            {t('system.mail.sectionDescription')}
-          </Text>
-        </div>
+    <Stack gap="md">
+      <AdminDemoReadOnlyAlert />
+      <Paper withBorder p="md" radius="md">
+        <fieldset
+          disabled={demoMode}
+          style={{ border: 'none', margin: 0, padding: 0, minInlineSize: 0 }}
+        >
+          <Stack gap="md">
+            <div>
+              <Title order={4}>{t('system.mail.sectionTitle')}</Title>
+              <Text size="sm" c="dimmed">
+                {t('system.mail.sectionDescription')}
+              </Text>
+            </div>
 
-        <Switch
-          label={t('system.mail.enableSmtp')}
-          checked={smtpEnabled}
-          onChange={(e) => setSmtpEnabled(e.currentTarget.checked)}
-        />
+            <Switch
+              label={t('system.mail.enableSmtp')}
+              checked={smtpEnabled}
+              onChange={(e) => setSmtpEnabled(e.currentTarget.checked)}
+            />
 
-        <Group grow align="flex-start">
-          <TextInput
-            label={t('system.mail.host')}
-            placeholder={t('system.mail.hostPlaceholder')}
-            value={smtpHost}
-            onChange={(e) => setSmtpHost(e.currentTarget.value)}
-          />
-          <NumberInput
-            label={t('system.mail.port')}
-            value={smtpPort}
-            onChange={setSmtpPort}
-            min={1}
-            max={65535}
-            allowDecimal={false}
-          />
-        </Group>
+            <Group grow align="flex-start">
+              <TextInput
+                label={t('system.mail.host')}
+                placeholder={t('system.mail.hostPlaceholder')}
+                value={smtpHost}
+                onChange={(e) => setSmtpHost(e.currentTarget.value)}
+              />
+              <NumberInput
+                label={t('system.mail.port')}
+                value={smtpPort}
+                onChange={setSmtpPort}
+                min={1}
+                max={65535}
+                allowDecimal={false}
+              />
+            </Group>
 
-        <Select
-          label={t('system.mail.encryption')}
-          data={[
-            { value: 'none', label: t('system.mail.encryptionNone') },
-            { value: 'starttls', label: t('system.mail.encryptionStarttls') },
-            { value: 'tls', label: t('system.mail.encryptionTls') },
-          ]}
-          value={smtpEncryption}
-          onChange={setSmtpEncryption}
-          allowDeselect={false}
-        />
+            <Select
+              label={t('system.mail.encryption')}
+              data={[
+                { value: 'none', label: t('system.mail.encryptionNone') },
+                { value: 'starttls', label: t('system.mail.encryptionStarttls') },
+                { value: 'tls', label: t('system.mail.encryptionTls') },
+              ]}
+              value={smtpEncryption}
+              onChange={setSmtpEncryption}
+              allowDeselect={false}
+            />
 
-        <Group grow align="flex-start">
-          <TextInput
-            label={t('system.mail.username')}
-            value={smtpUsername}
-            onChange={(e) => setSmtpUsername(e.currentTarget.value)}
-            autoComplete="off"
-          />
-          <PasswordInput
-            label={
-              settings.smtpPasswordConfigured
-                ? t('system.mail.passwordKeepCurrent')
-                : t('system.mail.password')
-            }
-            value={smtpPassword}
-            onChange={(e) => setSmtpPassword(e.currentTarget.value)}
-            autoComplete="new-password"
-          />
-        </Group>
+            <Group grow align="flex-start">
+              <TextInput
+                label={t('system.mail.username')}
+                value={smtpUsername}
+                onChange={(e) => setSmtpUsername(e.currentTarget.value)}
+                autoComplete="off"
+              />
+              <PasswordInput
+                label={
+                  settings.smtpPasswordConfigured
+                    ? t('system.mail.passwordKeepCurrent')
+                    : t('system.mail.password')
+                }
+                value={smtpPassword}
+                onChange={(e) => setSmtpPassword(e.currentTarget.value)}
+                autoComplete="new-password"
+              />
+            </Group>
 
-        <Group grow align="flex-start">
-          <TextInput
-            label={t('system.mail.fromAddress')}
-            placeholder={t('system.mail.fromAddressPlaceholder')}
-            value={smtpFromAddress}
-            onChange={(e) => setSmtpFromAddress(e.currentTarget.value)}
-          />
-          <TextInput
-            label={t('system.mail.fromName')}
-            placeholder={t('system.mail.fromNamePlaceholder')}
-            value={smtpFromName}
-            onChange={(e) => setSmtpFromName(e.currentTarget.value)}
-          />
-        </Group>
+            <Group grow align="flex-start">
+              <TextInput
+                label={t('system.mail.fromAddress')}
+                placeholder={t('system.mail.fromAddressPlaceholder')}
+                value={smtpFromAddress}
+                onChange={(e) => setSmtpFromAddress(e.currentTarget.value)}
+              />
+              <TextInput
+                label={t('system.mail.fromName')}
+                placeholder={t('system.mail.fromNamePlaceholder')}
+                value={smtpFromName}
+                onChange={(e) => setSmtpFromName(e.currentTarget.value)}
+              />
+            </Group>
 
-        <Stack gap="xs">
-          <Text size="sm" fw={500}>
-            {t('actions.sendTestEmail')}
-          </Text>
-          <TextInput
-            label={t('system.mail.recipient')}
-            description={t('system.mail.recipientDescription')}
-            value={testTo}
-            onChange={(e) => setTestTo(e.currentTarget.value)}
-          />
-        </Stack>
-      </Stack>
-    </Paper>
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>
+                {t('actions.sendTestEmail')}
+              </Text>
+              <TextInput
+                label={t('system.mail.recipient')}
+                description={t('system.mail.recipientDescription')}
+                value={testTo}
+                onChange={(e) => setTestTo(e.currentTarget.value)}
+              />
+            </Stack>
+          </Stack>
+        </fieldset>
+      </Paper>
+    </Stack>
   );
 }

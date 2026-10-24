@@ -61,20 +61,12 @@ export const adminNavGroups = [
   },
 ] as const satisfies readonly AdminNavGroup[];
 
-/** Demo mode: hide mutating admin areas (backup, migration, mail, broadcast). */
-export function getAdminNavGroups(demoMode: boolean): readonly AdminNavGroup[] {
-  if (!demoMode) return adminNavGroups;
-  return adminNavGroups
-    .filter((g) => g.id !== 'data')
-    .map((g) => {
-      if (g.id !== 'platform') return g;
-      return {
-        ...g,
-        items: g.items.filter(
-          (item) => item.to === '/admin/platform/system' || item.to === '/admin/platform/roles'
-        ),
-      };
-    });
+/**
+ * Full admin nav in all modes. Demo mode keeps every entry visible; mutations are
+ * blocked in UI and via `requireNotDemoMutatingPreHandler` / org write guards.
+ */
+export function getAdminNavGroups(): readonly AdminNavGroup[] {
+  return adminNavGroups;
 }
 
 /** Legacy flat paths → nested paths (bookmarks / deep links). */

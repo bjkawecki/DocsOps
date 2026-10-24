@@ -350,7 +350,7 @@
         "typeS3": "S3-kompatibel",
         "typeSsh": "SSH / SFTP",
         "typeWebdav": "WebDAV",
-        "secretPlaceholderEdit": "Leer lassen, um aktuellen Wert zu behalten",
+        "secretKeepHint": "Leer lassen, um den gespeicherten Wert zu behalten.",
         "s3EndpointLabel": "Endpoint",
         "s3EndpointPlaceholder": "https://s3.eu-central-1.amazonaws.com",
         "s3EndpointDescription": "Nur HTTPS-URL (S3, MinIO, Wasabi, …)",
@@ -472,6 +472,11 @@
       "restoreStartedTitle": "Wiederherstellung gestartet",
       "deleteBackupRunFailed": "Backup-Lauf konnte nicht gelöscht werden",
       "backupRunRemovedTitle": "Backup-Lauf entfernt"
+    },
+    "errors": {
+      "BACKUP_PG_DUMP_VERSION_MISMATCH": "Das Backup-Werkzeug passt nicht zur Datenbankversion. Worker-Image mit passendem PostgreSQL-Client neu bauen.",
+      "BACKUP_PG_DUMP_NOT_FOUND": "Backup-Werkzeug (pg_dump) fehlt im Worker. Image neu bauen oder PG_DUMP_BIN setzen.",
+      "BACKUP_PG_DUMP_FAILED": "Datenbank-Backup ist fehlgeschlagen. Details stehen in den Worker-Logs."
     }
   },
   "users": {

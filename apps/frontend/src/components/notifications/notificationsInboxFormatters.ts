@@ -81,10 +81,17 @@ export function notificationBodyText(
     return t('notifications:body.backupSucceeded', { size, destination: dest });
   }
   if (eventType === 'backup-failed') {
+    const raw = typeof payload.errorMessage === 'string' ? payload.errorMessage : null;
     const msg =
-      typeof payload.errorMessage === 'string'
-        ? payload.errorMessage
-        : t('notifications:body.unknownError');
+      raw === 'BACKUP_PG_DUMP_VERSION_MISMATCH'
+        ? t('notifications:body.backupPgDumpVersionMismatch')
+        : raw === 'BACKUP_PG_DUMP_NOT_FOUND'
+          ? t('notifications:body.backupPgDumpNotFound')
+          : raw === 'BACKUP_PG_DUMP_FAILED'
+            ? t('notifications:body.backupPgDumpFailed')
+            : raw && /server version mismatch|pg_dump version/i.test(raw)
+              ? t('notifications:body.backupPgDumpVersionMismatch')
+              : (raw ?? t('notifications:body.unknownError'));
     return truncate(msg, 160);
   }
   if (eventType === 'backup-restore-succeeded') {

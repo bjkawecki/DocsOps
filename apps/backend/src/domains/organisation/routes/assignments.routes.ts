@@ -4,6 +4,7 @@ import {
   getEffectiveUserId,
   type RequestWithUser,
 } from '../../auth/middleware.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
 import {
   canManageTeamMembers,
   canManageTeamLeaders,
@@ -68,7 +69,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post(
     '/companies/:companyId/company-leads',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { companyId } = companyIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -124,7 +125,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.delete(
     '/companies/:companyId/company-leads/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { companyId, userId: targetUserId } = companyIdUserIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
@@ -184,7 +185,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post(
     '/teams/:teamId/members',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId } = teamIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -223,7 +224,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.delete(
     '/teams/:teamId/members/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId, userId: targetUserId } = teamIdUserIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
@@ -284,7 +285,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post(
     '/teams/:teamId/team-leads',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId } = teamIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -318,7 +319,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.delete(
     '/teams/:teamId/team-leads/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { teamId, userId: targetUserId } = teamIdUserIdParamSchema.parse(request.params);
       const userId = getEffectiveUserId(request as RequestWithUser);
@@ -388,7 +389,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.post(
     '/departments/:departmentId/department-leads',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { departmentId } = departmentIdParamSchema.parse(request.params);
       const body = addAssignmentBodySchema.parse(request.body);
@@ -444,7 +445,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
   app.delete(
     '/departments/:departmentId/department-leads/:userId',
-    { preHandler: requireAuthPreHandler },
+    { preHandler: [requireAuthPreHandler, requireNotDemoMutatingPreHandler] },
     async (request, reply) => {
       const { departmentId, userId: targetUserId } = departmentIdUserIdParamSchema.parse(
         request.params

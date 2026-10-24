@@ -15,12 +15,22 @@ export type BackupStatus = {
   schedule: { enabled: boolean; cron: string | null; tz: string | null };
 };
 
+export type CredentialFieldLengths = {
+  accessKeyId?: number;
+  secretAccessKey?: number;
+  username?: number;
+  password?: number;
+  privateKey?: number;
+};
+
 export type Destination = {
   id: string;
   name: string;
   type: 'S3_COMPATIBLE' | 'SSH' | 'WEBDAV';
   enabled: boolean;
   configJson: Record<string, unknown>;
+  /** Lengths of stored secrets only (never values) for edit-form masks. */
+  credentialFieldLengths?: CredentialFieldLengths;
 };
 
 export type BackupRun = {

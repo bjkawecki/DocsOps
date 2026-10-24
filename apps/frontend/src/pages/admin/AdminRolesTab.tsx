@@ -175,7 +175,7 @@ export function AdminRolesTab() {
       </Stack>
 
       {demoMode ? (
-        <Alert color="blue" variant="light">
+        <Alert color="yellow" variant="light">
           {t('rolesPage.demoReadOnly')}
         </Alert>
       ) : null}
