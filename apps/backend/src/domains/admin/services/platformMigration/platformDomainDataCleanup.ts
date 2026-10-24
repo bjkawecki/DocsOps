@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
+import { Prisma, type PrismaClient } from '../../../../../generated/prisma/client.js';
 import type { StorageService } from '../../../../infrastructure/storage/index.js';
 
 export type PreImportUserSnapshot = {
@@ -62,6 +62,20 @@ async function deleteMinioPrefixes(
   }
 }
 
+/** Clears Restrict FK rows that would block user deletion (admin audit tables). */
+async function clearRestrictUserAuditRowsInTransaction(
+  tx: Prisma.TransactionClient,
+  userIds: string[]
+): Promise<void> {
+  if (userIds.length === 0) return;
+  await tx.adminBackupActionAudit.deleteMany({ where: { actorUserId: { in: userIds } } });
+  await tx.adminPlatformMigrationAudit.deleteMany({ where: { actorUserId: { in: userIds } } });
+  await tx.$executeRaw`
+    DELETE FROM admin_job_action_audit
+    WHERE actor_user_id IN (${Prisma.join(userIds)})
+  `;
+}
+
 export async function deleteNonAdminUsersInTransaction(
   tx: Prisma.TransactionClient
 ): Promise<number> {
@@ -72,6 +86,7 @@ export async function deleteNonAdminUsersInTransaction(
   const nonAdminIds = nonAdminUsers.map((u) => u.id);
   if (nonAdminIds.length === 0) return 0;
 
+  await clearRestrictUserAuditRowsInTransaction(tx, nonAdminIds);
   await tx.session.deleteMany({ where: { userId: { in: nonAdminIds } } });
   await tx.user.deleteMany({ where: { id: { in: nonAdminIds } } });
   return nonAdminIds.length;
@@ -97,6 +112,7 @@ export async function rollbackFailedPlatformImport(
     });
     const deleteIds = usersToDelete.map((u) => u.id);
     if (deleteIds.length > 0) {
+      await clearRestrictUserAuditRowsInTransaction(tx, deleteIds);
       await tx.session.deleteMany({ where: { userId: { in: deleteIds } } });
       await tx.user.deleteMany({ where: { id: { in: deleteIds } } });
     }
