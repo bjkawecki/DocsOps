@@ -7,6 +7,7 @@ import type { Team } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
@@ -284,10 +285,7 @@ export function AdminTeamsTab() {
   const deleteTeam = useMutation({
     mutationFn: async (tid: string) => {
       const res = await apiFetch(`/api/v1/teams/${tid}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, tid) => {
       const team = allTeams.find((t) => t.id === tid);
@@ -301,7 +299,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const addLeader = useMutation({

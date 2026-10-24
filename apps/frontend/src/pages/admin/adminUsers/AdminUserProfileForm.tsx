@@ -59,13 +59,19 @@ export function AdminUserProfileForm({
         label={t('users.profileForm.adminSwitchLabel')}
         description={isLastActiveAdmin ? t('users.profileForm.adminLastActiveHint') : undefined}
         checked={isAdmin}
-        onChange={(e) => setIsAdmin(e.currentTarget.checked)}
+        onChange={(e) => {
+          const next = e.currentTarget.checked;
+          setIsAdmin(next);
+          if (next) setIsCompanyLead(false);
+        }}
         disabled={isLastActiveAdmin}
       />
       <Switch
         label={t('users.profileForm.companyLeadSwitchLabel')}
+        description={isAdmin ? t('users.profileForm.companyLeadAdminHint') : undefined}
         checked={isCompanyLead}
         onChange={(e) => setIsCompanyLead(e.currentTarget.checked)}
+        disabled={isAdmin}
       />
       <Switch
         label={t('users.profileForm.deactivatedSwitchLabel')}

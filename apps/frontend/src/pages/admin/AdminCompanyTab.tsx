@@ -21,6 +21,7 @@ import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
+import { adminApiErrorMessage, throwAdminApiError } from './adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
@@ -205,10 +206,7 @@ export function AdminCompanyTab() {
   const deleteCompany = useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/v1/companies/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: () => {
       invalidateCompanies();
@@ -229,7 +227,11 @@ export function AdminCompanyTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const addLead = useMutation({
@@ -513,6 +515,7 @@ export function AdminCompanyTab() {
                   size="sm"
                   variant="filled"
                   color="red"
+                  w="fit-content"
                   leftSection={<IconTrash size={14} />}
                   onClick={() => setDeleteConfirmCompany(company)}
                   loading={deleteCompany.isPending}
@@ -544,6 +547,7 @@ export function AdminCompanyTab() {
         onClose={() => setDeleteConfirmCompany(null)}
         title={t('company.deleteModal.title')}
         size="sm"
+        zIndex={400}
       >
         {deleteConfirmCompany && (
           <Stack>

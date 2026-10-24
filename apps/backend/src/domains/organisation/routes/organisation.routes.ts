@@ -144,6 +144,7 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         const e = err as { code?: string };
         if (e.code === 'P2003') {
           return reply.status(409).send({
+            code: 'COMPANY_HAS_DEPARTMENTS',
             error: 'Company cannot be deleted while departments exist.',
           });
         }
@@ -236,6 +237,7 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         const e = err as { code?: string };
         if (e.code === 'P2003') {
           return reply.status(409).send({
+            code: 'DEPARTMENT_HAS_CHILDREN',
             error: 'Department cannot be deleted while it has teams or processes/projects (owner).',
           });
         }
@@ -323,6 +325,7 @@ const organisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         const e = err as { code?: string };
         if (e.code === 'P2003') {
           return reply.status(409).send({
+            code: 'TEAM_HAS_CONTEXTS',
             error: 'Team cannot be deleted while processes or projects (owner) are assigned to it.',
           });
         }

@@ -45,8 +45,13 @@
     "lead": "Leitung",
     "leadOptionalNone": "Keine",
     "overview": "Übersicht",
-    "manage": "Verwalten",
+    "manage": "Gefahrenzone",
     "manageHint": "Sensible Aktionen. Mit Vorsicht verwenden.",
+    "errors": {
+      "COMPANY_HAS_DEPARTMENTS": "Die Firma kann nicht gelöscht werden, solange noch Abteilungen vorhanden sind.",
+      "DEPARTMENT_HAS_CHILDREN": "Die Abteilung kann nicht gelöscht werden, solange noch Teams oder Prozesse/Projekte vorhanden sind.",
+      "TEAM_HAS_CONTEXTS": "Das Team kann nicht gelöscht werden, solange noch Prozesse oder Projekte zugeordnet sind."
+    },
     "stats": "Statistik",
     "storage": "Speicher",
     "documents": "Dokumente",
@@ -548,6 +553,7 @@
       "adminSwitchLabel": "Administrator",
       "adminLastActiveHint": "Mindestens ein aktiver Administrator ist erforderlich.",
       "companyLeadSwitchLabel": "Firmenleitung",
+      "companyLeadAdminHint": "Administratoren können keine Organisationsrolle haben. Getrennte Accounts verwenden.",
       "deactivatedSwitchLabel": "Deaktiviert",
       "deactivatedLastActiveHint": "Der letzte Administrator kann nicht deaktiviert werden."
     },
@@ -616,7 +622,7 @@
       "title": "Team: {{name}}",
       "tabs": {
         "overview": "Übersicht",
-        "manage": "Verwalten"
+        "manage": "Gefahrenzone"
       },
       "card": {
         "title": "Team",
@@ -668,7 +674,7 @@
       "title": "Abteilung: {{name}}",
       "tabs": {
         "overview": "Übersicht",
-        "manage": "Verwalten"
+        "manage": "Gefahrenzone"
       },
       "card": {
         "title": "Abteilung",
@@ -701,7 +707,7 @@
       "tabs": {
         "overview": "Übersicht",
         "pdfBranding": "PDF-Branding",
-        "manage": "Verwalten"
+        "manage": "Gefahrenzone"
       },
       "card": {
         "title": "Firma",

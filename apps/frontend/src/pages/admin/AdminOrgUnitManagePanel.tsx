@@ -28,6 +28,7 @@ export function AdminOrgUnitManagePanel({
         size="sm"
         variant="filled"
         color="red"
+        w="fit-content"
         leftSection={<IconTrash size={14} />}
         onClick={onRequestDelete}
         loading={deleteLoading}

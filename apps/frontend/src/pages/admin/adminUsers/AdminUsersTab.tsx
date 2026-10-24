@@ -342,6 +342,18 @@ export function AdminUsersTab() {
             currentUserId={currentUserId}
             onDeleteUser={() => setDeleteUserConfirmUser(detailUser)}
             onSaveProfile={async (body) => {
+              const wasCompanyLead = detailUser.role === 'Company Lead';
+              // Org role must be cleared before granting platform admin (exclusive roles).
+              if (companyId && body.isAdmin && wasCompanyLead) {
+                const res = await apiFetch(
+                  `/api/v1/companies/${companyId}/company-leads/${detailUser.id}`,
+                  { method: 'DELETE' }
+                );
+                if (!res.ok) {
+                  const err = (await res.json().catch(() => ({}))) as { error?: string };
+                  throw new Error(err.error ?? res.statusText);
+                }
+              }
               await updateUser.mutateAsync({
                 userId: detailUser.id,
                 body: {
@@ -351,8 +363,7 @@ export function AdminUsersTab() {
                   deletedAt: body.deletedAt,
                 },
               });
-              if (companyId && typeof body.isCompanyLead === 'boolean') {
-                const wasCompanyLead = detailUser.role === 'Company Lead';
+              if (companyId && typeof body.isCompanyLead === 'boolean' && !body.isAdmin) {
                 if (body.isCompanyLead && !wasCompanyLead) {
                   const res = await apiFetch(`/api/v1/companies/${companyId}/company-leads`, {
                     method: 'POST',

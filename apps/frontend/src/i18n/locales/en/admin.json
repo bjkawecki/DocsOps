@@ -45,8 +45,13 @@
     "lead": "Lead",
     "leadOptionalNone": "None",
     "overview": "Overview",
-    "manage": "Manage",
+    "manage": "Danger zone",
     "manageHint": "Sensitive actions. Use with care.",
+    "errors": {
+      "COMPANY_HAS_DEPARTMENTS": "The company cannot be deleted while departments still exist.",
+      "DEPARTMENT_HAS_CHILDREN": "The department cannot be deleted while it still has teams or processes/projects.",
+      "TEAM_HAS_CONTEXTS": "The team cannot be deleted while processes or projects are still assigned to it."
+    },
     "stats": "Stats",
     "storage": "Storage",
     "documents": "Documents",
@@ -548,6 +553,7 @@
       "adminSwitchLabel": "Administrator",
       "adminLastActiveHint": "At least one active administrator is required.",
       "companyLeadSwitchLabel": "Company lead",
+      "companyLeadAdminHint": "Administrators cannot hold an organization role. Use separate accounts.",
       "deactivatedSwitchLabel": "Deactivated",
       "deactivatedLastActiveHint": "The last administrator cannot be deactivated."
     },
@@ -616,7 +622,7 @@
       "title": "Team: {{name}}",
       "tabs": {
         "overview": "Overview",
-        "manage": "Manage"
+        "manage": "Danger zone"
       },
       "card": {
         "title": "Team",
@@ -668,7 +674,7 @@
       "title": "Department: {{name}}",
       "tabs": {
         "overview": "Overview",
-        "manage": "Manage"
+        "manage": "Danger zone"
       },
       "card": {
         "title": "Department",
@@ -701,7 +707,7 @@
       "tabs": {
         "overview": "Overview",
         "pdfBranding": "PDF branding",
-        "manage": "Manage"
+        "manage": "Danger zone"
       },
       "card": {
         "title": "Company",

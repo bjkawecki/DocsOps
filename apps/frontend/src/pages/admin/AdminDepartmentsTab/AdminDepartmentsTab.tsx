@@ -7,6 +7,7 @@ import type { Department } from 'backend/api-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
@@ -214,10 +215,7 @@ export function AdminDepartmentsTab() {
   const deleteDepartment = useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/v1/departments/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: () => {
       invalidateCompanies();
@@ -229,7 +227,11 @@ export function AdminDepartmentsTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const addLead = useMutation({

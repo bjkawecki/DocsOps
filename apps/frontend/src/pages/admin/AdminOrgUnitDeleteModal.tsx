@@ -24,7 +24,7 @@ export function AdminOrgUnitDeleteModal({
 }: AdminOrgUnitDeleteModalProps) {
   const { t } = useTranslation(['admin', 'common']);
   return (
-    <Modal opened={opened} onClose={onClose} title={title} size="sm">
+    <Modal opened={opened} onClose={onClose} title={title} size="sm" zIndex={400}>
       {hasEntity && (
         <Stack>
           <Text size="sm">{body}</Text>
