@@ -1,5 +1,4 @@
 import {
-  Badge,
   Box,
   Group,
   Stack,
@@ -23,6 +22,7 @@ import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstant
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
 import { PageMobileActionBar } from '../../components/ui/PageMobileActionBar.js';
+import { TagBadge } from '../../components/ui/TagBadge.js';
 import {
   CompactListCount,
   StickySearchChrome,
@@ -514,9 +514,7 @@ export function CatalogPage() {
                       <Table.Td>
                         <Group gap={4}>
                           {doc.documentTags.map((dt) => (
-                            <Badge key={dt.tag.id} size="sm" variant="filled">
-                              {dt.tag.name}
-                            </Badge>
+                            <TagBadge key={dt.tag.id}>{dt.tag.name}</TagBadge>
                           ))}
                           {doc.documentTags.length === 0 && (
                             <Text size="sm" c="dimmed">
@@ -578,11 +576,7 @@ export function CatalogPage() {
                             {metaParts.join(' · ')}
                           </Text>
                         ) : null}
-                        {tagChip ? (
-                          <Badge size="xs" variant="light" w="fit-content">
-                            {tagChip.name}
-                          </Badge>
-                        ) : null}
+                        {tagChip ? <TagBadge size="xs">{tagChip.name}</TagBadge> : null}
                         {search.trim() && doc.searchSnippet ? (
                           <Text size="xs" c="dimmed" lineClamp={2}>
                             {renderSearchSnippet(doc.searchSnippet)}

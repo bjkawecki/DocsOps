@@ -1,0 +1,6 @@
+/* Neutral tag chip: clear edge + body text on both color schemes. */
+.app-tag-badge.mantine-Badge-root {
+  background: color-mix(in srgb, var(--mantine-color-text) 8%, var(--mantine-color-default));
+  color: var(--mantine-color-text);
+  border-color: var(--mantine-color-default-border);
+}

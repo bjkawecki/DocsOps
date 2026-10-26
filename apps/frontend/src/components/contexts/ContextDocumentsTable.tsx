@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Button,
-  Group,
-  Pagination,
-  Select,
-  Stack,
-  Table,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
 import { useIntersection, useMediaQuery } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +10,7 @@ import { EntityListCard } from '../ui/EntityListCard.js';
 import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
 import { CompactListCount, useCompactListSearchFab } from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
+import { TagBadge } from '../ui/TagBadge.js';
 
 export type ContextDocumentsTableRow = {
   id: string;
@@ -261,9 +252,7 @@ export function ContextDocumentsTable({
                   <Table.Td>
                     <Group gap="xs">
                       {doc.documentTags.map((dt) => (
-                        <Badge key={dt.tag.id} size="sm" variant="light" color="gray">
-                          {dt.tag.name}
-                        </Badge>
+                        <TagBadge key={dt.tag.id}>{dt.tag.name}</TagBadge>
                       ))}
                     </Group>
                   </Table.Td>

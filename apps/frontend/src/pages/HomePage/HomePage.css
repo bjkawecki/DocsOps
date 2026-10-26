@@ -391,6 +391,8 @@
 }
 
 .pulse-explore {
+  /* empty-pulse-theme.svg viewBox width/height – keep in sync with public SVG */
+  --pulse-illust-aspect: 4096 / 1801;
   position: relative;
   min-width: 0;
   width: 100%;
@@ -524,8 +526,9 @@ a.pulse-start-here-link.pulse-explore-link,
 }
 
 /*
- * Fill: bottom-pinned. Full width + YMin slice (top kept, mild bottom crop).
- * Height capped at half the viewport – explicit min() (aspect-ratio + max-height is unreliable).
+ * Fill: bottom-pinned, full main width (break out of pulse-home px="md").
+ * Height from container width (not 100vw – that ignored the sidebar and sliced
+ * the rising arms). max-height 50vh → YMin slice crops bottom only.
  */
 .pulse-explore--fill .pulse-explore-illustration-wrap {
   position: absolute;
@@ -535,7 +538,8 @@ a.pulse-start-here-link.pulse-explore-link,
   top: auto;
   flex: none;
   width: auto;
-  height: min(50vh, calc((100vw - 2 * var(--mantine-spacing-md)) * 1530 / 4096));
+  aspect-ratio: var(--pulse-illust-aspect);
+  height: auto;
   max-height: 50vh;
   min-height: 0;
   margin: 0;
@@ -554,14 +558,15 @@ a.pulse-start-here-link.pulse-explore-link,
   min-height: 0;
 }
 
-/* Footer: same bottom pin + half-viewport cap */
+/* Footer: same edge dock + half-viewport cap */
 .pulse-explore--footer .pulse-explore-illustration-wrap {
   position: sticky;
   bottom: 0;
   display: block;
   width: calc(100% + 2 * var(--mantine-spacing-md));
   max-width: none;
-  height: min(50vh, calc((100vw - 2 * var(--mantine-spacing-md)) * 1530 / 4096));
+  aspect-ratio: var(--pulse-illust-aspect);
+  height: auto;
   max-height: 50vh;
   margin-top: calc(-1 * (var(--mantine-spacing-xl) + var(--mantine-spacing-lg)));
   margin-left: calc(-1 * var(--mantine-spacing-md));

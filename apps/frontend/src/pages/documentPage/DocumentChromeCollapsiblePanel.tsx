@@ -10,6 +10,8 @@ const chromePanelStyle = {
   border: '1px solid var(--mantine-color-default-border)',
   borderRadius: 'var(--mantine-radius-md)',
   padding: 'var(--mantine-spacing-xs) var(--mantine-spacing-sm)',
+  /* Same surface as document card – avoid recessed body-only panels in dark. */
+  background: 'var(--mantine-color-default)',
 } as const;
 
 type DocumentChromeCollapsiblePanelProps = {
@@ -53,7 +55,7 @@ export function DocumentChromeCollapsiblePanel({
           borderRadius: 'var(--mantine-radius-sm)',
         }}
       >
-        <Text fz="xs" fw={600} c="dimmed" style={{ flex: 1, textAlign: 'left' }}>
+        <Text fz="xs" fw={600} style={{ flex: 1, textAlign: 'left' }}>
           {title}
         </Text>
         {open ? (

@@ -1,8 +1,9 @@
-import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../api/client.js';
 import type { DocumentTypeDto } from '../../components/documents/documentTypeTypes.js';
+import { TagBadge } from '../../components/ui/TagBadge.js';
 import type { DocumentResponse } from './documentPageTypes';
 import { DocumentChromeCollapsiblePanel } from './DocumentChromeCollapsiblePanel.js';
 
@@ -91,17 +92,9 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
         {tags.length > 0 ? (
           <Group gap={6} wrap="wrap" aria-label={t('sidebar.tagsAria')}>
             {tags.map((dt) => (
-              <Badge
-                key={dt.tag.id}
-                size="xs"
-                variant="light"
-                color="gray"
-                radius="xl"
-                tt="none"
-                fw={500}
-              >
+              <TagBadge key={dt.tag.id} size="xs">
                 {dt.tag.name}
-              </Badge>
+              </TagBadge>
             ))}
           </Group>
         ) : null}

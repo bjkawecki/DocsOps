@@ -161,8 +161,8 @@
   min-height: min-content;
   height: auto;
   overflow: visible;
-  /* Compact: less gap under chrome; wide override in 75em block below. */
-  padding-top: 0.5rem;
+  /* Align reading card top with context switcher / left chrome. */
+  padding-top: 0;
   /* Extra scroll room so the end of the document can sit above the viewport bottom. */
   padding-bottom: min(40vh, 18rem);
 }
@@ -423,16 +423,7 @@ a.document-chrome-nav-link:focus-visible,
     overflow: auto;
   }
 
-  .document-page-scroll {
-    padding-top: 1.75rem;
-  }
-
-  /* Must win over .document-page-scroll padding above (same specificity, later). */
-  .document-page-scroll--edit,
-  .document-page-scroll--help,
-  .document-page-scroll--templates {
-    padding-top: 0;
-  }
+  /* View/edit/help/templates: keep padding-top 0 so card tops match left chrome. */
 
   /* Stretch aside to reading-column height so comments sticky has room to stick.
    * Width must come from the rail child (min-content) – not width:100% on the host. */
