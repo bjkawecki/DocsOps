@@ -526,9 +526,9 @@ a.pulse-start-here-link.pulse-explore-link,
 }
 
 /*
- * Fill: bottom-pinned, full main width (break out of pulse-home px="md").
- * Height from container width (not 100vw – that ignored the sidebar and sliced
- * the rising arms). max-height 50vh → YMin slice crops bottom only.
+ * Fill: bottom-pinned, full outlet width (break out of pulse-home px="md").
+ * Outlet is flush to Main (no shell inline pad) so arms meet the scrollbar edge.
+ * Height from container width (not 100vw). max-height 50vh → YMin slice crops bottom.
  */
 .pulse-explore--fill .pulse-explore-illustration-wrap {
   position: absolute;

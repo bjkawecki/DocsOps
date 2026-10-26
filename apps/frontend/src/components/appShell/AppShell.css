@@ -26,9 +26,12 @@
 
 /*
  * Pin shell chrome (breadcrumbs, banners); page content scrolls in the outlet.
+ * No horizontal padding on main-body: scrollport (and scrollbar) flush to Main edges.
+ * Inline inset lives on breadcrumbs + page Containers (or Home px).
  * Document pages keep the same structure; --document only adds scrollbar polish.
  */
 .app-shell-main-body {
+  --app-shell-main-inline: var(--mantine-spacing-md);
   flex: 1;
   min-height: 0;
   display: flex;
@@ -36,8 +39,21 @@
   overflow: hidden;
 }
 
+@media (min-width: 62em) {
+  .app-shell-main-body {
+    --app-shell-main-inline: var(--mantine-spacing-lg);
+  }
+}
+
+@media (min-width: 88em) {
+  .app-shell-main-body {
+    --app-shell-main-inline: var(--mantine-spacing-xl);
+  }
+}
+
 .app-shell-main-body > .app-shell-breadcrumb-bar {
   flex-shrink: 0;
+  padding-inline: var(--app-shell-main-inline);
 }
 
 .app-shell-outlet {

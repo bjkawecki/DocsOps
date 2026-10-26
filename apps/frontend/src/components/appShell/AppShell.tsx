@@ -162,7 +162,6 @@ function AppShellFrame({
                 className="app-shell-main-body"
                 pt={{ base: 'md', md: 'sm' }}
                 pb={{ base: 'md', md: 'lg', xl: 'xl' }}
-                px={{ base: 'md', md: 'lg', xl: 'xl' }}
               >
                 <AppShellBreadcrumbBar />
                 <AppShellImpersonationBannerSlot

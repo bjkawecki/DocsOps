@@ -1,5 +1,6 @@
 import {
   Box,
+  Container,
   Group,
   Stack,
   Table,
@@ -387,7 +388,7 @@ export function CatalogPage() {
   closeFilterRef.current = compactFilter.close;
 
   return (
-    <Box>
+    <Container fluid maw={1600} px="md" mb="xl">
       <Stack gap={isWide ? 'md' : 'sm'}>
         {isWide ? (
           <StickySearchChrome>
@@ -602,6 +603,6 @@ export function CatalogPage() {
           actions={[compactSearch.action, compactFilter.action]}
         />
       ) : null}
-    </Box>
+    </Container>
   );
 }
