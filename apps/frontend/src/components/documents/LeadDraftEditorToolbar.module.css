@@ -7,8 +7,8 @@
   padding: 6px 4px;
   border-radius: var(--mantine-radius-sm);
   border: 1px solid var(--mantine-color-default-border);
-  /* Transparent on body – white paper is reserved for the editor shell. */
-  background-color: transparent;
+  /* Same surface as editor shell / cards – readable chrome on recessed body. */
+  background-color: var(--mantine-color-default);
 }
 
 .rowCompact {
@@ -42,7 +42,7 @@
   padding: 0.35rem 0.65rem;
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-sm);
-  background: transparent;
+  background: var(--mantine-color-default);
   color: var(--mantine-color-text);
   font: inherit;
   font-size: var(--mantine-font-size-sm);
