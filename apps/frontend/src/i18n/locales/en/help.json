@@ -267,21 +267,22 @@
     },
     "specialRoles": {
       "lead": [
-        "Special roles are account roles outside the organisation hierarchy. DocsOps has two: admin for operating the instance, and knowledge manager for content stewardship in assigned scopes. Both are mutually exclusive with each other and with a user role on the same account."
+        "DocsOps has two special roles. The admin operates the instance. The knowledge manager stewards organisation knowledge in explicitly assigned scopes."
       ],
       "sections": [
         {
           "heading": "Admin",
           "paragraphs": [
-            "The admin operates and configures the instance: users and organisation structure, backup and migration, and platform-wide settings. That work happens in the admin area – Organisation, Operations, Data, and Platform.",
-            "Through the admin role, only contexts and documents owned by the company are readable – not department or team knowledge. The admin does not create or edit content documents and has no personal space. Anyone who contributes content uses a second account."
+            "Admin covers installing and operating the instance as well as managing users, the organisation structure, and platform-wide settings. Backup and migration of the instance also belong here. For that, the admin uses the admin area of the application; there the work is organised into the groups Organisation, Operations, Data, and Platform.",
+            "The admin only reads company-owned contexts and documents; content writing and a personal space are not part of the role. Anyone who is the person behind the admin and wants to write uses their user account."
           ]
         },
         {
           "heading": "Knowledge Manager",
           "paragraphs": [
-            "The knowledge manager stewards organisation knowledge where scopes are explicitly assigned – company, departments, and teams as a list. Rights apply only to those exact entries; a company-level assignment does not extend to departments or teams.",
-            "In each assigned scope the same content rights apply as for the lead: read, write, create, delete, and publish. There is no personal space and no access to the admin area. The role fits when content needs to be moved or cleaned up across several scopes without membership or a lead role in the hierarchy."
+            "Unlike the admin, the knowledge manager writes content in assigned scopes without a lead seat in the hierarchy. The role makes sense, for example, when someone in the organisation is permanently responsible for knowledge stewardship, when existing knowledge is being set up in DocsOps for the first time, or when an external specialist should temporarily look after scopes.",
+            "The admin assigns company, departments, and teams to the account. Rights apply only to those exact entries; a company-level assignment does not extend to departments or teams.",
+            "In each assigned scope the same content rights apply as for the lead: read, write, create, delete, and publish. There is no personal space and no access to the admin area."
           ]
         }
       ]

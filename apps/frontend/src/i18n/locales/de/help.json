@@ -223,7 +223,7 @@
           "paragraphs": [
             "Jede Rolle bündelt bestimmte Rechte – den technischen Rahmen dafür, welche Handlungen dem Nutzer erlaubt sind. Mit einer Rolle darf der Nutzer das, was diese Rechte umfassen.",
             "Aus den Rechten folgt die soziale Seite: Verantwortung. Hat ein Nutzer bestimmte Rechte, trägt er die dazugehörige Verantwortung.",
-            "Neben den Nutzerrollen in der Organisation gibt es Sonderrollen für Plattformbetrieb und fachliche Wissenspflege. Sie stehen außerhalb der Hierarchie und schließen sich untereinander sowie mit einer Nutzerrolle auf demselben Account aus."
+            "Neben den Nutzerrollen in der Organisation gibt es Sonderrollen für Plattformbetrieb und fachliche Wissenspflege. Sie stehen außerhalb der Hierarchie und schließen sich untereinander sowie mit einer Nutzerrolle auf demselben Konto aus."
           ]
         }
       ]
@@ -267,21 +267,22 @@
     },
     "specialRoles": {
       "lead": [
-        "Sonderrollen sind Account-Rollen außerhalb der Organisationshierarchie. DocsOps kennt zwei: Admin für den Betrieb der Instanz und Wissensmanager für fachliche Pflege in zugewiesenen Bereichen. Beide schließen sich untereinander und mit einer Nutzerrolle auf demselben Account aus."
+        "DocsOps kennt zwei Sonderrollen. Der Admin betreibt die Instanz. Der Wissensmanager pflegt Organisationswissen in ausdrücklich zugewiesenen Bereichen."
       ],
       "sections": [
         {
           "heading": "Admin",
           "paragraphs": [
-            "Der Admin betreibt und konfiguriert die Instanz: Nutzer und Organisationsstruktur, Sicherung und Migration sowie plattformweite Einstellungen. Dafür dient der Admin-Bereich – Organisation, Betrieb, Daten und Plattform.",
-            "Über die Admin-Rolle sind nur Kontexte und Dokumente lesbar, die dem Unternehmen zugeordnet sind – nicht Abteilungs- oder Teamwissen. Fachdokumente legt der Admin nicht an und bearbeitet sie nicht; einen persönlichen Bereich hat er nicht. Wer inhaltlich mitwirkt, nutzt dafür einen zweiten Account."
+            "Zum Admin gehören Installation und Betrieb sowie die Verwaltung von Nutzern, der Organisationsstruktur und plattformweiten Einstellungen. Sicherung und Migration der Instanz liegen ebenfalls hier. Dafür nutzt der Admin den Admin-Bereich der Anwendung; dort sind die Aufgaben in die Gruppen Organisation, Betrieb, Daten und Plattform gegliedert.",
+            "Der Admin liest nur unternehmenszugeordnete Kontexte und Dokumente; Fachschreiben und persönlicher Bereich gehören nicht zur Rolle. Wer als Person hinter dem Admin schreiben will, nutzt dafür das Nutzerkonto."
           ]
         },
         {
           "heading": "Wissensmanager",
           "paragraphs": [
-            "Der Wissensmanager pflegt Organisationswissen dort, wo Bereiche ausdrücklich zugewiesen sind – Unternehmen, Abteilungen und Teams als Liste. Rechte gelten nur für genau diese Einträge; eine Zuweisung auf Unternehmensebene reicht nicht auf Abteilungen oder Teams herunter.",
-            "In jedem zugewiesenen Bereich gelten dieselben fachlichen Rechte wie für die Leitung: lesen, schreiben, anlegen, löschen und veröffentlichen. Persönlicher Bereich und Admin-Bereich gehören nicht dazu. Die Rolle eignet sich, wenn Inhalte umgezogen oder über mehrere Bereiche hinweg aufgeräumt werden sollen, ohne dass dafür Mitgliedschaft oder Leitungsrolle in der Hierarchie nötig sind."
+            "Anders als der Admin schreibt der Wissensmanager fachlich in zugewiesenen Bereichen, ohne einen Leitungsplatz in der Hierarchie. Sinnvoll ist die Rolle etwa, wenn in der Organisation jemand dauerhaft für die Wissenspflege zuständig ist, wenn vorhandenes Wissen erstmals in DocsOps angelegt wird oder wenn ein externer Spezialist zeitweise Bereiche betreuen soll.",
+            "Der Admin weist dem Konto Unternehmen, Abteilungen und Teams zu. Rechte gelten nur für genau diese Einträge; eine Zuweisung auf Unternehmensebene reicht nicht auf Abteilungen oder Teams herunter.",
+            "In jedem zugewiesenen Bereich gelten dieselben fachlichen Rechte wie für die Leitung: lesen, schreiben, anlegen, löschen und veröffentlichen. Persönlicher Bereich und Admin-Bereich gehören nicht dazu."
           ]
         }
       ]
