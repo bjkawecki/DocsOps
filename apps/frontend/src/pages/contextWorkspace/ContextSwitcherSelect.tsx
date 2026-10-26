@@ -58,9 +58,10 @@ const nestedListStyle: CSSProperties = {
   marginTop: 4,
 };
 
+/* Match AppShell / context sidebar: slate wash + primary text (not primary-light). */
 const activeOptionStyle: CSSProperties = {
-  backgroundColor: 'var(--mantine-primary-color-light)',
-  color: 'var(--mantine-primary-color-light-color)',
+  backgroundColor: 'var(--app-nav-active-bg)',
+  color: 'var(--mantine-primary-color-filled)',
 };
 
 /** Collapsible Processes/Projects header inside the switcher dropdown. */
