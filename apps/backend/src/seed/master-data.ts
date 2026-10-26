@@ -98,6 +98,47 @@ async function seedMasterData(prisma: PrismaClient, csv: SeedCsvData): Promise<S
     });
   }
 
+  const knowledgeManagerUserIds = new Set<string>();
+  for (const row of csv.knowledgeManagerCompanies) {
+    const companyId = companyById.get(row.company_name);
+    const userId = userById.get(row.user_email);
+    if (!companyId || !userId) continue;
+    knowledgeManagerUserIds.add(userId);
+    await prisma.knowledgeManagerCompany.upsert({
+      where: { companyId_userId: { companyId, userId } },
+      create: { companyId, userId },
+      update: {},
+    });
+  }
+  for (const row of csv.knowledgeManagerDepartments) {
+    const departmentId = departmentById.get(row.department_name);
+    const userId = userById.get(row.user_email);
+    if (!departmentId || !userId) continue;
+    knowledgeManagerUserIds.add(userId);
+    await prisma.knowledgeManagerDepartment.upsert({
+      where: { departmentId_userId: { departmentId, userId } },
+      create: { departmentId, userId },
+      update: {},
+    });
+  }
+  for (const row of csv.knowledgeManagerTeams) {
+    const teamId = teamById.get(row.team_name);
+    const userId = userById.get(row.user_email);
+    if (!teamId || !userId) continue;
+    knowledgeManagerUserIds.add(userId);
+    await prisma.knowledgeManagerTeam.upsert({
+      where: { teamId_userId: { teamId, userId } },
+      create: { teamId, userId },
+      update: {},
+    });
+  }
+  if (knowledgeManagerUserIds.size > 0) {
+    await prisma.user.updateMany({
+      where: { id: { in: [...knowledgeManagerUserIds] } },
+      data: { isKnowledgeManager: true },
+    });
+  }
+
   return {
     ...csv,
     companyById,

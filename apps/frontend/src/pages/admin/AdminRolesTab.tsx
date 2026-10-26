@@ -67,6 +67,7 @@ const ROLE_TITLE_KEYS: Record<OrgRoleKey, string> = {
   departmentLead: 'rolesPage.roles.departmentLead',
   teamLead: 'rolesPage.roles.teamLead',
   teamMember: 'rolesPage.roles.teamMember',
+  knowledgeManager: 'rolesPage.roles.knowledgeManager',
 };
 
 /**

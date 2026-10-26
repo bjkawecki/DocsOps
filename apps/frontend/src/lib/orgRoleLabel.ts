@@ -7,6 +7,7 @@ export const ORG_ROLE_KEYS = [
   'departmentLead',
   'teamLead',
   'teamMember',
+  'knowledgeManager',
 ] as const satisfies readonly OrgRoleKey[];
 
 export type OrgRoleForm = 'singular' | 'plural';
@@ -18,6 +19,7 @@ export type DisplayRoleKey = OrgRoleKey | ExtraDisplayRoleKey;
 
 const LEGACY_USER_ROLE_TO_KEY: Record<string, DisplayRoleKey> = {
   Admin: 'admin',
+  'Knowledge Manager': 'knowledgeManager',
   'Company Lead': 'companyLead',
   'Department Lead': 'departmentLead',
   'Department Author': 'departmentAuthor',
@@ -29,6 +31,7 @@ const LEGACY_USER_ROLE_TO_KEY: Record<string, DisplayRoleKey> = {
 
 const DEMO_LOGIN_TO_KEY: Record<string, DisplayRoleKey> = {
   admin: 'admin',
+  knowledgeManager: 'knowledgeManager',
   companyLead: 'companyLead',
   departmentLead: 'departmentLead',
   teamLead: 'teamLead',

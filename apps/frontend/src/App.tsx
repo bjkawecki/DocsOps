@@ -246,6 +246,11 @@ function App() {
               <Route path="lead" element={<Navigate to="/help/user-roles" replace />} />
               <Route path="author" element={<Navigate to="/help/user-roles" replace />} />
               <Route path="member" element={<Navigate to="/help/user-roles" replace />} />
+              <Route path="admin" element={<Navigate to="/help/special-roles" replace />} />
+              <Route
+                path="knowledge-manager"
+                element={<Navigate to="/help/special-roles" replace />}
+              />
             </Route>
             <Route path="teams" element={<Navigate to="/team" replace />} />
             <Route path="repositories" element={<Navigate to="/catalog" replace />} />

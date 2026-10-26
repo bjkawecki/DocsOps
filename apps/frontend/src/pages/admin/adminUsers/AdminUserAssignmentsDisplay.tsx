@@ -19,6 +19,27 @@ function formatTeamRole(
 export function AdminUserAssignmentsDisplay({ user }: { user: UserRow }) {
   const { t } = useTranslation('admin');
   const roleLabel = useOrgRoleLabel();
+  const isKm = user.isKnowledgeManager || user.role === 'Knowledge Manager';
+  const scopes = user.knowledgeManagerScopes;
+
+  if (isKm) {
+    const companyCount = scopes?.companyIds?.length ?? 0;
+    const deptCount = scopes?.departmentIds?.length ?? 0;
+    const teamCount = scopes?.teamIds?.length ?? 0;
+    return (
+      <Stack gap="xs">
+        <Text size="sm">{roleLabel('knowledgeManager')}</Text>
+        <Text size="xs" c="dimmed">
+          {t('users.detail.assignments.kmScopesSummary', {
+            companies: companyCount,
+            departments: deptCount,
+            teams: teamCount,
+          })}
+        </Text>
+      </Stack>
+    );
+  }
+
   const team = user.teams?.[0];
   const deptLead = user.departmentsAsLead?.[0];
   const deptAuthor = user.departmentsAsAuthor?.[0];

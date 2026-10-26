@@ -112,11 +112,24 @@ export function AdminUsersTab() {
 
   const createUser = useMutation({
     mutationFn: async (body: CreateUserPayload) => {
-      const { departmentId, teamId, teamRole, supervisorOfDepartment, ...userBody } = body;
+      const {
+        departmentId,
+        teamId,
+        teamRole,
+        supervisorOfDepartment,
+        knowledgeManagerScopes,
+        ...userBody
+      } = body;
       const res = await apiFetch('/api/v1/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userBody),
+        body: JSON.stringify({
+          name: userBody.name,
+          email: userBody.email,
+          password: userBody.password,
+          isAdmin: userBody.isAdmin,
+          isKnowledgeManager: userBody.isKnowledgeManager ?? false,
+        }),
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -124,6 +137,17 @@ export function AdminUsersTab() {
       }
       const user = (await res.json()) as { id: string };
       const userId = user.id;
+      if (userBody.isKnowledgeManager && knowledgeManagerScopes) {
+        const scopesRes = await apiFetch(`/api/v1/admin/users/${userId}/knowledge-manager-scopes`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(knowledgeManagerScopes),
+        });
+        if (!scopesRes.ok) {
+          const scopesErr = (await scopesRes.json().catch(() => ({}))) as { error?: string };
+          throw new Error(scopesErr.error ?? scopesRes.statusText);
+        }
+      }
       if (teamId) {
         const memberRes = await apiFetch(`/api/v1/teams/${teamId}/members`, {
           method: 'POST',
@@ -179,7 +203,13 @@ export function AdminUsersTab() {
       body,
     }: {
       userId: string;
-      body: { name?: string; email?: string | null; isAdmin?: boolean; deletedAt?: string | null };
+      body: {
+        name?: string;
+        email?: string | null;
+        isAdmin?: boolean;
+        isKnowledgeManager?: boolean;
+        deletedAt?: string | null;
+      };
     }) => {
       const res = await apiFetch(`/api/v1/admin/users/${userId}`, {
         method: 'PATCH',
@@ -346,14 +376,17 @@ export function AdminUsersTab() {
         >
           <AdminUserDetailTabs
             user={detailUser}
+            companyId={companyId}
             departments={departments}
             activeAdminCount={data?.activeAdminCount}
             currentUserId={currentUserId}
             onDeleteUser={() => setDeleteUserConfirmUser(detailUser)}
             onSaveProfile={async (body) => {
               const wasCompanyLead = detailUser.role === 'Company Lead';
-              // Org role must be cleared before granting platform admin (exclusive roles).
-              if (companyId && body.isAdmin && wasCompanyLead) {
+              const wasKm =
+                detailUser.isKnowledgeManager || detailUser.role === 'Knowledge Manager';
+              // Org role must be cleared before granting platform admin / knowledge manager.
+              if (companyId && wasCompanyLead && (body.isAdmin || body.isKnowledgeManager)) {
                 const res = await apiFetch(
                   `/api/v1/companies/${companyId}/company-leads/${detailUser.id}`,
                   { method: 'DELETE' }
@@ -369,10 +402,32 @@ export function AdminUsersTab() {
                   name: body.name,
                   email: body.email,
                   isAdmin: body.isAdmin,
+                  isKnowledgeManager: body.isKnowledgeManager,
                   deletedAt: body.deletedAt,
                 },
               });
-              if (companyId && typeof body.isCompanyLead === 'boolean' && !body.isAdmin) {
+              if (body.isKnowledgeManager) {
+                const scopesRes = await apiFetch(
+                  `/api/v1/admin/users/${detailUser.id}/knowledge-manager-scopes`,
+                  {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body.knowledgeManagerScopes),
+                  }
+                );
+                if (!scopesRes.ok) {
+                  const err = (await scopesRes.json().catch(() => ({}))) as { error?: string };
+                  throw new Error(err.error ?? scopesRes.statusText);
+                }
+              } else if (wasKm && !body.isKnowledgeManager) {
+                // Junctions cleared by PATCH when disabling KM.
+              }
+              if (
+                companyId &&
+                typeof body.isCompanyLead === 'boolean' &&
+                !body.isAdmin &&
+                !body.isKnowledgeManager
+              ) {
                 if (body.isCompanyLead && !wasCompanyLead) {
                   const res = await apiFetch(`/api/v1/companies/${companyId}/company-leads`, {
                     method: 'POST',
@@ -402,8 +457,9 @@ export function AdminUsersTab() {
         </Modal>
       )}
 
-      <Modal opened={createOpened} onClose={closeCreate} title={t('actions.createUser')} size="sm">
+      <Modal opened={createOpened} onClose={closeCreate} title={t('actions.createUser')} size="md">
         <AdminUserCreateForm
+          companyId={companyId}
           departments={departments}
           onSubmit={(body) => createUser.mutate(body)}
           onCancel={closeCreate}

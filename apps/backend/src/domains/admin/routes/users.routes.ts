@@ -8,6 +8,7 @@ import {
 import { hashPassword } from '../../auth/services/password.js';
 import {
   createUserBodySchema,
+  knowledgeManagerScopesBodySchema,
   listUserDocumentsQuerySchema,
   listUsersQuerySchema,
   resetPasswordBodySchema,
@@ -129,8 +130,16 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         email: body.email,
         passwordHash,
         isAdmin: body.isAdmin ?? false,
+        isKnowledgeManager: body.isKnowledgeManager ?? false,
       },
-      select: { id: true, name: true, email: true, isAdmin: true, deletedAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isAdmin: true,
+        isKnowledgeManager: true,
+        deletedAt: true,
+      },
     });
     if (user.isAdmin) {
       enqueueAdminRoleChangeNotification(request.log, {
@@ -152,7 +161,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
 
       const target = await request.server.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, isAdmin: true, deletedAt: true },
+        select: { id: true, isAdmin: true, isKnowledgeManager: true, deletedAt: true },
       });
       if (!target) {
         return reply.status(404).send({ error: 'User not found.' });
@@ -187,10 +196,19 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         }
       }
 
+      const nextIsAdmin = body.isAdmin ?? target.isAdmin;
+      const nextIsKm = body.isKnowledgeManager ?? target.isKnowledgeManager;
+      if (nextIsAdmin && nextIsKm) {
+        return reply.status(409).send({
+          error: 'A user cannot be both platform administrator and knowledge manager.',
+        });
+      }
+
       const data: {
         name?: string;
         email?: string | null;
         isAdmin?: boolean;
+        isKnowledgeManager?: boolean;
         deletedAt?: Date | null;
       } = {};
       if (body.name !== undefined) data.name = body.name;
@@ -212,7 +230,22 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         }
       }
 
+      if (body.isKnowledgeManager === true && !target.isKnowledgeManager) {
+        try {
+          await assertCanAssignScopeRole(request.server.prisma, {
+            userId,
+            kind: 'knowledgeManager',
+          });
+        } catch (err) {
+          if (err instanceof ScopeAssignmentConflictError) {
+            return reply.status(409).send({ error: err.message });
+          }
+          throw err;
+        }
+      }
+
       if (body.isAdmin !== undefined) data.isAdmin = body.isAdmin;
+      if (body.isKnowledgeManager !== undefined) data.isKnowledgeManager = body.isKnowledgeManager;
       if (body.deletedAt !== undefined) {
         data.deletedAt = body.deletedAt === null ? null : new Date(body.deletedAt);
       }
@@ -221,10 +254,30 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         await request.server.prisma.session.deleteMany({ where: { userId } });
       }
 
-      const updated = await request.server.prisma.user.update({
-        where: { id: userId },
-        data,
-        select: { id: true, name: true, email: true, isAdmin: true, deletedAt: true },
+      const updated = await request.server.prisma.$transaction(async (tx) => {
+        if (body.isKnowledgeManager === false && target.isKnowledgeManager) {
+          await tx.knowledgeManagerCompany.deleteMany({ where: { userId } });
+          await tx.knowledgeManagerDepartment.deleteMany({ where: { userId } });
+          await tx.knowledgeManagerTeam.deleteMany({ where: { userId } });
+        }
+        if (body.isAdmin === true) {
+          data.isKnowledgeManager = false;
+          await tx.knowledgeManagerCompany.deleteMany({ where: { userId } });
+          await tx.knowledgeManagerDepartment.deleteMany({ where: { userId } });
+          await tx.knowledgeManagerTeam.deleteMany({ where: { userId } });
+        }
+        return tx.user.update({
+          where: { id: userId },
+          data,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            isKnowledgeManager: true,
+            deletedAt: true,
+          },
+        });
       });
       if (data.name !== undefined) {
         const prisma = request.server.prisma;
@@ -245,6 +298,84 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
         });
       }
       return reply.send(updated);
+    }
+  );
+
+  /** PUT /api/v1/admin/users/:userId/knowledge-manager-scopes – replace KM scope list. */
+  app.put<{ Params: { userId: string } }>(
+    '/admin/users/:userId/knowledge-manager-scopes',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const { userId } = userIdParamSchema.parse(request.params);
+      const body = knowledgeManagerScopesBodySchema.parse(request.body);
+      const prisma = request.server.prisma;
+      const target = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, isKnowledgeManager: true, isAdmin: true },
+      });
+      if (!target) {
+        return reply.status(404).send({ error: 'User not found.' });
+      }
+      if (target.isAdmin || !target.isKnowledgeManager) {
+        return reply.status(409).send({
+          error: 'Knowledge manager scopes can only be set on knowledge manager accounts.',
+        });
+      }
+
+      const [companies, departments, teams] = await Promise.all([
+        body.companyIds.length
+          ? prisma.company.findMany({
+              where: { id: { in: body.companyIds } },
+              select: { id: true },
+            })
+          : Promise.resolve([]),
+        body.departmentIds.length
+          ? prisma.department.findMany({
+              where: { id: { in: body.departmentIds } },
+              select: { id: true },
+            })
+          : Promise.resolve([]),
+        body.teamIds.length
+          ? prisma.team.findMany({
+              where: { id: { in: body.teamIds } },
+              select: { id: true },
+            })
+          : Promise.resolve([]),
+      ]);
+      if (
+        companies.length !== body.companyIds.length ||
+        departments.length !== body.departmentIds.length ||
+        teams.length !== body.teamIds.length
+      ) {
+        return reply.status(400).send({ error: 'One or more scope ids are invalid.' });
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.knowledgeManagerCompany.deleteMany({ where: { userId } });
+        await tx.knowledgeManagerDepartment.deleteMany({ where: { userId } });
+        await tx.knowledgeManagerTeam.deleteMany({ where: { userId } });
+        if (body.companyIds.length > 0) {
+          await tx.knowledgeManagerCompany.createMany({
+            data: body.companyIds.map((companyId) => ({ userId, companyId })),
+          });
+        }
+        if (body.departmentIds.length > 0) {
+          await tx.knowledgeManagerDepartment.createMany({
+            data: body.departmentIds.map((departmentId) => ({ userId, departmentId })),
+          });
+        }
+        if (body.teamIds.length > 0) {
+          await tx.knowledgeManagerTeam.createMany({
+            data: body.teamIds.map((teamId) => ({ userId, teamId })),
+          });
+        }
+      });
+
+      return reply.send({
+        companyIds: body.companyIds,
+        departmentIds: body.departmentIds,
+        teamIds: body.teamIds,
+      });
     }
   );
 

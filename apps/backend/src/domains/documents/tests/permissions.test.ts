@@ -329,6 +329,68 @@ describe('Permissions (canRead, canWrite)', () => {
     expect(await canWrite(prisma, teamLeaderId, docProcessId)).toBe(false);
   });
 
+  it('Knowledge Manager: exact scope only; publish/delete on assigned team; no inheritance or personal', async () => {
+    const pw = await hashPassword('km');
+    const km = await prisma.user.create({
+      data: {
+        name: `KM ${TS}`,
+        email: `km-${TS}@test.de`,
+        passwordHash: pw,
+        isKnowledgeManager: true,
+      },
+    });
+    await prisma.knowledgeManagerTeam.create({ data: { userId: km.id, teamId } });
+
+    const teamOwner = await prisma.owner.create({
+      data: { teamId, departmentId, companyId },
+    });
+    const teamCtx = await prisma.context.create({ data: {} });
+    await prisma.process.create({
+      data: { name: `KM Team Process ${TS}`, contextId: teamCtx.id, ownerId: teamOwner.id },
+    });
+    const teamDoc = await prisma.document.create({
+      data: {
+        title: `KM Team Doc ${TS}`,
+        draftBlocks: emptyBlockDocumentJson(),
+        contextId: teamCtx.id,
+      },
+    });
+
+    const deptOwner = await prisma.owner.create({ data: { departmentId, companyId } });
+    const deptCtx = await prisma.context.create({ data: {} });
+    await prisma.process.create({
+      data: { name: `KM Dept Process ${TS}`, contextId: deptCtx.id, ownerId: deptOwner.id },
+    });
+    const deptDoc = await prisma.document.create({
+      data: {
+        title: `KM Dept Doc ${TS}`,
+        draftBlocks: emptyBlockDocumentJson(),
+        contextId: deptCtx.id,
+      },
+    });
+
+    try {
+      expect(await canRead(prisma, km.id, teamDoc.id)).toBe(true);
+      expect(await canWrite(prisma, km.id, teamDoc.id)).toBe(true);
+      expect(await canPublishDocument(prisma, km.id, teamDoc.id)).toBe(true);
+      expect(await canDeleteDocument(prisma, km.id, teamDoc.id)).toBe(true);
+
+      expect(await canRead(prisma, km.id, deptDoc.id)).toBe(false);
+      expect(await canWrite(prisma, km.id, deptDoc.id)).toBe(false);
+      expect(await canRead(prisma, km.id, docProcessId)).toBe(false);
+      expect(await canRead(prisma, km.id, docPersonalId)).toBe(false);
+    } finally {
+      await prisma.document.deleteMany({ where: { id: { in: [teamDoc.id, deptDoc.id] } } });
+      await prisma.process.deleteMany({
+        where: { contextId: { in: [teamCtx.id, deptCtx.id] } },
+      });
+      await prisma.context.deleteMany({ where: { id: { in: [teamCtx.id, deptCtx.id] } } });
+      await prisma.owner.deleteMany({ where: { id: { in: [teamOwner.id, deptOwner.id] } } });
+      await prisma.knowledgeManagerTeam.deleteMany({ where: { userId: km.id } });
+      await prisma.user.delete({ where: { id: km.id } });
+    }
+  });
+
   it('Expliziter Grant Department Read → canRead true für User in Abteilung', async () => {
     expect(await canRead(prisma, teamMemberId, docProcessId)).toBe(true);
     expect(await canRead(prisma, teamLeaderId, docProcessId)).toBe(true);

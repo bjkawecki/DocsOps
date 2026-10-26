@@ -12,6 +12,7 @@ import { DOCUMENT_FOR_PERMISSION_INCLUDE, type DocumentForPermission } from './d
 export type UserForPermission = {
   id: string;
   isAdmin: boolean;
+  isKnowledgeManager: boolean;
   deletedAt: Date | null;
   teamMemberships: {
     team: { id: string; departmentId: string; department: { companyId: string } };
@@ -27,6 +28,9 @@ export type UserForPermission = {
   authorOfDepartments: { departmentId: string; department: { companyId: string } }[];
   departmentLeads: { departmentId: string; department: { companyId: string } }[];
   companyLeads: { companyId: string }[];
+  knowledgeManagerCompanies: { companyId: string }[];
+  knowledgeManagerDepartments: { departmentId: string }[];
+  knowledgeManagerTeams: { teamId: string }[];
 };
 
 export function getDocumentOwner(doc: DocumentForPermission) {
@@ -109,6 +113,7 @@ export function evaluateBaseDocumentPermission(
     if (role !== GrantRole.Read) return false;
     return isCompanyOwnedDocument(doc);
   }
+  // Knowledge Manager is not handled in the base step (needs owner-scope match below).
   if (doc.contextId == null || doc.context == null) {
     if (doc.createdById === userId) return true;
     return hasDocumentGrantRole(doc, userId, role, teamIds, getUserDepartmentIds(user));
@@ -150,6 +155,7 @@ export async function loadUser(
     select: {
       id: true,
       isAdmin: true,
+      isKnowledgeManager: true,
       deletedAt: true,
       teamMemberships: {
         include: {
@@ -175,6 +181,9 @@ export async function loadUser(
         select: { departmentId: true, department: { select: { companyId: true } } },
       },
       companyLeads: { select: { companyId: true } },
+      knowledgeManagerCompanies: { select: { companyId: true } },
+      knowledgeManagerDepartments: { select: { departmentId: true } },
+      knowledgeManagerTeams: { select: { teamId: true } },
     },
   });
   return user;
@@ -261,8 +270,26 @@ export async function canRead(
   const owner = getDocumentOwner(doc);
   if (isPersonalContextDocumentOwner(owner, userId)) return true;
 
-  // 4. Company Lead (contexts with company owner)
+  // 3b. Knowledge Manager: exact owner-scope match (pass full hierarchy so company≠team).
   const ownerCompanyId = getContextOwnerCompanyId(doc);
+  const ownerDeptId = getContextOwnerDepartmentId(doc);
+  const ownerTeamId = owner?.teamId ?? null;
+  if (
+    user.isKnowledgeManager &&
+    evaluateScopeCapability(
+      user,
+      {
+        companyId: ownerCompanyId ?? undefined,
+        departmentId: ownerDeptId ?? undefined,
+        teamId: ownerTeamId ?? undefined,
+      },
+      'lead'
+    )
+  ) {
+    return true;
+  }
+
+  // 4. Company Lead (contexts with company owner)
   if (
     ownerCompanyId !== null &&
     evaluateScopeCapability(user, { companyId: ownerCompanyId }, 'lead')
@@ -271,7 +298,6 @@ export async function canRead(
   }
 
   // 5. Department Lead (contexts with department/team owner)
-  const ownerDeptId = getContextOwnerDepartmentId(doc);
   if (
     ownerDeptId !== null &&
     evaluateScopeCapability(user, { departmentId: ownerDeptId }, 'lead')
@@ -280,7 +306,6 @@ export async function canRead(
   }
 
   // 5b. Team Lead (team-owned contexts; unpublished drafts included)
-  const ownerTeamId = owner?.teamId ?? null;
   if (ownerTeamId !== null && evaluateScopeCapability(user, { teamId: ownerTeamId }, 'lead')) {
     return true;
   }

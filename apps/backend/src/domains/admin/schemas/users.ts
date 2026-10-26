@@ -23,19 +23,48 @@ export const listUsersQuerySchema = z.object({
 });
 
 /** Body: POST /admin/users – Nutzer anlegen. */
-export const createUserBodySchema = z.object({
-  name: z.string().min(1).max(255),
-  email: z.email(),
-  password: z.string().min(8).max(255),
-  isAdmin: z.boolean().optional().default(false),
-});
+export const createUserBodySchema = z
+  .object({
+    name: z.string().min(1).max(255),
+    email: z.email(),
+    password: z.string().min(8).max(255),
+    isAdmin: z.boolean().optional().default(false),
+    isKnowledgeManager: z.boolean().optional().default(false),
+  })
+  .superRefine((body, ctx) => {
+    if (body.isAdmin && body.isKnowledgeManager) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'A user cannot be both platform administrator and knowledge manager.',
+        path: ['isKnowledgeManager'],
+      });
+    }
+  });
 
 /** Body: PATCH /admin/users/:userId – Nutzer bearbeiten / Deaktivierung / Reaktivierung. */
-export const updateUserBodySchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  email: z.email().nullable().optional(),
-  isAdmin: z.boolean().optional(),
-  deletedAt: z.union([z.iso.datetime(), z.null()]).optional(),
+export const updateUserBodySchema = z
+  .object({
+    name: z.string().min(1).max(255).optional(),
+    email: z.email().nullable().optional(),
+    isAdmin: z.boolean().optional(),
+    isKnowledgeManager: z.boolean().optional(),
+    deletedAt: z.union([z.iso.datetime(), z.null()]).optional(),
+  })
+  .superRefine((body, ctx) => {
+    if (body.isAdmin === true && body.isKnowledgeManager === true) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'A user cannot be both platform administrator and knowledge manager.',
+        path: ['isKnowledgeManager'],
+      });
+    }
+  });
+
+/** Body: PUT /admin/users/:userId/knowledge-manager-scopes – replace assigned scopes. */
+export const knowledgeManagerScopesBodySchema = z.object({
+  companyIds: z.array(cuidSchema).default([]),
+  departmentIds: z.array(cuidSchema).default([]),
+  teamIds: z.array(cuidSchema).default([]),
 });
 
 /** Body: POST /admin/users/:userId/reset-password. */

@@ -32,6 +32,8 @@ function currentTeamRole(team: UserTeam | undefined): TeamRole {
 export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }: Props) {
   const { t } = useTranslation('admin');
   const isPlatformAdmin = user.isAdmin || user.role === 'Admin';
+  const isKnowledgeManager = user.isKnowledgeManager || user.role === 'Knowledge Manager';
+  const orgAssignmentsLocked = isPlatformAdmin || isKnowledgeManager;
 
   const allTeams = departments.flatMap((d) =>
     (d.teams ?? []).map((team) => ({
@@ -311,11 +313,20 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     }
   };
 
-  if (isPlatformAdmin) {
+  if (orgAssignmentsLocked) {
     return (
       <Stack gap="sm">
-        <Alert color="blue" title={t('users.assignmentsForm.platformAdminAlertTitle')}>
-          {t('users.assignmentsForm.platformAdminAlertBody')}
+        <Alert
+          color="blue"
+          title={
+            isKnowledgeManager
+              ? t('users.assignmentsForm.knowledgeManagerAlertTitle')
+              : t('users.assignmentsForm.platformAdminAlertTitle')
+          }
+        >
+          {isKnowledgeManager
+            ? t('users.assignmentsForm.knowledgeManagerAlertBody')
+            : t('users.assignmentsForm.platformAdminAlertBody')}
         </Alert>
         <Group gap="xs">
           <Button size="sm" variant="default" onClick={onCancel}>

@@ -91,7 +91,8 @@
       "companyLead": "Unternehmensleitung",
       "departmentLead": "Abteilungsleitung",
       "teamLead": "Team-Leitung",
-      "teamMember": "Teammitglied"
+      "teamMember": "Teammitglied",
+      "knowledgeManager": "Wissensmanager"
     },
     "toasts": {
       "savedTitle": "Rollenbezeichnungen gespeichert",
@@ -519,7 +520,8 @@
         "title": "Zuordnungen",
         "department": "Abteilung",
         "role": "Rolle",
-        "team": "Team"
+        "team": "Team",
+        "kmScopesSummary": "{{companies}} Firma(en), {{departments}} Abteilung(en), {{teams}} Team-Scope(s)"
       },
       "usage": {
         "title": "Nutzung",
@@ -546,6 +548,13 @@
       "emailLabel": "E-Mail",
       "passwordLabel": "Passwort",
       "adminLabel": "Administrator",
+      "knowledgeManagerLabel": "Wissensmanager",
+      "knowledgeManagerHint": "Exklusive Rolle mit expliziter Liste aus Firma, Abteilungen und/oder Teams. Keine Organisationsmitgliedschaft.",
+      "kmCompanyOption": "Firma",
+      "kmCompaniesLabel": "Firmen-Scopes",
+      "kmDepartmentsLabel": "Abteilungs-Scopes",
+      "kmTeamsLabel": "Team-Scopes",
+      "kmScopesDescription": "Nur exakte Scopes – keine Vererbung auf Unterbereiche.",
       "departmentLabel": "Abteilung",
       "departmentPlaceholder": "Optional",
       "teamLabel": "Team",
@@ -561,14 +570,24 @@
       "emailLabel": "E-Mail",
       "adminSwitchLabel": "Administrator",
       "adminLastActiveHint": "Mindestens ein aktiver Administrator ist erforderlich.",
+      "knowledgeManagerSwitchLabel": "Wissensmanager",
+      "knowledgeManagerHint": "Organisationszuordnungen zuerst entfernen, falls aktiviert. Scopes gelten nur exakt.",
+      "knowledgeManagerAdminHint": "Administratoren können keine Wissensmanager sein. Getrennte Accounts verwenden.",
+      "kmCompanyOption": "Firma",
+      "kmCompaniesLabel": "Firmen-Scopes",
+      "kmDepartmentsLabel": "Abteilungs-Scopes",
+      "kmTeamsLabel": "Team-Scopes",
+      "kmScopesDescription": "Nur exakte Scopes – keine Vererbung auf Unterbereiche.",
       "companyLeadSwitchLabel": "Firmenleitung",
-      "companyLeadAdminHint": "Administratoren können keine Organisationsrolle haben. Getrennte Accounts verwenden.",
+      "companyLeadAdminHint": "Administratoren und Wissensmanager können keine Organisationsrolle haben. Getrennte Accounts verwenden.",
       "deactivatedSwitchLabel": "Deaktiviert",
       "deactivatedLastActiveHint": "Der letzte Administrator kann nicht deaktiviert werden."
     },
     "assignmentsForm": {
       "platformAdminAlertTitle": "Plattform-Administrator",
       "platformAdminAlertBody": "Plattform-Administratoren können keine Organisationszuordnungen haben. Zuerst die Administrator-Rolle entfernen, um Team- oder Abteilungsrollen zuzuweisen.",
+      "knowledgeManagerAlertTitle": "Wissensmanager",
+      "knowledgeManagerAlertBody": "Wissensmanager können keine Organisationszuordnungen haben. Zuerst die Wissensmanager-Rolle entfernen, um Team- oder Abteilungsrollen zuzuweisen.",
       "hint": "Jeder Nutzer hat eine Organisationsrolle. Team-Leitung erfordert keine Teammitgliedschaft. Autoren müssen aus der Teammitgliedschaft befördert werden.",
       "teamLabel": "Team",
       "teamPlaceholder": "Team wählen",

@@ -10,6 +10,7 @@ import {
   isPersonalContextDocumentOwner,
   loadPermissionSubjectAndBaseDecision,
 } from './canRead.js';
+import { isKnowledgeManagerForOwnerScope } from '../../organisation/permissions/userAccessPredicates.js';
 import { isScopeAuthorForDocument } from './scopeAuthor.js';
 
 /**
@@ -34,6 +35,18 @@ export async function canWrite(
 
   const owner = getDocumentOwner(doc);
   if (isPersonalContextDocumentOwner(owner, userId)) return true;
+
+  if (
+    owner &&
+    isKnowledgeManagerForOwnerScope(user, {
+      companyId: owner.companyId,
+      departmentId: owner.departmentId ?? owner.team?.departmentId ?? null,
+      teamId: owner.teamId,
+      ownerUserId: owner.ownerUserId,
+    })
+  ) {
+    return true;
+  }
 
   if (isScopeAuthorForDocument(user, doc)) return true;
 

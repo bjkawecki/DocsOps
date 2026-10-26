@@ -12,6 +12,45 @@ export async function loadActiveUser(
   return user;
 }
 
+export function isKnowledgeManager(user: LoadedUser): boolean {
+  return user.isKnowledgeManager === true;
+}
+
+export function isKnowledgeManagerForCompany(user: LoadedUser, companyId: string): boolean {
+  return (
+    isKnowledgeManager(user) &&
+    user.knowledgeManagerCompanies.some((c) => c.companyId === companyId)
+  );
+}
+
+export function isKnowledgeManagerForDepartment(user: LoadedUser, departmentId: string): boolean {
+  return (
+    isKnowledgeManager(user) &&
+    user.knowledgeManagerDepartments.some((d) => d.departmentId === departmentId)
+  );
+}
+
+export function isKnowledgeManagerForTeam(user: LoadedUser, teamId: string): boolean {
+  return isKnowledgeManager(user) && user.knowledgeManagerTeams.some((t) => t.teamId === teamId);
+}
+
+/** Exact owner-scope match for KM (no parent→child inheritance). */
+export function isKnowledgeManagerForOwnerScope(
+  user: LoadedUser,
+  owner: {
+    companyId?: string | null;
+    departmentId?: string | null;
+    teamId?: string | null;
+    ownerUserId?: string | null;
+  }
+): boolean {
+  if (!isKnowledgeManager(user) || owner.ownerUserId != null) return false;
+  if (owner.teamId) return isKnowledgeManagerForTeam(user, owner.teamId);
+  if (owner.departmentId) return isKnowledgeManagerForDepartment(user, owner.departmentId);
+  if (owner.companyId) return isKnowledgeManagerForCompany(user, owner.companyId);
+  return false;
+}
+
 export function isCompanyLead(user: LoadedUser, companyId: string): boolean {
   return user.companyLeads.some((c) => c.companyId === companyId);
 }

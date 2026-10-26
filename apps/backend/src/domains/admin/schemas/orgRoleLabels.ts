@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-export const ORG_ROLE_KEYS = ['companyLead', 'departmentLead', 'teamLead', 'teamMember'] as const;
+export const ORG_ROLE_KEYS = [
+  'companyLead',
+  'departmentLead',
+  'teamLead',
+  'teamMember',
+  'knowledgeManager',
+] as const;
 
 export type OrgRoleKey = (typeof ORG_ROLE_KEYS)[number];
 
@@ -45,6 +51,7 @@ export const orgRoleLabelsSchema = z
     departmentLead: roleLabelBlockSchema.optional(),
     teamLead: roleLabelBlockSchema.optional(),
     teamMember: roleLabelBlockSchema.optional(),
+    knowledgeManager: roleLabelBlockSchema.optional(),
   })
   .strict()
   .transform((labels): OrgRoleLabels => {

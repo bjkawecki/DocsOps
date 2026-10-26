@@ -20,6 +20,7 @@ const EXPECTED_EMAILS = [
   'department.lead@demo.docsops.local',
   'team.lead@demo.docsops.local',
   'member@demo.docsops.local',
+  'knowledge.manager@demo.docsops.local',
 ];
 
 async function ensureAdmin() {
@@ -54,7 +55,12 @@ async function main() {
   const docs = await prisma.document.count({ where: { deletedAt: null } });
   const users = await prisma.user.findMany({
     where: { deletedAt: null },
-    select: { email: true, passwordHash: true, isAdmin: true },
+    select: {
+      email: true,
+      passwordHash: true,
+      isAdmin: true,
+      isKnowledgeManager: true,
+    },
   });
 
   if (companies.length !== 1 || companies[0]?.name !== 'Musterwerk IT GmbH') {
@@ -82,6 +88,12 @@ async function main() {
   if (!(await verifyPassword(admin.passwordHash, PASSWORD))) {
     throw new Error('Password mismatch for admin');
   }
+  const km = users.find((x) => x.email === 'knowledge.manager@demo.docsops.local');
+  if (!km?.isKnowledgeManager) throw new Error('Knowledge manager flag missing');
+  const kmScopes = await prisma.knowledgeManagerCompany.count({
+    where: { user: { email: 'knowledge.manager@demo.docsops.local' } },
+  });
+  if (kmScopes < 1) throw new Error('Knowledge manager company scope missing');
 
   console.log(
     JSON.stringify(

@@ -10,15 +10,22 @@ export type AdminUsersListItem = {
   name: string;
   email: string | null;
   isAdmin: boolean;
+  isKnowledgeManager: boolean;
   deletedAt: Date | null;
   role:
     | 'Admin'
+    | 'Knowledge Manager'
     | 'Company Lead'
     | 'Department Lead'
     | 'Team Lead'
     | 'Department Author'
     | 'Team Author'
     | 'User';
+  knowledgeManagerScopes: {
+    companyIds: string[];
+    departmentIds: string[];
+    teamIds: string[];
+  };
   teams: Array<{
     id: string;
     name: string;
@@ -65,11 +72,21 @@ export async function listAdminUsers(
     query.sortBy === 'teams' || query.sortBy === 'departments' || query.sortBy === 'role';
   const CAP_FOR_RELATION_SORT = 5000;
 
+  const userSelect = {
+    id: true,
+    name: true,
+    email: true,
+    isAdmin: true,
+    isKnowledgeManager: true,
+    deletedAt: true,
+  } as const;
+
   let users: Array<{
     id: string;
     name: string;
     email: string | null;
     isAdmin: boolean;
+    isKnowledgeManager: boolean;
     deletedAt: Date | null;
   }>;
   let total: number;
@@ -78,7 +95,7 @@ export async function listAdminUsers(
     const [usersAll, totalCount] = await Promise.all([
       prisma.user.findMany({
         where,
-        select: { id: true, name: true, email: true, isAdmin: true, deletedAt: true },
+        select: userSelect,
         orderBy: { name: 'asc' },
         take: CAP_FOR_RELATION_SORT,
       }),
@@ -99,7 +116,7 @@ export async function listAdminUsers(
     const [usersPage, totalCount] = await Promise.all([
       prisma.user.findMany({
         where,
-        select: { id: true, name: true, email: true, isAdmin: true, deletedAt: true },
+        select: userSelect,
         orderBy,
         take: query.limit,
         skip: query.offset,
@@ -118,6 +135,9 @@ export async function listAdminUsers(
     teamMemberRows,
     teamAuthorRows,
     departmentAuthorRows,
+    kmCompanyRows,
+    kmDepartmentRows,
+    kmTeamRows,
   ] = await Promise.all([
     prisma.teamLead.findMany({
       where: { userId: { in: userIds } },
@@ -159,10 +179,38 @@ export async function listAdminUsers(
       where: { userId: { in: userIds } },
       select: { userId: true, department: { select: { id: true, name: true } } },
     }),
+    prisma.knowledgeManagerCompany.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, companyId: true },
+    }),
+    prisma.knowledgeManagerDepartment.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, departmentId: true },
+    }),
+    prisma.knowledgeManagerTeam.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, teamId: true },
+    }),
   ]);
   const teamLeadSet = new Set(teamLeadRows.map((r) => r.userId));
   const departmentLeadSet = new Set(departmentLeadRows.map((r) => r.userId));
   const companyLeadSet = new Set(companyLeadRows.map((r) => r.userId));
+  const kmScopesByUser = new Map<
+    string,
+    { companyIds: string[]; departmentIds: string[]; teamIds: string[] }
+  >();
+  for (const id of userIds) {
+    kmScopesByUser.set(id, { companyIds: [], departmentIds: [], teamIds: [] });
+  }
+  for (const r of kmCompanyRows) {
+    kmScopesByUser.get(r.userId)?.companyIds.push(r.companyId);
+  }
+  for (const r of kmDepartmentRows) {
+    kmScopesByUser.get(r.userId)?.departmentIds.push(r.departmentId);
+  }
+  for (const r of kmTeamRows) {
+    kmScopesByUser.get(r.userId)?.teamIds.push(r.teamId);
+  }
   const teamsByUser = new Map<
     string,
     Array<{ id: string; name: string; departmentName: string }>
@@ -209,17 +257,19 @@ export async function listAdminUsers(
   let items: AdminUsersListItem[] = users.map((u) => {
     const role = u.isAdmin
       ? ('Admin' as const)
-      : companyLeadSet.has(u.id)
-        ? ('Company Lead' as const)
-        : departmentLeadSet.has(u.id)
-          ? ('Department Lead' as const)
-          : teamLeadSet.has(u.id)
-            ? ('Team Lead' as const)
-            : departmentAuthorSet.has(u.id)
-              ? ('Department Author' as const)
-              : teamAuthorSet.has(u.id)
-                ? ('Team Author' as const)
-                : ('User' as const);
+      : u.isKnowledgeManager
+        ? ('Knowledge Manager' as const)
+        : companyLeadSet.has(u.id)
+          ? ('Company Lead' as const)
+          : departmentLeadSet.has(u.id)
+            ? ('Department Lead' as const)
+            : teamLeadSet.has(u.id)
+              ? ('Team Lead' as const)
+              : departmentAuthorSet.has(u.id)
+                ? ('Department Author' as const)
+                : teamAuthorSet.has(u.id)
+                  ? ('Team Author' as const)
+                  : ('User' as const);
     const teamsRaw = teamsByUser.get(u.id) ?? [];
     const teams = teamsRaw.map((t) => ({
       ...t,
@@ -243,6 +293,11 @@ export async function listAdminUsers(
     return {
       ...u,
       role,
+      knowledgeManagerScopes: kmScopesByUser.get(u.id) ?? {
+        companyIds: [],
+        departmentIds: [],
+        teamIds: [],
+      },
       teams,
       departments,
       departmentsAsLead,

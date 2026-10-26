@@ -75,6 +75,10 @@
     "teamMember": {
       "singular": "Teammitglied",
       "plural": "Teammitglieder"
+    },
+    "knowledgeManager": {
+      "singular": "Wissensmanager",
+      "plural": "Wissensmanager"
     }
   },
   "orgRolesExtra": {

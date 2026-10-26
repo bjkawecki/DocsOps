@@ -3,6 +3,7 @@ import { z } from 'zod';
 /** Seed roles for DEMO_MODE one-click login (matches prisma/seed-data). */
 export const demoLoginRoleSchema = z.enum([
   'admin',
+  'knowledgeManager',
   'companyLead',
   'departmentLead',
   'teamLead',
@@ -23,6 +24,7 @@ export type DemoLoginBody = z.infer<typeof demoLoginBodySchema>;
  */
 export const DEMO_SEED_EMAIL_BY_ROLE: Record<DemoLoginRole, string> = {
   admin: 'admin@demo.docsops.local',
+  knowledgeManager: 'knowledge.manager@demo.docsops.local',
   companyLead: 'company.lead@demo.docsops.local',
   departmentLead: 'department.lead@demo.docsops.local',
   teamLead: 'team.lead@demo.docsops.local',

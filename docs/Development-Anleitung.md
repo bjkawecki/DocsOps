@@ -82,7 +82,7 @@ Dabei wird `docker-compose.override.yml` automatisch geladen: Die App (Backend) 
 
 **Kurz:** Vollständiger Stack = `docker compose up`; danach **http://localhost:5000** für App und API (Caddy leitet nach Pfad weiter). Beim Start werden automatisch die Migrationen ausgeführt und – falls in der `.env` `ADMIN_EMAIL` und `ADMIN_PASSWORD` gesetzt sind – ein Admin angelegt (falls noch keiner existiert). Bei leerer DB lädt der Dev-Stack den CSV-Seed (Musterwerk IT GmbH).
 
-**Seed-Logins (Dev/Demo, Passwort `DocsOps1`):** Admin `admin@demo.docsops.local` (via `ADMIN_*` in `.env`); CSV: `company.lead@`, `department.lead@`, `team.lead@`, `member@` jeweils `demo.docsops.local`. Org: Musterwerk IT GmbH → Produktentwicklung → Barrierefreiheit. Nach Reset: Debug-Menü „Re-seed from CSV“ (nur wenn die DB leer an Companies ist) **oder** CLI:
+**Seed-Logins (Dev/Demo, Passwort `DocsOps1`):** Admin `admin@demo.docsops.local` (via `ADMIN_*` in `.env`); CSV: `knowledge.manager@`, `company.lead@`, `department.lead@`, `team.lead@`, `member@` jeweils `demo.docsops.local`. Org: Musterwerk IT GmbH → Produktentwicklung → Barrierefreiheit. Wissensmanager hat Company-, Abteilungs- und Team-Scope explizit zugewiesen. Nach Reset: Debug-Menü „Re-seed from CSV“ (nur wenn die DB leer an Companies ist) **oder** CLI:
 
 ```bash
 cd apps/backend

@@ -91,7 +91,8 @@
       "companyLead": "Company Lead",
       "departmentLead": "Department Lead",
       "teamLead": "Team Lead",
-      "teamMember": "Team Member"
+      "teamMember": "Team Member",
+      "knowledgeManager": "Knowledge Manager"
     },
     "toasts": {
       "savedTitle": "Role labels saved",
@@ -519,7 +520,8 @@
         "title": "Assignments",
         "department": "Department",
         "role": "Role",
-        "team": "Team"
+        "team": "Team",
+        "kmScopesSummary": "{{companies}} company, {{departments}} department, {{teams}} team scope(s)"
       },
       "usage": {
         "title": "Usage",
@@ -546,6 +548,13 @@
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "adminLabel": "Administrator",
+      "knowledgeManagerLabel": "Knowledge Manager",
+      "knowledgeManagerHint": "Exclusive role with an explicit list of company, department, and/or team scopes. No organization membership.",
+      "kmCompanyOption": "Company",
+      "kmCompaniesLabel": "Company scopes",
+      "kmDepartmentsLabel": "Department scopes",
+      "kmTeamsLabel": "Team scopes",
+      "kmScopesDescription": "Only exact scopes – no inheritance to child units.",
       "departmentLabel": "Department",
       "departmentPlaceholder": "Optional",
       "teamLabel": "Team",
@@ -561,14 +570,24 @@
       "emailLabel": "Email",
       "adminSwitchLabel": "Administrator",
       "adminLastActiveHint": "At least one active administrator is required.",
+      "knowledgeManagerSwitchLabel": "Knowledge Manager",
+      "knowledgeManagerHint": "Clear organization assignments first if enabling. Scopes are exact matches only.",
+      "knowledgeManagerAdminHint": "Administrators cannot be knowledge managers. Use separate accounts.",
+      "kmCompanyOption": "Company",
+      "kmCompaniesLabel": "Company scopes",
+      "kmDepartmentsLabel": "Department scopes",
+      "kmTeamsLabel": "Team scopes",
+      "kmScopesDescription": "Only exact scopes – no inheritance to child units.",
       "companyLeadSwitchLabel": "Company lead",
-      "companyLeadAdminHint": "Administrators cannot hold an organization role. Use separate accounts.",
+      "companyLeadAdminHint": "Administrators and knowledge managers cannot hold an organization role. Use separate accounts.",
       "deactivatedSwitchLabel": "Deactivated",
       "deactivatedLastActiveHint": "The last administrator cannot be deactivated."
     },
     "assignmentsForm": {
       "platformAdminAlertTitle": "Platform administrator",
       "platformAdminAlertBody": "Platform administrators cannot have organization assignments. Remove the administrator role first to assign team or department roles.",
+      "knowledgeManagerAlertTitle": "Knowledge Manager",
+      "knowledgeManagerAlertBody": "Knowledge managers cannot have organization assignments. Remove the knowledge manager role first to assign team or department roles.",
       "hint": "Each user has one organization role. Team lead does not require team membership. Authors must be promoted from team membership.",
       "teamLabel": "Team",
       "teamPlaceholder": "Select team",

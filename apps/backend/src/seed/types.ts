@@ -10,6 +10,9 @@ type SeedCsvData = {
   teamAuthors: SeedRow[];
   departmentLeads: SeedRow[];
   companyLeads: SeedRow[];
+  knowledgeManagerCompanies: SeedRow[];
+  knowledgeManagerDepartments: SeedRow[];
+  knowledgeManagerTeams: SeedRow[];
 };
 
 type SeedMasterData = SeedCsvData & {

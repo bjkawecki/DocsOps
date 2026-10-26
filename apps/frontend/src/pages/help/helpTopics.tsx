@@ -52,8 +52,8 @@ export const HELP_TOPIC_GROUPS = [
     icon: IconUsers,
     topics: [
       { to: '/help/roles/introduction', id: 'rolesIntroduction' },
-      { to: '/help/admin', id: 'admin' },
       { to: '/help/user-roles', id: 'userRoles' },
+      { to: '/help/special-roles', id: 'specialRoles' },
     ],
   },
   {

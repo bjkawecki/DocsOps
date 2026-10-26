@@ -3,6 +3,7 @@ import { loadActiveUser, type LoadedUser } from '../permissions/userAccessPredic
 
 export type ScopeAssignmentKind =
   | 'admin'
+  | 'knowledgeManager'
   | 'companyLead'
   | 'departmentLead'
   | 'teamLead'
@@ -12,6 +13,7 @@ export type ScopeAssignmentKind =
 
 export type ScopeRoleTier =
   | 'admin'
+  | 'knowledgeManager'
   | 'company'
   | 'department'
   | 'teamLead'
@@ -35,9 +37,18 @@ function hasDepartmentAuthorAssignment(user: LoadedUser): boolean {
   return user.authorOfDepartments.length > 0;
 }
 
+function hasKnowledgeManagerScopes(user: LoadedUser): boolean {
+  return (
+    user.knowledgeManagerCompanies.length > 0 ||
+    user.knowledgeManagerDepartments.length > 0 ||
+    user.knowledgeManagerTeams.length > 0
+  );
+}
+
 /** Highest organizational / platform role tier for migration and validation. */
 export function getUserScopeRoleTier(user: LoadedUser): ScopeRoleTier {
   if (user.isAdmin) return 'admin';
+  if (user.isKnowledgeManager || hasKnowledgeManagerScopes(user)) return 'knowledgeManager';
   if (user.companyLeads.length > 0) return 'company';
   if (user.departmentLeads.length > 0) return 'department';
   if (user.leadOfTeams.length > 0) return 'teamLead';
@@ -89,9 +100,23 @@ export async function assertCanAssignScopeRole(
   const { kind } = args;
 
   if (kind === 'admin') {
+    if (userHasOrgAssignments(user) || user.isKnowledgeManager || hasKnowledgeManagerScopes(user)) {
+      throw new ScopeAssignmentConflictError(
+        'Cannot assign platform administrator while user has organization or knowledge manager assignments. Remove those roles first.'
+      );
+    }
+    return;
+  }
+
+  if (kind === 'knowledgeManager') {
+    if (user.isAdmin) {
+      throw new ScopeAssignmentConflictError(
+        'Cannot assign knowledge manager while user is a platform administrator.'
+      );
+    }
     if (userHasOrgAssignments(user)) {
       throw new ScopeAssignmentConflictError(
-        'Cannot assign platform administrator while user has organization assignments. Remove organization roles first.'
+        'Cannot assign knowledge manager while user has organization assignments. Remove organization roles first.'
       );
     }
     return;
@@ -100,6 +125,12 @@ export async function assertCanAssignScopeRole(
   if (user.isAdmin) {
     throw new ScopeAssignmentConflictError(
       'User is a platform administrator and cannot receive organization assignments.'
+    );
+  }
+
+  if (user.isKnowledgeManager || hasKnowledgeManagerScopes(user)) {
+    throw new ScopeAssignmentConflictError(
+      'User is a knowledge manager and cannot receive organization assignments.'
     );
   }
 

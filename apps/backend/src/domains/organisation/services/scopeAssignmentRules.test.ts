@@ -22,6 +22,7 @@ describe('scopeAssignmentRules', () => {
   let teamLeadId: string;
   let teamMemberId: string;
   let plainUserId: string;
+  let knowledgeManagerId: string;
 
   beforeAll(async () => {
     const pw = await hashPassword('testpass');
@@ -38,7 +39,7 @@ describe('scopeAssignmentRules', () => {
     teamId = team.id;
     team2Id = team2.id;
 
-    const [adminUser, companyLead, deptLead, teamLead, teamMember, plain] = await Promise.all([
+    const [adminUser, companyLead, deptLead, teamLead, teamMember, plain, km] = await Promise.all([
       prisma.user.create({
         data: { name: 'Admin', email: `admin-${TS}@test.de`, passwordHash: pw, isAdmin: true },
       }),
@@ -57,6 +58,14 @@ describe('scopeAssignmentRules', () => {
       prisma.user.create({
         data: { name: 'Plain', email: `plain-${TS}@test.de`, passwordHash: pw },
       }),
+      prisma.user.create({
+        data: {
+          name: 'KM',
+          email: `km-${TS}@test.de`,
+          passwordHash: pw,
+          isKnowledgeManager: true,
+        },
+      }),
     ]);
     adminUserId = adminUser.id;
     companyLeadId = companyLead.id;
@@ -64,14 +73,27 @@ describe('scopeAssignmentRules', () => {
     teamLeadId = teamLead.id;
     teamMemberId = teamMember.id;
     plainUserId = plain.id;
+    knowledgeManagerId = km.id;
 
     await prisma.companyLead.create({ data: { companyId, userId: companyLeadId } });
     await prisma.departmentLead.create({ data: { departmentId, userId: deptLeadId } });
     await prisma.teamLead.create({ data: { teamId, userId: teamLeadId } });
     await prisma.teamMember.create({ data: { teamId, userId: teamMemberId } });
+    await prisma.knowledgeManagerTeam.create({
+      data: { userId: knowledgeManagerId, teamId },
+    });
   });
 
   afterAll(async () => {
+    await prisma.knowledgeManagerCompany.deleteMany({
+      where: { userId: { in: [knowledgeManagerId, plainUserId] } },
+    });
+    await prisma.knowledgeManagerDepartment.deleteMany({
+      where: { userId: { in: [knowledgeManagerId, plainUserId] } },
+    });
+    await prisma.knowledgeManagerTeam.deleteMany({
+      where: { userId: { in: [knowledgeManagerId, plainUserId] } },
+    });
     await prisma.teamMember.deleteMany({
       where: { teamId: { in: [teamId, team2Id] } },
     });
@@ -82,7 +104,15 @@ describe('scopeAssignmentRules', () => {
     await prisma.team.deleteMany({ where: { id: { in: [teamId, team2Id] } } });
     await prisma.department.deleteMany({ where: { id: departmentId } });
     await prisma.company.deleteMany({ where: { id: companyId } });
-    const userIds = [adminUserId, companyLeadId, deptLeadId, teamLeadId, teamMemberId, plainUserId];
+    const userIds = [
+      adminUserId,
+      companyLeadId,
+      deptLeadId,
+      teamLeadId,
+      teamMemberId,
+      plainUserId,
+      knowledgeManagerId,
+    ];
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   });
 
@@ -90,9 +120,11 @@ describe('scopeAssignmentRules', () => {
     const admin = await loadActiveUser(prisma, adminUserId);
     const co = await loadActiveUser(prisma, companyLeadId);
     const member = await loadActiveUser(prisma, teamMemberId);
+    const km = await loadActiveUser(prisma, knowledgeManagerId);
     expect(admin && getUserScopeRoleTier(admin)).toBe('admin');
     expect(co && getUserScopeRoleTier(co)).toBe('company');
     expect(member && getUserScopeRoleTier(member)).toBe('teamMember');
+    expect(km && getUserScopeRoleTier(km)).toBe('knowledgeManager');
   });
 
   it('admin cannot receive org assignments', async () => {
@@ -104,7 +136,35 @@ describe('scopeAssignmentRules', () => {
   it('org user cannot become admin while assignments exist', async () => {
     await expect(
       assertCanAssignScopeRole(prisma, { userId: teamMemberId, kind: 'admin' })
-    ).rejects.toThrow(/organization assignments/);
+    ).rejects.toThrow(/organization or knowledge manager assignments/);
+  });
+
+  it('plain user can become knowledge manager', async () => {
+    await expect(
+      assertCanAssignScopeRole(prisma, { userId: plainUserId, kind: 'knowledgeManager' })
+    ).resolves.toBeUndefined();
+  });
+
+  it('org user cannot become knowledge manager while assignments exist', async () => {
+    await expect(
+      assertCanAssignScopeRole(prisma, { userId: teamMemberId, kind: 'knowledgeManager' })
+    ).rejects.toBeInstanceOf(ScopeAssignmentConflictError);
+  });
+
+  it('knowledge manager cannot receive org assignments', async () => {
+    await expect(
+      assertCanAssignScopeRole(prisma, {
+        userId: knowledgeManagerId,
+        kind: 'teamMember',
+        teamId,
+      })
+    ).rejects.toBeInstanceOf(ScopeAssignmentConflictError);
+  });
+
+  it('admin cannot become knowledge manager', async () => {
+    await expect(
+      assertCanAssignScopeRole(prisma, { userId: adminUserId, kind: 'knowledgeManager' })
+    ).rejects.toBeInstanceOf(ScopeAssignmentConflictError);
   });
 
   it('plain user can be assigned team member', async () => {

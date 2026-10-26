@@ -19,6 +19,7 @@ import { apiFetch } from '../../../api/client';
 import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
 import type {
   DepartmentWithTeams,
+  KnowledgeManagerScopes,
   UserDocumentsRes,
   UserRow,
   UserStatsRes,
@@ -29,6 +30,7 @@ import { AdminUserProfileForm } from './AdminUserProfileForm';
 
 type Props = {
   user: UserRow;
+  companyId: string | null;
   departments: DepartmentWithTeams[];
   activeAdminCount: number | undefined;
   currentUserId: string | null;
@@ -36,7 +38,9 @@ type Props = {
     name: string;
     email: string | null;
     isAdmin: boolean;
+    isKnowledgeManager: boolean;
     isCompanyLead: boolean;
+    knowledgeManagerScopes: KnowledgeManagerScopes;
     deletedAt: string | null;
   }) => Promise<void>;
   onResetPassword: () => void;
@@ -47,6 +51,7 @@ type Props = {
 
 export function AdminUserDetailTabs({
   user,
+  companyId,
   departments,
   activeAdminCount,
   currentUserId,
@@ -127,6 +132,8 @@ export function AdminUserDetailTabs({
             {profileEditing ? (
               <AdminUserProfileForm
                 user={user}
+                companyId={companyId}
+                departments={departments}
                 onSave={async (body) => {
                   await onSaveProfile(body);
                   setProfileEditing(false);
@@ -166,6 +173,11 @@ export function AdminUserDetailTabs({
                     {user.role === 'Company Lead' && (
                       <Badge size="sm" color="violet" variant="filled">
                         {roleLabel('companyLead')}
+                      </Badge>
+                    )}
+                    {(user.isKnowledgeManager || user.role === 'Knowledge Manager') && (
+                      <Badge size="sm" color="teal" variant="filled">
+                        {roleLabel('knowledgeManager')}
                       </Badge>
                     )}
                     {user.isAdmin && (

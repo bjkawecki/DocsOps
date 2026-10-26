@@ -30,10 +30,11 @@ model Company {
   pdfLogoPosition     String?
   /// Body typeface: "sans" | "serif"; null = platform default (sans).
   pdfFontFamily       String?
-  departments         Department[]
-  companyLeads        CompanyLead[]
-  owners              Owner[]       @relation("OwnerCompany")
-  customDocumentTypes CustomDocumentType[]
+  departments              Department[]
+  companyLeads             CompanyLead[]
+  knowledgeManagerUsers KnowledgeManagerCompany[]
+  owners                   Owner[]       @relation("OwnerCompany")
+  customDocumentTypes      CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -46,12 +47,13 @@ model Department {
   company                Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
   startDocumentId        String?
   startDocument          Document?       @relation("DepartmentStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
-  teams                  Team[]
-  owners                 Owner[]         @relation("OwnerDepartment")
-  departmentLeads        DepartmentLead[]
-  departmentAuthors      DepartmentAuthor[]
-  documentGrantDept      DocumentGrantDepartment[]
-  customDocumentTypes    CustomDocumentType[]
+  teams                        Team[]
+  owners                       Owner[]         @relation("OwnerDepartment")
+  departmentLeads              DepartmentLead[]
+  departmentAuthors            DepartmentAuthor[]
+  knowledgeManagerUsers        KnowledgeManagerDepartment[]
+  documentGrantDept            DocumentGrantDepartment[]
+  customDocumentTypes          CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -65,12 +67,13 @@ model Team {
   department      Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   startDocumentId String?
   startDocument   Document?       @relation("TeamStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
-  members         TeamMember[]
-  teamLeads       TeamLead[]
-  teamAuthors     TeamAuthor[]
-  owners          Owner[]         @relation("OwnerTeam")
-  documentGrantTeam DocumentGrantTeam[]
-  customDocumentTypes CustomDocumentType[]
+  members                 TeamMember[]
+  teamLeads               TeamLead[]
+  teamAuthors             TeamAuthor[]
+  knowledgeManagerUsers   KnowledgeManagerTeam[]
+  owners                  Owner[]         @relation("OwnerTeam")
+  documentGrantTeam       DocumentGrantTeam[]
+  customDocumentTypes     CustomDocumentType[]
 
   @@index([startDocumentId])
 }
@@ -113,7 +116,7 @@ model DepartmentAuthor {
 
 /// Nutzer: Mitglied in Teams (TeamMember), optional Team Lead (TeamLead). isAdmin: sieht alles, legt Struktur an, fügt User hinzu.
 /// Kann Prozesse/Projekte als Owner besitzen (Owner.ownerUserId); erhält explizite Zugriffsrechte über DocumentGrantUser.
-/// email/externalId für Auth/SSO. passwordHash nur für lokalen Login; SSO-Nutzer (externalId) brauchen keins.
+  /// email/externalId für Auth/SSO. passwordHash nur für lokalen Login; SSO-Nutzer (externalId) brauchen keins.
 model User {
   id                    String       @id @default(cuid())
   name                  String
@@ -121,6 +124,8 @@ model User {
   passwordHash          String?      // Argon2-Hash für lokalen Login
   externalId            String?      // SSO/LDAP – eindeutige Kennung vom IdP
   isAdmin               Boolean      @default(false) // Sieht alle Dokumente; legt Struktur (Company, Dept, Team) an, fügt User hinzu
+  /// Knowledge Manager: Fachrolle mit expliziter Scope-Liste (kein Admin, keine Org-Lead/Member).
+  isKnowledgeManager    Boolean      @default(false)
   deletedAt             DateTime?    // Soft delete: deaktivierter Account, Zugriff entzogen
   lastActiveAt          DateTime?    // Last authenticated activity (presence / last seen)
   preferences           Json?        // theme: light|dark|auto, sidebarPinned: boolean
@@ -130,6 +135,9 @@ model User {
   authorOfDepartments   DepartmentAuthor[]
   departmentLeads       DepartmentLead[]
   companyLeads          CompanyLead[]
+  knowledgeManagerCompanies    KnowledgeManagerCompany[]
+  knowledgeManagerDepartments  KnowledgeManagerDepartment[]
+  knowledgeManagerTeams        KnowledgeManagerTeam[]
   ownedContexts         Owner[]      @relation("OwnerUser")
   documentGrantUser     DocumentGrantUser[]
   pinnedDocumentScopes  DocumentPinnedInScope[]
@@ -179,6 +187,33 @@ model CompanyLead {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@id([companyId, userId])
+}
+
+/// Knowledge Manager ↔ Company-Scope (explizit; keine Vererbung auf Departments/Teams).
+model KnowledgeManagerCompany {
+  companyId String
+  userId    String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([companyId, userId])
+}
+
+/// Knowledge Manager ↔ Department-Scope (explizit).
+model KnowledgeManagerDepartment {
+  departmentId String
+  userId       String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([departmentId, userId])
+}
+
+/// Knowledge Manager ↔ Team-Scope (explizit).
+model KnowledgeManagerTeam {
+  teamId String
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
 }
 
 /// Owner-Abstraktion: Prozess/Projekt haben genau einen Owner (Schema: ownerId).

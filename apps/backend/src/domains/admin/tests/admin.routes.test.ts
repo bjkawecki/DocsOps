@@ -241,6 +241,66 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('email');
   });
 
+  it('PATCH isKnowledgeManager true → 200; scopes replace; disable clears junctions', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const company = await prisma.company.create({ data: { name: `KM Co ${TS}` } });
+    try {
+      const enable = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/admin/users/${normalUserId}`,
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: { isKnowledgeManager: true },
+      });
+      expect(enable.statusCode).toBe(200);
+      const enabled = enable.json() as { isKnowledgeManager: boolean };
+      expect(enabled.isKnowledgeManager).toBe(true);
+
+      const scopes = await app.inject({
+        method: 'PUT',
+        url: `/api/v1/admin/users/${normalUserId}/knowledge-manager-scopes`,
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: { companyIds: [company.id], departmentIds: [], teamIds: [] },
+      });
+      expect(scopes.statusCode).toBe(200);
+      const scopeBody = scopes.json() as {
+        companyIds: string[];
+        departmentIds: string[];
+        teamIds: string[];
+      };
+      expect(scopeBody.companyIds).toEqual([company.id]);
+
+      const disable = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/admin/users/${normalUserId}`,
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: { isKnowledgeManager: false },
+      });
+      expect(disable.statusCode).toBe(200);
+      const junctions = await prisma.knowledgeManagerCompany.count({
+        where: { userId: normalUserId },
+      });
+      expect(junctions).toBe(0);
+    } finally {
+      await prisma.knowledgeManagerCompany.deleteMany({ where: { companyId: company.id } });
+      await prisma.company.delete({ where: { id: company.id } });
+      await prisma.user.update({
+        where: { id: normalUserId },
+        data: { isKnowledgeManager: false },
+      });
+    }
+  });
+
+  it('PATCH isKnowledgeManager on admin → 409', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/admin/users/${adminId}`,
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: { isKnowledgeManager: true },
+    });
+    expect(res.statusCode).toBe(409);
+  });
+
   it('POST /api/v1/admin/users/:userId/reset-password als Admin → 204', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({

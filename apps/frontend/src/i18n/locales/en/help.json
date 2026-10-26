@@ -23,8 +23,8 @@
     "contexts": "Contexts",
     "planningOrganisation": "Setting up the organisation",
     "rolesIntroduction": "What roles are for",
-    "admin": "Admin",
     "userRoles": "User roles",
+    "specialRoles": "Special roles",
     "documentsIntroduction": "What are documents?",
     "templates": "Templates",
     "lifecycle": "Lifecycle",
@@ -222,73 +222,16 @@
           "heading": "Rights by role",
           "paragraphs": [
             "Each role bundles certain rights – the technical frame for which actions the user is allowed. With a role, the user may do what those rights cover.",
-            "From the rights follows the social side: responsibility. If a user has certain rights, that user carries the matching responsibility."
-          ]
-        }
-      ]
-    },
-    "admin": {
-      "lead": [
-        "The admin is a technical administration account for the DocsOps instance. The admin role is a platform role, not a user role in the organisation."
-      ],
-      "sections": [
-        {
-          "heading": "Platform administration",
-          "paragraphs": [
-            "Admin covers installing and operating the instance as well as managing users, the organisation structure, and platform-wide settings. For that, the admin uses the admin area of the application."
-          ]
-        },
-        {
-          "heading": "The admin area",
-          "paragraphs": [
-            "The admin area organises administration into four groups. Each group bundles related instance-administration tasks."
-          ],
-          "subsections": [
-            {
-              "heading": "Organisation",
-              "paragraphs": [
-                "Under Organisation, accounts and the instance structure are managed: users, teams, departments, and the company."
-              ]
-            },
-            {
-              "heading": "Operations",
-              "paragraphs": [
-                "Under Operations sit the instance’s running and scheduled work: background jobs and the scheduler. That keeps visible which work is pending or has already run."
-              ]
-            },
-            {
-              "heading": "Data",
-              "paragraphs": [
-                "Under Data sit backup and migration of the instance. That lets the instance state be preserved or moved to another environment."
-              ]
-            },
-            {
-              "heading": "Platform",
-              "paragraphs": [
-                "Under Platform sit instance-wide settings and notices: system, mail, role display names, and messages to the whole instance. These settings apply to the instance as a whole, not to individual content scopes."
-              ]
-            }
-          ]
-        },
-        {
-          "heading": "Read without content writing",
-          "paragraphs": [
-            "The admin may read the organisation’s knowledge – contexts and documents under the company, departments, and teams. The admin does not create or edit content documents or contexts and has no personal space. Publishing and lead duties belong to user roles.",
-            "Anyone who contributes content in the organisation uses a second account with a user role. The admin account itself is not meant for that work."
-          ]
-        },
-        {
-          "heading": "Who should be admin",
-          "paragraphs": [
-            "The admin role belongs to whoever operates and configures the instance – not to company leadership and not to day-to-day document work. Anyone who does both keeps admin rights and a user role on separate accounts, so technical administration and content responsibility stay apart."
+            "From the rights follows the social side: responsibility. If a user has certain rights, that user carries the matching responsibility.",
+            "Alongside user roles in the organisation there are special roles for platform operations and content stewardship. They sit outside the hierarchy and are mutually exclusive with each other and with a user role on the same account."
           ]
         }
       ]
     },
     "userRoles": {
       "lead": [
-        "User roles apply in the organisation. They differ from the admin: the admin is a technical administration account without content writing; user roles determine which rights a member has in scopes and which responsibility follows from that.",
-        "DocsOps has three user roles: lead, author, and member. An admin account does not also hold one of these user roles."
+        "User roles apply in the organisation. They determine which rights a member has in scopes and which responsibility follows from that.",
+        "DocsOps has three user roles: lead, author, and member. Special roles for operations and content stewardship sit outside this overview."
       ],
       "sections": [
         {
@@ -319,6 +262,27 @@
               ["Grant access", "yes", "no", "no"]
             ]
           }
+        }
+      ]
+    },
+    "specialRoles": {
+      "lead": [
+        "Special roles are account roles outside the organisation hierarchy. DocsOps has two: admin for operating the instance, and knowledge manager for content stewardship in assigned scopes. Both are mutually exclusive with each other and with a user role on the same account."
+      ],
+      "sections": [
+        {
+          "heading": "Admin",
+          "paragraphs": [
+            "The admin operates and configures the instance: users and organisation structure, backup and migration, and platform-wide settings. That work happens in the admin area – Organisation, Operations, Data, and Platform.",
+            "Through the admin role, only contexts and documents owned by the company are readable – not department or team knowledge. The admin does not create or edit content documents and has no personal space. Anyone who contributes content uses a second account."
+          ]
+        },
+        {
+          "heading": "Knowledge Manager",
+          "paragraphs": [
+            "The knowledge manager stewards organisation knowledge where scopes are explicitly assigned – company, departments, and teams as a list. Rights apply only to those exact entries; a company-level assignment does not extend to departments or teams.",
+            "In each assigned scope the same content rights apply as for the lead: read, write, create, delete, and publish. There is no personal space and no access to the admin area. The role fits when content needs to be moved or cleaned up across several scopes without membership or a lead role in the hierarchy."
+          ]
         }
       ]
     },

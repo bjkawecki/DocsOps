@@ -31,7 +31,14 @@ import { randomLoginTaglineIndex } from './loginTaglines';
 
 const LOGIN_ERROR_ID = 'login-error';
 
-const DEMO_ROLES = ['admin', 'companyLead', 'departmentLead', 'teamLead', 'member'] as const;
+const DEMO_ROLES = [
+  'admin',
+  'knowledgeManager',
+  'companyLead',
+  'departmentLead',
+  'teamLead',
+  'member',
+] as const;
 
 type DemoRole = (typeof DEMO_ROLES)[number];
 

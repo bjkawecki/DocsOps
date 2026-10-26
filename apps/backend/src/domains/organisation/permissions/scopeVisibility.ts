@@ -18,6 +18,10 @@ import {
   isTeamAuthorInCompany,
   isTeamAuthorInDepartment,
   isDepartmentAuthor,
+  isKnowledgeManager,
+  isKnowledgeManagerForCompany,
+  isKnowledgeManagerForDepartment,
+  isKnowledgeManagerForTeam,
   loadActiveUser,
   type LoadedUser,
 } from './userAccessPredicates.js';
@@ -51,6 +55,15 @@ export function evaluateScopeCapability(
   if (user.isAdmin) {
     if (capability === 'lead') return false;
     return Boolean(hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId);
+  }
+
+  // Knowledge Manager: exact assigned scope only (no company→dept/team inheritance).
+  if (isKnowledgeManager(user)) {
+    const { companyId, departmentId, teamId } = hierarchy;
+    if (teamId) return isKnowledgeManagerForTeam(user, teamId);
+    if (departmentId) return isKnowledgeManagerForDepartment(user, departmentId);
+    if (companyId) return isKnowledgeManagerForCompany(user, companyId);
+    return false;
   }
 
   const effectiveCapability = capability === 'readOwner' ? 'view' : capability;

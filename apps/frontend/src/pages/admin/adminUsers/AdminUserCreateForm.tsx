@@ -1,32 +1,60 @@
-import { Button, Group, Select, Stack, Switch, TextInput } from '@mantine/core';
-import { useState } from 'react';
+import { Button, Group, MultiSelect, Select, Stack, Switch, TextInput } from '@mantine/core';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CreateUserPayload, DepartmentWithTeams } from './adminUsersTypes';
 
 type Props = {
+  companyId: string | null;
   departments: DepartmentWithTeams[];
   onSubmit: (body: CreateUserPayload) => void;
   onCancel: () => void;
   isPending: boolean;
 };
 
-export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending }: Props) {
+export function AdminUserCreateForm({
+  companyId,
+  departments,
+  onSubmit,
+  onCancel,
+  isPending,
+}: Props) {
   const { t } = useTranslation('admin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isKnowledgeManager, setIsKnowledgeManager] = useState(false);
+  const [kmCompanyIds, setKmCompanyIds] = useState<string[]>([]);
+  const [kmDepartmentIds, setKmDepartmentIds] = useState<string[]>([]);
+  const [kmTeamIds, setKmTeamIds] = useState<string[]>([]);
   const [departmentId, setDepartmentId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamRole, setTeamRole] = useState<'member' | 'leader'>('member');
   const [supervisorOfDepartment, setSupervisorOfDepartment] = useState(false);
 
+  const orgDisabled = isAdmin || isKnowledgeManager;
+
   const selectedDepartment = departmentId ? departments.find((d) => d.id === departmentId) : null;
-  const teamOptions = (selectedDepartment?.teams ?? []).map((t) => ({
-    value: t.id,
-    label: t.name,
+  const teamOptions = (selectedDepartment?.teams ?? []).map((team) => ({
+    value: team.id,
+    label: team.name,
   }));
   const departmentOptions = departments.map((d) => ({ value: d.id, label: d.name }));
+  const companyOptions = useMemo(
+    () => (companyId ? [{ value: companyId, label: t('users.createForm.kmCompanyOption') }] : []),
+    [companyId, t]
+  );
+  const kmDepartmentOptions = departmentOptions;
+  const kmTeamOptions = useMemo(
+    () =>
+      departments.flatMap((d) =>
+        (d.teams ?? []).map((team) => ({
+          value: team.id,
+          label: `${team.name} (${d.name})`,
+        }))
+      ),
+    [departments]
+  );
 
   const handleSubmit = () => {
     onSubmit({
@@ -34,10 +62,18 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
       email,
       password,
       isAdmin,
-      departmentId: departmentId || undefined,
-      teamId: teamId || undefined,
-      teamRole: teamId ? teamRole : undefined,
-      supervisorOfDepartment: departmentId ? supervisorOfDepartment : false,
+      isKnowledgeManager,
+      knowledgeManagerScopes: isKnowledgeManager
+        ? {
+            companyIds: kmCompanyIds,
+            departmentIds: kmDepartmentIds,
+            teamIds: kmTeamIds,
+          }
+        : undefined,
+      departmentId: orgDisabled ? undefined : departmentId || undefined,
+      teamId: orgDisabled ? undefined : teamId || undefined,
+      teamRole: orgDisabled || !teamId ? undefined : teamRole,
+      supervisorOfDepartment: orgDisabled || !departmentId ? false : supervisorOfDepartment,
     });
   };
 
@@ -67,8 +103,57 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
       <Switch
         label={t('users.createForm.adminLabel')}
         checked={isAdmin}
-        onChange={(e) => setIsAdmin(e.currentTarget.checked)}
+        onChange={(e) => {
+          const next = e.currentTarget.checked;
+          setIsAdmin(next);
+          if (next) setIsKnowledgeManager(false);
+        }}
       />
+      <Switch
+        label={t('users.createForm.knowledgeManagerLabel')}
+        description={t('users.createForm.knowledgeManagerHint')}
+        checked={isKnowledgeManager}
+        onChange={(e) => {
+          const next = e.currentTarget.checked;
+          setIsKnowledgeManager(next);
+          if (next) {
+            setIsAdmin(false);
+            setDepartmentId(null);
+            setTeamId(null);
+            setSupervisorOfDepartment(false);
+          }
+        }}
+        disabled={isAdmin}
+      />
+      {isKnowledgeManager && (
+        <Stack gap="xs">
+          <MultiSelect
+            label={t('users.createForm.kmCompaniesLabel')}
+            description={t('users.createForm.kmScopesDescription')}
+            data={companyOptions}
+            value={kmCompanyIds}
+            onChange={setKmCompanyIds}
+            searchable
+            clearable
+          />
+          <MultiSelect
+            label={t('users.createForm.kmDepartmentsLabel')}
+            data={kmDepartmentOptions}
+            value={kmDepartmentIds}
+            onChange={setKmDepartmentIds}
+            searchable
+            clearable
+          />
+          <MultiSelect
+            label={t('users.createForm.kmTeamsLabel')}
+            data={kmTeamOptions}
+            value={kmTeamIds}
+            onChange={setKmTeamIds}
+            searchable
+            clearable
+          />
+        </Stack>
+      )}
       <Select
         label={t('users.createForm.departmentLabel')}
         placeholder={t('users.createForm.departmentPlaceholder')}
@@ -79,6 +164,7 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
           setTeamId(null);
         }}
         clearable
+        disabled={orgDisabled}
       />
       <Select
         label={t('users.createForm.teamLabel')}
@@ -90,10 +176,10 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
         data={teamOptions}
         value={teamId}
         onChange={setTeamId}
-        disabled={!departmentId}
+        disabled={orgDisabled || !departmentId}
         clearable
       />
-      {teamId && (
+      {teamId && !orgDisabled && (
         <Select
           label={t('users.createForm.teamRoleLabel')}
           data={[
@@ -101,10 +187,12 @@ export function AdminUserCreateForm({ departments, onSubmit, onCancel, isPending
             { value: 'leader', label: t('users.createForm.teamRoleLeader') },
           ]}
           value={teamRole}
-          onChange={(v) => v && setTeamRole(v)}
+          onChange={(v) => {
+            if (v === 'member' || v === 'leader') setTeamRole(v);
+          }}
         />
       )}
-      {departmentId && (
+      {departmentId && !orgDisabled && (
         <Switch
           label={t('users.createForm.departmentLeadSwitchLabel')}
           checked={supervisorOfDepartment}

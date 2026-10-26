@@ -10,6 +10,7 @@ function emptyUser(overrides: Partial<LoadedUser> = {}): LoadedUser {
   return {
     id: 'user-1',
     isAdmin: false,
+    isKnowledgeManager: false,
     deletedAt: null,
     teamMemberships: [],
     leadOfTeams: [],
@@ -17,8 +18,25 @@ function emptyUser(overrides: Partial<LoadedUser> = {}): LoadedUser {
     companyLeads: [],
     authorOfTeams: [],
     authorOfDepartments: [],
+    knowledgeManagerCompanies: [],
+    knowledgeManagerDepartments: [],
+    knowledgeManagerTeams: [],
     ...overrides,
   } as LoadedUser;
+}
+
+function knowledgeManagerForCompany(): LoadedUser {
+  return emptyUser({
+    isKnowledgeManager: true,
+    knowledgeManagerCompanies: [{ companyId: COMPANY }],
+  });
+}
+
+function knowledgeManagerForTeam(): LoadedUser {
+  return emptyUser({
+    isKnowledgeManager: true,
+    knowledgeManagerTeams: [{ teamId: TEAM }],
+  });
 }
 
 function companyLeadUser(): LoadedUser {
@@ -81,6 +99,18 @@ describe('evaluateScopeCapability', () => {
     it('outsider cannot view team', () => {
       expect(evaluateScopeCapability(emptyUser(), teamHierarchy, 'view')).toBe(false);
     });
+
+    it('knowledge manager views only exact assigned scopes (no inheritance)', () => {
+      const kmCompany = knowledgeManagerForCompany();
+      expect(evaluateScopeCapability(kmCompany, companyHierarchy, 'view')).toBe(true);
+      expect(evaluateScopeCapability(kmCompany, deptHierarchy, 'view')).toBe(false);
+      expect(evaluateScopeCapability(kmCompany, teamHierarchy, 'view')).toBe(false);
+
+      const kmTeam = knowledgeManagerForTeam();
+      expect(evaluateScopeCapability(kmTeam, teamHierarchy, 'view')).toBe(true);
+      expect(evaluateScopeCapability(kmTeam, deptHierarchy, 'view')).toBe(false);
+      expect(evaluateScopeCapability(kmTeam, companyHierarchy, 'view')).toBe(false);
+    });
   });
 
   describe('lead', () => {
@@ -89,6 +119,16 @@ describe('evaluateScopeCapability', () => {
       expect(evaluateScopeCapability(admin, companyHierarchy, 'lead')).toBe(false);
       expect(evaluateScopeCapability(admin, deptHierarchy, 'lead')).toBe(false);
       expect(evaluateScopeCapability(admin, teamHierarchy, 'lead')).toBe(false);
+    });
+
+    it('knowledge manager is lead only on exact assigned scopes', () => {
+      const kmCompany = knowledgeManagerForCompany();
+      expect(evaluateScopeCapability(kmCompany, companyHierarchy, 'lead')).toBe(true);
+      expect(evaluateScopeCapability(kmCompany, teamHierarchy, 'lead')).toBe(false);
+
+      const kmTeam = knowledgeManagerForTeam();
+      expect(evaluateScopeCapability(kmTeam, teamHierarchy, 'lead')).toBe(true);
+      expect(evaluateScopeCapability(kmTeam, companyHierarchy, 'lead')).toBe(false);
     });
 
     it('company lead is scope lead for company, department, and team', () => {

@@ -23,8 +23,8 @@
     "contexts": "Kontexte",
     "planningOrganisation": "Organisation einrichten",
     "rolesIntroduction": "Wozu Rollen?",
-    "admin": "Admin",
     "userRoles": "Nutzerrollen",
+    "specialRoles": "Sonderrollen",
     "documentsIntroduction": "Was sind Dokumente?",
     "templates": "Vorlagen",
     "lifecycle": "Lebenszyklus",
@@ -222,73 +222,16 @@
           "heading": "Rechte nach Rolle",
           "paragraphs": [
             "Jede Rolle bündelt bestimmte Rechte – den technischen Rahmen dafür, welche Handlungen dem Nutzer erlaubt sind. Mit einer Rolle darf der Nutzer das, was diese Rechte umfassen.",
-            "Aus den Rechten folgt die soziale Seite: Verantwortung. Hat ein Nutzer bestimmte Rechte, trägt er die dazugehörige Verantwortung."
-          ]
-        }
-      ]
-    },
-    "admin": {
-      "lead": [
-        "Der Admin ist ein technischer Verwaltungsaccount für die DocsOps-Instanz. Die Admin-Rolle ist eine Plattformrolle, keine Nutzerrolle in der Organisation."
-      ],
-      "sections": [
-        {
-          "heading": "Plattformverwaltung",
-          "paragraphs": [
-            "Zum Admin gehören Installation und Betrieb der Instanz sowie die Verwaltung von Nutzern, der Organisationsstruktur und plattformweiten Einstellungen. Dafür nutzt der Admin den Admin-Bereich der Anwendung."
-          ]
-        },
-        {
-          "heading": "Der Admin-Bereich",
-          "paragraphs": [
-            "Der Admin-Bereich gliedert die Verwaltungsaufgaben in vier Gruppen. Jede Gruppe bündelt zusammengehörige Aufgaben der Instanzverwaltung."
-          ],
-          "subsections": [
-            {
-              "heading": "Organisation",
-              "paragraphs": [
-                "Unter Organisation werden die Konten und die Gliederung der Instanz geführt: Nutzer, Teams, Abteilungen und das Unternehmen."
-              ]
-            },
-            {
-              "heading": "Betrieb",
-              "paragraphs": [
-                "Unter Betrieb liegen die laufenden und geplanten Aufgaben der Instanz: Hintergrundaufgaben und der Zeitplaner. Darüber bleibt sichtbar, welche Arbeit ansteht oder bereits gelaufen ist."
-              ]
-            },
-            {
-              "heading": "Daten",
-              "paragraphs": [
-                "Unter Daten liegen Sicherungskopie und Migration der Instanz. Damit lässt sich der Instanzstand bewahren oder auf eine andere Umgebung übertragen."
-              ]
-            },
-            {
-              "heading": "Plattform",
-              "paragraphs": [
-                "Unter Plattform liegen instanzweite Einstellungen und Hinweise: System, E-Mail, Anzeigenamen der Rollen und Mitteilungen an die gesamte Instanz. Diese Einstellungen gelten für die Instanz insgesamt, nicht für einzelne Fachbereiche."
-              ]
-            }
-          ]
-        },
-        {
-          "heading": "Lesen ohne Fachschreiben",
-          "paragraphs": [
-            "Der Admin darf Organisationswissen lesen – Kontexte und Dokumente unter Unternehmen, Abteilungen und Teams. Er legt keine Fachdokumente oder Kontexte an, bearbeitet sie nicht und hat keinen persönlichen Bereich. Veröffentlichen und Leitung gehören zu den Nutzerrollen.",
-            "Wer in der Organisation inhaltlich mitwirkt, nutzt dafür einen zweiten Account mit Nutzerrolle. Der Admin-Account selbst ist dafür nicht gedacht."
-          ]
-        },
-        {
-          "heading": "Wer Admin sein sollte",
-          "paragraphs": [
-            "Die Admin-Rolle gehört zu dem, der die Instanz betreibt und konfiguriert – nicht zur Unternehmensleitung und nicht zur fachlichen Dokumentarbeit. Wer beides wahrnimmt, hält Admin-Rechte und Nutzerrolle auf getrennten Accounts, damit technische Verwaltung und inhaltliche Verantwortung nicht vermischt werden."
+            "Aus den Rechten folgt die soziale Seite: Verantwortung. Hat ein Nutzer bestimmte Rechte, trägt er die dazugehörige Verantwortung.",
+            "Neben den Nutzerrollen in der Organisation gibt es Sonderrollen für Plattformbetrieb und fachliche Wissenspflege. Sie stehen außerhalb der Hierarchie und schließen sich untereinander sowie mit einer Nutzerrolle auf demselben Account aus."
           ]
         }
       ]
     },
     "userRoles": {
       "lead": [
-        "Nutzerrollen gelten in der Organisation. Sie unterscheiden sich vom Admin: der Admin ist ein technischer Verwaltungsaccount ohne Fachschreiben; Nutzerrollen bestimmen, welche Rechte ein Mitglied in den Bereichen hat und welche Verantwortung daraus folgt.",
-        "DocsOps kennt drei Nutzerrollen: Leitung, Autor und Mitglied. Wer Admin ist, erhält keine dieser Nutzerrollen auf demselben Account."
+        "Nutzerrollen gelten in der Organisation. Sie bestimmen, welche Rechte ein Mitglied in den Bereichen hat und welche Verantwortung daraus folgt.",
+        "DocsOps kennt drei Nutzerrollen: Leitung, Autor und Mitglied. Sonderrollen für Betrieb und fachliche Pflege stehen außerhalb dieser Übersicht."
       ],
       "sections": [
         {
@@ -319,6 +262,27 @@
               ["Freigaben vergeben", "ja", "nein", "nein"]
             ]
           }
+        }
+      ]
+    },
+    "specialRoles": {
+      "lead": [
+        "Sonderrollen sind Account-Rollen außerhalb der Organisationshierarchie. DocsOps kennt zwei: Admin für den Betrieb der Instanz und Wissensmanager für fachliche Pflege in zugewiesenen Bereichen. Beide schließen sich untereinander und mit einer Nutzerrolle auf demselben Account aus."
+      ],
+      "sections": [
+        {
+          "heading": "Admin",
+          "paragraphs": [
+            "Der Admin betreibt und konfiguriert die Instanz: Nutzer und Organisationsstruktur, Sicherung und Migration sowie plattformweite Einstellungen. Dafür dient der Admin-Bereich – Organisation, Betrieb, Daten und Plattform.",
+            "Über die Admin-Rolle sind nur Kontexte und Dokumente lesbar, die dem Unternehmen zugeordnet sind – nicht Abteilungs- oder Teamwissen. Fachdokumente legt der Admin nicht an und bearbeitet sie nicht; einen persönlichen Bereich hat er nicht. Wer inhaltlich mitwirkt, nutzt dafür einen zweiten Account."
+          ]
+        },
+        {
+          "heading": "Wissensmanager",
+          "paragraphs": [
+            "Der Wissensmanager pflegt Organisationswissen dort, wo Bereiche ausdrücklich zugewiesen sind – Unternehmen, Abteilungen und Teams als Liste. Rechte gelten nur für genau diese Einträge; eine Zuweisung auf Unternehmensebene reicht nicht auf Abteilungen oder Teams herunter.",
+            "In jedem zugewiesenen Bereich gelten dieselben fachlichen Rechte wie für die Leitung: lesen, schreiben, anlegen, löschen und veröffentlichen. Persönlicher Bereich und Admin-Bereich gehören nicht dazu. Die Rolle eignet sich, wenn Inhalte umgezogen oder über mehrere Bereiche hinweg aufgeräumt werden sollen, ohne dass dafür Mitgliedschaft oder Leitungsrolle in der Hierarchie nötig sind."
+          ]
         }
       ]
     },

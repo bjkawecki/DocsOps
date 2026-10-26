@@ -63,6 +63,9 @@ function loadSeedCsvData(): SeedCsvData {
     teamAuthors: csvRows(seedDataDir, 'team_authors.csv'),
     departmentLeads: csvRows(seedDataDir, 'department_leads.csv'),
     companyLeads: csvRows(seedDataDir, 'company_leads.csv'),
+    knowledgeManagerCompanies: csvRows(seedDataDir, 'knowledge_manager_companies.csv'),
+    knowledgeManagerDepartments: csvRows(seedDataDir, 'knowledge_manager_departments.csv'),
+    knowledgeManagerTeams: csvRows(seedDataDir, 'knowledge_manager_teams.csv'),
   };
 }
 

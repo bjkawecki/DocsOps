@@ -5,6 +5,7 @@ export type UserRole =
   | 'Department Author'
   | 'Department Lead'
   | 'Company Lead'
+  | 'Knowledge Manager'
   | 'Admin';
 
 export type UserTeam = {
@@ -16,13 +17,21 @@ export type UserTeam = {
 };
 export type UserDepartment = { id: string; name: string };
 
+export type KnowledgeManagerScopes = {
+  companyIds: string[];
+  departmentIds: string[];
+  teamIds: string[];
+};
+
 export type UserRow = {
   id: string;
   name: string;
   email: string | null;
   isAdmin: boolean;
+  isKnowledgeManager: boolean;
   role: UserRole;
   deletedAt: string | null;
+  knowledgeManagerScopes?: KnowledgeManagerScopes;
   teams: UserTeam[];
   departments: UserDepartment[];
   departmentsAsLead?: UserDepartment[];
@@ -67,6 +76,8 @@ export type CreateUserPayload = {
   email: string;
   password: string;
   isAdmin: boolean;
+  isKnowledgeManager?: boolean;
+  knowledgeManagerScopes?: KnowledgeManagerScopes;
   departmentId?: string | null;
   teamId?: string | null;
   teamRole?: 'member' | 'leader';
