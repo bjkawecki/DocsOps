@@ -1,6 +1,36 @@
-/* Neutral tag chip: clear edge + body text on both color schemes. */
-.app-tag-badge.mantine-Badge-root {
-  background: color-mix(in srgb, var(--mantine-color-text) 8%, var(--mantine-color-default));
+/*
+ * Shared tag chip look: Badge (sidebar/catalog) + MultiSelect pills (metadata).
+ * Stronger wash + body text for dark/light; flex-center for vertical alignment.
+ */
+.app-tag-badge.mantine-Badge-root,
+.app-tag-multiselect .app-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  background: color-mix(in srgb, var(--mantine-color-text) 14%, var(--mantine-color-default));
   color: var(--mantine-color-text);
-  border-color: var(--mantine-color-default-border);
+  border: 1px solid var(--mantine-color-default-border);
+}
+
+.app-tag-badge.mantine-Badge-root {
+  padding-block: 0.2em;
+}
+
+.app-tag-multiselect .app-tag-pill {
+  padding-block: 0.15em;
+}
+
+.app-tag-multiselect .app-tag-pill .mantine-Pill-label {
+  line-height: 1.2;
+  color: inherit;
+}
+
+.app-tag-multiselect .app-tag-pill .mantine-Pill-remove {
+  color: var(--mantine-color-text);
+  opacity: 0.75;
+}
+
+.app-tag-multiselect .app-tag-pill .mantine-Pill-remove:hover {
+  opacity: 1;
 }

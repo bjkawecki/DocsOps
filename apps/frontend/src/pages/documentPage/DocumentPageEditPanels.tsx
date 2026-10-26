@@ -16,6 +16,7 @@ import { DocumentAccessPanel } from '../../components/documents/DocumentAccessPa
 import { DocumentLeadDraftPanel } from '../../components/documents/DocumentLeadDraftPanel';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import { DraftEditingHelpPopover } from '../../components/documents/documentLeadDraft/DraftEditingHelpPopover.js';
+import '../../components/ui/TagBadge.css';
 import { DocumentTypeMetadataSection } from './DocumentTypeMetadataSection.js';
 import type { DocumentResponse } from './documentPageTypes';
 
@@ -209,6 +210,8 @@ export function DocumentPageEditPanels({
             ) : null}
             <Group align="flex-end" gap="xs">
               <MultiSelect
+                className="app-tag-multiselect"
+                classNames={{ pill: 'app-tag-pill' }}
                 label={t('documentPage.metadataFields.tags')}
                 placeholder={t('documentPage.metadataFields.tagsPlaceholder')}
                 data={tagOptions}

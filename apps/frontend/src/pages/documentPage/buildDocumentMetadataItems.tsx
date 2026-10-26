@@ -76,11 +76,7 @@ export function DocumentSidebarMeta({ data }: { data: DocumentResponse }) {
       defaultOpen={false}
     >
       <Stack gap="sm" w="100%" px={4}>
-        {statusLine != null ? (
-          <Text size="sm" c="dimmed">
-            {statusLine}
-          </Text>
-        ) : null}
+        {statusLine != null ? <Text size="sm">{statusLine}</Text> : null}
         {hasType ? (
           <Text size="sm">
             <Text span c="dimmed">

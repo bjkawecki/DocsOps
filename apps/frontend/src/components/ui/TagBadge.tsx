@@ -8,7 +8,7 @@ type TagBadgeProps = {
 };
 
 /**
- * Neutral document/catalog tag chip. Readable in light and dark (not gray-filled).
+ * Neutral document/catalog tag chip. Readable in light and dark (shared CSS with metadata pills).
  */
 export function TagBadge({ children, size = 'sm' }: TagBadgeProps) {
   return (
