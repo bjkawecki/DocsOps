@@ -158,20 +158,26 @@ Details: [Doc-Platform-Konzept](Doc-Platform-Konzept.md), [Rechtesystem](datenmo
 - **DocsOps:** Company/Department/Team und Leads sind Kern des Modells; Drafts/Trash/Archive/Catalog und Rechte (canRead, canWrite, canDeleteDocument, canPublishDocument) leiten sich daraus ab.
 - **Docmost:** Spaces und Groups bilden Bereiche und Gruppen ab; eine strikte „eine Firma, Abteilungen, Teams, Leads“-Logik mit Vererbung ist nicht das primäre Modell.
 
-### 6.5 Fazit zur Berechtigung
+### 6.5 Fach-Bootstrap ohne Admin- oder Chef-Account (geplant)
 
-- Wenn **Governance**, **dokumentweise Rechte**, **Freigabe vor Publish** und **klare Org-Hierarchie** zentrale Anforderungen sind, ist DocsOps **kein überflüssiges Rad**, sondern ein **bewusst anders gedrehtes Rad**: optimiert für kontrollierte, organisationsbewusste Doku mit klaren Freigabe- und Sichtbarkeitsregeln.
+- **Anforderung:** Beim Umzug aus einem chaotischen Wiki soll jemand Organisationswissen strukturiert anlegen und aufräumen können – ohne Plattform zu verwalten und ohne dass der Firmenchef tippt.
+- **DocsOps (Ziel):** Rolle **Wissensmanager** / Knowledge Manager mit **expliziter Scope-Liste** (Company und/oder Departments und/oder Teams); Lead-äquivalent für Fachinhalt in diesen Bereichen; typischerweise unpersönlicher Arbeitsaccount. Vgl. [Rechtesystem §4](datenmodell/Rechtesystem.md).
+- **Docmost:** Space-Admin/Writer pro Space; kein getrenntes Konzept „Fachredaktion vs. Plattform-Admin vs. Org-Lead“.
+
+### 6.6 Fazit zur Berechtigung
+
+- Wenn **Governance**, **dokumentweise Rechte**, **Freigabe vor Publish**, **klare Org-Hierarchie** und ggf. eine **Fachredaktion** (Wissensmanager) zentrale Anforderungen sind, ist DocsOps **kein überflüssiges Rad**, sondern ein **bewusst anders gedrehtes Rad**: optimiert für kontrollierte, organisationsbewusste Doku mit klaren Freigabe- und Sichtbarkeitsregeln.
 - Docmost ist optimiert für **einfache, kollaborative Wikis** mit schnellem Einstieg und Echtzeit-Bearbeitung. Beide Ansätze können in unterschiedlichen Kontexten die bessere Wahl sein.
 
 ---
 
 ## 7. Zusammenfassung
 
-|                    | Docmost                                                                           | DocsOps                                                                               |
-| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Stärke**         | Echtzeit-Kollaboration, blockbasierter Editor, einfache Space-Rechte, produktreif | Org-Hierarchie, dokumentweise Grants, Lead-gesteuerter Publish, Governance            |
-| **Rechte**         | Space (und ggf. Page); Groups                                                     | Dokument-Grants + Leads; Lesen nach oben, Schreiben lokal                             |
-| **Publishing**     | Direkt sichtbar im Space; Version History                                         | Draft/Published; Publish durch Scope-Lead                                             |
-| **Beste Wahl für** | Wikis, Knowledge-Bases, kollaboratives Schreiben ohne formale Freigabe            | Interne Doku mit Freigabe-Workflow, differenzierter Sichtbarkeit, klarer Org-Struktur |
+|                    | Docmost                                                                           | DocsOps                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Stärke**         | Echtzeit-Kollaboration, blockbasierter Editor, einfache Space-Rechte, produktreif | Org-Hierarchie, dokumentweise Grants, Lead-gesteuerter Publish, Governance                         |
+| **Rechte**         | Space (und ggf. Page); Groups                                                     | Dokument-Grants + Leads; Lesen nach oben, Schreiben lokal; geplant: Wissensmanager mit Scope-Liste |
+| **Publishing**     | Direkt sichtbar im Space; Version History                                         | Draft/Published; Publish durch Scope-Lead                                                          |
+| **Beste Wahl für** | Wikis, Knowledge-Bases, kollaboratives Schreiben ohne formale Freigabe            | Interne Doku mit Freigabe-Workflow, differenzierter Sichtbarkeit, klarer Org-Struktur              |
 
 Dieses Dokument kann bei Produktentscheidungen („Bauen wir weiter an DocsOps oder setzen wir Docmost ein?“) oder bei der Kommunikation nach außen („Warum eigenes System?“) als Referenz dienen. Bei Änderungen an Docmost oder am DocsOps-Konzept sollte der Vergleich ggf. aktualisiert werden.

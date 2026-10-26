@@ -52,6 +52,7 @@ Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. S
 [x] Logik `canRead(userId, dokumentId)` / `canWrite(userId, dokumentId)` (vgl. [Rechtesystem](../platform/datenmodell/Rechtesystem.md))
 [x] Middleware für Dokument-Routen (z. B. `requireDocumentAccess('read'|'write')`)
 [x] Anbindung an Prisma (User inkl. Teams, Abteilungen, Superuser; Dokument inkl. Leser/Schreiber)
+[ ] **Wissensmanager / Knowledge Manager:** Account-Flag bzw. Rolle `knowledgeManager` (exklusiv zu `isAdmin` und Org-Lead/Member); Admin weist **Scope-Liste** zu (Company und/oder Departments und/oder Teams); in zugewiesenen Scopes Lead-äquivalent für Fachinhalt (canRead/canWrite/canWriteContext/canPublish/canDelete, Drafts/Trash/Archive/Pins); kein persönlicher Space, keine Plattform-/Org-Unit-Admin-APIs. Konzept: [Rechtesystem §4](../platform/datenmodell/Rechtesystem.md). UI: User-Admin + Scope-Picker; Labels `knowledgeManager` in `orgRoleLabels`.
 
 ---
 

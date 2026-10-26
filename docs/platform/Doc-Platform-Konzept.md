@@ -35,14 +35,15 @@ User-Scope (persönlich) – parallel zur Org-Hierarchie
 
 **Nutzerzugehörigkeit:** Jeder Nutzer ist einem Unternehmen zugeordnet. Er kann einer Abteilung dieses Unternehmens angehören und zusätzlich einem Team dieser Abteilung. Gehört er einem Team an, gehört er damit auch zur Abteilung dieses Teams.
 
-**Rollen (eine organisatorische Scope-Rolle pro Person, oder Plattform-Admin):**
+**Rollen (eine Account-Rolle: Plattform-Admin, Wissensmanager, oder genau eine organisatorische Scope-Rolle):**
 
 - **Member** – liest im eigenen Scope (nach Vererbungsregeln); keine Kontext-/Dokument-Anlage.
 - **Scope Author** (Team Author / Department Author) – arbeitet am Lead-Draft nur über **Inline-Vorschläge**; kein Create/Delete/Publish.
 - **Scope Lead** (Team / Department / Company Lead) – Create/Delete im Scope, Lead-Draft direkt bearbeiten, Vorschläge Accept/Decline, **Publish**.
+- **Wissensmanager** (`knowledgeManager`, EN: Knowledge Manager) – **geplant:** Fachrolle mit **explizit zugewiesenen** Bereichen (Company und/oder Departments und/oder Teams); in diesen Scopes Lead-äquivalent für Fachinhalt (Anlegen/Schreiben/Publish), ohne Plattformverwaltung; typischerweise unpersönlicher Arbeitsaccount; kein persönlicher Space.
 - **Admin** – technischer Verwaltungsaccount (Nutzer, Org-Struktur, Plattform); liest Organisationsdokumente der Instanz-Firma; **kein** Schreiben/Anlegen von Fachdokumenten oder persönlichem Space. Facharbeit über einen zweiten Personen-Account.
 
-Details und Ausschlüsse (Lead vs. Member, Exclusive Roles): [Rechtesystem §4](datenmodell/Rechtesystem.md).
+Details und Ausschlüsse (Lead vs. Member, Exclusive Roles, Scope-Liste Wissensmanager): [Rechtesystem §4](datenmodell/Rechtesystem.md).
 
 ---
 
@@ -79,16 +80,16 @@ Kontexte bestimmen die **Zugehörigkeit** von Wissen (wohin es inhaltlich gehör
 
 ## 4. Zugriffsrechte (Prinzip)
 
-| Prinzip                         | Bedeutung                                                                                                              |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Lesen im Bereich + Eltern       | Wer einem Bereich zugeordnet ist, liest dessen Kontexte/Dokumente und die der übergeordneten Bereiche                  |
-| Lesen durch übergeordnete Leads | Lead einer übergeordneten Unit liest Kontexte/Dokumente untergeordneter Units                                          |
-| Schreibarbeit lokal             | Lead der Owner-Unit (direkt) bzw. Scope Author (Inline-Vorschläge); kein Quer-Schreiben                                |
-| Keine Quer-Vererbung            | Team A liest Team B nicht ohne Grant                                                                                   |
-| Company als Governance          | Company Lead: Leserecht auf Organisations-Kontexte (nicht persönliche); kein globales Schreiben                        |
-| Publish nur Bereichsleitung     | Neue Version nur die Leitung des Owner-Bereichs (persönlich: der Eigentümer); nur wenn keine offenen Inline-Vorschläge |
+| Prinzip                         | Bedeutung                                                                                                                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lesen im Bereich + Eltern       | Wer einem Bereich zugeordnet ist, liest dessen Kontexte/Dokumente und die der übergeordneten Bereiche                                                   |
+| Lesen durch übergeordnete Leads | Lead einer übergeordneten Unit liest Kontexte/Dokumente untergeordneter Units                                                                           |
+| Schreibarbeit lokal             | Lead der Owner-Unit (direkt), Wissensmanager in **zugewiesenen** Scopes (geplant) bzw. Scope Author (Inline-Vorschläge); kein implizites Quer-Schreiben |
+| Keine Quer-Vererbung            | Team A liest Team B nicht ohne Grant                                                                                                                    |
+| Company als Governance          | Company Lead: Leserecht auf Organisations-Kontexte (nicht persönliche); kein globales Schreiben                                                         |
+| Publish Bereichsleitung / KM    | Neue Version: Leitung des Owner-Bereichs oder Wissensmanager bei zugewiesenem Scope (persönlich: Eigentümer); keine offenen Inline-Vorschläge           |
 
-**Nicht mehr gültig:** „Superuser schreibt alles im Team“ / „Schreibrechte nur über Superuser“. Das aktuelle Modell ist Lead + Scope Author + Read-Grants.
+**Nicht mehr gültig:** „Superuser schreibt alles im Team“ / „Schreibrechte nur über Superuser“ / „Admin pflegt alle Fachdokumente“. Fach-Bootstrap und Aufräumen: **Wissensmanager** mit Scope-Liste; Alltag: Lead + Scope Author + Read-Grants.
 
 Vollständige Ableitung (`canRead` / `canWrite` / Publish): [Rechtesystem](datenmodell/Rechtesystem.md).
 
@@ -96,11 +97,11 @@ Vollständige Ableitung (`canRead` / `canWrite` / Publish): [Rechtesystem](daten
 
 ## 5. Scope, Ownership und Zugriff
 
-|         | Scope (Leserecht)                                              | Ownership (Kontext → Scope)                    | Rollen (weitere Rechte)                                 |
-| ------- | -------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
-| Frage   | Wer liest Kontexte/Dokumente dieses Bereichs (und der Eltern)? | Welchem Scope ist der Kontext zugeordnet?      | Wer darf am Draft arbeiten / veröffentlichen / steuern? |
-| Träger  | Unit (Company, Department, Team) oder User-Scope               | Genau eine Owner-Unit oder Nutzer              | Lead / Author / Member + Grants                         |
-| Wirkung | Lesen im eigenen Bereich und in übergeordneten Bereichen       | lokale Schreib-/Publish-Rechte des Scope-Leads | Cross-Scope-Lesen nur per Grant; Schreiben lokal        |
+|         | Scope (Leserecht)                                              | Ownership (Kontext → Scope)                    | Rollen (weitere Rechte)                                         |
+| ------- | -------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| Frage   | Wer liest Kontexte/Dokumente dieses Bereichs (und der Eltern)? | Welchem Scope ist der Kontext zugeordnet?      | Wer darf am Draft arbeiten / veröffentlichen / steuern?         |
+| Träger  | Unit (Company, Department, Team) oder User-Scope               | Genau eine Owner-Unit oder Nutzer              | Lead / Author / Member / Wissensmanager (Scope-Liste) + Grants  |
+| Wirkung | Lesen im eigenen Bereich und in übergeordneten Bereichen       | lokale Schreib-/Publish-Rechte des Scope-Leads | Cross-Scope-Lesen nur per Grant; Schreiben lokal bzw. KM-Scopes |
 
 **Rollen** bündeln Rechte (technisch). Daraus folgt Verantwortung (sozial), gestaffelt nach Hierarchie. Publish/Versionen setzen Verbindlichkeit um; das ist eine Folge von Rechten, nicht der alleinige Zweck von Rollen.
 
