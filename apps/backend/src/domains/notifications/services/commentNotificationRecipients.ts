@@ -50,8 +50,13 @@ export async function listDocumentCommentMentionCandidates(
 ): Promise<Array<{ id: string; name: string }>> {
   const readerIds = await listUserIdsWhoCanReadDocument(prisma, documentId);
   if (readerIds.length === 0) return [];
+  // Platform admins may read company docs but are not fachliche Mention-Ziele.
   const users = await prisma.user.findMany({
-    where: { id: { in: readerIds.slice(0, limit) }, deletedAt: null },
+    where: {
+      id: { in: readerIds.slice(0, limit) },
+      deletedAt: null,
+      isAdmin: false,
+    },
     select: { id: true, name: true },
     orderBy: { name: 'asc' },
     take: limit,

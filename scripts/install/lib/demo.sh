@@ -258,6 +258,7 @@ SESSION_COOKIE_SECURE=${session_cookie_secure}
 BACKUP_ENCRYPTION_KEY="${backup_key}"
 ADMIN_EMAIL=${admin_email}
 ADMIN_PASSWORD=${admin_password}
+ADMIN_NAME=${ADMIN_NAME:-Admin}
 DOCSOPS_HOSTNAME=${demo_host}
 EOF
   chmod 600 "$DOCSOPS_ENV_FILE"

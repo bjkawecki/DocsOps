@@ -16,3 +16,4 @@ services:
       # Align with CSV seed accounts (password DocsOps1). Override via env-file if needed.
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@demo.docsops.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-DocsOps1}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}

@@ -1,9 +1,13 @@
-import { Badge, Box, Button, Group, Select, Stack, Text, Textarea } from '@mantine/core';
+import { Badge, Box, Button, Group, Select, Stack, Text } from '@mantine/core';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { DocumentCommentItem } from './documentCommentTypes.js';
 import { headingLabel } from './documentCommentsConstants.js';
-import { formatCommentMentionText } from './documentCommentMentionUtils.js';
+import { encodeMentionsForApi, formatCommentMentionText } from './documentCommentMentionUtils.js';
+import {
+  DocumentCommentMentionTextarea,
+  type MentionCandidate,
+} from './DocumentCommentMentionTextarea.js';
 
 type PatchArgs = {
   commentId: string;
@@ -12,9 +16,12 @@ type PatchArgs = {
 };
 
 type Props = {
+  documentId: string;
+  panelOpen: boolean;
   c: DocumentCommentItem;
   indent: boolean;
   mentionNameByUserId: ReadonlyMap<string, string>;
+  mentionCandidates: MentionCandidate[];
   headings: { id: string; text: string }[];
   currentUserId: string | undefined;
   editingId: string | null;
@@ -28,9 +35,12 @@ type Props = {
 };
 
 export function DocumentCommentItemView({
+  documentId,
+  panelOpen,
   c,
   indent,
   mentionNameByUserId,
+  mentionCandidates,
   headings,
   currentUserId,
   editingId,
@@ -88,11 +98,13 @@ export function DocumentCommentItemView({
             </Group>
             {isEditing ? (
               <Stack gap="xs">
-                <Textarea
+                <DocumentCommentMentionTextarea
+                  documentId={documentId}
+                  enabled={panelOpen}
+                  candidates={mentionCandidates}
                   value={editDraft}
-                  onChange={(e) => setEditDraft(e.currentTarget.value)}
+                  onChange={setEditDraft}
                   minRows={2}
-                  maxLength={16_000}
                 />
                 {isRoot && headings.length > 0 && (
                   <Select
@@ -109,19 +121,19 @@ export function DocumentCommentItemView({
                   <Button
                     size="xs"
                     onClick={() => {
-                      const t = editDraft.trim();
-                      if (!t) return;
+                      const text = encodeMentionsForApi(editDraft.trim(), mentionCandidates);
+                      if (!text) return;
                       if (isRoot && headings.length > 0) {
                         patchMutation.mutate({
                           commentId: c.id,
-                          text: t,
+                          text,
                           anchorHeadingId:
                             editAnchorSlug === null || editAnchorSlug === ''
                               ? null
                               : editAnchorSlug,
                         });
                       } else {
-                        patchMutation.mutate({ commentId: c.id, text: t });
+                        patchMutation.mutate({ commentId: c.id, text });
                       }
                     }}
                     loading={patchMutation.isPending}
@@ -154,7 +166,7 @@ export function DocumentCommentItemView({
                   variant="subtle"
                   onClick={() => {
                     setEditingId(c.id);
-                    setEditDraft(c.text);
+                    setEditDraft(formatCommentMentionText(c.text, mentionNameByUserId));
                     setEditAnchorSlug(
                       isRoot && c.anchorHeadingId != null && c.anchorHeadingId !== ''
                         ? c.anchorHeadingId

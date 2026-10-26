@@ -534,6 +534,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Backend:** CRUD-API für Kommentare (z. B. GET/POST `/documents/:documentId/comments`, PATCH/DELETE `/documents/:documentId/comments/:commentId`); Pagination optional; Rechteprüfung bei jedem Zugriff.
 [x] **Frontend:** Auf der Dokument-Detailseite eine Kommentar-Sektion (unter dem Inhalt oder Sidebar): Liste, Formular zum Anlegen, Bearbeiten/Löschen eigener Kommentare; bei canDeleteAnyComment Löschen-Button für alle. Optional: Threads (Antworten via parentId).
 [x] **Später (optional):** Inline-/Absatz-Kommentare (Anker auf Block/Zeile); Benachrichtigungen bei neuen Kommentaren (enge Policy + Mentions, siehe §23 Dispatch).
+[ ] **Geschlossene Threads (Forum-Modell):** Root-Kommentare (`parentId == null`) als **geschlossen** markieren (Feld z. B. `closedAt` / `closedById`); Thread bleibt lesbar, **keine** neuen Antworten und kein Weiterbearbeiten des Inhalts durch Nicht-Moderatoren. Öffnen/Schließen: Root-Autor und/oder Scope-Lead (Moderation wie `canDeleteAnyComment`). Soft-Delete bleibt getrennt (zurücknehmen vs. erledigt). **Nicht** versionsgebunden: Kommentare bleiben am Dokument; optional später Hinweis „bezogen auf Version n“, kein Auto-Close bei Publish. API + UI (Badge, Formular ausblenden, Filter „nur offene“ optional).
 
 ---
 

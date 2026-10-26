@@ -135,6 +135,7 @@ export function DocumentCommentsSection({
       documentId={documentId}
       panelOpen={panelOpen}
       mentionNameByUserId={mentionNameByUserId}
+      mentionCandidates={mentionCandidatesQuery.data ?? []}
       listQuery={listQuery}
       items={items}
       hasNextPage={hasNextPage}

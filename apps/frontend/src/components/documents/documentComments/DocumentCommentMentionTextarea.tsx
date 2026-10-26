@@ -3,7 +3,7 @@ import { Box, Select, Stack, Text, Textarea } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../../api/client.js';
 
-type MentionCandidate = { id: string; name: string };
+export type MentionCandidate = { id: string; name: string };
 
 type Props = {
   documentId: string;
@@ -14,6 +14,8 @@ type Props = {
   onChange: (value: string) => void;
   minRows?: number;
   maxLength?: number;
+  /** Prefer parent-provided candidates to avoid a second fetch when available. */
+  candidates?: MentionCandidate[];
 };
 
 export function DocumentCommentMentionTextarea({
@@ -25,11 +27,12 @@ export function DocumentCommentMentionTextarea({
   onChange,
   minRows = 2,
   maxLength = 16_000,
+  candidates: candidatesProp,
 }: Props) {
   const { t } = useTranslation('documents');
   const candidatesQuery = useQuery({
     queryKey: ['documents', documentId, 'comment-mention-candidates'] as const,
-    enabled,
+    enabled: enabled && candidatesProp == null,
     queryFn: async (): Promise<MentionCandidate[]> => {
       const res = await apiFetch(`/api/v1/documents/${documentId}/comments/mention-candidates`);
       if (!res.ok) {
@@ -42,7 +45,7 @@ export function DocumentCommentMentionTextarea({
     staleTime: 60_000,
   });
 
-  const candidates = candidatesQuery.data ?? [];
+  const candidates = candidatesProp ?? candidatesQuery.data ?? [];
 
   return (
     <Stack gap={4}>
@@ -69,8 +72,10 @@ export function DocumentCommentMentionTextarea({
             value={null}
             onChange={(userId) => {
               if (userId == null || userId === '') return;
+              const candidate = candidates.find((c) => c.id === userId);
+              const labelText = candidate?.name?.trim() || 'user';
               onChange(
-                `${value}${value.endsWith(' ') || value.length === 0 ? '' : ' '}@[${userId}] `
+                `${value}${value.endsWith(' ') || value.length === 0 ? '' : ' '}@${labelText} `
               );
             }}
           />

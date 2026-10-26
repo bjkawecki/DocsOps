@@ -7,7 +7,11 @@ import type {
 import { useTranslation } from 'react-i18next';
 import type { DocumentCommentItem, CommentsListResponse } from './documentCommentTypes.js';
 import { DocumentCommentItemView } from './DocumentCommentItemView.js';
-import { DocumentCommentMentionTextarea } from './DocumentCommentMentionTextarea.js';
+import {
+  DocumentCommentMentionTextarea,
+  type MentionCandidate,
+} from './DocumentCommentMentionTextarea.js';
+import { encodeMentionsForApi } from './documentCommentMentionUtils.js';
 
 type CreatePayload = { text: string; parentId?: string; anchorHeadingId?: string };
 type PatchArgs = {
@@ -20,6 +24,7 @@ type Props = {
   documentId: string;
   panelOpen: boolean;
   mentionNameByUserId: ReadonlyMap<string, string>;
+  mentionCandidates: MentionCandidate[];
   listQuery: UseInfiniteQueryResult<InfiniteData<CommentsListResponse>, Error>;
   items: DocumentCommentItem[];
   hasNextPage: boolean;
@@ -49,6 +54,7 @@ export function DocumentCommentsListBody({
   documentId,
   panelOpen,
   mentionNameByUserId,
+  mentionCandidates,
   listQuery,
   items,
   hasNextPage,
@@ -90,6 +96,7 @@ export function DocumentCommentsListBody({
           <DocumentCommentMentionTextarea
             documentId={documentId}
             enabled={panelOpen}
+            candidates={mentionCandidates}
             placeholder={t('comments.replyPlaceholder')}
             value={replyDraft}
             onChange={setReplyDraft}
@@ -104,7 +111,7 @@ export function DocumentCommentsListBody({
               loading={createMutation.isPending}
               disabled={!replyDraft.trim()}
               onClick={() => {
-                const text = replyDraft.trim();
+                const text = encodeMentionsForApi(replyDraft.trim(), mentionCandidates);
                 if (!text || replyToRootId == null) return;
                 createMutation.mutate({ text, parentId: replyToRootId });
               }}
@@ -131,6 +138,7 @@ export function DocumentCommentsListBody({
           <DocumentCommentMentionTextarea
             documentId={documentId}
             enabled={panelOpen}
+            candidates={mentionCandidates}
             label={t('comments.addComment')}
             placeholder={t('comments.commentPlaceholder')}
             value={newText}
@@ -141,7 +149,7 @@ export function DocumentCommentsListBody({
             <Button
               size="sm"
               onClick={() => {
-                const text = newText.trim();
+                const text = encodeMentionsForApi(newText.trim(), mentionCandidates);
                 if (!text) return;
                 const payload: { text: string; anchorHeadingId?: string } = { text };
                 if (anchorSlug != null && anchorSlug !== '') payload.anchorHeadingId = anchorSlug;
@@ -173,9 +181,12 @@ export function DocumentCommentsListBody({
           return (
             <Box key={root.id}>
               <DocumentCommentItemView
+                documentId={documentId}
+                panelOpen={panelOpen}
                 c={root}
                 indent={false}
                 mentionNameByUserId={mentionNameByUserId}
+                mentionCandidates={mentionCandidates}
                 headings={headings}
                 currentUserId={currentUserId}
                 editingId={editingId}
@@ -190,9 +201,12 @@ export function DocumentCommentsListBody({
               {(root.replies ?? []).map((r) => (
                 <DocumentCommentItemView
                   key={r.id}
+                  documentId={documentId}
+                  panelOpen={panelOpen}
                   c={r}
                   indent
                   mentionNameByUserId={mentionNameByUserId}
+                  mentionCandidates={mentionCandidates}
                   headings={headings}
                   currentUserId={currentUserId}
                   editingId={editingId}

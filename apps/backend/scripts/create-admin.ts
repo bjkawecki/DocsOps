@@ -32,11 +32,9 @@ async function main() {
   const vorname = process.env.ADMIN_VORNAME?.trim();
   const nachname = process.env.ADMIN_NACHNAME?.trim();
   const nameExplicit = process.env.ADMIN_NAME?.trim();
+  // Prefer a human display name – never fall back to the login email in the UI.
   const name =
-    (vorname && nachname ? `${vorname} ${nachname}`.trim() : null) ||
-    nameExplicit ||
-    email ||
-    'Admin';
+    (vorname && nachname ? `${vorname} ${nachname}`.trim() : null) || nameExplicit || 'Admin';
 
   const passwordHash = await hashPassword(password);
   const existingByEmail = await prisma.user.findUnique({ where: { email } });

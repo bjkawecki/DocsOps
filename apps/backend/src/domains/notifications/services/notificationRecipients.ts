@@ -190,6 +190,36 @@ async function addGrantRecipientsByRole(
   await addUsersInDepartmentsForGrant(prisma, departmentIds, into);
 }
 
+/** All org users who can view company-owned published content (mirrors scope `view` on company). */
+async function addCompanyScopeReaderUserIds(
+  prisma: PrismaClient,
+  companyId: string,
+  into: Set<string>
+): Promise<void> {
+  await addCompanyLeadUserIds(prisma, companyId, into);
+  const deptLeads = await prisma.departmentLead.findMany({
+    where: { department: { companyId } },
+    select: { userId: true },
+  });
+  for (const r of deptLeads) into.add(r.userId);
+  const deptAuthors = await prisma.departmentAuthor.findMany({
+    where: { department: { companyId } },
+    select: { userId: true },
+  });
+  for (const r of deptAuthors) into.add(r.userId);
+  const teams = await prisma.team.findMany({
+    where: { department: { companyId } },
+    select: { id: true },
+  });
+  const teamIds = teams.map((t) => t.id);
+  await addTeamMemberUserIdsForTeams(prisma, teamIds, into);
+  const teamAuthors = await prisma.teamAuthor.findMany({
+    where: { teamId: { in: teamIds } },
+    select: { userId: true },
+  });
+  for (const r of teamAuthors) into.add(r.userId);
+}
+
 async function collectDocumentCandidateIdsByRole(
   prisma: PrismaClient,
   doc: DocumentForPermission,
@@ -215,14 +245,32 @@ async function collectDocumentCandidateIdsByRole(
 
   const owner = getDocumentOwner(doc);
   if (owner?.ownerUserId) ids.add(owner.ownerUserId);
-  if (owner?.companyId) await addCompanyLeadUserIds(prisma, owner.companyId, ids);
+
   if (role === GrantRole.Read) {
-    const ownerDeptId = getOwnerDepartmentId(owner);
-    if (ownerDeptId) await addDepartmentLeadUserIds(prisma, ownerDeptId, ids);
-  }
-  if (role === GrantRole.Write) {
+    // Align heuristic with canRead → canReadOwnerScopeResolved (published org docs).
+    if (isCompanyOwnedDocument(doc) && owner?.companyId) {
+      await addCompanyScopeReaderUserIds(prisma, owner.companyId, ids);
+    } else {
+      if (owner?.companyId) await addCompanyLeadUserIds(prisma, owner.companyId, ids);
+      const ownerDeptId = getOwnerDepartmentId(owner);
+      if (ownerDeptId) {
+        await addDepartmentLeadUserIds(prisma, ownerDeptId, ids);
+        await addUsersInDepartmentsForGrant(prisma, [ownerDeptId], ids);
+      }
+      if (owner?.teamId) {
+        await addTeamMemberUserIdsForTeams(prisma, [owner.teamId], ids);
+        const teamAuthors = await prisma.teamAuthor.findMany({
+          where: { teamId: owner.teamId },
+          select: { userId: true },
+        });
+        for (const r of teamAuthors) ids.add(r.userId);
+      }
+    }
+  } else {
+    if (owner?.companyId) await addCompanyLeadUserIds(prisma, owner.companyId, ids);
     await addScopeAuthorUserIds(prisma, owner, ids);
   }
+
   await addGrantRecipientsByRole(
     prisma,
     doc,
