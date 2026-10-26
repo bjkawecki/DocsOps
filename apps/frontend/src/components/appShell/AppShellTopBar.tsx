@@ -367,10 +367,10 @@ export function AppShellTopBar({
               )}
               <Menu.Divider />
               <Menu.Item
+                className="app-shell-user-menu-logout"
                 leftSection={<IconLogout size={14} />}
                 onClick={() => logout.mutate()}
                 disabled={logout.isPending}
-                color="red"
                 closeMenuOnClick
               >
                 {t('account.logOut')}

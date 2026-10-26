@@ -179,6 +179,16 @@ a:not(.mantine-Button-root):not(.mantine-ActionIcon-root):not(.mantine-NavLink-r
   color: inherit;
 }
 
+/* Log out: red label, neutral hover (avoid red-on-red from Menu.Item color="red"). */
+[data-user-menu-dropdown] .app-shell-user-menu-logout {
+  color: var(--mantine-color-red-4);
+}
+[data-user-menu-dropdown] .app-shell-user-menu-logout:hover,
+[data-user-menu-dropdown] .app-shell-user-menu-logout[data-hovered] {
+  color: var(--mantine-color-red-3);
+  background-color: var(--mantine-color-default-hover);
+}
+
 /* Sidebar account menu trigger: hover, active press, and open state. */
 [data-user-menu-trigger] {
   transition: background-color 100ms ease;
