@@ -144,7 +144,6 @@ export function PersonalAreaPeerNav({
         leftSection={<IconShare size={ICON_SIZE} stroke={1.5} />}
         rightSection={countBadge(sharedCount)}
         active={sharedActive}
-        variant="subtle"
         style={navLinkFullWidth}
       />
     );
@@ -184,7 +183,6 @@ export function PersonalAreaPeerNav({
                 label={t('approvals:nav.reviews')}
                 rightSection={countBadge(resolvedReviewsCount)}
                 active={reviewsActive}
-                variant="subtle"
                 style={navLinkFullWidth}
               />
               {reviewsActive && reviewsNested ? <Box>{reviewsNested}</Box> : null}
@@ -194,7 +192,6 @@ export function PersonalAreaPeerNav({
                 label={t('approvals:nav.moveRequests')}
                 rightSection={countBadge(resolvedMovesCount)}
                 active={movesActive}
-                variant="subtle"
                 style={navLinkFullWidth}
               />
             </Stack>
@@ -209,7 +206,6 @@ export function PersonalAreaPeerNav({
         leftSection={<IconShare size={ICON_SIZE} stroke={1.5} />}
         rightSection={countBadge(sharedCount)}
         active={sharedActive}
-        variant="subtle"
         style={navLinkFullWidth}
       />
     </Stack>

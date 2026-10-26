@@ -107,17 +107,22 @@ a:not(.mantine-Button-root):not(.mantine-ActionIcon-root):not(.mantine-NavLink-r
   background-color: var(--mantine-color-default-hover);
   text-decoration: none;
 }
+/* Match AppShell: slate wash + primary text (not Mantine primary-light fill). */
 [data-context-sibling-nav] .mantine-NavLink-root[data-active],
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active] {
   --nl-bg: var(--app-nav-active-bg);
+  --nl-hover: var(--app-nav-active-bg);
+  --nl-color: var(--mantine-primary-color-filled);
+  background: var(--app-nav-active-bg);
   color: var(--mantine-primary-color-filled);
-  background-color: var(--app-nav-active-bg);
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active]:hover,
 [data-context-sibling-nav] .mantine-Card-root a.mantine-NavLink-root[data-active]:hover {
   --nl-bg: var(--app-nav-active-bg);
+  --nl-hover: var(--app-nav-active-bg);
+  --nl-color: var(--mantine-primary-color-filled);
+  background: var(--app-nav-active-bg);
   color: var(--mantine-primary-color-filled);
-  background-color: var(--app-nav-active-bg);
 }
 [data-context-sibling-nav] .mantine-NavLink-root[data-active] .mantine-NavLink-section,
 [data-context-sibling-nav]

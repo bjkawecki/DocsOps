@@ -164,7 +164,6 @@ function ProjectNavItem({
         to={to}
         label={project.name}
         active={activeContextId === project.contextId}
-        variant="subtle"
         style={navLinkFullWidth}
         onClick={(e) => onContextNavClick(project.contextId, e)}
       />
@@ -187,7 +186,6 @@ function ProjectNavItem({
           to={to}
           label={project.name}
           active={activeContextId === project.contextId}
-          variant="subtle"
           style={{ ...navLinkFullWidth, flex: 1, minWidth: 0 }}
           onClick={(e) => onContextNavClick(project.contextId, e)}
         />
@@ -225,7 +223,6 @@ function ProjectNavItem({
                   to={subTo}
                   label={sub.name}
                   active={activeContextId === sub.contextId}
-                  variant="subtle"
                   style={navLinkFullWidth}
                   onClick={(e) => onContextNavClick(sub.contextId, e)}
                 />
@@ -277,7 +274,6 @@ export function ScopeContextSidebar({
                   to={to}
                   label={p.name}
                   active={activeContextId === p.contextId}
-                  variant="subtle"
                   style={navLinkFullWidth}
                   onClick={(e) => onContextNavClick(p.contextId, e)}
                 />
@@ -330,7 +326,6 @@ export function ScopeContextSidebar({
                 component={Link}
                 to={`/documents/${d.id}`}
                 label={d.title}
-                variant="subtle"
                 style={navLinkFullWidth}
               />
             ))}
@@ -345,7 +340,6 @@ export function ScopeContextSidebar({
               label={t('sidebar.mostRead')}
               leftSection={<IconChartBar size={ICON_SIZE} stroke={1.5} />}
               active={pathname === trashArchive.mostReadTo}
-              variant="subtle"
               style={navLinkFullWidth}
             />
             <NavLink
@@ -354,7 +348,6 @@ export function ScopeContextSidebar({
               label={t('sidebar.trash')}
               leftSection={<IconTrash size={ICON_SIZE} stroke={1.5} />}
               active={pathname === trashArchive.trashTo}
-              variant="subtle"
               style={navLinkFullWidth}
             />
             <NavLink
@@ -363,7 +356,6 @@ export function ScopeContextSidebar({
               label={t('sidebar.archive')}
               leftSection={<IconArchive size={ICON_SIZE} stroke={1.5} />}
               active={pathname === trashArchive.archiveTo}
-              variant="subtle"
               style={navLinkFullWidth}
             />
           </Stack>
