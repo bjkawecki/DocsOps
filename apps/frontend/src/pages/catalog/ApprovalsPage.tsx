@@ -1,5 +1,4 @@
 import { Badge, Box, Button, Group, NavLink, Stack, Table, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconInbox } from '@tabler/icons-react';
 import { useMemo, useState, type CSSProperties } from 'react';
@@ -8,13 +7,13 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../api/client';
 import { notifyApiErrorResponse } from '../../lib/notifyApiError';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
 import { useMe } from '../../hooks/useMe';
 import { useMeReviews, type ReviewPendingSuggestionsItem } from '../../hooks/useMeReviews';
 import { useMeMoveRequests, type MeMoveRequestItem } from '../../hooks/useMeMoveRequests';
 import { formatTableDate } from '../../lib/formatDate';
 import { PersonalAreaPageChrome } from '../account/PersonalAreaPageChrome.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 const nestedListStyle: CSSProperties = {
   borderLeft: '1px solid var(--mantine-color-default-border)',
@@ -44,7 +43,7 @@ function PendingReviewsTable({
   emptyLabel: string;
 }) {
   const { t } = useTranslation('approvals');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
 
   if (!isWide) {
     if (items.length === 0) {
@@ -157,7 +156,7 @@ function MoveRequestsTable({
   onWithdraw: (item: MeMoveRequestItem) => void;
 }) {
   const { t } = useTranslation('approvals');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
 
   const actionButtons = (item: MeMoveRequestItem) => (
     <Group gap="xs" wrap="wrap">

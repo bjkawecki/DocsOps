@@ -1,4 +1,3 @@
-import { useMediaQuery } from '@mantine/hooks';
 import {
   createContext,
   useCallback,
@@ -13,8 +12,8 @@ import {
 } from 'react';
 import { IconLayoutSidebar } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { PageMobileActionBar, type PageMobileAction } from './PageMobileActionBar.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 const PageMobileNavOpenContext = createContext<RefObject<(() => void) | null> | null>(null);
 
@@ -72,7 +71,7 @@ export function PageMobileActionsHost({
   hidden?: boolean;
 }) {
   const { t } = useTranslation('shell');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [extraByRegistrant, setExtraByRegistrant] = useState<Record<string, PageMobileAction[]>>(
     {}
   );
@@ -137,7 +136,7 @@ export function useCompactContentNavFab(navTitle: string): {
   navFab: ReactNode;
 } {
   const { t } = useTranslation('shell');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const compactNavOpenRef = useRef<(() => void) | null>(null);
   const navFab = !isWide ? (
     <PageMobileActionBar

@@ -1,10 +1,8 @@
 import { Box, Button, Flex, NavLink, Stack } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft } from '@tabler/icons-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { SettingsAccountTab } from './SettingsAccountTab.js';
 import { SettingsAppearanceTab } from './SettingsAppearanceTab.js';
 import { SettingsGeneralTab } from './SettingsGeneralTab.js';
@@ -22,6 +20,7 @@ import {
   type SettingsJumpId,
 } from './settingsLayout.js';
 import { SETTINGS_JUMP_ICON_COMPONENTS, SETTINGS_JUMP_ICON_SIZE } from './settingsIcons.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 const SETTINGS_NAV_WIDTH = 200;
 /** Ignore scrollspy while programmatic scroll settles. */
@@ -105,7 +104,7 @@ function SettingsFocusedSections({ jumpId }: { jumpId: SettingsJumpId }) {
 export function SettingsPanel() {
   const { t } = useTranslation('settings');
   const [searchParams, setSearchParams] = useSearchParams();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const settingsRaw = searchParams.get(SETTINGS_QUERY_KEY);
   const compactShowContent =
     !isWide &&

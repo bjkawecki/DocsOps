@@ -32,6 +32,7 @@ import { enqueueOrgNotificationSafe } from '../../notifications/services/orgNoti
 import {
   assertCanAssignScopeRole,
   ScopeAssignmentConflictError,
+  scopeAssignmentConflictBody,
 } from '../services/scopeAssignmentRules.js';
 
 const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
@@ -100,7 +101,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         });
       } catch (err) {
         if (err instanceof ScopeAssignmentConflictError) {
-          return reply.status(409).send({ error: err.message });
+          return reply.status(409).send(scopeAssignmentConflictBody(err));
         }
         throw err;
       }
@@ -420,7 +421,7 @@ const assignmentsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         });
       } catch (err) {
         if (err instanceof ScopeAssignmentConflictError) {
-          return reply.status(409).send({ error: err.message });
+          return reply.status(409).send(scopeAssignmentConflictBody(err));
         }
         throw err;
       }

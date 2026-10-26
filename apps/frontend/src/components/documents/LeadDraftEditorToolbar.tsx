@@ -1,5 +1,4 @@
 import { Box, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import type { Editor } from '@tiptap/core';
 import {
   IconAlertTriangle,
@@ -13,12 +12,12 @@ import {
   IconTable,
 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { DEFAULT_MERMAID_SOURCE } from '../../tiptap/documentMermaid.js';
 import { LeadDraftEditorToolbarCompact } from './LeadDraftEditorToolbarCompact.js';
 import { ICON_SIZE, ToolIcon } from './LeadDraftEditorToolbarShared.js';
 import { useLeadDraftToolbarControls } from './useLeadDraftToolbarControls.js';
 import classes from './LeadDraftEditorToolbar.module.css';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 type Props = {
   editor: Editor;
@@ -142,7 +141,7 @@ function LeadDraftEditorToolbarWide({ editor, authorMode, authorId = '', documen
 }
 
 export function LeadDraftEditorToolbar(props: Props) {
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   if (!isWide) return <LeadDraftEditorToolbarCompact {...props} />;
   return <LeadDraftEditorToolbarWide {...props} />;
 }

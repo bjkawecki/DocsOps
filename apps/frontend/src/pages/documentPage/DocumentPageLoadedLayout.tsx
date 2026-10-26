@@ -1,5 +1,4 @@
 import { Box, Card, Container, Flex, Stack } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate } from 'react-router-dom';
 import type { RefObject } from 'react';
 import { useMemo, useRef } from 'react';
@@ -14,7 +13,6 @@ import type { DocumentLeadDraftPanelHandle } from '../../components/documents/Do
 import { DocumentCommentsSection } from '../../components/documents/DocumentCommentsSection';
 import { DocumentDocBreadcrumbs } from '../../components/documents/DocumentDocBreadcrumbs';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import type { RecentScope } from '../../hooks/useRecentItems.js';
 import {
@@ -32,6 +30,7 @@ import { DocumentPageToolbarActions } from './DocumentPageToolbarActions.js';
 import { DocumentEditMobileActionBar } from './DocumentEditMobileActionBar.js';
 import { DocumentViewMobileActionBar } from './DocumentViewMobileActionBar.js';
 import { DocumentPageEditPanels } from './DocumentPageEditPanels.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export type DocumentPageLoadedLayoutProps = {
   documentId: string;
@@ -166,7 +165,7 @@ export function DocumentPageLoadedLayout({
     return null;
   }, [scopeType, scopeId]);
   const breadcrumbDoc = useMemo(() => ({ ...data, title: docTitle }), [data, docTitle]);
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const editFocusMobile = mode === 'edit' && !isWide;
   const viewFocusMobile = mode === 'view' && !isWide;
   const compactNavOpenRef = useRef<(() => void) | null>(null);

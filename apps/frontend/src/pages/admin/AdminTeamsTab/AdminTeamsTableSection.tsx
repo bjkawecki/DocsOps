@@ -100,8 +100,8 @@ export function AdminTeamsTableSection({
       )}
 
       {!companyId && (
-        <Alert color="blue" mt="md">
-          No company set up. Create a company in the Company tab first.
+        <Alert color="gray" mt="md">
+          {tAdmin('shared.noCompanySetup')}
         </Alert>
       )}
     </>

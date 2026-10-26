@@ -11,13 +11,11 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconDeviceFloppy } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OrgRoleKey, OrgRoleLabels } from 'backend/api-types';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
 import {
@@ -26,6 +24,7 @@ import {
 } from '../../hooks/useAdminUpdateStatus.js';
 import { usePublicConfig } from '../../hooks/usePublicConfig.js';
 import { ORG_ROLE_KEYS } from '../../lib/orgRoleLabel.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 type RoleFields = {
   singular: string;
@@ -76,7 +75,7 @@ const ROLE_TITLE_KEYS: Record<OrgRoleKey, string> = {
 export function AdminRolesTab() {
   const { t } = useTranslation('admin');
   const { t: tCommon } = useTranslation('common');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const settingsQuery = useAdminSystemSettings();
   const patchMutation = usePatchAdminSystemSettings();
   const { data: publicConfig } = usePublicConfig();

@@ -2,13 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button, Group, Loader, Menu, Stack } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconDatabase, IconDotsVertical, IconSettings } from '@tabler/icons-react';
 import { apiBase, apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey } from '../../../hooks/useMe';
@@ -43,6 +42,7 @@ import {
   isInProgressBackupStatus,
   shouldPollBackupRuns,
 } from './backupRunPolling';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 const DEFAULT_AUTO_CRON = '0 3 * * *';
 const DEFAULT_AUTO_TZ = 'UTC';
@@ -51,7 +51,7 @@ type CreateBackupResult = { backupRunId: string; jobId: string };
 
 export function AdminBackupTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const demoMode = useDemoMode();

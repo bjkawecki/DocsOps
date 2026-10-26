@@ -1,11 +1,10 @@
 import { Group, Modal, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconSettings } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { SettingsPanel } from '../../pages/settings/SettingsPanel.js';
 import { closeSettingsSearchParams, isSettingsOpen } from '../../pages/settings/settingsLayout.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 /** Fixed modal width so content length does not resize the dialog (wide only). */
 const SETTINGS_MODAL_SIZE = 960;
@@ -15,7 +14,7 @@ export function SettingsModal() {
   const { t } = useTranslation('shell');
   const [searchParams, setSearchParams] = useSearchParams();
   const opened = isSettingsOpen(searchParams);
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
 
   const handleClose = () => {
     setSearchParams(closeSettingsSearchParams(searchParams), { replace: true });

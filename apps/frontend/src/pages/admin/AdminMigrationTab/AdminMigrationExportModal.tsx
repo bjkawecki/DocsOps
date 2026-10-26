@@ -181,7 +181,7 @@ export function AdminMigrationExportModal({ opened, onClose }: Props) {
 
     if (activeStep === 1) {
       return (
-        <Alert color="blue" variant="light">
+        <Alert color="gray" variant="light">
           {t('migration.exportModal.jobDurationHint')}
         </Alert>
       );

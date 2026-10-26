@@ -3,15 +3,13 @@ import { useMediaQuery } from '@mantine/hooks';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconBraces, IconCloudUpload, IconDotsVertical, IconPencil } from '@tabler/icons-react';
-import {
-  DESKTOP_MIN_WIDTH,
-  WIDE_MIN_WIDTH,
-} from '../../components/appShell/appShellLayoutConstants.js';
+import { DESKTOP_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import type { DocumentLeadDraftPanelHandle } from '../../components/documents/DocumentLeadDraftPanel';
 import {
   DocumentMobileOverflowMenu,
   type DocumentOverflowMenuCoreProps,
 } from './DocumentMobileOverflowMenu.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export type DocumentPageToolbarActionsProps = DocumentOverflowMenuCoreProps & {
   mode: 'view' | 'edit';
@@ -64,7 +62,7 @@ export function DocumentPageToolbarActions({
 }: DocumentPageToolbarActionsProps) {
   const { t } = useTranslation(['documents', 'common']);
   const isDesktop = useMediaQuery(DESKTOP_MIN_WIDTH) ?? true;
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const iconBtnSize = isDesktop ? 36 : 44;
   const compactChrome = !isWide;
 

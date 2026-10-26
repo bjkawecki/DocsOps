@@ -10,14 +10,12 @@ import {
   Table,
   Text,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import { useMe } from '../../hooks/useMe.js';
 import { EntityListCard } from '../ui/EntityListCard.js';
@@ -38,6 +36,7 @@ import {
   notificationDocumentHref,
   secondaryDetail,
 } from './notificationsInboxFormatters.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 export type { MeNotificationCategory, NotificationItem } from './meNotificationTypes.js';
 export {
@@ -71,7 +70,7 @@ export function NotificationsInboxPanel({
   const { t } = useTranslation('notifications');
   const queryClient = useQueryClient();
   const { data: me } = useMe();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [limit, setLimit] = useState<number>(DEFAULT_LIMIT);
   const [page, setPage] = useState(1);
   const [detailItem, setDetailItem] = useState<NotificationItem | null>(null);

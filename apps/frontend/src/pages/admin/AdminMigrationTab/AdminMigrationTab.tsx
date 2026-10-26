@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { IconDownload, IconUpload, IconLink } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
@@ -18,10 +17,11 @@ import { AdminMigrationStatusAlerts } from './AdminMigrationStatusAlerts';
 import type { PlatformMigrationStatus } from './adminMigrationTypes';
 import { getMigrationStatusRefetchIntervalMs } from './migrationRunPolling';
 import { getExportDisabledReason, getImportDisabledReason } from './migrationUiHelpers';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 export function AdminMigrationTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [exportOpened, { open: openExport, close: closeExport }] = useDisclosure(false);

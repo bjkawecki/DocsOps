@@ -31,7 +31,7 @@ const interactiveButtonStyle = {
 
 /**
  * Compact-viewport list row: title, optional meta, optional status.
- * Wide viewports keep `dense-list-table`; pages switch via `WIDE_MIN_WIDTH`.
+ * Wide viewports keep `dense-list-table`; pages switch via ``.
  */
 export function EntityListCard({
   title,

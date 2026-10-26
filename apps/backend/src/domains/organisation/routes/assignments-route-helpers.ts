@@ -4,6 +4,7 @@ import { canViewScope } from '../permissions/scopeVisibility.js';
 import {
   assertCanAssignScopeRole,
   ScopeAssignmentConflictError,
+  scopeAssignmentConflictBody,
 } from '../services/scopeAssignmentRules.js';
 
 export async function verifyTeamAndAssignmentUserExist(
@@ -107,7 +108,7 @@ export async function createTeamMemberAfterVerify(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;
@@ -141,7 +142,7 @@ export async function createTeamLeadAfterVerify(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;
@@ -208,7 +209,7 @@ export async function promoteTeamMemberToAuthorAfterVerify(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;
@@ -247,7 +248,7 @@ export async function demoteTeamAuthorToMember(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;
@@ -336,7 +337,7 @@ export async function promoteDepartmentMemberToAuthorAfterVerify(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;
@@ -388,7 +389,7 @@ export async function demoteDepartmentAuthorToMember(
     });
   } catch (err) {
     if (err instanceof ScopeAssignmentConflictError) {
-      void reply.status(409).send({ error: err.message });
+      void reply.status(409).send(scopeAssignmentConflictBody(err));
       return false;
     }
     throw err;

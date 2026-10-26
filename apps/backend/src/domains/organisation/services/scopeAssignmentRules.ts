@@ -22,11 +22,84 @@ export type ScopeRoleTier =
   | 'departmentAuthor'
   | 'none';
 
+/** Stable API codes for ScopeAssignmentConflictError (i18n via shared.errors.*). */
+export const ScopeAssignmentConflictCode = {
+  USER_NOT_FOUND: 'SCOPE_USER_NOT_FOUND',
+  ADMIN_WHILE_ASSIGNMENTS: 'SCOPE_ADMIN_WHILE_ASSIGNMENTS',
+  KM_WHILE_ADMIN: 'SCOPE_KM_WHILE_ADMIN',
+  KM_WHILE_ORG: 'SCOPE_KM_WHILE_ORG',
+  ADMIN_BLOCKS_ORG: 'SCOPE_ADMIN_BLOCKS_ORG',
+  KM_BLOCKS_ORG: 'SCOPE_KM_BLOCKS_ORG',
+  ALREADY_COMPANY_LEAD: 'SCOPE_ALREADY_COMPANY_LEAD',
+  ALREADY_DEPARTMENT_LEAD: 'SCOPE_ALREADY_DEPARTMENT_LEAD',
+  ALREADY_DEPARTMENT_AUTHOR: 'SCOPE_ALREADY_DEPARTMENT_AUTHOR',
+  COMPANY_LEAD_CONFLICT: 'SCOPE_COMPANY_LEAD_CONFLICT',
+  DEPARTMENT_LEAD_CONFLICT: 'SCOPE_DEPARTMENT_LEAD_CONFLICT',
+  DEPT_AUTHOR_HAS_TEAM_LEAD: 'SCOPE_DEPT_AUTHOR_HAS_TEAM_LEAD',
+  DEPT_AUTHOR_HAS_TEAM_AUTHOR: 'SCOPE_DEPT_AUTHOR_HAS_TEAM_AUTHOR',
+  DEPT_AUTHOR_OUTSIDE_MEMBER: 'SCOPE_DEPT_AUTHOR_OUTSIDE_MEMBER',
+  DEPT_AUTHOR_OTHER_DEPT: 'SCOPE_DEPT_AUTHOR_OTHER_DEPT',
+  TEAM_LEAD_BLOCKS_ROLE: 'SCOPE_TEAM_LEAD_BLOCKS_ROLE',
+  TEAM_AUTHOR_BLOCKS_ROLE: 'SCOPE_TEAM_AUTHOR_BLOCKS_ROLE',
+  TEAM_MEMBER_BLOCKS_LEAD: 'SCOPE_TEAM_MEMBER_BLOCKS_LEAD',
+  TEAM_ASSIGNMENT_EXISTS: 'SCOPE_TEAM_ASSIGNMENT_EXISTS',
+} as const;
+
+export type ScopeAssignmentConflictCodeValue =
+  (typeof ScopeAssignmentConflictCode)[keyof typeof ScopeAssignmentConflictCode];
+
+const SCOPE_CONFLICT_FALLBACK: Record<ScopeAssignmentConflictCodeValue, string> = {
+  SCOPE_USER_NOT_FOUND: 'User not found',
+  SCOPE_ADMIN_WHILE_ASSIGNMENTS:
+    'Cannot assign platform administrator while user has organization or knowledge manager assignments. Remove those roles first.',
+  SCOPE_KM_WHILE_ADMIN: 'Cannot assign knowledge manager while user is a platform administrator.',
+  SCOPE_KM_WHILE_ORG:
+    'Cannot assign knowledge manager while user has organization assignments. Remove organization roles first.',
+  SCOPE_ADMIN_BLOCKS_ORG:
+    'User is a platform administrator and cannot receive organization assignments.',
+  SCOPE_KM_BLOCKS_ORG: 'User is a knowledge manager and cannot receive organization assignments.',
+  SCOPE_ALREADY_COMPANY_LEAD: 'User already has a company lead assignment.',
+  SCOPE_ALREADY_DEPARTMENT_LEAD: 'User already has a department lead assignment.',
+  SCOPE_ALREADY_DEPARTMENT_AUTHOR:
+    'User already has a department author assignment. Remove it before assigning another organization role.',
+  SCOPE_COMPANY_LEAD_CONFLICT:
+    'User already has a team or department author assignment. Remove organization roles before assigning company lead.',
+  SCOPE_DEPARTMENT_LEAD_CONFLICT:
+    'User already has a team assignment. Remove team roles before assigning department lead.',
+  SCOPE_DEPT_AUTHOR_HAS_TEAM_LEAD:
+    'User already has a team lead assignment. Remove team roles before assigning department author.',
+  SCOPE_DEPT_AUTHOR_HAS_TEAM_AUTHOR:
+    'User already has a team author assignment. Remove team roles before assigning department author.',
+  SCOPE_DEPT_AUTHOR_OUTSIDE_MEMBER:
+    'User has team membership outside this department. Remove it before assigning department author.',
+  SCOPE_DEPT_AUTHOR_OTHER_DEPT:
+    'User already has a department author assignment in another department.',
+  SCOPE_TEAM_LEAD_BLOCKS_ROLE:
+    'User already has a team lead assignment. Remove the team lead role before assigning another team role.',
+  SCOPE_TEAM_AUTHOR_BLOCKS_ROLE:
+    'User already has a team author assignment. Remove the team author role before assigning another team role.',
+  SCOPE_TEAM_MEMBER_BLOCKS_LEAD:
+    'User already has team membership. Remove team membership before assigning team lead.',
+  SCOPE_TEAM_ASSIGNMENT_EXISTS:
+    'User already has a team assignment. Remove the existing team role before assigning a new one.',
+};
+
 export class ScopeAssignmentConflictError extends Error {
-  constructor(message: string) {
-    super(message);
+  readonly code: ScopeAssignmentConflictCodeValue;
+
+  constructor(code: ScopeAssignmentConflictCodeValue, message?: string) {
+    super(message ?? SCOPE_CONFLICT_FALLBACK[code]);
     this.name = 'ScopeAssignmentConflictError';
+    this.code = code;
   }
+}
+
+/** JSON body for 409 responses from scope assignment conflicts. */
+export function scopeAssignmentConflictBody(err: ScopeAssignmentConflictError): {
+  error: string;
+  code: ScopeAssignmentConflictCodeValue;
+} {
+  return { error: err.message, code: err.code };
 }
 
 function hasTeamAuthorAssignment(user: LoadedUser): boolean {
@@ -75,16 +148,6 @@ function hasTeamAssignment(user: LoadedUser): boolean {
   );
 }
 
-function teamAssignmentConflictMessage(kind: ScopeAssignmentKind): string {
-  if (kind === 'teamLead') {
-    return 'User already has a team assignment. Remove the existing team role before assigning a new one.';
-  }
-  if (kind === 'teamAuthor') {
-    return 'User already has a team assignment. Remove the existing team role before assigning team author.';
-  }
-  return 'User already has a team assignment. Remove the existing team role before assigning team membership.';
-}
-
 /**
  * Enforces exclusive scope roles (admin OR one org role). Throws ScopeAssignmentConflictError on violation.
  */
@@ -94,87 +157,69 @@ export async function assertCanAssignScopeRole(
 ): Promise<void> {
   const user = await loadActiveUser(prisma, args.userId);
   if (!user) {
-    throw new ScopeAssignmentConflictError('User not found');
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.USER_NOT_FOUND);
   }
 
   const { kind } = args;
 
   if (kind === 'admin') {
     if (userHasOrgAssignments(user) || user.isKnowledgeManager || hasKnowledgeManagerScopes(user)) {
-      throw new ScopeAssignmentConflictError(
-        'Cannot assign platform administrator while user has organization or knowledge manager assignments. Remove those roles first.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.ADMIN_WHILE_ASSIGNMENTS);
     }
     return;
   }
 
   if (kind === 'knowledgeManager') {
     if (user.isAdmin) {
-      throw new ScopeAssignmentConflictError(
-        'Cannot assign knowledge manager while user is a platform administrator.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.KM_WHILE_ADMIN);
     }
     if (userHasOrgAssignments(user)) {
-      throw new ScopeAssignmentConflictError(
-        'Cannot assign knowledge manager while user has organization assignments. Remove organization roles first.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.KM_WHILE_ORG);
     }
     return;
   }
 
   if (user.isAdmin) {
-    throw new ScopeAssignmentConflictError(
-      'User is a platform administrator and cannot receive organization assignments.'
-    );
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.ADMIN_BLOCKS_ORG);
   }
 
   if (user.isKnowledgeManager || hasKnowledgeManagerScopes(user)) {
-    throw new ScopeAssignmentConflictError(
-      'User is a knowledge manager and cannot receive organization assignments.'
-    );
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.KM_BLOCKS_ORG);
   }
 
   if (user.companyLeads.length > 0) {
-    throw new ScopeAssignmentConflictError('User already has a company lead assignment.');
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.ALREADY_COMPANY_LEAD);
   }
 
   if (user.departmentLeads.length > 0) {
-    throw new ScopeAssignmentConflictError('User already has a department lead assignment.');
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.ALREADY_DEPARTMENT_LEAD);
   }
 
   if (hasDepartmentAuthorAssignment(user) && kind !== 'departmentAuthor') {
-    throw new ScopeAssignmentConflictError(
-      'User already has a department author assignment. Remove it before assigning another organization role.'
-    );
+    throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.ALREADY_DEPARTMENT_AUTHOR);
   }
 
   if (kind === 'companyLead') {
     if (hasTeamAssignment(user) || hasDepartmentAuthorAssignment(user)) {
-      throw new ScopeAssignmentConflictError(
-        'User already has a team or department author assignment. Remove organization roles before assigning company lead.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.COMPANY_LEAD_CONFLICT);
     }
     return;
   }
 
   if (kind === 'departmentLead') {
     if (hasTeamAssignment(user) || hasDepartmentAuthorAssignment(user)) {
-      throw new ScopeAssignmentConflictError(
-        'User already has a team assignment. Remove team roles before assigning department lead.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.DEPARTMENT_LEAD_CONFLICT);
     }
     return;
   }
 
   if (kind === 'departmentAuthor') {
     if (user.leadOfTeams.length > 0) {
-      throw new ScopeAssignmentConflictError(
-        'User already has a team lead assignment. Remove team roles before assigning department author.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.DEPT_AUTHOR_HAS_TEAM_LEAD);
     }
     if (hasTeamAuthorAssignment(user)) {
       throw new ScopeAssignmentConflictError(
-        'User already has a team author assignment. Remove team roles before assigning department author.'
+        ScopeAssignmentConflictCode.DEPT_AUTHOR_HAS_TEAM_AUTHOR
       );
     }
     const memberOutsideDept = user.teamMemberships.find(
@@ -182,60 +227,52 @@ export async function assertCanAssignScopeRole(
     );
     if (memberOutsideDept) {
       throw new ScopeAssignmentConflictError(
-        'User has team membership outside this department. Remove it before assigning department author.'
+        ScopeAssignmentConflictCode.DEPT_AUTHOR_OUTSIDE_MEMBER
       );
     }
     const otherDept = user.authorOfDepartments.find((a) => a.departmentId !== args.departmentId);
     if (otherDept) {
-      throw new ScopeAssignmentConflictError(
-        'User already has a department author assignment in another department.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.DEPT_AUTHOR_OTHER_DEPT);
     }
     return;
   }
 
   if (user.leadOfTeams.length > 0) {
     if (kind === 'teamMember' || kind === 'teamAuthor') {
-      throw new ScopeAssignmentConflictError(
-        'User already has a team lead assignment. Remove the team lead role before assigning another team role.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_LEAD_BLOCKS_ROLE);
     }
     const otherTeam = user.leadOfTeams.find((l) => l.teamId !== args.teamId);
     if (otherTeam) {
-      throw new ScopeAssignmentConflictError(teamAssignmentConflictMessage(kind));
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_ASSIGNMENT_EXISTS);
     }
     return;
   }
 
   if (hasTeamAuthorAssignment(user)) {
     if (kind === 'teamMember' || kind === 'teamLead') {
-      throw new ScopeAssignmentConflictError(
-        'User already has a team author assignment. Remove the team author role before assigning another team role.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_AUTHOR_BLOCKS_ROLE);
     }
     const otherTeam = user.authorOfTeams.find((a) => a.teamId !== args.teamId);
     if (otherTeam) {
-      throw new ScopeAssignmentConflictError(teamAssignmentConflictMessage(kind));
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_ASSIGNMENT_EXISTS);
     }
     if (kind === 'teamAuthor') return;
   }
 
   if (user.teamMemberships.length > 0) {
     if (kind === 'teamLead') {
-      throw new ScopeAssignmentConflictError(
-        'User already has team membership. Remove team membership before assigning team lead.'
-      );
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_MEMBER_BLOCKS_LEAD);
     }
     if (kind === 'teamAuthor') {
       const otherTeam = user.teamMemberships.find((m) => m.team.id !== args.teamId);
       if (otherTeam) {
-        throw new ScopeAssignmentConflictError(teamAssignmentConflictMessage(kind));
+        throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_ASSIGNMENT_EXISTS);
       }
       return;
     }
     const otherTeam = user.teamMemberships.find((m) => m.team.id !== args.teamId);
     if (otherTeam) {
-      throw new ScopeAssignmentConflictError(teamAssignmentConflictMessage(kind));
+      throw new ScopeAssignmentConflictError(ScopeAssignmentConflictCode.TEAM_ASSIGNMENT_EXISTS);
     }
   }
 }

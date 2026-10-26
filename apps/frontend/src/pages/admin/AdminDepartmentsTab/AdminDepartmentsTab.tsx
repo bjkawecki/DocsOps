@@ -1,5 +1,5 @@
 import { Box, Button, Loader, Modal } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,6 @@ import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminDepartmentDeleteModal } from './AdminDepartmentDeleteModal';
@@ -31,10 +30,11 @@ import type {
   MemberCountsRes,
 } from './adminDepartmentsTabTypes';
 import { CreateDepartmentForm } from './CreateDepartmentForm';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 export function AdminDepartmentsTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
@@ -169,10 +169,7 @@ export function AdminDepartmentsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       return (await res.json()) as Department;
     },
     onSuccess: () => {
@@ -185,7 +182,11 @@ export function AdminDepartmentsTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const updateDepartment = useMutation({
@@ -195,10 +196,7 @@ export function AdminDepartmentsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       return (await res.json()) as Department;
     },
     onSuccess: () => {
@@ -211,7 +209,11 @@ export function AdminDepartmentsTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const deleteDepartment = useMutation({
@@ -243,10 +245,7 @@ export function AdminDepartmentsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { departmentId }) => {
       invalidateLeads(departmentId);
@@ -257,7 +256,11 @@ export function AdminDepartmentsTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const removeLead = useMutation({
@@ -265,10 +268,7 @@ export function AdminDepartmentsTab() {
       const res = await apiFetch(`/api/v1/departments/${departmentId}/department-leads/${userId}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { departmentId }) => {
       invalidateLeads(departmentId);
@@ -279,7 +279,11 @@ export function AdminDepartmentsTab() {
       });
     },
     onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
   });
 
   const handleSaveDepartmentCard = useCallback(() => {
@@ -367,7 +371,7 @@ export function AdminDepartmentsTab() {
   );
   useSetAppShellBreadcrumbActions(
     isWide ? chromeActions : null,
-    `admin-departments:${createDepartmentDisabled}`
+    `admin-departments:${isWide}:${createDepartmentDisabled}`
   );
 
   if (companiesPending) {

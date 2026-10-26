@@ -1,10 +1,9 @@
 import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { useIntersection, useMediaQuery } from '@mantine/hooks';
+import { useIntersection } from '@mantine/hooks';
 import { IconArchiveOff, IconRefresh } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatTableDate } from '../../lib/formatDate';
 import type { PageMobileAction } from '../ui/PageMobileActionBar.js';
 import { EntityListCard } from '../ui/EntityListCard.js';
@@ -21,6 +20,7 @@ import {
   useTrashArchiveTabState,
   type TrashArchiveTabVariant,
 } from './useTrashArchiveTabState.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
@@ -39,7 +39,7 @@ export function TrashArchiveTabCore({
 }: TrashArchiveTabCoreProps) {
   const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const compact = !isWide;
   const closeSearchRef = useRef<() => void>(() => {});
   const closeFilterRef = useRef<() => void>(() => {});

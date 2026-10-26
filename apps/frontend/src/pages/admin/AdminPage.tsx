@@ -3,24 +3,23 @@ import { Box, Container, Paper } from '@mantine/core';
 import { IconSettings } from '@tabler/icons-react';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMediaQuery } from '@mantine/hooks';
 import {
   useSetAppShellBreadcrumbs,
   useSetAppShellChromeBar,
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { PageMobileActionsHost } from '../../components/ui/pageMobileNav.js';
 import { ResponsiveContentNav } from '../../components/ui/ResponsiveContentNav.js';
 import { AdminContentSidebar } from './AdminContentSidebar.js';
 import { ADMIN_DEFAULT_PATH, findAdminNavItem, getAdminNavGroups } from './adminNavConfig.js';
 import './AdminPage.css';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export function AdminPage() {
   const { t } = useTranslation(['shell', 'admin']);
   const location = useLocation();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const compactNavOpenRef = useRef<(() => void) | null>(null);
   const navGroups = useMemo(() => getAdminNavGroups(), []);
   const currentItem = findAdminNavItem(location.pathname, navGroups);

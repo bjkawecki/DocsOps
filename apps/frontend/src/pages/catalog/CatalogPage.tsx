@@ -10,7 +10,6 @@ import {
   Pagination,
   Anchor,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
@@ -18,7 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { EntityListCard } from '../../components/ui/EntityListCard.js';
 import { PageMobileActionBar } from '../../components/ui/PageMobileActionBar.js';
@@ -34,6 +32,7 @@ import { apiFetch } from '../../api/client';
 import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
 import '../../utils/searchSnippetMark.css';
 import './CatalogPage.css';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 /** Renders text with search term wrapped in <mark> (case-insensitive). */
 function highlightMatch(text: string, searchTerm: string): ReactNode {
@@ -122,7 +121,7 @@ function parseStoredPageSize(): number {
 export function CatalogPage() {
   const { t } = useTranslation(['documents', 'common', 'shell']);
   const [searchParams, setSearchParams] = useSearchParams();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const closeSearchRef = useRef<() => void>(() => {});
   const closeFilterRef = useRef<() => void>(() => {});
 

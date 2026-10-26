@@ -1,14 +1,14 @@
 import { ActionIcon, Box, Button, Drawer, Flex, Group } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { IconLayoutSidebar } from '@tabler/icons-react';
 import { useEffect, type ReactNode, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   CONTEXT_WORKSPACE_LEFT_WIDTH,
   ContextWorkspaceLeftColumn,
 } from '../../pages/contextWorkspace/contextWorkspaceChrome.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 type ResponsiveContentNavProps = {
   /** Trigger / drawer title (section name, e.g. Admin). */
@@ -46,7 +46,7 @@ export function ResponsiveContentNav({
 }: ResponsiveContentNavProps) {
   const { t } = useTranslation('shell');
   const location = useLocation();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {

@@ -15,7 +15,7 @@ import {
   Select,
   Title,
 } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
@@ -24,12 +24,12 @@ import { apiFetch } from '../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminDemoReadOnlyAlert, useDemoMode } from './AdminDemoReadOnlyAlert.js';
 import { adminApiErrorMessage, throwAdminApiError } from './adminApiError.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
 import type { Company } from 'backend/api-types';
 import { CompanyForm } from './AdminCompanyForm';
 import { CompanyPdfBrandingForm } from '../../components/organisation/CompanyPdfBrandingForm.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 type CompaniesRes = { items: Company[]; total: number; limit: number; offset: number };
 type AssignmentListRes = {
@@ -68,7 +68,7 @@ function formatBytes(n: number): string {
 
 export function AdminCompanyTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -315,7 +315,7 @@ export function AdminCompanyTab() {
   );
   useSetAppShellBreadcrumbActions(
     isWide && !companiesPending && companies.length === 0 ? chromeActions : null,
-    `admin-company-create:${companies.length}:${demoMode}`
+    `admin-company-create:${isWide}:${companies.length}:${demoMode}`
   );
 
   if (companiesPending) {
@@ -330,7 +330,7 @@ export function AdminCompanyTab() {
     <Box>
       <AdminDemoReadOnlyAlert />
       {company == null ? (
-        <Alert color="blue" mb="md">
+        <Alert color="gray" mb="md">
           {t('company.noCompanyAlert')}
         </Alert>
       ) : (

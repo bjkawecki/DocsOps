@@ -1,11 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Group, Loader, Menu, Stack, Tooltip } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconDotsVertical, IconRefresh } from '@tabler/icons-react';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import {
@@ -21,10 +20,11 @@ import { AdminSystemApplyUpdateModal } from './AdminSystemApplyUpdateModal.js';
 import { AdminSystemUpcomingReleasePreview } from './AdminSystemUpcomingReleasePreview.js';
 import { AdminSystemUpdateStepsModal } from './AdminSystemUpdateStepsModal.js';
 import { AdminSystemVersionTable } from './AdminSystemVersionTable.js';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 export function AdminSystemTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const statusQuery = useAdminUpdateStatus();
   const runtimeQuery = useAdminSystemRuntime();
   const settingsQuery = useAdminSystemSettings();

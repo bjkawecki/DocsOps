@@ -1,4 +1,3 @@
-import { useMediaQuery } from '@mantine/hooks';
 import { useMemo, type ReactNode } from 'react';
 import {
   IconBriefcase,
@@ -14,12 +13,12 @@ import { useTranslation } from 'react-i18next';
 import type { RecentScope } from '../../hooks/useRecentItems';
 import { scopeToLabel, scopeToUrl } from '../../lib/scopeNav';
 import { contextUrl } from '../../pages/contextWorkspace/contextPaths.js';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../appShell/AppShellNavScopeContext.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 /** Felder aus dem Document-GET, die für Scope-/Kontext-Breadcrumbs nötig sind. */
 export type DocumentForDocBreadcrumbs = {
@@ -189,7 +188,7 @@ export function DocumentDocBreadcrumbs({
   enabled = true,
 }: DocumentDocBreadcrumbsProps) {
   const { t } = useTranslation('documents');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const items = useMemo(() => {
     if (!enabled) return null;
     return buildDocumentBreadcrumbItems(

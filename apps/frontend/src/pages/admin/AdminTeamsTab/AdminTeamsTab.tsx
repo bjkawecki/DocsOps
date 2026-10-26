@@ -1,5 +1,5 @@
 import { Box, Button, Modal } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,6 @@ import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
 import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
 import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { AdminTeamDeleteModal } from './AdminTeamDeleteModal';
@@ -33,10 +32,11 @@ import type {
   TeamWithDept,
 } from './adminTeamsTabTypes';
 import { CreateTeamForm } from './CreateTeamForm';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 export function AdminTeamsTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [filterText, setFilterText] = useState('');
@@ -229,10 +229,7 @@ export function AdminTeamsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       return (await res.json()) as Team;
     },
     onSuccess: (_, variables) => {
@@ -246,7 +243,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const updateTeam = useMutation({
@@ -264,10 +265,7 @@ export function AdminTeamsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, departmentId: did }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       return (await res.json()) as Team;
     },
     onSuccess: (_, variables) => {
@@ -281,7 +279,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const deleteTeam = useMutation({
@@ -315,10 +317,7 @@ export function AdminTeamsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
@@ -329,7 +328,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const removeLeader = useMutation({
@@ -337,10 +340,7 @@ export function AdminTeamsTab() {
       const res = await apiFetch(`/api/v1/teams/${tid}/team-leads/${userId}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
@@ -351,7 +351,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const addMember = useMutation({
@@ -361,10 +365,7 @@ export function AdminTeamsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
@@ -375,7 +376,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const removeMember = useMutation({
@@ -383,10 +388,7 @@ export function AdminTeamsTab() {
       const res = await apiFetch(`/api/v1/teams/${tid}/members/${userId}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: (_, { teamId: tid }) => {
       invalidateAssignments(tid);
@@ -397,7 +399,11 @@ export function AdminTeamsTab() {
       });
     },
     onError: (err: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' }),
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
   });
 
   const departmentOptions = useMemo(
@@ -519,7 +525,7 @@ export function AdminTeamsTab() {
   );
   useSetAppShellBreadcrumbActions(
     isWide ? chromeActions : null,
-    `admin-teams:${createTeamDisabled}`
+    `admin-teams:${isWide}:${createTeamDisabled}`
   );
 
   return (

@@ -1,7 +1,6 @@
 import { Box, Button, Group, Modal, Select, Stack, Text, TextInput, Textarea } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export type TemplatesCreateTypeModalProps = {
   opened: boolean;
@@ -44,7 +43,7 @@ export function TemplatesCreateTypeModal({
   onCreate,
 }: TemplatesCreateTypeModalProps) {
   const { t } = useTranslation(['templates', 'documents']);
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const canSubmit = label.trim().length > 0 && whenToUse.trim().length > 0;
 
   const footer = (

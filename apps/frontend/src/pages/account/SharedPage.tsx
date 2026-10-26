@@ -1,12 +1,10 @@
 import { Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { IconShare } from '@tabler/icons-react';
 import { apiFetch } from '../../api/client';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import {
   ContextDocumentsTable,
   DOCS_COMPACT_PAGE_SIZE,
@@ -16,6 +14,7 @@ import {
 } from '../../components/contexts/ContextDocumentsTable';
 import { useMe } from '../../hooks/useMe';
 import { PersonalAreaPageChrome } from './PersonalAreaPageChrome.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 type SharedDocItem = {
   id: string;
@@ -53,7 +52,7 @@ export function SharedPage() {
   const { t } = useTranslation('shell');
   const { data: me } = useMe();
   const [searchParams] = useSearchParams();
-  const isWideViewport = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWideViewport = useWideLayout();
   const isPlatformAdmin = me?.user?.isAdmin === true;
 
   const docsPage = readDocsListPage(searchParams);

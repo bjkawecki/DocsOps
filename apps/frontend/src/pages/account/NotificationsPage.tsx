@@ -12,12 +12,10 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconBell, IconChecks } from '@tabler/icons-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import {
   useSetAppShellBreadcrumbActions,
   useSetAppShellBreadcrumbs,
@@ -48,6 +46,7 @@ import {
 import { SectionLabel } from '../../components/ui/SectionLabel.js';
 import { useMe } from '../../hooks/useMe';
 import { ContextWorkspaceLeftColumn } from '../contextWorkspace/contextWorkspaceChrome.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 const ICON_SIZE = 16;
 
@@ -60,7 +59,7 @@ export function NotificationsPage() {
   const { t } = useTranslation(['notifications', 'shell']);
   const { data: me } = useMe();
   const isAdmin = me?.user.isAdmin === true;
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [searchParams, setSearchParams] = useSearchParams();
   const [canMarkAll, setCanMarkAll] = useState(false);
   const [listTotal, setListTotal] = useState<number | null>(null);

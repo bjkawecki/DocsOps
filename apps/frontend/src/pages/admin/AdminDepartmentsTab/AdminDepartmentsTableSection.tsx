@@ -31,7 +31,7 @@ export function AdminDepartmentsTableSection({
   return (
     <>
       {companiesLength === 0 ? (
-        <Alert color="blue">{t('shared.noCompanySetup')}</Alert>
+        <Alert color="gray">{t('shared.noCompanySetup')}</Alert>
       ) : (
         <>
           <Table withTableBorder withColumnBorders mb="md" className="admin-table-hover">

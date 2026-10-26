@@ -12,9 +12,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { EntityListCard } from '../../../components/ui/EntityListCard.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import {
@@ -31,6 +29,7 @@ import {
 } from './adminUsersTypes';
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './adminUsersConstants';
 import { formatUserDepartmentsColumn, formatUserTeamsColumn } from './AdminUserAssignmentsDisplay';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 type Props = {
   includeDeactivated: boolean;
@@ -75,7 +74,7 @@ export function AdminUsersList({
 }: Props) {
   const { t } = useTranslation(['admin', 'common']);
   const roleLabel = useOrgRoleLabel();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
 
   const statusControl = (size: 'xs' | 'sm', fullWidth = false) => (
     <SegmentedControl

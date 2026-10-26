@@ -12,13 +12,11 @@ import {
   Title,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconDeviceFloppy, IconMail } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AdminSystemSettings } from 'backend/api-types';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { useMe } from '../../../hooks/useMe.js';
@@ -27,6 +25,7 @@ import {
   useSendAdminSmtpTestEmail,
 } from '../../../hooks/useAdminUpdateStatus.js';
 import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 type Props = {
   settings: AdminSystemSettings;
@@ -37,7 +36,7 @@ type Props = {
  */
 export function AdminSystemMailSection({ settings }: Props) {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const { data: me } = useMe();
   const patchMutation = usePatchAdminSystemSettings();

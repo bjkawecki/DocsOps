@@ -32,7 +32,7 @@ export function AdminSystemStatusAlerts({ status }: Props) {
 
   if (status.updateAvailable) {
     return (
-      <Alert color="blue" variant="filled" title={t('system.statusAlerts.updateAvailableTitle')}>
+      <Alert color="gray" variant="filled" title={t('system.statusAlerts.updateAvailableTitle')}>
         {t('system.statusAlerts.updateAvailableMessage')}
       </Alert>
     );

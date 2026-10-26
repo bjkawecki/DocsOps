@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { apiFetch } from '../../../api/client';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import type { DepartmentWithTeams, UserRow, UserTeam } from './adminUsersTypes';
 
 type TeamRole = 'Member' | 'Author' | 'Lead';
@@ -35,6 +36,13 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
   const isKnowledgeManager = user.isKnowledgeManager || user.role === 'Knowledge Manager';
   const orgAssignmentsLocked = isPlatformAdmin || isKnowledgeManager;
 
+  const showApiError = (e: Error) =>
+    notifications.show({
+      title: t('shared.errorTitle'),
+      message: adminApiErrorMessage(t, e),
+      color: 'red',
+    });
+
   const allTeams = departments.flatMap((d) =>
     (d.teams ?? []).map((team) => ({
       id: team.id,
@@ -57,13 +65,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       const res = await apiFetch(`/api/v1/teams/${tid}/members/${user.id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const addToTeam = useMutation({
@@ -73,13 +77,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const addTeamLead = useMutation({
@@ -89,13 +89,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const removeTeamLead = useMutation({
@@ -103,13 +99,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       const res = await apiFetch(`/api/v1/teams/${tid}/team-leads/${user.id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const promoteTeamAuthor = useMutation({
@@ -119,25 +111,17 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const demoteTeamAuthor = useMutation({
     mutationFn: async (tid: string) => {
       const res = await apiFetch(`/api/v1/teams/${tid}/authors/${user.id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const addDepartmentLead = useMutation({
@@ -147,13 +131,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const removeDepartmentLead = useMutation({
@@ -162,13 +142,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         `/api/v1/departments/${departmentId}/department-leads/${user.id}`,
         { method: 'DELETE' }
       );
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const promoteDepartmentAuthor = useMutation({
@@ -178,13 +154,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const demoteDepartmentAuthor = useMutation({
@@ -199,13 +171,9 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
         `/api/v1/departments/${departmentId}/authors/${user.id}?teamId=${encodeURIComponent(targetTeamId)}`,
         { method: 'DELETE' }
       );
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
-    onError: (e: Error) =>
-      notifications.show({ title: t('shared.errorTitle'), message: e.message, color: 'red' }),
+    onError: showApiError,
   });
 
   const removeFromTeamSilent = async (tid: string) => {
@@ -213,10 +181,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
       method: 'DELETE',
     });
     if (res.status === 404) return;
-    if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))) as { error?: string };
-      throw new Error(err.error ?? res.statusText);
-    }
+    if (!res.ok) await throwAdminApiError(res);
   };
 
   const isPendingMut =
@@ -317,7 +282,7 @@ export function AdminUserAssignmentsForm({ user, departments, onSave, onCancel }
     return (
       <Stack gap="sm">
         <Alert
-          color="blue"
+          color="gray"
           title={
             isKnowledgeManager
               ? t('users.assignmentsForm.knowledgeManagerAlertTitle')

@@ -78,7 +78,7 @@ export function AdminMigrationStatusAlerts({ status }: Props) {
       ) : null}
       {activeExportRun ? (
         <Alert
-          color="blue"
+          color="gray"
           variant="filled"
           title={t('migration.statusAlerts.exportInProgressTitle')}
         >
@@ -87,7 +87,7 @@ export function AdminMigrationStatusAlerts({ status }: Props) {
       ) : null}
       {activeImportRun ? (
         <Alert
-          color="blue"
+          color="gray"
           variant="filled"
           title={t('migration.statusAlerts.importInProgressTitle')}
         >

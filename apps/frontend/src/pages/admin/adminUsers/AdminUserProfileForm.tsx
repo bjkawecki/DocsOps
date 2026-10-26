@@ -1,6 +1,8 @@
 import { Button, Group, MultiSelect, Stack, Switch, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { adminApiErrorMessage } from '../adminApiError.js';
 import type { DepartmentWithTeams, KnowledgeManagerScopes, UserRow } from './adminUsersTypes';
 
 type Props = {
@@ -78,7 +80,14 @@ export function AdminUserProfileForm({
           }
         : { companyIds: [], departmentIds: [], teamIds: [] },
       deletedAt: deactivated ? new Date().toISOString() : null,
-    }).catch(() => {});
+    }).catch((err: unknown) => {
+      if (!(err instanceof Error)) return;
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      });
+    });
   };
 
   return (

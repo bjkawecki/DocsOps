@@ -9,7 +9,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { IconTemplate } from '@tabler/icons-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -22,7 +22,6 @@ import {
   useSetAppShellBreadcrumbs,
   type AppShellBreadcrumbItem,
 } from '../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
 import { ContentCardWrapper } from '../../components/contexts/cardShared.js';
 import {
@@ -44,6 +43,7 @@ import '../DocumentContent.css';
 import { TemplatesCreateTypeModal } from './TemplatesCreateTypeModal.js';
 import { TemplatesMobileActionBar } from './TemplatesMobileActionBar.js';
 import { TemplatesSidebarGroup } from './TemplatesSidebarGroup.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 /** Same reserved width as the document comments rail (keeps reading column aligned). */
 const TEMPLATES_BALANCE_RAIL_WIDTH = TOGGLE_STRIP_WIDTH + WIDTH_OPEN;
@@ -83,7 +83,7 @@ export function DocumentTemplatesPage() {
   const { t, i18n } = useTranslation(['templates', 'documents', 'shell', 'common']);
   const queryClient = useQueryClient();
   const { data: me } = useMe();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const compactNavOpenRef = useRef<(() => void) | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');

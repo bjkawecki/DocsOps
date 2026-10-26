@@ -405,7 +405,7 @@ export function AdminMigrationImportModal({ opened, onClose, initialImportRunId 
             </Alert>
             {mergeStats ? (
               <Alert
-                color="blue"
+                color="gray"
                 variant="light"
                 title={t('migration.importModal.mergeReportTitle')}
               >

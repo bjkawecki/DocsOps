@@ -30,6 +30,7 @@ import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.
 import {
   assertCanAssignScopeRole,
   ScopeAssignmentConflictError,
+  scopeAssignmentConflictBody,
 } from '../../organisation/services/scopeAssignmentRules.js';
 
 const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
@@ -224,7 +225,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           });
         } catch (err) {
           if (err instanceof ScopeAssignmentConflictError) {
-            return reply.status(409).send({ error: err.message });
+            return reply.status(409).send(scopeAssignmentConflictBody(err));
           }
           throw err;
         }
@@ -238,7 +239,7 @@ const adminUsersRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
           });
         } catch (err) {
           if (err instanceof ScopeAssignmentConflictError) {
-            return reply.status(409).send({ error: err.message });
+            return reply.status(409).send(scopeAssignmentConflictBody(err));
           }
           throw err;
         }

@@ -136,7 +136,7 @@ describe('scopeAssignmentRules', () => {
   it('org user cannot become admin while assignments exist', async () => {
     await expect(
       assertCanAssignScopeRole(prisma, { userId: teamMemberId, kind: 'admin' })
-    ).rejects.toThrow(/organization or knowledge manager assignments/);
+    ).rejects.toMatchObject({ code: 'SCOPE_ADMIN_WHILE_ASSIGNMENTS' });
   });
 
   it('plain user can become knowledge manager', async () => {

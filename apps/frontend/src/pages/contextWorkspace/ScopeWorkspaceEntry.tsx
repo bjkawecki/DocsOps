@@ -1,5 +1,5 @@
 import { Anchor, Box, Center, Container, Loader, Menu, Paper, Stack, Text } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { IconBriefcase, IconFilePlus, IconPlus, IconRoute } from '@tabler/icons-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -8,7 +8,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { CreateContextMenu, NewContextModal, NewDocumentModal } from '../../components/contexts';
 import type { NewContextScope } from '../../components/contexts/NewContextModal';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useRegisterScopePageChrome } from '../../components/appShell/scopeBreadcrumbs.js';
 import {
   PageMobileActionBar,
@@ -29,6 +28,7 @@ import {
   scopeTrashUrl,
 } from './contextPaths.js';
 import { useScopeSidebarNav } from './useScopeSidebarNav.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 type SiblingEntityItem = { id: string; name: string; contextId: string };
 
@@ -67,7 +67,7 @@ export function ScopeWorkspaceEntry({
   canManage = false,
 }: ScopeWorkspaceEntryProps) {
   const { t } = useTranslation(['contexts', 'shell', 'common']);
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: me } = useMe();

@@ -1,7 +1,5 @@
 import { Group, Select, Text, TextInput } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useRegisterPageMobileExtraActions } from '../../components/ui/pageMobileNav.js';
 import {
   CompactListCount,
@@ -11,6 +9,7 @@ import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
 } from './AdminDepartmentsTab/adminDepartmentsTabConstants';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export type AdminEntityListToolbarProps = {
   searchPlaceholder: string;
@@ -44,7 +43,7 @@ export function AdminEntityListToolbar({
   pageSizeLocalStorageKey,
 }: AdminEntityListToolbarProps) {
   const { t } = useTranslation(['admin', 'common']);
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const showScopeSelect =
     scopeSelectPlaceholder != null && scopeSelectData != null && onScopeSelectChange != null;
 

@@ -1,17 +1,17 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, Group, Modal, Stack, Text } from '@mantine/core';
-import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { apiFetch } from '../../../api/client';
 import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
-import { WIDE_MIN_WIDTH } from '../../../components/appShell/appShellLayoutConstants.js';
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey, useMe } from '../../../hooks/useMe';
 import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
 import { AdminUserCreateForm } from './AdminUserCreateForm';
 import { AdminUserDetailTabs } from './AdminUserDetailTabs';
 import { AdminUsersList } from './AdminUsersList';
@@ -26,10 +26,11 @@ import type {
   SortOrder,
   UserRow,
 } from './adminUsersTypes';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
 
 export function AdminUsersTab() {
   const { t } = useTranslation('admin');
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const demoMode = useDemoMode();
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
@@ -131,10 +132,7 @@ export function AdminUsersTab() {
           isKnowledgeManager: userBody.isKnowledgeManager ?? false,
         }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       const user = (await res.json()) as { id: string };
       const userId = user.id;
       if (userBody.isKnowledgeManager && knowledgeManagerScopes) {
@@ -143,10 +141,7 @@ export function AdminUsersTab() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(knowledgeManagerScopes),
         });
-        if (!scopesRes.ok) {
-          const scopesErr = (await scopesRes.json().catch(() => ({}))) as { error?: string };
-          throw new Error(scopesErr.error ?? scopesRes.statusText);
-        }
+        if (!scopesRes.ok) await throwAdminApiError(scopesRes);
       }
       if (teamId) {
         const memberRes = await apiFetch(`/api/v1/teams/${teamId}/members`, {
@@ -154,20 +149,14 @@ export function AdminUsersTab() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         });
-        if (!memberRes.ok) {
-          const memberErr = (await memberRes.json().catch(() => ({}))) as { error?: string };
-          throw new Error(memberErr.error ?? t('common:errors.generic'));
-        }
+        if (!memberRes.ok) await throwAdminApiError(memberRes);
         if (teamRole === 'leader') {
           const leaderRes = await apiFetch(`/api/v1/teams/${teamId}/team-leads`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId }),
           });
-          if (!leaderRes.ok) {
-            const leaderErr = (await leaderRes.json().catch(() => ({}))) as { error?: string };
-            throw new Error(leaderErr.error ?? t('common:errors.generic'));
-          }
+          if (!leaderRes.ok) await throwAdminApiError(leaderRes);
         }
       }
       if (departmentId && supervisorOfDepartment) {
@@ -176,10 +165,7 @@ export function AdminUsersTab() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         });
-        if (!supRes.ok) {
-          const supErr = (await supRes.json().catch(() => ({}))) as { error?: string };
-          throw new Error(supErr.error ?? t('common:errors.generic'));
-        }
+        if (!supRes.ok) await throwAdminApiError(supRes);
       }
       return user;
     },
@@ -193,7 +179,11 @@ export function AdminUsersTab() {
       closeCreate();
     },
     onError: (err: Error) => {
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      });
     },
   });
 
@@ -216,10 +206,7 @@ export function AdminUsersTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
       return (await res.json()) as UserRow;
     },
     onSuccess: () => {
@@ -231,9 +218,6 @@ export function AdminUsersTab() {
         color: 'green',
       });
     },
-    onError: (err: Error) => {
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
-    },
   });
 
   const resetPasswordTrigger = useMutation({
@@ -243,10 +227,7 @@ export function AdminUsersTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: () => {
       notifications.show({
@@ -257,17 +238,18 @@ export function AdminUsersTab() {
       setResetPasswordConfirmUser(null);
     },
     onError: (err: Error) => {
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      });
     },
   });
 
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
       const res = await apiFetch(`/api/v1/admin/users/${userId}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? res.statusText);
-      }
+      if (!res.ok) await throwAdminApiError(res);
     },
     onSuccess: () => {
       notifications.show({
@@ -280,7 +262,11 @@ export function AdminUsersTab() {
       invalidateUsers();
     },
     onError: (err: Error) => {
-      notifications.show({ title: t('shared.errorTitle'), message: err.message, color: 'red' });
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      });
     },
   });
 
@@ -323,7 +309,10 @@ export function AdminUsersTab() {
     ),
     [demoMode, openCreate, t]
   );
-  useSetAppShellBreadcrumbActions(isWide ? chromeActions : null, `admin-users-create:${demoMode}`);
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-users-create:${isWide}:${demoMode}`
+  );
 
   return (
     <Box>
@@ -391,10 +380,7 @@ export function AdminUsersTab() {
                   `/api/v1/companies/${companyId}/company-leads/${detailUser.id}`,
                   { method: 'DELETE' }
                 );
-                if (!res.ok) {
-                  const err = (await res.json().catch(() => ({}))) as { error?: string };
-                  throw new Error(err.error ?? res.statusText);
-                }
+                if (!res.ok) await throwAdminApiError(res);
               }
               await updateUser.mutateAsync({
                 userId: detailUser.id,
@@ -415,10 +401,7 @@ export function AdminUsersTab() {
                     body: JSON.stringify(body.knowledgeManagerScopes),
                   }
                 );
-                if (!scopesRes.ok) {
-                  const err = (await scopesRes.json().catch(() => ({}))) as { error?: string };
-                  throw new Error(err.error ?? scopesRes.statusText);
-                }
+                if (!scopesRes.ok) await throwAdminApiError(scopesRes);
               } else if (wasKm && !body.isKnowledgeManager) {
                 // Junctions cleared by PATCH when disabling KM.
               }
@@ -433,19 +416,13 @@ export function AdminUsersTab() {
                     method: 'POST',
                     body: JSON.stringify({ userId: detailUser.id }),
                   });
-                  if (!res.ok) {
-                    const err = (await res.json().catch(() => ({}))) as { error?: string };
-                    throw new Error(err.error ?? res.statusText);
-                  }
+                  if (!res.ok) await throwAdminApiError(res);
                 } else if (!body.isCompanyLead && wasCompanyLead) {
                   const res = await apiFetch(
                     `/api/v1/companies/${companyId}/company-leads/${detailUser.id}`,
                     { method: 'DELETE' }
                   );
-                  if (!res.ok) {
-                    const err = (await res.json().catch(() => ({}))) as { error?: string };
-                    throw new Error(err.error ?? res.statusText);
-                  }
+                  if (!res.ok) await throwAdminApiError(res);
                 }
               }
               invalidateUsers();

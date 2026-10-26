@@ -1,9 +1,8 @@
 import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { useIntersection, useMediaQuery } from '@mantine/hooks';
+import { useIntersection } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import { formatTableDate } from '../../lib/formatDate';
 import { ContentLink } from '../ui/ContentLink';
 import { EntityListCard } from '../ui/EntityListCard.js';
@@ -11,6 +10,7 @@ import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
 import { CompactListCount, useCompactListSearchFab } from '../ui/StickySearchChrome.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
 import { TagBadge } from '../ui/TagBadge.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 export type ContextDocumentsTableRow = {
   id: string;
@@ -58,7 +58,7 @@ export function ContextDocumentsTable({
 }) {
   const { t } = useTranslation('contexts');
   const navigate = useNavigate();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [searchParams, setSearchParams] = useSearchParams();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const { ref: intersectionRef, entry } = useIntersection({

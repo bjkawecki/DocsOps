@@ -1,5 +1,4 @@
 import { ActionIcon, Box, Button, Container, Group, Menu, Paper, Stack, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import {
@@ -34,7 +33,6 @@ import {
   readDocsListLimit,
   readDocsListPage,
 } from '../../components/contexts/ContextDocumentsTable';
-import { WIDE_MIN_WIDTH } from '../../components/appShell/appShellLayoutConstants.js';
 import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellBreadcrumbActions } from '../../components/appShell/AppShellBreadcrumbsContext.js';
 import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
@@ -57,6 +55,7 @@ import { useScopeSidebarNav } from './useScopeSidebarNav.js';
 import { ContextWorkspaceModals } from './ContextWorkspaceModals.js';
 import type { ContextDocument, ContextResponse } from './contextWorkspaceTypes.js';
 import { useContextWorkspaceActions } from './useContextWorkspaceActions.js';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
 
 export function ContextWorkspacePage() {
   const { t } = useTranslation(['contexts', 'common', 'shell']);
@@ -64,7 +63,7 @@ export function ContextWorkspacePage() {
   const [searchParams] = useSearchParams();
   const { data: me } = useMe();
   const recentActions = useRecentItemsActions();
-  const isWideViewport = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWideViewport = useWideLayout();
 
   const docsPage = readDocsListPage(searchParams);
   const docsLimit = readDocsListLimit(searchParams);

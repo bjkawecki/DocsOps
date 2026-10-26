@@ -1,9 +1,7 @@
 import { Card, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { WIDE_MIN_WIDTH } from '../appShell/appShellLayoutConstants.js';
 import {
   useMeDrafts,
   type MeDraftsScopeParams,
@@ -12,6 +10,7 @@ import {
 import { formatTableDate } from '../../lib/formatDate';
 import { EntityListCard } from '../ui/EntityListCard.js';
 import { SortableTableTh } from '../ui/SortableTableTh';
+import { useWideLayout } from '../appShell/useWideLayout.js';
 
 type DraftsSortBy = 'title' | 'scopeName' | 'updatedAt';
 
@@ -33,7 +32,7 @@ export function DraftsTabContent({
 }: DraftsTabContentProps) {
   const { t } = useTranslation(['documents', 'common']);
   const navigate = useNavigate();
-  const isWide = useMediaQuery(WIDE_MIN_WIDTH) ?? true;
+  const isWide = useWideLayout();
   const [searchParams, setSearchParams] = useSearchParams();
   const sortBy = (searchParams.get('draftsSortBy') ?? 'updatedAt') as DraftsSortBy;
   const sortOrder = searchParams.get('draftsSortOrder') ?? 'desc';
