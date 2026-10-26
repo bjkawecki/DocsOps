@@ -408,6 +408,17 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(typeof body).toBe('object');
   });
 
+  it('GET /api/v1/admin/teams/list-summary als Admin → 200 + Objekt', async () => {
+    const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/admin/teams/list-summary',
+      headers: { cookie },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({});
+  });
+
   describe('Impersonation', () => {
     it('POST /admin/impersonate als Admin → 204 + Set-Cookie, GET /me liefert Ziel-User + impersonation', async () => {
       const sessionCookie = await loginAs(ADMIN_EMAIL, PASSWORD);

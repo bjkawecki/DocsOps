@@ -159,6 +159,88 @@ const adminOrganisationRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
     }
   );
 
+  /**
+   * GET /api/v1/admin/teams/list-summary?ids=a,b,c
+   * Member counts + lead names for many teams in two queries (Admin table batch).
+   */
+  app.get('/admin/teams/list-summary', { preHandler: preAdmin }, async (request, reply) => {
+    const rawIds = (request.query as { ids?: string }).ids;
+    const teamIds =
+      typeof rawIds === 'string' && rawIds.trim()
+        ? [
+            ...new Set(
+              rawIds
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            ),
+          ].slice(0, 200)
+        : [];
+    if (teamIds.length === 0) {
+      return reply.send({});
+    }
+
+    const prisma = request.server.prisma;
+    const [memberGroups, leads] = await Promise.all([
+      prisma.teamMember.groupBy({
+        by: ['teamId'],
+        where: { teamId: { in: teamIds } },
+        _count: { _all: true },
+      }),
+      prisma.teamLead.findMany({
+        where: { teamId: { in: teamIds } },
+        select: {
+          teamId: true,
+          user: { select: { name: true } },
+        },
+        orderBy: { userId: 'asc' },
+      }),
+    ]);
+
+    const result: Record<string, { memberCount: number; leadNames: string[] }> = {};
+    for (const id of teamIds) {
+      result[id] = { memberCount: 0, leadNames: [] };
+    }
+    for (const row of memberGroups) {
+      const entry = result[row.teamId];
+      if (entry) entry.memberCount = row._count._all;
+    }
+    for (const lead of leads) {
+      const entry = result[lead.teamId];
+      if (entry) entry.leadNames.push(lead.user.name);
+    }
+    return reply.send(result);
+  });
+
+  /** GET /api/v1/admin/teams/:teamId/team-leads – Team-Leads (Admin, ohne canViewScope). */
+  app.get<{
+    Params: { teamId: string };
+    Querystring: { limit?: number | string; offset?: number | string };
+  }>('/admin/teams/:teamId/team-leads', { preHandler: preAdmin }, async (request, reply) => {
+    const { teamId } = teamIdParamSchema.parse(request.params);
+    const limit = Math.min(Number(request.query?.limit) || 100, 100);
+    const offset = Math.max(0, Number(request.query?.offset) || 0);
+    const team = await request.server.prisma.team.findUnique({
+      where: { id: teamId },
+      select: { id: true },
+    });
+    if (!team) {
+      return reply.status(404).send({ error: 'Team not found.' });
+    }
+    const [items, total] = await Promise.all([
+      request.server.prisma.teamLead.findMany({
+        where: { teamId },
+        include: { user: { select: { id: true, name: true } } },
+        take: limit,
+        skip: offset,
+        orderBy: { userId: 'asc' },
+      }),
+      request.server.prisma.teamLead.count({ where: { teamId } }),
+    ]);
+    const list = items.map((l) => ({ id: l.user.id, name: l.user.name }));
+    return reply.send({ items: list, total, limit, offset });
+  });
+
   /** GET /api/v1/admin/teams/:teamId/members – Mitgliederliste (Admin, ohne canViewScope). */
   app.get<{
     Params: { teamId: string };

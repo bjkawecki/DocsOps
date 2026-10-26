@@ -23,7 +23,6 @@ import {
 } from './adminTeamsTabConstants';
 import type {
   AdminUsersRes,
-  AssignmentItem,
   AssignmentListRes,
   CompaniesRes,
   DepartmentsRes,
@@ -122,9 +121,9 @@ export function AdminTeamsTab() {
   }, [page, totalPages]);
 
   const { data: leadsForEditData, isPending: leadsForEditPending } = useQuery({
-    queryKey: ['teams', editingTeam?.id, 'team-leads'],
+    queryKey: ['admin', 'teams', editingTeam?.id, 'team-leads'],
     queryFn: async (): Promise<AssignmentListRes> => {
-      const res = await apiFetch(`/api/v1/teams/${editingTeam!.id}/team-leads?limit=100`);
+      const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/team-leads?limit=100`);
       if (!res.ok) throw new Error(t('common:errors.loadFailed'));
       return (await res.json()) as AssignmentListRes;
     },
@@ -178,25 +177,15 @@ export function AdminTeamsTab() {
   });
 
   const teamIdsForBatch = useMemo(() => filteredTeams.map((t) => t.id), [filteredTeams]);
+  const teamIdsBatchKey = useMemo(() => [...teamIdsForBatch].sort().join(','), [teamIdsForBatch]);
   const { data: teamBatchData } = useQuery({
-    queryKey: ['teams', 'batch', [...teamIdsForBatch].sort().join(',')],
+    queryKey: ['admin', 'teams', 'list-summary', teamIdsBatchKey],
     queryFn: async (): Promise<Record<string, TeamBatchRow>> => {
-      const entries = await Promise.all(
-        teamIdsForBatch.map(async (tid) => {
-          const [statsRes, leadRes] = await Promise.all([
-            apiFetch(`/api/v1/admin/teams/${tid}/stats`),
-            apiFetch(`/api/v1/teams/${tid}/team-leads?limit=100`),
-          ]);
-          const statsData = statsRes.ok ? ((await statsRes.json()) as TeamStatsRes) : null;
-          const leadData = leadRes.ok
-            ? ((await leadRes.json()) as AssignmentListRes)
-            : { items: [] as AssignmentItem[] };
-          const memberCount = statsData?.memberCount ?? 0;
-          const leadNames = leadData.items.map((l) => l.name);
-          return [tid, { memberCount, leadNames }] as const;
-        })
+      const res = await apiFetch(
+        `/api/v1/admin/teams/list-summary?ids=${encodeURIComponent(teamIdsBatchKey)}`
       );
-      return Object.fromEntries(entries);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as Record<string, TeamBatchRow>;
     },
     enabled: teamIdsForBatch.length > 0,
   });
@@ -206,8 +195,10 @@ export function AdminTeamsTab() {
       if (tid) {
         void queryClient.invalidateQueries({ queryKey: ['teams', tid, 'members'] });
         void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', tid, 'members'] });
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', tid, 'team-leads'] });
         void queryClient.invalidateQueries({ queryKey: ['teams', tid, 'team-leads'] });
       }
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', 'list-summary'] });
       void queryClient.invalidateQueries({ queryKey: ['teams', 'batch'] });
     },
     [queryClient]
