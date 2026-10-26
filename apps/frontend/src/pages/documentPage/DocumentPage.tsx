@@ -11,7 +11,7 @@ export function DocumentPage() {
 
   if (vm.isPending) {
     return (
-      <Box className="document-page-shell" px="md">
+      <Box className="document-page-shell">
         <DocumentPagePendingView />
       </Box>
     );
@@ -19,7 +19,7 @@ export function DocumentPage() {
 
   if (vm.isError || !vm.data || !vm.documentId) {
     return (
-      <Box className="document-page-shell" px="md">
+      <Box className="document-page-shell">
         <DocumentPageErrorView />
       </Box>
     );

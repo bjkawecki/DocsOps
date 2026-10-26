@@ -1,10 +1,10 @@
-import { Box, Stack, Text, Button } from '@mantine/core';
+import { Stack, Text, Button } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 
 export function NotFoundPage() {
   return (
-    <Box px="md">
+    <>
       <PageHeader title="Page not found" />
       <Stack gap="md">
         <Text size="sm" c="dimmed">
@@ -14,6 +14,6 @@ export function NotFoundPage() {
           Back to Dashboard
         </Button>
       </Stack>
-    </Box>
+    </>
   );
 }
