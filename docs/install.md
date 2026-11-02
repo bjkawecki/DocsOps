@@ -1,0 +1,431 @@
+# Installation (Production, Intranet)
+
+Anleitung für **Self-hosted** DocsOps auf einem Linux-Server im Intranet. Entwicklung und „prod-nah“ lokal: [Development-Anleitung](Development-Anleitung.md) (Port 5000, `docker-compose.override.yml`).
+
+**Deployment:** Release-Bundle + Container-Images von **GHCR** (`docker compose pull`). Kein Git-Clone, kein `docker compose build` auf dem Server.
+
+**Deployment-Annahme:** Production = **Intranet-Self-hosted** auf einem Linux-Host. **Default:** HTTPS auf Port **443** (`DOCSOPS_TLS_MODE=internal`, Caddy self-signed) plus HTTP :80 für Health/Redirect. `SESSION_COOKIE_SECURE=1`. Bewusstes HTTP-only: `DOCSOPS_TLS_MODE=off`. Öffentliche Domain: `DOCSOPS_TLS_MODE=acme` mit `DOCSOPS_TLS_DOMAIN` und `DOCSOPS_TLS_EMAIL`. Air-gap: [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
+
+---
+
+## Systemanforderungen
+
+Install lädt vorgebaute Images von der Registry (`docker compose pull`) – typisch **2–5 Minuten** nach Download. **Empfohlen:** 8 GB RAM, 40 GB Disk auf `/` (inkl. Docker).
+
+| Profil      | RAM   | Disk   |                           |
+| ----------- | ----- | ------ | ------------------------- |
+| Minimum     | 4 GB  | 20 GB  | Lab/Test                  |
+| Empfohlen   | 8 GB  | 40 GB  | Intranet-Production       |
+| Komfortabel | 16 GB | 80 GB+ | MinIO/Backups wachsen mit |
+
+Host: Linux, `sudo`, Ports **80** und **443** frei (bei `DOCSOPS_TLS_MODE=off` reicht 80); curl/openssl/Docker bei Bedarf via Skript.
+
+Vor Install: `df -h /`, `free -h` – unter **~4 GB frei** oft `no space left on device`. Dann `docker system prune -af` / Disk vergrößern.
+
+---
+
+## Konfiguration: Dev vs. Production
+
+|                        | **Entwicklung**                                   | **Production**                                                             |
+| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
+| Code                   | Git-Clone (Monorepo)                              | Release-Bundle unter `/opt/docsops` (Compose, Skripte – kein Quellcode)    |
+| Images                 | lokal gebaut (`docker-compose.override.yml`)      | GHCR: `ghcr.io/bjkawecki/docsops-{app,worker,frontend}:vX.Y.Z`             |
+| Secrets/Konfig         | `.env` im **Repo-Root** (aus `.env.example`)      | **`/etc/docsops/docsops.env`**                                             |
+| Compose                | `docker-compose.yml` + `override` → Port **5000** | `docker-compose.yml` + `deploy/docker-compose.prod.yml` → **80** + **443** |
+| Zugriff                | localhost                                         | Intranet: IP oder Hostname (z. B. `docsops.intranet`)                      |
+| TLS / HTTPS            | nicht nötig (Dev)                                 | **Default `internal`** (self-signed); `acme` oder `off` per Env            |
+| Session-Cookies        | Dev-Stack                                         | Default mit `Secure` (TLS); bei `DOCSOPS_TLS_MODE=off` ohne Secure         |
+| Seed-Daten             | automatisch bei leerer DB                         | **nein** (nur Admin via Install)                                           |
+| Debug („View as user“) | Dev-Frontend (`import.meta.env.DEV`)              | **nicht** im Production-Build                                              |
+| Wer legt Secrets an?   | Entwickler manuell                                | **Install-Skript** (generiert + Admin-Abfragen)                            |
+
+### Production vs. Demo
+
+|                       | **Intranet-Production** (Install-Skript)                | **Demo** (öffentliche Demo-Instanz)         |
+| --------------------- | ------------------------------------------------------- | ------------------------------------------- |
+| Compose               | `docker-compose.yml` + `deploy/docker-compose.prod.yml` | zusätzlich `deploy/docker-compose.demo.yml` |
+| `DEMO_MODE`           | **nicht** setzen                                        | `true`                                      |
+| Seed                  | nein                                                    | ja (CSV bei leerer DB)                      |
+| Debug / Impersonation | nein                                                    | nein                                        |
+
+**Demo-/Dev-Seed-Logins** (CSV + `create-admin`; Passwort überall `DocsOps1`):
+
+| Rolle             | E-Mail                                 | Quelle    |
+| ----------------- | -------------------------------------- | --------- |
+| Admin             | `admin@demo.docsops.local`             | `ADMIN_*` |
+| Knowledge Manager | `knowledge.manager@demo.docsops.local` | CSV       |
+| Company Lead      | `company.lead@demo.docsops.local`      | CSV       |
+| Department Lead   | `department.lead@demo.docsops.local`   | CSV       |
+| Team Lead         | `team.lead@demo.docsops.local`         | CSV       |
+| Member            | `member@demo.docsops.local`            | CSV       |
+
+Org: **Musterwerk IT GmbH** → Abteilung **Produktentwicklung** → Team **Barrierefreiheit**. Story: Software X / Stand Barrierefreiheit. `deploy/docker-compose.demo.yml` setzt Admin-Defaults auf die Adresse oben (per Env überschreibbar).
+
+### Öffentliche Demo (`docsops.de` / `demo.docsops.de`)
+
+Ziel: VPS mit DNS A/AAAA auf denselben Host; Caddy mit TLS (Ports 80 + 443).
+
+| Hostname          | Inhalt                                   |
+| ----------------- | ---------------------------------------- |
+| `docsops.de`      | Statische Landing (`apps/landing` Build) |
+| `demo.docsops.de` | Demo-App (`DEMO_MODE`, CSV-Seed)         |
+
+**Ein-Befehl-Setup** (empfohlen):
+
+```bash
+# DNS zuerst: A/AAAA docsops.de + demo.docsops.de → VPS-IP. Firewall: 80 und 443.
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo \
+  | sudo bash
+
+# Gepinnt:
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo \
+  | sudo bash -s -- --version v0.1.0
+```
+
+Das Skript richtet ein:
+
+- `/opt/docsops` (Bundle inkl. Public-Compose + Landing-Dist)
+- `/etc/docsops/docsops.env` (`DOCSOPS_DEMO_PROFILE=public`, Demo+Public-Overlays, `SESSION_COOKIE_SECURE=1`)
+- **kein** Server-`/etc/hosts` (öffentliches DNS)
+- täglichen Reset: `/etc/cron.d/docsops-demo` → `docsops-demo reset`
+- CLI unter `/usr/local/bin/docsops-demo`
+
+**CI nach Release:** Der Release-Workflow (`update-demo-server`) ruft nach dem GitHub Release den Deploy-Webhook auf. Der Host-Agent führt dann `docsops-demo update --version vX.Y.Z` und `docsops-demo reset` aus (frischer CSV-Seed).
+
+Secrets:
+
+| Secret                   | Pflicht | Bedeutung                                                                                                                                                                                                                                      |
+| ------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEMO_DEPLOY_HOOK_TOKEN` | ja      | Wert aus `/etc/docsops/docsops.env` → `DOCSOPS_DEMO_HOOK_TOKEN`                                                                                                                                                                                |
+| `DEMO_DEPLOY_HOOK_URL`   | nein    | Default `https://docsops.de/hooks/demo-deploy` (via Compose-Caddy). **Robuster:** `http://<VPS-IP>:8091/v1/demo-deploy` (direkt Host-Agent, Firewall nur 8091/tcp von GitHub oder mit Token-Auth; umgeht TLS-Ausfälle während `compose down`). |
+
+CI wartet maximal ~10 Minuten (Wall-Clock), mit kurzer Grace nach dem POST. Manuell: `sudo docsops-demo update --version v0.1.0 && sudo docsops-demo reset`.
+
+**Einmalig auf bestehendem Public-Demo-Server** (nach dem ersten Release mit Hook-Support, z. B. per Laptop-SSH):
+
+```bash
+sudo docsops-demo update --version v0.1.0
+# Token aus der Ausgabe oder:
+sudo grep DOCSOPS_DEMO_HOOK_TOKEN= /etc/docsops/docsops.env
+```
+
+Token als GitHub Actions Secret `DEMO_DEPLOY_HOOK_TOKEN` setzen. Alte SSH-Secrets (`DEMO_SERVER_*`) werden nicht mehr benötigt.
+
+**Vor DNS-Propagierung** (kurz Client-Hosts auf dem Laptop):
+
+```text
+<VPS-IP>  docsops.de demo.docsops.de
+```
+
+Bestehende Lab-Installation auf demselben Host besser vorher `docsops-demo-local uninstall` (oder `--reconfigure` nach Uninstall), damit Profile/Caddyfile/Landing nicht vermischt werden.
+
+### VM-Lab (Landing + Demo auf einer Ubuntu-VM)
+
+Ziel: Auf der VM ein Skript ausführen – danach sind Landing und Demo-App lokal erreichbar (ein Caddy auf Port 80, zwei Hostnamen).
+
+| Hostname             | Inhalt                                   |
+| -------------------- | ---------------------------------------- |
+| `docsops.local`      | Statische Landing (`apps/landing` Build) |
+| `demo.docsops.local` | Demo-App (`DEMO_MODE`, CSV-Seed)         |
+
+**Ein-Befehl-Setup** (empfohlen):
+
+```bash
+# Auf der VM (Release-Asset docsops-demo-local oder aus dem Bundle):
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/docsops-demo-local \
+  | sudo bash
+
+# Gepinnt:
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/docsops-demo-local \
+  | sudo bash -s -- --version v0.1.0
+
+# Mit lokalem Bundle + bereits geladenen Images (kein GHCR-Pull):
+DOCSOPS_BUNDLE_PATH=/pfad/docsops-v0.1.0.tar.gz \
+DOCSOPS_SKIP_IMAGE_PULL=1 \
+  sudo -E ./scripts/docsops-demo-local install --version v0.1.0
+```
+
+Das Skript richtet ein:
+
+- `/opt/docsops` (Bundle inkl. Lab-Compose + Landing-Dist)
+- `/etc/docsops/docsops.env` (`DOCSOPS_DEMO_PROFILE=local`, Demo+Lab-Overlays)
+- `/etc/hosts` auf der VM (`docsops.local` / `demo.docsops.local` → Host-IP)
+- täglichen Reset: `/etc/cron.d/docsops-demo-local` → `docsops-demo-local reset` (Volumes wipe + Seed)
+- CLI unter `/usr/local/bin/docsops-demo-local` (`status`, `reset`, `update`, `logs`, `uninstall`)
+
+**Client-Hosts** (Laptop/Browser-Host – zusätzlich zur VM):
+
+```text
+<VM-IP>  docsops.local demo.docsops.local
+```
+
+Die VM-IP zeigt das Install-Skript am Ende an.
+
+**Smoke** (von einem Host, der beide Namen auflöst):
+
+```bash
+./scripts/lab/smoke-vm-lab.sh
+# oder auf der VM nach Install:
+docsops-demo-local status
+```
+
+Login: Rollenwahl in `DEMO_MODE`, oder Seed-Accounts mit Passwort `DocsOps1`.
+
+Manuell ohne Ops-Skript (Auszug Env / Compose) – nur falls nötig:
+
+```bash
+# Env /etc/docsops/docsops.env u. a.:
+# COMPOSE_PROJECT_NAME=docsops-demo
+# LANDING_DIST_DIR=/opt/docsops/landing
+# … siehe docsops-demo-local / write_demo_env_file
+
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml \
+  -f deploy/docker-compose.demo.yml -f deploy/docker-compose.lab.yml \
+  up -d
+```
+
+Lokaler Domain-Reset ohne Volume-Wipe (Dev-Checkout):
+
+```bash
+cd apps/backend
+DEMO_MODE=true DEV_DESTRUCTIVE_DB_NAMES=docsops pnpm run demo:reset
+```
+
+Host-Reset (Demo-Volumes neu + Seed): `sudo docsops-demo-local reset` (lokal) bzw. `sudo docsops-demo reset` (public). Löscht nur Postgres-/MinIO-Volumes; **Caddy-TLS-Volumes (`caddy_data` / `caddy_config`) bleiben**, damit Let’s Encrypt nicht bei jedem Reset neue Zertifikate ausstellen muss.
+In Production brauchst du **keine `.env` im Deploy-Verzeichnis**. Das Install-Skript erzeugt stattdessen eine zentrale Env-Datei auf dem Host. Docker Compose bezieht Variablen daraus (`--env-file` oder systemd `EnvironmentFile`).
+
+---
+
+## Pfade
+
+```text
+/opt/docsops/                    Release-Bundle (Basis-Compose, deploy/, Install-Skripte)
+/opt/docsops/deploy/             Prod-/Demo-/CI-Overlays + Caddyfiles
+/etc/docsops/docsops.env         Secrets + DOCSOPS_VERSION / Image-Prefix (root:root, chmod 600)
+/etc/systemd/system/docsops.service   optional: Autostart nach Reboot
+```
+
+### Inhalt von `/etc/docsops/docsops.env` (vom Install-Skript)
+
+Das Skript legt die Datei an – **nicht** manuell vorbereiten. Typische Einträge:
+
+| Variable                         | Herkunft                              | Admin muss kennen?       |
+| -------------------------------- | ------------------------------------- | ------------------------ |
+| `DOCSOPS_VERSION`                | Release-Tag (z. B. `v0.1.0`)          | ja (für Updates)         |
+| `DOCSOPS_IMAGE_PREFIX`           | Default `ghcr.io/bjkawecki`           | nein                     |
+| `SESSION_SECRET`                 | generiert (`openssl rand -hex 32`)    | nein (intern)            |
+| `BACKUP_ENCRYPTION_KEY`          | generiert (`openssl rand -base64 32`) | **ja** – separat sichern |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | interaktive Abfrage beim Install      | ja (Login)               |
+| `DOCSOPS_HOSTNAME`               | optional (z. B. `docsops.intranet`)   | optional                 |
+| `COMPOSE_PROJECT_NAME`           | Default `docsops`                     | nein                     |
+
+**`BACKUP_ENCRYPTION_KEY`:** Das Install-Skript zeigt den Wert **einmal** im Terminal an. Danach nur noch unter `/etc/docsops/docsops.env`. Der Key gehört in einen **Passwortmanager** – er steckt **nicht** in Backup-Archiven. Verlust → gespeicherte Backup-Ziel-Credentials in der DB sind nicht mehr entschlüsselbar. Siehe auch [README – Operational backup](../README.md#operational-backup).
+
+Nach erfolgreicher Admin-Anlage reicht das Passwort als Hash in der Datenbank; `ADMIN_PASSWORD` in der Env-Datei ist nur für den ersten `create-admin`-Lauf nötig (kann später aus der Datei entfernt werden).
+
+### Stack starten (manuell, nach Install)
+
+```bash
+cd /opt/docsops
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml pull
+docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+```
+
+### Update
+
+```bash
+sudo /opt/docsops/scripts/update.sh
+```
+
+Ohne Argument: neuestes GitHub-Release. Bestimmte Version:
+
+```bash
+sudo /opt/docsops/scripts/update.sh v0.2.0
+```
+
+Lädt das neue Bundle, aktualisiert `DOCSOPS_VERSION` in `/etc/docsops/docsops.env`, `pull` + `up -d`.
+
+**Lokal testen (ohne GitHub-Release):** Siehe [`scripts/local-prod-update-test.sh`](../scripts/local-prod-update-test.sh) oder manuell mit `DOCSOPS_BUNDLE_PATH=/pfad/docsops-vX.Y.Z.tar.gz DOCSOPS_SKIP_IMAGE_PULL=1 sudo -E ./scripts/update.sh vX.Y.Z`.
+
+**Rollback:** Vor dem Update Bundle-Tarball und `/etc/docsops/docsops.env` sichern; bei Problemen alte Version in der Env-Datei setzen, altes Bundle nach `/opt/docsops` entpacken, `docker compose pull && up -d`.
+
+**Admin „Apply update“ (Host-Agent):** `docsops-agent` läuft als **systemd-Dienst auf dem Host** (nicht im Compose-Stack). Die App ruft `POST /v1/apply` über `DOCSOPS_AGENT_URL` an (Standard: `http://host.docker.internal:8091`). Status: `GET /v1/status` mit Bearer `DOCSOPS_AGENT_TOKEN`.
+
+**Update-UX (Admin-UI):** Modal mit Stepper und Fortschritt; bei Container-Neustart optional **Update status page** in neuem Tab (`/update-status.html?target=vX.Y.Z&from=vA.B.C` – pollt `/health` und `/api/v1/system/version`, leitet nach erfolgreichem Versions-Match zu `/` weiter). Globaler Banner nur während laufendem Update (`preparing` / `restarting`); kein separates Success-Banner mit Auto-Reload.
+
+**Agent Troubleshooting:**
+
+```bash
+# Agent läuft?
+sudo systemctl status docsops-agent
+curl -sf -H "Authorization: Bearer $(grep '^DOCSOPS_AGENT_TOKEN=' /etc/docsops/docsops.env | cut -d= -f2-)" \
+  http://127.0.0.1:8091/v1/status
+
+# Manuell vom Host (wie update.sh intern):
+sudo /opt/docsops/scripts/update.sh v0.2.0
+
+# Agent-Logs (JSON-Lines):
+sudo tail -100 /var/lib/docsops/agent.log
+```
+
+Hängender Update-Run in der Admin-UI: App neu starten (Reconciliation) oder Agent-Status/Logs prüfen.
+
+**Bestehende VMs vor dem Host-Agent-Release:** Stack löschen und mit aktuellem Release neu installieren (`curl | sudo bash`) — kein In-Place-Migrationspfad.
+
+### Deinstallation
+
+DocsOps vollständig entfernen (Container, Volumes, `/opt/docsops`, `/etc/docsops/docsops.env`, systemd):
+
+```bash
+sudo /opt/docsops/scripts/uninstall-prod.sh
+```
+
+Alternativ per curl (lädt bei Bedarf das neueste Release-Bundle nur für das Skript):
+
+```bash
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/uninstall.sh | sudo bash
+```
+
+Das Skript fragt interaktiv nach Bestätigung (`yes`). Optionen:
+
+| Option              | Wirkung                                   |
+| ------------------- | ----------------------------------------- |
+| `--keep-data`       | DB- und MinIO-Volumes behalten            |
+| `--keep-config`     | `/etc/docsops/docsops.env` behalten       |
+| `--keep-deploy-dir` | `/opt/docsops` (Compose/Skripte) behalten |
+| `--purge-images`    | Container-Images von GHCR/lokal entfernen |
+
+Automation: `DOCSOPS_NON_INTERACTIVE=1 DOCSOPS_ASSUME_YES=1 sudo …/uninstall-prod.sh`
+
+Danach Neuinstallation wie oben mit `install.sh`.
+
+### systemd (optional, Autostart)
+
+Unit-Datei `/etc/systemd/system/docsops.service`:
+
+```ini
+[Unit]
+Description=DocsOps (Docker Compose)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/docsops
+EnvironmentFile=/etc/docsops/docsops.env
+ExecStart=/usr/bin/docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+ExecStop=/usr/bin/docker compose --env-file /etc/docsops/docsops.env \
+  -f docker-compose.yml -f deploy/docker-compose.prod.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now docsops.service
+```
+
+`EnvironmentFile` lädt dieselben Variablen wie `--env-file` – systemd setzt sie für den `docker compose`-Prozess (Substituierung `${…}` in der Compose-Datei).
+
+---
+
+## Persistente Docker-Volumes (Production)
+
+| Volume          | Inhalt                                           |
+| --------------- | ------------------------------------------------ |
+| `postgres_data` | Datenbank                                        |
+| `minio_data`    | Anhänge, Exporte, Backup-Objekte                 |
+| `caddy_data`    | TLS-Zertifikate (Caddy; bei `internal` / `acme`) |
+
+Secrets liegen in **`/etc/docsops/docsops.env`** auf dem Host, nicht in einem extra Docker-Volume (einfacher zu backuppen und zu dokumentieren).
+
+**Backup:** Operatives Backup (§25) sichert DB + MinIO. **`/etc/docsops/docsops.env`** (mindestens `BACKUP_ENCRYPTION_KEY`) **zusätzlich** sichern – z. B. Passwortmanager + Config-Backup des Servers.
+
+---
+
+## Zugriff im Intranet
+
+- **Default (HTTPS tls internal):** `https://<server-ip>/` (Browser-Warnung für self-signed einmal bestätigen)
+- **HTTP-only** (`DOCSOPS_TLS_MODE=off`): `http://<server-ip>/`
+- **Mit Hostname:** internes DNS oder `/etc/hosts` auf Client-Rechnern, z. B. `192.168.1.50 docsops.intranet`
+
+Air-gap (kein Registry-/GitHub-Zugriff): [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
+
+Das Install-Skript richtet kein VPN und kein zentrales DNS ein (Hinweis in Doku reicht).
+
+---
+
+## Installation
+
+**Standard (VM / Intranet-Server):**
+
+```bash
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/latest/download/install.sh | sudo bash
+```
+
+Lädt das **neueste** Release-Bundle nach `/opt/docsops`, installiert bei Bedarf Docker und startet DocsOps (**HTTPS :443** Default, Health weiter auf :80). Nur **Release-Tags** (`vX.Y.Z`) – kein Branch `main`. Die Version ist im heruntergeladenen `install.sh` eingebettet (Skript, Bundle und Images passen zusammen).
+
+**Bestimmte Version (Pinning):**
+
+```bash
+curl -fsSL https://github.com/bjkawecki/docs-ops/releases/download/v0.1.0/install.sh | sudo bash
+# oder: DOCSOPS_VERSION=v0.1.0 curl -fsSL …/releases/latest/download/install.sh | sudo bash
+```
+
+Beim **Re-Install** erkennt das Skript den DocsOps-Caddy auf Port 80 und fährt mit Update fort. Existiert bereits `/etc/docsops/docsops.env`, fragt **Schritt „Konfiguration“** interaktiv, ob die bestehende Datei beibehalten werden soll (Default: ja). Mit `--reconfigure` oder Antwort **n** werden neue Secrets erzeugt. Bei fremden Webservern auf Port 80 (Apache, nginx, …) vor der Erstinstallation: Dienst stoppen.
+
+**Aus entpacktem Bundle** (z. B. nach manuellem Download von `docsops-vX.Y.Z.tar.gz`):
+
+```bash
+export DOCSOPS_VERSION=v0.1.0
+sudo ./install.sh
+```
+
+**Non-interactive** (CI/Automation):
+
+```bash
+export DOCSOPS_VERSION=v0.1.0
+export DOCSOPS_NON_INTERACTIVE=1 DOCSOPS_ASSUME_YES=1
+export ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='min-6-chars'
+sudo -E /opt/docsops/scripts/install-prod.sh
+```
+
+Mit bestehender `/etc/docsops/docsops.env` wird diese im Non-interactive-Modus standardmäßig wiederverwendet (`DOCSOPS_USE_EXISTING_CONFIG=1`). Neue Secrets: `DOCSOPS_USE_EXISTING_CONFIG=0` oder `--reconfigure`.
+
+Flags: `--reconfigure` (neue Secrets ohne Rückfrage), `--install-systemd`, Hilfe via `--help`.
+
+**CI:** `deploy/docker-compose.ci.yml` mappt Caddy auf Port **8080**; `deploy/docker-compose.ci-seed.yml` setzt `DEMO_MODE` (CSV-Seed). `DOCSOPS_EXTRA_COMPOSE_FILES=deploy/docker-compose.ci.yml:deploy/docker-compose.ci-seed.yml`, `DOCSOPS_HEALTH_URL=http://127.0.0.1:8080/health`, `DOCSOPS_TLS_MODE=off`. Nach Health: Playwright E2E (`apps/e2e`) via Demo-Rollenwahl **Team Member** → Catalog → Dokument.
+
+---
+
+## Troubleshooting
+
+### Login: `GET /api/v1/me` → 401 nach Anmeldung
+
+Bei **HTTPS** (`DOCSOPS_TLS_MODE=internal|acme`) muss `SESSION_COOKIE_SECURE=1` gesetzt sein (Install setzt das). Clients müssen die **https://**-URL nutzen.
+
+Bei bewusst **HTTP-only** (`DOCSOPS_TLS_MODE=off`): `SESSION_COOKIE_SECURE` muss `0`/unset sein – sonst speichert der Browser das Cookie nicht.
+
+- Im Browser (DevTools → Application → Cookies): nach Login muss `sessionId` sichtbar sein.
+- Ein 401 auf `/me` **vor** dem Login (Login-Seite) ist normal.
+
+### `docker compose pull` schlägt fehl
+
+- `DOCSOPS_VERSION` in `/etc/docsops/docsops.env` muss ein existierendes Release sein (`vX.Y.Z`).
+- Server braucht ausgehenden HTTPS-Zugriff auf `ghcr.io`, oder Air-gap: [Runbook-Air-Gap-Install](plan/Runbook-Air-Gap-Install.md).
+
+---
+
+## Siehe auch
+
+- [Infrastruktur & Deployment](plan/Infrastruktur-und-Deployment.md)
+- [Env- und Config](plan/Env-und-Config.md)
+- [Runbook Backup/Restore](plan/Runbook-Backup-Restore.md)
+- [Runbook Air-Gap Install](plan/Runbook-Air-Gap-Install.md)

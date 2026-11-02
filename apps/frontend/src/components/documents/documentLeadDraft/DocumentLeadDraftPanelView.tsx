@@ -1,0 +1,145 @@
+import { Alert, Box, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LeadDraftTiptapEditor } from '../LeadDraftTiptapEditor.js';
+import { DraftCollaborationBanner } from './DraftCollaborationBanner.js';
+import { DraftSyncMetaBar } from './DraftSyncMetaBar.js';
+import type { DocumentLeadDraftPanelViewProps } from './useDocumentLeadDraftPanelState.js';
+
+export type { DocumentLeadDraftPanelViewProps };
+
+export function DocumentLeadDraftPanelView({
+  editorRef,
+  remotePending,
+  setRemotePending,
+  applyIncoming,
+  appliedRevision,
+  incomingRevision,
+  canEdit,
+  canPublish,
+  dirty,
+  draftLooksEmpty,
+  publishedFallbackAvailable,
+  handleResetDraftFromPublished,
+  appliedDoc,
+  appliedFingerprint,
+  setDirty,
+  handleSave,
+  handleLoadLatest,
+  otherEditors,
+  rawJsonOpened,
+  setRawJsonOpened,
+  knownServerRevision,
+  isRevisionStale,
+  editorMode,
+  currentUserId,
+  currentUserName,
+  documentId,
+}: DocumentLeadDraftPanelViewProps) {
+  const { t } = useTranslation('documents');
+  const authorNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const editor of otherEditors) {
+      map[editor.userId] = editor.name;
+    }
+    if (currentUserId && currentUserName) {
+      map[currentUserId] = currentUserName;
+    }
+    return map;
+  }, [currentUserId, currentUserName, otherEditors]);
+
+  const editorEditable = !!canEdit && (editorMode !== 'author' || !!currentUserId);
+  const sessionLoading = !!canEdit && editorMode === 'author' && !currentUserId;
+
+  const chromePrefix = (
+    <>
+      <DraftSyncMetaBar
+        dirty={dirty}
+        isRevisionStale={isRevisionStale}
+        knownServerRevision={knownServerRevision}
+        otherEditors={otherEditors}
+      />
+      <Stack gap="sm" mb="sm">
+        <DraftCollaborationBanner
+          canPublish={!!canPublish}
+          remotePending={remotePending}
+          dirty={dirty}
+          knownServerRevision={knownServerRevision}
+          appliedRevision={appliedRevision}
+          incomingRevision={incomingRevision}
+          onLoadLatest={() => void handleLoadLatest()}
+          onKeepMine={() => setRemotePending(null)}
+        />
+        {sessionLoading && (
+          <Text size="xs" c="dimmed">
+            {t('leadDraft.loadingSession')}
+          </Text>
+        )}
+        {canEdit && draftLooksEmpty && publishedFallbackAvailable && (
+          <Alert color="yellow" title={t('leadDraft.draftEmptyTitle')}>
+            <Stack gap="xs">
+              <Text size="sm">{t('leadDraft.draftEmptyBody')}</Text>
+              <Group gap="xs">
+                <Button
+                  size="xs"
+                  variant="filled"
+                  onClick={() => void handleResetDraftFromPublished()}
+                >
+                  {t('leadDraft.resetToPublished')}
+                </Button>
+              </Group>
+            </Stack>
+          </Alert>
+        )}
+      </Stack>
+    </>
+  );
+
+  return (
+    <Box className="document-page-edit-fill">
+      <LeadDraftTiptapEditor
+        ref={editorRef}
+        sourceDocument={appliedDoc}
+        contentFingerprint={appliedFingerprint}
+        baselineFingerprint={appliedFingerprint}
+        editable={editorEditable}
+        editorMode={editorMode}
+        authorId={currentUserId}
+        documentId={documentId}
+        chromePrefix={chromePrefix}
+        onDirtyChange={setDirty}
+        onSaveShortcut={() => {
+          void handleSave();
+        }}
+        suggestionInteractions={{
+          documentId,
+          draftRevision: appliedRevision ?? incomingRevision,
+          persistedDocument: appliedDoc,
+          canPublish: !!canPublish,
+          currentUserId,
+          authorNameById,
+          onApplied: (revision, doc) => applyIncoming(revision, doc),
+          onLocalChange: () => setDirty(true),
+        }}
+      />
+      <Modal
+        opened={rawJsonOpened}
+        onClose={() => setRawJsonOpened(false)}
+        title={t('leadDraft.rawJsonTitle')}
+        centered
+        size="xl"
+      >
+        <Textarea
+          readOnly
+          minRows={12}
+          autosize
+          maxRows={28}
+          value={JSON.stringify(editorRef.current?.getBlockDocument() ?? appliedDoc, null, 2)}
+          styles={{
+            input: { fontFamily: 'var(--mantine-font-family-monospace)', fontSize: 12 },
+          }}
+        />
+      </Modal>
+    </Box>
+  );
+}

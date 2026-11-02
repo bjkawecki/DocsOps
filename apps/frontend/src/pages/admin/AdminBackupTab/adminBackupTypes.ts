@@ -1,0 +1,87 @@
+/** Not a full `TFunction`; matches the shape returned by `useTranslation('admin').t`. */
+export type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+export type BackupStatus = {
+  minioAvailable: boolean;
+  workerConnected: boolean;
+  maintenanceActive: boolean;
+  maintenanceReason?: string | null;
+  maintenanceBackupRunId?: string | null;
+  maintenanceRestoreRunId?: string | null;
+  encryptionConfigured: boolean;
+  retentionCount: number;
+  defaultDestinationId: string | null;
+  autoBackupConfigured: boolean;
+  schedule: { enabled: boolean; cron: string | null; tz: string | null };
+  postgresVersion?: string | null;
+  pgDumpVersion?: string | null;
+  pgDumpCompatible?: boolean | null;
+};
+
+export type CredentialFieldLengths = {
+  accessKeyId?: number;
+  secretAccessKey?: number;
+  username?: number;
+  password?: number;
+  privateKey?: number;
+};
+
+export type Destination = {
+  id: string;
+  name: string;
+  type: 'S3_COMPATIBLE' | 'SSH' | 'WEBDAV';
+  enabled: boolean;
+  configJson: Record<string, unknown>;
+  /** Lengths of stored secrets only (never values) for edit-form masks. */
+  credentialFieldLengths?: CredentialFieldLengths;
+};
+
+export type BackupRun = {
+  id: string;
+  status: string;
+  triggerSource: string;
+  sizeBytes: number | null;
+  createdAt: string;
+  finishedAt: string | null;
+  errorMessage: string | null;
+  destination: { id: string; name: string; type: 'S3_COMPATIBLE' | 'SSH' | 'WEBDAV' } | null;
+  localObjectKey: string | null;
+  remotePath: string | null;
+};
+
+export type RestoreRun = {
+  id: string;
+  status: string;
+  source: 'history' | 'upload';
+  backupRunId: string | null;
+  errorMessage: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  createdAt: string;
+  backupRun: { id: string; createdAt: string } | null;
+};
+
+export const BACKUP_STATUS_COLOR: Record<string, string> = {
+  queued: 'gray',
+  running: 'blue',
+  uploading: 'cyan',
+  succeeded: 'green',
+  failed: 'red',
+};
+
+export type BackupSchedulePreset = 'daily-3utc' | 'weekly-mon-3utc';
+
+export const BACKUP_SCHEDULE_PRESETS: Array<{
+  value: BackupSchedulePreset;
+  label: string;
+  cron: string;
+  tz: string;
+}> = [
+  { value: 'daily-3utc', label: 'Daily at 03:00 UTC', cron: '0 3 * * *', tz: 'UTC' },
+  {
+    value: 'weekly-mon-3utc',
+    label: 'Weekly on Monday at 03:00 UTC',
+    cron: '0 3 * * 1',
+    tz: 'UTC',
+  },
+];

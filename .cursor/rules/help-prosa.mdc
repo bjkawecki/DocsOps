@@ -1,0 +1,61 @@
+---
+description: Help-Prosa – sechs Checks für Schreiben und Prüfen von /help-Copy
+globs: apps/frontend/src/i18n/locales/**/help.json,apps/frontend/src/pages/help/**/*
+alwaysApply: false
+---
+
+# Help-Prosa (`/help`)
+
+Gilt für In-App-Hilfe: `help` i18n (EN+DE) und Help-Seiten. Fortschritt: [Umsetzungs-Todo §20 Help](../../docs/plan/Umsetzungs-Todo.md).
+
+Adressat: Nutzer, die DocsOps noch nicht kennen oder ihr Wissen erweitern. Begriffe einführen, bevor sie vorausgesetzt werden.
+
+## Sechs Checks (jeder Satz / Absatz)
+
+Vor Schreiben und bei „prüfen“: alle Checks bestehen – sonst streichen oder umschreiben.
+
+### 1. Anschluss
+
+- Jeder Satz und Absatz knüpft an bereits Genanntes an (Thema–Rhema); kein neues Leitwort ohne Brücke.
+- **Nahtlos nach oben:** schließt an den bisherigen Artikel-/Abschnittsinhalt an; keine Sprünge.
+- **Kein Vorgriff:** erklärt nicht im Detail, was spätere Artikel oder Abschnitte leisten (z. B. Einheiten, Wiki-Vergleich, Rollen) – nur soweit für die Leitfrage dieses Textes nötig.
+- Vom Allgemeinen zum Besonderen; bei „Was ist …?“: Definition und allgemeine Leistung zuerst; Vertiefung später.
+- Vgl. [deutsche-marketing-prosa](deutsche-marketing-prosa.mdc).
+
+### 2. Erklärung
+
+- Sagt *wie* oder *warum*, nicht nur Etiketten („ordnet entlang…“, „gebunden…“).
+- Beantwortet eine echte Frage aus dem bisherigen Text; keine Antwort auf Ungestelltes.
+- Behauptungen und Abgrenzungen brauchen Anschluss und Begründung (kein isolierter Fakt, keine unbelegbare Empirie wie „Viele Teams nutzen…“).
+- **Überblicksartikel:** Prinzipien und Probleme, die DocsOps löst oder nicht löst – keine einzelnen Produktfunktionen. Abkürzungen ausschreiben, wenn sie nicht geläufig sind.
+- **Keine Beispielkataloge ohne Not:** Konkrete Nachbar-Orte (Chat, Dateiablage, …) oder Produktnamen nur, wenn die Leitfrage sie braucht; bei „Was ist …?“ Zweck und Prinzip allgemein formulieren.
+
+### 3. Einmal
+
+- Kein Gedanke zweimal (Satz, Absatz, Abschnitt).
+- Keine bedeutunglosen Füllwörter – weglassen oder präzise ersetzen (z. B. leeres „auch“, „Dazu gehört,“, „wirkt“, „oft“, wenn ohne Aussage).
+- Jeder Satz muss dem Leser etwas Neues oder Nötiges geben.
+
+### 4. Register
+
+- Unpersönlich (nicht Du/Sie); generisches Maskulinum oder neutral („die Leitung“, „der Nutzer“, „in der Organisation wird…“). Kein Partizip-Gendern („Mitarbeitende“).
+- Sachlich, vollständige Sätze; kein Telegrafenstil, keine Umgangssprache, kein Pathos, keine Help-Floskeln.
+- Genug Raum zum Mitführen (Problem → Einordnung → Antwort) – nicht stenografieren und nicht mit leerer Wiederholung strecken.
+- Kein Em-Dash; kein Chat-Meta in der Copy ([no-em-dash](no-em-dash.mdc), [copy-feedback-kontext](copy-feedback-kontext.mdc)).
+- Keine Querverweise auf andere Help-Artikel. DE-Titel ohne EN-Lehnwörter; keine Stub-Labels in fertiger Copy. EN später gleicher Aufbau wie freigegebenes DE (siehe Arbeitsweise).
+
+### 5. Abschnittswert
+
+- Unschlüssige Abschnitte (redundant, ohne Leserfrage, nur mit Zwang füllbar): **Weglassen empfehlen und umsetzen** – nicht stopfen.
+- Abgrenzungen nur, wenn sie eine echte Unklarheit aus dem bisherigen Text klären; sonst späteren Artikel.
+
+### 6. Arbeitsweise
+
+1. Abschnitte (Überschriften / Leitfragen) zuerst freigeben – ohne Fließtext.
+2. Dann Abschnitt für Abschnitt schreiben, prüfen, freigeben.
+3. Nicht den ganzen Artikel ausformulieren, bevor die Abschnittsstruktur steht.
+4. **Nur Deutsch zuerst:** Help-Prosa und Titel nur in `de/help.json` ausformulieren und freigeben. Englisch (`en/help.json`) erst nachziehen, wenn die deutsche Fassung ok ist – nicht parallel mitschreiben.
+
+## Listen
+
+Nur bei echten Aufzählungen; Listenpunkte als vollständige Sätze. Sonst Prosa.

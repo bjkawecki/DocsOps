@@ -1,0 +1,397 @@
+{
+  "nav": {
+    "topicsAria": "Help topics",
+    "previous": "Previous article",
+    "next": "Next article"
+  },
+  "stub": {
+    "internalQuestion": "Internal question",
+    "outline": "Outline"
+  },
+  "groups": {
+    "gettingStarted": "Getting started",
+    "organisation": "Organisation",
+    "roles": "Roles",
+    "documents": "Documents"
+  },
+  "topics": {
+    "whatIsDocsOps": "What is DocsOps?",
+    "usingDocsOps": "Using DocsOps well",
+    "userInterface": "The user interface",
+    "organisationIntroduction": "What organisation is for",
+    "areas": "Scopes",
+    "contexts": "Contexts",
+    "planningOrganisation": "Setting up the organisation",
+    "rolesIntroduction": "What roles are for",
+    "userRoles": "User roles",
+    "specialRoles": "Special roles",
+    "documentsIntroduction": "What are documents?",
+    "templates": "Templates",
+    "lifecycle": "Lifecycle",
+    "documentFreshness": "Freshness",
+    "collaboration": "Collaboration"
+  },
+  "articles": {
+    "whatIsDocsOps": {
+      "lead": [
+        "DocsOps is software for knowledge management. Knowledge management here means handling the knowledge that arises in an organisation and is needed for the work. Members of the organisation capture that knowledge with DocsOps, organise it, and make it available so that work can follow from it.",
+        "This knowledge concerns the organisation’s day-to-day. It is about how work is done – in processes, rules, and standards – and about what is being worked on – the current state of concrete initiatives. DocsOps keeps that state on record so it is clear which version applies."
+      ]
+    },
+    "usingDocsOps": {
+      "lead": [
+        "DocsOps is meant for one task: capturing internal knowledge that the organisation works by. Other programmes do other things – tickets, coordination, code, evidence – and DocsOps does not replace them. That is why not everything that is written or stored somewhere also belongs in DocsOps. Criteria help decide which knowledge has its place here and which is better kept elsewhere."
+      ],
+      "sections": [
+        {
+          "heading": "Knowledge suited for DocsOps",
+          "paragraphs": [
+            "Suitable knowledge is knowledge the organisation works by: how processes, rules, and standards are followed, and what is being worked on in concrete initiatives. That includes, for example, a description of how new members are onboarded, a data-security policy, or the current state of a product or audit. Members of the organisation record this knowledge in DocsOps so the authoritative state remains clear.",
+            "Knowledge that remains useful beyond the moment is especially worthwhile. What is only temporary or relevant to a single task – for example a note for the next meeting – is rarely the right content for DocsOps."
+          ]
+        },
+        {
+          "heading": "Knowledge outside DocsOps",
+          "paragraphs": [
+            "Outside DocsOps remains above all knowledge and communication that is tied to another tool or only lives briefly. Tickets and work items belong in a ticketing system, short coordination in chat, source code in version control, raw files in file storage. Evidence and audit trails belong in the quality-management system."
+          ]
+        }
+      ]
+    },
+    "userInterface": {
+      "lead": [
+        "The DocsOps user interface brings together access to documents, to the organisation’s units, and to personal settings."
+      ],
+      "sections": [
+        {
+          "heading": "Sidebar",
+          "paragraphs": [
+            "The sidebar holds the application navigation: Home, Catalog, and under Areas the entries for company, department, team, and the personal area.",
+            "The sidebar also provides search for finding content by title or keyword. Account and settings are reached via the sidebar or the profile menu."
+          ]
+        },
+        {
+          "heading": "Important entry points",
+          "paragraphs": [
+            "The home page shows news and relevant notices about what is currently happening in DocsOps.",
+            "The catalog lists accessible documents and contexts. Through it, content can be found without first choosing a scope.",
+            "Under Areas one opens the content of company, department, and team as well as the personal area. The personal area is for one’s own preparatory work outside the organisational units."
+          ]
+        },
+        {
+          "heading": "Adjusting appearance",
+          "paragraphs": [
+            "In settings, colour, font size, and language can be set. Light and dark mode, as well as automatic adaptation to the system, are also available in the profile menu."
+          ]
+        }
+      ]
+    },
+    "organisationIntroduction": {
+      "lead": [
+        "DocsOps maps the organisation in the product so that internal knowledge does not sit as a loose collection beside the organisation."
+      ],
+      "sections": [
+        {
+          "heading": "Who may read which knowledge?",
+          "paragraphs": [
+            "Not all internal knowledge is equally accessible to everyone. Organisation in the product determines who may read contexts and documents – along the scopes users are assigned to.",
+            "Without that frame, it would not be determined who can reach a document in day-to-day work at all. Access follows the organisational structure, not a filing structure independent of it."
+          ]
+        },
+        {
+          "heading": "Where does knowledge belong?",
+          "paragraphs": [
+            "Read access alone does not yet say where a piece of knowledge belongs by subject. Within the organisation, knowledge is therefore assigned by content: related material sits together and stays findable by its subject.",
+            "Access and content assignment work together but answer different questions. One concerns who may read something; the other where it sits by subject."
+          ]
+        }
+      ]
+    },
+    "areas": {
+      "lead": [
+        "A scope is a unit of the organisation – company, department, or team – or a member’s personal area. Assignment to a scope determines which contexts and documents the user may read."
+      ],
+      "sections": [
+        {
+          "heading": "Company, department, and team",
+          "paragraphs": [
+            "Organisational scopes follow how the organisation is built: the company is divided into departments, departments into teams. Users are placed in that structure – with the company, optionally a department, optionally a team of that department. With the team, that team’s department is implied."
+          ]
+        },
+        {
+          "heading": "Read access in a scope",
+          "paragraphs": [
+            "Anyone assigned to a scope reads the contexts and documents of that scope. If the scope sits under a parent scope – the department under the company, the team under the department – read access also covers the contexts and documents of the parent scopes."
+          ]
+        },
+        {
+          "heading": "Personal scope",
+          "paragraphs": [
+            "Beside the organisational hierarchy, every member has a personal scope. It sits outside company, department, and team and is for one’s own preparatory work.",
+            "Company or department lead does not get automatic read access there. Other members see personal-scope content only when access is granted explicitly."
+          ]
+        }
+      ]
+    },
+    "contexts": {
+      "lead": [
+        "Contexts determine where knowledge belongs within a scope. DocsOps has two context kinds: processes and projects. Each document sits in exactly one context."
+      ],
+      "sections": [
+        {
+          "heading": "Processes",
+          "paragraphs": [
+            "A process is the context kind for lasting knowledge about how the organisation works: workflows, rules, and standards. Typical examples are onboarding, approval procedures, or a data-security policy. Documents hang directly on the process."
+          ]
+        },
+        {
+          "heading": "Projects",
+          "paragraphs": [
+            "A project is the context kind for knowledge about a concrete initiative or subject: what is being worked on and what the current state is. Projects are time-bounded. Examples are introducing a product or the state of an audit."
+          ]
+        },
+        {
+          "heading": "Process or project",
+          "paragraphs": [
+            "The choice of context kind follows the form of the knowledge. A process fits when it is about what to do when a certain case arises – for example when a new member joins. A project fits when it is about what is known about a certain subject and how that state is kept up to date.",
+            "The same topic can appear in both kinds: the process describes how accessibility is established; the project records the current state of accessibility. Which concrete context is chosen is the thematic decision."
+          ]
+        },
+        {
+          "heading": "Subcontexts",
+          "paragraphs": [
+            "Subcontexts exist only under projects. They organise a project’s documents – for example by modules or minutes – without being a separate initiative themselves. They are useful when a project would otherwise become hard to survey; for lean projects, documents directly on the project are enough."
+          ]
+        },
+        {
+          "heading": "Archive and trash",
+          "paragraphs": [
+            "Contexts can be archived or moved to the trash. Archived contexts do not appear in the normal lists; their documents are archived with them.",
+            "Moving a context to the trash also deletes its documents. If a document is restored from a context that is in the trash, it then has no context until it is assigned again."
+          ]
+        }
+      ]
+    },
+    "planningOrganisation": {
+      "lead": [
+        "The structure in DocsOps mirrors how work is organised: company, departments, and teams as the organisation is divided. That determines who may read contexts and documents by default."
+      ],
+      "sections": [
+        {
+          "heading": "Who decides the structure",
+          "paragraphs": [
+            "The admin sets up company, departments, and teams in DocsOps. The substantive division – which departments and teams exist and what they are called – mirrors the organisation and is not made as a purely technical decision.",
+            "Whoever defines departments and teams also helps decide who may read which contexts and documents by default. That belongs to how work is organised, not only to platform administration."
+          ]
+        },
+        {
+          "heading": "Consequences of the structure",
+          "paragraphs": [
+            "Members read content along the scopes they are assigned to, including parent scopes. An unsuitable structure leads to wrong access or to knowledge that is hard to find in day-to-day work.",
+            "Changes to the structure affect existing assignments. That is why it pays to clarify the division before creating a lot of content."
+          ]
+        },
+        {
+          "heading": "When which level",
+          "paragraphs": [
+            "Content sits in the scope whose default readership it should reach. Company-wide rules and standards sit at the company. What only concerns a department sits at the department. A team’s operational knowledge sits at the team.",
+            "Content placed too high is readable by too many; content placed too low later forces many grants across scope boundaries."
+          ]
+        },
+        {
+          "heading": "Use sharing sparingly",
+          "paragraphs": [
+            "Grants allow read access beyond the default assignment of scopes – for example when another team should read a document. They complement the structure; they do not replace it.",
+            "The closer the structure fits the organisation, the fewer grants are needed. Many grants are a sign to set scope or context assignment differently."
+          ]
+        }
+      ]
+    },
+    "rolesIntroduction": {
+      "lead": [
+        "Roles in DocsOps settle which rights a user has. Rights among other things control which responsibility the user carries."
+      ],
+      "sections": [
+        {
+          "heading": "Hierarchy and responsibility",
+          "paragraphs": [
+            "In an organisation, responsibility is staggered and tied to hierarchy. Depending on position in the hierarchy, users carry different decisions and consequences – that is the hierarchy principle.",
+            "DocsOps mirrors that principle: scope assignment and content membership alone do not yet settle which actions and which responsibility a user has. That requires roles."
+          ]
+        },
+        {
+          "heading": "Rights by role",
+          "paragraphs": [
+            "Each role bundles certain rights – the technical frame for which actions the user is allowed. With a role, the user may do what those rights cover.",
+            "From the rights follows the social side: responsibility. If a user has certain rights, that user carries the matching responsibility.",
+            "Alongside user roles in the organisation there are special roles for platform operations and content stewardship. They sit outside the hierarchy and are mutually exclusive with each other and with a user role on the same account."
+          ]
+        }
+      ]
+    },
+    "userRoles": {
+      "lead": [
+        "Anyone who contributes to organisation knowledge in DocsOps does so in a user role: lead or member."
+      ],
+      "sections": [
+        {
+          "heading": "Lead and authors",
+          "paragraphs": [
+            "The lead of a scope publishes new versions of the documents assigned there. A department or team has exactly one lead for that, while a company may have several.",
+            "A member reads the published state and does not write in the working copy. Members in company, department, and team can additionally become authors: authorship complements membership, does not replace the lead, and may be held by several people in the same scope. Authors contribute changes to the shared working copy as suggestions; only the lead may publish."
+          ]
+        },
+        {
+          "heading": "Who should be lead",
+          "paragraphs": [
+            "The substantive lead of a scope often also takes the lead role in DocsOps – for example the team lead in the team. That DocsOps lead role needs ongoing capacity to review input and suggestions, contribute documents, and sustain the publish process; position in the company hierarchy alone is not enough."
+          ]
+        },
+        {
+          "heading": "Overview",
+          "paragraphs": [],
+          "table": {
+            "headers": ["Action", "Lead", "Author", "Member"],
+            "rows": [
+              ["Read published state", "yes", "yes", "yes"],
+              ["Contribute to the working copy", "directly", "as suggestion", "no"],
+              ["Create or delete contexts and documents", "yes", "no", "no"],
+              ["Publish a new version", "yes", "no", "no"],
+              ["Grant access", "yes", "no", "no"]
+            ]
+          }
+        }
+      ]
+    },
+    "specialRoles": {
+      "lead": [
+        "DocsOps has two special roles. The admin operates the instance. The knowledge manager stewards organisation knowledge in explicitly assigned scopes."
+      ],
+      "sections": [
+        {
+          "heading": "Admin",
+          "paragraphs": [
+            "Admin covers installing and operating the instance as well as managing users, the organisation structure, and platform-wide settings. Backup and migration of the instance also belong here. For that, the admin uses the admin area of the application; there the work is organised into the groups Organisation, Operations, Data, and Platform.",
+            "The admin only reads company-owned contexts and documents; content writing and a personal space are not part of the role. Anyone who is the person behind the admin and wants to write uses their user account."
+          ]
+        },
+        {
+          "heading": "Knowledge Manager",
+          "paragraphs": [
+            "Unlike the admin, the knowledge manager writes content in assigned scopes without a lead seat in the hierarchy. The role makes sense, for example, when someone in the organisation is permanently responsible for knowledge stewardship, when existing knowledge is being set up in DocsOps for the first time, or when an external specialist should temporarily look after scopes.",
+            "The admin assigns company, departments, and teams to the account. Rights apply only to those exact entries; a company-level assignment does not extend to departments or teams.",
+            "In each assigned scope the same content rights apply as for the lead: read, write, create, delete, and publish. There is no personal space and no access to the admin area."
+          ]
+        }
+      ]
+    },
+    "documentsIntroduction": {
+      "lead": [
+        "Documents hold the organisation’s knowledge. Each document belongs to a context and thus to exactly one scope: company, department, team, or the personal scope."
+      ],
+      "sections": [
+        {
+          "heading": "Working copy and published version",
+          "paragraphs": [
+            "Changes are made in the working copy and saved there. Saving does not create a new version; only publishing does.",
+            "Only the lead of the scope the document is assigned to publishes a new version. Authors contribute to the working copy by submitting changes as suggestions; they may not publish.",
+            "While a document is unpublished, only those with write access see it. After publication, readers see the current state, not the ongoing working copy."
+          ]
+        },
+        {
+          "heading": "Personal scope",
+          "paragraphs": [
+            "In the personal scope, the owner is the lead: that person writes and publishes alone. A committed version stays private – others see the content only when access is granted explicitly."
+          ]
+        },
+        {
+          "heading": "Moving",
+          "paragraphs": [
+            "Documents can be moved between contexts and scopes. Within the same scope, the change is immediate. Across scope boundaries – including from the personal scope into the organisation – a move request is required; the lead of the target scope accepts or declines it."
+          ]
+        },
+        {
+          "heading": "Archive and trash",
+          "paragraphs": [
+            "Archiving hides a document from the normal lists. Moving it to the trash removes it temporarily; from there it can be restored."
+          ]
+        }
+      ]
+    },
+    "templates": {
+      "lead": [
+        "A template gives a new document a start: a suggested structure, help for filling it in, and a label for the document type. Without a template, an empty draft is created.",
+        "The template does not decide where the knowledge belongs – that remains context and scope. Process and project each have their own templates.",
+        "Built-in templates are available depending on the context kind. Custom templates are provided by a scope’s lead or by the admin; anyone who may create documents can use them."
+      ]
+    },
+    "lifecycle": {
+      "lead": [
+        "A document’s lifecycle follows fixed stages: work on the working copy, make it ready to publish, publish. After that the new state applies for readers until the next round on the working copy begins. In the personal scope, author and lead fall away – there the owner goes through the stages alone."
+      ],
+      "sections": [
+        {
+          "heading": "Working on the working copy",
+          "paragraphs": [
+            "Every content change is made first in the working copy. There, work happens in the editor and is saved. Saving keeps the intermediate state but does not yet create a new version for readers.",
+            "From the document, the content can be exported as PDF – whether work is currently on the working copy or on the published version."
+          ]
+        },
+        {
+          "heading": "Authors and lead",
+          "paragraphs": [
+            "In the organisation, authors and lead share the same working copy. Authors propose changes; the lead writes directly and decides on suggestions: accept or decline.",
+            "While suggestions are open, the next stage stays blocked: publishing is only possible when the working copy has no open suggestions."
+          ]
+        },
+        {
+          "heading": "New version and history",
+          "paragraphs": [
+            "Publishing closes the cycle for this round: the working copy becomes the new version. The scope’s lead triggers that step.",
+            "Anyone who may read then sees the current state and can review earlier versions. Readers do not see the ongoing working copy or open suggestions – the next editing round begins again in the working copy."
+          ]
+        }
+      ]
+    },
+    "documentFreshness": {
+      "lead": [
+        "Published documents must be reviewed over time to confirm they still hold. “Documentation Observability” (Do11y) makes that review visible and decidable.",
+        "That responsibility sits with the lead of each scope and with the knowledge manager in their assigned scopes. They decide on the published version; an interval sets when the next review becomes due. Personal and archived documents are not reviewed. Readers continue to read the published version."
+      ]
+    },
+    "collaboration": {
+      "lead": [
+        "Knowledge in the organisation is created together. On the document, several paths are open: discuss, shape the working copy, grant access selectively, or bring preparatory work from the personal scope into the organisation."
+      ],
+      "sections": [
+        {
+          "heading": "Discussion on the document",
+          "paragraphs": [
+            "In the comment area, readers can ask questions, give hints, and discuss with one another. That way their input feeds into how the document takes shape.",
+            "Comments keep the conversation on the document and make feedback visible to everyone involved."
+          ]
+        },
+        {
+          "heading": "Contributing to the working copy",
+          "paragraphs": [
+            "Authors contribute to the shared working copy and submit changes as suggestions. The lead decides on the suggestions and thereby continues the working copy."
+          ]
+        },
+        {
+          "heading": "Opening access selectively",
+          "paragraphs": [
+            "With a grant, access can be opened for further people or teams – for example when another team should read along or someone should be involved temporarily.",
+            "Grants can apply for a limited need and then be removed again."
+          ]
+        },
+        {
+          "heading": "From personal scope into the organisation",
+          "paragraphs": [
+            "In the personal scope, knowledge can be developed and then brought into the organisation. The lead of the target scope decides on the move request.",
+            "After acceptance, the same person can continue contributing to the working copy there as an author."
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# CI install-test: enable CSV seed (DEMO_MODE) so Playwright can log in as a
+# seeded member/lead. Pair with deploy/docker-compose.ci.yml (port 8080).
+# Intranet production must not include this file.
+
+services:
+  app:
+    environment:
+      DEMO_MODE: 'true'

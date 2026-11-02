@@ -1,0 +1,117 @@
+import type { BlockDocumentV0 } from '../../api/document-types';
+
+export type DocumentScope =
+  | { type: 'personal'; name?: string | null }
+  | { type: 'company'; id: string; name?: string | null }
+  | { type: 'department'; id: string; name?: string | null }
+  | { type: 'team'; id: string; name?: string | null };
+
+export type WritersResponse = {
+  users: { userId: string; name: string }[];
+  teams: { teamId: string; name: string }[];
+  departments: { departmentId: string; name: string }[];
+};
+
+export type DocumentContributor = { id: string; name: string };
+
+export type DocumentResponse = {
+  id: string;
+  title: string;
+  content: string;
+  /** Lead-Draft-Revision (Block-System, EPIC-8). */
+  draftRevision?: number;
+  /** Lead-Draft-Blocks; null wenn noch nicht initialisiert. */
+  blocks?: BlockDocumentV0 | null;
+  publishedBlocks?: BlockDocumentV0 | null;
+  publishedBlocksSchemaVersion?: number | null;
+  pdfUrl: string | null;
+  contextId: string | null;
+  documentTypeKey?: string | null;
+  archivedAt: string | null;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  currentPublishedVersionId: string | null;
+  currentPublishedVersionNumber: number | null;
+  description: string | null;
+  createdById: string | null;
+  createdByName: string | null;
+  /** Contributors for the current published version, or draft cycle if unpublished. */
+  contributors?: DocumentContributor[];
+  writers?: WritersResponse;
+  documentTags: { tag: { id: string; name: string } }[];
+  canWrite: boolean;
+  canDelete: boolean;
+  canModerateComments?: boolean;
+  canPublish?: boolean;
+  /** Lead/KM may run Do11y actions and edit interval on this document. */
+  canRunHealthCheck?: boolean;
+  healthCheckIntervalDays?: number | null;
+  healthCheckNextAt?: string | null;
+  healthCheckNeedsUpdate?: boolean;
+  healthCheckNeedsArchive?: boolean;
+  healthCheckSnoozedUntil?: string | null;
+  healthCheckLastDecision?: string | null;
+  healthCheckLastDecisionAt?: string | null;
+  healthCheckLastDecisionBy?: { id: string; name: string } | null;
+  /** Org default interval (for create/edit placeholder when doc override is null). */
+  healthCheckDefaultIntervalDays?: number;
+  /** Org flag: platform auto-scan schedule is enabled. */
+  healthCheckAutoScanEnabled?: boolean;
+  /** Same-owner move from current context (scope lead / personal owner / admin). */
+  canMove?: boolean;
+  /** Cross-owner move request from current context. */
+  canRequestMove?: boolean;
+  canAcceptMove?: boolean;
+  pendingMoveRequest?: {
+    id: string;
+    toContextId: string;
+    fromContextId: string;
+    fromOwnerId: string;
+    toOwnerId: string;
+    note: string | null;
+    requestedById: string;
+    createdAt: string;
+    canWithdraw: boolean;
+    canAccept: boolean;
+    canReject: boolean;
+  } | null;
+  /** Scopes where the current user may set/clear Start here for this document. */
+  startHereScopes?: Array<{
+    scopeType: 'team' | 'department' | 'company';
+    scopeId: string;
+    scopeName: string;
+    isCurrent: boolean;
+  }>;
+  scope: DocumentScope | null;
+  contextOwnerId?: string | null;
+  contextType?: 'process' | 'project' | 'subcontext';
+  contextName?: string;
+  contextProcessId?: string | null;
+  contextProjectId?: string | null;
+  contextProjectName?: string | null;
+  subcontextId?: string | null;
+  subcontextName?: string | null;
+};
+
+export type PdfExportJobStatusResponse = {
+  jobId: string;
+  status: string;
+  state: string;
+  completedAt: string | null;
+  failedAt: string | null;
+  pdfReady: boolean;
+  downloadUrl: string | null;
+  error: string | null;
+};
+
+export type ContextOption = {
+  id: string;
+  contextId: string;
+  name: string;
+  kind: 'process' | 'project';
+  ownerId?: string | null;
+  /** Owner scope display name (company/department/team/personal) for cross-owner move labels. */
+  ownerDisplayName?: string | null;
+};

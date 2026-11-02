@@ -1,0 +1,135 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+
+export type AppShellBreadcrumbItem = {
+  key: string;
+  label: string;
+  to?: string;
+  icon?: ReactNode;
+  /** When true, render icon only (label remains the accessible name). */
+  iconOnly?: boolean;
+};
+
+type BreadcrumbsContextValue = {
+  items: AppShellBreadcrumbItem[] | null;
+  setItems: (items: AppShellBreadcrumbItem[] | null) => void;
+  actions: ReactNode | null;
+  setActions: (actions: ReactNode | null) => void;
+  /** Replaces the breadcrumb trail + actions row (e.g. Admin primary tabs). */
+  chromeBar: ReactNode | null;
+  setChromeBar: (chrome: ReactNode | null) => void;
+};
+
+const AppShellBreadcrumbsContext = createContext<BreadcrumbsContextValue | null>(null);
+
+export function AppShellBreadcrumbsProvider({ children }: { children: ReactNode }) {
+  const [items, setItemsState] = useState<AppShellBreadcrumbItem[] | null>(null);
+  const [actions, setActionsState] = useState<ReactNode | null>(null);
+  const [chromeBar, setChromeBarState] = useState<ReactNode | null>(null);
+  const setItems = useCallback((next: AppShellBreadcrumbItem[] | null) => {
+    setItemsState(next);
+  }, []);
+  const setActions = useCallback((next: ReactNode | null) => {
+    setActionsState(next);
+  }, []);
+  const setChromeBar = useCallback((next: ReactNode | null) => {
+    setChromeBarState(next);
+  }, []);
+  const value = useMemo(
+    () => ({ items, setItems, actions, setActions, chromeBar, setChromeBar }),
+    [items, setItems, actions, setActions, chromeBar, setChromeBar]
+  );
+  return (
+    <AppShellBreadcrumbsContext.Provider value={value}>
+      {children}
+    </AppShellBreadcrumbsContext.Provider>
+  );
+}
+
+function useBreadcrumbsContext(): BreadcrumbsContextValue {
+  const ctx = useContext(AppShellBreadcrumbsContext);
+  if (!ctx) {
+    throw new Error('useSetAppShellBreadcrumbs must be used within AppShell');
+  }
+  return ctx;
+}
+
+/** Register breadcrumb trail for the shell row; clears only on unmount. */
+export function useSetAppShellBreadcrumbs(items: AppShellBreadcrumbItem[] | null) {
+  const { setItems } = useBreadcrumbsContext();
+  const trailKey =
+    items == null
+      ? ''
+      : items.map((i) => `${i.key}\u0001${i.label}\u0001${i.to ?? ''}`).join('\u0002');
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  useEffect(() => {
+    setItems(itemsRef.current);
+  }, [trailKey, setItems]);
+
+  useEffect(() => {
+    return () => setItems(null);
+  }, [setItems]);
+}
+
+/**
+ * Register actions for the breadcrumb chrome row (e.g. People, Create).
+ * `syncKey` must be stable for a given actions payload (e.g. scopeKey + flags).
+ * Do not depend on React element identity – that causes maximum-update-depth loops.
+ */
+export function useSetAppShellBreadcrumbActions(actions: ReactNode | null, syncKey = '') {
+  const { setActions } = useBreadcrumbsContext();
+  const actionsRef = useRef(actions);
+  actionsRef.current = actions;
+  // Presence must be in the effect deps: callers often gate on `isWide` without
+  // putting it in syncKey. First paint can be compact (`useMediaQuery` → false),
+  // then wide – without `hasActions` the slot stays stuck at null.
+  const hasActions = actions != null;
+
+  useEffect(() => {
+    setActions(actionsRef.current);
+  }, [syncKey, hasActions, setActions]);
+
+  useEffect(() => {
+    return () => setActions(null);
+  }, [setActions]);
+}
+
+/**
+ * Replace the whole meter row under the top bar (no breadcrumbs).
+ * `syncKey` must be stable for the given chrome payload.
+ */
+export function useSetAppShellChromeBar(chrome: ReactNode | null, syncKey = '') {
+  const { setChromeBar } = useBreadcrumbsContext();
+  const chromeRef = useRef(chrome);
+  chromeRef.current = chrome;
+
+  useEffect(() => {
+    setChromeBar(chromeRef.current);
+  }, [syncKey, setChromeBar]);
+
+  useEffect(() => {
+    return () => setChromeBar(null);
+  }, [setChromeBar]);
+}
+
+export function useAppShellBreadcrumbItems(): AppShellBreadcrumbItem[] | null {
+  return useBreadcrumbsContext().items;
+}
+
+export function useAppShellBreadcrumbActions(): ReactNode | null {
+  return useBreadcrumbsContext().actions;
+}
+
+export function useAppShellChromeBar(): ReactNode | null {
+  return useBreadcrumbsContext().chromeBar;
+}

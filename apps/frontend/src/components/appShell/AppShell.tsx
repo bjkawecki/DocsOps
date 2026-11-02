@@ -1,0 +1,305 @@
+import { Outlet } from 'react-router-dom';
+import { AppShell as MantineAppShell, Box } from '@mantine/core';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiFetch } from '../../api/client';
+import type { MeResponse } from '../../api/me-types';
+import { meQueryKey } from '../../hooks/useMe';
+import { DocumentSearchProvider } from '../search/DocumentSearchContext.js';
+import { useDocumentSearch } from '../search/useDocumentSearch.js';
+import { SettingsModal } from '../settings/SettingsModal.js';
+
+const DocumentSearchModal = lazy(() =>
+  import('../search/DocumentSearchModal.js').then((m) => ({ default: m.DocumentSearchModal }))
+);
+import { AppShellBreadcrumbBar } from './AppShellBreadcrumbBar.js';
+import { AppShellBreadcrumbsProvider } from './AppShellBreadcrumbsContext.js';
+import { AppShellNavScopeProvider } from './AppShellNavScopeContext.js';
+import { AppShellDebugMenuSlot } from './AppShellDebugMenuSlot.js';
+import { AppShellImpersonationBannerSlot } from './AppShellImpersonationBannerSlot.js';
+import { AppShellTopBar } from './AppShellTopBar.js';
+import { AppShellNavbar } from './AppShellNavbar.js';
+import { AppShellSkipLink } from './AppShellSkipLink.js';
+import { useMaintenanceStatus } from '../../hooks/useMaintenanceStatus.js';
+import { usePublicConfig } from '../../hooks/usePublicConfig.js';
+import { useUpdateInProgressOverlay } from '../../hooks/useUpdateInProgressOverlay.js';
+import { LiveEventsProvider } from '../../hooks/LiveEventsProvider.js';
+import { useLiveEventsContext } from '../../hooks/liveEventsContext.js';
+import {
+  AppShellHeaderBanners,
+  countVisibleAppShellHeaderBanners,
+} from './AppShellHeaderBanners.js';
+import { APP_SHELL_STATUS_BANNER_ROW_HEIGHT } from './AppShellStatusBannerBar.js';
+import { useAppShellSidebarData } from './useAppShellSidebarData.js';
+import { useAppShellLayout } from './useAppShellLayout.js';
+import {
+  readSidebarCollapsedPreference,
+  writeSidebarCollapsedPreference,
+} from '../../lib/sidebarCollapsedPreference.js';
+import { MAIN_CONTENT_ID } from './appShellLayoutConstants.js';
+import './AppShell.css';
+
+type AppShellFrameProps = {
+  s: ReturnType<typeof useAppShellSidebarData>;
+  layout: ReturnType<typeof useAppShellLayout>;
+  search: ReturnType<typeof useDocumentSearch>;
+  maintenanceStatus: ReturnType<typeof useMaintenanceStatus>['data'];
+  updateOverlay: ReturnType<typeof useUpdateInProgressOverlay>;
+  demoMode: boolean;
+  onNavigate: () => void;
+};
+
+/** Load search UI (and react-markdown) only after the modal was opened once. */
+function DocumentSearchModalHost({ search }: { search: ReturnType<typeof useDocumentSearch> }) {
+  const [shouldLoad, setShouldLoad] = useState(search.searchModalOpen);
+  useEffect(() => {
+    if (search.searchModalOpen) setShouldLoad(true);
+  }, [search.searchModalOpen]);
+  if (!shouldLoad) return null;
+  return (
+    <Suspense fallback={null}>
+      <DocumentSearchModal
+        opened={search.searchModalOpen}
+        onClose={search.closeSearchModal}
+        modalSearch={search.modalSearch}
+        setModalSearch={search.setModalSearch}
+        modalSearchInputRef={search.modalSearchInputRef}
+        debouncedModalSearch={search.debouncedModalSearch}
+        searchInputReadyForQuery={search.searchInputReadyForQuery}
+        showSearchSpinner={search.showSearchSpinner}
+        searchDebouncePending={search.searchDebouncePending}
+        searchEnabled={search.searchEnabled}
+        searchError={search.searchError}
+        searchData={search.searchData}
+        goToCatalogFromModal={search.goToCatalogFromModal}
+      />
+    </Suspense>
+  );
+}
+
+function AppShellFrame({
+  s,
+  layout,
+  search,
+  maintenanceStatus,
+  updateOverlay,
+  demoMode,
+  onNavigate,
+}: AppShellFrameProps) {
+  const { status: liveEventsStatus } = useLiveEventsContext();
+  const headerBannerCount = countVisibleAppShellHeaderBanners({
+    updateVisible: updateOverlay.visible,
+    maintenanceStatus,
+    liveEventsStatus,
+    demoMode,
+  });
+  const headerHeight = headerBannerCount * APP_SHELL_STATUS_BANNER_ROW_HEIGHT;
+  const isContainedReadingPage =
+    /^\/documents\/[^/]+$/.test(s.location.pathname) ||
+    s.location.pathname.startsWith('/help') ||
+    s.location.pathname === '/templates';
+
+  return (
+    <DocumentSearchProvider value={{ openSearch: search.openSearch }}>
+      <AppShellBreadcrumbsProvider>
+        <AppShellNavScopeProvider>
+          <MantineAppShell
+            navbar={{
+              width: layout.navbarWidth,
+              breakpoint: 'sm',
+              collapsed: { mobile: layout.mobileNavbarCollapsed, desktop: false },
+            }}
+            padding={0}
+            header={{ height: headerHeight }}
+            style={{ flex: 1, minHeight: 0, height: '100%', overflow: 'hidden' }}
+          >
+            {headerHeight > 0 ? (
+              <MantineAppShell.Header withBorder={false}>
+                <AppShellHeaderBanners
+                  updateVisible={updateOverlay.visible}
+                  updatePhase={updateOverlay.phase}
+                  onUpdateReload={() => {
+                    updateOverlay.dismiss();
+                    window.location.reload();
+                  }}
+                  maintenanceStatus={maintenanceStatus}
+                  demoMode={demoMode}
+                />
+              </MantineAppShell.Header>
+            ) : null}
+
+            <AppShellDebugMenuSlot
+              show={s.showDebugMenu}
+              adminUsersLoading={s.adminUsersLoading}
+              adminUsersError={s.adminUsersError}
+              adminUsers={s.adminUsersRes?.items}
+              impersonateMutation={s.impersonateMutation}
+              resetPlatformMutation={s.resetPlatformMutation}
+              reseedPlatformMutation={s.reseedPlatformMutation}
+            />
+
+            {!layout.isDesktop && layout.mobileOpened ? (
+              <button
+                type="button"
+                className="app-shell-mobile-nav-scrim"
+                aria-hidden
+                tabIndex={-1}
+                onClick={layout.closeMobile}
+              />
+            ) : null}
+
+            <AppShellNavbar
+              s={s}
+              isMiniRail={layout.isMiniRail}
+              showDesktopToggle={layout.showDesktopToggle}
+              onToggleDesktop={layout.toggleDesktopCollapsed}
+              onNavigate={onNavigate}
+              onOpenSearch={() => search.openSearch()}
+              showSearch={layout.isDesktop}
+              showMobileClose={!layout.isDesktop && layout.mobileOpened}
+              onCloseMobile={layout.closeMobile}
+            />
+
+            <DocumentSearchModalHost search={search} />
+
+            <SettingsModal />
+
+            <MantineAppShell.Main id={MAIN_CONTENT_ID} component="main" className="app-shell-main">
+              <AppShellTopBar
+                mobileOpened={layout.mobileOpened}
+                onToggleMobile={layout.toggleMobile}
+                pathname={s.location.pathname}
+                unreadNotificationsCount={s.unreadNotificationsCount}
+                me={s.me}
+                accountMenuOpen={s.accountMenuOpen}
+                setAccountMenuOpen={s.setAccountMenuOpen}
+                logout={s.logout}
+              />
+              <Box
+                className="app-shell-main-body"
+                pt={{ base: 'md', md: 'sm' }}
+                pb={{ base: 'md', md: 'lg', xl: 'xl' }}
+                px={{ base: 'md', md: 'lg', xl: 'xl' }}
+              >
+                <AppShellBreadcrumbBar />
+                <AppShellImpersonationBannerSlot
+                  me={s.me}
+                  resolvedColorScheme={s.resolvedColorScheme}
+                  stopImpersonateMutation={s.stopImpersonateMutation}
+                />
+                <Box
+                  className={
+                    isContainedReadingPage
+                      ? 'app-shell-outlet app-shell-outlet--document'
+                      : 'app-shell-outlet'
+                  }
+                >
+                  <Outlet key={s.location.pathname} />
+                </Box>
+              </Box>
+            </MantineAppShell.Main>
+          </MantineAppShell>
+        </AppShellNavScopeProvider>
+      </AppShellBreadcrumbsProvider>
+    </DocumentSearchProvider>
+  );
+}
+
+export function AppShell() {
+  const s = useAppShellSidebarData();
+  const isAdmin = s.me?.user?.isAdmin === true;
+  const maintenanceQuery = useMaintenanceStatus();
+  const maintenanceStatus = maintenanceQuery.data;
+  const { data: publicConfig } = usePublicConfig();
+  const demoMode = publicConfig?.demoMode === true;
+  const updateOverlay = useUpdateInProgressOverlay(isAdmin);
+  const sidebarPinned = s.me?.preferences?.sidebarPinned ?? false;
+  const serverSidebarCollapsed = s.me?.preferences?.sidebarCollapsed;
+  const sidebarCollapsed = serverSidebarCollapsed ?? readSidebarCollapsedPreference() ?? false;
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (serverSidebarCollapsed !== undefined) {
+      writeSidebarCollapsedPreference(serverSidebarCollapsed);
+    }
+  }, [serverSidebarCollapsed]);
+
+  useEffect(() => {
+    if (!demoMode) return;
+    let meta = document.querySelector('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'robots');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', 'noindex, nofollow');
+  }, [demoMode]);
+
+  const patchSidebarCollapsed = useMutation({
+    mutationFn: async (collapsed: boolean) => {
+      const res = await apiFetch('/api/v1/me/preferences', {
+        method: 'PATCH',
+        body: JSON.stringify({ sidebarCollapsed: collapsed }),
+      });
+      if (!res.ok) throw new Error('Failed to save sidebar preference');
+      return res.json() as Promise<{ sidebarCollapsed?: boolean }>;
+    },
+    onMutate: async (collapsed) => {
+      await queryClient.cancelQueries({ queryKey: meQueryKey });
+      const previousMe = queryClient.getQueryData<MeResponse>(meQueryKey);
+      queryClient.setQueryData(meQueryKey, (old: MeResponse | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          preferences: { ...old.preferences, sidebarCollapsed: collapsed },
+        };
+      });
+      return { previousMe };
+    },
+    onError: (_err, _collapsed, context) => {
+      if (context?.previousMe) {
+        queryClient.setQueryData(meQueryKey, context.previousMe);
+      }
+    },
+  });
+
+  const layout = useAppShellLayout(
+    s.location.pathname,
+    sidebarPinned,
+    sidebarCollapsed,
+    (collapsed) => {
+      writeSidebarCollapsedPreference(collapsed);
+      patchSidebarCollapsed.mutate(collapsed);
+    }
+  );
+
+  const search = useDocumentSearch({ bindGlobalHotkey: true });
+
+  const handleNavigate = () => {
+    layout.closeMobile();
+  };
+
+  return (
+    <LiveEventsProvider>
+      <Box
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100dvh',
+          overflow: 'hidden',
+        }}
+      >
+        <AppShellSkipLink />
+        <AppShellFrame
+          s={s}
+          layout={layout}
+          search={search}
+          maintenanceStatus={maintenanceStatus}
+          updateOverlay={updateOverlay}
+          demoMode={demoMode}
+          onNavigate={handleNavigate}
+        />
+      </Box>
+    </LiveEventsProvider>
+  );
+}

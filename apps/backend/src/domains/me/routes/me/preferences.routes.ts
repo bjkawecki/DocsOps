@@ -1,0 +1,98 @@
+import type { FastifyInstance } from 'fastify';
+import {
+  requireAuthPreHandler,
+  getEffectiveUserId,
+  type RequestWithUser,
+} from '../../../auth/middleware.js';
+import { patchPreferencesBodySchema } from '../../schemas/me.js';
+import {
+  loadPreferencesPruningDeletedRecentDocuments,
+  pruneDeletedDocumentsFromRecentItemsByScope,
+} from '../../services/pruneRecentDeletedDocuments.js';
+import type { UserPreferences } from './route-types.js';
+import { userPreferencesFromJson, dedupeRecentPreferencesItems } from './route-helpers.js';
+
+function registerMePreferencesRoutes(app: FastifyInstance): void {
+  app.get('/me/preferences', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const user = await request.server.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { preferences: true },
+    });
+    const prefs = await loadPreferencesPruningDeletedRecentDocuments(
+      request.server.prisma,
+      userId,
+      user.preferences,
+      userPreferencesFromJson
+    );
+    return reply.send(prefs);
+  });
+
+  app.patch('/me/preferences', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const body = patchPreferencesBodySchema.parse(request.body);
+
+    const current = await request.server.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { preferences: true },
+    });
+    const currentPrefs = userPreferencesFromJson(current.preferences);
+    let recentItemsByScope = currentPrefs.recentItemsByScope ?? {};
+    if (body.recentItemsByScope !== undefined) {
+      recentItemsByScope = { ...recentItemsByScope };
+      for (const [scopeKey, list] of Object.entries(body.recentItemsByScope)) {
+        recentItemsByScope[scopeKey] = dedupeRecentPreferencesItems(list);
+      }
+      const { pruned } = await pruneDeletedDocumentsFromRecentItemsByScope(
+        request.server.prisma,
+        recentItemsByScope
+      );
+      recentItemsByScope = pruned ?? {};
+    }
+    const merged: UserPreferences = {
+      ...currentPrefs,
+      ...(body.theme !== undefined && { theme: body.theme }),
+      ...(body.sidebarPinned !== undefined && { sidebarPinned: body.sidebarPinned }),
+      ...(body.sidebarCollapsed !== undefined && { sidebarCollapsed: body.sidebarCollapsed }),
+      ...(body.scopeRecentPanelOpen !== undefined && {
+        scopeRecentPanelOpen: body.scopeRecentPanelOpen,
+      }),
+      ...(body.locale !== undefined && { locale: body.locale }),
+      ...(body.primaryColor !== undefined && { primaryColor: body.primaryColor }),
+      ...(body.textSize !== undefined && { textSize: body.textSize }),
+      ...(body.documentReadingFont !== undefined && {
+        documentReadingFont: body.documentReadingFont,
+      }),
+      ...(body.recentItemsByScope !== undefined && { recentItemsByScope }),
+      ...(body.lastSeenReleaseVersion !== undefined && {
+        lastSeenReleaseVersion: body.lastSeenReleaseVersion,
+      }),
+      ...(body.notificationSettings !== undefined && {
+        notificationSettings: {
+          inApp: {
+            ...currentPrefs.notificationSettings?.inApp,
+            ...body.notificationSettings.inApp,
+          },
+          email: {
+            ...currentPrefs.notificationSettings?.email,
+            ...body.notificationSettings.email,
+          },
+        },
+      }),
+      ...(body.pulseSettings !== undefined && {
+        pulseSettings: {
+          ...currentPrefs.pulseSettings,
+          ...body.pulseSettings,
+        },
+      }),
+    };
+
+    await request.server.prisma.user.update({
+      where: { id: userId },
+      data: { preferences: merged },
+    });
+    return reply.send(merged);
+  });
+}
+
+export { registerMePreferencesRoutes };

@@ -1,0 +1,47 @@
+# Public demo: Landing on docsops.de + demo app on demo.docsops.de (Caddy TLS).
+# Pair with docker-compose.demo.yml (DEMO_MODE) and docker-compose.demo-public.yml.
+#
+# DNS: A/AAAA docsops.de + demo.docsops.de → this host. Firewall: 80 and 443.
+#
+# ACME: keep caddy_data across demo resets (see compose_reset_demo). Email enables
+# ZeroSSL as fallback when Let's Encrypt rate-limits exact-hostname reissues.
+
+{
+	email admin@demo.docsops.de
+}
+
+docsops.de {
+	# CI deploy hook only (Bearer DOCSOPS_DEMO_HOOK_TOKEN). Do not expose the full agent.
+	# Agent runs on the host; from the Caddy container reach it via host-gateway.
+	handle /hooks/demo-deploy {
+		rewrite * /v1/demo-deploy
+		reverse_proxy host.docker.internal:8091
+	}
+
+	handle {
+		root * /srv/landing
+		encode gzip
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+}
+
+demo.docsops.de {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle /api/v1/me/events {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}

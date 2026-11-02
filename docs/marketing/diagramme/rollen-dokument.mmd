@@ -1,0 +1,15 @@
+%% Rollen und Veröffentlichung (Landing Section 3)
+%% Referenz: Positionierung-und-Landing.md §3.4
+
+flowchart LR
+  LEAD[Leitung]
+  AUTOR[Autor]
+  MITGLIED[Mitglied]
+
+  ENTWURF[Entwurf]
+  VERSION[Version 1]
+
+  LEAD -->|Bearbeitet / Veröffentlicht| ENTWURF
+  AUTOR -->|Erstellt Vorschläge| ENTWURF
+  ENTWURF -->|wird zu| VERSION
+  MITGLIED -->|Liest / Kommentiert| VERSION

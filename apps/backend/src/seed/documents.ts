@@ -1,0 +1,274 @@
+import type { PrismaClient } from '../../generated/prisma/client.js';
+import {
+  blockDocumentJsonFromSeedSections,
+  type SeedDocumentBlockSection,
+} from '../domains/documents/services/blocks/documentBlocksBackfill.js';
+import { addDays } from '../domains/documents/services/healthCheck/healthCheckPolicy.js';
+import type { SeedContextData, SeedMasterData } from './types.js';
+
+/** Matches SystemSettings default; used when seed sets nextAt without a doc override. */
+const SEED_HEALTH_CHECK_INTERVAL_DAYS = 90;
+
+type PublishedSeedDocInput = {
+  title: string;
+  sections: SeedDocumentBlockSection[];
+  contextId: string;
+  createdById?: string | null;
+  /** Defaults to now. */
+  publishedAt?: Date;
+  /**
+   * When omitted, next check is publishedAt + org-default interval (90).
+   * Pass a past date to put the doc into the Freshness hub as due.
+   */
+  healthCheckNextAt?: Date | null;
+  healthCheckIntervalDays?: number | null;
+};
+
+/** Default body when a scope has no dedicated story sections. */
+const SEED_DOCUMENT_SECTIONS: SeedDocumentBlockSection[] = [
+  { type: 'heading', level: 2, text: 'Zweck' },
+  {
+    type: 'paragraph',
+    text: 'Dieses Dokument gehört zum Demo-Datensatz von Musterwerk IT GmbH (Software X / Barrierefreiheit). Es zeigt typische Struktur und Lesefluss in DocsOps.',
+  },
+  { type: 'heading', level: 2, text: 'Nächste Schritte' },
+  {
+    type: 'paragraph',
+    text: 'Inhalte bei Bedarf anpassen, Reviews anstoßen oder neue Dokumente aus Vorlagen anlegen.',
+  },
+];
+
+function storySections(overview: string, details: string): SeedDocumentBlockSection[] {
+  return [
+    { type: 'heading', level: 2, text: 'Überblick' },
+    { type: 'paragraph', text: overview },
+    { type: 'heading', level: 2, text: 'Details' },
+    { type: 'paragraph', text: details },
+  ];
+}
+
+async function createPublishedSeedDocument(prisma: PrismaClient, input: PublishedSeedDocInput) {
+  return prisma.$transaction(async (tx) => {
+    const blocksJson = blockDocumentJsonFromSeedSections(input.sections);
+    const publishedAt = input.publishedAt ?? new Date();
+    const intervalDays = input.healthCheckIntervalDays ?? SEED_HEALTH_CHECK_INTERVAL_DAYS;
+    const healthCheckNextAt =
+      input.healthCheckNextAt !== undefined
+        ? input.healthCheckNextAt
+        : addDays(publishedAt, intervalDays);
+
+    const doc = await tx.document.create({
+      data: {
+        title: input.title,
+        draftBlocks: blocksJson,
+        contextId: input.contextId,
+        ...(input.createdById != null ? { createdById: input.createdById } : {}),
+      },
+    });
+    const version = await tx.documentVersion.create({
+      data: {
+        documentId: doc.id,
+        blocks: blocksJson,
+        blocksSchemaVersion: 0,
+        versionNumber: 1,
+        ...(input.createdById != null ? { createdById: input.createdById } : {}),
+      },
+    });
+    await tx.document.update({
+      where: { id: doc.id },
+      data: {
+        publishedAt,
+        currentPublishedVersionId: version.id,
+        healthCheckIntervalDays: input.healthCheckIntervalDays ?? null,
+        healthCheckNextAt,
+      },
+    });
+    return doc;
+  });
+}
+
+type SeedDocSpec = {
+  title: string;
+  sections: SeedDocumentBlockSection[];
+};
+
+function seedDocSpec(scopeKey: string, kind: 'process' | 'project'): SeedDocSpec {
+  if (scopeKey.startsWith('company:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Dokumentationsrichtlinie',
+        sections: storySections(
+          'Verbindliche Regeln für interne Dokumentation bei Musterwerk IT: wo Inhalte leben, wer freigibt und wie Lesende Orientierung finden.',
+          'Bereichsleitungen veröffentlichen; Autoren arbeiten im Leitungsentwurf mit Vorschlägen. Persönliche Räume bleiben privat, sofern nicht freigegeben.'
+        ),
+      };
+    }
+    return {
+      title: 'Software X – Produktüberblick',
+      sections: storySections(
+        'Software X ist das aktuelle Produktvorhaben. Dieses Dokument fasst Zielbild, Stakeholder und den Stand der Barrierefreiheit zusammen.',
+        'Produktentwicklung und das Team Barrierefreiheit pflegen hier den gemeinsamen Überblick; Detailarbeit liegt in den Team- und Abteilungsdokumenten.'
+      ),
+    };
+  }
+  if (scopeKey.startsWith('department:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Release-Checkliste Produktentwicklung',
+        sections: storySections(
+          'Schritte vor einem Release von Software X: Review, Dokumentation, Zugänglichkeit und Übergabe an Support.',
+          'Die Abteilungsleitung bestätigt die Checkliste; das Team Barrierefreiheit liefert den Barrierefreiheits-Status vor dem Go-Live.'
+        ),
+      };
+    }
+    return {
+      title: 'Roadmap Q3 – Software X',
+      sections: storySections(
+        'Geplante Lieferungen und Abhängigkeiten für Software X in diesem Quartal, inkl. Barrierefreiheits-Meilensteine.',
+        'Prioritäten werden mit der Unternehmensleitung abgestimmt; Änderungen erscheinen in der veröffentlichten Version dieses Dokuments.'
+      ),
+    };
+  }
+  if (scopeKey.startsWith('team:')) {
+    if (kind === 'process') {
+      return {
+        title: 'Barrierefreiheit – Arbeitsweise',
+        sections: storySections(
+          'Wie das Team Barrierefreiheit prüft, dokumentiert und Ergebnisse an Produktentwicklung übergibt.',
+          'Startpunkt für neue Teammitglieder: Rollen, Tools, Review-Rhythmus und Verweis auf den aktuellen Stand Barrierefreiheit.'
+        ),
+      };
+    }
+    return {
+      title: 'Stand Barrierefreiheit Software X',
+      sections: storySections(
+        'Aktueller Status der Zugänglichkeit von Software X: bekannte Lücken, erledigte Fixes und offene Tickets.',
+        'Die Teamleitung hält dieses Dokument aktuell; Mitglieder ergänzen Prüfnotizen. Unternehmens- und Abteilungsleitung lesen den Status hier.'
+      ),
+    };
+  }
+  if (scopeKey === 'personal:') {
+    return kind === 'process'
+      ? {
+          title: 'Meine Notizen',
+          sections: storySections(
+            'Persönlicher Arbeitsbereich der Unternehmensleitung für Entwürfe und Notizen.',
+            'Nicht für die Organisation sichtbar, außer nach expliziter Freigabe oder Verschiebung in einen Bereichskontext.'
+          ),
+        }
+      : {
+          title: 'Persönliche Skizze',
+          sections: storySections(
+            'Privates Projekt für Experimente rund um Software X und Dokumentation.',
+            'Kann später in einen Team- oder Abteilungskontext verschoben werden.'
+          ),
+        };
+  }
+  return {
+    title: kind === 'process' ? 'Übersicht' : 'Projektübersicht',
+    sections: SEED_DOCUMENT_SECTIONS,
+  };
+}
+
+/** Mark the scope process doc as Start here for team / department / company. */
+async function setStartHereForScope(
+  prisma: PrismaClient,
+  masterData: SeedMasterData,
+  scopeKey: string,
+  documentId: string
+): Promise<void> {
+  if (scopeKey.startsWith('team:')) {
+    const name = scopeKey.slice('team:'.length);
+    const teamId = masterData.teamById.get(name);
+    if (teamId) {
+      await prisma.team.update({ where: { id: teamId }, data: { startDocumentId: documentId } });
+    }
+    return;
+  }
+  if (scopeKey.startsWith('department:')) {
+    const name = scopeKey.slice('department:'.length);
+    const departmentId = masterData.departmentById.get(name);
+    if (departmentId) {
+      await prisma.department.update({
+        where: { id: departmentId },
+        data: { startDocumentId: documentId },
+      });
+    }
+    return;
+  }
+  if (scopeKey.startsWith('company:')) {
+    const name = scopeKey.slice('company:'.length);
+    const companyId = masterData.companyById.get(name);
+    if (companyId) {
+      await prisma.company.update({
+        where: { id: companyId },
+        data: { startDocumentId: documentId },
+      });
+    }
+  }
+}
+
+async function seedDocuments(
+  prisma: PrismaClient,
+  contextData: SeedContextData,
+  tagByNameAndOwner: Map<string, string>,
+  masterData: SeedMasterData
+): Promise<void> {
+  for (const [scopeKey, processId] of contextData.processByScope) {
+    const process = await prisma.process.findUniqueOrThrow({
+      where: { id: processId },
+      select: { contextId: true, ownerId: true },
+    });
+    const spec = seedDocSpec(scopeKey, 'process');
+    const doc = await createPublishedSeedDocument(prisma, {
+      title: spec.title,
+      sections: spec.sections,
+      contextId: process.contextId,
+    });
+    await setStartHereForScope(prisma, masterData, scopeKey, doc.id);
+    if (process.ownerId && scopeKey.startsWith('company:')) {
+      const tagId = tagByNameAndOwner.get(`${process.ownerId}:Referenz`);
+      if (tagId) {
+        await prisma.documentTag.create({ data: { documentId: doc.id, tagId } });
+      }
+    }
+  }
+
+  for (const [scopeKey, projectId] of contextData.projectByScope) {
+    const project = await prisma.project.findUniqueOrThrow({
+      where: { id: projectId },
+      select: { contextId: true },
+    });
+    const spec = seedDocSpec(scopeKey, 'project');
+    await createPublishedSeedDocument(prisma, {
+      title: spec.title,
+      sections: spec.sections,
+      contextId: project.contextId,
+    });
+  }
+
+  // One org doc past its freshness interval so Freshness / Aktualität is non-empty after seed.
+  const companyProcess = [...contextData.processByScope.entries()].find(([key]) =>
+    key.startsWith('company:')
+  );
+  if (companyProcess) {
+    const process = await prisma.process.findUniqueOrThrow({
+      where: { id: companyProcess[1] },
+      select: { contextId: true },
+    });
+    const publishedAt = addDays(new Date(), -120);
+    await createPublishedSeedDocument(prisma, {
+      title: 'Support-Übergabe Software X',
+      sections: storySections(
+        'Übergabe an Support nach dem letzten Software-X-Release: bekannte Einschränkungen, Kontakte und Checkliste.',
+        'Demo-Dokument: absichtlich älter als das Aktualitätsintervall, damit unter Freshness / Aktualität eine fällige Prüfung sichtbar ist.'
+      ),
+      contextId: process.contextId,
+      publishedAt,
+      healthCheckIntervalDays: SEED_HEALTH_CHECK_INTERVAL_DAYS,
+      healthCheckNextAt: addDays(publishedAt, SEED_HEALTH_CHECK_INTERVAL_DAYS),
+    });
+  }
+}
+
+export { SEED_DOCUMENT_SECTIONS, createPublishedSeedDocument, seedDocuments };

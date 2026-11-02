@@ -1,0 +1,359 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  REGISTRY: ghcr.io
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  build-and-push:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push app image (fills backend GHA cache)
+        uses: docker/bake-action@v6
+        env:
+          # HCL variables in docker-bake.hcl (not bake --set keys)
+          TAG: ${{ github.ref_name }}
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ github.repository_owner }}
+        with:
+          files: docker-bake.hcl
+          targets: app
+          push: true
+
+      - name: Build and push remaining images (app first, then migrate/worker/frontend)
+        uses: docker/bake-action@v6
+        env:
+          TAG: ${{ github.ref_name }}
+          REGISTRY: ${{ env.REGISTRY }}
+          OWNER: ${{ github.repository_owner }}
+        with:
+          files: docker-bake.hcl
+          targets: remaining
+          push: true
+
+      - name: Report pushed image sizes
+        run: |
+          for img in docsops-app docsops-migrate docsops-worker docsops-frontend; do
+            echo "==> ${img}"
+            docker buildx imagetools inspect "${{ env.REGISTRY }}/${{ github.repository_owner }}/${img}:${{ github.ref_name }}" \
+              --format 'size={{.Manifest.Size}}' || true
+          done
+
+  build-agent:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/agent/go.mod
+          # Agent module has no go.sum / external deps – caching resolves nothing.
+          cache: false
+
+      - name: Build docsops-agent (linux/amd64)
+        working-directory: apps/agent
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: '0'
+        run: go build -ldflags="-s -w" -o ../../dist/docsops-agent ./cmd/docsops-agent
+
+      - name: Build docsops-agent (linux/arm64)
+        working-directory: apps/agent
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: '0'
+        run: go build -ldflags="-s -w" -o ../../dist/docsops-agent-linux-arm64 ./cmd/docsops-agent
+
+      - name: Upload agent binaries
+        uses: actions/upload-artifact@v6
+        with:
+          name: docsops-agent-binaries
+          path: |
+            dist/docsops-agent
+            dist/docsops-agent-linux-arm64
+
+  bundle:
+    needs: [build-and-push, build-agent]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download agent binary
+        uses: actions/download-artifact@v7
+        with:
+          name: docsops-agent-binaries
+          path: dist
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build Landing dists (local + public)
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --filter landing exec playwright install chromium
+          VITE_DEMO_URL=http://demo.docsops.local VITE_SITE_URL=http://docsops.local \
+            pnpm --filter landing run build:lab
+          VITE_DEMO_URL=https://demo.docsops.de VITE_SITE_URL=https://docsops.de \
+            pnpm --filter landing run build:public
+          pnpm --filter landing run prerender -- --outDir dist-public
+
+      - name: Build deploy bundle
+        run: DOCSOPS_VERSION="${{ github.ref_name }}" DOCSOPS_AGENT_BINARY=dist/docsops-agent ./scripts/release/build-bundle.sh dist
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-bundle
+          path: |
+            dist/docsops-${{ github.ref_name }}.tar.gz
+            dist/install.sh
+            dist/uninstall.sh
+            dist/docsops-demo
+            dist/docsops-demo-local
+            dist/docsops-agent-linux-arm64
+
+  install-test:
+    needs: [bundle, build-and-push]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-install-test-${{ github.repository }}
+      cancel-in-progress: false
+    env:
+      DOCSOPS_CI_DIR: /tmp/docsops-ci-${{ github.run_id }}
+      DOCSOPS_CI_ENV: /tmp/docsops-ci-${{ github.run_id }}/docsops.env
+      DOCSOPS_CI_PROJECT: docsops-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download release bundle
+        uses: actions/download-artifact@v7
+        with:
+          name: release-bundle
+          path: dist
+
+      - name: Remove stale DocsOps volumes (legacy CI project name)
+        run: |
+          sudo docker volume rm docsops_postgres_data docsops_minio_data 2>/dev/null || true
+
+      - name: Extract bundle to CI directory
+        run: |
+          sudo mkdir -p "$DOCSOPS_CI_DIR"
+          sudo tar -xzf "dist/docsops-${{ github.ref_name }}.tar.gz" -C /tmp
+          sudo rm -rf "${DOCSOPS_CI_DIR:?}"/*
+          sudo cp -a "/tmp/docsops-${{ github.ref_name }}/." "$DOCSOPS_CI_DIR/"
+
+      - name: Production install (registry pull)
+        env:
+          DOCSOPS_VERSION: ${{ github.ref_name }}
+          DOCSOPS_INSTALL_DIR: ${{ env.DOCSOPS_CI_DIR }}
+          DOCSOPS_ENV_FILE: ${{ env.DOCSOPS_CI_ENV }}
+          COMPOSE_PROJECT_NAME: ${{ env.DOCSOPS_CI_PROJECT }}
+          DOCSOPS_NON_INTERACTIVE: '1'
+          DOCSOPS_ASSUME_YES: '1'
+          DOCSOPS_INSTALL_CONFIRMED: '1'
+          DOCSOPS_USE_EXISTING_CONFIG: '0'
+          # ci.yml: port 8080; ci-seed.yml: DEMO_MODE CSV seed for member E2E login
+          DOCSOPS_EXTRA_COMPOSE_FILES: deploy/docker-compose.ci.yml:deploy/docker-compose.ci-seed.yml
+          DOCSOPS_HEALTH_URL: http://127.0.0.1:8080/health
+          DOCSOPS_TLS_MODE: 'off'
+          ADMIN_EMAIL: ci-admin@example.com
+          ADMIN_PASSWORD: ci-admin-password-12
+        run: sudo -E "$DOCSOPS_CI_DIR/scripts/install-prod.sh"
+
+      - name: Verify docsops-agent status
+        run: |
+          TOKEN="$(sudo grep '^DOCSOPS_AGENT_TOKEN=' "$DOCSOPS_CI_ENV" | cut -d= -f2-)"
+          curl -sf -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8091/v1/status
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: App E2E (Playwright)
+        env:
+          DOCSOPS_E2E_BASE_URL: http://127.0.0.1:8080
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm --filter docsops-e2e exec playwright install --with-deps chromium
+          pnpm --filter docsops-e2e test
+
+      - name: Cleanup CI install
+        if: always()
+        run: |
+          CI_DIR="${{ env.DOCSOPS_CI_DIR }}"
+          CI_ENV="${{ env.DOCSOPS_CI_ENV }}"
+          sudo systemctl stop docsops-agent.service 2>/dev/null || true
+          if [[ -f "$CI_ENV" && -f "${CI_DIR}/deploy/docker-compose.prod.yml" ]]; then
+            sudo docker compose --env-file "$CI_ENV" \
+              -f "${CI_DIR}/docker-compose.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.prod.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.ci.yml" \
+              -f "${CI_DIR}/deploy/docker-compose.ci-seed.yml" \
+              down -v --remove-orphans 2>/dev/null || true
+          fi
+          sudo rm -rf "$CI_DIR"
+          sudo docker volume rm docsops_postgres_data docsops_minio_data 2>/dev/null || true
+          sudo docker volume rm "${{ env.DOCSOPS_CI_PROJECT }}_caddy_data" 2>/dev/null || true
+
+  release:
+    needs: [bundle, install-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download bundle artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: release-bundle
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/docsops-${{ github.ref_name }}.tar.gz
+            dist/install.sh
+            dist/uninstall.sh
+            dist/docsops-demo
+            dist/docsops-demo-local
+            dist/docsops-agent-linux-arm64
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Public demo (docsops.de / demo.docsops.de): after Release assets exist, HTTPS webhook → update+reset.
+  # Secrets (repository): DEMO_DEPLOY_HOOK_TOKEN (required), DEMO_DEPLOY_HOOK_URL (optional).
+  update-demo-server:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger demo deploy webhook
+        env:
+          HOOK_URL: ${{ secrets.DEMO_DEPLOY_HOOK_URL }}
+          HOOK_TOKEN: ${{ secrets.DEMO_DEPLOY_HOOK_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          RUN_ID: gha-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          : "${HOOK_TOKEN:?DEMO_DEPLOY_HOOK_TOKEN secret missing}"
+          URL="${HOOK_URL:-https://docsops.de/hooks/demo-deploy}"
+
+          post_deploy() {
+            curl -sS -o /tmp/demo-deploy-post.json -w '%{http_code}' \
+              --connect-timeout 15 --max-time 60 \
+              -X POST "$URL" \
+              -H "Authorization: Bearer ${HOOK_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"version\":\"${TAG}\",\"runId\":\"${RUN_ID}\"}"
+          }
+
+          # Assets / agent can lag briefly after softprops creates the Release.
+          code=""
+          for i in 1 2 3 4 5; do
+            code="$(post_deploy || true)"
+            if [[ "$code" == "202" || "$code" == "409" ]]; then
+              break
+            fi
+            echo "POST ${URL} → HTTP ${code} (attempt ${i}/5); body:" >&2
+            cat /tmp/demo-deploy-post.json 2>/dev/null || true
+            echo "retrying in 20s…" >&2
+            sleep 20
+          done
+          if [[ "$code" != "202" && "$code" != "409" ]]; then
+            echo "demo-deploy POST failed after retries (HTTP ${code})" >&2
+            cat /tmp/demo-deploy-post.json 2>/dev/null || true
+            exit 1
+          fi
+          echo "demo-deploy accepted (HTTP ${code})"
+
+          # Wall-clock wait: update+reset typically a few minutes; Caddy TLS flaps mid-deploy.
+          # Prefer DEMO_DEPLOY_HOOK_URL=http://<host>:8091/v1/demo-deploy to bypass Compose Caddy.
+          WAIT_SEC="${DEMO_DEPLOY_WAIT_SEC:-600}"
+          POLL_SEC="${DEMO_DEPLOY_POLL_SEC:-15}"
+          GRACE_SEC="${DEMO_DEPLOY_GRACE_SEC:-45}"
+          deadline=$((SECONDS + WAIT_SEC))
+          echo "waiting up to ${WAIT_SEC}s (grace ${GRACE_SEC}s, poll every ${POLL_SEC}s)…"
+          sleep "$GRACE_SEC"
+
+          poll=0
+          while (( SECONDS < deadline )); do
+            poll=$((poll + 1))
+            remaining=$((deadline - SECONDS))
+            if ! curl -sS -o /tmp/demo-deploy-status.json \
+              --connect-timeout 10 --max-time 20 \
+              -H "Authorization: Bearer ${HOOK_TOKEN}" \
+              "$URL"; then
+              echo "poll ${poll} (~${remaining}s left): unreachable (stack/TLS restart); retry…"
+              sleep "$POLL_SEC"
+              continue
+            fi
+            idle="$(python3 -c 'import json; print(json.load(open("/tmp/demo-deploy-status.json")).get("idle"))')"
+            phase="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("phase") or "")')"
+            err="$(python3 -c 'import json; r=json.load(open("/tmp/demo-deploy-status.json")).get("run") or {}; print(r.get("error") or "")')"
+            echo "poll ${poll} (~${remaining}s left) idle=${idle} phase=${phase}"
+            if [[ "$idle" == "True" || "$idle" == "true" ]]; then
+              if [[ "$phase" == "succeeded" ]]; then
+                echo "demo deploy succeeded"
+                exit 0
+              fi
+              if [[ "$phase" == "failed" ]]; then
+                echo "demo deploy failed: ${err}" >&2
+                cat /tmp/demo-deploy-status.json >&2 || true
+                exit 1
+              fi
+              # Idle without a finished run yet (e.g. right after agent restart).
+              if [[ -z "$phase" ]]; then
+                sleep "$POLL_SEC"
+                continue
+              fi
+            fi
+            sleep "$POLL_SEC"
+          done
+          echo "demo deploy timed out after ${WAIT_SEC}s waiting for completion" >&2
+          cat /tmp/demo-deploy-status.json >&2 || true
+          exit 1

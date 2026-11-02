@@ -1,0 +1,322 @@
+import {
+  Alert,
+  Badge,
+  Button,
+  Group,
+  Loader,
+  Pagination,
+  SegmentedControl,
+  Select,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core';
+import { useTranslation } from 'react-i18next';
+import { EntityListCard } from '../../../components/ui/EntityListCard.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import {
+  CompactListCount,
+  useCompactListSearchFab,
+} from '../../../components/ui/StickySearchChrome.js';
+import { useOrgRoleLabel } from '../../../hooks/useOrgRoleLabel.js';
+import { AdminUsersSortableTh } from './AdminUsersSortableTh';
+import {
+  type ListUsersRes,
+  type SortByField,
+  type SortOrder,
+  type UserRow,
+} from './adminUsersTypes';
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from './adminUsersConstants';
+import { formatUserDepartmentsColumn, formatUserTeamsColumn } from './AdminUserAssignmentsDisplay';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
+
+type Props = {
+  includeDeactivated: boolean;
+  onIncludeDeactivatedChange: (value: boolean) => void;
+  searchInput: string;
+  onSearchInputChange: (value: string) => void;
+  onSearchSubmit: () => void;
+  limit: number;
+  onLimitChange: (next: number) => void;
+  isPending: boolean;
+  isError: boolean;
+  error: Error | null;
+  data: ListUsersRes | undefined;
+  sortBy: SortByField | null;
+  sortOrder: SortOrder;
+  onSortColumn: (field: SortByField) => void;
+  offset: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onEmailClick: (user: UserRow) => void;
+};
+
+export function AdminUsersList({
+  includeDeactivated,
+  onIncludeDeactivatedChange,
+  searchInput,
+  onSearchInputChange,
+  onSearchSubmit,
+  limit,
+  onLimitChange,
+  isPending,
+  isError,
+  error,
+  data,
+  sortBy,
+  sortOrder,
+  onSortColumn,
+  offset,
+  totalPages,
+  onPageChange,
+  onEmailClick,
+}: Props) {
+  const { t } = useTranslation(['admin', 'common']);
+  const roleLabel = useOrgRoleLabel();
+  const isWide = useWideLayout();
+
+  const statusControl = (size: 'xs' | 'sm', fullWidth = false) => (
+    <SegmentedControl
+      size={size}
+      fullWidth={fullWidth}
+      data={[
+        { label: t('users.list.filterAll'), value: 'all' },
+        { label: t('users.list.filterActive'), value: 'active' },
+      ]}
+      value={includeDeactivated ? 'all' : 'active'}
+      onChange={(v) => {
+        onIncludeDeactivatedChange(v === 'all');
+      }}
+    />
+  );
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('common:actions.search'),
+    placeholder: t('users.list.searchPlaceholder'),
+    value: searchInput,
+    onChange: (e) => onSearchInputChange(e.target.value),
+    onKeyDown: (e) => e.key === 'Enter' && onSearchSubmit(),
+    onClear: () => onSearchInputChange(''),
+    panelExtra: statusControl('sm', true),
+  });
+
+  useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
+
+  return (
+    <>
+      {compactSearch.panel}
+      {isWide ? (
+        <Group mb="md" justify="space-between" wrap="wrap" gap="sm">
+          <Group gap="sm" wrap="wrap">
+            {statusControl('xs')}
+            <TextInput
+              placeholder={t('users.list.searchPlaceholder')}
+              size="xs"
+              value={searchInput}
+              onChange={(e) => onSearchInputChange(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit()}
+            />
+            <Button
+              size="xs"
+              variant="filled"
+              onClick={() => {
+                onSearchSubmit();
+              }}
+            >
+              {t('common:actions.search')}
+            </Button>
+          </Group>
+          <Group gap="sm" align="flex-end">
+            <Text size="sm" c="dimmed">
+              {t('users.list.countLine', { count: data?.total ?? 0 })}
+            </Text>
+            <Select
+              label={t('shared.perPage')}
+              data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+              value={String(limit)}
+              onChange={(value) => {
+                const next = Number(value ?? DEFAULT_PAGE_SIZE);
+                onLimitChange(next);
+              }}
+              style={{ width: 100 }}
+            />
+          </Group>
+        </Group>
+      ) : (
+        <CompactListCount>
+          {t('users.list.countLine', { count: data?.total ?? 0 })}
+        </CompactListCount>
+      )}
+
+      {isPending && <Loader size="sm" />}
+      {isError && (
+        <Alert color="red" title={t('shared.errorTitle')}>
+          {error?.message}
+        </Alert>
+      )}
+      {data && !isPending && (
+        <>
+          {isWide ? (
+            <Table withTableBorder className="admin-table-hover dense-list-table">
+              <Table.Thead>
+                <Table.Tr>
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.name')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="name"
+                    onSort={() => onSortColumn('name')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.email')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="email"
+                    onSort={() => onSortColumn('email')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.role')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="role"
+                    onSort={() => onSortColumn('role')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.teams')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="teams"
+                    onSort={() => onSortColumn('teams')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.departments')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="departments"
+                    onSort={() => onSortColumn('departments')}
+                  />
+                  <AdminUsersSortableTh
+                    label={t('users.list.table.status')}
+                    currentSortBy={sortBy}
+                    sortOrder={sortOrder}
+                    field="deletedAt"
+                    onSort={() => onSortColumn('deletedAt')}
+                  />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.items.map((u) => (
+                  <Table.Tr key={u.id}>
+                    <Table.Td>{u.name}</Table.Td>
+                    <Table.Td>
+                      {u.email ? (
+                        <Text
+                          component="button"
+                          type="button"
+                          variant="link"
+                          c="var(--mantine-color-anchor)"
+                          size="sm"
+                          className="admin-link-hover"
+                          style={{
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                          }}
+                          onClick={() => onEmailClick(u)}
+                        >
+                          {u.email}
+                        </Text>
+                      ) : (
+                        '–'
+                      )}
+                    </Table.Td>
+                    <Table.Td>{roleLabel(u.role)}</Table.Td>
+                    <Table.Td>{formatUserTeamsColumn(t, roleLabel, u)}</Table.Td>
+                    <Table.Td>{formatUserDepartmentsColumn(t, roleLabel, u)}</Table.Td>
+                    <Table.Td>
+                      {u.deletedAt ? (
+                        <Badge size="sm" color="gray">
+                          {t('shared.statusDeactivated')}
+                        </Badge>
+                      ) : (
+                        <Badge size="sm" color="green">
+                          {t('common:status.active')}
+                        </Badge>
+                      )}
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          ) : (
+            <Stack gap="sm">
+              {data.items.map((u) => (
+                <EntityListCard
+                  key={u.id}
+                  title={u.name}
+                  meta={
+                    <Stack gap={2}>
+                      {u.email ? (
+                        <Text
+                          component="button"
+                          type="button"
+                          size="xs"
+                          c="var(--mantine-color-anchor)"
+                          className="admin-link-hover"
+                          style={{
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            textAlign: 'start',
+                          }}
+                          onClick={() => onEmailClick(u)}
+                        >
+                          {u.email}
+                        </Text>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          –
+                        </Text>
+                      )}
+                      <Text size="xs" c="dimmed">
+                        {roleLabel(u.role)}
+                      </Text>
+                    </Stack>
+                  }
+                  rightSection={
+                    u.deletedAt ? (
+                      <Badge size="sm" color="gray">
+                        {t('shared.statusDeactivated')}
+                      </Badge>
+                    ) : (
+                      <Badge size="sm" color="green">
+                        {t('common:status.active')}
+                      </Badge>
+                    )
+                  }
+                />
+              ))}
+            </Stack>
+          )}
+          {data.items.length === 0 && (
+            <Alert color="gray" mt="sm">
+              {t('users.list.empty')}
+            </Alert>
+          )}
+          {totalPages > 1 && (
+            <Pagination
+              total={totalPages}
+              value={Math.floor(offset / limit) + 1}
+              onChange={(p) => onPageChange(p)}
+              mt="md"
+              size="sm"
+            />
+          )}
+        </>
+      )}
+    </>
+  );
+}

@@ -1,0 +1,94 @@
+{
+  "nav": "Freshness",
+  "title": "Freshness",
+  "breadcrumb": "Review freshness",
+  "description": "Documents that need a freshness decision in your scopes.",
+  "noAccess": "You do not have access to freshness reviews.",
+  "empty": "Nothing needs attention right now.",
+  "loadFailed": "Could not load the freshness list.",
+  "itemCount_one": "{{count}} document",
+  "itemCount_other": "{{count}} documents",
+  "scan": "Scan",
+  "scanDone": "Scan finished. {{count}} document(s) updated.",
+  "scanFailed": "Scan failed.",
+  "filters": {
+    "reason": "Reason",
+    "reasonAll": "All",
+    "reasonDue": "Review due",
+    "outcome": "Status",
+    "outcomeAll": "All",
+    "outcomeOpen": "Due",
+    "outcomeNeedsUpdate": "Needs update",
+    "outcomeArchive": "Archivable",
+    "scope": "Scope",
+    "scopeAll": "All scopes"
+  },
+  "columns": {
+    "title": "Document",
+    "reason": "Reason",
+    "outcome": "Status",
+    "nextAt": "Due",
+    "context": "Context",
+    "owner": "Scope",
+    "actions": "Decision"
+  },
+  "reasons": {
+    "due": "Review due"
+  },
+  "outcomes": {
+    "open": "Due",
+    "needs_update": "Needs update",
+    "archive": "Archivable"
+  },
+  "status": {
+    "label": "Status:",
+    "current": "Current",
+    "due": "Review due",
+    "needsUpdate": "Needs update",
+    "archive": "Archivable"
+  },
+  "attention": {
+    "highTraffic": "High traffic"
+  },
+  "actions": {
+    "stillValid": "Current",
+    "needsUpdate": "Needs update",
+    "archive": "Archivable",
+    "apply": "Apply",
+    "revoke": "Withdraw",
+    "saved": "Saved.",
+    "failed": "Action failed."
+  },
+  "confirmModal": {
+    "stillValidTitle": "Set the next review date",
+    "stillValidBody": "The content still applies. The item leaves this list. The next review follows the interval below.",
+    "needsUpdateTitle": "Revision required",
+    "needsUpdateBody": "The item stays on the list. Writers should revise the content and publish again. Only then does it leave this list.",
+    "archiveTitle": "Plan archiving",
+    "archiveBody": "The item stays on the list. Archiving happens on the document page. Here you only record that archiving is planned.",
+    "revokeNeedsUpdateTitle": "Cancel revision request?",
+    "revokeNeedsUpdateBody": "The revision request is cleared. The item stays on the list while the review date is overdue.",
+    "revokeArchiveTitle": "Cancel planned archiving?",
+    "revokeArchiveBody": "The planned archiving is cleared. The item stays on the list while the review date is overdue.",
+    "intervalLabel": "Next due in"
+  },
+  "interval": {
+    "periodStandard": "{{period}} (default)",
+    "daysOption": "{{count}} days",
+    "label": "Review interval:",
+    "nextCheck": "Review date:",
+    "setBy": "Set by:",
+    "setByAutomatic": "Automatic",
+    "lastDecision": "Last decision:",
+    "lastDecisionBy": "by {{name}}",
+    "automaticScanOn": "Automatic scan: on",
+    "automaticScanManual": "Automatic scan: manual only",
+    "decisions": {
+      "still_valid": "Current",
+      "needs_update": "Needs update",
+      "archive": "Archivable",
+      "snooze": "Deferred"
+    },
+    "none": "None"
+  }
+}

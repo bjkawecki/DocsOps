@@ -1,0 +1,148 @@
+export const DOCUMENT_NOTIFICATION_EVENT_TYPES = [
+  'document-created',
+  'document-updated',
+  'document-published',
+  'document-archived',
+  'document-deleted',
+  'document-restored',
+  'document-moved',
+  'document-move-requested',
+  'document-move-accepted',
+  'document-move-rejected',
+  'document-move-withdrawn',
+  'document-grants-changed',
+] as const;
+
+/** Discussion on documents (mentions, replies) – separate from lifecycle updates. */
+export const COMMENT_NOTIFICATION_EVENT_TYPES = ['document-comment-created'] as const;
+
+export const REVIEW_NOTIFICATION_EVENT_TYPES = [
+  'draft-request-submitted',
+  'draft-request-merged',
+  'draft-request-rejected',
+] as const;
+
+/** Admin-only: backup, restore, platform export/import job outcomes. */
+export const OPERATIONS_NOTIFICATION_EVENT_TYPES = [
+  'backup-succeeded',
+  'backup-failed',
+  'backup-restore-succeeded',
+  'backup-restore-failed',
+  'platform-export-succeeded',
+  'platform-export-failed',
+  'platform-import-succeeded',
+  'platform-import-failed',
+  'update-available',
+] as const;
+
+/** @deprecated use OPERATIONS_NOTIFICATION_EVENT_TYPES */
+export const BACKUP_SYSTEM_NOTIFICATION_EVENT_TYPES = OPERATIONS_NOTIFICATION_EVENT_TYPES;
+
+export const ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES = ['admin-broadcast'] as const;
+
+/** @deprecated use ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES */
+export const ADMIN_SYSTEM_NOTIFICATION_EVENT_TYPES = ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES;
+
+export const SYSTEM_NOTIFICATION_EVENT_TYPES = [
+  ...OPERATIONS_NOTIFICATION_EVENT_TYPES,
+  ...ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES,
+] as const;
+
+export const ORG_NOTIFICATION_EVENT_TYPES = [
+  'team-member-added',
+  'team-member-removed',
+  'team-lead-assigned',
+  'team-lead-removed',
+  'department-lead-assigned',
+  'department-lead-removed',
+  'company-lead-assigned',
+  'company-lead-removed',
+  'team-author-assigned',
+  'team-author-removed',
+  'department-author-assigned',
+  'department-author-removed',
+  'company-author-assigned',
+  'company-author-removed',
+  'admin-granted',
+  'admin-revoked',
+] as const;
+
+/** Do11y health-check reminders (Lead aggregate + needs-update ping). */
+export const HEALTH_CHECK_NOTIFICATION_EVENT_TYPES = [
+  'health-check-action-needed',
+  'health-check-needs-update',
+] as const;
+
+export type OrgNotificationEventType = (typeof ORG_NOTIFICATION_EVENT_TYPES)[number];
+export type SystemNotificationEventType = (typeof SYSTEM_NOTIFICATION_EVENT_TYPES)[number];
+
+export type NotificationPreferenceCategory =
+  | 'documentChanges'
+  | 'documentComments'
+  | 'draftRequests'
+  | 'reminders'
+  | 'announcements'
+  | 'operations'
+  | 'orgChanges';
+
+type LegacyNotificationChannelPrefs = Partial<Record<NotificationPreferenceCategory, boolean>> & {
+  /** Legacy combined toggle; migrated to announcements + operations. */
+  system?: boolean;
+};
+
+type NotificationSettingsPrefs = {
+  inApp?: LegacyNotificationChannelPrefs;
+  email?: LegacyNotificationChannelPrefs;
+};
+
+export type { NotificationSettingsPrefs };
+
+/** Reads a channel toggle; falls back to legacy prefs where documented. */
+export function isNotificationPreferenceEnabled(
+  channel: 'inApp' | 'email',
+  category: NotificationPreferenceCategory,
+  settings: NotificationSettingsPrefs | undefined,
+  defaultWhenUnset: boolean
+): boolean {
+  const channelPrefs = settings?.[channel];
+  if (channelPrefs == null) return defaultWhenUnset;
+  const direct = channelPrefs[category];
+  if (direct !== undefined) return direct;
+  if (
+    (category === 'announcements' || category === 'operations') &&
+    channelPrefs['system'] !== undefined
+  ) {
+    return channelPrefs['system'];
+  }
+  // Comments previously shared documentChanges; honour that until users set documentComments.
+  if (category === 'documentComments' && channelPrefs.documentChanges !== undefined) {
+    return channelPrefs.documentChanges;
+  }
+  return defaultWhenUnset;
+}
+
+const ORG_EVENT_TYPE_SET = new Set<string>(ORG_NOTIFICATION_EVENT_TYPES);
+const COMMENT_EVENT_TYPE_SET = new Set<string>(COMMENT_NOTIFICATION_EVENT_TYPES);
+
+/** Maps event_type to Settings preference channel (inApp / email toggles). */
+export function resolveNotificationPreferenceCategory(
+  eventType: string
+): NotificationPreferenceCategory {
+  if (COMMENT_EVENT_TYPE_SET.has(eventType)) return 'documentComments';
+  if (eventType === 'admin-broadcast') return 'announcements';
+  if (eventType === 'update-available') return 'operations';
+  if (eventType.startsWith('backup-')) return 'operations';
+  if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-'))
+    return 'operations';
+  if (ORG_EVENT_TYPE_SET.has(eventType)) return 'orgChanges';
+  if (eventType.includes('draft-request')) return 'draftRequests';
+  if (eventType.startsWith('document-move-')) return 'draftRequests';
+  if (
+    eventType === 'health-check-action-needed' ||
+    eventType === 'health-check-needs-update' ||
+    eventType.includes('reminder')
+  ) {
+    return 'reminders';
+  }
+  return 'documentChanges';
+}

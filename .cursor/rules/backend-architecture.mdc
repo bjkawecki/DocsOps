@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+# Backend Architecture Rules
+
+The backend follows a layered architecture.
+
+Layers:
+
+routes -> services -> permissions -> database
+
+Rules:
+
+1. Routes must not contain business logic.
+
+2. Routes may only:
+   - validate request input
+   - call a service function
+   - return a response
+
+3. Business logic must live in services.
+
+4. Permission decisions must use the permissions layer.
+
+5. Services are responsible for lifecycle logic and state transitions.
+
+6. **Service layout:** Domain code lives under `apps/backend/src/services/<domain>/` (e.g. `documents/`, `search/`, `notifications/`, `admin/`, `contexts/`). New services belong in the matching domain folder; avoid adding new loose `*.ts` files directly under `services/` unless they are truly cross-cutting.
+
+7. **Imports:** Prefer stable domain paths such as `../services/documents/documentService.js` from routes. Older docs or snippets may still show pre-refactor paths; the tree file `backend.tree` reflects the current layout.
+
+Example:
+
+Bad:
+routes/documents.ts
+route handler modifies document state directly.
+
+Good:
+route -> `documentService.publishDocument()` (from `services/documents/documentService.ts`)

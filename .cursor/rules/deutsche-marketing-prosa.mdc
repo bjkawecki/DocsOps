@@ -1,0 +1,52 @@
+---
+description: Deutsche Marketing- und Landing-Prosa (Thema-Rhema, bedachter Kontrast, vollständige Sätze)
+globs: apps/landing/**/*.{ts,tsx,md},docs/marketing/**/*.md
+alwaysApply: false
+---
+
+# Deutsche Marketing- und Landing-Prosa
+
+Gilt für Landing-Copy (`apps/landing`), Marketing-Texte in `docs/marketing/` und vergleichbare deutschsprachige Produktprosa.
+
+## „nicht X, sondern Y“ mit Bedacht
+
+Kein Verbot. Kontrast-Formeln nicht als Standard-Scharnier missbrauchen, wenn der Sachverhalt positiv klarer ist.
+
+**Meiden**, wenn die Verneinung nur Rhetorik ist und das Gemeinte auch direkt ginge:
+
+- „liegt selten darin …, sondern darin …“
+- „nicht nur A, sondern B“ als leerer Steigerungshack
+- „vorgegeben ist A, nicht B“ nur als Kontrast-Trick
+
+**Erlaubt**, wenn der Gegensatz selbst die Pointe trägt (Abgrenzung, die der Leser braucht), z. B. paralleles Dokumentensystem vs. dieselbe Organisationsstruktur.
+
+```text
+❌ Der Engpass liegt selten darin, dass Wissen existiert, sondern darin, dass es nicht gepflegt wird.
+✅ Zu diesem Zusammenspiel gehört Wissen, das laufend entsteht und sich verändert. Ohne verlässliche Pflege bleibt unklar, was gerade gilt.
+
+✅ Dokumentation entsteht so nicht als paralleles System neben der Arbeit, sondern in derselben Struktur, in der schon entschieden und verantwortet wird.
+```
+
+## Thema-Rhema (Anschluss)
+
+Jeder neue Satz knüpft an etwas bereits Genanntes an (Thema) und führt davon aus Neues ein (Rhema). Keine neuen Leitbegriffe („Engpass“, „Herausforderung“, „Kern“) ohne Brücke zum vorherigen Satz.
+
+```text
+❌ … Wissen entsteht und verändert sich. Der Engpass liegt darin, dass …
+✅ … Wissen entsteht und verändert sich. Dieses Wissen bleibt nur nutzbar, wenn es verlässlich gepflegt wird und klar ist, was gilt.
+```
+
+## Kein Telegrafenstil
+
+Absätze und Aufzählungs-Bodies in vollständigen Sätzen. Keine kommagetrennten Nominalgruppen als Pseudo-Satz nach Doppelpunkt.
+
+```text
+❌ DocsOps ist die Software für diese Pflege: Ordnung entlang der Organisation, gemeinsame Arbeit an Entwürfen und ein freigegebener Stand.
+✅ DocsOps unterstützt diese Pflege als Dokumentationsplattform. Die Ordnung folgt der Organisation. Menschen arbeiten gemeinsam an Entwürfen. Die Leitung gibt die Fassung frei, auf die sich andere stützen.
+```
+
+Kurze Titel und UI-Labels dürfen nominal bleiben. Fließtext und Erklärabsätze nicht.
+
+## Abschnitte „Ist → DocsOps“
+
+Wo DocsOps-Prinzipien erklärt werden (z. B. „Was DocsOps anders macht“): zuerst benennen, was in Unternehmen der Fall ist oder welche Herausforderung besteht, danach in einem weiteren Satz (oder klarem Anschluss), wie DocsOps darauf antwortet.

@@ -1,0 +1,198 @@
+import { Alert, Box, Loader, Select, Stack, Table, Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../../api/client';
+import type { StorageOverviewResponse } from '../../api/storage-types';
+import { SettingsContentCard } from './SettingsContentCard.js';
+import { useMe } from '../../hooks/useMe';
+import { SettingsCardTitle } from './SettingsCardTitle.js';
+import {
+  SETTINGS_FIELD_LABEL_GAP,
+  SETTINGS_CARD_STACK_GAP,
+  settingsCardDomId,
+} from './settingsLayout.js';
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${Number((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
+
+type ScopeOption =
+  | { value: 'personal'; label: string }
+  | { value: `team-${string}`; label: string; teamId: string }
+  | { value: `department-${string}`; label: string; departmentId: string }
+  | { value: `company-${string}`; label: string; companyId: string };
+
+export function SettingsStorageTab() {
+  const { t } = useTranslation('settings');
+  const { data: me, isPending: mePending } = useMe();
+  const [selectedScope, setSelectedScope] = useState<string>('personal');
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/companies?limit=100');
+      if (!res.ok) throw new Error('Failed to load companies');
+      return (await res.json()) as { items: { id: string; name: string }[] };
+    },
+    enabled: !!me?.user.isAdmin,
+  });
+
+  const scopeOptions = useMemo((): ScopeOption[] => {
+    if (!me) return [];
+    const opts: ScopeOption[] = [{ value: 'personal', label: t('storage.scopePersonal') }];
+    for (const team of me.identity.teams) {
+      if (team.role === 'leader') {
+        opts.push({
+          value: `team-${team.teamId}`,
+          label: t('storage.scopeTeam', { name: team.teamName }),
+          teamId: team.teamId,
+        });
+      }
+    }
+    for (const d of me.identity.departmentLeads) {
+      opts.push({
+        value: `department-${d.id}`,
+        label: t('storage.scopeDepartment', { name: d.name }),
+        departmentId: d.id,
+      });
+    }
+    const companyIdsAdded = new Set(me.identity.companyLeads.map((c) => c.id));
+    for (const c of me.identity.companyLeads) {
+      opts.push({
+        value: `company-${c.id}`,
+        label: t('storage.scopeCompany', { name: c.name }),
+        companyId: c.id,
+      });
+    }
+    if (me.user.isAdmin && companiesData?.items) {
+      for (const c of companiesData.items) {
+        if (!companyIdsAdded.has(c.id)) {
+          opts.push({
+            value: `company-${c.id}`,
+            label: t('storage.scopeCompany', { name: c.name }),
+            companyId: c.id,
+          });
+        }
+      }
+    }
+    return opts;
+  }, [me, companiesData?.items, t]);
+
+  const queryParams = useMemo(() => {
+    if (selectedScope === 'personal') return null;
+    const opt = scopeOptions.find((o) => o.value === selectedScope);
+    if (!opt) return null;
+    if ('teamId' in opt) return { scope: 'team', teamId: opt.teamId };
+    if ('departmentId' in opt) return { scope: 'department', departmentId: opt.departmentId };
+    if ('companyId' in opt) return { scope: 'company', companyId: opt.companyId };
+    return null;
+  }, [selectedScope, scopeOptions]);
+
+  const storageUrl = useMemo(() => {
+    const base = '/api/v1/me/storage';
+    if (!queryParams) return base;
+    const q = new URLSearchParams();
+    q.set('scope', queryParams.scope);
+    if (queryParams.teamId) q.set('teamId', queryParams.teamId);
+    if (queryParams.departmentId) q.set('departmentId', queryParams.departmentId);
+    if (queryParams.companyId) q.set('companyId', queryParams.companyId);
+    return `${base}?${q.toString()}`;
+  }, [queryParams]);
+
+  const {
+    data: storage,
+    isPending: storagePending,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['me', 'storage', storageUrl],
+    queryFn: async (): Promise<StorageOverviewResponse> => {
+      const res = await apiFetch(storageUrl);
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? res.statusText);
+      }
+      return (await res.json()) as StorageOverviewResponse;
+    },
+    enabled: !!me,
+  });
+
+  if (mePending || !me) {
+    return (
+      <SettingsContentCard id={settingsCardDomId('storage')} data-settings-card="storage">
+        <Loader size="sm" />
+      </SettingsContentCard>
+    );
+  }
+
+  return (
+    <SettingsContentCard id={settingsCardDomId('storage')} data-settings-card="storage">
+      <Stack gap={SETTINGS_CARD_STACK_GAP}>
+        <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+          <SettingsCardTitle jumpId="storage" />
+          <Text size="xs" c="dimmed">
+            {t('storage.description')}
+          </Text>
+        </Stack>
+
+        <Stack gap={SETTINGS_FIELD_LABEL_GAP}>
+          {scopeOptions.length > 1 ? (
+            <Select
+              label={t('storage.scopeLabel')}
+              data={scopeOptions.map((o) => ({ value: o.value, label: o.label }))}
+              value={selectedScope}
+              onChange={(v) => v && setSelectedScope(v)}
+              size="sm"
+              w="100%"
+              maw={320}
+            />
+          ) : null}
+          {storage && !storagePending ? (
+            <Text size="sm" c="dimmed">
+              {t('storage.usedSummary', {
+                used: formatBytes(storage.usedBytes),
+                count: storage.attachmentCount,
+              })}
+            </Text>
+          ) : null}
+        </Stack>
+
+        {isError && (
+          <Alert color="red">
+            {error instanceof Error ? error.message : t('storage.loadFailed')}
+          </Alert>
+        )}
+        {storagePending && <Loader size="sm" />}
+        {storage && !storagePending && storage.byUser && storage.byUser.length > 0 && (
+          <Box style={{ overflowX: 'auto' }}>
+            <Table withTableBorder className="dense-list-table" style={{ minWidth: 360 }}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('storage.userHeader')}</Table.Th>
+                  <Table.Th>{t('storage.usedHeader')}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {storage.byUser.map((u) => (
+                  <Table.Tr key={u.userId}>
+                    <Table.Td>
+                      <Text size="sm">{u.name || u.userId}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size="sm">{formatBytes(u.usedBytes)}</Text>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Box>
+        )}
+      </Stack>
+    </SettingsContentCard>
+  );
+}

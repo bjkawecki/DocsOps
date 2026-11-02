@@ -1,0 +1,44 @@
+{
+  "name": "engineering-knowledge-operations",
+  "version": "0.6.3",
+  "private": true,
+  "description": "Self-hosted internal documentation with org hierarchy and lead-controlled publishing.",
+  "packageManager": "pnpm@12.14.0+sha512.c18ba6d87993d3d164cb5e8948f32b2c06ee854487e06cd8d86781342fb3e5bb4634367034711e86802baa9c37bea906ce1929ad08d70884c97d801df13389a6",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check:permissions": "bash scripts/check-permission-drift.sh",
+    "check:i18n": "pnpm --filter frontend run check:i18n && pnpm --filter backend run check:mail-i18n",
+    "verify": "pnpm run lint && pnpm run check:permissions && pnpm run check:i18n && pnpm run format:check && pnpm --filter backend run build && pnpm --filter frontend run build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,json,md,yml,yaml,css,scss,html}": "prettier --write",
+    "*.{js,mjs,cjs,ts,tsx}": "eslint --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "husky": "^9.1.7",
+    "jscpd": "^5.4.2",
+    "knip": "^6.44.1",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "prisma": "^7.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.10.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.67.3",
+    "@rollup/rollup-linux-x64-musl": "4.67.3"
+  }
+}

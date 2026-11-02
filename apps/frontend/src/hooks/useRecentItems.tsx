@@ -1,0 +1,276 @@
+import { createContext, useCallback, useContext, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { apiFetch } from '../api/client';
+import type { MeResponse } from '../api/me-types';
+import { useMe, meQueryKey } from './useMe';
+
+const MAX_ITEMS = 8;
+
+export type RecentItemType = 'process' | 'project' | 'document';
+
+export interface RecentItem {
+  type: RecentItemType;
+  id: string;
+  name?: string;
+  /** Process/project/subcontext display name when known. */
+  contextName?: string;
+}
+
+/** Aggregated recent row (includes preferences map key for scope display). */
+export type AggregatedRecentItem = RecentItem & { scopeKey: string };
+
+/** Scope for "recently viewed" – organisational unit or user-related. */
+export type RecentScope =
+  | { type: 'company'; id: string }
+  | { type: 'department'; id: string }
+  | { type: 'team'; id: string }
+  | { type: 'personal' }
+  | { type: 'shared' };
+
+export function scopeToKey(scope: RecentScope): string {
+  if (scope.type === 'personal' || scope.type === 'shared') return scope.type;
+  return `${scope.type}:${scope.id}`;
+}
+
+/** Identity slice used to resolve human-readable recent scope labels. */
+export type RecentScopeIdentity = Pick<
+  MeResponse['identity'],
+  'teams' | 'departments' | 'departmentLeads' | 'companyLeads'
+>;
+
+/**
+ * Display label for a preferences `recentItemsByScope` map key.
+ * `fallbacks` localize Personal/Shared/Team/Department/Company when the identity name is missing.
+ */
+export function formatRecentScopeLabel(
+  scopeKey: string,
+  identity: RecentScopeIdentity | null | undefined,
+  fallbacks?: {
+    personal?: string;
+    shared?: string;
+    team?: string;
+    department?: string;
+    company?: string;
+  }
+): string {
+  if (scopeKey === 'personal') return fallbacks?.personal ?? 'Personal';
+  if (scopeKey === 'shared') return fallbacks?.shared ?? 'Shared';
+
+  const colon = scopeKey.indexOf(':');
+  if (colon < 0) return scopeKey;
+  const kind = scopeKey.slice(0, colon);
+  const id = scopeKey.slice(colon + 1);
+  if (!id) return kind;
+
+  if (kind === 'team') {
+    const team = identity?.teams.find((t) => t.teamId === id);
+    return team?.teamName?.trim() || fallbacks?.team || 'Team';
+  }
+  if (kind === 'department') {
+    const fromDepts = identity?.departments.find((d) => d.id === id);
+    if (fromDepts?.name?.trim()) return fromDepts.name.trim();
+    const fromLeads = identity?.departmentLeads.find((d) => d.id === id);
+    return fromLeads?.name?.trim() || fallbacks?.department || 'Department';
+  }
+  if (kind === 'company') {
+    const company = identity?.companyLeads.find((c) => c.id === id);
+    return company?.name?.trim() || fallbacks?.company || 'Company';
+  }
+  return scopeKey;
+}
+
+export interface RecentItemsContextValue {
+  /** List for the given scope; addRecent(item, scope) writes to this scope. */
+  addRecent: (item: RecentItem, scope: RecentScope) => void;
+  isPending: boolean;
+}
+
+const RecentItemsContext = createContext<RecentItemsContextValue | null>(null);
+
+/**
+ * Normalises API entries to RecentItem (name optional from backend).
+ * Deduplicates by type+id (keeps first = most recent).
+ */
+function fromPreferences(
+  raw: { type: string; id: string; name?: string; contextName?: string }[] | undefined
+): RecentItem[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: RecentItem[] = [];
+  for (const x of raw) {
+    if (
+      x == null ||
+      typeof x !== 'object' ||
+      (x.type !== 'process' && x.type !== 'project' && x.type !== 'document') ||
+      typeof x.id !== 'string' ||
+      x.id === ''
+    ) {
+      continue;
+    }
+    const key = `${x.type}:${x.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      type: x.type,
+      id: x.id,
+      name: x.name,
+      ...(typeof x.contextName === 'string' && x.contextName.trim() !== ''
+        ? { contextName: x.contextName }
+        : {}),
+    });
+  }
+  return out;
+}
+
+/**
+ * Aggregate recent items from all scopes (e.g. Continue reading).
+ * Deduplicates by type+id, keeps encounter order, limits count.
+ * Optional `types` filters while aggregating (so the limit is filled with matches).
+ */
+export function getAggregatedRecentItems(
+  recentItemsByScope:
+    Record<string, { type: string; id: string; name?: string; contextName?: string }[]> | undefined,
+  limit = 10,
+  options?: { types?: readonly RecentItemType[] }
+): AggregatedRecentItem[] {
+  if (!recentItemsByScope || typeof recentItemsByScope !== 'object') return [];
+  const typeFilter = options?.types != null ? new Set<string>(options.types) : null;
+  const seen = new Set<string>();
+  const result: AggregatedRecentItem[] = [];
+  for (const [scopeKey, list] of Object.entries(recentItemsByScope)) {
+    const items = fromPreferences(list);
+    for (const item of items) {
+      if (typeFilter != null && !typeFilter.has(item.type)) continue;
+      const key = `${item.type}:${item.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push({ ...item, scopeKey });
+      if (result.length >= limit) return result;
+    }
+  }
+  return result;
+}
+
+/**
+ * Provider for recently viewed contexts/documents per scope.
+ * Liest aus GET /me (preferences.recentItemsByScope), schreibt per PATCH /me/preferences.
+ */
+export function RecentItemsProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const { data: me } = useMe();
+
+  const patchPreferences = useMutation({
+    mutationFn: async (payload: { scopeKey: string; list: RecentItem[] }) => {
+      const res = await apiFetch('/api/v1/me/preferences', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          recentItemsByScope: { [payload.scopeKey]: payload.list },
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save recent items');
+      return (await res.json()) as { recentItemsByScope?: Record<string, RecentItem[]> };
+    },
+    onSuccess: (data) => {
+      if (data.recentItemsByScope) {
+        preferencesRef.current = data.recentItemsByScope;
+      }
+      void queryClient.invalidateQueries({ queryKey: meQueryKey });
+    },
+  });
+
+  const preferencesRef = useRef(me?.preferences?.recentItemsByScope);
+
+  useEffect(() => {
+    if (!patchPreferences.isPending) {
+      preferencesRef.current = me?.preferences?.recentItemsByScope;
+    }
+  }, [me?.preferences?.recentItemsByScope, patchPreferences.isPending]);
+
+  const addRecent = useCallback(
+    (item: RecentItem, scope: RecentScope) => {
+      const scopeKey = scopeToKey(scope);
+      const current = fromPreferences(preferencesRef.current?.[scopeKey]);
+      const alreadyFirst =
+        current[0]?.type === item.type &&
+        current[0]?.id === item.id &&
+        (item.name === undefined || current[0]?.name === item.name) &&
+        (item.contextName === undefined || current[0]?.contextName === item.contextName);
+      if (alreadyFirst) return;
+
+      const filtered = current.filter((x) => !(x.type === item.type && x.id === item.id));
+      const next = [{ ...item }, ...filtered].slice(0, MAX_ITEMS);
+      const nextByScope = {
+        ...(preferencesRef.current ?? {}),
+        [scopeKey]: next,
+      };
+      preferencesRef.current = nextByScope;
+      queryClient.setQueryData<MeResponse>(meQueryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          preferences: {
+            ...old.preferences,
+            recentItemsByScope: nextByScope,
+          },
+        };
+      });
+      patchPreferences.mutate({ scopeKey, list: next });
+    },
+    [patchPreferences, queryClient]
+  );
+
+  const contextValueRef = useRef<RecentItemsContextValue>({
+    addRecent,
+    isPending: false,
+  });
+  contextValueRef.current.addRecent = addRecent;
+  contextValueRef.current.isPending = patchPreferences.isPending;
+
+  return (
+    <RecentItemsContext.Provider value={contextValueRef.current}>
+      {children}
+    </RecentItemsContext.Provider>
+  );
+}
+
+/** Return type of useRecentItems(scope): list for this scope + addRecent bound to scope. */
+export interface UseRecentItemsReturn {
+  items: RecentItem[];
+  addRecent: (item: RecentItem) => void;
+  isPending: boolean;
+}
+
+/**
+ * Recently viewed entries for a scope (company/department/team).
+ * Read from me.preferences.recentItemsByScope[scopeKey]; adding via addRecent(item) writes to this scope.
+ */
+export function useRecentItems(scope: RecentScope | null): UseRecentItemsReturn {
+  const ctx = useContext(RecentItemsContext);
+  const { data: me } = useMe();
+
+  if (!ctx) {
+    return {
+      items: [],
+      addRecent: () => {},
+      isPending: false,
+    };
+  }
+
+  const items =
+    scope === null ? [] : fromPreferences(me?.preferences?.recentItemsByScope?.[scopeToKey(scope)]);
+
+  const addRecentBound =
+    scope === null ? () => {} : (item: RecentItem) => ctx.addRecent(item, scope);
+
+  return {
+    items,
+    addRecent: addRecentBound,
+    isPending: ctx.isPending,
+  };
+}
+
+/** Context actions (e.g. addRecent with dynamic scope from API owner). */
+export function useRecentItemsActions(): RecentItemsContextValue | null {
+  return useContext(RecentItemsContext);
+}

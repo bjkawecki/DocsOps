@@ -1,0 +1,121 @@
+import type { MeDraftsQuery, MeTrashArchiveItem } from '../../schemas/me.js';
+
+type MeNotificationDbRow = {
+  id: string;
+  event_type: string;
+  payload: unknown;
+  created_at: Date;
+  read_at: Date | null;
+};
+
+type RecentPreferencesItem = {
+  type: 'process' | 'project' | 'document';
+  id: string;
+  name?: string;
+  contextName?: string;
+};
+
+type UserPreferences = {
+  theme?: 'light' | 'dark' | 'auto';
+  sidebarPinned?: boolean;
+  sidebarCollapsed?: boolean;
+  scopeRecentPanelOpen?: boolean;
+  locale?: 'en' | 'de';
+  primaryColor?:
+    | 'blue'
+    | 'green'
+    | 'violet'
+    | 'teal'
+    | 'indigo'
+    | 'amber'
+    | 'sky'
+    | 'rose'
+    | 'orange'
+    | 'fuchsia';
+  textSize?: 'default' | 'large' | 'larger';
+  documentReadingFont?: 'sans' | 'serif';
+  recentItemsByScope?: Record<string, RecentPreferencesItem[]>;
+  lastSeenReleaseVersion?: string;
+  notificationSettings?: {
+    inApp?: {
+      documentChanges?: boolean;
+      documentComments?: boolean;
+      draftRequests?: boolean;
+      reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
+    };
+    email?: {
+      documentChanges?: boolean;
+      documentComments?: boolean;
+      draftRequests?: boolean;
+      reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
+    };
+  };
+  pulseSettings?: {
+    showDrafts?: boolean;
+    showReviews?: boolean;
+    showNewDocuments?: boolean;
+    showUpdatedDocuments?: boolean;
+    showComments?: boolean;
+    showHealthCheck?: boolean;
+  };
+};
+
+type MeIdentityTeam = {
+  teamId: string;
+  teamName: string;
+  departmentName: string;
+  departmentId: string;
+  companyId: string;
+  role: 'member' | 'leader' | 'author';
+};
+
+type MeResponse = {
+  user: {
+    id: string;
+    name: string;
+    email: string | null;
+    isAdmin: boolean;
+    hasLocalLogin: boolean;
+  };
+  identity: {
+    teams: MeIdentityTeam[];
+    departments: { id: string; name: string }[];
+    departmentLeads: { id: string; name: string; companyId: string }[];
+    departmentAuthors: { id: string; name: string; companyId: string }[];
+    companyAuthors: { id: string; name: string }[];
+    companyLeads: { id: string; name: string }[];
+  };
+  capabilities: {
+    /** Do11y hub/scan/actions; false for platform admin. */
+    healthCheck: boolean;
+  };
+  preferences: UserPreferences;
+  impersonation?: { active: true; realUser: { id: string; name: string } };
+};
+
+type OwnerScopeRow = {
+  teamId: string | null;
+  departmentId: string | null;
+  companyId: string | null;
+  ownerUserId: string | null;
+  displayName: string | null;
+};
+
+export type {
+  MeDraftsQuery,
+  MeTrashArchiveItem,
+  MeNotificationDbRow,
+  RecentPreferencesItem,
+  UserPreferences,
+  MeIdentityTeam,
+  MeResponse,
+  OwnerScopeRow,
+};

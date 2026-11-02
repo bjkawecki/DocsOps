@@ -1,0 +1,326 @@
+import { Button, Group, Pagination, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import { useIntersection } from '@mantine/hooks';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { formatTableDate } from '../../lib/formatDate';
+import { ContentLink } from '../ui/ContentLink';
+import { EntityListCard } from '../ui/EntityListCard.js';
+import { useRegisterPageMobileExtraActions } from '../ui/pageMobileNav.js';
+import { CompactListCount, useCompactListSearchFab } from '../ui/StickySearchChrome.js';
+import { SortableTableTh } from '../ui/SortableTableTh';
+import { TagBadge } from '../ui/TagBadge.js';
+import { useWideLayout } from '../appShell/useWideLayout.js';
+
+export type ContextDocumentsTableRow = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  documentTags: { tag: { id: string; name: string } }[];
+};
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 10;
+/** Compact infinite-scroll page size. */
+export const DOCS_COMPACT_PAGE_SIZE = 25;
+
+const SEARCH_KEY = 'docsSearch';
+const LIMIT_KEY = 'docsLimit';
+
+export function readDocsListLimit(searchParams: URLSearchParams): number {
+  const limitParam = searchParams.get(LIMIT_KEY);
+  if (!limitParam) return DEFAULT_PAGE_SIZE;
+  return Math.min(100, Math.max(1, parseInt(limitParam, 10) || DEFAULT_PAGE_SIZE));
+}
+
+export function readDocsListPage(searchParams: URLSearchParams): number {
+  return Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+}
+
+export function ContextDocumentsTable({
+  documents,
+  total,
+  emptyMessage,
+  hasMore,
+  onLoadMore,
+  loadingMore,
+}: {
+  /** Loaded documents (current page on wide; accumulated pages on compact). */
+  documents: ContextDocumentsTableRow[];
+  /** Server total (all pages). */
+  total: number;
+  /** Shown when there are no documents at all (not merely search miss). */
+  emptyMessage?: string;
+  /** Compact infinite scroll: more pages available. */
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
+}) {
+  const { t } = useTranslation('contexts');
+  const navigate = useNavigate();
+  const isWide = useWideLayout();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const { ref: intersectionRef, entry } = useIntersection({
+    root: null,
+    threshold: 0.1,
+  });
+
+  const localSearch = searchParams.get(SEARCH_KEY) ?? '';
+  const sortBy = searchParams.get('sortBy') ?? 'updatedAt';
+  const sortOrder = searchParams.get('sortOrder') ?? 'desc';
+  const page = readDocsListPage(searchParams);
+  const limit = readDocsListLimit(searchParams);
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  const setFilter = useCallback(
+    (key: string, value: string | null) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (value == null || value === '') next.delete(key);
+        else next.set(key, value);
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const setSort = useCallback(
+    (col: string) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        const order = sortBy === col && sortOrder === 'desc' ? 'asc' : 'desc';
+        next.set('sortBy', col);
+        next.set('sortOrder', order);
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams, sortBy, sortOrder]
+  );
+
+  const setPage = useCallback(
+    (p: number) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (p <= 1) next.delete('page');
+        else next.set('page', String(p));
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const setPageSize = useCallback(
+    (value: number) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set(LIMIT_KEY, String(value));
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const sortedItems = useMemo(() => {
+    const list = [...documents];
+    if (sortBy === 'title') {
+      list.sort((a, b) => {
+        const c = (a.title ?? '').localeCompare(b.title ?? '', undefined, { sensitivity: 'base' });
+        return sortOrder === 'asc' ? c : -c;
+      });
+    } else if (sortBy === 'updatedAt') {
+      list.sort((a, b) => {
+        const c = (a.updatedAt ?? '').localeCompare(b.updatedAt ?? '');
+        return sortOrder === 'asc' ? c : -c;
+      });
+    }
+    return list;
+  }, [documents, sortBy, sortOrder]);
+
+  const searchLower = localSearch.trim().toLowerCase();
+  const filteredItems = useMemo(
+    () =>
+      searchLower
+        ? sortedItems.filter((doc) => (doc.title ?? '').toLowerCase().includes(searchLower))
+        : sortedItems,
+    [sortedItems, searchLower]
+  );
+
+  useEffect(() => {
+    if (isWide || !hasMore || !onLoadMore || loadingMore) return;
+    if (entry?.isIntersecting) onLoadMore();
+  }, [entry?.isIntersecting, hasMore, isWide, loadingMore, onLoadMore]);
+
+  const setLoadMoreNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      loadMoreRef.current = node;
+      intersectionRef(node);
+    },
+    [intersectionRef]
+  );
+
+  const countText = localSearch.trim()
+    ? t('documentsTable.countFiltered', { count: total, filtered: filteredItems.length })
+    : t('documentsTable.count', { count: total });
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('documentsTable.searchLabel'),
+    placeholder: t('documentsTable.searchPlaceholder'),
+    value: localSearch,
+    onChange: (e) => setFilter(SEARCH_KEY, e.currentTarget.value),
+    onClear: () => setFilter(SEARCH_KEY, null),
+  });
+
+  useRegisterPageMobileExtraActions([compactSearch.action], !isWide);
+
+  return (
+    <Stack gap="md">
+      {compactSearch.panel}
+      {isWide ? (
+        <Group gap="md" wrap="wrap" align="flex-end">
+          <TextInput
+            label={t('documentsTable.searchLabel')}
+            placeholder={t('documentsTable.searchPlaceholder')}
+            value={localSearch}
+            onChange={(e) => setFilter(SEARCH_KEY, e.currentTarget.value)}
+            style={{ minWidth: 200 }}
+          />
+          <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
+            {countText}
+          </Text>
+          <Select
+            label={t('documentsTable.perPageLabel')}
+            data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+            value={String(limit)}
+            onChange={(v) => v && setPageSize(parseInt(v, 10))}
+            style={{ width: 90 }}
+          />
+        </Group>
+      ) : (
+        <CompactListCount>{countText}</CompactListCount>
+      )}
+
+      {isWide ? (
+        <Table withTableBorder className="dense-list-table">
+          <Table.Thead>
+            <Table.Tr>
+              <SortableTableTh
+                label={t('documentsTable.titleColumn')}
+                column="title"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('title')}
+              />
+              <Table.Th>{t('documentsTable.tagsColumn')}</Table.Th>
+              <SortableTableTh
+                label={t('documentsTable.lastUpdatedColumn')}
+                column="updatedAt"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onClick={() => setSort('updatedAt')}
+              />
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {filteredItems.length === 0 ? (
+              <Table.Tr>
+                <Table.Td colSpan={3}>
+                  <Text size="sm" c="dimmed">
+                    {documents.length === 0
+                      ? (emptyMessage ?? t('documentsTable.emptyDefault'))
+                      : t('documentsTable.emptySearch')}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            ) : (
+              filteredItems.map((doc) => (
+                <Table.Tr
+                  key={doc.id}
+                  data-clickable-table-row
+                  onClick={() => {
+                    void navigate(`/documents/${doc.id}`);
+                  }}
+                >
+                  <Table.Td>
+                    <ContentLink to={`/documents/${doc.id}`} style={{ fontWeight: 500 }}>
+                      {doc.title}
+                    </ContentLink>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      {doc.documentTags.map((dt) => (
+                        <TagBadge key={dt.tag.id}>{dt.tag.name}</TagBadge>
+                      ))}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c="dimmed">
+                      {formatTableDate(doc.updatedAt)}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))
+            )}
+          </Table.Tbody>
+        </Table>
+      ) : filteredItems.length === 0 ? (
+        <Text size="sm" c="dimmed">
+          {documents.length === 0
+            ? (emptyMessage ?? t('documentsTable.emptyDefault'))
+            : t('documentsTable.emptySearch')}
+        </Text>
+      ) : (
+        <Stack gap="xs">
+          {filteredItems.map((doc) => {
+            const tagsPreview = doc.documentTags
+              .slice(0, 3)
+              .map((dt) => dt.tag.name)
+              .join(', ');
+            return (
+              <EntityListCard
+                key={doc.id}
+                to={`/documents/${doc.id}`}
+                title={doc.title}
+                meta={
+                  <Stack gap={2}>
+                    <Text size="xs" c="dimmed">
+                      {formatTableDate(doc.updatedAt)}
+                    </Text>
+                    {tagsPreview ? (
+                      <Text size="xs" c="dimmed" lineClamp={1}>
+                        {tagsPreview}
+                        {doc.documentTags.length > 3 ? '…' : ''}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                }
+              />
+            );
+          })}
+          {hasMore ? (
+            <div ref={setLoadMoreNode}>
+              <Button
+                fullWidth
+                variant="subtle"
+                size="sm"
+                loading={loadingMore}
+                onClick={() => onLoadMore?.()}
+              >
+                {t('documentsTable.loadMore')}
+              </Button>
+            </div>
+          ) : null}
+        </Stack>
+      )}
+
+      {isWide ? (
+        <Group justify="flex-end">
+          <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+        </Group>
+      ) : null}
+    </Stack>
+  );
+}

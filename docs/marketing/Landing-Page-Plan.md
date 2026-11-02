@@ -1,0 +1,134 @@
+# Landing Page – Plan & Technik
+
+**Status:** §19 – `apps/landing` existiert; **inhaltliche Leitlinie:** [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)  
+**Sprache Landing:** Deutsch · **App/Demo:** Englisch  
+**Domain:** `docsops.de` · Demo: `demo.docsops.de`  
+**Design:** Mantine 8, dunkles Theme (Coolify-inspiriert)
+
+---
+
+## 1. Ziel
+
+- Erklären, **wofür** DocsOps gedacht ist (offizieller Wissensstand, Hierarchie, Veröffentlichung).
+- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophie`.
+- **Vertrauen:** Self-hosted, quelloffen, Impressum/Datenschutz.
+- **Konvertieren:** Story verstehen → Philosophie (optional) → Live-Demo oder `/install`.
+
+**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/vergleich`).
+
+---
+
+## 2. Technik
+
+| Aspekt  | Stand                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------- |
+| Stack   | `apps/landing` – Vite + React + Mantine 8                                                                     |
+| Theme   | Fest dark, Cornflower-Blue-Akzent                                                                             |
+| Build   | `make landing-build` → `apps/landing/dist`                                                                    |
+| Env     | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL`, `VITE_SITE_URL`, optional `VITE_SPONSOR_GITHUB_URL` (`.env.example`) |
+| Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
+| SEO     | robots/sitemap (Build), Canonical/OG, FAQ JSON-LD, Prerender – siehe [Landing-SEO.md](./Landing-SEO.md)       |
+
+**Lokal:** `make landing-dev` → http://127.0.0.1:5174 (Make setzt `VITE_SITE_URL` / `VITE_DEMO_URL`; siehe Makefile).
+
+---
+
+## 3. Seitenaufbau
+
+**Leitplan Sections:** [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
+
+### Startseite `/`
+
+1. Navbar (Desktop + Mobile Drawer)
+2. Hero (Demo extern · Installation → `/install`)
+3. **Scope** (`#scope`)
+4. **Kontext** (`#kontext`)
+5. **Rollen** (`#rollen`) – Titel: Rollenbasierte Zusammenarbeit
+6. **Beispiel** (`#einordnen`)
+7. **Philosophie-Teaser** → `/philosophie`
+8. **Feature-Grid** (`#features`) – Alle Features (Org-Hierarchie, Governance, Do11y, Datenkontrolle)
+9. **FAQ** (`#faq`)
+10. **Abschluss-CTA** (Demo · Installation)
+11. Footer (Version-Badge → `/changelog`)
+
+**Vergleichstabelle:** weiterhin **`/vergleich`**, nicht auf `/`.
+
+### Routen
+
+| Route                        | Inhalt                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `/`                          | Startseite                                                                   |
+| `/philosophie`               | Philosophie (Abgrenzung indirekt, keine Vergleichs-CTA)                      |
+| `/warum`, `/ansatz`          | Redirect → `/philosophie`                                                    |
+| `/install`                   | Marketing-Install (curl, Voraussetzungen, Link zu `docs/install.md`)         |
+| `/changelog`                 | Root-`CHANGELOG.md` (Build-Import)                                           |
+| `/sponsor`                   | Sponsor us. (externe Links per Env)                                          |
+| `/vergleich`                 | DocsOps · Confluence · Docmost (Tabelle + Reibungspunkte); Nav unter Projekt |
+| `/impressum`, `/datenschutz` | Strukturierte Platzhalter (`legalCopy.ts`) – vor Go-live ausfüllen           |
+
+---
+
+## 4. Navbar & Footer
+
+**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** ▾ · GitHub · Changelog · Unterstützen · **Live-Demo**
+
+- So funktioniert’s: `#scope`, `#kontext`, `#rollen`, `#einordnen`, `#features`
+- Philosophie: Unser Ansatz (`/philosophie`), DocsOps vs. Confluence (`/vergleich`)
+
+**Navbar (Mobile):** Burger/Drawer mit gleichen Links + Demo-CTA.
+
+**Footer:** Produkt · **DocsOps vs.** · Projekt · Rechtliches · `vX.Y.Z` → Changelog
+
+- Produkt: So funktioniert’s (`/#scope`), Unser Ansatz, Installation, Live-Demo
+- DocsOps vs.: Confluence (später weitere Gegner); Eintrag nur Opponent-Name
+- Projekt: GitHub, Changelog, Unterstützen, Autor-Link
+
+Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
+
+---
+
+## 5. Vergleich & FAQ
+
+- **`/vergleich`:** Hauptort der Gegenüberstellung; Navbar unter Philosophie ▾; Footer-Spalte **DocsOps vs.**
+- Startseite: kein großes Vergleichs-Grid; FAQ verweist auf `/vergleich`.
+- Abgrenzung Haltung: `/philosophie`. Tabellendaten: [vergleich/](./vergleich/).
+- FAQ auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
+
+---
+
+## 6. Demo & Landing
+
+| Thema          | Landing                              | Demo                                          |
+| -------------- | ------------------------------------ | --------------------------------------------- |
+| Storytelling   | Hierarchie, Rollen, Beispiel, Teaser | Seed-Dokumente (IT / Software X / A11y-Stand) |
+| Erster Kontakt | Hero → Modell → CTA                  | Login / Enter demo                            |
+| Rechtliches    | Impressum, Datenschutz (Platzhalter) | Demo-Banner (später)                          |
+
+---
+
+## 7. Offene Punkte
+
+### Inhalt
+
+- [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
+- [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
+- [x] **Feature-Grid auf `/`:** Section `#features` nach Philosophie-Teaser (Beispiel → Warum-Regeln bleibt zusammen); Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
+- [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
+- [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (Tabelle + Reibungspunkte; FAQ-Link)
+- [ ] Demo-Seed-Story
+
+### Technik
+
+- [x] Mobile Navbar, OG-Tags, Hero LCP-Attribute, Version-Badge
+- [x] SEO: robots/sitemap, Canonicals, Prerender, Search-Console-Checkliste ([Landing-SEO.md](./Landing-SEO.md))
+- [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
+- [x] **Favicon Color Scheme:** Landing + App: nur SVG `docops.svg` / `docops-dark.svg` mit `prefers-color-scheme: light|dark` (wie App). Landing: keine ICO/PNG-`<link>`s mehr (die überschrieben Dark-SVG). Legacy-Dateien `favicon.ico`/16/32 aus `docops-dark.svg` neu erzeugt (Auto-Request `/favicon.ico`). Optional später: light/dark-ICO und `site.webmanifest`.
+- [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
+
+---
+
+## 8. Referenzen
+
+- [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
+- [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)
+- [install.md](../install.md) – vollständige Installationsdoku (extern verlinkt)

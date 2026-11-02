@@ -1,0 +1,91 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "retry": "Retry"
+  },
+  "errors": {
+    "generic": "Something went wrong.",
+    "loadFailed": "Could not load data. Reload the page or try again later."
+  },
+  "status": {
+    "loading": "Loading…",
+    "active": "Active",
+    "empty": "Nothing here yet.",
+    "untitled": "Untitled"
+  },
+  "toasts": {
+    "error": "Something went wrong.",
+    "saved": "Saved"
+  },
+  "scopePeople": {
+    "loadFailed": "Failed to load people.",
+    "refreshFailed": "Could not refresh the list.",
+    "noMembersYet": "No members yet.",
+    "noMembers": "No members.",
+    "departmentLeads": "Department leads",
+    "companyLeads": "Company leads",
+    "authors": "Authors",
+    "roleLeadMember": "Lead, Member",
+    "roleLead": "Lead",
+    "roleAuthor": "Author",
+    "roleMember": "Member",
+    "setAsMember": "Set as member",
+    "setAsAuthor": "Set as author",
+    "setAsMemberInTeam": "Member · {{team}}",
+    "peopleOnlineSummary": "{{count}} · {{online}} online",
+    "departmentCount_one": "{{count}} dept",
+    "departmentCount_other": "{{count}} depts",
+    "peopleCount_one": "{{count}} person",
+    "peopleCount_other": "{{count}} people",
+    "teamCount_one": "{{count}} team",
+    "teamCount_other": "{{count}} teams",
+    "teamsHeading_one": "Team",
+    "teamsHeading_other": "Teams",
+    "onlineActiveCount_one": "{{count}} active",
+    "onlineActiveCount_other": "{{count}} active",
+    "presence": {
+      "online": "Online",
+      "activeJustNow": "Active just now",
+      "activeMinutesAgo": "Active {{count}}m ago",
+      "lastSeenHoursAgo": "Last seen {{count}}h ago",
+      "lastSeenDaysAgo": "Last seen {{count}}d ago",
+      "lastSeenOn": "Last seen {{date}}"
+    }
+  },
+  "orgRoles": {
+    "companyLead": {
+      "singular": "Company Lead",
+      "plural": "Company Leads"
+    },
+    "departmentLead": {
+      "singular": "Department Lead",
+      "plural": "Department Leads"
+    },
+    "teamLead": {
+      "singular": "Team Lead",
+      "plural": "Team Leads"
+    },
+    "teamMember": {
+      "singular": "Team Member",
+      "plural": "Team Members"
+    },
+    "knowledgeManager": {
+      "singular": "Knowledge Manager",
+      "plural": "Knowledge Managers"
+    }
+  },
+  "orgRolesExtra": {
+    "admin": "Admin",
+    "companyAuthor": "Company Author",
+    "departmentAuthor": "Department Author",
+    "teamAuthor": "Team Author",
+    "user": "User"
+  }
+}

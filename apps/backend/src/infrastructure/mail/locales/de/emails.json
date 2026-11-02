@@ -1,0 +1,56 @@
+{
+  "notification": {
+    "subject": "DocsOps: {{eventLabel}}",
+    "body": "Du hast eine DocsOps-Benachrichtigung: {{eventLabel}}.\n\nÖffne Benachrichtigungen in der DocsOps-App, um die Details zu sehen.",
+    "event": {
+      "document-created": "Dokument erstellt",
+      "document-updated": "Dokument aktualisiert",
+      "document-deleted": "Dokument in den Papierkorb verschoben",
+      "document-published": "Dokument veröffentlicht",
+      "document-archived": "Dokument archiviert",
+      "document-restored": "Dokument wiederhergestellt",
+      "document-moved": "Dokument verschoben",
+      "document-move-requested": "Dokumentverschiebung angefragt",
+      "document-move-accepted": "Dokumentverschiebung angenommen",
+      "document-move-rejected": "Dokumentverschiebung abgelehnt",
+      "document-move-withdrawn": "Dokumentverschiebung zurückgezogen",
+      "document-grants-changed": "Dokumentzugriff geändert",
+      "document-comment-created": "Neuer Kommentar zu Dokument",
+      "draft-request-submitted": "Review-Anfrage eingereicht",
+      "draft-request-merged": "Review-Anfrage übernommen",
+      "draft-request-rejected": "Review-Anfrage abgelehnt",
+      "backup-succeeded": "Backup erfolgreich abgeschlossen",
+      "backup-failed": "Backup fehlgeschlagen",
+      "backup-restore-succeeded": "Wiederherstellung erfolgreich abgeschlossen",
+      "backup-restore-failed": "Wiederherstellung fehlgeschlagen",
+      "platform-export-succeeded": "Plattform-Export abgeschlossen",
+      "platform-export-failed": "Plattform-Export fehlgeschlagen",
+      "platform-import-succeeded": "Plattform-Import abgeschlossen",
+      "platform-import-failed": "Plattform-Import fehlgeschlagen",
+      "update-available": "Software-Update verfügbar",
+      "admin-broadcast": "Systemmeldung",
+      "team-member-added": "Zum Team hinzugefügt",
+      "team-member-removed": "Aus Team entfernt",
+      "team-lead-assigned": "Team-Lead-Rolle zugewiesen",
+      "team-lead-removed": "Team-Lead-Rolle entzogen",
+      "department-lead-assigned": "Abteilungsleitungsrolle zugewiesen",
+      "department-lead-removed": "Abteilungsleitungsrolle entzogen",
+      "company-lead-assigned": "Firmenleitungsrolle zugewiesen",
+      "company-lead-removed": "Firmenleitungsrolle entzogen",
+      "admin-granted": "Administratorzugriff gewährt",
+      "admin-revoked": "Administratorzugriff entzogen"
+    }
+  },
+  "system": {
+    "test": {
+      "subject": "DocsOps SMTP-Test",
+      "body": "Dies ist eine Test-E-Mail von DocsOps. SMTP ist korrekt konfiguriert."
+    }
+  },
+  "auth": {
+    "reset": {
+      "subject": "DocsOps Passwort zurücksetzen",
+      "body": "Für dein DocsOps-Konto wurde ein Passwort-Reset angefordert.\n\nWenn du das nicht warst, kannst du diese E-Mail ignorieren.\n\nReset-Link: {{resetUrl}}"
+    }
+  }
+}

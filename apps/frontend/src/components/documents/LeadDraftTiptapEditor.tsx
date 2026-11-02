@@ -1,0 +1,397 @@
+import { Badge, Box, Group, Text } from '@mantine/core';
+import { EditorContent, useEditor } from '@tiptap/react';
+import { SuggestionFriendlyCode } from '../../tiptap/suggestionFriendlyCode.js';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
+import type { BlockDocument } from '../../api/document-types';
+import {
+  blockDocumentToTiptapJson,
+  tiptapJsonToBlockDocument,
+} from '../../lib/blockDocumentTiptap';
+import { isAllowedEditorLinkHref } from '../../lib/blockLinkHref.js';
+import { isSuggestionPersisted } from '../../lib/draftSuggestionUtils.js';
+import { withdrawLocalSuggestionInEditor } from '../../tiptap/withdrawLocalSuggestion.js';
+import { AuthorSuggestionModeExtension } from '../../tiptap/authorSuggestionMode';
+import { BlockIdExtension } from '../../tiptap/blockIdExtension';
+import { SuggestionDeleteMark, SuggestionInsertMark } from '../../tiptap/suggestionMarks';
+import {
+  SuggestionHoverExtension,
+  type SuggestionHoverTarget,
+} from '../../tiptap/suggestionHoverExtension';
+import { SuggestionMarkPopover } from './documentLeadDraft/SuggestionMarkPopover.js';
+import { useDraftSuggestionMutations } from './documentLeadDraft/useDraftSuggestionMutations.js';
+import { DocumentImage } from '../../tiptap/documentImage.js';
+import { DocumentCallout } from '../../tiptap/documentCallout.js';
+import { DocumentMermaid } from '../../tiptap/documentMermaid.js';
+import { LeadDraftEditorToolbar } from './LeadDraftEditorToolbar.js';
+import classes from './LeadDraftTiptapEditor.module.css';
+
+export type LeadDraftTiptapEditorHandle = {
+  getBlockDocument: () => BlockDocument;
+  getCurrentBlockFingerprint: () => string;
+};
+
+export type LeadDraftEditorMode = 'lead' | 'author';
+
+type Props = {
+  /** Aktueller Server-Stand (wird bei neuem `contentFingerprint` in den Editor übernommen). */
+  sourceDocument: BlockDocument;
+  /** Z. B. `JSON.stringify(blocks)` – bei Änderung wird `setContent` ausgeführt. */
+  contentFingerprint: string;
+  /** Basis für Dirty-Erkennung (normalerweise letzter synchronisierter Serverstand). */
+  baselineFingerprint: string;
+  editable: boolean;
+  editorMode?: LeadDraftEditorMode;
+  authorId?: string;
+  /** Needed for attachment-backed image src URLs and uploads. */
+  documentId: string;
+  onDirtyChange?: (dirty: boolean) => void;
+  onSaveShortcut?: () => void;
+  onSubmitShortcut?: () => void;
+  inlineSuggestionBar?: ReactNode;
+  /** Draft status / banners rendered above the typography toolbar (sticky chrome). */
+  chromePrefix?: ReactNode;
+  suggestionInteractions?: {
+    documentId: string;
+    draftRevision: number;
+    persistedDocument: BlockDocument;
+    canPublish: boolean;
+    currentUserId?: string;
+    authorNameById: Record<string, string>;
+    onApplied: (revision: number, blocks: BlockDocument) => void;
+    onLocalChange?: () => void;
+  };
+};
+
+export const LeadDraftTiptapEditor = forwardRef<LeadDraftTiptapEditorHandle, Props>(
+  function LeadDraftTiptapEditor(
+    {
+      sourceDocument,
+      contentFingerprint,
+      baselineFingerprint,
+      editable,
+      editorMode = 'lead',
+      authorId = '',
+      documentId,
+      onDirtyChange,
+      onSaveShortcut,
+      onSubmitShortcut,
+      inlineSuggestionBar,
+      chromePrefix,
+      suggestionInteractions,
+    },
+    ref
+  ) {
+    const [, bumpToolbar] = useReducer((n: number) => n + 1, 0);
+    const dirtyRef = useRef(false);
+    /** Editor-equivalent baseline so undo-to-synced clears dirty (not raw server JSON). */
+    const dirtyBaselineRef = useRef(baselineFingerprint);
+    const onDirtyChangeRef = useRef(onDirtyChange);
+    const onSaveShortcutRef = useRef(onSaveShortcut);
+    const onSubmitShortcutRef = useRef(onSubmitShortcut);
+
+    const reportDirty = useCallback((dirty: boolean) => {
+      if (dirtyRef.current === dirty) return;
+      dirtyRef.current = dirty;
+      onDirtyChangeRef.current?.(dirty);
+    }, []);
+    const [chromeHost, setChromeHost] = useState<Element | null>(null);
+    const authorMode = editorMode === 'author';
+    const [hoverTarget, setHoverTarget] = useState<SuggestionHoverTarget | null>(null);
+    const hoverCloseTimerRef = useRef<number | null>(null);
+    const hoverCallbackRef = useRef<(target: SuggestionHoverTarget | null) => void>(() => {});
+    const hoverLeaveCallbackRef = useRef<() => void>(() => {});
+
+    const suggestionMutation = useDraftSuggestionMutations({
+      documentId: suggestionInteractions?.documentId ?? '',
+      draftRevision: suggestionInteractions?.draftRevision ?? 0,
+      onApplied: suggestionInteractions?.onApplied ?? (() => {}),
+    });
+
+    const cancelHoverClose = useCallback(() => {
+      if (hoverCloseTimerRef.current != null) {
+        window.clearTimeout(hoverCloseTimerRef.current);
+        hoverCloseTimerRef.current = null;
+      }
+    }, []);
+
+    const scheduleHoverClose = useCallback(() => {
+      cancelHoverClose();
+      hoverCloseTimerRef.current = window.setTimeout(() => {
+        setHoverTarget(null);
+        hoverCloseTimerRef.current = null;
+      }, 450);
+    }, [cancelHoverClose]);
+
+    useEffect(() => {
+      hoverCallbackRef.current = (target) => {
+        cancelHoverClose();
+        setHoverTarget(target);
+      };
+      hoverLeaveCallbackRef.current = scheduleHoverClose;
+    }, [cancelHoverClose, scheduleHoverClose]);
+
+    const onHoverChange = useCallback((target: SuggestionHoverTarget | null) => {
+      hoverCallbackRef.current(target);
+    }, []);
+
+    const onHoverLeave = useCallback(() => {
+      hoverLeaveCallbackRef.current();
+    }, []);
+
+    useEffect(() => {
+      onDirtyChangeRef.current = onDirtyChange;
+    }, [onDirtyChange]);
+    useEffect(() => {
+      onSaveShortcutRef.current = onSaveShortcut;
+    }, [onSaveShortcut]);
+    useEffect(() => {
+      onSubmitShortcutRef.current = onSubmitShortcut;
+    }, [onSubmitShortcut]);
+
+    const extensions = useMemo(
+      () => [
+        StarterKit.configure({
+          strike: false,
+          code: false,
+        }),
+        Link.configure({
+          openOnClick: false,
+          autolink: false,
+          linkOnPaste: false,
+          protocols: ['http', 'https', { scheme: 'docsops-doc', optionalSlashes: true }],
+          HTMLAttributes: {
+            rel: 'noopener noreferrer',
+          },
+          isAllowedUri: (url, ctx) => {
+            if (typeof url === 'string' && isAllowedEditorLinkHref(url)) return true;
+            return ctx.defaultValidate(url);
+          },
+          shouldAutoLink: (href) => isAllowedEditorLinkHref(href),
+        }),
+        Table.configure({
+          resizable: false,
+          allowTableNodeSelection: true,
+        }),
+        TableRow,
+        TableHeader,
+        TableCell,
+        DocumentImage,
+        DocumentCallout,
+        DocumentMermaid,
+        SuggestionFriendlyCode,
+        BlockIdExtension,
+        SuggestionInsertMark,
+        SuggestionDeleteMark,
+        AuthorSuggestionModeExtension.configure({
+          authorId,
+          enabled: authorMode && editable,
+        }),
+        ...(suggestionInteractions
+          ? [
+              SuggestionHoverExtension.configure({
+                authorNameById: suggestionInteractions.authorNameById,
+                onHoverChange,
+                onHoverLeave,
+              }),
+            ]
+          : []),
+      ],
+      [authorId, authorMode, editable, onHoverChange, onHoverLeave, suggestionInteractions]
+    );
+
+    const editor = useEditor({
+      extensions,
+      editable,
+      content: blockDocumentToTiptapJson(sourceDocument, { documentId }),
+      editorProps: {
+        attributes: {
+          spellcheck: 'true',
+        },
+        handleKeyDown: (_view, event) => {
+          const isMeta = event.metaKey || event.ctrlKey;
+          if (!isMeta) return false;
+          if (event.key.toLowerCase() === 's') {
+            event.preventDefault();
+            onSaveShortcutRef.current?.();
+            return true;
+          }
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            onSubmitShortcutRef.current?.();
+            return true;
+          }
+          return false;
+        },
+      },
+    });
+
+    useEffect(() => {
+      if (!editor) return;
+      const onEditorUpdate = () => {
+        const current = JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));
+        reportDirty(current !== dirtyBaselineRef.current);
+      };
+      editor.on('update', onEditorUpdate);
+      return () => {
+        editor.off('update', onEditorUpdate);
+      };
+    }, [editor, reportDirty]);
+
+    useLayoutEffect(() => {
+      setChromeHost(document.querySelector('[data-document-edit-sticky-chrome]'));
+    }, [editor]);
+
+    useEffect(() => {
+      if (!editor) return;
+      type AuthorOpts = { authorId: string; enabled: boolean };
+      type HoverOpts = { authorNameById: Record<string, string> };
+      const authorExt = editor.extensionManager.extensions.find(
+        (ext) => ext.name === 'authorSuggestionMode'
+      ) as { options: AuthorOpts } | undefined;
+      if (authorExt) {
+        authorExt.options.authorId = authorId;
+        authorExt.options.enabled = authorMode && editable;
+      }
+      const hoverExt = editor.extensionManager.extensions.find(
+        (ext) => ext.name === 'suggestionHover'
+      ) as { options: HoverOpts } | undefined;
+      if (hoverExt && suggestionInteractions) {
+        hoverExt.options.authorNameById = suggestionInteractions.authorNameById;
+        editor.view.dispatch(editor.state.tr.setMeta('suggestionHoverRefresh', true));
+      }
+    }, [authorId, authorMode, editable, editor, suggestionInteractions]);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        getBlockDocument: () => {
+          if (!editor) return { schemaVersion: 0, blocks: [] };
+          return tiptapJsonToBlockDocument(editor.getJSON());
+        },
+        getCurrentBlockFingerprint: () => {
+          if (!editor) return JSON.stringify({ schemaVersion: 0, blocks: [] });
+          return JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));
+        },
+      }),
+      [editor]
+    );
+
+    useEffect(() => {
+      if (!editor) return;
+      editor.setEditable(editable);
+    }, [editor, editable]);
+
+    useEffect(() => {
+      if (!editor) return;
+      editor.on('selectionUpdate', bumpToolbar);
+      editor.on('transaction', bumpToolbar);
+      return () => {
+        editor.off('selectionUpdate', bumpToolbar);
+        editor.off('transaction', bumpToolbar);
+      };
+    }, [editor]);
+
+    useEffect(() => {
+      if (!editor) return;
+      const nextJson = blockDocumentToTiptapJson(sourceDocument, { documentId });
+      const cur = editor.getJSON();
+      if (JSON.stringify(cur) !== JSON.stringify(nextJson)) {
+        editor.commands.setContent(nextJson, { emitUpdate: false });
+      }
+      // Baseline must match what undo restores (editor round-trip), not raw server JSON.
+      dirtyBaselineRef.current = JSON.stringify(tiptapJsonToBlockDocument(editor.getJSON()));
+      dirtyRef.current = false;
+      onDirtyChangeRef.current?.(false);
+    }, [contentFingerprint, documentId, editor, sourceDocument]);
+
+    if (!editor) {
+      return (
+        <Text size="sm" c="dimmed">
+          Editor wird initialisiert…
+        </Text>
+      );
+    }
+
+    const chrome = (
+      <Box className={classes.chrome}>
+        {chromePrefix}
+        {inlineSuggestionBar != null && <Box mb="sm">{inlineSuggestionBar}</Box>}
+        {!editable && (
+          <Group gap="xs" mb="sm">
+            <Badge size="sm" variant="filled" color="gray">
+              Read only
+            </Badge>
+          </Group>
+        )}
+        {editable && (
+          <Box className={classes.toolbar}>
+            <LeadDraftEditorToolbar
+              editor={editor}
+              authorMode={authorMode}
+              authorId={authorId}
+              documentId={documentId}
+            />
+          </Box>
+        )}
+      </Box>
+    );
+
+    return (
+      <Box className={classes.root}>
+        {chromeHost ? createPortal(chrome, chromeHost) : chrome}
+        <Box className={classes.editorShell}>
+          <EditorContent editor={editor} />
+        </Box>
+        {suggestionInteractions && (
+          <SuggestionMarkPopover
+            target={hoverTarget}
+            authorNameById={suggestionInteractions.authorNameById}
+            canPublish={suggestionInteractions.canPublish}
+            currentUserId={suggestionInteractions.currentUserId}
+            isPending={suggestionMutation.isPending}
+            onMouseEnter={cancelHoverClose}
+            onMouseLeave={scheduleHoverClose}
+            onAction={(action, suggestionId) => {
+              cancelHoverClose();
+              setHoverTarget(null);
+              if (
+                action === 'withdraw' &&
+                editor &&
+                !isSuggestionPersisted(suggestionInteractions.persistedDocument, suggestionId)
+              ) {
+                if (withdrawLocalSuggestionInEditor(editor, suggestionId)) {
+                  // Keep dirtyRef in sync so undo can clear the unsaved indicator.
+                  dirtyRef.current = true;
+                  onDirtyChangeRef.current?.(true);
+                  suggestionInteractions.onLocalChange?.();
+                }
+                return;
+              }
+              suggestionMutation.mutate({ action, suggestionId });
+            }}
+          />
+        )}
+      </Box>
+    );
+  }
+);
+
+LeadDraftTiptapEditor.displayName = 'LeadDraftTiptapEditor';

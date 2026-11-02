@@ -1,0 +1,152 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: var(--mantine-spacing-sm);
+  padding: 6px 4px;
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  /* Same surface as editor shell / cards – readable chrome on recessed body. */
+  background-color: var(--mantine-color-default);
+}
+
+.rowCompact {
+  flex-wrap: wrap;
+  align-items: center;
+  overflow: visible;
+  padding: 4px;
+}
+
+.rowCompactCollapsed {
+  padding: 0;
+  border: none;
+  background: transparent;
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.rowCompact .clusterTools {
+  flex-wrap: wrap;
+  min-height: 44px;
+  gap: 2px;
+  width: 100%;
+}
+
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-default);
+  color: var(--mantine-color-text);
+  font: inherit;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapseToggle:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.collapseToggle:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.collapseToggleLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 12px;
+  background: transparent;
+}
+
+.cluster + .cluster {
+  border-left: 1px solid var(--mantine-color-default-border);
+}
+
+.clusterTitle {
+  height: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* dimmed/gray-7: readable on body; gray-6 was too weak. */
+  color: var(--mantine-color-dimmed);
+  line-height: 12px;
+  user-select: none;
+}
+
+.clusterTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+}
+
+.toolHit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  line-height: 0;
+}
+
+/* Idle subtle/gray defaults are too light on body – force darker ink. */
+.toolHit :global(.mantine-ActionIcon-root:not([data-disabled]):not([data-variant='filled'])) {
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-3));
+}
+
+.toolHit :global(.mantine-ActionIcon-root[data-disabled]) {
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+  opacity: 1;
+}
+
+.headingLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+}
+
+/* Compact: larger touch targets, no horizontal scroll strip. */
+@media (max-width: 74.9875em) {
+  .rowCompact .toolHit {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .rowCompact .toolHit :global(.mantine-ActionIcon-root) {
+    --ai-size: 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .rowCompact .headingLabel {
+    font-size: 12px;
+  }
+}

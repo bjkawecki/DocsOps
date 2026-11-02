@@ -1,0 +1,627 @@
+import { Box, Button, Modal } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Team } from 'backend/api-types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import { AdminTeamDeleteModal } from './AdminTeamDeleteModal';
+import { AdminTeamEditModal } from './AdminTeamEditModal';
+import { AdminTeamsTableSection } from './AdminTeamsTableSection';
+import { AdminTeamsToolbar } from './AdminTeamsToolbar';
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+  TEAMS_PAGE_SIZE_KEY,
+} from './adminTeamsTabConstants';
+import type {
+  AdminUsersRes,
+  AssignmentListRes,
+  CompaniesRes,
+  DepartmentsRes,
+  TeamBatchRow,
+  TeamStatsRes,
+  TeamWithDept,
+} from './adminTeamsTabTypes';
+import { CreateTeamForm } from './CreateTeamForm';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
+
+export function AdminTeamsTab() {
+  const { t } = useTranslation('admin');
+  const isWide = useWideLayout();
+  const demoMode = useDemoMode();
+  const queryClient = useQueryClient();
+  const [filterText, setFilterText] = useState('');
+  const [filterDepartmentId, setFilterDepartmentId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState<number>(() => {
+    try {
+      const raw = window.localStorage.getItem(TEAMS_PAGE_SIZE_KEY);
+      if (!raw) return DEFAULT_PAGE_SIZE;
+      const parsed = Number(raw);
+      return PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])
+        ? parsed
+        : DEFAULT_PAGE_SIZE;
+    } catch {
+      return DEFAULT_PAGE_SIZE;
+    }
+  });
+  const [createTeamOpened, { open: openCreateTeam, close: closeCreateTeam }] = useDisclosure(false);
+  const [editingTeam, setEditingTeam] = useState<TeamWithDept | null>(null);
+  const [teamCardEditing, setTeamCardEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDepartmentId, setEditDepartmentId] = useState('');
+  const [editLeadId, setEditLeadId] = useState('');
+  const [editMemberIds, setEditMemberIds] = useState<string[]>([]);
+  const [deleteConfirmTeam, setDeleteConfirmTeam] = useState<TeamWithDept | null>(null);
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies'],
+    queryFn: async (): Promise<CompaniesRes> => {
+      const res = await apiFetch('/api/v1/companies?limit=100');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as CompaniesRes;
+    },
+  });
+
+  const companyId = companiesData?.items?.[0]?.id ?? null;
+
+  const { data: departmentsData } = useQuery({
+    queryKey: ['companies', companyId, 'departments'],
+    queryFn: async (): Promise<DepartmentsRes> => {
+      const res = await apiFetch(`/api/v1/companies/${companyId}/departments?limit=100`);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as DepartmentsRes;
+    },
+    enabled: !!companyId,
+  });
+
+  const departments = useMemo(() => departmentsData?.items ?? [], [departmentsData?.items]);
+
+  const allTeams = useMemo(
+    (): TeamWithDept[] =>
+      departments.flatMap((d) =>
+        (d.teams ?? []).map((t) => ({
+          ...t,
+          departmentId: d.id,
+          departmentName: d.name,
+        }))
+      ),
+    [departments]
+  );
+
+  const filteredTeams = useMemo(() => {
+    let list = allTeams;
+    if (filterText.trim()) {
+      const q = filterText.trim().toLowerCase();
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(q) || t.departmentName.toLowerCase().includes(q)
+      );
+    }
+    if (filterDepartmentId) {
+      list = list.filter((t) => t.departmentId === filterDepartmentId);
+    }
+    return list;
+  }, [allTeams, filterText, filterDepartmentId]);
+  const totalPages = Math.max(1, Math.ceil(filteredTeams.length / limit));
+  const pagedTeams = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredTeams.slice(start, start + limit);
+  }, [filteredTeams, page, limit]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const { data: leadsForEditData, isPending: leadsForEditPending } = useQuery({
+    queryKey: ['admin', 'teams', editingTeam?.id, 'team-leads'],
+    queryFn: async (): Promise<AssignmentListRes> => {
+      const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/team-leads?limit=100`);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as AssignmentListRes;
+    },
+    enabled: !!editingTeam?.id,
+  });
+  const leadsForEdit = useMemo(() => leadsForEditData?.items ?? [], [leadsForEditData?.items]);
+
+  const { data: membersForEditData, isPending: membersForEditPending } = useQuery({
+    queryKey: ['admin', 'teams', editingTeam?.id, 'members'],
+    queryFn: async (): Promise<AssignmentListRes> => {
+      const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/members?limit=500`);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as AssignmentListRes;
+    },
+    enabled: !!editingTeam?.id,
+  });
+  const membersForEdit = useMemo(
+    () => membersForEditData?.items ?? [],
+    [membersForEditData?.items]
+  );
+
+  useEffect(() => {
+    const members = membersForEditData?.items ?? [];
+    if (teamCardEditing && editingTeam?.id && members.length > 0 && editMemberIds.length === 0) {
+      setEditMemberIds(members.map((m) => m.id));
+    }
+  }, [teamCardEditing, editingTeam?.id, membersForEditData, editMemberIds.length]);
+
+  const { data: adminUsersData } = useQuery({
+    queryKey: ['admin', 'users', 'list'],
+    queryFn: async (): Promise<AdminUsersRes> => {
+      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as AdminUsersRes;
+    },
+    enabled: !!editingTeam?.id || createTeamOpened,
+  });
+  const userOptions = useMemo(
+    () => (adminUsersData?.items ?? []).map((u) => ({ value: u.id, label: u.name })),
+    [adminUsersData?.items]
+  );
+
+  const { data: teamStatsData, isPending: teamStatsPending } = useQuery({
+    queryKey: ['admin', 'teams', editingTeam?.id, 'stats'],
+    queryFn: async (): Promise<TeamStatsRes> => {
+      const res = await apiFetch(`/api/v1/admin/teams/${editingTeam!.id}/stats`);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as TeamStatsRes;
+    },
+    enabled: !!editingTeam?.id,
+  });
+
+  const teamIdsForBatch = useMemo(() => filteredTeams.map((t) => t.id), [filteredTeams]);
+  const teamIdsBatchKey = useMemo(() => [...teamIdsForBatch].sort().join(','), [teamIdsForBatch]);
+  const { data: teamBatchData } = useQuery({
+    queryKey: ['admin', 'teams', 'list-summary', teamIdsBatchKey],
+    queryFn: async (): Promise<Record<string, TeamBatchRow>> => {
+      const res = await apiFetch(
+        `/api/v1/admin/teams/list-summary?ids=${encodeURIComponent(teamIdsBatchKey)}`
+      );
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as Record<string, TeamBatchRow>;
+    },
+    enabled: teamIdsForBatch.length > 0,
+  });
+
+  const invalidateAssignments = useCallback(
+    (tid?: string) => {
+      if (tid) {
+        void queryClient.invalidateQueries({ queryKey: ['teams', tid, 'members'] });
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', tid, 'members'] });
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', tid, 'team-leads'] });
+        void queryClient.invalidateQueries({ queryKey: ['teams', tid, 'team-leads'] });
+      }
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'teams', 'list-summary'] });
+      void queryClient.invalidateQueries({ queryKey: ['teams', 'batch'] });
+    },
+    [queryClient]
+  );
+
+  const invalidateDepartments = useCallback(
+    (cid?: string | null) => {
+      if (cid) void queryClient.invalidateQueries({ queryKey: ['companies', cid, 'departments'] });
+      else if (companyId)
+        void queryClient.invalidateQueries({ queryKey: ['companies', companyId, 'departments'] });
+    },
+    [companyId, queryClient]
+  );
+
+  const createTeam = useMutation({
+    mutationFn: async ({
+      name,
+      departmentId: did,
+      leadUserId,
+    }: {
+      name: string;
+      departmentId: string;
+      leadUserId: string;
+    }) => {
+      const res = await apiFetch(`/api/v1/departments/${did}/teams`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, leadUserId }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+      return (await res.json()) as Team;
+    },
+    onSuccess: (_, variables) => {
+      const dept = departments.find((d) => d.id === variables.departmentId);
+      invalidateDepartments(dept?.companyId ?? companyId);
+      closeCreateTeam();
+      notifications.show({
+        title: t('teams.toasts.createdTitle'),
+        message: t('teams.toasts.createdMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const updateTeam = useMutation({
+    mutationFn: async ({
+      teamId: tid,
+      name,
+      departmentId: did,
+    }: {
+      teamId: string;
+      name: string;
+      departmentId: string;
+    }) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, departmentId: did }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+      return (await res.json()) as Team;
+    },
+    onSuccess: (_, variables) => {
+      const dept = departments.find((d) => d.id === variables.departmentId);
+      invalidateDepartments(dept?.companyId ?? companyId);
+      setEditingTeam(null);
+      notifications.show({
+        title: t('teams.toasts.updatedTitle'),
+        message: t('teams.toasts.updatedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const deleteTeam = useMutation({
+    mutationFn: async (tid: string) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}`, { method: 'DELETE' });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, tid) => {
+      const team = allTeams.find((t) => t.id === tid);
+      const dept = team ? departments.find((d) => d.id === team.departmentId) : undefined;
+      invalidateDepartments(dept?.companyId ?? companyId);
+      setDeleteConfirmTeam(null);
+      notifications.show({
+        title: t('teams.toasts.deletedTitle'),
+        message: t('teams.toasts.deletedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const addLeader = useMutation({
+    mutationFn: async ({ teamId: tid, userId }: { teamId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/team-leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { teamId: tid }) => {
+      invalidateAssignments(tid);
+      notifications.show({
+        title: t('teams.toasts.leaderAddedTitle'),
+        message: t('teams.toasts.leaderAddedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const removeLeader = useMutation({
+    mutationFn: async ({ teamId: tid, userId }: { teamId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/team-leads/${userId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { teamId: tid }) => {
+      invalidateAssignments(tid);
+      notifications.show({
+        title: t('teams.toasts.leaderRemovedTitle'),
+        message: t('teams.toasts.leaderRemovedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const addMember = useMutation({
+    mutationFn: async ({ teamId: tid, userId }: { teamId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { teamId: tid }) => {
+      invalidateAssignments(tid);
+      notifications.show({
+        title: t('teams.toasts.memberAddedTitle'),
+        message: t('teams.toasts.memberAddedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const removeMember = useMutation({
+    mutationFn: async ({ teamId: tid, userId }: { teamId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/teams/${tid}/members/${userId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { teamId: tid }) => {
+      invalidateAssignments(tid);
+      notifications.show({
+        title: t('teams.toasts.memberRemovedTitle'),
+        message: t('teams.toasts.memberRemovedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (err: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, err),
+        color: 'red',
+      }),
+  });
+
+  const departmentOptions = useMemo(
+    () => [
+      { value: '', label: t('teams.allDepartmentsOption') },
+      ...departments.map((d) => ({ value: d.id, label: d.name })),
+    ],
+    [departments, t]
+  );
+
+  const handleStartEditCard = useCallback(() => {
+    if (!editingTeam) return;
+    setEditName(editingTeam.name);
+    setEditDepartmentId(editingTeam.departmentId);
+    setEditLeadId(leadsForEdit[0]?.id ?? '');
+    setEditMemberIds(membersForEdit.map((m) => m.id));
+    setTeamCardEditing(true);
+  }, [editingTeam, leadsForEdit, membersForEdit]);
+
+  const handleSaveTeamCard = useCallback(() => {
+    const team = editingTeam;
+    if (!team) return;
+    const name = editName.trim();
+    if (!name || !editDepartmentId) return;
+    void (async () => {
+      try {
+        if (name !== team.name || editDepartmentId !== team.departmentId) {
+          await updateTeam.mutateAsync({
+            teamId: team.id,
+            name,
+            departmentId: editDepartmentId,
+          });
+        }
+        const tid = team.id;
+        const currentMemberIds = membersForEdit.map((m) => m.id);
+        const toAddMembers = editMemberIds.filter((id) => !currentMemberIds.includes(id));
+        const toRemoveMembers = currentMemberIds.filter((id) => !editMemberIds.includes(id));
+        for (const userId of toRemoveMembers) {
+          await removeMember.mutateAsync({ teamId: tid, userId });
+        }
+        for (const userId of toAddMembers) {
+          await addMember.mutateAsync({ teamId: tid, userId });
+        }
+        const currentLeadId = leadsForEdit[0]?.id ?? null;
+        const targetLeadId = editLeadId || null;
+        if (!targetLeadId) {
+          throw new Error(t('teams.errors.leadRequired'));
+        }
+        if (targetLeadId !== currentLeadId) {
+          await addLeader.mutateAsync({ teamId: tid, userId: targetLeadId });
+        }
+        setEditingTeam((prev) =>
+          prev && prev.id === tid
+            ? {
+                ...prev,
+                name,
+                departmentId: editDepartmentId,
+                departmentName:
+                  departments.find((d) => d.id === editDepartmentId)?.name ?? prev.departmentName,
+              }
+            : prev
+        );
+        invalidateAssignments(tid);
+        setTeamCardEditing(false);
+      } catch {
+        // notifications from mutations
+      }
+    })();
+  }, [
+    editingTeam,
+    editName,
+    editDepartmentId,
+    editLeadId,
+    editMemberIds,
+    leadsForEdit,
+    membersForEdit,
+    departments,
+    updateTeam,
+    removeMember,
+    addMember,
+    addLeader,
+    invalidateAssignments,
+    t,
+  ]);
+
+  const createTeamDisabled = demoMode || !companyId || departments.length === 0;
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createTeam'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreateTeam,
+        disabled: createTeamDisabled,
+      },
+    ],
+    [createTeamDisabled, openCreateTeam, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
+  const chromeActions = useMemo(
+    () => (
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreateTeam}
+        disabled={createTeamDisabled}
+      >
+        {t('actions.createTeam')}
+      </Button>
+    ),
+    [createTeamDisabled, openCreateTeam, t]
+  );
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-teams:${isWide}:${createTeamDisabled}`
+  );
+
+  return (
+    <Box>
+      <AdminDemoReadOnlyAlert />
+      <AdminTeamsToolbar
+        filterText={filterText}
+        onFilterTextChange={(value) => {
+          setFilterText(value);
+          setPage(1);
+        }}
+        filterDepartmentId={filterDepartmentId}
+        onFilterDepartmentIdChange={(value) => {
+          setFilterDepartmentId(value);
+          setPage(1);
+        }}
+        departmentOptions={departmentOptions}
+        companyId={companyId}
+        filteredTeamsCount={filteredTeams.length}
+        limit={limit}
+        onLimitChange={(next) => {
+          setLimit(next);
+          setPage(1);
+        }}
+      />
+
+      <AdminTeamsTableSection
+        companyId={companyId}
+        departmentsLength={departments.length}
+        allTeamsLength={allTeams.length}
+        filteredTeamsLength={filteredTeams.length}
+        limit={limit}
+        page={page}
+        totalPages={totalPages}
+        pagedTeams={pagedTeams}
+        teamBatchData={teamBatchData}
+        onPageChange={setPage}
+        onSelectTeam={setEditingTeam}
+      />
+
+      <Modal
+        opened={createTeamOpened}
+        onClose={closeCreateTeam}
+        title={t('actions.createTeam')}
+        size="sm"
+      >
+        <CreateTeamForm
+          departments={departments}
+          userOptions={userOptions}
+          onSubmit={(name, departmentId, leadUserId) =>
+            createTeam.mutate({ name, departmentId, leadUserId })
+          }
+          onCancel={closeCreateTeam}
+          loading={createTeam.isPending}
+        />
+      </Modal>
+
+      {editingTeam && (
+        <AdminTeamEditModal
+          team={editingTeam}
+          onClose={() => setEditingTeam(null)}
+          departments={departments}
+          teamCardEditing={teamCardEditing}
+          setTeamCardEditing={setTeamCardEditing}
+          editName={editName}
+          setEditName={setEditName}
+          editDepartmentId={editDepartmentId}
+          setEditDepartmentId={setEditDepartmentId}
+          editLeadId={editLeadId}
+          setEditLeadId={setEditLeadId}
+          editMemberIds={editMemberIds}
+          setEditMemberIds={setEditMemberIds}
+          userOptions={userOptions}
+          leadsForEdit={leadsForEdit}
+          leadsForEditPending={leadsForEditPending}
+          membersForEdit={membersForEdit}
+          membersForEditPending={membersForEditPending}
+          teamStatsData={teamStatsData}
+          teamStatsPending={teamStatsPending}
+          onStartEditCard={handleStartEditCard}
+          onSaveCard={handleSaveTeamCard}
+          saveLoading={
+            updateTeam.isPending ||
+            addLeader.isPending ||
+            removeLeader.isPending ||
+            addMember.isPending ||
+            removeMember.isPending
+          }
+          onRequestDelete={() => setDeleteConfirmTeam(editingTeam)}
+          deleteFromManageLoading={deleteTeam.isPending}
+        />
+      )}
+
+      <AdminTeamDeleteModal
+        opened={!!deleteConfirmTeam}
+        team={deleteConfirmTeam}
+        onClose={() => setDeleteConfirmTeam(null)}
+        onConfirmDelete={() => {
+          if (deleteConfirmTeam) deleteTeam.mutate(deleteConfirmTeam.id);
+        }}
+        deleteLoading={deleteTeam.isPending}
+      />
+    </Box>
+  );
+}

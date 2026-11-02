@@ -1,0 +1,366 @@
+import type { Prisma, PrismaClient } from '../../../../../generated/prisma/client.js';
+import { parseBlockDocumentFromDb } from '../blocks/documentBlocksBackfill.js';
+import {
+  assertBlockDocumentLinksValid,
+  assertBlockDocumentImagesValid,
+  assertBlockDocumentCalloutsValid,
+  normalizeBlockDocumentSchemaVersion,
+} from '../blocks/blockSchema.js';
+import {
+  countPendingSuggestions,
+  stripSuggestionsForPublished,
+} from '../collaboration/draftInlineSuggestions.js';
+import { applyPublishReset } from '../healthCheck/healthCheckService.js';
+import { mergeContributorUserId } from './documentContributors.js';
+
+/** Metadata-only update payload. No lifecycle fields (publishedAt, archivedAt, deletedAt). */
+export type UpdateDocumentMetadataData = {
+  title?: string;
+  contextId?: string | null;
+  description?: string | null;
+  tagIds?: string[];
+};
+
+const DOCUMENT_PATCH_SELECT = {
+  id: true,
+  title: true,
+  pdfUrl: true,
+  contextId: true,
+  documentTypeKey: true,
+  archivedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+  description: true,
+  createdById: true,
+  createdBy: { select: { name: true } },
+  documentTags: { include: { tag: { select: { id: true, name: true } } } },
+} as const;
+
+/** Result of updateDocumentMetadata (PATCH response shape). */
+export interface DocumentMetadataUpdateResult {
+  id: string;
+  title: string;
+  pdfUrl: string | null;
+  contextId: string | null;
+  documentTypeKey: string | null;
+  archivedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  publishedAt: Date | null;
+  description: string | null;
+  createdById: string | null;
+  createdBy: { name: string } | null;
+  documentTags: { tag: { id: string; name: string } }[];
+}
+
+/**
+ * Publishes the lead draft: first call creates version 1 and sets publishedAt;
+ * later calls create the next version from the current draft (republish).
+ * Caller must enforce canPublishDocument. Document must have contextId and valid draft blocks.
+ */
+export async function publishDocument(
+  prisma: PrismaClient,
+  documentId: string,
+  userId: string
+): Promise<{
+  id: string;
+  publishedAt: Date;
+  currentPublishedVersionId: string;
+  isRepublish: boolean;
+}> {
+  const doc = await prisma.document.findUnique({
+    where: { id: documentId, deletedAt: null },
+    select: {
+      id: true,
+      contextId: true,
+      publishedAt: true,
+      draftBlocks: true,
+      draftContributorUserIds: true,
+      currentPublishedVersion: { select: { blocks: true } },
+    },
+  });
+  if (!doc) throw new DocumentNotFoundError(documentId);
+  if (doc.contextId == null)
+    throw new DocumentNotPublishableError(
+      'Document must be assigned to a context before publishing'
+    );
+
+  const draftParsed = parseBlockDocumentFromDb(doc.draftBlocks);
+  if (!draftParsed) {
+    throw new DocumentNotPublishableError(
+      'Lead-Draft (Blocks) fehlt oder ist ungültig – bitte Inhalt anlegen.'
+    );
+  }
+  const normalized = normalizeBlockDocumentSchemaVersion(draftParsed);
+  await assertBlockDocumentLinksValid(prisma, userId, normalized);
+  assertBlockDocumentCalloutsValid(normalized);
+  const attachmentRows = await prisma.documentAttachment.findMany({
+    where: { documentId },
+    select: { id: true },
+  });
+  assertBlockDocumentImagesValid(normalized, new Set(attachmentRows.map((r) => r.id)));
+  const pendingCount = countPendingSuggestions(normalized);
+  if (pendingCount > 0) {
+    throw new DocumentNotPublishableError(
+      'Cannot publish while pending inline suggestions remain – resolve all suggestions first.'
+    );
+  }
+  const materialized = normalizeBlockDocumentSchemaVersion(
+    stripSuggestionsForPublished(normalized)
+  );
+  const versionBlocksJson = materialized as unknown as Prisma.InputJsonValue;
+  const isRepublish = doc.publishedAt != null;
+
+  if (isRepublish) {
+    const publishedParsed = parseBlockDocumentFromDb(doc.currentPublishedVersion?.blocks ?? null);
+    if (publishedParsed && JSON.stringify(publishedParsed) === JSON.stringify(materialized)) {
+      throw new DocumentNotPublishableError(
+        'Draft matches the current published version – nothing to publish.'
+      );
+    }
+  }
+
+  const publishedAt = isRepublish ? (doc.publishedAt as Date) : new Date();
+
+  await prisma.$transaction(async (tx) => {
+    const versionNumber = isRepublish
+      ? ((
+          await tx.documentVersion.aggregate({
+            where: { documentId },
+            _max: { versionNumber: true },
+          })
+        )._max.versionNumber ?? 0) + 1
+      : 1;
+
+    const contributorUserIds = mergeContributorUserId(doc.draftContributorUserIds, userId);
+    const v = await tx.documentVersion.create({
+      data: {
+        documentId,
+        blocks: versionBlocksJson,
+        blocksSchemaVersion: materialized.schemaVersion,
+        versionNumber,
+        createdById: userId,
+        contributorUserIds,
+      },
+      select: { id: true },
+    });
+    await tx.document.update({
+      where: { id: documentId },
+      data: {
+        ...(isRepublish ? {} : { publishedAt }),
+        currentPublishedVersionId: v.id,
+        draftRevision: 0,
+        draftContributorUserIds: [],
+      },
+    });
+
+    await applyPublishReset(tx, documentId, publishedAt, userId);
+  });
+
+  const updated = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { id: true, publishedAt: true, currentPublishedVersionId: true },
+  });
+  if (!updated || !updated.publishedAt || !updated.currentPublishedVersionId) {
+    throw new Error('Publish succeeded but document state inconsistent');
+  }
+  return {
+    id: updated.id,
+    publishedAt: updated.publishedAt,
+    currentPublishedVersionId: updated.currentPublishedVersionId,
+    isRepublish,
+  };
+}
+
+/**
+ * Archives a document (sets archivedAt). Caller must enforce write permission.
+ */
+export async function archiveDocument(prisma: PrismaClient, documentId: string): Promise<void> {
+  const doc = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { id: true, deletedAt: true },
+  });
+  if (!doc) throw new DocumentNotFoundError(documentId);
+  if (doc.deletedAt != null) throw new DocumentDeletedError(documentId);
+
+  await prisma.document.update({
+    where: { id: documentId },
+    data: {
+      archivedAt: new Date(),
+      healthCheckNeedsUpdate: false,
+      healthCheckNeedsArchive: false,
+      healthCheckSnoozedUntil: null,
+    },
+  });
+}
+
+/**
+ * Restores a document from trash. If context is trashed, unlinks document (contextId = null).
+ * Caller must enforce canDeleteDocument or canSeeDocumentInTrash.
+ */
+export async function restoreDocument(prisma: PrismaClient, documentId: string): Promise<void> {
+  const doc = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { id: true, contextId: true, deletedAt: true },
+  });
+  if (!doc) throw new DocumentNotFoundError(documentId);
+  if (doc.deletedAt == null) throw new DocumentNotInTrashError(documentId);
+
+  let contextTrashed = false;
+  if (doc.contextId) {
+    const [process, project] = await Promise.all([
+      prisma.process.findFirst({
+        where: { contextId: doc.contextId },
+        select: { deletedAt: true },
+      }),
+      prisma.project.findFirst({
+        where: { contextId: doc.contextId },
+        select: { deletedAt: true },
+      }),
+    ]);
+    contextTrashed = process?.deletedAt != null || project?.deletedAt != null;
+  }
+
+  await prisma.document.update({
+    where: { id: documentId },
+    data: contextTrashed ? { deletedAt: null, contextId: null } : { deletedAt: null },
+  });
+}
+
+/**
+ * Soft-deletes a document (sets deletedAt) and removes pins. Caller must enforce canDeleteDocument.
+ */
+export async function deleteDocument(
+  prisma: PrismaClient,
+  documentId: string,
+  deletedById?: string
+): Promise<void> {
+  await prisma.documentPinnedInScope.deleteMany({ where: { documentId } });
+  if (deletedById) {
+    await prisma.documentMoveRequest.updateMany({
+      where: { documentId, status: 'pending' },
+      data: {
+        status: 'withdrawn',
+        decidedById: deletedById,
+        decidedAt: new Date(),
+        decisionNote: 'Document moved to trash',
+      },
+    });
+  }
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { deletedAt: new Date() },
+  });
+}
+
+/**
+ * Updates document metadata only (title, contextId, description, tagIds).
+ * No lifecycle fields. Caller must enforce canWrite and validate contextId/tagIds.
+ * Enforces: published document cannot have contextId set to null.
+ */
+export async function updateDocumentMetadata(
+  prisma: PrismaClient,
+  documentId: string,
+  data: UpdateDocumentMetadataData
+): Promise<DocumentMetadataUpdateResult> {
+  const updatePayload: {
+    title?: string;
+    contextId?: string | null;
+    description?: string | null;
+  } = {};
+  if (data.title != null) updatePayload.title = data.title;
+  if (data.description !== undefined) updatePayload.description = data.description;
+  if (data.contextId !== undefined) {
+    const current = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: { publishedAt: true },
+    });
+    if (!current) throw new DocumentNotFoundError(documentId);
+    if (data.contextId === null && current.publishedAt != null) {
+      throw new DocumentBusinessError('Published document cannot be set to no context');
+    }
+    updatePayload.contextId = data.contextId;
+  }
+
+  if (data.tagIds !== undefined) {
+    await prisma.documentTag.deleteMany({ where: { documentId } });
+    if (data.tagIds.length > 0) {
+      await prisma.documentTag.createMany({
+        data: data.tagIds.map((tagId) => ({ documentId, tagId })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  const updated = await prisma.document.update({
+    where: { id: documentId },
+    data: updatePayload,
+    select: DOCUMENT_PATCH_SELECT,
+  });
+  return updated;
+}
+
+/**
+ * Set or clear document type metadata only. Never touches draftBlocks / published content.
+ */
+export async function updateDocumentTypeKey(
+  prisma: PrismaClient,
+  documentId: string,
+  documentTypeKey: string | null
+): Promise<DocumentMetadataUpdateResult> {
+  const current = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { id: true },
+  });
+  if (!current) throw new DocumentNotFoundError(documentId);
+
+  const updated = await prisma.document.update({
+    where: { id: documentId },
+    data: { documentTypeKey },
+    select: DOCUMENT_PATCH_SELECT,
+  });
+  return updated;
+}
+
+export class DocumentNotFoundError extends Error {
+  constructor(public readonly documentId: string) {
+    super(`Document not found: ${documentId}`);
+    this.name = 'DocumentNotFoundError';
+  }
+}
+
+export class DocumentNotPublishableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DocumentNotPublishableError';
+  }
+}
+
+export class DocumentAlreadyPublishedError extends Error {
+  constructor(public readonly documentId: string) {
+    super(`Document is already published: ${documentId}`);
+    this.name = 'DocumentAlreadyPublishedError';
+  }
+}
+
+export class DocumentDeletedError extends Error {
+  constructor(public readonly documentId: string) {
+    super(`Document is deleted: ${documentId}`);
+    this.name = 'DocumentDeletedError';
+  }
+}
+
+export class DocumentNotInTrashError extends Error {
+  constructor(public readonly documentId: string) {
+    super(`Document is not in trash: ${documentId}`);
+    this.name = 'DocumentNotInTrashError';
+  }
+}
+
+export class DocumentBusinessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DocumentBusinessError';
+  }
+}

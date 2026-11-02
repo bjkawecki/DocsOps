@@ -1,0 +1,226 @@
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { PrismaClient } from '../../../../../generated/prisma/client.js';
+import {
+  requireAuthPreHandler,
+  getEffectiveUserId,
+  type RequestWithUser,
+} from '../../../auth/middleware.js';
+import { setContextDisplayFromProcess } from '../../services/contextOwnerDisplay.js';
+import {
+  createProcessBodySchema,
+  processIdParamSchema,
+  processListQuerySchema,
+  updateProcessBodySchema,
+} from '../../schemas/contexts.js';
+import { ownerWhereFromQuery, parseIsoDateOrNull } from './route-helpers.js';
+import {
+  completeProcessRestoreFromTrash,
+  completeProcessUnarchive,
+  gateReadContextWithWriteHint,
+  withProcessWriteGatedByContextId,
+} from './context-entity-route-helpers.js';
+import {
+  assertCanCreateProcessOrProjectOr403,
+  ownerOptsFromProcessProjectCreateBody,
+} from './context-create-route-helpers.js';
+import {
+  contextListDocumentsInclude,
+  filterEntitiesWithContextIdByReadAccess,
+} from './context-list-helpers.js';
+import { findOrCreateOwner } from '../../services/contexts/owner.service.js';
+import {
+  setArchivedAtForContextDocuments,
+  softDeleteProcessWithDocuments,
+} from '../../services/contexts/context-lifecycle.service.js';
+
+type ProcessWriteRouteCtx = {
+  prisma: PrismaClient;
+  processId: string;
+  userId: string;
+  processContextId: string;
+  request: FastifyRequest;
+  reply: FastifyReply;
+};
+
+/** PATCH/DELETE `/processes/:processId`: gleicher Gate- und Param-Block. */
+function registerProcessPatchOrDelete(
+  app: FastifyInstance,
+  method: 'patch' | 'delete',
+  run: (ctx: ProcessWriteRouteCtx) => Promise<void>
+): void {
+  app[method](
+    '/processes/:processId',
+    { preHandler: requireAuthPreHandler },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const { processId } = processIdParamSchema.parse(request.params);
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      await withProcessWriteGatedByContextId(prisma, userId, processId, reply, async (process) => {
+        await run({
+          prisma,
+          processId,
+          userId,
+          processContextId: process.contextId,
+          request,
+          reply,
+        });
+      });
+    }
+  );
+}
+
+function registerProcessRoutes(app: FastifyInstance): void {
+  app.get('/processes', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    const prisma = request.server.prisma;
+    const query = processListQuerySchema.parse(request.query);
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const where = {
+      deletedAt: null,
+      archivedAt: null,
+      ...ownerWhereFromQuery(query, userId),
+    };
+
+    const [all, total] = await Promise.all([
+      prisma.process.findMany({
+        where,
+        include: {
+          context: {
+            include: contextListDocumentsInclude,
+          },
+          owner: true,
+        },
+        take: query.limit,
+        skip: query.offset,
+        orderBy: { name: 'asc' },
+      }),
+      prisma.process.count({ where }),
+    ]);
+    const rawItems = await filterEntitiesWithContextIdByReadAccess(prisma, userId, all);
+    const items = rawItems.map((process) => ({
+      id: process.id,
+      name: process.name,
+      contextId: process.contextId,
+      owner: process.owner,
+      documents: process.context.documents,
+      documentCount: process.context._count.documents,
+    }));
+    return reply.send({ items, total, limit: query.limit, offset: query.offset });
+  });
+
+  app.post('/processes', { preHandler: requireAuthPreHandler }, async (request, reply) => {
+    const prisma = request.server.prisma;
+    const userId = getEffectiveUserId(request as RequestWithUser);
+    const body = createProcessBodySchema.parse(request.body);
+    const ownerOpts = ownerOptsFromProcessProjectCreateBody(body, userId);
+    if (
+      !(await assertCanCreateProcessOrProjectOr403(
+        prisma,
+        userId,
+        ownerOpts,
+        reply,
+        'Permission denied to create process'
+      ))
+    ) {
+      return;
+    }
+
+    const owner = await findOrCreateOwner(prisma, ownerOpts);
+    const context = await prisma.context.create({ data: {} });
+    const process = await prisma.process.create({
+      data: {
+        name: body.name,
+        contextId: context.id,
+        ownerId: owner.id,
+      },
+      include: { context: true, owner: true },
+    });
+    await setContextDisplayFromProcess(prisma, context.id, process.id);
+    return reply.status(201).send(process);
+  });
+
+  app.get(
+    '/processes/:processId',
+    { preHandler: requireAuthPreHandler },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const { processId } = processIdParamSchema.parse(request.params);
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      const process = await prisma.process.findUniqueOrThrow({
+        where: { id: processId },
+        include: { context: true, owner: true },
+      });
+      const writeAllowed = await gateReadContextWithWriteHint(
+        prisma,
+        userId,
+        process.contextId,
+        reply
+      );
+      if (writeAllowed === null) return;
+      return reply.send({ ...process, canWriteContext: writeAllowed });
+    }
+  );
+
+  registerProcessPatchOrDelete(
+    app,
+    'patch',
+    async ({ prisma, processId, processContextId, request, reply }) => {
+      const body = updateProcessBodySchema.parse(request.body);
+      const data: { name?: string; deletedAt?: Date | null; archivedAt?: Date | null } = {};
+      if (body.name != null) data.name = body.name;
+      if (body.deletedAt !== undefined) data.deletedAt = parseIsoDateOrNull(body.deletedAt);
+      if (body.archivedAt !== undefined) {
+        const docDate = parseIsoDateOrNull(body.archivedAt);
+        data.archivedAt = docDate;
+        await setArchivedAtForContextDocuments(prisma, [processContextId], docDate);
+      }
+
+      const updated = await prisma.process.update({
+        where: { id: processId },
+        data,
+        include: { context: true, owner: true },
+      });
+      if (body.name != null) {
+        await prisma.context.update({
+          where: { id: processContextId },
+          data: { displayName: body.name },
+        });
+      }
+      void reply.send(updated);
+    }
+  );
+
+  registerProcessPatchOrDelete(
+    app,
+    'delete',
+    async ({ prisma, processId, processContextId, reply }) => {
+      await softDeleteProcessWithDocuments(prisma, processId, processContextId);
+      void reply.status(204).send();
+    }
+  );
+
+  app.post(
+    '/processes/:processId/restore',
+    { preHandler: requireAuthPreHandler },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const { processId } = processIdParamSchema.parse(request.params);
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      if (!(await completeProcessRestoreFromTrash(prisma, userId, processId, reply))) return;
+      return reply.status(204).send();
+    }
+  );
+
+  app.post(
+    '/processes/:processId/unarchive',
+    { preHandler: requireAuthPreHandler },
+    async (request, reply) => {
+      const prisma = request.server.prisma;
+      const { processId } = processIdParamSchema.parse(request.params);
+      const userId = getEffectiveUserId(request as RequestWithUser);
+      if (!(await completeProcessUnarchive(prisma, userId, processId, reply))) return;
+      return reply.status(204).send();
+    }
+  );
+}
+
+export { registerProcessRoutes };

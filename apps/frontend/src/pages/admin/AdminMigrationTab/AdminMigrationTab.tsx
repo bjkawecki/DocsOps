@@ -1,0 +1,199 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Button, Group, Loader, Stack, Tooltip } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconDownload, IconUpload, IconLink } from '@tabler/icons-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { AdminMigrationExportModal } from './AdminMigrationExportModal';
+import { AdminMigrationImportModal } from './AdminMigrationImportModal';
+import { AdminMigrationOverview } from './AdminMigrationOverview';
+import { AdminMigrationReceiveModal } from './AdminMigrationReceiveModal';
+import { AdminMigrationStatusAlerts } from './AdminMigrationStatusAlerts';
+import type { PlatformMigrationStatus } from './adminMigrationTypes';
+import { getMigrationStatusRefetchIntervalMs } from './migrationRunPolling';
+import { getExportDisabledReason, getImportDisabledReason } from './migrationUiHelpers';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
+
+export function AdminMigrationTab() {
+  const { t } = useTranslation('admin');
+  const isWide = useWideLayout();
+  const demoMode = useDemoMode();
+  const queryClient = useQueryClient();
+  const [exportOpened, { open: openExport, close: closeExport }] = useDisclosure(false);
+  const [importOpened, { open: openImport, close: closeImport }] = useDisclosure(false);
+  const [receiveOpened, { open: openReceive, close: closeReceive }] = useDisclosure(false);
+  const [initialImportRunId, setInitialImportRunId] = useState<string | null>(null);
+  const [isTabVisible, setIsTabVisible] = useState(() => document.visibilityState === 'visible');
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      const visible = document.visibilityState === 'visible';
+      setIsTabVisible(visible);
+      if (visible) {
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'platform-migration', 'status'] });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [queryClient]);
+
+  const statusQuery = useQuery({
+    queryKey: ['admin', 'platform-migration', 'status'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/admin/platform-migration/status');
+      if (!res.ok) throw new Error('Failed to load migration status');
+      return res.json() as Promise<PlatformMigrationStatus>;
+    },
+    refetchInterval: (query) =>
+      getMigrationStatusRefetchIntervalMs({
+        status: query.state.data,
+        isTabVisible,
+      }),
+  });
+
+  const status = statusQuery.data;
+  const exportDisabledReason = getExportDisabledReason(status, statusQuery.isLoading, t);
+  const importDisabledReason = getImportDisabledReason(status, statusQuery.isLoading, t);
+  const exportDisabled = demoMode || exportDisabledReason != null;
+  const importDisabled = demoMode || importDisabledReason != null;
+  const receiveDisabled = importDisabled;
+
+  const openImportFresh = useCallback(() => {
+    setInitialImportRunId(null);
+    openImport();
+  }, [openImport]);
+
+  const openImportFromPush = useCallback(
+    (platformImportRunId: string) => {
+      setInitialImportRunId(platformImportRunId);
+      openImport();
+    },
+    [openImport]
+  );
+
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'receive',
+        label: t('actions.receivePush'),
+        icon: <IconLink size={16} stroke={1.5} />,
+        tone: 'secondary',
+        disabled: receiveDisabled,
+        onClick: openReceive,
+      },
+      {
+        key: 'import',
+        label: t('actions.importPlatform'),
+        icon: <IconUpload size={16} stroke={1.5} />,
+        tone: 'secondary',
+        disabled: importDisabled,
+        onClick: openImportFresh,
+      },
+      {
+        key: 'export',
+        label: t('actions.exportPlatform'),
+        icon: <IconDownload size={16} stroke={1.5} />,
+        tone: 'secondary',
+        disabled: exportDisabled,
+        onClick: openExport,
+      },
+    ],
+    [exportDisabled, importDisabled, openExport, openImportFresh, openReceive, receiveDisabled, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
+  const chromeActions = useMemo(
+    () => (
+      <Group gap="sm" align="center" wrap="nowrap">
+        <Tooltip
+          label={exportDisabledReason ?? ''}
+          disabled={!exportDisabled || !exportDisabledReason}
+        >
+          <Button size="xs" disabled={exportDisabled} onClick={openExport}>
+            {t('actions.exportPlatform')}
+          </Button>
+        </Tooltip>
+        <Tooltip
+          label={importDisabledReason ?? ''}
+          disabled={!receiveDisabled || !importDisabledReason}
+        >
+          <Button size="xs" variant="light" disabled={receiveDisabled} onClick={openReceive}>
+            {t('actions.receivePush')}
+          </Button>
+        </Tooltip>
+        <Tooltip
+          label={importDisabledReason ?? ''}
+          disabled={!importDisabled || !importDisabledReason}
+        >
+          <Button size="xs" variant="default" disabled={importDisabled} onClick={openImportFresh}>
+            {t('actions.importPlatform')}
+          </Button>
+        </Tooltip>
+      </Group>
+    ),
+    [
+      exportDisabled,
+      exportDisabledReason,
+      importDisabled,
+      importDisabledReason,
+      openExport,
+      openImportFresh,
+      openReceive,
+      receiveDisabled,
+      t,
+    ]
+  );
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-migration:${exportDisabled}:${importDisabled}:${receiveDisabled}`
+  );
+
+  return (
+    <Stack gap="md">
+      <AdminDemoReadOnlyAlert />
+      {statusQuery.isError ? (
+        <Alert color="red" variant="filled">
+          {t('migration.loadError')}
+        </Alert>
+      ) : statusQuery.isPending ? (
+        <Loader size="sm" />
+      ) : status ? (
+        <>
+          <AdminMigrationStatusAlerts status={status} />
+          <AdminMigrationOverview status={status} />
+        </>
+      ) : null}
+
+      <AdminMigrationExportModal
+        opened={exportOpened}
+        onClose={() => {
+          closeExport();
+          void queryClient.invalidateQueries({
+            queryKey: ['admin', 'platform-migration', 'status'],
+          });
+        }}
+      />
+      <AdminMigrationReceiveModal
+        opened={receiveOpened}
+        onClose={closeReceive}
+        onContinueImport={openImportFromPush}
+      />
+      <AdminMigrationImportModal
+        opened={importOpened}
+        initialImportRunId={initialImportRunId}
+        onClose={() => {
+          closeImport();
+          setInitialImportRunId(null);
+          void queryClient.invalidateQueries({
+            queryKey: ['admin', 'platform-migration', 'status'],
+          });
+        }}
+      />
+    </Stack>
+  );
+}

@@ -1,0 +1,67 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist",
+    "prisma/seed-data"
+  ],
+  "exports": {
+    "./api-types": "./src/api-types.ts"
+  },
+  "scripts": {
+    "dev": "tsx scripts/run-with-app-version.ts -- tsx watch src/entrypoints/api.ts",
+    "worker:dev": "tsx scripts/run-with-app-version.ts -- tsx watch src/entrypoints/worker.ts",
+    "build": "pnpm exec prisma generate && tsc -p tsconfig.build.json",
+    "start": "tsx scripts/run-with-app-version.ts -- node dist/src/entrypoints/api.js",
+    "worker:start": "tsx scripts/run-with-app-version.ts -- node dist/src/entrypoints/worker.js",
+    "prepare": "pnpm exec prisma generate",
+    "prisma:generate": "pnpm exec prisma generate",
+    "test": "vitest run",
+    "check:mail-i18n": "node ./scripts/check-mail-i18n-keys.mjs",
+    "create-admin": "tsx scripts/create-admin.ts",
+    "platform:export": "tsx scripts/run-with-app-version.ts -- tsx scripts/platform-export.ts",
+    "platform:import": "tsx scripts/run-with-app-version.ts -- tsx scripts/platform-import.ts",
+    "seed": "tsx scripts/run-seed.ts",
+    "demo:reset": "tsx scripts/run-with-app-version.ts -- tsx scripts/demo-reset.ts",
+    "backfill-context-owner-display": "tsx scripts/run-backfill-context-owner-display.ts",
+    "backfill-document-blocks": "tsx scripts/run-backfill-document-blocks.ts",
+    "wait-for-database": "tsx scripts/wait-for-database.ts",
+    "migrate:remove-failed-user-preferences": "pnpm exec prisma db execute --file scripts/remove-failed-user-preferences-migration.sql",
+    "loadtest:jobs": "tsx scripts/run-jobs-loadtest.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@aws-sdk/s3-request-presigner": "^3.1161.0",
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/multipart": "^10.1.6",
+    "@fastify/rate-limit": "^11.2.1",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "argon2": "^0.45.1",
+    "dotenv": "^18.0.9",
+    "fastify": "^5.12.7",
+    "image-size": "^2.0.4",
+    "nodemailer": "^10.3.1",
+    "pg": "^8.23.1",
+    "pg-boss": "^12.38.0",
+    "ssh2": "^1.17.0",
+    "ssh2-sftp-client": "^12.1.1",
+    "three-way-merge": "^0.1.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/ssh2-sftp-client": "^9.0.6",
+    "@types/supertest": "^7.2.1",
+    "pino-pretty": "^13.2.0",
+    "prisma": "^7.10.1",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  }
+}

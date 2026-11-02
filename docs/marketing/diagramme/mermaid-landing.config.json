@@ -1,0 +1,16 @@
+{
+  "theme": "dark",
+  "themeVariables": {
+    "primaryColor": "#1a1b1e",
+    "primaryTextColor": "#dee2e6",
+    "primaryBorderColor": "#495057",
+    "lineColor": "#868e96",
+    "secondaryColor": "#25262b",
+    "tertiaryColor": "#141517",
+    "fontFamily": "system-ui, sans-serif"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis"
+  }
+}

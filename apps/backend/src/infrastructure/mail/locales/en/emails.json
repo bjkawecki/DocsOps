@@ -1,0 +1,56 @@
+{
+  "notification": {
+    "subject": "DocsOps: {{eventLabel}}",
+    "body": "You have a DocsOps notification: {{eventLabel}}.\n\nOpen Notifications in the DocsOps app to see the details.",
+    "event": {
+      "document-created": "Document created",
+      "document-updated": "Document updated",
+      "document-deleted": "Document moved to trash",
+      "document-published": "Document published",
+      "document-archived": "Document archived",
+      "document-restored": "Document restored",
+      "document-moved": "Document moved",
+      "document-move-requested": "Document move requested",
+      "document-move-accepted": "Document move accepted",
+      "document-move-rejected": "Document move rejected",
+      "document-move-withdrawn": "Document move withdrawn",
+      "document-grants-changed": "Document access changed",
+      "document-comment-created": "New comment on document",
+      "draft-request-submitted": "Review request submitted",
+      "draft-request-merged": "Review request merged",
+      "draft-request-rejected": "Review request rejected",
+      "backup-succeeded": "Backup completed successfully",
+      "backup-failed": "Backup failed",
+      "backup-restore-succeeded": "Restore completed successfully",
+      "backup-restore-failed": "Restore failed",
+      "platform-export-succeeded": "Platform export completed",
+      "platform-export-failed": "Platform export failed",
+      "platform-import-succeeded": "Platform import completed",
+      "platform-import-failed": "Platform import failed",
+      "update-available": "Software update available",
+      "admin-broadcast": "System message",
+      "team-member-added": "Added to team",
+      "team-member-removed": "Removed from team",
+      "team-lead-assigned": "Team lead role assigned",
+      "team-lead-removed": "Team lead role removed",
+      "department-lead-assigned": "Department lead role assigned",
+      "department-lead-removed": "Department lead role removed",
+      "company-lead-assigned": "Company lead role assigned",
+      "company-lead-removed": "Company lead role removed",
+      "admin-granted": "Administrator access granted",
+      "admin-revoked": "Administrator access revoked"
+    }
+  },
+  "system": {
+    "test": {
+      "subject": "DocsOps SMTP test",
+      "body": "This is a test email from DocsOps. SMTP is configured correctly."
+    }
+  },
+  "auth": {
+    "reset": {
+      "subject": "DocsOps password reset",
+      "body": "A password reset was requested for your DocsOps account.\n\nIf you did not request this, you can ignore this email.\n\nReset link: {{resetUrl}}"
+    }
+  }
+}

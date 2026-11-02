@@ -1,0 +1,47 @@
+import { buildApp } from '../app.js';
+import { isDemoMode } from '../config/runtimeMode.js';
+import { prisma } from '../infrastructure/db/prisma.js';
+import { runSeedIfNeeded } from '../seed.js';
+import { ensureDefaultBackupDestinationFromEnv } from '../domains/admin/services/adminBackupDestinationBootstrap.js';
+import { reconcileUpdateRunsOnStartup } from '../infrastructure/maintenance/reconcileUpdateRunsOnStartup.js';
+import { startLiveEventListener } from '../infrastructure/liveEvents/liveEventListener.js';
+
+const app = await buildApp();
+const port = Number(process.env.PORT) || 8080;
+const host = process.env.HOST ?? '0.0.0.0';
+
+try {
+  await runSeedIfNeeded(prisma);
+} catch (err) {
+  app.log.error(
+    { err },
+    'runSeedIfNeeded fehlgeschlagen – Server startet trotzdem (Migration/DB prüfen)'
+  );
+  // Demo depends on CSV seed; fail loud instead of an empty / half-seeded instance.
+  if (isDemoMode()) {
+    throw err;
+  }
+}
+
+try {
+  await ensureDefaultBackupDestinationFromEnv(prisma, app.log);
+} catch (err) {
+  app.log.error(
+    { err },
+    'ensureDefaultBackupDestinationFromEnv fehlgeschlagen – Server startet trotzdem'
+  );
+}
+
+try {
+  await reconcileUpdateRunsOnStartup(prisma);
+} catch (err) {
+  app.log.error({ err }, 'reconcileUpdateRunsOnStartup failed – Server startet trotzdem');
+}
+
+try {
+  await app.listen({ port, host });
+  await startLiveEventListener(app.log);
+} catch (err) {
+  app.log.error(err);
+  process.exit(1);
+}

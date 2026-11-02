@@ -1,0 +1,43 @@
+---
+description: Root SemVer bei feat/fix claimen; Release-Notes/Tag nur auf Auftrag
+alwaysApply: true
+---
+
+# Version bump (Claim-then-Release)
+
+Single Source of Truth: **`version` in der Root-`package.json`** (SemVer `X.Y.Z`). Daraus wird `APP_VERSION` gebaut. Workspace-`apps/*/package.json`-Versionen nicht mitführen.
+
+## Wann bumpen (Datei ändern)
+
+Wenn eine Aufgabe **abgeschlossen** ist und nutzerrelevante Code-/Produktänderung enthält:
+
+| Art | SemVer | Beispiel |
+|-----|--------|----------|
+| Bugfix, kleine UX | **patch** (`0.2.0` → `0.2.1`) | `fix(…)` |
+| Neues Feature, spürbare Verbesserung | **minor** (`0.2.1` → `0.3.0`) | `feat(…)` |
+| Breaking (Migration, inkompatible API) | **major** | bewusst, mit Nutzerhinweis |
+
+Während `0.x.y` dürfen sich API/Betrieb noch ändern; Major trotzdem nur bei echten Brüchen.
+
+## Wann nicht bumpen
+
+- Reine Doku, Plan, Cursor-Rules, Refactor ohne Nutzerwirkung, Tests-only, WIP
+- Aufgabe noch nicht fertig
+- Nutzer sagt ausdrücklich, Version nicht anfassen
+- **Release-Ritual** (Notes, Manifest, Git-Tag `vX.Y.Z`, Images): nur bei **explizitem** Release-Auftrag – nicht bei jedem Bump
+
+## Ablauf für den Agenten
+
+1. Root-`package.json` → `version` anheben (nur diese Datei).
+2. Kurz in der Antwort nennen: alt → neu und warum (patch/minor/major).
+3. **Nicht** `content/releases/*`, Manifest oder Git-Tag anfassen, außer der Nutzer fordert ein Release.
+4. Commit-Message-Vorschlag darf den Bump einschließen (z. B. Scope weglassen oder `chore(release):` nur bei echtem Release).
+
+## Beispiele
+
+```text
+✅ feat(frontend): lazy TipTap → minor 0.1.0 → 0.2.0 in Root-package.json
+✅ fix(backup): restore race → patch 0.2.0 → 0.2.1
+❌ docs(plan): … → kein Bump
+❌ Jeden Zwischen-Commit in einer Session → höchstens ein Bump am Task-Ende
+```

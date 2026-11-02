@@ -1,0 +1,130 @@
+import { Box } from '@mantine/core';
+import '../DocumentContent.css';
+import { DocumentPageErrorView } from './DocumentPageErrorView';
+import { DocumentPageLoadedLayout } from './DocumentPageLoadedLayout';
+import { DocumentPageModals } from './DocumentPageModals';
+import { DocumentPagePendingView } from './DocumentPagePendingView';
+import { useDocumentPage } from './useDocumentPage';
+
+export function DocumentPage() {
+  const vm = useDocumentPage();
+
+  if (vm.isPending) {
+    return (
+      <Box className="document-page-shell">
+        <DocumentPagePendingView />
+      </Box>
+    );
+  }
+
+  if (vm.isError || !vm.data || !vm.documentId) {
+    return (
+      <Box className="document-page-shell">
+        <DocumentPageErrorView />
+      </Box>
+    );
+  }
+
+  const data = vm.data;
+
+  return (
+    <Box className="document-page-shell">
+      <DocumentPageLoadedLayout
+        documentId={vm.documentId}
+        data={data}
+        mode={vm.mode}
+        editTitle={vm.editTitle}
+        setEditTitle={vm.setEditTitle}
+        editDescription={vm.editDescription}
+        setEditDescription={vm.setEditDescription}
+        editTagIds={vm.editTagIds}
+        setEditTagIds={vm.setEditTagIds}
+        editTypeId={vm.editTypeId}
+        setEditTypeId={vm.setEditTypeId}
+        editHealthCheckIntervalDays={vm.editHealthCheckIntervalDays}
+        setEditHealthCheckIntervalDays={vm.setEditHealthCheckIntervalDays}
+        saveLoading={vm.saveLoading}
+        publishLoading={vm.publishLoading}
+        editTab={vm.editTab}
+        setEditTab={vm.setEditTab}
+        leadDraftPanelRef={vm.leadDraftPanelRef}
+        leadDraftLastSynced={vm.leadDraftLastSynced}
+        leadDraftDirty={vm.leadDraftDirty}
+        metadataDirty={vm.metadataDirty}
+        hasDraftBlocks={vm.hasDraftBlocks}
+        hasPublishedBlocks={vm.hasPublishedBlocks}
+        showPublishButton={vm.showPublishButton}
+        me={vm.me}
+        isTabVisible={vm.isTabVisible}
+        tagOptions={vm.tagOptions}
+        headings={vm.headings}
+        numberedHeadings={vm.numberedHeadings}
+        setLeadDraftDirty={vm.setLeadDraftDirty}
+        setLeadDraftLastSynced={vm.setLeadDraftLastSynced}
+        setLeadDraftPendingSuggestions={vm.setLeadDraftPendingSuggestions}
+        leadDraftPendingSuggestions={vm.leadDraftPendingSuggestions}
+        pdfExportLoading={vm.pdfExportLoading}
+        handleCancelEdit={vm.handleCancelEdit}
+        handleSave={vm.handleSave}
+        handleEditClick={vm.handleEditClick}
+        handlePublish={vm.handlePublish}
+        handleStartPdfExport={vm.handleStartPdfExport}
+        handleArchive={vm.handleArchive}
+        handleUnarchive={vm.handleUnarchive}
+        openAssignContext={vm.openAssignContext}
+        openMoveContext={vm.openMoveContext}
+        moveDecisionLoading={vm.moveDecisionLoading}
+        onMoveRequestDecision={(action) => {
+          void vm.handleMoveRequestDecision(action);
+        }}
+        openDelete={vm.openDelete}
+        openManageTags={vm.openManageTags}
+        onCreateTag={vm.handleCreateTag}
+        createTagLoading={vm.createTagLoading}
+        publishedVersionIsStale={vm.publishedVersionIsStale}
+        ackPublishedVersion={vm.ackPublishedVersion}
+        latestPublishedVersion={vm.latestPublishedVersion}
+        onReloadPublishedContent={() => {
+          void vm.handleReloadPublishedContent();
+        }}
+      />
+      <DocumentPageModals
+        deleteOpened={vm.deleteOpened}
+        closeDelete={vm.closeDelete}
+        deleteLoading={vm.deleteLoading}
+        onDeleteConfirm={() => {
+          void vm.handleDeleteConfirm();
+        }}
+        assignContextOpened={vm.assignContextOpened}
+        onCloseAssignContext={vm.onCloseAssignContext}
+        assignContextOptions={vm.assignContextOptions}
+        assignContextId={vm.assignContextId}
+        setAssignContextId={vm.setAssignContextId}
+        assignContextLoading={vm.assignContextLoading}
+        onAssignContext={() => {
+          void vm.handleAssignContext();
+        }}
+        moveContextOpened={vm.moveContextOpened}
+        onCloseMoveContext={vm.onCloseMoveContext}
+        moveContextOptions={vm.moveContextOptions}
+        moveContextId={vm.moveContextId}
+        setMoveContextId={vm.setMoveContextId}
+        moveRequestNote={vm.moveRequestNote}
+        setMoveRequestNote={vm.setMoveRequestNote}
+        moveTargetIsCrossOwner={vm.moveTargetIsCrossOwner}
+        moveContextLoading={vm.moveContextLoading}
+        onMoveContext={() => {
+          void vm.handleMoveContext();
+        }}
+        manageTagsOpened={vm.manageTagsOpened}
+        closeManageTags={vm.closeManageTags}
+        tags={vm.tags}
+        createTagLoading={vm.createTagLoading}
+        onCreateTag={vm.handleCreateTag}
+        onDeleteTag={(id) => {
+          void vm.handleDeleteTag(id);
+        }}
+      />
+    </Box>
+  );
+}

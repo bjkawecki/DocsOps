@@ -1,0 +1,19 @@
+# Demo production: same stack as prod, but loads CSV seed on empty DB (DEMO_MODE).
+# Usage:
+#   docker compose --env-file /etc/docsops/docsops.env \
+#     -f docker-compose.yml -f deploy/docker-compose.prod.yml -f deploy/docker-compose.demo.yml pull
+#   docker compose --env-file /etc/docsops/docsops.env \
+#     -f docker-compose.yml -f deploy/docker-compose.prod.yml -f deploy/docker-compose.demo.yml up -d
+#
+# VM-Lab (Landing + Demo hostnames): also add -f deploy/docker-compose.lab.yml (see docs/install.md).
+#
+# Intranet production must NOT include this file (no seed, no debug tools).
+
+services:
+  app:
+    environment:
+      DEMO_MODE: 'true'
+      # Align with CSV seed accounts (password DocsOps1). Override via env-file if needed.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@demo.docsops.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-DocsOps1}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}

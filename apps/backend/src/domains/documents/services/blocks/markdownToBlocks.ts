@@ -1,0 +1,254 @@
+import { randomUUID } from 'node:crypto';
+import type { BlockDocumentV0, BlockNode } from './blockSchema.js';
+import { gfmAlertTagToCalloutVariant } from './blockSchema.js';
+import { looksLikeMarkdownTableStart, tryParseMarkdownTable } from './markdownTable.js';
+
+function textNode(text: string): BlockNode {
+  return { id: randomUUID(), type: 'text', attrs: {}, meta: { text } };
+}
+
+function isFenceStart(line: string): boolean {
+  return line.startsWith('```');
+}
+
+function isHeading(line: string): boolean {
+  return /^(#{1,6})\s+\S/.test(line);
+}
+
+function isBullet(line: string): boolean {
+  return /^[-*]\s+\S/.test(line);
+}
+
+function isOrdered(line: string): boolean {
+  return /^\d+\.\s+\S/.test(line);
+}
+
+function isBlockquote(line: string): boolean {
+  return /^>\s?/.test(line);
+}
+
+function isHorizontalRule(line: string): boolean {
+  return /^(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line.trim());
+}
+
+const GFM_ALERT_LINE = /^\[!(NOTE|WARNING|TIP)\]\s*$/i;
+
+/**
+ * Minimal Markdown → Block-Dokument v0 (EPIC-2 / PR-2b).
+ * Für Migration/Import; kein vollständiger CommonMark-Parser.
+ * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
+ * Blockquotes, GFM Alerts (`[!NOTE|WARNING|TIP]` → callout), Horizontal Rules,
+ * GFM-Tabellen, fenced ``` code ```, fenced ```mermaid``` → mermaid.
+ */
+export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
+  const md = markdown.replace(/\r\n/g, '\n');
+  const lines = md.split('\n');
+  const blocks: BlockNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line === undefined) break;
+    if (line.trim() === '') {
+      i += 1;
+      continue;
+    }
+
+    if (looksLikeMarkdownTableStart(lines, i)) {
+      const parsed = tryParseMarkdownTable(lines, i, textNode, randomUUID);
+      if (parsed) {
+        blocks.push(parsed.block);
+        i = parsed.nextIndex;
+        continue;
+      }
+    }
+
+    if (isFenceStart(line)) {
+      const lang = line.slice(3).trim();
+      i += 1;
+      const body: string[] = [];
+      while (i < lines.length) {
+        const cur = lines[i];
+        if (cur === undefined) break;
+        if (isFenceStart(cur)) break;
+        body.push(cur);
+        i += 1;
+      }
+      if (i < lines.length && isFenceStart(lines[i] ?? '')) i += 1;
+      if (lang.toLowerCase() === 'mermaid') {
+        blocks.push({
+          id: randomUUID(),
+          type: 'mermaid',
+          attrs: {},
+          content: [textNode(body.join('\n'))],
+        });
+      } else {
+        const attrs: Record<string, unknown> = {};
+        if (lang.length > 0) attrs.lang = lang;
+        blocks.push({
+          id: randomUUID(),
+          type: 'code',
+          attrs,
+          content: [textNode(body.join('\n'))],
+        });
+      }
+      continue;
+    }
+
+    if (isHorizontalRule(line)) {
+      blocks.push({ id: randomUUID(), type: 'horizontal_rule', attrs: {} });
+      i += 1;
+      continue;
+    }
+
+    const hm = line.match(/^(#{1,6})\s+(.*)$/);
+    if (hm) {
+      const hashes = hm[1];
+      const rest = hm[2];
+      if (hashes !== undefined && rest !== undefined) {
+        blocks.push({
+          id: randomUUID(),
+          type: 'heading',
+          attrs: { level: hashes.length },
+          content: [textNode(rest.trim())],
+        });
+      }
+      i += 1;
+      continue;
+    }
+
+    if (isBlockquote(line)) {
+      const quoteLines: string[] = [];
+      while (i < lines.length) {
+        const row = lines[i];
+        if (row === undefined) break;
+        if (!isBlockquote(row) && row.trim() !== '') break;
+        if (row.trim() === '') {
+          // blank line ends quote only if next is not a quote continuation
+          const next = lines[i + 1];
+          if (next === undefined || !isBlockquote(next)) break;
+          // A new GFM alert tag starts a separate callout block.
+          const nextInner = next.replace(/^>\s?/, '').trim();
+          if (GFM_ALERT_LINE.test(nextInner)) break;
+          quoteLines.push('');
+          i += 1;
+          continue;
+        }
+        quoteLines.push(row.replace(/^>\s?/, ''));
+        i += 1;
+      }
+
+      let calloutVariant: ReturnType<typeof gfmAlertTagToCalloutVariant> = null;
+      let bodyLines = quoteLines;
+      const firstNonEmptyIdx = quoteLines.findIndex((l) => l.trim() !== '');
+      if (firstNonEmptyIdx >= 0) {
+        const first = quoteLines[firstNonEmptyIdx] ?? '';
+        const alertMatch = first.trim().match(GFM_ALERT_LINE);
+        if (alertMatch?.[1]) {
+          calloutVariant = gfmAlertTagToCalloutVariant(alertMatch[1]);
+          if (calloutVariant != null) {
+            bodyLines = quoteLines.slice(firstNonEmptyIdx + 1);
+          }
+        }
+      }
+
+      const innerDoc = markdownToBlockDocumentV0(bodyLines.join('\n'));
+      if (calloutVariant != null) {
+        blocks.push({
+          id: randomUUID(),
+          type: 'callout',
+          attrs: { variant: calloutVariant },
+          content: innerDoc.blocks,
+        });
+      } else {
+        blocks.push({
+          id: randomUUID(),
+          type: 'blockquote',
+          content: innerDoc.blocks,
+        });
+      }
+      continue;
+    }
+
+    if (isBullet(line)) {
+      const items: BlockNode[] = [];
+      while (i < lines.length) {
+        const row = lines[i];
+        if (row === undefined) break;
+        const m = row.match(/^[-*]\s+(.*)$/);
+        if (!m) break;
+        const itemText = m[1]?.trim() ?? '';
+        items.push({
+          id: randomUUID(),
+          type: 'list_item',
+          content: [
+            {
+              id: randomUUID(),
+              type: 'paragraph',
+              content: [textNode(itemText)],
+            },
+          ],
+        });
+        i += 1;
+      }
+      blocks.push({ id: randomUUID(), type: 'bullet_list', content: items });
+      continue;
+    }
+
+    if (isOrdered(line)) {
+      const items: BlockNode[] = [];
+      while (i < lines.length) {
+        const row = lines[i];
+        if (row === undefined) break;
+        const m = row.match(/^\d+\.\s+(.*)$/);
+        if (!m) break;
+        const itemText = m[1]?.trim() ?? '';
+        items.push({
+          id: randomUUID(),
+          type: 'list_item',
+          content: [
+            {
+              id: randomUUID(),
+              type: 'paragraph',
+              content: [textNode(itemText)],
+            },
+          ],
+        });
+        i += 1;
+      }
+      blocks.push({ id: randomUUID(), type: 'ordered_list', content: items });
+      continue;
+    }
+
+    const para: string[] = [];
+    while (i < lines.length) {
+      const l = lines[i];
+      if (l === undefined) break;
+      if (l.trim() === '') break;
+      if (
+        isFenceStart(l) ||
+        isHeading(l) ||
+        isBullet(l) ||
+        isOrdered(l) ||
+        isBlockquote(l) ||
+        isHorizontalRule(l) ||
+        looksLikeMarkdownTableStart(lines, i)
+      ) {
+        break;
+      }
+      para.push(l);
+      i += 1;
+    }
+    blocks.push({
+      id: randomUUID(),
+      type: 'paragraph',
+      content: [textNode(para.join('\n'))],
+    });
+  }
+
+  if (blocks.length === 0) {
+    blocks.push({ id: randomUUID(), type: 'paragraph', content: [textNode('')] });
+  }
+
+  return { schemaVersion: 0, blocks };
+}

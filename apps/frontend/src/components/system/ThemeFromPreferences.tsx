@@ -1,0 +1,117 @@
+import { type ReactNode, useEffect, useRef } from 'react';
+import { useMantineColorScheme } from '@mantine/core';
+import { COLOR_SCHEME_STORAGE_KEY } from '../../constants';
+import { useMe } from '../../hooks/useMe';
+import { RecentItemsProvider } from '../../hooks/useRecentItems';
+import type { PrimaryColorPreset, TextSizePreference } from '../../theme';
+
+export type DocumentReadingFontPreference = 'sans' | 'serif';
+
+export type UserPreferences = {
+  theme?: 'light' | 'dark' | 'auto';
+  sidebarPinned?: boolean;
+  locale?: 'en' | 'de';
+  primaryColor?: PrimaryColorPreset;
+  textSize?: TextSizePreference;
+  documentReadingFont?: DocumentReadingFontPreference;
+  recentItemsByScope?: Record<
+    string,
+    { type: 'process' | 'project' | 'document'; id: string; name?: string; contextName?: string }[]
+  >;
+  notificationSettings?: {
+    inApp?: {
+      documentChanges?: boolean;
+      documentComments?: boolean;
+      draftRequests?: boolean;
+      reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
+    };
+    email?: {
+      documentChanges?: boolean;
+      documentComments?: boolean;
+      draftRequests?: boolean;
+      reminders?: boolean;
+      announcements?: boolean;
+      operations?: boolean;
+      system?: boolean;
+      orgChanges?: boolean;
+    };
+  };
+  pulseSettings?: {
+    showDrafts?: boolean;
+    showReviews?: boolean;
+    showNewDocuments?: boolean;
+    showUpdatedDocuments?: boolean;
+    showComments?: boolean;
+    showHealthCheck?: boolean;
+  };
+};
+
+/**
+ * Syncs the root Mantine color scheme when the stored preference changes.
+ * Primary color / text size are applied by AppMantineProvider (single MantineProvider + CSS vars).
+ * Must not nest a second MantineProvider (fights outer localStorage manager).
+ * Must not depend on colorScheme/setColorScheme identity (feedback loop).
+ */
+function SyncColorScheme({ preferredScheme }: { preferredScheme: 'light' | 'dark' | 'auto' }) {
+  const { setColorScheme } = useMantineColorScheme();
+  const lastAppliedRef = useRef<'light' | 'dark' | 'auto' | null>(null);
+
+  // Mantine's setColorScheme identity is unstable; keep latest via ref to avoid light↔auto loops.
+  const setColorSchemeRef = useRef(setColorScheme);
+  setColorSchemeRef.current = setColorScheme;
+
+  useEffect(() => {
+    if (lastAppliedRef.current === preferredScheme) return;
+    lastAppliedRef.current = preferredScheme;
+    setColorSchemeRef.current(preferredScheme);
+    try {
+      window.localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, preferredScheme);
+    } catch {
+      // ignore localStorage errors (e.g. private mode)
+    }
+  }, [preferredScheme]);
+
+  return null;
+}
+
+/** Applies document reading font via `html[data-document-reading-font]` for `.document-content`. */
+function SyncDocumentReadingFont({
+  preferredFont,
+}: {
+  preferredFont: DocumentReadingFontPreference;
+}) {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (preferredFont === 'serif') {
+      root.dataset.documentReadingFont = 'serif';
+    } else {
+      delete root.dataset.documentReadingFont;
+    }
+  }, [preferredFont]);
+
+  return null;
+}
+
+/**
+ * Syncs color scheme from GET /me and provides recent-items context.
+ * AuthGuard already waits for me; never unmount children on preference refetch.
+ * Primary color / text scale: see AppMantineProvider.
+ */
+export function ThemeFromPreferences({ children }: { children: ReactNode }) {
+  const { data: me } = useMe();
+  const preferredScheme = me?.preferences?.theme ?? 'auto';
+  const preferredReadingFont: DocumentReadingFontPreference =
+    me?.preferences?.documentReadingFont === 'serif' ? 'serif' : 'sans';
+
+  return (
+    <>
+      <SyncColorScheme preferredScheme={preferredScheme} />
+      <SyncDocumentReadingFont preferredFont={preferredReadingFont} />
+      <RecentItemsProvider>{children}</RecentItemsProvider>
+    </>
+  );
+}

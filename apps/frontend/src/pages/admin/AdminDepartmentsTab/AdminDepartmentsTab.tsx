@@ -1,0 +1,469 @@
+import { Box, Button, Loader, Modal } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Department } from 'backend/api-types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../../../api/client';
+import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/AppShellBreadcrumbsContext.js';
+import { AdminDemoReadOnlyAlert, useDemoMode } from '../AdminDemoReadOnlyAlert.js';
+import { adminApiErrorMessage, throwAdminApiError } from '../adminApiError.js';
+import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
+import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
+import { AdminDepartmentDeleteModal } from './AdminDepartmentDeleteModal';
+import { AdminDepartmentEditModal } from './AdminDepartmentEditModal';
+import { AdminDepartmentsTableSection } from './AdminDepartmentsTableSection';
+import { AdminDepartmentsToolbar } from './AdminDepartmentsToolbar';
+import {
+  DEFAULT_PAGE_SIZE,
+  DEPARTMENTS_PAGE_SIZE_KEY,
+  PAGE_SIZE_OPTIONS,
+} from './adminDepartmentsTabConstants';
+import type {
+  AdminUsersRes,
+  AssignmentListRes,
+  CompaniesRes,
+  DepartmentWithCompany,
+  DepartmentStatsRes,
+  MemberCountsRes,
+} from './adminDepartmentsTabTypes';
+import { CreateDepartmentForm } from './CreateDepartmentForm';
+import { useWideLayout } from '../../../components/appShell/useWideLayout.js';
+
+export function AdminDepartmentsTab() {
+  const { t } = useTranslation('admin');
+  const isWide = useWideLayout();
+  const demoMode = useDemoMode();
+  const queryClient = useQueryClient();
+  const [filterText, setFilterText] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState<number>(() => {
+    try {
+      const raw = window.localStorage.getItem(DEPARTMENTS_PAGE_SIZE_KEY);
+      if (!raw) return DEFAULT_PAGE_SIZE;
+      const parsed = Number(raw);
+      return PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])
+        ? parsed
+        : DEFAULT_PAGE_SIZE;
+    } catch {
+      return DEFAULT_PAGE_SIZE;
+    }
+  });
+  const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false);
+  const [editingDepartment, setEditingDepartment] = useState<DepartmentWithCompany | null>(null);
+  const [departmentCardEditing, setDepartmentCardEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editLeadId, setEditLeadId] = useState('');
+  const [deleteConfirmDepartment, setDeleteConfirmDepartment] =
+    useState<DepartmentWithCompany | null>(null);
+
+  const { data: companiesData, isPending: companiesPending } = useQuery({
+    queryKey: ['companies'],
+    queryFn: async (): Promise<CompaniesRes> => {
+      const res = await apiFetch('/api/v1/companies?limit=100');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as CompaniesRes;
+    },
+  });
+
+  const companies = useMemo(() => companiesData?.items ?? [], [companiesData?.items]);
+  const allDepartments = useMemo(
+    (): DepartmentWithCompany[] =>
+      companies.flatMap((c) => (c.departments ?? []).map((d) => ({ ...d, companyName: c.name }))),
+    [companies]
+  );
+
+  const filteredDepartments = useMemo(() => {
+    if (!filterText.trim()) return allDepartments;
+    const q = filterText.trim().toLowerCase();
+    return allDepartments.filter((d) => d.name.toLowerCase().includes(q));
+  }, [allDepartments, filterText]);
+  const totalPages = Math.max(1, Math.ceil(filteredDepartments.length / limit));
+  const pagedDepartments = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredDepartments.slice(start, start + limit);
+  }, [filteredDepartments, page, limit]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const departmentIdsForCounts = useMemo(() => allDepartments.map((d) => d.id), [allDepartments]);
+  const { data: memberCountsData } = useQuery({
+    queryKey: [
+      'admin',
+      'departments',
+      'member-counts',
+      [...departmentIdsForCounts].sort().join(','),
+    ],
+    queryFn: async (): Promise<MemberCountsRes> => {
+      const ids = departmentIdsForCounts.length > 0 ? departmentIdsForCounts.join(',') : '';
+      const url =
+        ids.length > 0
+          ? `/api/v1/admin/departments/member-counts?ids=${encodeURIComponent(ids)}`
+          : '/api/v1/admin/departments/member-counts';
+      const res = await apiFetch(url);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as MemberCountsRes;
+    },
+    enabled: departmentIdsForCounts.length > 0,
+  });
+  const memberCounts = memberCountsData ?? {};
+
+  const { data: leadsForEditData, isPending: leadsForEditPending } = useQuery({
+    queryKey: ['departments', editingDepartment?.id, 'department-leads'],
+    queryFn: async (): Promise<AssignmentListRes> => {
+      const res = await apiFetch(
+        `/api/v1/departments/${editingDepartment!.id}/department-leads?limit=100`
+      );
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as AssignmentListRes;
+    },
+    enabled: !!editingDepartment?.id,
+  });
+  const leadsForEdit = useMemo(() => leadsForEditData?.items ?? [], [leadsForEditData?.items]);
+
+  const { data: adminUsersData } = useQuery({
+    queryKey: ['admin', 'users', 'list'],
+    queryFn: async (): Promise<AdminUsersRes> => {
+      const res = await apiFetch('/api/v1/admin/users?limit=100&includeDeactivated=false');
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as AdminUsersRes;
+    },
+    enabled: !!editingDepartment?.id || createOpened,
+  });
+  const userOptions = useMemo(
+    () => (adminUsersData?.items ?? []).map((u) => ({ value: u.id, label: u.name })),
+    [adminUsersData?.items]
+  );
+
+  const { data: departmentStatsData, isPending: departmentStatsPending } = useQuery({
+    queryKey: ['admin', 'departments', editingDepartment?.id, 'stats'],
+    queryFn: async (): Promise<DepartmentStatsRes> => {
+      const res = await apiFetch(`/api/v1/admin/departments/${editingDepartment!.id}/stats`);
+      if (!res.ok) throw new Error(t('common:errors.loadFailed'));
+      return (await res.json()) as DepartmentStatsRes;
+    },
+    enabled: !!editingDepartment?.id,
+  });
+
+  const invalidateCompanies = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['companies'] });
+  }, [queryClient]);
+
+  const invalidateLeads = useCallback(
+    (departmentId: string) => {
+      void queryClient.invalidateQueries({
+        queryKey: ['departments', departmentId, 'department-leads'],
+      });
+    },
+    [queryClient]
+  );
+
+  const createDepartment = useMutation({
+    mutationFn: async ({
+      name,
+      companyId: cid,
+      leadUserId,
+    }: {
+      name: string;
+      companyId: string;
+      leadUserId: string;
+    }) => {
+      const res = await apiFetch(`/api/v1/companies/${cid}/departments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, leadUserId }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+      return (await res.json()) as Department;
+    },
+    onSuccess: () => {
+      invalidateCompanies();
+      closeCreate();
+      notifications.show({
+        title: t('departments.toasts.createdTitle'),
+        message: t('departments.toasts.createdMessage'),
+        color: 'green',
+      });
+    },
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
+  });
+
+  const updateDepartment = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const res = await apiFetch(`/api/v1/departments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+      return (await res.json()) as Department;
+    },
+    onSuccess: () => {
+      invalidateCompanies();
+      setEditingDepartment(null);
+      notifications.show({
+        title: t('departments.toasts.updatedTitle'),
+        message: t('departments.toasts.updatedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
+  });
+
+  const deleteDepartment = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiFetch(`/api/v1/departments/${id}`, { method: 'DELETE' });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: () => {
+      invalidateCompanies();
+      setDeleteConfirmDepartment(null);
+      notifications.show({
+        title: t('departments.toasts.deletedTitle'),
+        message: t('departments.toasts.deletedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
+  });
+
+  const addLead = useMutation({
+    mutationFn: async ({ departmentId, userId }: { departmentId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/departments/${departmentId}/department-leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { departmentId }) => {
+      invalidateLeads(departmentId);
+      notifications.show({
+        title: t('departments.toasts.leadAddedTitle'),
+        message: t('departments.toasts.leadAddedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
+  });
+
+  const removeLead = useMutation({
+    mutationFn: async ({ departmentId, userId }: { departmentId: string; userId: string }) => {
+      const res = await apiFetch(`/api/v1/departments/${departmentId}/department-leads/${userId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) await throwAdminApiError(res);
+    },
+    onSuccess: (_, { departmentId }) => {
+      invalidateLeads(departmentId);
+      notifications.show({
+        title: t('departments.toasts.leadRemovedTitle'),
+        message: t('departments.toasts.leadRemovedMessage'),
+        color: 'green',
+      });
+    },
+    onError: (e: Error) =>
+      notifications.show({
+        title: t('shared.errorTitle'),
+        message: adminApiErrorMessage(t, e),
+        color: 'red',
+      }),
+  });
+
+  const handleSaveDepartmentCard = useCallback(() => {
+    const dept = editingDepartment;
+    if (!dept) return;
+    const name = editName.trim();
+    if (!name) return;
+    void (async () => {
+      try {
+        if (name !== dept.name) {
+          await updateDepartment.mutateAsync({
+            id: dept.id,
+            name,
+          });
+        }
+        const currentLeadId = leadsForEdit[0]?.id ?? null;
+        const targetLeadId = editLeadId || null;
+        if (!targetLeadId) {
+          throw new Error(t('departments.errors.leadRequired'));
+        }
+        if (targetLeadId !== currentLeadId) {
+          await addLead.mutateAsync({
+            departmentId: dept.id,
+            userId: targetLeadId,
+          });
+        }
+        setEditingDepartment((prev) => (prev && prev.id === dept.id ? { ...prev, name } : prev));
+        invalidateLeads(dept.id);
+        setDepartmentCardEditing(false);
+      } catch {
+        // notifications from mutations
+      }
+    })();
+  }, [
+    editingDepartment,
+    editName,
+    editLeadId,
+    leadsForEdit,
+    updateDepartment,
+    addLead,
+    invalidateLeads,
+    t,
+  ]);
+
+  const handleStartEditCard = useCallback(() => {
+    if (!editingDepartment) return;
+    setEditName(editingDepartment.name);
+    setEditLeadId(leadsForEdit[0]?.id ?? '');
+    setDepartmentCardEditing(true);
+  }, [editingDepartment, leadsForEdit]);
+
+  const createDepartmentDisabled = demoMode || companies.length === 0;
+  const mobileExtraActions = useMemo(
+    (): PageMobileAction[] => [
+      {
+        key: 'create',
+        label: t('actions.createDepartment'),
+        icon: <IconPlus size={16} stroke={1.5} />,
+        tone: 'create',
+        onClick: openCreate,
+        disabled: createDepartmentDisabled,
+      },
+    ],
+    [createDepartmentDisabled, openCreate, t]
+  );
+  useRegisterPageMobileExtraActions(mobileExtraActions, !isWide);
+
+  const chromeActions = useMemo(
+    () => (
+      <Button
+        size="xs"
+        leftSection={<IconPlus size={14} />}
+        onClick={openCreate}
+        disabled={createDepartmentDisabled}
+      >
+        {t('actions.createDepartment')}
+      </Button>
+    ),
+    [createDepartmentDisabled, openCreate, t]
+  );
+  useSetAppShellBreadcrumbActions(
+    isWide ? chromeActions : null,
+    `admin-departments:${isWide}:${createDepartmentDisabled}`
+  );
+
+  if (companiesPending) {
+    return (
+      <Box>
+        <Loader size="sm" />
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      <AdminDemoReadOnlyAlert />
+      <AdminDepartmentsToolbar
+        filterText={filterText}
+        onFilterTextChange={(value) => {
+          setFilterText(value);
+          setPage(1);
+        }}
+        filteredDepartmentsCount={filteredDepartments.length}
+        limit={limit}
+        onLimitChange={(next) => {
+          setLimit(next);
+          setPage(1);
+        }}
+      />
+
+      <AdminDepartmentsTableSection
+        companiesLength={companies.length}
+        allDepartmentsLength={allDepartments.length}
+        filteredDepartmentsLength={filteredDepartments.length}
+        limit={limit}
+        page={page}
+        totalPages={totalPages}
+        pagedDepartments={pagedDepartments}
+        memberCounts={memberCounts}
+        onPageChange={setPage}
+        onSelectDepartment={setEditingDepartment}
+      />
+
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t('actions.createDepartment')}
+        size="sm"
+      >
+        <CreateDepartmentForm
+          companies={companies}
+          userOptions={userOptions}
+          onSubmit={(name, companyId, leadUserId) =>
+            createDepartment.mutate({ name, companyId, leadUserId })
+          }
+          onCancel={closeCreate}
+          loading={createDepartment.isPending}
+        />
+      </Modal>
+
+      {editingDepartment && (
+        <AdminDepartmentEditModal
+          department={editingDepartment}
+          onClose={() => setEditingDepartment(null)}
+          departmentCardEditing={departmentCardEditing}
+          setDepartmentCardEditing={setDepartmentCardEditing}
+          editName={editName}
+          setEditName={setEditName}
+          editLeadId={editLeadId}
+          setEditLeadId={setEditLeadId}
+          userOptions={userOptions}
+          leadsForEdit={leadsForEdit}
+          leadsForEditPending={leadsForEditPending}
+          departmentStatsData={departmentStatsData}
+          departmentStatsPending={departmentStatsPending}
+          onStartEditCard={handleStartEditCard}
+          onSaveCard={handleSaveDepartmentCard}
+          saveLoading={updateDepartment.isPending || addLead.isPending || removeLead.isPending}
+          onRequestDelete={() => setDeleteConfirmDepartment(editingDepartment)}
+          deleteFromManageLoading={deleteDepartment.isPending}
+        />
+      )}
+
+      <AdminDepartmentDeleteModal
+        opened={!!deleteConfirmDepartment}
+        department={deleteConfirmDepartment}
+        onClose={() => setDeleteConfirmDepartment(null)}
+        onConfirmDelete={() => {
+          if (deleteConfirmDepartment) deleteDepartment.mutate(deleteConfirmDepartment.id);
+        }}
+        deleteLoading={deleteDepartment.isPending}
+      />
+    </Box>
+  );
+}

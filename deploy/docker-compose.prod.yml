@@ -1,0 +1,117 @@
+# Production stack: GHCR images, Caddy on 80/443. Requires DOCSOPS_VERSION and DOCSOPS_IMAGE_PREFIX.
+# TLS: DOCSOPS_TLS_MODE=off|internal|acme and DOCSOPS_CADDYFILE (set by install-prod.sh).
+# Usage: docker compose --env-file /etc/docsops/docsops.env \
+#   -f docker-compose.yml -f deploy/docker-compose.prod.yml pull
+#   docker compose --env-file /etc/docsops/docsops.env \
+#   -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d
+
+services:
+  docsops-migrate:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-migrate
+    image: ${DOCSOPS_IMAGE_PREFIX}/docsops-migrate:${DOCSOPS_VERSION}
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/docsops
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-app
+    image: ${DOCSOPS_IMAGE_PREFIX}/docsops-app:${DOCSOPS_VERSION}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DATABASE_URL: postgresql://app:app@postgres:5432/docsops
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-0}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-}
+      ADMIN_VORNAME: ${ADMIN_VORNAME:-}
+      ADMIN_NACHNAME: ${ADMIN_NACHNAME:-}
+      DOCSOPS_UPDATE_GITHUB_REPO: ${DOCSOPS_UPDATE_GITHUB_REPO:-}
+      DOCSOPS_AGENT_URL: ${DOCSOPS_AGENT_URL:-http://host.docker.internal:8091}
+      DOCSOPS_AGENT_TOKEN: ${DOCSOPS_AGENT_TOKEN:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      docsops-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:8080/ready || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  docsops-job-worker:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-job-worker
+    image: ${DOCSOPS_IMAGE_PREFIX}/docsops-worker:${DOCSOPS_VERSION}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://app:app@postgres:5432/docsops
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-docsops}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-}
+      TYPST_BIN: ${TYPST_BIN:-}
+      TYPST_ARGS: ${TYPST_ARGS:-}
+      DOCSOPS_AGENT_URL: ${DOCSOPS_AGENT_URL:-http://host.docker.internal:8091}
+      DOCSOPS_AGENT_TOKEN: ${DOCSOPS_AGENT_TOKEN:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  frontend:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-frontend
+    image: ${DOCSOPS_IMAGE_PREFIX}/docsops-frontend:${DOCSOPS_VERSION}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - http://127.0.0.1:80/ || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  caddy:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-caddy
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      DOCSOPS_TLS_DOMAIN: ${DOCSOPS_TLS_DOMAIN:-}
+      DOCSOPS_TLS_EMAIL: ${DOCSOPS_TLS_EMAIL:-}
+    volumes:
+      - ./deploy/${DOCSOPS_CADDYFILE:-Caddyfile.prod}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      app:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+volumes:
+  caddy_data:

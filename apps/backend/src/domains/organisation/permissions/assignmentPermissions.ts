@@ -1,0 +1,198 @@
+import type { PrismaClient } from '../../../../generated/prisma/client.js';
+import {
+  isCompanyLead,
+  isDepartmentLead,
+  isTeamLead,
+  loadActiveUser,
+  type LoadedUser,
+} from './userAccessPredicates.js';
+
+const teamAccessSelect = { id: true, departmentId: true } as const;
+
+async function loadUserAndTeam(
+  prisma: PrismaClient,
+  userId: string,
+  teamId: string
+): Promise<{ user: LoadedUser; team: { id: string; departmentId: string } } | null> {
+  const user = await loadActiveUser(prisma, userId);
+  if (!user) return null;
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: teamAccessSelect,
+  });
+  if (!team) return null;
+  return { user, team };
+}
+
+async function loadUserAndDepartment(
+  prisma: PrismaClient,
+  userId: string,
+  departmentId: string
+): Promise<{ user: LoadedUser } | null> {
+  const user = await loadActiveUser(prisma, userId);
+  if (!user) return null;
+  const department = await prisma.department.findUnique({
+    where: { id: departmentId },
+    select: { id: true },
+  });
+  if (!department) return null;
+  return { user };
+}
+
+async function loadUserAndCompany(
+  prisma: PrismaClient,
+  userId: string,
+  companyId: string
+): Promise<{ user: LoadedUser } | null> {
+  const user = await loadActiveUser(prisma, userId);
+  if (!user) return null;
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { id: true },
+  });
+  if (!company) return null;
+  return { user };
+}
+
+function teamDeptLeadOrAdmin(row: { user: LoadedUser; team: { departmentId: string } }): boolean {
+  if (row.user.isAdmin) return true;
+  if (isDepartmentLead(row.user, row.team.departmentId)) return true;
+  return false;
+}
+
+/**
+ * Prüft, ob der Nutzer TeamMember für das Team anlegen/entfernen darf.
+ * true wenn isAdmin, oder Department Lead der Abteilung des Teams, oder Team Lead dieses Teams.
+ */
+export async function canManageTeamMembers(
+  prisma: PrismaClient,
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  const row = await loadUserAndTeam(prisma, userId, teamId);
+  if (!row) return false;
+  if (teamDeptLeadOrAdmin(row)) return true;
+  if (isTeamLead(row.user, teamId)) return true;
+  return false;
+}
+
+/**
+ * Prüft, ob der Nutzer Team Lead für das Team anlegen/entfernen darf.
+ * true wenn isAdmin oder Department Lead der Abteilung des Teams.
+ */
+export async function canManageTeamLeaders(
+  prisma: PrismaClient,
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  const row = await loadUserAndTeam(prisma, userId, teamId);
+  if (!row) return false;
+  return teamDeptLeadOrAdmin(row);
+}
+
+/**
+ * Prüft, ob der Nutzer Department Lead für die Abteilung anlegen/entfernen darf.
+ * true nur wenn isAdmin.
+ */
+export async function canManageDepartmentLeads(
+  prisma: PrismaClient,
+  userId: string,
+  departmentId: string
+): Promise<boolean> {
+  const row = await loadUserAndDepartment(prisma, userId, departmentId);
+  if (!row) return false;
+  return row.user.isAdmin;
+}
+
+/**
+ * Prüft, ob der Nutzer Company Lead für die Firma anlegen/entfernen darf.
+ * true nur wenn isAdmin.
+ */
+export async function canManageCompanyLeads(
+  prisma: PrismaClient,
+  userId: string,
+  companyId: string
+): Promise<boolean> {
+  const row = await loadUserAndCompany(prisma, userId, companyId);
+  if (!row) return false;
+  return row.user.isAdmin;
+}
+
+/**
+ * Admin or Company Lead may configure PDF branding for the company (ADR 007).
+ */
+export async function canManageCompanyPdfBranding(
+  prisma: PrismaClient,
+  userId: string,
+  companyId: string
+): Promise<boolean> {
+  const row = await loadUserAndCompany(prisma, userId, companyId);
+  if (!row) return false;
+  if (row.user.isAdmin) return true;
+  return isCompanyLead(row.user, companyId);
+}
+
+/** Team lead (or dept lead/admin) may promote members to team authors. */
+export async function canManageTeamAuthors(
+  prisma: PrismaClient,
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  return canManageTeamMembers(prisma, userId, teamId);
+}
+
+/** Department lead (or admin) may promote members to department authors. */
+export async function canManageDepartmentAuthors(
+  prisma: PrismaClient,
+  userId: string,
+  departmentId: string
+): Promise<boolean> {
+  const row = await loadUserAndDepartment(prisma, userId, departmentId);
+  if (!row) return false;
+  if (row.user.isAdmin) return true;
+  return isDepartmentLead(row.user, departmentId);
+}
+
+/** Company lead (or admin) may promote members to company authors. */
+export async function canManageCompanyAuthors(
+  prisma: PrismaClient,
+  userId: string,
+  companyId: string
+): Promise<boolean> {
+  const row = await loadUserAndCompany(prisma, userId, companyId);
+  if (!row) return false;
+  if (row.user.isAdmin) return true;
+  return isCompanyLead(row.user, companyId);
+}
+
+/**
+ * Returns company IDs the user is allowed to view (for filtering GET /companies).
+ * Admin: all companies. Otherwise: companies where user is lead, dept lead, team lead, or member.
+ */
+export async function getVisibleCompanyIds(
+  prisma: PrismaClient,
+  userId: string
+): Promise<string[]> {
+  const user = await loadActiveUser(prisma, userId);
+  if (!user) return [];
+
+  if (user.isAdmin) {
+    const companies = await prisma.company.findMany({ select: { id: true } });
+    return companies.map((c) => c.id);
+  }
+
+  const ids = new Set<string>();
+  for (const c of user.companyLeads) if (c.companyId) ids.add(c.companyId);
+  for (const d of user.departmentLeads)
+    if (d.department?.companyId) ids.add(d.department.companyId);
+  for (const l of user.leadOfTeams)
+    if (l.team?.department?.companyId) ids.add(l.team.department.companyId);
+  for (const m of user.teamMemberships)
+    if (m.team?.department?.companyId) ids.add(m.team.department.companyId);
+  for (const a of user.authorOfTeams)
+    if (a.team?.department?.companyId) ids.add(a.team.department.companyId);
+  for (const a of user.authorOfDepartments)
+    if (a.department?.companyId) ids.add(a.department.companyId);
+  for (const a of user.authorOfCompanies) if (a.companyId) ids.add(a.companyId);
+  return [...ids];
+}

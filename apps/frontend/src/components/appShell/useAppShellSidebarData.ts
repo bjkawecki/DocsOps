@@ -1,0 +1,335 @@
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery, useQueries, useMutation } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
+import { apiFetch } from '../../api/client';
+import { useMe } from '../../hooks/useMe';
+import { useMeNotificationsUnreadTotal } from '../../hooks/useMeNotificationsUnreadTotal';
+import { useMeReviews } from '../../hooks/useMeReviews';
+import { useMeMoveRequests } from '../../hooks/useMeMoveRequests';
+import { useResolvedColorScheme } from '../../hooks/useResolvedColorScheme';
+import type { DepartmentsRes, TeamsRes } from './appShellNavUtils.js';
+import { getNavLinkStyles } from './appShellNavUtils.js';
+import { shouldShowOrganizationNav } from '../../lib/organizationNav.js';
+import { useAppShellDebugActions } from './useAppShellDebugActions.js';
+
+export function useAppShellSidebarData() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [expandedDepartmentIds, setExpandedDepartmentIds] = useState<Set<string>>(new Set());
+  const [departmentsSectionExpanded, setDepartmentsSectionExpanded] = useState(false);
+  const [teamsSectionExpanded, setTeamsSectionExpanded] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const resolvedColorScheme = useResolvedColorScheme();
+  const navLinkStyles = useMemo(() => getNavLinkStyles(), []);
+
+  const { data: me } = useMe();
+  const { data: unreadNotificationsTotal } = useMeNotificationsUnreadTotal();
+  const unreadNotificationsCount = unreadNotificationsTotal ?? 0;
+  const isAdmin = me?.user?.isAdmin === true;
+  const debugMenuEnabled = import.meta.env.DEV;
+  const isImpersonating =
+    debugMenuEnabled &&
+    (me?.impersonation?.active === true ||
+      (me?.impersonation != null && 'realUser' in me.impersonation));
+  const showDebugMenu =
+    debugMenuEnabled && (isAdmin || isImpersonating || location.pathname.startsWith('/admin'));
+  const isCompanyLead = (me?.identity?.companyLeads?.length ?? 0) > 0;
+  const isDepartmentLead = (me?.identity?.departmentLeads?.length ?? 0) > 0;
+  const companyIdFromLead = me?.identity?.companyLeads?.[0]?.id;
+  const companyIdFromAuthor = me?.identity?.companyAuthors?.[0]?.id;
+  const departmentId = me?.identity?.departmentLeads?.[0]?.id;
+  const userTeamId = me?.identity?.teams?.[0]?.teamId;
+  const userDepartmentId =
+    me?.identity?.teams?.[0]?.departmentId ??
+    me?.identity?.departmentAuthors?.[0]?.id ??
+    me?.identity?.departmentLeads?.[0]?.id;
+  const isCompanyAuthorOnly =
+    (me?.identity?.companyAuthors?.length ?? 0) > 0 &&
+    !isCompanyLead &&
+    !isDepartmentLead &&
+    !userTeamId &&
+    !userDepartmentId;
+  const hasReviewRights =
+    isCompanyLead ||
+    isDepartmentLead ||
+    (me?.identity?.teams?.some((t) => t.role === 'leader') ?? false);
+
+  const companyIdFromTeamOrDeptLead =
+    me?.identity?.teams?.[0]?.companyId ??
+    me?.identity?.departmentLeads?.[0]?.companyId ??
+    me?.identity?.departmentAuthors?.[0]?.companyId;
+
+  const { data: firstCompany } = useQuery({
+    queryKey: ['companies', 'first'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/companies?limit=1');
+      if (!res.ok) throw new Error('Failed to load companies');
+      const data = (await res.json()) as { items: { id: string }[] };
+      return data.items[0] ?? null;
+    },
+    enabled: isAdmin && !companyIdFromLead && !companyIdFromAuthor && !companyIdFromTeamOrDeptLead,
+  });
+
+  const effectiveCompanyId =
+    companyIdFromLead ??
+    companyIdFromAuthor ??
+    companyIdFromTeamOrDeptLead ??
+    (isAdmin ? firstCompany?.id : undefined);
+
+  const { data: companyDepartments } = useQuery<DepartmentsRes>({
+    queryKey: ['companies', effectiveCompanyId, 'departments'],
+    queryFn: async () => {
+      if (!effectiveCompanyId) throw new Error('No company');
+      const res = await apiFetch(`/api/v1/companies/${effectiveCompanyId}/departments?limit=100`);
+      if (!res.ok) throw new Error('Failed to load departments');
+      return res.json() as Promise<DepartmentsRes>;
+    },
+    // Company lead only – platform admin is not a company lead and must not load the full dept tree.
+    enabled: !!effectiveCompanyId && isCompanyLead,
+  });
+
+  const { data: departmentTeams } = useQuery<TeamsRes>({
+    queryKey: ['departments', departmentId, 'teams'],
+    queryFn: async () => {
+      if (!departmentId) throw new Error('No department');
+      const res = await apiFetch(`/api/v1/departments/${departmentId}/teams?limit=100`);
+      if (!res.ok) throw new Error('Failed to load teams');
+      return res.json() as Promise<TeamsRes>;
+    },
+    enabled: !!departmentId && isDepartmentLead && !isCompanyLead,
+  });
+
+  const {
+    adminUsersRes,
+    adminUsersLoading,
+    adminUsersError,
+    impersonateMutation,
+    stopImpersonateMutation,
+    resetPlatformMutation,
+    reseedPlatformMutation,
+  } = useAppShellDebugActions({ debugMenuEnabled, showDebugMenu });
+
+  const logout = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/v1/auth/logout', { method: 'POST' });
+      if (!res.ok) throw new Error('Logout failed');
+    },
+    onSuccess: () => {
+      notifications.show({
+        title: 'Logged out',
+        message: 'You have been logged out.',
+        color: 'green',
+      });
+      void navigate('/login', { replace: true });
+    },
+    onError: (err: Error) => {
+      notifications.show({ title: 'Logout failed', message: err.message, color: 'red' });
+    },
+  });
+
+  const scopeIdsForCounts = useMemo(() => {
+    const deptIds: string[] = [];
+    const teamIds: string[] = [];
+    if (companyDepartments?.items) {
+      for (const d of companyDepartments.items) {
+        deptIds.push(d.id);
+        for (const team of d.teams ?? []) teamIds.push(team.id);
+      }
+    } else if (departmentTeams?.items && departmentId) {
+      deptIds.push(departmentId);
+      for (const team of departmentTeams.items) teamIds.push(team.id);
+    } else {
+      if (userDepartmentId) deptIds.push(userDepartmentId);
+      if (userTeamId) teamIds.push(userTeamId);
+    }
+    return { departmentIds: deptIds, teamIds };
+  }, [
+    companyDepartments?.items,
+    departmentTeams?.items,
+    departmentId,
+    userTeamId,
+    userDepartmentId,
+  ]);
+
+  const { data: companyCount } = useQuery({
+    queryKey: ['catalog-documents', 'count', 'company', effectiveCompanyId],
+    queryFn: async (): Promise<number> => {
+      const res = await apiFetch(
+        `/api/v1/documents?companyId=${effectiveCompanyId}&publishedOnly=true&limit=1&offset=0`
+      );
+      if (!res.ok) throw new Error('Failed to load count');
+      const data = (await res.json()) as { total: number };
+      return data.total;
+    },
+    enabled: !!me?.identity && !!effectiveCompanyId,
+  });
+
+  const { data: catalogCount } = useQuery({
+    queryKey: ['catalog-documents', 'count', 'catalog'],
+    queryFn: async (): Promise<number> => {
+      const res = await apiFetch('/api/v1/documents?limit=1&offset=0');
+      if (!res.ok) throw new Error('Failed to load count');
+      const data = (await res.json()) as { total: number };
+      return data.total;
+    },
+    enabled: !!me?.identity,
+  });
+
+  const { data: personalCount } = useQuery({
+    queryKey: ['me', 'personal-documents', 'count'],
+    queryFn: async (): Promise<number> => {
+      const res = await apiFetch(
+        '/api/v1/me/personal-documents?limit=1&offset=0&publishedOnly=true'
+      );
+      if (!res.ok) throw new Error('Failed to load count');
+      const data = (await res.json()) as { total: number };
+      return data.total;
+    },
+    enabled: !!me?.identity && !isAdmin,
+  });
+
+  const { data: sharedCount } = useQuery({
+    queryKey: ['me', 'shared-documents', 'count'],
+    queryFn: async (): Promise<number> => {
+      const res = await apiFetch('/api/v1/me/shared-documents?limit=1&offset=0&publishedOnly=true');
+      if (!res.ok) throw new Error('Failed to load count');
+      const data = (await res.json()) as { total: number };
+      return data.total;
+    },
+    enabled: !!me?.identity && !isAdmin,
+  });
+
+  const { data: reviewsData } = useMeReviews(
+    { limit: 1, offset: 0 },
+    { enabled: hasReviewRights && !isAdmin }
+  );
+  const { data: inboundMovesData } = useMeMoveRequests(
+    { direction: 'inbound', status: 'pending', limit: 1 },
+    { enabled: !!me?.identity && !isAdmin }
+  );
+  const { data: outboundMovesData } = useMeMoveRequests(
+    { direction: 'outbound', status: 'pending', limit: 1 },
+    { enabled: !!me?.identity && !isAdmin }
+  );
+
+  const { data: templatesManageAccess } = useQuery({
+    queryKey: ['document-templates', 'manage-access'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/document-templates/manage-access');
+      if (!res.ok) throw new Error('Failed to load template manage access');
+      return (await res.json()) as { canManage: boolean };
+    },
+    enabled: !!me?.identity,
+  });
+  const canManageDocumentTemplates = templatesManageAccess?.canManage === true;
+  const reviewsPending = reviewsData?.totalPendingForReview ?? 0;
+  const inboundMovesPending = inboundMovesData?.total ?? 0;
+  const outboundMovesPending = outboundMovesData?.total ?? 0;
+  const approvalsCount =
+    reviewsPending + inboundMovesPending > 0 ? reviewsPending + inboundMovesPending : undefined;
+  const showHealthCheckNav = me?.capabilities?.healthCheck === true;
+
+  const showApprovalsNav =
+    !isAdmin && (hasReviewRights || inboundMovesPending > 0 || outboundMovesPending > 0);
+
+  const scopeCountQueries = useQueries({
+    queries: [
+      ...scopeIdsForCounts.departmentIds.map((id) => ({
+        queryKey: ['catalog-documents', 'count', 'department', id] as const,
+        queryFn: async (): Promise<number> => {
+          const res = await apiFetch(
+            `/api/v1/documents?departmentId=${id}&publishedOnly=true&limit=1&offset=0`
+          );
+          if (!res.ok) throw new Error('Failed to load count');
+          const data = (await res.json()) as { total: number };
+          return data.total;
+        },
+        enabled: !!me?.identity,
+      })),
+      ...scopeIdsForCounts.teamIds.map((id) => ({
+        queryKey: ['catalog-documents', 'count', 'team', id] as const,
+        queryFn: async (): Promise<number> => {
+          const res = await apiFetch(
+            `/api/v1/documents?teamId=${id}&publishedOnly=true&limit=1&offset=0`
+          );
+          if (!res.ok) throw new Error('Failed to load count');
+          const data = (await res.json()) as { total: number };
+          return data.total;
+        },
+        enabled: !!me?.identity,
+      })),
+    ],
+  });
+
+  const departmentCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    scopeIdsForCounts.departmentIds.forEach((id, i) => {
+      const result = scopeCountQueries[i]?.data;
+      if (typeof result === 'number') map[id] = result;
+    });
+    return map;
+  }, [scopeIdsForCounts.departmentIds, scopeCountQueries]);
+
+  const teamCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    const offset = scopeIdsForCounts.departmentIds.length;
+    scopeIdsForCounts.teamIds.forEach((id, i) => {
+      const result = scopeCountQueries[offset + i]?.data;
+      if (typeof result === 'number') map[id] = result;
+    });
+    return map;
+  }, [scopeIdsForCounts.teamIds, scopeIdsForCounts.departmentIds.length, scopeCountQueries]);
+
+  const showOrganizationNav = useMemo(
+    () => shouldShowOrganizationNav(me, isAdmin, effectiveCompanyId),
+    [me, isAdmin, effectiveCompanyId]
+  );
+
+  return {
+    location,
+    expandedDepartmentIds,
+    setExpandedDepartmentIds,
+    departmentsSectionExpanded,
+    setDepartmentsSectionExpanded,
+    teamsSectionExpanded,
+    setTeamsSectionExpanded,
+    accountMenuOpen,
+    setAccountMenuOpen,
+    resolvedColorScheme,
+    navLinkStyles,
+    me,
+    unreadNotificationsCount,
+    isAdmin,
+    isImpersonating,
+    showDebugMenu,
+    isCompanyLead,
+    isDepartmentLead,
+    isCompanyAuthorOnly,
+    departmentId,
+    userTeamId,
+    userDepartmentId,
+    hasReviewRights,
+    showApprovalsNav,
+    showHealthCheckNav,
+    canManageDocumentTemplates,
+    companyDepartments,
+    departmentTeams,
+    adminUsersRes,
+    adminUsersLoading,
+    adminUsersError,
+    impersonateMutation,
+    stopImpersonateMutation,
+    resetPlatformMutation,
+    reseedPlatformMutation,
+    logout,
+    companyCount,
+    catalogCount,
+    personalCount,
+    sharedCount,
+    approvalsCount,
+    departmentCounts,
+    teamCounts,
+    showOrganizationNav,
+  };
+}

@@ -1,0 +1,139 @@
+# Pseudocode Datenmodell – Interne Dokumentationsplattform
+
+## 1. Organisationsstruktur
+
+class Firma:
+id
+name
+abteilungen: List[Abteilung]
+
+class Abteilung:
+id
+name
+teams: List[Team]
+prozesse: List[Prozess]
+
+class Team:
+id
+name
+mitglieder: List[Nutzer]
+superuser: List[Nutzer]
+projekte: List[Projekt]
+prozesse: List[Prozess]
+
+class Nutzer:
+id
+name
+
+# Zugehörigkeit: immer einem Unternehmen; optional Abteilung; optional Team dieser Abteilung.
+
+# Team-Mitgliedschaft schließt Zugehörigkeit zur Abteilung des Teams ein.
+
+# Technisch: TeamMember; Abteilung/Unternehmen daraus abgeleitet (vgl. Rechtesystem).
+
+teams: List[Team]
+superuser_teams: List[Team] # Lead-Rollen (historisch Superuser)
+
+---
+
+## 2. Kontexte
+
+### Basiskontext
+
+class Kontext:
+id
+name
+displayName: String? # Gecacht für Katalog-Sortierung/Anzeige (aus Prozess-/Projekt-/Unterkontext-Name)
+contextType: String? # 'process' | 'project'
+ownerDisplayName: String? # Gecacht: Anzeigename des Owners (Firma/Abteilung/Team/Nutzer)
+owner: Abteilung | Team | Nutzer # Zugehörigkeit
+dokumente: List[Dokument]
+
+# displayName/contextType/ownerDisplayName werden bei Create/Update von Prozess, Projekt, Unterkontext sowie bei Namensänderungen von Firma/Abteilung/Team/Nutzer synchron gehalten.
+
+class Prozess(Kontext):
+typ: 'Prozess'
+dauerhaft: bool = True # Wird selten archiviert
+
+class Projekt(Kontext):
+typ: 'Projekt'
+zeitlich_begrenzt: bool = True
+unterkontexte: List[Unterkontext] = [] # z.B. Protokolle, Meilensteine
+
+class Unterkontext(Kontext):
+typ: 'Unterkontext'
+parent: Projekt
+
+# Persönliche Kontexte: Prozesse/Projekte mit Owner = Nutzer (Owner.ownerUserId), kein separates Nutzerspace-Modell.
+
+---
+
+## 3. Dokumente
+
+class Dokument:
+
+- id
+- titel
+- kontext: Kontext # genau ein Kontext
+- inhalt: Markdown
+- status: 'draft' | 'published' # geplant; Draft nur für Schreiber/Scope-Lead sichtbar (vgl. Prisma-Schema-Entwurf §3)
+- zugriffsrechte: List[Zugriffsrecht]
+- tags: List[Tag]
+- kommentare: List[DokumentKommentar] # geplant (§3b)
+
+---
+
+## 3a. Pinned (geplant)
+
+Angepinnte Einträge pro Scope (Team, Abteilung, Firma) für Dashboard und Scope-Seiten. Konkrete Tabelle siehe [Prisma-Schema-Entwurf §7](../../plan/Prisma-Schema-Entwurf.md#7-pinned-geplant).
+
+- PinnedItem: scopeType (team | department | company), scopeId, targetType (document | process | project), targetId, order, pinnedBy (Nutzer)
+
+---
+
+## 3b. Kommentar-Sektion (geplant)
+
+Diskussion und Feedback direkt am Dokument. **Kommentar-Rechte folgen dem Leserecht:** Jeder Nutzer mit **Leserecht** auf das Dokument darf Kommentare lesen, Kommentare anlegen sowie **eigene** Kommentare bearbeiten und löschen. Fremde Kommentare löschen: nur Scope-Lead oder Admin (vgl. [Rechtesystem §6c](Rechtesystem.md#6c-kommentare-geplant)).
+
+class DokumentKommentar:
+
+- id
+- dokument: Dokument
+- autor: Nutzer
+- text: String # Klartext oder Markdown (nach Entscheidung)
+- createdAt, updatedAt?
+- parentId: DokumentKommentar? # optional, für Threads (Antworten)
+
+- Kommentare werden unter der Dokument-Ansicht (oder in einer Sidebar) angezeigt; optional später: Anker/Referenz auf einen Absatz (z. B. Zeilen- oder Block-ID).
+- Keine separaten Rollen für Kommentare: Lesen, Anlegen und Bearbeiten/Löschen eigener Kommentare = canRead(Dokument); Löschen fremder = Scope-Lead/Admin.
+
+---
+
+## 4. Zugriffsrechte
+
+class Zugriffsrecht:
+
+- dokument: Dokument
+- leser: List[Nutzer | Team | Abteilung] = [] # read
+- schreiber: List[Nutzer | Team | Abteilung] = [] # write (Superuser / Team-Manager)
+- Nutzer mit Schreibrechten sollen **Suggestions** einreichen können; die **Freigabe** neuer veröffentlichter Versionen obliegt dem Scope-Lead (siehe [Edit-System-Plan](../../plan/Edit-System-Blocks-Suggestions-Lead-Draft.md))
+  ### Optional: weitere Rollen wie admin, archiv, etc.
+
+### Beispiel-Logik:
+
+- User darf Dokument sehen, wenn:
+  - Nutzer ist Mitglied eines Teams oder Abteilung, die in dokument.zugriffsrechte.leser enthalten sind
+- User darf Dokument bearbeiten, wenn:
+  - Nutzer ist Mitglied eines Teams oder Abteilung, die in dokument.zugriffsrechte.schreiber enthalten sind
+
+---
+
+## 5. Grundprinzipien
+
+1. Dokumente gehören genau einem Kontext (Projekt, Prozess, Unterkontext).
+2. Struktur (Firma, Abteilung, Team) bestimmt Ownership, **nicht automatisch Zugriff**.
+3. Teams sind autonome Einheiten; Mitglieder sehen nur eigene Team-Dokumente.
+4. Schreibrechte nur für Superuser / Team-Manager.
+5. Unterkontexte nur bei Bedarf (z. B. Protokolle für Projekte).
+6. Zugriff kann explizit auch für einzelne Nutzer vergeben werden.
+7. Tags sind global und könnten z. B. auf Startseite als "Liste der beliebtesten Tags" stehen

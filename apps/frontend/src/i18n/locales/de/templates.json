@@ -1,0 +1,43 @@
+{
+  "sidebar": {
+    "typesHeading": "Typen",
+    "noCustomTypes": "Noch keine benutzerdefinierten Typen.",
+    "noTypesMatch": "Keine Typen passen zu diesem Filter.",
+    "documentTypesAria": "Dokumenttypen"
+  },
+  "detail": {
+    "selectPrompt": "Einen Typ auswählen, um Details zu sehen.",
+    "delete": "Löschen"
+  },
+  "mobileActions": {
+    "toolbarAria": "Vorlagen-Aktionen"
+  },
+  "newType": {
+    "action": "Neuer benutzerdefinierter Typ",
+    "modalTitle": "Neuer benutzerdefinierter Typ",
+    "modalTitleShort": "Neuer Typ",
+    "labelField": "Name",
+    "whenToUseField": "Wann verwenden",
+    "exampleTitleField": "Beispieltitel",
+    "oftenUsedInField": "Häufig verwendet in",
+    "scopeField": "Bereich",
+    "scopePlatform": "Plattform (alle Bereiche)",
+    "scopeCompany": "Unternehmen: {{name}}",
+    "scopeDepartment": "Abteilung: {{name}}",
+    "scopeTeam": "Team: {{name}}",
+    "sectionsField": "Abschnitte",
+    "sectionsDescription": "Leerzeile zwischen Abschnitten. Erste Zeile = Überschrift, folgende Zeilen = Prompts (- Punkt).",
+    "defaultSectionsText": "Zweck\n- Wofür ist dieses Dokument gedacht?\n\nDetails\n- Details eintragen.",
+    "defaultSectionPrompt": "Diesen Abschnitt beschreiben.",
+    "cancel": "Abbrechen",
+    "create": "Anlegen",
+    "missingSection": "Mindestens einen Abschnitt hinzufügen"
+  },
+  "toasts": {
+    "createdTitle": "Typ angelegt",
+    "createdMessage": "Benutzerdefinierter Typ gespeichert.",
+    "deletedTitle": "Typ gelöscht",
+    "deletedMessage": "Benutzerdefinierter Typ entfernt.",
+    "errorTitle": "Fehler"
+  }
+}

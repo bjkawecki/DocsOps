@@ -1,0 +1,37 @@
+---
+description: Kein Em-Dash (U+2014) in Texten, UI-Copy und Agent-Antworten
+alwaysApply: true
+---
+
+# Kein Em-Dash
+
+**Em-Dash `—` (U+2014) nicht verwenden** in:
+
+- UI-Strings (Labels, Meldungen, Buttons)
+- `docs/`, README, Plan-Dateien
+- Commit-Messages und PR-Beschreibungen
+- Agent-Antworten an den Nutzer
+
+## Stattdessen
+
+| Situation | Bevorzugt |
+|-----------|-----------|
+| Gedankenstrich im Fließtext | En-Dash `–` (U+2013) oder Satz mit Komma/Doppelpunkt |
+| Bereich (z. B. Datum) | En-Dash `–` oder „to“ (EN) |
+| Zusammensetzungen, Flags, Code | Bindestrich `-` (U+002D) |
+
+## Beispiele
+
+```
+❌  Automatic backups — configure in Scheduler
+✅  Automatic backups – configure in Scheduler
+✅  Automatic backups: configure in Scheduler
+
+❌  Release Notes — Frontend & Preferences
+✅  Release Notes: Frontend & Preferences
+```
+
+## Ausnahmen
+
+- Em-Dash in fremden Zitaten oder Drittanbieter-Text unverändert lassen
+- Generierte Dateien nicht automatisch umschreiben

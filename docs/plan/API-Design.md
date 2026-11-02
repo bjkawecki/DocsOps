@@ -1,0 +1,117 @@
+# API-Design
+
+Festlegungen für die REST-API der internen Dokumentationsplattform. Siehe [Technologie-Stack](Technologie-Stack.md), [Umsetzungs-Todo](Umsetzungs-Todo.md).
+
+---
+
+## Basis-URL
+
+- **Prefix:** `/api/v1` (Versionierung von Anfang an; spätere Versionen z. B. `/api/v2`).
+- Alle API-Routen beginnen mit diesem Prefix (z. B. `GET /api/v1/documents`, `POST /api/v1/contexts`).
+
+---
+
+## Fehlerformat
+
+- Einheitliches JSON-Format für Fehlerantworten, z. B.:
+  - `{ "error": "<kurze menschenlesbare Meldung>", "code": "<optionaler Fehlercode>" }`
+  - Oder RFC-7807-ähnlich (`type`, `title`, `status`, `detail`, `instance`).
+- HTTP-Status-Codes nutzen: `400` Bad Request, `401` Unauthorized, `403` Forbidden, `404` Not Found, `409` Conflict, `500` Internal Server Error.
+- **409 Conflict** wird u. a. verwendet, wenn eine Ressource nicht gelöscht werden kann, weil noch abhängige Ressourcen existieren (z. B. Firma mit Abteilungen, Abteilung mit Teams oder Prozessen/Projekten, Team mit Prozessen/Projekten). Details zum Löschverhalten siehe [Prisma-Schema-Entwurf §6](Prisma-Schema-Entwurf.md#6-löschverhalten-cascades-und-restrict).
+- Bei Validierungsfehlern (Zod): `400` mit Details zu ungültigen Feldern (z. B. `errors: [{ path, message }]`).
+- Die Umsetzung erfolgt im Backend durch einen zentralen Error-Handler (Zod, Prisma, HTTP-Status).
+
+---
+
+## Auth
+
+- **Auth:** Cookie-basierte Session (Session-ID im httpOnly-Cookie; Session-Daten in Postgres). Geschützte Routen: Backend prüft Session und leitet bei fehlender oder ungültiger Auth mit `401` ab.
+- Bei fehlender Berechtigung für eine Ressource: `403 Forbidden`.
+
+---
+
+## Pagination
+
+- Bei Listen-Endpoints (Dokumente, Kontexte, Teams, …): Paginierung verwenden.
+- **Parameter (einheitlich):** `limit` (Anzahl pro Seite, Default 20, Max. 100), `offset` (Startposition, Default 0). Beide als Query-Parameter (z. B. `?limit=10&offset=20`).
+- **Antwort:** JSON-Objekt mit `items` (Array), `total` (Gesamtanzahl), `limit` und `offset` (übernommene Werte). Beispiel: `{ "items": [...], "total": 42, "limit": 20, "offset": 0 }`.
+- Cursor-basierte Pagination kann später ergänzt werden; aktuell ist Offset-Pagination überall konsistent umgesetzt.
+
+---
+
+## Zuordnungen (TeamMember, Team Lead, Department Lead)
+
+Zuordnungen zwischen Nutzern und Teams bzw. Abteilungen werden über eigene Endpunkte verwaltet. Alle Routen erfordern Auth (`requireAuth`); Schreibzugriffe prüfen rollenbasierte Berechtigungen. **Routen:**
+
+- **Team-Mitglieder:**  
+  `GET /api/v1/teams/:teamId/members` – Liste (id, name), paginiert (limit/offset, Default limit=100).  
+  `POST /api/v1/teams/:teamId/members` – Body `{ userId }` – User als Mitglied hinzufügen.  
+  `DELETE /api/v1/teams/:teamId/members/:userId` – Mitgliedschaft entfernen.
+
+- **Team Lead:**
+  `GET /api/v1/teams/:teamId/team-leads` – Liste (id, name), paginiert.
+  `POST /api/v1/teams/:teamId/team-leads` – Body `{ userId }` – User als Team Lead hinzufügen.
+  `DELETE /api/v1/teams/:teamId/team-leads/:userId` – Team-Lead-Zuordnung entfernen.
+
+  **Team Lead:** `POST` legt einen Team Lead an – **ohne** vorherige Team-Mitgliedschaft (Lead-only). Team Lead und Team Member sind **mutual exclusive** pro Person (409).
+
+  Beim Entfernen aus dem Team: Wenn **TeamMember(teamId, userId)** gelöscht wird, wird auch **TeamLead(teamId, userId)** gelöscht (im Handler/Transaktion).
+
+- **Department Lead (Abteilung):**  
+  `GET /api/v1/departments/:departmentId/department-leads` – Liste (id, name), paginiert.  
+  `POST /api/v1/departments/:departmentId/department-leads` – Body `{ userId }` – User als Department Lead hinzufügen.  
+  `DELETE /api/v1/departments/:departmentId/department-leads/:userId` – Department-Lead-Zuordnung entfernen.
+
+**Exklusivitäts-Matrix (409 Conflict bei Verletzung):** Jede Person hat **genau eine Rolle** – Plattform-**Admin** (`isAdmin`) **oder** eine organisatorische Scope-Rolle, nie beides. Org-Rollen: `CompanyLead` > `DepartmentLead` > `TeamLead` | `TeamMember` (Team-Ebene: Lead **oder** Member, nicht beides; max. eine Team-Zuordnung). Beispiele: Admin mit Org-Zuordnung → 409; Team Member + Team Lead → 409; `PATCH /admin/users/:id` mit `isAdmin: true` bei bestehenden Org-Zuordnungen → 409 („Remove organization roles first“).
+
+**Berechtigungsmatrix (Zuordnungen verwalten):**
+
+- **Admin:** Darf alle Zuordnungen (TeamMember, Team Lead, Department Lead) anlegen und entfernen.
+- **Department Lead:** Darf für Teams **seiner Abteilung** TeamMember und Team Lead anlegen/entfernen (nicht Department-Lead-Zuordnungen).
+- **Team Lead:** Darf für **sein Team** nur TeamMember anlegen/entfernen.
+- **Department-Lead-Zuordnung** (Department ↔ User) darf nur von **Admin** verwaltet werden.
+
+GET-Listen setzen voraus, dass das Team bzw. die Abteilung für den Nutzer sichtbar ist (Mitglied oder Team Lead des Teams, Department Lead der Abteilung oder Admin); sonst 403. Bei Duplikat (gleicher teamId/userId bzw. departmentId/userId) liefert POST 409 Conflict. **Company Lead** ist derzeit nicht implementiert (geplant für firmenweite Prozesse/Projekte).
+
+**Löschungen und Abhängigkeiten:** Welche Ressourcen durch Löschen von Company, Department, Team, User oder Context betroffen sind (Restrict-Regeln und Cascades) und wann die API mit 409 antwortet, ist in [Prisma-Schema-Entwurf §6](Prisma-Schema-Entwurf.md#6-löschverhalten-cascades-und-restrict) beschrieben.
+
+---
+
+## Scope People (Mitglieder + Presence)
+
+Read-only Endpunkte für Mitglieder-Anzeige in der Scope-Kopfzeile. Keine E-Mail-Adressen in Responses. Presence über `User.lastActiveAt` (wird bei authentifizierten Requests und SSE-Register throttled aktualisiert); `isOnline` wenn `lastActiveAt >= now - PRESENCE_ONLINE_THRESHOLD_SECONDS`.
+
+**Permission:** `canViewScopePeople` in `scopeVisibility.ts` (Lead-Hierarchie – **nicht** `canViewScope`).
+
+| Rolle                | Team                           | Department        | Company            |
+| -------------------- | ------------------------------ | ----------------- | ------------------ |
+| Admin / Company Lead | Ja                             | Ja                | Ja (Org-Übersicht) |
+| Department Lead      | Nur wenn Member/Lead des Teams | Ja (eigenes Dept) | Nein               |
+| Team Lead / Member   | Ja (eigenes Team)              | Nein              | Nein               |
+
+UI-Sichtbarkeit: `GET /api/v1/me/can-view-scope-people?scope=…&{companyId|departmentId|teamId}=…` → `{ canViewPeople: boolean }`.
+
+- **`GET /api/v1/teams/:teamId/people`** – Flache Liste aller Personen im Team (Members + Leads). **Permission:** `canViewScopePeople(team)`.
+  - Response: `{ items: [{ id, name, roles?: ('member'|'lead')[], isOnline, lastActiveAt }], total, onlineCount }`
+
+- **`GET /api/v1/departments/:departmentId/people`** – Strukturiert: Department Leads + Teams mit Member-Namen. **Permission:** `canViewScopePeople(department)`.
+  - Response: `{ departmentLeads, teams: [{ id, name, teamLeads, members }], summary: { peopleCount, onlineCount, teamCount } }`
+
+- **`GET /api/v1/companies/:companyId/people`** – Org-Übersicht: Company Leads + Department/Team-Aggregates (Counts, keine Member-Namen fremder Teams). **Permission:** `canViewScopePeople(company)`.
+  - Response: `{ companyLeads, departments: [{ id, name, departmentLeads, teams: [{ id, name, peopleCount, onlineCount }], peopleCount, onlineCount, teamCount }], summary: { peopleCount, onlineCount, departmentCount } }`
+
+Verwaltung (Mitglied hinzufügen/entfernen) bleibt über die Zuordnungs-Endpunkte oben.
+
+---
+
+## Dokumente und Tags (§14)
+
+- **Dokumente:** CRUD über `GET/POST/PATCH/DELETE /api/v1/documents` bzw. `GET /api/v1/contexts/:contextId/documents`; GET Document liefert Rechte-Flags `canWrite`, `canDelete`, `canPublish`, `canMove`, `canRequestMove`, `canAcceptMove`, `pendingMoveRequest`, `scope`. Prozess-/Projekt-GET liefert `canWriteContext`.
+- **POST /documents:** Body kann **contextId** weglassen – dann wird ein **kontextfreier Draft** erstellt (nur Ersteller sichtbar); Veröffentlichung erst nach Zuweisung eines Kontexts (PATCH contextId). Mit contextId: wie bisher (canWriteContext, Tags optional).
+- **PATCH /documents/:id:** **Assign** – `contextId` nur von `null` → Kontext (oder Detach unpublished → `null`). Kontextwechsel A→B ist **nicht** erlaubt; dafür Move.
+- **POST /documents/:id/move:** Body `{ targetContextId }` – Sofort-Move innerhalb desselben Owner-Scopes (Scope-Lead/Personal-Owner/Admin auf Quelle und Ziel). Cross-Owner → 409 mit Hinweis auf Move-Request. Response: aktualisierte Dokument-Metadaten; Notification `document-moved`.
+- **Move-Requests (Phase 2, Cross-Owner):** `POST /documents/:id/move-requests` `{ targetContextId, note? }` (Source-Write); `POST …/move-requests/:requestId/accept|reject|withdraw` `{ decisionNote? }`; Accept strippt Tags, behält Grants, setzt `contextId`. Max. ein `pending` pro Dokument. `GET /me/move-requests?direction=inbound|outbound&status=pending`. Notifications: `document-move-requested|accepted|rejected|withdrawn` (Accept zusätzlich `document-moved`).
+- **Approvals-UI:** Route `/approvals` (Redirect `/reviews` → `/approvals`); Content-Sidebar **Reviews** | **Move requests** (kein Horizontal-Tabs). Nav-Label **Approvals**; Badge = pending Reviews + inbound Move-Requests.
+- **Tags:** `POST /api/v1/tags` (Body: name), `DELETE /api/v1/tags/:tagId`; 409 bei doppeltem Namen, 404 bei unbekanntem Tag. Dokumente erhalten Tag-Zuordnung über PATCH mit `tagIds` (nur bei Dokumenten mit Kontext, da Tags scope-gebunden sind).
+- **New Document:** Modal nur Kontext (Process/Project) + Titel; nach POST kein Redirect – Nutzer bleibt auf der Seite, neueste Dokumente erscheinen in der Drafts-Card im Overview (vgl. Umsetzungs-Todo §14). Optional: „Draft ohne Kontext“ (nur Titel, kein Kontext).
+- Umsetzungsstand: [Umsetzungs-Todo §14](Umsetzungs-Todo.md#14-dokumente-in-der-ui) (Tag-Verwaltung, Editor aktuell Markdown-basiert; Ziel **Block-Editor** siehe [Edit-System-Plan](Edit-System-Blocks-Suggestions-Lead-Draft.md); Rechte-Checks, CRUD in Kontexten umgesetzt; Drafts-Card im Overview, Drafts-Tab siehe dort; Produkthilfe über **Help** `/help/…`).

@@ -1,0 +1,606 @@
+import {
+  Box,
+  Group,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  Select,
+  MultiSelect,
+  Pagination,
+  Anchor,
+} from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { IconArrowDown, IconArrowUp, IconListSearch, IconSelector } from '@tabler/icons-react';
+import { useSetAppShellBreadcrumbs } from '../../components/appShell/AppShellBreadcrumbsContext.js';
+import { useSetAppShellNavScope } from '../../components/appShell/AppShellNavScopeContext.js';
+import { EntityListCard } from '../../components/ui/EntityListCard.js';
+import { PageMobileActionBar } from '../../components/ui/PageMobileActionBar.js';
+import { TagBadge } from '../../components/ui/TagBadge.js';
+import {
+  CompactListCount,
+  StickySearchChrome,
+  useCompactListFilterFab,
+  useCompactListSearchFab,
+} from '../../components/ui/StickySearchChrome.js';
+import { contextUrl } from '../contextWorkspace/contextPaths';
+import { apiFetch } from '../../api/client';
+import { renderSearchSnippet } from '../../utils/renderSearchSnippet';
+import '../../utils/searchSnippetMark.css';
+import './CatalogPage.css';
+import { useWideLayout } from '../../components/appShell/useWideLayout.js';
+
+/** Renders text with search term wrapped in <mark> (case-insensitive). */
+function highlightMatch(text: string, searchTerm: string): ReactNode {
+  const t = text || '';
+  const s = searchTerm.trim();
+  if (!s) return t;
+  const escaped = s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${escaped})`, 'gi');
+  const parts = t.split(re);
+  return parts.map((part, i) => (i % 2 === 1 ? <mark key={i}>{part}</mark> : part));
+}
+
+const CATALOG_PAGE_SIZE_KEY = 'docsops-catalog-page-size';
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 10;
+
+type SortBy =
+  | 'title'
+  | 'updatedAt'
+  | 'createdAt'
+  | 'contextName'
+  | 'contextType'
+  | 'ownerDisplay'
+  | 'relevance';
+type SortOrder = 'asc' | 'desc';
+
+type TagItem = { id: string; name: string };
+type CatalogDocument = {
+  id: string;
+  title: string;
+  contextId: string;
+  createdAt: string;
+  updatedAt: string;
+  documentTags: { tag: { id: string; name: string } }[];
+  contextType: 'process' | 'project' | 'subcontext';
+  contextName: string;
+  ownerDisplay: string;
+  /** Link to owner scope (company, department, team, or personal). Null if no context. */
+  ownerHref: string | null;
+  contextProcessId: string | null;
+  contextProjectId: string | null;
+  currentPublishedVersionNumber: number | null;
+  searchRank?: number | null;
+  searchSnippet?: string | null;
+};
+type CatalogResponse = {
+  items: CatalogDocument[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function contextHref(doc: CatalogDocument): string {
+  return contextUrl(doc.contextId);
+}
+
+function parseStoredPageSize(): number {
+  try {
+    const v = window.localStorage.getItem(CATALOG_PAGE_SIZE_KEY);
+    if (v == null) return DEFAULT_PAGE_SIZE;
+    const n = parseInt(v, 10);
+    return PAGE_SIZE_OPTIONS.includes(n as (typeof PAGE_SIZE_OPTIONS)[number])
+      ? n
+      : DEFAULT_PAGE_SIZE;
+  } catch {
+    return DEFAULT_PAGE_SIZE;
+  }
+}
+
+/**
+ * Catalog: all accessible documents as table (filter/sort/search).
+ * No tab area per §7.
+ */
+export function CatalogPage() {
+  const { t } = useTranslation(['documents', 'common', 'shell']);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isWide = useWideLayout();
+  const closeSearchRef = useRef<() => void>(() => {});
+  const closeFilterRef = useRef<() => void>(() => {});
+
+  useSetAppShellBreadcrumbs(
+    isWide
+      ? [
+          {
+            key: 'catalog',
+            label: t('documents:catalog.title'),
+            icon: <IconListSearch size={14} stroke={1.5} />,
+          },
+        ]
+      : null
+  );
+  useSetAppShellNavScope(null);
+
+  const contextType = searchParams.get('contextType') ?? '';
+  const tagIds = useMemo(() => {
+    const t = searchParams.get('tagIds');
+    if (!t) return [];
+    return t.split(',').filter(Boolean);
+  }, [searchParams]);
+  const search = searchParams.get('search') ?? '';
+  const sortBy = (searchParams.get('sortBy') as SortBy) || 'updatedAt';
+  const sortOrder = (searchParams.get('sortOrder') as SortOrder) || 'desc';
+  const urlLimit = searchParams.get('limit');
+  const limitFromStorage = parseStoredPageSize();
+  const limit = urlLimit
+    ? Math.min(100, Math.max(1, parseInt(urlLimit, 10) || DEFAULT_PAGE_SIZE))
+    : limitFromStorage;
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+
+  // Sync limit to URL when coming from localStorage (so URL reflects persisted preference)
+  useEffect(() => {
+    if (!urlLimit && limitFromStorage !== DEFAULT_PAGE_SIZE) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('limit', String(limitFromStorage));
+        return next;
+      });
+    }
+  }, [urlLimit, limitFromStorage, setSearchParams]);
+
+  const setFilter = useCallback(
+    (key: string, value: string | string[] | null) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+          next.delete(key);
+        } else if (Array.isArray(value)) {
+          next.set(key, value.join(','));
+        } else {
+          next.set(key, value);
+        }
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const setPage = useCallback(
+    (p: number) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (p <= 1) next.delete('page');
+        else next.set('page', String(p));
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  const setSort = useCallback(
+    (by: SortBy, order?: SortOrder) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('sortBy', by);
+        if (by === 'relevance') {
+          next.set('sortOrder', 'desc');
+        } else {
+          next.set('sortOrder', order ?? (sortBy === by && sortOrder === 'desc' ? 'asc' : 'desc'));
+        }
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams, sortBy, sortOrder]
+  );
+
+  const setLimit = useCallback(
+    (value: number) => {
+      try {
+        window.localStorage.setItem(CATALOG_PAGE_SIZE_KEY, String(value));
+      } catch {
+        /* ignore */
+      }
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('limit', String(value));
+        next.delete('page');
+        return next;
+      });
+    },
+    [setSearchParams]
+  );
+
+  // All tags from scopes the user can read in the catalog (for filter dropdown + search).
+  const { data: tagsData } = useQuery({
+    queryKey: ['tags', 'catalog'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/v1/tags/catalog');
+      if (!res.ok) throw new Error('Failed to load tags');
+      return (await res.json()) as TagItem[];
+    },
+  });
+
+  const offset = (page - 1) * limit;
+  const catalogQueryParamsString = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('limit', String(limit));
+    params.set('offset', String(offset));
+    if (contextType && ['process', 'project'].includes(contextType)) {
+      params.set('contextType', contextType);
+    }
+    tagIds.forEach((id) => params.append('tagIds', id));
+    if (search.trim()) params.set('search', search.trim());
+    params.set('sortBy', sortBy);
+    params.set('sortOrder', sortOrder);
+    return params.toString();
+  }, [limit, offset, contextType, tagIds, search, sortBy, sortOrder]);
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['catalog-documents', catalogQueryParamsString],
+    queryFn: async (): Promise<CatalogResponse> => {
+      const res = await apiFetch(`/api/v1/documents?${catalogQueryParamsString}`);
+      if (!res.ok) throw new Error('Failed to load documents');
+      return (await res.json()) as CatalogResponse;
+    },
+  });
+
+  const totalPages = data ? Math.ceil(data.total / limit) : 0;
+  const tagOptions = useMemo(
+    () => (tagsData ?? []).map((tag) => ({ value: tag.id, label: tag.name })),
+    [tagsData]
+  );
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (contextType) n += 1;
+    if (tagIds.length > 0) n += 1;
+    if (sortBy !== 'updatedAt' || sortOrder !== 'desc') n += 1;
+    if (limit !== DEFAULT_PAGE_SIZE) n += 1;
+    return n;
+  }, [contextType, tagIds.length, sortBy, sortOrder, limit]);
+
+  const contextTypeLabel = (doc: CatalogDocument) =>
+    doc.contextType === 'process'
+      ? t('documents:breadcrumbs.process')
+      : doc.contextType === 'subcontext'
+        ? t('documents:breadcrumbs.subcontext')
+        : t('documents:breadcrumbs.project');
+
+  const advancedFilters = (
+    <>
+      <Select
+        label={t('documents:catalog.contextTypeLabel')}
+        placeholder={t('documents:catalog.allTypes')}
+        data={[
+          { value: '', label: t('documents:catalog.allTypes') },
+          { value: 'process', label: t('documents:breadcrumbs.process') },
+          { value: 'project', label: t('documents:breadcrumbs.project') },
+        ]}
+        value={contextType || null}
+        onChange={(v) => setFilter('contextType', v ?? '')}
+        clearable
+        style={{ minWidth: 140 }}
+      />
+      <Select
+        label={t('documents:catalog.sortByLabel')}
+        data={[
+          { value: 'updatedAt', label: t('documents:catalog.sortOptions.updated') },
+          { value: 'createdAt', label: t('documents:catalog.sortOptions.created') },
+          { value: 'title', label: t('documents:catalog.sortOptions.name') },
+          { value: 'ownerDisplay', label: t('documents:catalog.sortOptions.owner') },
+          { value: 'contextType', label: t('documents:catalog.contextTypeLabel') },
+          { value: 'contextName', label: t('documents:catalog.context') },
+          { value: 'relevance', label: t('documents:catalog.sortOptions.relevance') },
+        ]}
+        value={sortBy}
+        onChange={(value) => {
+          if (!value) return;
+          setSort(value, value === 'relevance' ? 'desc' : undefined);
+        }}
+        style={{ minWidth: 150 }}
+      />
+      <MultiSelect
+        label={t('documents:catalog.tagsLabel')}
+        placeholder={t('documents:catalog.tagsPlaceholder')}
+        data={tagOptions}
+        value={tagIds}
+        onChange={(v) => setFilter('tagIds', v)}
+        clearable
+        searchable
+        nothingFoundMessage={t('documents:catalog.noTagsMatch')}
+        style={{ minWidth: 200 }}
+      />
+      <Select
+        label={t('documents:catalog.perPage')}
+        data={PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))}
+        value={String(limit)}
+        onChange={(v) => v && setLimit(parseInt(v, 10))}
+        style={{ width: 90 }}
+      />
+    </>
+  );
+
+  const SortIcon = ({ column }: { column: SortBy }) => {
+    if (sortBy !== column) return <IconSelector size={14} style={{ opacity: 0.5 }} />;
+    return sortOrder === 'asc' ? <IconArrowUp size={14} /> : <IconArrowDown size={14} />;
+  };
+
+  const ThSort = ({
+    column,
+    label,
+    sticky,
+  }: {
+    column: SortBy;
+    label: string;
+    sticky?: boolean;
+  }) => (
+    <Table.Th
+      className={sticky ? 'catalog-table-name-cell' : undefined}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+      aria-disabled={column === 'relevance'}
+      onClick={() => setSort(column)}
+    >
+      <Group gap={4} wrap="nowrap">
+        {label}
+        <SortIcon column={column} />
+      </Group>
+    </Table.Th>
+  );
+
+  const compactFilter = useCompactListFilterFab({
+    label: t('documents:catalog.filterButton'),
+    active: activeFilterCount > 0,
+    onOpen: () => closeSearchRef.current(),
+    children: advancedFilters,
+  });
+
+  const compactSearch = useCompactListSearchFab({
+    label: t('documents:catalog.searchLabel'),
+    placeholder: t('documents:catalog.searchPlaceholder'),
+    value: search,
+    onChange: (e) => setFilter('search', e.currentTarget.value),
+    onClear: () => setFilter('search', null),
+    onOpen: () => closeFilterRef.current(),
+  });
+
+  closeSearchRef.current = compactSearch.close;
+  closeFilterRef.current = compactFilter.close;
+
+  return (
+    <Box>
+      <Stack gap={isWide ? 'md' : 'sm'}>
+        {isWide ? (
+          <StickySearchChrome>
+            <Group gap="md" wrap="wrap" align="flex-end">
+              <TextInput
+                label={t('documents:catalog.searchLabel')}
+                placeholder={t('documents:catalog.searchPlaceholder')}
+                value={search}
+                onChange={(e) => setFilter('search', e.currentTarget.value)}
+                style={{ minWidth: 200 }}
+              />
+              {advancedFilters}
+              <Text size="sm" c="dimmed" style={{ marginLeft: 'auto' }}>
+                {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
+              </Text>
+            </Group>
+          </StickySearchChrome>
+        ) : (
+          <>
+            <CompactListCount>
+              {data != null ? t('documents:catalog.documentCount', { count: data.total }) : '–'}
+            </CompactListCount>
+            {compactSearch.panel}
+            {compactFilter.panel}
+          </>
+        )}
+
+        {isWide ? (
+          <Box className="docsops-search-snippet-mark" style={{ overflowX: 'auto' }}>
+            <Table withTableBorder className="catalog-table-hover dense-list-table">
+              <Table.Thead>
+                <Table.Tr>
+                  <ThSort column="title" label={t('documents:catalog.table.name')} sticky />
+                  <Table.Th>{t('documents:catalog.table.version')}</Table.Th>
+                  <ThSort column="ownerDisplay" label={t('documents:catalog.table.owner')} />
+                  <ThSort column="contextType" label={t('documents:catalog.contextTypeLabel')} />
+                  <ThSort column="contextName" label={t('documents:catalog.context')} />
+                  <Table.Th>{t('documents:catalog.table.tags')}</Table.Th>
+                  <ThSort column="updatedAt" label={t('documents:catalog.table.updated')} />
+                  <ThSort column="createdAt" label={t('documents:catalog.table.created')} />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {isPending && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="dimmed">
+                        {t('documents:catalog.loading')}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                {!isPending && isError && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="red">
+                        {t('documents:catalog.loadFailed')}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                {!isPending && !isError && data && data.items.length === 0 && (
+                  <Table.Tr>
+                    <Table.Td colSpan={8}>
+                      <Text size="sm" c="dimmed">
+                        {t('documents:catalog.empty')}
+                      </Text>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+                {!isPending &&
+                  !isError &&
+                  data &&
+                  data.items.length > 0 &&
+                  data.items.map((doc) => (
+                    <Table.Tr key={doc.id}>
+                      <Table.Td className="catalog-table-name-cell">
+                        <Anchor component={Link} to={`/documents/${doc.id}`} size="sm">
+                          {highlightMatch(doc.title || doc.id, search)}
+                        </Anchor>
+                        {search.trim() && doc.searchSnippet ? (
+                          <Text size="xs" c="dimmed" lineClamp={2}>
+                            {renderSearchSnippet(doc.searchSnippet)}
+                          </Text>
+                        ) : null}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">
+                          {doc.currentPublishedVersionNumber != null
+                            ? `v${doc.currentPublishedVersionNumber}`
+                            : t('documents:catalog.draftVersion')}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        {doc.ownerHref ? (
+                          <Anchor
+                            component={Link}
+                            to={doc.ownerHref}
+                            size="sm"
+                            className="catalog-table-link-style"
+                          >
+                            {doc.ownerDisplay}
+                          </Anchor>
+                        ) : (
+                          <Text size="sm" component="span" className="catalog-table-link-style">
+                            {doc.ownerDisplay}
+                          </Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{contextTypeLabel(doc)}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Anchor
+                          component={Link}
+                          to={contextHref(doc)}
+                          size="sm"
+                          title={doc.contextName}
+                          className="catalog-table-link-style"
+                        >
+                          {doc.contextName || '–'}
+                        </Anchor>
+                      </Table.Td>
+                      <Table.Td>
+                        <Group gap={4}>
+                          {doc.documentTags.map((dt) => (
+                            <TagBadge key={dt.tag.id}>{dt.tag.name}</TagBadge>
+                          ))}
+                          {doc.documentTags.length === 0 && (
+                            <Text size="sm" c="dimmed">
+                              –
+                            </Text>
+                          )}
+                        </Group>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{formatDate(doc.updatedAt)}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{formatDate(doc.createdAt)}</Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+              </Table.Tbody>
+            </Table>
+          </Box>
+        ) : (
+          <Stack gap="xs" className="docsops-search-snippet-mark">
+            {isPending ? (
+              <Text size="sm" c="dimmed">
+                {t('documents:catalog.loading')}
+              </Text>
+            ) : isError ? (
+              <Text size="sm" c="red">
+                {t('documents:catalog.loadFailed')}
+              </Text>
+            ) : data && data.items.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                {t('documents:catalog.empty')}
+              </Text>
+            ) : (
+              data?.items.map((doc) => {
+                const contextLabel = (doc.contextName || '').trim();
+                const metaParts = [contextLabel || null, formatDate(doc.updatedAt)].filter(
+                  (part): part is string => Boolean(part)
+                );
+                const showTagChip = tagIds.length > 0;
+                const tagChip = showTagChip
+                  ? (doc.documentTags.find((dt) => tagIds.includes(dt.tag.id))?.tag ??
+                    doc.documentTags[0]?.tag)
+                  : null;
+
+                return (
+                  <EntityListCard
+                    key={doc.id}
+                    to={`/documents/${doc.id}`}
+                    title={
+                      <Text fw={600} size="md" lineClamp={2}>
+                        {highlightMatch(doc.title || doc.id, search)}
+                      </Text>
+                    }
+                    meta={
+                      <Stack gap={4}>
+                        {metaParts.length > 0 ? (
+                          <Text size="xs" c="dimmed" lineClamp={1}>
+                            {metaParts.join(' · ')}
+                          </Text>
+                        ) : null}
+                        {tagChip ? <TagBadge size="xs">{tagChip.name}</TagBadge> : null}
+                        {search.trim() && doc.searchSnippet ? (
+                          <Text size="xs" c="dimmed" lineClamp={2}>
+                            {renderSearchSnippet(doc.searchSnippet)}
+                          </Text>
+                        ) : null}
+                      </Stack>
+                    }
+                  />
+                );
+              })
+            )}
+          </Stack>
+        )}
+        {!isPending && !isError && data && totalPages > 1 && (
+          <Group justify="flex-end">
+            <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+          </Group>
+        )}
+      </Stack>
+      {!isWide ? (
+        <PageMobileActionBar
+          ariaLabel={t('shell:nav.pageMobileActionsAria')}
+          actions={[compactSearch.action, compactFilter.action]}
+        />
+      ) : null}
+    </Box>
+  );
+}

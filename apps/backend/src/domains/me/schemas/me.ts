@@ -1,0 +1,475 @@
+import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
+import {
+  healthCheckOutcomeSchema,
+  healthCheckReasonSchema,
+} from '../../documents/schemas/healthCheck.js';
+import { paginationQuerySchema } from '../../organisation/schemas/organisation.js';
+
+/** Body: PATCH /me – eigenes Profil (nur Anzeigename). E-Mail über Account. */
+export const patchMeBodySchema = z.object({
+  name: z.string().min(1, 'Name erforderlich').max(200),
+});
+
+export type PatchMeBody = z.infer<typeof patchMeBodySchema>;
+
+/** Body: PATCH /me/preferences – Theme, Sidebar-Pin, Locale, Zuletzt angesehene pro Scope. */
+const recentItemSchema = z.object({
+  type: z.enum(['process', 'project', 'document']),
+  id: cuidSchema,
+  name: z.string().max(255).optional(),
+  contextName: z.string().max(255).optional(),
+});
+
+const notificationChannelPreferencesSchema = z.object({
+  documentChanges: z.boolean().optional(),
+  documentComments: z.boolean().optional(),
+  draftRequests: z.boolean().optional(),
+  reminders: z.boolean().optional(),
+  announcements: z.boolean().optional(),
+  operations: z.boolean().optional(),
+  /** @deprecated use announcements + operations */
+  system: z.boolean().optional(),
+  orgChanges: z.boolean().optional(),
+});
+
+export const notificationSettingsSchema = z.object({
+  inApp: notificationChannelPreferencesSchema.optional(),
+  email: notificationChannelPreferencesSchema.optional(),
+});
+
+/** Home Pulse feed toggles (independent of notification channel prefs). */
+export const pulseSettingsSchema = z.object({
+  showDrafts: z.boolean().optional(),
+  showReviews: z.boolean().optional(),
+  showNewDocuments: z.boolean().optional(),
+  showUpdatedDocuments: z.boolean().optional(),
+  showComments: z.boolean().optional(),
+  showHealthCheck: z.boolean().optional(),
+});
+export type PulseSettingsPatch = z.infer<typeof pulseSettingsSchema>;
+
+export const patchPreferencesBodySchema = z.object({
+  theme: z.enum(['light', 'dark', 'auto']).optional(),
+  sidebarPinned: z.boolean().optional(),
+  sidebarCollapsed: z.boolean().optional(),
+  scopeRecentPanelOpen: z.boolean().optional(),
+  locale: z.enum(['en', 'de']).optional(),
+  primaryColor: z
+    .enum([
+      'blue',
+      'green',
+      'violet',
+      'teal',
+      'indigo',
+      'amber',
+      'sky',
+      'rose',
+      'orange',
+      'fuchsia',
+    ])
+    .optional(),
+  textSize: z.enum(['default', 'large', 'larger']).optional(),
+  documentReadingFont: z.enum(['sans', 'serif']).optional(),
+  recentItemsByScope: z.record(z.string(), z.array(recentItemSchema).max(8)).optional(),
+  notificationSettings: notificationSettingsSchema.optional(),
+  pulseSettings: pulseSettingsSchema.optional(),
+  lastSeenReleaseVersion: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/, 'Version must be SemVer (e.g. 0.1.0)')
+    .optional(),
+});
+
+export type PatchPreferencesBody = z.infer<typeof patchPreferencesBodySchema>;
+
+const MIN_PASSWORD_LENGTH = 8;
+
+/** Body: PATCH /me/account – E-Mail und/oder Passwort (nur bei lokalem Login). */
+export const patchAccountBodySchema = z.object({
+  email: z
+    .email({ error: () => 'Invalid email address' })
+    .nullable()
+    .optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Mindestens ${MIN_PASSWORD_LENGTH} Zeichen`)
+    .optional(),
+});
+
+export type PatchAccountBody = z.infer<typeof patchAccountBodySchema>;
+export { MIN_PASSWORD_LENGTH };
+
+/** Query: GET /me/personal-documents, GET /me/shared-documents (Pagination + optional publishedOnly). */
+export const meDocumentsListQuerySchema = paginationQuerySchema.extend({
+  publishedOnly: z.coerce.boolean().optional().default(false),
+});
+export type MeDocumentsListQuery = z.infer<typeof meDocumentsListQuerySchema>;
+
+/** Params: DELETE /me/sessions/:sessionId */
+export const sessionIdParamSchema = z.object({
+  sessionId: z.string().min(1, 'Session-ID erforderlich'),
+});
+export type SessionIdParam = z.infer<typeof sessionIdParamSchema>;
+
+/** Query: GET /me/drafts – scope filter (exactly one or none for all), optional limit/offset. */
+const draftsScopeSchema = z
+  .object({
+    scope: z.enum(['personal', 'shared']).optional(),
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    offset: z.coerce.number().int().min(0).default(0),
+  })
+  .refine(
+    (q) => {
+      const count = [q.scope, q.companyId, q.departmentId, q.teamId].filter(
+        (x) => x != null
+      ).length;
+      return count <= 1;
+    },
+    { message: 'At most one of scope, companyId, departmentId, teamId' }
+  );
+export const meDraftsQuerySchema = draftsScopeSchema;
+export type MeDraftsQuery = z.infer<typeof meDraftsQuerySchema>;
+
+/** Query: GET /me/storage – scope (personal | team | department | company) and corresponding id. */
+export const meStorageQuerySchema = z
+  .object({
+    scope: z.enum(['personal', 'team', 'department', 'company']).optional(),
+    teamId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    companyId: cuidSchema.optional(),
+  })
+  .refine(
+    (q) => {
+      if (!q.scope || q.scope === 'personal') return true;
+      if (q.scope === 'team') return q.teamId != null;
+      if (q.scope === 'department') return q.departmentId != null;
+      if (q.scope === 'company') return q.companyId != null;
+      return true;
+    },
+    { message: 'teamId/departmentId/companyId required when scope is team/department/company' }
+  );
+export type MeStorageQuery = z.infer<typeof meStorageQuerySchema>;
+
+const meTrashArchiveListBaseFields = {
+  scope: z.enum(['personal', 'company', 'department', 'team']),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
+  type: z.enum(['document', 'process', 'project']).optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+} satisfies Record<string, z.ZodType>;
+
+function refineMeTrashArchiveOrgScopeIds(q: {
+  scope: 'personal' | 'company' | 'department' | 'team';
+  companyId?: string | undefined;
+  departmentId?: string | undefined;
+  teamId?: string | undefined;
+}): boolean {
+  if (q.scope === 'company') return q.companyId != null;
+  if (q.scope === 'department') return q.departmentId != null;
+  if (q.scope === 'team') return q.teamId != null;
+  return true;
+}
+
+const meTrashArchiveOrgScopeRefine = {
+  message: 'companyId/departmentId/teamId required for scope company/department/team',
+} as const;
+
+/** Query: GET /me/trash – scope, type filter, sort, pagination. */
+export const meTrashQuerySchema = z
+  .object({
+    ...meTrashArchiveListBaseFields,
+    sortBy: z.enum(['deletedAt', 'title']).default('deletedAt'),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeTrashQuery = z.infer<typeof meTrashQuerySchema>;
+
+/** Query: GET /me/archive – same as trash, sortBy uses archivedAt. */
+export const meArchiveQuerySchema = z
+  .object({
+    ...meTrashArchiveListBaseFields,
+    sortBy: z.enum(['archivedAt', 'title']).default('archivedAt'),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeArchiveQuery = z.infer<typeof meArchiveQuerySchema>;
+
+/** Query: GET /me/most-read – scope + org ids (no pagination; fixed top-N). */
+export const meMostReadQuerySchema = z
+  .object({
+    scope: z.enum(['personal', 'company', 'department', 'team']),
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeMostReadQuery = z.infer<typeof meMostReadQuerySchema>;
+
+/** Response item: GET /me/most-read. */
+export const meMostReadItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  viewCount: z.number().int().nonnegative(),
+  contextName: z.string(),
+});
+export type MeMostReadItem = z.infer<typeof meMostReadItemSchema>;
+
+/** Response: GET /me/most-read. */
+export const meMostReadResponseSchema = z.object({
+  items: z.array(meMostReadItemSchema),
+});
+export type MeMostReadResponse = z.infer<typeof meMostReadResponseSchema>;
+
+/** Query: GET /me/freshness – reason + outcome + optional org scope + pagination. */
+export const meHealthCheckQuerySchema = z
+  .object({
+    reason: healthCheckReasonSchema.default('all'),
+    outcome: healthCheckOutcomeSchema.default('all'),
+    scope: z.enum(['company', 'department', 'team']).optional(),
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    offset: z.coerce.number().int().min(0).default(0),
+  })
+  .refine(
+    (q) => {
+      if (q.scope == null) {
+        return q.companyId == null && q.departmentId == null && q.teamId == null;
+      }
+      return refineMeTrashArchiveOrgScopeIds({
+        scope: q.scope,
+        companyId: q.companyId,
+        departmentId: q.departmentId,
+        teamId: q.teamId,
+      });
+    },
+    { message: 'companyId/departmentId/teamId required for scope company/department/team' }
+  );
+export type MeHealthCheckQuery = z.infer<typeof meHealthCheckQuerySchema>;
+
+export const meHealthCheckItemReasonSchema = z.enum(['due']);
+export const meHealthCheckItemOutcomeSchema = z.enum(['open', 'needs_update', 'archive']);
+
+export const meHealthCheckAttentionHintSchema = z.enum(['high_traffic']);
+
+export const meHealthCheckScopeOptionSchema = z.object({
+  type: z.enum(['company', 'department', 'team']),
+  id: z.string(),
+  label: z.string(),
+});
+export type MeHealthCheckScopeOption = z.infer<typeof meHealthCheckScopeOptionSchema>;
+
+export const meHealthCheckItemSchema = z.object({
+  documentId: z.string(),
+  title: z.string(),
+  /** Entry reason; null when only an outcome keeps the doc on the list. */
+  reason: meHealthCheckItemReasonSchema.nullable(),
+  /** Post-review stand while still listed. */
+  outcome: meHealthCheckItemOutcomeSchema,
+  healthCheckNextAt: z.iso.datetime().nullable(),
+  healthCheckNeedsUpdate: z.boolean(),
+  healthCheckNeedsArchive: z.boolean(),
+  healthCheckSnoozedUntil: z.iso.datetime().nullable(),
+  healthCheckLastDecision: z.string().nullable(),
+  healthCheckLastDecisionAt: z.iso.datetime().nullable(),
+  healthCheckLastDecisionById: z.string().nullable(),
+  contextId: z.string(),
+  contextName: z.string(),
+  ownerScopeLabel: z.string().nullable(),
+  /** Soft View×Alter hint; null when thresholds not met. */
+  attentionHint: meHealthCheckAttentionHintSchema.nullable(),
+});
+export type MeHealthCheckItem = z.infer<typeof meHealthCheckItemSchema>;
+
+export const meHealthCheckListResponseSchema = z.object({
+  items: z.array(meHealthCheckItemSchema),
+  total: z.number().int().nonnegative(),
+  limit: z.number().int(),
+  offset: z.number().int(),
+  /** Filterable scopes including hierarchy under company/department leads. */
+  scopes: z.array(meHealthCheckScopeOptionSchema),
+});
+export type MeHealthCheckListResponse = z.infer<typeof meHealthCheckListResponseSchema>;
+
+/** Body: POST /me/freshness/scan – optional single scope filter. */
+export const meHealthCheckScanBodySchema = z
+  .object({
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+  })
+  .refine(
+    (b) => {
+      const count = [b.companyId, b.departmentId, b.teamId].filter((x) => x != null).length;
+      return count <= 1;
+    },
+    { message: 'At most one of companyId, departmentId, teamId' }
+  );
+export type MeHealthCheckScanBody = z.infer<typeof meHealthCheckScanBodySchema>;
+
+export const meHealthCheckScanResponseSchema = z.object({
+  scanned: z.number().int().nonnegative(),
+  updatedDocumentIds: z.array(z.string()),
+  counts: z.object({
+    actionNeeded: z.number().int().nonnegative(),
+    due: z.number().int().nonnegative(),
+    open: z.number().int().nonnegative(),
+    needsUpdate: z.number().int().nonnegative(),
+    archive: z.number().int().nonnegative(),
+  }),
+});
+export type MeHealthCheckScanResponse = z.infer<typeof meHealthCheckScanResponseSchema>;
+
+/** Query: GET /me/can-write-in-scope – scope and scope id (company, department, or team). */
+export const meCanWriteInScopeQuerySchema = z
+  .object({
+    scope: z.enum(['company', 'department', 'team']),
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeCanWriteInScopeQuery = z.infer<typeof meCanWriteInScopeQuerySchema>;
+
+/** Response: GET /me/can-write-in-scope. */
+export const meCanWriteInScopeResponseSchema = z.object({
+  canWrite: z.boolean(),
+});
+export type MeCanWriteInScopeResponse = z.infer<typeof meCanWriteInScopeResponseSchema>;
+
+/** Query: GET /me/can-view-scope-people – scope and scope id (company, department, or team). */
+export const meCanViewScopePeopleQuerySchema = z
+  .object({
+    scope: z.enum(['company', 'department', 'team']),
+    companyId: cuidSchema.optional(),
+    departmentId: cuidSchema.optional(),
+    teamId: cuidSchema.optional(),
+  })
+  .refine(refineMeTrashArchiveOrgScopeIds, meTrashArchiveOrgScopeRefine);
+export type MeCanViewScopePeopleQuery = z.infer<typeof meCanViewScopePeopleQuerySchema>;
+
+/** Response: GET /me/can-view-scope-people. */
+export const meCanViewScopePeopleResponseSchema = z.object({
+  canViewPeople: z.boolean(),
+});
+export type MeCanViewScopePeopleResponse = z.infer<typeof meCanViewScopePeopleResponseSchema>;
+
+/** GET /me/notifications – Inbox-Kategorie (Whitelist im Backend). */
+export const meNotificationCategorySchema = z.enum([
+  'all',
+  'documents',
+  'comments',
+  'reviews',
+  'reminders',
+  'announcements',
+  'operations',
+  /** @deprecated use announcements or operations */
+  'system',
+  'org',
+]);
+
+/** Query: GET /me/notifications – optional unreadOnly + pagination + category. */
+export const meNotificationsQuerySchema = z.object({
+  /** Query strings must not use `z.coerce.boolean()` (both `"true"` and `"false"` become true). */
+  unreadOnly: z.stringbool().optional().default(false),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+  category: meNotificationCategorySchema.optional().default('all'),
+});
+export type MeNotificationsQuery = z.infer<typeof meNotificationsQuerySchema>;
+export type MeNotificationCategory = z.infer<typeof meNotificationCategorySchema>;
+
+/** Params: PATCH /me/notifications/:notificationId/read */
+export const notificationIdParamSchema = z.object({
+  notificationId: z.uuid(),
+});
+
+/** Body: PATCH /me/notifications/read-all */
+export const markAllNotificationsReadBodySchema = z.object({
+  before: z.iso.datetime().optional(),
+});
+
+/** Unified trash/archive item for table (type, displayTitle, date). Used by GET /me/trash and GET /me/archive. */
+export type MeTrashArchiveItem = {
+  type: 'document' | 'process' | 'project';
+  id: string;
+  /** Context row id for process/project SPA links. */
+  contextId?: string;
+  displayTitle: string;
+  contextName: string;
+  deletedAt?: string;
+  archivedAt?: string;
+};
+
+/** Query: GET /me/reviews – draft change inbox for leads and authors. */
+export const meReviewsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+export type MeReviewsQuery = z.infer<typeof meReviewsQuerySchema>;
+
+/** Query: GET /me/move-requests – Approvals hub move inbox. */
+export const meMoveRequestsQuerySchema = z.object({
+  direction: z.enum(['inbound', 'outbound']).default('inbound'),
+  status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).default('pending'),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+export type MeMoveRequestsQuery = z.infer<typeof meMoveRequestsQuerySchema>;
+
+export const pulseItemKindSchema = z.enum([
+  'draft-open',
+  'review-awaiting',
+  'review-decided',
+  'document-new',
+  'document-updated',
+  'document-comments',
+  'health-check-action-needed',
+]);
+export type PulseItemKind = z.infer<typeof pulseItemKindSchema>;
+
+/** Query: GET /me/pulse – optional kind filter + feed pagination. */
+export const mePulseQuerySchema = z.object({
+  kind: pulseItemKindSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+export type MePulseQuery = z.infer<typeof mePulseQuerySchema>;
+
+/** Response: GET /me/pulse/explore – empty Pulse home discover columns. */
+export const mePulseExploreResponseSchema = z.object({
+  columns: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        title: z.string().min(1),
+        items: z.array(
+          z.object({
+            id: z.string().min(1),
+            title: z.string(),
+          })
+        ),
+      })
+    )
+    .max(3),
+});
+export type MePulseExploreResponse = z.infer<typeof mePulseExploreResponseSchema>;
+
+/** Params: POST /me/pulse/items/:itemId/read – `kind:documentId` or health-check scope key. */
+export const pulseItemIdParamSchema = z.object({
+  itemId: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(
+      /^(draft-open|review-awaiting|review-decided|document-new|document-updated|document-comments|health-check-action-needed):.+$/,
+      'Invalid pulse item id'
+    ),
+});
+export type PulseItemIdParam = z.infer<typeof pulseItemIdParamSchema>;

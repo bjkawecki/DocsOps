@@ -1,0 +1,371 @@
+import { Prisma } from '../../../../../generated/prisma/client.js';
+import type { PrismaClient } from '../../../../../generated/prisma/client.js';
+import {
+  getReadableCatalogScope,
+  getWritableCatalogScope,
+} from '../../../organisation/permissions/catalogPermissions.js';
+import type { ScopeRef } from '../../../organisation/permissions/scopeResolution.js';
+import type {
+  MeDraftsQuery,
+  MeNotificationDbRow,
+  OwnerScopeRow,
+  RecentPreferencesItem,
+  UserPreferences,
+} from './route-types.js';
+import {
+  ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES,
+  COMMENT_NOTIFICATION_EVENT_TYPES,
+  DOCUMENT_NOTIFICATION_EVENT_TYPES,
+  HEALTH_CHECK_NOTIFICATION_EVENT_TYPES,
+  OPERATIONS_NOTIFICATION_EVENT_TYPES,
+  ORG_NOTIFICATION_EVENT_TYPES,
+  REVIEW_NOTIFICATION_EVENT_TYPES,
+  SYSTEM_NOTIFICATION_EVENT_TYPES,
+} from '../../../notifications/notificationEventTypes.js';
+
+const ownerScopeSelect = {
+  teamId: true,
+  departmentId: true,
+  companyId: true,
+  ownerUserId: true,
+  displayName: true,
+} as const;
+
+const meDocumentsSelect = {
+  id: true,
+  title: true,
+  contextId: true,
+  createdAt: true,
+  updatedAt: true,
+  documentTags: { include: { tag: { select: { id: true, name: true } } } },
+  context: {
+    select: {
+      id: true,
+      displayName: true,
+      contextType: true,
+      ownerDisplayName: true,
+    },
+  },
+} as const;
+
+function mapContextIdRows(rows: Array<{ contextId: string }>): string[] {
+  return rows.map((item) => item.contextId);
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function notificationPayloadAsRecord(payload: unknown): Record<string, unknown> {
+  if (payload != null && typeof payload === 'object' && !Array.isArray(payload)) {
+    return payload as Record<string, unknown>;
+  }
+  return {};
+}
+
+async function enrichMeNotificationItems(
+  prisma: PrismaClient,
+  rows: MeNotificationDbRow[]
+): Promise<
+  Array<{
+    id: string;
+    eventType: string;
+    payload: unknown;
+    createdAt: Date;
+    readAt: Date | null;
+    documentTitle: string | null;
+  }>
+> {
+  const documentIds = new Set<string>();
+  for (const row of rows) {
+    const payload = notificationPayloadAsRecord(row.payload);
+    const docId = typeof payload.documentId === 'string' ? payload.documentId : null;
+    if (docId) documentIds.add(docId);
+  }
+  const ids = [...documentIds];
+  const documents =
+    ids.length > 0
+      ? await prisma.document.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, title: true },
+        })
+      : [];
+  const titleById = new Map(documents.map((doc) => [doc.id, doc.title]));
+  return rows.map((row) => {
+    const payload = notificationPayloadAsRecord(row.payload);
+    const documentId = typeof payload.documentId === 'string' ? payload.documentId : null;
+    return {
+      id: row.id,
+      eventType: row.event_type,
+      payload: row.payload,
+      createdAt: row.created_at,
+      readAt: row.read_at,
+      documentTitle: documentId != null ? (titleById.get(documentId) ?? null) : null,
+    };
+  });
+}
+
+function notificationsCategorySql(category: string): Prisma.Sql {
+  if (category === 'all') return Prisma.empty;
+  if (category === 'documents') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...DOCUMENT_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'comments') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...COMMENT_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'reviews') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...REVIEW_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'reminders') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...HEALTH_CHECK_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'announcements') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...ANNOUNCEMENT_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'operations') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...OPERATIONS_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'system') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...SYSTEM_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  if (category === 'org') {
+    return Prisma.sql`AND event_type IN (${Prisma.join([...ORG_NOTIFICATION_EVENT_TYPES])})`;
+  }
+  return Prisma.sql`AND FALSE`;
+}
+
+function scopeRefFromQuery(q: {
+  scope: string;
+  companyId?: string | null;
+  departmentId?: string | null;
+  teamId?: string | null;
+}): ScopeRef | null {
+  if (q.scope === 'company' && q.companyId) return { type: 'company', companyId: q.companyId };
+  if (q.scope === 'department' && q.departmentId)
+    return { type: 'department', departmentId: q.departmentId };
+  if (q.scope === 'team' && q.teamId) return { type: 'team', teamId: q.teamId };
+  return null;
+}
+
+function getScopeFromOwner(owner: OwnerScopeRow | null): {
+  scopeType: 'team' | 'department' | 'company' | 'personal';
+  scopeId: string | null;
+  scopeName: string;
+} {
+  if (!owner) return { scopeType: 'personal', scopeId: null, scopeName: 'Personal' };
+  const name = owner.displayName?.trim() || 'Personal';
+  if (owner.teamId) return { scopeType: 'team', scopeId: owner.teamId, scopeName: name };
+  if (owner.departmentId)
+    return { scopeType: 'department', scopeId: owner.departmentId, scopeName: name };
+  if (owner.companyId) return { scopeType: 'company', scopeId: owner.companyId, scopeName: name };
+  return { scopeType: 'personal', scopeId: null, scopeName: name };
+}
+
+function dedupeRecentPreferencesItems(
+  list: RecentPreferencesItem[] | undefined
+): RecentPreferencesItem[] {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set<string>();
+  const out: RecentPreferencesItem[] = [];
+  for (const item of list) {
+    if (item == null || typeof item !== 'object') continue;
+    if (typeof item.id !== 'string' || item.id === '') continue;
+    if (item.type !== 'process' && item.type !== 'project' && item.type !== 'document') continue;
+    const key = `${item.type}:${item.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      type: item.type,
+      id: item.id,
+      ...(item.name != null ? { name: item.name } : {}),
+      ...(item.contextName != null && item.contextName !== ''
+        ? { contextName: item.contextName }
+        : {}),
+    });
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+function sanitizeRecentItemsByScope(
+  raw: UserPreferences['recentItemsByScope']
+): UserPreferences['recentItemsByScope'] {
+  if (raw == null || typeof raw !== 'object') return undefined;
+  const next: NonNullable<UserPreferences['recentItemsByScope']> = {};
+  for (const [scopeKey, list] of Object.entries(raw)) {
+    next[scopeKey] = dedupeRecentPreferencesItems(list);
+  }
+  return next;
+}
+
+function userPreferencesFromJson(preferences: unknown): UserPreferences {
+  if (preferences != null && typeof preferences === 'object') {
+    const prefs = preferences as UserPreferences;
+    return {
+      ...prefs,
+      ...(prefs.recentItemsByScope !== undefined && {
+        recentItemsByScope: sanitizeRecentItemsByScope(prefs.recentItemsByScope),
+      }),
+    };
+  }
+  return {};
+}
+
+async function getDraftsScope(
+  prisma: PrismaClient,
+  userId: string,
+  query: MeDraftsQuery
+): Promise<{ scopeContextIds: string[]; scopeDocumentIds: string[] }> {
+  if (!query.scope && !query.companyId && !query.departmentId && !query.teamId) {
+    const readable = await getReadableCatalogScope(prisma, userId);
+    return {
+      scopeContextIds: readable.contextIds,
+      scopeDocumentIds: readable.documentIdsFromGrants,
+    };
+  }
+  if (query.scope === 'personal') {
+    const personalContextIds = await getPersonalContextIds(prisma, userId);
+    return {
+      scopeContextIds: personalContextIds,
+      scopeDocumentIds: [],
+    };
+  }
+  if (query.scope === 'shared') {
+    const sharedDocumentIds = await getSharedDocumentIds(prisma, userId);
+    return {
+      scopeContextIds: [],
+      scopeDocumentIds: sharedDocumentIds,
+    };
+  }
+
+  const ownerFilter =
+    query.companyId != null
+      ? { companyId: query.companyId }
+      : query.departmentId != null
+        ? { departmentId: query.departmentId }
+        : { teamId: query.teamId! };
+  const [processContexts, projectContexts, subcontextContexts] = await Promise.all([
+    prisma.process.findMany({
+      where: { deletedAt: null, owner: ownerFilter },
+      select: { contextId: true },
+    }),
+    prisma.project.findMany({
+      where: { deletedAt: null, owner: ownerFilter },
+      select: { contextId: true },
+    }),
+    prisma.subcontext.findMany({
+      where: { project: { owner: ownerFilter } },
+      select: { contextId: true },
+    }),
+  ]);
+
+  return {
+    scopeContextIds: [
+      ...mapContextIdRows(processContexts),
+      ...mapContextIdRows(projectContexts),
+      ...mapContextIdRows(subcontextContexts),
+    ],
+    scopeDocumentIds: [],
+  };
+}
+
+async function getWritableScope(prisma: PrismaClient, userId: string) {
+  return getWritableCatalogScope(prisma, userId);
+}
+
+async function getPersonalContextIds(prisma: PrismaClient, userId: string): Promise<string[]> {
+  const [processContexts, projectContexts, subcontextContexts] = await Promise.all([
+    prisma.process.findMany({
+      where: { deletedAt: null, owner: { ownerUserId: userId } },
+      select: { contextId: true },
+    }),
+    prisma.project.findMany({
+      where: { deletedAt: null, owner: { ownerUserId: userId } },
+      select: { contextId: true },
+    }),
+    prisma.subcontext.findMany({
+      where: { project: { owner: { ownerUserId: userId } } },
+      select: { contextId: true },
+    }),
+  ]);
+
+  return [
+    ...mapContextIdRows(processContexts),
+    ...mapContextIdRows(projectContexts),
+    ...mapContextIdRows(subcontextContexts),
+  ];
+}
+
+async function getSharedDocumentIds(prisma: PrismaClient, userId: string): Promise<string[]> {
+  const [teamIds, teamMembersWithDepartment] = await Promise.all([
+    prisma.teamMember.findMany({ where: { userId }, select: { teamId: true } }),
+    prisma.teamMember.findMany({
+      where: { userId },
+      include: { team: { select: { departmentId: true } } },
+    }),
+  ]);
+  const departmentIds = uniqueStrings(
+    teamMembersWithDepartment.map((member) => member.team.departmentId)
+  );
+
+  const [userGrantDocIds, teamGrantDocIds, deptGrantDocIds] = await Promise.all([
+    prisma.documentGrantUser
+      .findMany({ where: { userId }, select: { documentId: true } })
+      .then((rows) => rows.map((row) => row.documentId)),
+    teamIds.length === 0
+      ? Promise.resolve([] as string[])
+      : prisma.documentGrantTeam
+          .findMany({
+            where: { teamId: { in: teamIds.map((team) => team.teamId) } },
+            select: { documentId: true },
+          })
+          .then((rows) => rows.map((row) => row.documentId)),
+    departmentIds.length === 0
+      ? Promise.resolve([] as string[])
+      : prisma.documentGrantDepartment
+          .findMany({
+            where: { departmentId: { in: departmentIds } },
+            select: { documentId: true },
+          })
+          .then((rows) => rows.map((row) => row.documentId)),
+  ]);
+
+  return uniqueStrings([...userGrantDocIds, ...teamGrantDocIds, ...deptGrantDocIds]);
+}
+
+async function listMeDocumentsPage(
+  prisma: PrismaClient,
+  where: Prisma.DocumentWhereInput,
+  limit: number,
+  offset: number
+): Promise<{
+  items: Array<Prisma.DocumentGetPayload<{ select: typeof meDocumentsSelect }>>;
+  total: number;
+}> {
+  const [items, total] = await Promise.all([
+    prisma.document.findMany({
+      where,
+      select: meDocumentsSelect,
+      take: limit,
+      skip: offset,
+      orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.document.count({ where }),
+  ]);
+  return { items, total };
+}
+
+export {
+  enrichMeNotificationItems,
+  notificationsCategorySql,
+  scopeRefFromQuery,
+  ownerScopeSelect,
+  getScopeFromOwner,
+  userPreferencesFromJson,
+  dedupeRecentPreferencesItems,
+  getDraftsScope,
+  getWritableScope,
+  getPersonalContextIds,
+  getSharedDocumentIds,
+  listMeDocumentsPage,
+};

@@ -1,0 +1,334 @@
+import { createTheme, rem, type MantineTheme, type TextProps } from '@mantine/core';
+
+/** User-selectable UI text scale (Mantine `theme.scale` → `--mantine-scale`). */
+export type TextSizePreference = 'default' | 'large' | 'larger';
+
+/** Labels for Settings SegmentedControl (accessibility). */
+export const TEXT_SIZE_OPTION_LABELS: Record<TextSizePreference, string> = {
+  default: 'Default',
+  large: 'Large',
+  larger: 'Larger',
+};
+
+/** Relative scale shown in Settings help text / preview. */
+export const TEXT_SIZE_SCALE_PERCENT: Record<TextSizePreference, number> = {
+  default: 100,
+  large: 112,
+  larger: 125,
+};
+
+export function textSizeToScale(textSize: TextSizePreference | undefined): number {
+  if (textSize === 'large') return 1.125;
+  if (textSize === 'larger') return 1.25;
+  return 1;
+}
+
+/** User-selectable primary color preset names. */
+export type PrimaryColorPreset =
+  'blue' | 'green' | 'violet' | 'teal' | 'indigo' | 'amber' | 'sky' | 'rose' | 'orange' | 'fuchsia';
+
+/** All preset names for UI (e.g. Settings dropdown). */
+export const PRIMARY_COLOR_PRESETS: readonly PrimaryColorPreset[] = [
+  'blue',
+  'green',
+  'violet',
+  'teal',
+  'indigo',
+  'amber',
+  'sky',
+  'rose',
+  'orange',
+  'fuchsia',
+] as const;
+
+/** Human-readable labels for each preset (precise color names). Single-line for dropdown. */
+export const PRIMARY_COLOR_PRESET_LABELS: Record<PrimaryColorPreset, string> = {
+  blue: 'Sky (default)',
+  green: 'Emerald',
+  violet: 'Violet',
+  teal: 'Teal',
+  indigo: 'Indigo',
+  amber: 'Amber',
+  sky: 'Sky',
+  rose: 'Rose',
+  orange: 'Orange',
+  fuchsia: 'Fuchsia',
+};
+
+/** Sky-leaning blue; primary accent at index 4 (#4690f7), aligned with landing. */
+const blueScale = [
+  '#eef6ff',
+  '#dcf0ff',
+  '#bfe0ff',
+  '#93c8ff',
+  '#4690f7',
+  '#2b77eb',
+  '#2b77eb',
+  '#1f62d4',
+  '#1f52ad',
+  '#1e468a',
+] as const;
+
+/** Emerald-style green; accent at index 6. */
+const greenScale = [
+  '#ecfdf5',
+  '#d1fae5',
+  '#a7f3d0',
+  '#6ee7b7',
+  '#34d399',
+  '#10b981',
+  '#059669', // 6
+  '#047857',
+  '#065f46',
+  '#064e3b',
+] as const;
+
+/** Violet; accent at index 6. */
+const violetScale = [
+  '#f5f3ff',
+  '#ede9fe',
+  '#ddd6fe',
+  '#c4b5fd',
+  '#a78bfa',
+  '#8b5cf6',
+  '#7c3aed', // 6
+  '#6d28d9',
+  '#5b21b6',
+  '#4c1d95',
+] as const;
+
+/** Teal; accent at index 6. */
+const tealScale = [
+  '#f0fdfa',
+  '#ccfbf1',
+  '#99f6e4',
+  '#5eead4',
+  '#2dd4bf',
+  '#14b8a6',
+  '#0d9488', // 6
+  '#0f766e',
+  '#115e59',
+  '#134e4a',
+] as const;
+
+/** Indigo; accent at index 6. */
+const indigoScale = [
+  '#eef2ff',
+  '#e0e7ff',
+  '#c7d2fe',
+  '#a5b4fc',
+  '#818cf8',
+  '#6366f1',
+  '#4f46e5', // 6
+  '#4338ca',
+  '#3730a3',
+  '#312e81',
+] as const;
+
+/** Amber; accent at index 6. */
+const amberScale = [
+  '#fffbeb',
+  '#fef3c7',
+  '#fde68a',
+  '#fcd34d',
+  '#fbbf24',
+  '#f59e0b',
+  '#d97706', // 6
+  '#b45309',
+  '#92400e',
+  '#78350f',
+] as const;
+
+/** Sky; accent at index 6. */
+const skyScale = [
+  '#f0f9ff',
+  '#e0f2fe',
+  '#bae6fd',
+  '#7dd3fc',
+  '#38bdf8',
+  '#0ea5e9',
+  '#0284c7', // 6
+  '#0369a1',
+  '#075985',
+  '#0c4a6e',
+] as const;
+
+/** Rose; accent at index 6. */
+const roseScale = [
+  '#fff1f2',
+  '#ffe4e6',
+  '#fecdd3',
+  '#fda4af',
+  '#fb7185',
+  '#f43f5e',
+  '#e11d48', // 6
+  '#be123c',
+  '#9f1239',
+  '#881337',
+] as const;
+
+/** Orange; accent at index 6. */
+const orangeScale = [
+  '#fff7ed',
+  '#ffedd5',
+  '#fed7aa',
+  '#fdba74',
+  '#fb923c',
+  '#f97316',
+  '#ea580c', // 6
+  '#c2410c',
+  '#9a3412',
+  '#7c2d12',
+] as const;
+
+/** Fuchsia; accent at index 6. */
+const fuchsiaScale = [
+  '#fdf4ff',
+  '#fae8ff',
+  '#f5d0fe',
+  '#f0abfc',
+  '#e879f9',
+  '#d946ef',
+  '#c026d3', // 6
+  '#a21caf',
+  '#86198f',
+  '#701a75',
+] as const;
+
+type ColorScale = readonly [
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+];
+
+/** All preset palettes (10 shades each); key = preset name = Mantine color name. */
+export const PRIMARY_COLOR_PALETTES: Record<PrimaryColorPreset, ColorScale> = {
+  blue: [...blueScale],
+  green: [...greenScale],
+  violet: [...violetScale],
+  teal: [...tealScale],
+  indigo: [...indigoScale],
+  amber: [...amberScale],
+  sky: [...skyScale],
+  rose: [...roseScale],
+  orange: [...orangeScale],
+  fuchsia: [...fuchsiaScale],
+};
+
+/** Accent shade in dark scheme (landing-aligned sky for default blue). */
+export const PRIMARY_COLOR_ACCENT_SHADE_DARK = 4;
+
+/** Accent shade in light scheme (AA on white / gray-1 body; blue-5 is too light). */
+export const PRIMARY_COLOR_ACCENT_SHADE_LIGHT = 7;
+
+/** Alias of light accent (Settings previews). */
+export const PRIMARY_COLOR_ACCENT_SHADE = PRIMARY_COLOR_ACCENT_SHADE_LIGHT;
+
+/** Hex accent for a preset (Settings / swatches = light accent). */
+export function getPrimaryColorAccent(preset: PrimaryColorPreset): string {
+  return PRIMARY_COLOR_PALETTES[preset][PRIMARY_COLOR_ACCENT_SHADE_LIGHT];
+}
+
+/**
+ * Builds the app theme with the given primary color preset and optional text scale.
+ * Used by AppMantineProvider from preferences (login/unauthenticated → default blue).
+ */
+export function createAppTheme(
+  primaryColor: PrimaryColorPreset,
+  textSize: TextSizePreference = 'default'
+) {
+  const scale = textSizeToScale(textSize);
+  const uiFont =
+    '"Radio Canada Big Variable", "Radio Canada Big", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  return createTheme({
+    primaryColor,
+    ...(scale !== 1 ? { scale } : {}),
+    primaryShade: {
+      light: PRIMARY_COLOR_ACCENT_SHADE_LIGHT,
+      dark: PRIMARY_COLOR_ACCENT_SHADE_DARK,
+    },
+    defaultRadius: 'sm',
+    /** Layout / UI shell: Radio Canada Big (variable). */
+    fontFamily: uiFont,
+    headings: { fontFamily: uiFont },
+    /** Slightly denser than Mantine defaults (Meter-inspired shell).
+     * Use `rem()` so values become `calc(... * var(--mantine-scale))` and honor textSize. */
+    fontSizes: {
+      xs: rem(12),
+      sm: rem(13),
+      md: rem(14),
+      lg: rem(16),
+      xl: rem(18),
+    },
+    spacing: {
+      xs: rem(8),
+      sm: rem(10),
+      md: rem(14),
+      lg: rem(18),
+      xl: rem(22),
+    },
+    colors: {
+      blue: [...PRIMARY_COLOR_PALETTES.blue],
+      green: [...PRIMARY_COLOR_PALETTES.green],
+      violet: [...PRIMARY_COLOR_PALETTES.violet],
+      teal: [...PRIMARY_COLOR_PALETTES.teal],
+      indigo: [...PRIMARY_COLOR_PALETTES.indigo],
+      amber: [...PRIMARY_COLOR_PALETTES.amber],
+      sky: [...PRIMARY_COLOR_PALETTES.sky],
+      rose: [...PRIMARY_COLOR_PALETTES.rose],
+      orange: [...PRIMARY_COLOR_PALETTES.orange],
+      fuchsia: [...PRIMARY_COLOR_PALETTES.fuchsia],
+    },
+    components: {
+      Pagination: {
+        defaultProps: { color: primaryColor },
+      },
+      /**
+       * Small UI text: slightly heavier so xs/sm meta stays legible (esp. dark mode).
+       * Explicit `fw` on the instance still overrides.
+       */
+      Text: {
+        styles: (_theme: MantineTheme, props: TextProps) => {
+          const size = props.size;
+          if (size === 'xs' || size === 'sm') {
+            return { root: { fontWeight: 500 } };
+          }
+          return {};
+        },
+      },
+      Tabs: {
+        defaultProps: { color: primaryColor },
+        styles: {
+          tab: {
+            fontWeight: 500,
+            fontSize: 'var(--mantine-font-size-xs)',
+          },
+        },
+      },
+      NavLink: {
+        defaultProps: {
+          px: 8,
+          py: 4,
+        },
+        styles: {
+          root: {
+            minHeight: 32,
+            fontSize: 'var(--mantine-font-size-sm)',
+            borderRadius: 'var(--mantine-radius-sm)',
+          },
+          label: {
+            fontSize: 'var(--mantine-font-size-sm)',
+            fontWeight: 500,
+          },
+        },
+      },
+    },
+  });
+}

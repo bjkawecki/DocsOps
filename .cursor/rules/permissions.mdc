@@ -1,0 +1,49 @@
+---
+alwaysApply: true
+---
+
+# Permission Rules
+
+All access control must go through the permissions layer.
+
+Never implement permission logic directly in routes or services.
+
+Do not use checks like:
+
+if (user.role === "admin")
+if (document.ownerId === user.id)
+
+Instead use permission functions:
+
+canReadDocument
+canWriteDocument
+canDeleteDocument
+canPublishDocument
+canMergeDraftRequest
+canWriteContext
+canReadContext
+
+## Scope hierarchy (drift-resistant)
+
+Org scope decisions (view unit, scope lead, read owner context) live in **one module**:
+
+`apps/backend/src/domains/organisation/permissions/scopeVisibility.ts`
+
+Use:
+
+- `canViewScope(prisma, userId, scopeRef)` – navigate / see org unit
+- `canViewScopePeople(prisma, userId, scopeRef)` – scope people roster (lead hierarchy; not `canViewScope`)
+- `isScopeLead(prisma, userId, scopeRef)` – drafts, trash tabs, lead features
+- `canReadOwnerScope(user, userId, ownerInput)` – read contexts/documents by owner scope (sync)
+
+Do **not** import `userAccessPredicates` in routes, services, or domain permissions except:
+
+- `scopeVisibility.ts` (Layer 2)
+- `assignmentPermissions.ts` (`canManage*` only)
+- tests
+
+Never add parallel `canViewTeam` / `getScopeLead` / inline `teamMemberships.some` hierarchy ladders.
+
+Permissions must be centralized in:
+
+`apps/backend/src/domains/*/permissions/`

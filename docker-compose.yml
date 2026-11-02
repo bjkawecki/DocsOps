@@ -1,0 +1,42 @@
+# Infrastructure services shared by dev (override) and production (prod overlay).
+# Application services: docker-compose.override.yml (dev) or deploy/docker-compose.prod.yml (registry images).
+name: ${COMPOSE_PROJECT_NAME:-docsops}
+
+services:
+  postgres:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: docsops
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d docsops']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    container_name: ${COMPOSE_PROJECT_NAME:-docsops}-minio
+    # Upstream minio/minio stopped publishing community images (source-only / archived).
+    # pgsty/minio is a drop-in community build (S3 API, MINIO_ROOT_*, mc healthcheck).
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-docsops}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-docsopsdev}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  minio_data:

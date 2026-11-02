@@ -1,0 +1,254 @@
+# Positionierung & Landing – Erkenntnisstand
+
+**Stand:** Juli 2026  
+**Quellen:** Diskussionen zu Hero, `antwort.md`, Produktmodell in `docs/platform/`
+
+Dieses Dokument ist die **aktuelle inhaltliche Leitlinie** für Marketing und Landing. Technik und Routen: [Landing-Page-Plan.md](./Landing-Page-Plan.md).
+
+---
+
+## 1. Kern-These
+
+DocsOps **trennt Zusammenarbeit von Veröffentlichung** – auf Basis einer **Organisationshierarchie im Produkt** (Firma → Abteilung → Team).
+
+- **Autoren** arbeiten in Entwürfen und reichen Vorschläge ein; die **Leitung** des Geltungsbereichs veröffentlicht.
+- **Nicht** alles ist sofort offiziell.
+- **Mitglieder** und berechtigte Leser sehen einen **veröffentlichten, versionierten Stand** – nicht den laufenden Entwurf.
+
+**Roter Faden:** Es gibt einen **offiziellen Stand** – für Prozesswissen („wie wir arbeiten“) und Projektwissen („woran wir arbeiten“ / konkreter Ist-Stand).
+
+**Abgrenzung (bewusst anderer Weg):** DocsOps ist **stark hierarchiegeprägt** – nicht weil „enterprise“, sondern weil interne Dokumentation **Leserecht entlang der Bereiche (Scope), Zugehörigkeit (Kontext) und verbindliche Fassungen (Rollen/Publish)** braucht. Viele Plattformen setzen auf **flexible Wiki-Flächen und frei gestaltbare Strukturen**; DocsOps modelliert **Organisation, Kontext und Veröffentlichung im Produkt** (Firma → Abteilung → Team, Prozess/Projekt, Rechte je Dokument).
+
+**Nicht als Leit-Narrativ:** Einzelne Features wie Live-Co-Editing – das ist höchstens ein Symptom, nicht der Kernunterschied.
+
+Self-hosted und Quelloffenheit sind **Vertrauensmerkmale**, keine inhaltliche Differenzierung unter vergleichbaren Tools.
+
+---
+
+## 2. Zwei Arten von Wissen
+
+| Art                           | Kontext-Typ | Beispiele                                                                |
+| ----------------------------- | ----------- | ------------------------------------------------------------------------ |
+| **Wie wir arbeiten**          | **Prozess** | Richtlinien, Abläufe, Standards, „wie Barrierefreiheit hergestellt wird“ |
+| **Woran's liegt / Ist-Stand** | **Projekt** | Software X, Audit 2026, „aktueller Stand Barrierefreiheit“               |
+
+Beide teilen: **veröffentlichte Fassung** für Leser, Änderungen im Entwurf / als Vorschläge.
+
+---
+
+## 3. Landing: drei Sections Scope · Kontext · Rechte (+ Beispiel)
+
+**Scope**, **Kontext** und **Rechte** sind **drei Perspektiven** auf dasselbe Modell – getrennt darstellen, nicht in einem Diagramm vermischen.
+
+**Umsetzungsplan (Detail):** [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
+
+| #   | Section     | Leitfrage (Subtitle)                                       |
+| --- | ----------- | ---------------------------------------------------------- |
+| 1   | **Scope**   | Für wen ist Wissen relevant – und was sieht man deshalb?   |
+| 2   | **Kontext** | Wohin gehört Wissen (Zugehörigkeit; Kontextart und Thema)? |
+| 3   | **Rechte**  | Wie entsteht die verbindliche Fassung (Verantwortung)?     |
+
+### 3.1 Abgrenzung (kurz, optional vor den Sections)
+
+2–3 Sätze: hierarchiegeprägt, **warum** (Verantwortliche, verbindlicher Stand) – nicht Feature-Liste gegen Confluence und **nicht** auf Live-Co-Editing als Leitkontrast reduzieren. Aktuell im Hero-Subline und auf `/philosophie` vertieft.
+
+### 3.2 Section 1 – Scope
+
+**Perspektive:** Organisations-Hierarchie und **Leserecht** (wer Kontexte/Dokumente eines Bereichs und seiner Eltern-Bereiche liest) – nicht thematische Ablage (Kontext), nicht Verantwortungskette (Rollen/Publish).
+
+**Struktur (Ziel-Grafik):**
+
+```
+              [Company]
+                  │
+      ┌───────────┴───────────┐
+[Department A]         [Department B]
+      │                       │
+ [Team A]               [Team B]
+      │                       │
+[Member …]            [Member …]
+
+- - - [User · persönlich] - - -   (außerhalb der Org-Hierarchie)
+```
+
+- **Member** = Person im Team (Zugehörigkeit), **nicht** User-Scope.
+- **User-Scope** = persönlicher Besitzer-Scope, gestrichelt parallel zur Hierarchie.
+- **Interaktion:** Klick auf Member → farbige Sichtbarkeits-Kette nach oben (Team → Department → Company); anderer Zweig abgedunkelt.
+- Leads/Mitglieder **nicht** als eigene Knoten – nur in Klick-Texten der Scope-Ebenen.
+
+**Format Landing:** CSS-Baum (kein React Flow). Mermaid-Referenz: [diagramme/scope-hierarchie.mmd](./diagramme/scope-hierarchie.mmd).
+
+**Nicht in Section 1:** Kontext, Dokumente, Veröffentlichung, Anlege-Schritte-Liste.
+
+### 3.3 Section 2 – Kontext
+
+**Perspektive:** **Zugehörigkeit** von Wissen innerhalb eines Scopes – nicht Leserecht (Scope), nicht Publish-Verantwortung (Rollen).
+
+```
+Scope
+  └── Kontext (Prozess | Projekt)  – beliebig viele pro Scope
+        └── Dokument
+```
+
+| Kontextart  | Merkmal           | Beispiele                                                        |
+| ----------- | ----------------- | ---------------------------------------------------------------- |
+| **Prozess** | dauerhaft         | Onboarding, Richtlinien, „wie Barrierefreiheit hergestellt wird“ |
+| **Projekt** | zeitlich begrenzt | Software X, Audit 2026, „Stand Barrierefreiheit“                 |
+
+**Kontextart** (Prozess vs. Projekt) = Form des Kontexts. **Thema** = Wahl zwischen konkreten Kontexten derselben oder gemischter Art.
+
+**Format Landing:** Typografie + ggf. statische Mini-Grafik. Mermaid: [diagramme/kontext-dokument.mmd](./diagramme/kontext-dokument.mmd).
+
+### 3.4 Section 3 – Rechte
+
+**Perspektive:** Verantwortungskette und verbindliche Fassung (nicht Org-Baum).
+
+| Rolle                 | Kurz (Landing)                                                 |
+| --------------------- | -------------------------------------------------------------- |
+| **Lead** (Scope-Lead) | Bearbeitet Entwurf, nimmt Vorschläge an/ab, **veröffentlicht** |
+| **Author**            | Erstellt **Vorschläge** im Entwurf                             |
+| **Member**            | Sieht **veröffentlichte** Version, kommentiert                 |
+
+**Format Landing:** React Flow read-only – [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd). Detail → später `/warum`.
+
+### 3.5 Block 4 – Konkretes Beispiel (optional)
+
+**Barrierefreiheit – Produktstand** (nicht der Prozess „wie A11y hergestellt wird“):
+
+```
+Abteilung IT
+  └─ Projekt „Software X“
+       └─ Dokument „Stand Barrierefreiheit“  (veröffentlicht)
+```
+
+- Illustriert Scope (Department) + Kontext (Projekt).
+- **Gegenbeispiel (ein Satz):** Prozess „Barrierefreiheit in der Entwicklung“ = wie geprüft wird.
+
+**Format:** Typo-Kasten oder Mermaid.
+
+### 3.6 UX (alle Modell-Sections)
+
+- Subtitles = **Leitfragen**; kein „Klicke auf die Knoten …“ im Subtitle.
+- Klick-Hinweis nur im Detail-Panel (falls nötig).
+- Hover/Selected: Primary-Border (`blue-4`).
+
+### 3.7 Reihenfolge auf der Startseite
+
+1. Hero
+2. **Scope** (`#scope`)
+3. **Kontext** (`#kontext`)
+4. **Rollen** (`#rollen`)
+5. **Beispiel** (`#einordnen`)
+6. Footer
+
+**Vergleichstabelle:** auf **`/vergleich`**, nicht als volle Startseiten-Section. Daten unter `docs/marketing/vergleich/`.
+
+**Ersetzt:** Feature-Kachel-Grid (6 Kacheln), Sponsoren, CTA-Band.
+
+---
+
+## 4. Hero (aktuell umgesetzt)
+
+- **H1:** „Ihr Betriebswissen.“ + rotierende Qualitätswörter (Strukturiert / Transparent / Verbindlich) + „dokumentiert.“
+- **Subline:** Pflege des internen Wissensstands und der Abläufe – positiv, ohne Feature-Liste.
+- **Layout:** vertikal gestapelt (Copy → CTAs → volle Screenshot-Breite). Kein Zwei-Spalten-Hero – breites Dashboard-Bild bleibt sonst unleserlich.
+- **Trust:** dezente Zeile „Quelloffen · Self-hosted“; Scroll-Hinweis unter dem Bild zu `#scope`.
+- **Kein:** Philosophy-Zeile im Hero, Anker-Links zu Vergleich/FAQ.
+
+---
+
+## 5. Philosophie-Seite (`/philosophie`)
+
+**Ziel:** Den **Ansatz und die Idee** erklären – **nicht** das Produktmodell wiederholen (das leistet die Startseite mit Scope · Kontext · Rollen). Positiv beginnen; Thema-Rhema (vom Bekannten zum Unbekannten).
+
+**Aufbau:**
+
+| Block                        | Inhalt                                                                                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hero**                     | „Unser Ansatz.“ + Tagline (Betriebswissen soll nicht nur in Köpfen liegen)                                                                     |
+| **Erzählung**                | Vom Bekannten (Unternehmenswissen) zur Abbildung in DocsOps; Struktur, Zusammenarbeit, Verbindlichkeit                                         |
+| **Was DocsOps anders macht** | Vier Blöcke: Organisation als Rahmen; Information braucht Kontext; gemeinsam bearbeiten / verbindlich veröffentlichen; Verantwortung ≠ Zugriff |
+| **Für wen**                  | Titel mit DocsOps-Subjekt; Passt / eher nichts                                                                                                 |
+| **CTA**                      | Live-Demo + Zur Startseite                                                                                                                     |
+
+**Schreibregeln (Copy):** siehe Stichliste unten; SSoT der Seiten-Copy: `apps/landing/src/content/siteCopy.ts` (`philosophieCopy`).
+
+**Schreibregeln:**
+
+1. Haltung/Warum, nicht Startseiten-Modell/Wie.
+2. Mit einer Erklärung/Rahmung beginnen, dann Gedanken entfalten (Thema → Rhema); keine Thesen-Eröffnung ohne Kontext.
+3. Prinzipien darstellen (Inhalt), nicht Meta („Software soll Prinzipien genügen“).
+4. Keine Meta-Hinweise („siehe Startseite“).
+5. Erwartbares Vokabular; kein „Produzenten“; kein „DocsOps verwaltet …“.
+6. Weniger „statt …“; keine Em-Dash-Ketten.
+7. Fit-Titel mit DocsOps als Subjekt.
+
+---
+
+## 6. Sprache & Tabellen (Vergleich – später)
+
+Vage Tabellenzeilen vermeiden. Stattdessen verständliche Labels:
+
+| Statt (vage)                         | Besser                     |
+| ------------------------------------ | -------------------------- |
+| Firmenstruktur im Produkt            | Firma, Abteilung, Team     |
+| Rechte pro Dokument                  | Zugriff je Dokument        |
+| Kontrolle entlang der Hierarchie     | Nur Leads veröffentlichen  |
+| Entwürfe & veröffentlichte Versionen | Versionierung              |
+| Hierarchisches Kollaborationsmodell  | Vorschläge & Lead-Freigabe |
+
+Vergleichsdaten: [vergleich/startseite-confluence-docmost.md](./vergleich/startseite-confluence-docmost.md) (Landing-Kern: Confluence, Docmost) – **auf `/vergleich`**. Erweitert: [vergleich/weitere-docs-plattformen.md](./vergleich/weitere-docs-plattformen.md) (Mintlify, GitBook, Fern, Read the Docs, KnowledgeOwl).
+
+---
+
+## 7. KI-Kurzbeschreibung (2–3 Sätze)
+
+**DocsOps** ist eine self-hosted, quelloffene Dokumentationsplattform für interne Unternehmensdokumentation: Org-Modell Company → Department → Team, Dokumente in Prozess- oder Projekt-Kontexten, Zugriff je Dokument.
+
+Zusammenarbeit über Entwürfe und Vorschläge durch Autoren; Veröffentlichung durch die Leitung des Geltungsbereichs. Leser sehen versionierte, freigegebene Snapshots – eingebettet in Firma → Abteilung → Team und Prozess-/Projektkontexte.
+
+Zielgruppe: Organisationen mit fester Hierarchie, benannten Leitungen und Bedarf an freigegebenem Wissensstand – nicht für Teams, die vor allem eine freie Wiki-Fläche ohne Hierarchie und Kontextmodell suchen.
+
+### Governance – englische Taglines (Produkt & Marketing)
+
+Referenzsatz (Langform):
+
+> DocsOps treats governance as a first-class concern: who can publish, what readers see, and how changes become official – built into the product, not bolted on.
+
+Kürzere Varianten (Hero, Login, Help, App-Home):
+
+| Variante | Text                                                       |
+| -------- | ---------------------------------------------------------- |
+| A        | **Governed internal knowledge – built in, not bolted on.** |
+| B        | **Documentation with governance built in.**                |
+| C        | **Who publishes, what readers see – by design.**           |
+
+Hinweis: „Governance“ hier = kontrollierter Wissensstand (Publish, Grants, Versionen), nicht GRC/Compliance-Suite. Kombination mit „authoritative“ / „official“ erwägen, wenn „governance“ zu bürokratisch wirkt.
+
+In-App-Hilfe zu Document Types & Templates: `/help/document-types` (ADR 008 / §28b).
+
+---
+
+## 8. Nächste Schritte (Landing-Implementierung)
+
+Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
+
+- [x] Mermaid + React Flow Rechte-Diagramm – [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd)
+- [x] Landing: Scope-Vorläufer (`ScopeHierarchySection`, Refactor → Phase B)
+- [x] Landing: Rechte-Diagramm (`RolesDocumentDiagram`, Umbenennung → Phase D)
+- [x] Scope: 2-Zweig-Baum, Member-Sichtbarkeits-Highlight, User gestrichelt (Phase B)
+- [x] Kontext-Section (Phase C)
+- [x] Rollen: Anker `#rollen`, Titel Rollenbasierte Zusammenarbeit
+- [x] Beispiel IT / Software X / A11y (Phase E)
+- [x] Philosophie-Seite `/philosophie` (Ansatz, Was das bedeutet, Kurz gesagt)
+- [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (siehe Umsetzungs-Todo §19)
+- [ ] Demo-Seed: Beispiel IT / Software X / Stand Barrierefreiheit
+
+---
+
+## 9. Referenzen
+
+- [antwort.md](./antwort.md) – Roh-Notiz Positionierungsdiskussion
+- [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md)
+- [Rechtesystem](../platform/datenmodell/Rechtesystem.md)
+- [Versionierung](../platform/versionierung/Versionierung%20als%20Snapshots%20+%20Deltas.md)

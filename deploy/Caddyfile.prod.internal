@@ -1,0 +1,43 @@
+# Production with Caddy tls internal (default DOCSOPS_TLS_MODE=internal).
+# HTTPS on :443 (self-signed). /health and /ready stay on HTTP :80 for local health waits.
+# Browser clients should use https:// (accept the self-signed warning once, or trust Caddy's local CA).
+{
+	auto_https disable_redirects
+	log {
+		output stdout
+		format console
+	}
+}
+
+http://:80 {
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle {
+		redir https://{host}{uri} permanent
+	}
+}
+
+https://:443 {
+	tls internal
+	handle /health {
+		reverse_proxy app:8080
+	}
+	handle /ready {
+		reverse_proxy app:8080
+	}
+	handle /api/v1/me/events {
+		reverse_proxy app:8080 {
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}

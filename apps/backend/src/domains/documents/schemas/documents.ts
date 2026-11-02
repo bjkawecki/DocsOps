@@ -1,0 +1,243 @@
+import { z } from 'zod';
+import { cuidSchema } from '../../../infrastructure/validation/cuidSchema.js';
+import { blockDocumentSchema } from '../services/blocks/blockSchema.js';
+import { paginationQuerySchema } from '../../organisation/schemas/organisation.js';
+import { healthCheckIntervalDaysSchema } from './healthCheck.js';
+
+export { paginationQuerySchema };
+
+function normalizeToCuidArray(v: unknown): string[] {
+  if (Array.isArray(v)) return v as string[];
+  if (v === undefined || v === '') return [];
+  if (typeof v === 'string') return [v];
+  return [];
+}
+const cuidArray = z.preprocess(normalizeToCuidArray, z.array(cuidSchema));
+
+/** Query: GET /documents (catalog list) – pagination + filters + sort. */
+export const catalogDocumentsQuerySchema = paginationQuerySchema.extend({
+  contextType: z.enum(['process', 'project']).optional(),
+  companyId: cuidSchema.optional(),
+  departmentId: cuidSchema.optional(),
+  teamId: cuidSchema.optional(),
+  tagIds: cuidArray.optional().default([]),
+  search: z.string().min(1).optional(),
+  /** If true, only return documents that have been published (publishedAt set). */
+  publishedOnly: z.coerce.boolean().optional().default(false),
+  sortBy: z
+    .enum([
+      'title',
+      'updatedAt',
+      'createdAt',
+      'contextName',
+      'contextType',
+      'ownerDisplay',
+      'relevance',
+    ])
+    .optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/** Params: contextId. */
+export const contextIdParamSchema = z.object({
+  contextId: cuidSchema,
+});
+
+/** Params: documentId. */
+export const documentIdParamSchema = z.object({
+  documentId: cuidSchema,
+});
+
+/** Optional body locale for PDF meta line (publish / export-pdf). */
+export const pdfExportLocaleBodySchema = z
+  .object({
+    locale: z.enum(['en', 'de']).optional(),
+  })
+  .loose();
+
+/** Params: documentId + versionId (for version routes). */
+export const versionIdParamSchema = z.object({
+  documentId: cuidSchema,
+  versionId: cuidSchema,
+});
+
+/** Params: documentId + attachmentId (for attachment routes). */
+export const attachmentIdParamSchema = z.object({
+  documentId: cuidSchema,
+  attachmentId: cuidSchema,
+});
+
+/** Body: Dokument anlegen (immer als Draft). contextId optional = context-free draft (only creator visible). */
+export const createDocumentBodySchema = z
+  .object({
+    title: z.string().min(1).max(500),
+    contextId: cuidSchema.optional(),
+    tagIds: z.array(cuidSchema).optional().default([]),
+    description: z.string().max(500).trim().optional(),
+    /** Built-in `builtin:<slug>` or custom type cuid / `custom:<cuid>`. Sets type without seeding unless templateId set. */
+    typeId: z.string().min(1).max(80).optional(),
+    /** Built-in or custom template id. Seeds draftBlocks and sets type. */
+    templateId: z.string().min(1).max(80).optional(),
+    /** Do11y interval; omitted → org default is stored. No nextAt until first publish. */
+    healthCheckIntervalDays: healthCheckIntervalDaysSchema.optional(),
+  })
+  .refine((data) => data.contextId != null || data.tagIds.length === 0, {
+    message: 'tagIds not allowed when creating a context-free draft (no contextId)',
+  });
+
+/** Body: set/clear document type metadata only (no draftBlocks). */
+export const updateDocumentTypeBodySchema = z.object({
+  /** null clears type. Built-in `builtin:<slug>` or custom type id / `custom:<cuid>`. */
+  typeId: z.string().min(1).max(80).nullable(),
+});
+
+export type UpdateDocumentTypeBody = z.infer<typeof updateDocumentTypeBodySchema>;
+
+/** Body: Dokument-Metadaten aktualisieren (title, contextId, description, tagIds). Lifecycle nur über dedizierte Endpoints. */
+export const updateDocumentBodySchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  contextId: cuidSchema.optional().nullable(),
+  tagIds: z.array(cuidSchema).optional(),
+  description: z.string().max(500).trim().optional().nullable(),
+});
+
+/** Body: POST /documents/:id/move – same-owner Sofort-Move. */
+export const moveDocumentBodySchema = z.object({
+  targetContextId: cuidSchema,
+});
+
+export type MoveDocumentBody = z.infer<typeof moveDocumentBodySchema>;
+
+/** Body: POST /documents/:id/move-requests – cross-owner move approval request. */
+export const createMoveRequestBodySchema = z.object({
+  targetContextId: cuidSchema,
+  note: z.string().max(2000).trim().optional().nullable(),
+});
+
+export type CreateMoveRequestBody = z.infer<typeof createMoveRequestBodySchema>;
+
+/** Body: accept / reject / withdraw move request. */
+export const decideMoveRequestBodySchema = z.object({
+  decisionNote: z.string().max(2000).trim().optional().nullable(),
+});
+
+export type DecideMoveRequestBody = z.infer<typeof decideMoveRequestBodySchema>;
+
+export const moveRequestIdParamSchema = z.object({
+  documentId: cuidSchema,
+  requestId: cuidSchema,
+});
+
+/** Body: PATCH Lead-Draft (Block-JSON); Optimistic Lock über `expectedRevision` (optional abgestimmt mit If-Match). */
+export const patchLeadDraftBodySchema = z.object({
+  expectedRevision: z.number().int().min(0),
+  blocks: blockDocumentSchema,
+});
+
+export const draftSuggestionRevisionBodySchema = z.object({
+  expectedRevision: z.number().int().min(0),
+});
+
+export const patchDraftSuggestionBodySchema = draftSuggestionRevisionBodySchema.extend({
+  text: z.string(),
+});
+
+/** Grant-Rolle (API: String). */
+export const grantRoleSchema = z.enum(['Read', 'Write']);
+
+function grantEntrySchema<T extends 'userId' | 'teamId' | 'departmentId'>(idKey: T) {
+  return z.object({
+    [idKey]: cuidSchema,
+    role: grantRoleSchema,
+  }) as z.ZodObject<
+    {
+      [K in T]: z.ZodString;
+    } & {
+      role: typeof grantRoleSchema;
+    }
+  >;
+}
+
+function grantsReplaceBodySchema<T extends 'userId' | 'teamId' | 'departmentId'>(idKey: T) {
+  return z.object({ grants: z.array(grantEntrySchema(idKey)) });
+}
+
+/** Einzelner User-Grant. */
+export const grantUserEntrySchema = grantEntrySchema('userId');
+/** Body: User-Grants ersetzen. */
+export const putGrantsUsersBodySchema = grantsReplaceBodySchema('userId');
+
+/** Einzelner Team-Grant. */
+export const grantTeamEntrySchema = grantEntrySchema('teamId');
+/** Body: Team-Grants ersetzen. */
+export const putGrantsTeamsBodySchema = grantsReplaceBodySchema('teamId');
+
+/** Einzelner Department-Grant. */
+export const grantDepartmentEntrySchema = grantEntrySchema('departmentId');
+/** Body: Department-Grants ersetzen. */
+export const putGrantsDepartmentsBodySchema = grantsReplaceBodySchema('departmentId');
+
+/** Params: tagId. */
+export const tagIdParamSchema = z.object({
+  tagId: cuidSchema,
+});
+
+/** Query: GET /tags – Scope via ownerId oder contextId (mindestens einer nötig). */
+export const getTagsQuerySchema = z.object({
+  ownerId: cuidSchema.optional(),
+  contextId: cuidSchema.optional(),
+});
+
+/** Body: Tag anlegen (scope-gebunden). ownerId oder contextId (wird auf ownerId aufgelöst). */
+export const createTagBodySchema = z
+  .object({
+    name: z
+      .string()
+      .min(1)
+      .max(100)
+      .transform((s) => s.trim()),
+    ownerId: cuidSchema.optional(),
+    contextId: cuidSchema.optional(),
+  })
+  .refine((data) => data.ownerId != null || data.contextId != null, {
+    message: 'ownerId or contextId is required',
+  });
+
+const DOCUMENT_COMMENT_TEXT_MAX = 16_000;
+
+/** Params: documentId + commentId. */
+export const documentCommentIdParamSchema = z.object({
+  documentId: cuidSchema,
+  commentId: cuidSchema,
+});
+
+/** Body: POST document comment. */
+export const createDocumentCommentBodySchema = z
+  .object({
+    text: z
+      .string()
+      .transform((s) => s.trim())
+      .pipe(z.string().min(1).max(DOCUMENT_COMMENT_TEXT_MAX)),
+    parentId: cuidSchema.optional(),
+    /** Heading slug from active document blocks; only for top-level comments. */
+    anchorHeadingId: z.string().min(1).max(200).optional(),
+  })
+  .strict()
+  .refine((d) => d.parentId == null || d.anchorHeadingId == null, {
+    message: 'anchorHeadingId is only allowed on top-level comments',
+    path: ['anchorHeadingId'],
+  });
+
+/** Body: PATCH document comment (author only). */
+export const patchDocumentCommentBodySchema = z
+  .object({
+    text: z
+      .string()
+      .transform((s) => s.trim())
+      .pipe(z.string().min(1).max(DOCUMENT_COMMENT_TEXT_MAX))
+      .optional(),
+    anchorHeadingId: z.union([z.string().min(1).max(200), z.null()]).optional(),
+  })
+  .refine((d) => d.text !== undefined || d.anchorHeadingId !== undefined, {
+    message: 'Provide text and/or anchorHeadingId',
+  });

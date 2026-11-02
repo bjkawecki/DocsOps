@@ -1,0 +1,279 @@
+.root {
+  display: block;
+  width: 100%;
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+}
+
+.chrome {
+  /* Sticky is on .document-page-edit-sticky-stack (tabs + chrome portal host). */
+  margin: 0;
+  background-color: transparent;
+  padding-top: 0;
+  padding-bottom: var(--mantine-spacing-xs);
+}
+
+.toolbar {
+  flex-shrink: 0;
+}
+
+.editorShell {
+  /* Only writing surface uses white paper; chrome stays on body. */
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-default);
+  overflow: visible;
+  /* Align with sticky-stack horizontal inset (card--edit has padding 0). */
+  margin-inline: var(--mantine-spacing-lg);
+  padding: 0.75rem 1rem;
+}
+
+/* Tiptap: editierbare Wurzel ist .ProseMirror – heading scale mirrors DocumentContent.css. */
+.editorShell :global(.ProseMirror) {
+  --document-h1-fz: calc(2rem * var(--mantine-scale));
+  --document-h2-fz: calc(1.5rem * var(--mantine-scale));
+  --document-h3-fz: calc(1.25rem * var(--mantine-scale));
+  min-height: 220px;
+  outline: none;
+  padding: 0;
+  font-family: var(--document-font-family, 'IBM Plex Sans', system-ui, sans-serif);
+  font-size: var(--mantine-font-size-lg);
+  line-height: 1.65;
+  /* Match .document-content body contrast (DocumentContent.css). */
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-1));
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.editorShell :global(.ProseMirror :is(h1, h2, h3, h4, h5, h6)) {
+  color: var(--mantine-color-text);
+  max-width: 100%;
+}
+
+.editorShell :global(.ProseMirror p) {
+  margin: 0.35em 0;
+}
+
+.editorShell :global(.ProseMirror a) {
+  color: var(--mantine-color-blue-light-color);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+/* Heading margins mirrored from DocumentContent.css (reader SSoT). */
+.editorShell :global(.ProseMirror h1) {
+  margin: 1.4em 0 0.4em;
+  font-family: inherit;
+  font-size: var(--document-h1-fz);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.editorShell :global(.ProseMirror h2) {
+  margin: 1.5em 0 0.45em;
+  font-family: inherit;
+  font-size: var(--document-h2-fz);
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.editorShell :global(.ProseMirror h3) {
+  margin: 1.1em 0 0.3em;
+  font-family: inherit;
+  font-size: var(--document-h3-fz);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+@media (max-width: 47.99em) {
+  .editorShell :global(.ProseMirror) {
+    font-size: var(--mantine-font-size-md);
+    --document-h1-fz: calc(1.55rem * var(--mantine-scale));
+    --document-h2-fz: calc(1.3rem * var(--mantine-scale));
+    --document-h3-fz: calc(1.15rem * var(--mantine-scale));
+  }
+}
+
+.editorShell :global(.ProseMirror h1:first-child),
+.editorShell :global(.ProseMirror h2:first-child),
+.editorShell :global(.ProseMirror h3:first-child) {
+  margin-top: 0;
+}
+
+.editorShell :global(.ProseMirror ul),
+.editorShell :global(.ProseMirror ol) {
+  margin: 0.35em 0 0.85em;
+  padding-left: 1.25rem;
+}
+
+.editorShell :global(.ProseMirror li + li) {
+  margin-top: 0.2em;
+}
+
+.editorShell :global(.ProseMirror blockquote) {
+  margin: 0.9em 0;
+  padding-inline-start: 0.85rem;
+  border-inline-start: 3px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+.editorShell :global(.ProseMirror hr) {
+  margin: 0.9em 0;
+  border: none;
+  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.editorShell :global(.ProseMirror .document-image-node) {
+  margin: 0.75em 0;
+  display: block;
+  position: relative;
+}
+
+.editorShell :global(.ProseMirror .document-image-node__media) {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.editorShell :global(.ProseMirror .document-image-node__img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mantine-radius-xs);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__remove) {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  opacity: 0.92;
+}
+
+.editorShell :global(.ProseMirror .document-image-node__remove:hover) {
+  opacity: 1;
+}
+
+.editorShell :global(.ProseMirror .document-image-node__placeholder) {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--mantine-color-dimmed);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  border-radius: var(--mantine-radius-xs);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__caption-label) {
+  margin-top: 0.35rem;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+}
+
+.editorShell :global(.ProseMirror .document-image-node__caption-input) {
+  margin-top: 0.35rem;
+  max-width: 28rem;
+}
+
+.editorShell :global(.ProseMirror table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.editorShell :global(.ProseMirror th),
+.editorShell :global(.ProseMirror td) {
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  padding: 0.4em 0.55em;
+  vertical-align: top;
+  min-width: 1em;
+}
+
+.editorShell :global(.ProseMirror th) {
+  font-weight: 650;
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.editorShell :global(.ProseMirror .selectedCell) {
+  background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+}
+
+.editorShell :global(.ProseMirror pre) {
+  margin: 0.5em 0;
+  padding: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-xs);
+  font-size: var(--mantine-font-size-xs);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+}
+
+/* Mermaid source chrome uses DocumentMermaid.module.css – don't restyle as code-block pre. */
+.editorShell :global(.ProseMirror [data-mermaid] pre) {
+  margin: 0;
+  padding: 0 0.85rem 0.75rem;
+  background: transparent;
+  border-radius: 0;
+}
+
+.editorShell :global(.ProseMirror :not(pre) > code) {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.88em;
+  padding: 0.12em 0.35em;
+  border-radius: var(--mantine-radius-xs);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.editorShell :global(.ProseMirror [data-mermaid] code) {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.8125rem;
+}
+
+.editorShell :global(.ProseMirror .suggestion-insert code) {
+  background: light-dark(rgba(255, 255, 255, 0.55), rgba(0, 0, 0, 0.22));
+  border-color: light-dark(var(--mantine-color-green-4), var(--mantine-color-green-8));
+}
+
+.editorShell :global(.ProseMirror .suggestion-insert) {
+  background: light-dark(rgba(34, 139, 34, 0.18), rgba(72, 187, 72, 0.22));
+  color: light-dark(var(--mantine-color-green-9), var(--mantine-color-green-2));
+  border-bottom: 2px solid var(--mantine-color-green-6);
+}
+
+.editorShell :global(.ProseMirror .suggestion-delete) {
+  background: light-dark(rgba(220, 53, 69, 0.15), rgba(255, 107, 107, 0.2));
+  color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-2));
+  text-decoration: line-through;
+  border-bottom: 2px solid var(--mantine-color-red-6);
+}
+
+.editorShell :global(.ProseMirror .suggestion-insert),
+.editorShell :global(.ProseMirror .suggestion-delete) {
+  position: relative;
+}
+
+.editorShell :global(.ProseMirror .suggestion-initials-badge) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  padding: 0 5px;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: super;
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-1));
+  background: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border: 1px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  pointer-events: auto;
+  cursor: default;
+  user-select: none;
+}

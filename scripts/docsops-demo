@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Public demo entrypoint (docsops.de / demo.docsops.de).
+# Safe for: curl …/docsops-demo | sudo bash
+set -euo pipefail
+export DOCSOPS_DEMO_PROFILE=public
+
+DOCSOPS_INSTALL_DIR="${DOCSOPS_INSTALL_DIR:-/opt/docsops}"
+DOCSOPS_GITHUB_REPO="${DOCSOPS_GITHUB_REPO:-bjkawecki/docs-ops}"
+
+_docsops_demo_die() {
+  echo "Fehler: $*" >&2
+  exit 1
+}
+
+_docsops_demo_find_cli() {
+  local here=""
+  here="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || here=""
+  if [[ -n "$here" && -f "${here}/docsops-demo-cli.sh" ]]; then
+    echo "${here}/docsops-demo-cli.sh"
+    return 0
+  fi
+  if [[ -f "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo-cli.sh" ]]; then
+    echo "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo-cli.sh"
+    return 0
+  fi
+  return 1
+}
+
+_docsops_demo_bootstrap() {
+  local version archive stage extracted url item
+  version="${DOCSOPS_VERSION:-}"
+  if [[ -z "$version" ]]; then
+    version="$(curl -fsSL "https://api.github.com/repos/${DOCSOPS_GITHUB_REPO}/releases/latest" \
+      | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
+  fi
+  [[ -n "$version" ]] || _docsops_demo_die "Kein Release ermittelbar (DOCSOPS_VERSION setzen)."
+  install -d -m 755 "$DOCSOPS_INSTALL_DIR"
+  if [[ -n "${DOCSOPS_BUNDLE_PATH:-}" ]]; then
+    archive="$DOCSOPS_BUNDLE_PATH"
+    [[ -f "$archive" ]] || _docsops_demo_die "DOCSOPS_BUNDLE_PATH fehlt: ${archive}"
+  else
+    url="https://github.com/${DOCSOPS_GITHUB_REPO}/releases/download/${version}/docsops-${version}.tar.gz"
+    archive="$(mktemp /tmp/docsops-demo-boot-XXXXXX.tar.gz)"
+    echo "==> Bootstrap: lade ${url}"
+    curl -fsSL -o "$archive" "$url" || _docsops_demo_die "Bundle-Download fehlgeschlagen"
+  fi
+  stage="$(mktemp -d)"
+  tar -xzf "$archive" -C "$stage"
+  extracted=""
+  for item in "$stage"/*; do
+    if [[ -f "${item}/scripts/docsops-demo-cli.sh" ]]; then
+      extracted="$item"
+      break
+    fi
+  done
+  [[ -n "$extracted" ]] || _docsops_demo_die "Ungültiges Bundle (scripts/docsops-demo-cli.sh fehlt)"
+  cp -a "${extracted}/." "${DOCSOPS_INSTALL_DIR}/"
+  echo "$version" >"${DOCSOPS_INSTALL_DIR}/VERSION"
+  [[ -z "${DOCSOPS_BUNDLE_PATH:-}" ]] && rm -f "$archive"
+  rm -rf "$stage"
+  export DOCSOPS_VERSION="$version"
+  export DOCSOPS_DEMO_PROFILE
+  exec "${DOCSOPS_INSTALL_DIR}/scripts/docsops-demo" "$@"
+}
+
+_CLI="$(_docsops_demo_find_cli)" || true
+if [[ -z "${_CLI:-}" ]]; then
+  _docsops_demo_bootstrap "$@"
+fi
+# shellcheck source=docsops-demo-cli.sh
+source "${_CLI}"

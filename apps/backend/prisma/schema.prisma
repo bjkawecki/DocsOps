@@ -1,0 +1,942 @@
+// Abschnitt 2: Datenmodell – Organisation, Kontexte, Dokumente, Rechte
+// Entwurf: docs/plan/Prisma-Schema-Entwurf.md
+// Kontexte getrennt (Process, Project, Subcontext). Owner für Process/Project (genau einer: Company, Department, Team oder User).
+// Context: genau ein Kontext pro Document (Schema). Löschung Kontext → Process/Project/Subcontext + Documents cascade.
+
+generator client {
+  provider      = "prisma-client"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Organisation (Firma → Abteilung → Team, vgl. docs/platform/datenmodell, Doc-Platform-Konzept) ---
+
+/// Oberste Organisationseinheit. Enthält Abteilungen; Struktur bestimmt Ownership, nicht automatisch Zugriff.
+model Company {
+  id                  String        @id @default(cuid())
+  name                String
+  startDocumentId     String?
+  startDocument       Document?     @relation("CompanyStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  /// PDF export branding (ADR 007); null = platform default at export time.
+  pdfPrimaryColor     String?
+  pdfMarginMm         Int?
+  pdfLogoObjectKey    String?
+  pdfLogoContentType  String?
+  /// Page-header logo corner: "left" | "right"; null = left.
+  pdfLogoPosition     String?
+  /// Body typeface: "sans" | "serif"; null = platform default (sans).
+  pdfFontFamily       String?
+  departments              Department[]
+  companyLeads             CompanyLead[]
+  companyAuthors           CompanyAuthor[]
+  knowledgeManagerUsers KnowledgeManagerCompany[]
+  owners                   Owner[]       @relation("OwnerCompany")
+  customDocumentTypes      CustomDocumentType[]
+
+  @@index([startDocumentId])
+}
+
+/// Abteilung mit Teams; kann Prozesse und Projekte besitzen (Owner). Rechte werden explizit vergeben.
+model Department {
+  id                     String          @id @default(cuid())
+  name                   String
+  companyId              String
+  company                Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  startDocumentId        String?
+  startDocument          Document?       @relation("DepartmentStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  teams                        Team[]
+  owners                       Owner[]         @relation("OwnerDepartment")
+  departmentLeads              DepartmentLead[]
+  departmentAuthors            DepartmentAuthor[]
+  knowledgeManagerUsers        KnowledgeManagerDepartment[]
+  documentGrantDept            DocumentGrantDepartment[]
+  customDocumentTypes          CustomDocumentType[]
+
+  @@index([startDocumentId])
+}
+
+/// Autonome Einheit: Mitglieder sehen Team-Dokumente (Leserechte), Schreibrechte nur für Team Lead/explizite Grants.
+/// Kann Prozesse und Projekte besitzen (Owner). Dynamisch zusammensetzbar.
+model Team {
+  id              String          @id @default(cuid())
+  name            String
+  departmentId    String
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  startDocumentId String?
+  startDocument   Document?       @relation("TeamStartDocument", fields: [startDocumentId], references: [id], onDelete: SetNull)
+  members                 TeamMember[]
+  teamLeads               TeamLead[]
+  teamAuthors             TeamAuthor[]
+  knowledgeManagerUsers   KnowledgeManagerTeam[]
+  owners                  Owner[]         @relation("OwnerTeam")
+  documentGrantTeam       DocumentGrantTeam[]
+  customDocumentTypes     CustomDocumentType[]
+
+  @@index([startDocumentId])
+}
+
+/// Zuordnung Nutzer ↔ Team (Mitgliedschaft). Nur Team-Mitgliedschaft zählt für Zugriff auf Team-Dokumente.
+model TeamMember {
+  teamId String
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
+}
+
+/// Team Lead: genau eine Leitung pro Team (Hauptverantwortliche). Schreibrechte nur über diese oder explizite Grants.
+model TeamLead {
+  teamId String @id
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Team Author: Nutzer mit Schreibrecht (Suggestions) auf alle Dokumente im Team-Owner-Scope.
+model TeamAuthor {
+  teamId String
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
+}
+
+/// Department Author: Nutzer mit Schreibrecht auf alle Dokumente im Department-Owner-Scope.
+model DepartmentAuthor {
+  departmentId String
+  userId       String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([departmentId, userId])
+}
+
+/// Company Author: Nutzer mit Schreibrecht (Suggestions) auf alle Dokumente im Company-Owner-Scope.
+model CompanyAuthor {
+  companyId String
+  userId    String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([companyId, userId])
+}
+
+/// Nutzer: Mitglied in Teams (TeamMember), optional Team Lead (TeamLead). isAdmin: sieht alles, legt Struktur an, fügt User hinzu.
+/// Kann Prozesse/Projekte als Owner besitzen (Owner.ownerUserId); erhält explizite Zugriffsrechte über DocumentGrantUser.
+  /// email/externalId für Auth/SSO. passwordHash nur für lokalen Login; SSO-Nutzer (externalId) brauchen keins.
+model User {
+  id                    String       @id @default(cuid())
+  name                  String
+  email                 String?      @unique
+  passwordHash          String?      // Argon2-Hash für lokalen Login
+  externalId            String?      // SSO/LDAP – eindeutige Kennung vom IdP
+  isAdmin               Boolean      @default(false) // Sieht alle Dokumente; legt Struktur (Company, Dept, Team) an, fügt User hinzu
+  /// Knowledge Manager: Fachrolle mit expliziter Scope-Liste (kein Admin, keine Org-Lead/Member).
+  isKnowledgeManager    Boolean      @default(false)
+  deletedAt             DateTime?    // Soft delete: deaktivierter Account, Zugriff entzogen
+  lastActiveAt          DateTime?    // Last authenticated activity (presence / last seen)
+  preferences           Json?        // theme: light|dark|auto, sidebarPinned: boolean
+  teamMemberships       TeamMember[]
+  leadOfTeams           TeamLead[]
+  authorOfTeams         TeamAuthor[]
+  authorOfDepartments   DepartmentAuthor[]
+  authorOfCompanies     CompanyAuthor[]
+  departmentLeads       DepartmentLead[]
+  companyLeads          CompanyLead[]
+  knowledgeManagerCompanies    KnowledgeManagerCompany[]
+  knowledgeManagerDepartments  KnowledgeManagerDepartment[]
+  knowledgeManagerTeams        KnowledgeManagerTeam[]
+  ownedContexts         Owner[]      @relation("OwnerUser")
+  documentGrantUser     DocumentGrantUser[]
+  pinnedDocumentScopes  DocumentPinnedInScope[]
+  createdDocuments      Document[]         @relation("DocumentCreatedBy")
+  customDocumentTypes   CustomDocumentType[]
+  documentVersionsCreated  DocumentVersion[]
+  documentAttachmentsUploaded DocumentAttachment[]
+  documentCommentsAuthored    DocumentComment[] @relation("DocumentCommentAuthor")
+  documentMoveRequestsRequested DocumentMoveRequest[] @relation("DocumentMoveRequestedBy")
+  documentMoveRequestsDecided   DocumentMoveRequest[] @relation("DocumentMoveDecidedBy")
+  documentViews         DocumentView[]
+  healthCheckDecisions  Document[] @relation("DocumentHealthCheckLastDecisionBy")
+  healthCheckEvents     DocumentHealthCheckEvent[]
+  sessions              Session[]
+  backupRunsTriggered   BackupRun[] @relation("BackupRunTriggeredBy")
+  updateRunsTriggered   UpdateRun[] @relation("UpdateRunTriggeredBy")
+  restoreRunsTriggered  RestoreRun[] @relation("RestoreRunTriggeredBy")
+  backupActionAudits    AdminBackupActionAudit[]
+  platformExportRunsTriggered PlatformExportRun[] @relation("PlatformExportRunTriggeredBy")
+  platformImportRunsTriggered PlatformImportRun[] @relation("PlatformImportRunTriggeredBy")
+  platformImportReceiveSlotsCreated PlatformImportReceiveSlot[] @relation("PlatformImportReceiveSlotCreatedBy")
+  platformMigrationAudits     AdminPlatformMigrationAudit[]
+}
+
+/// Session für Cookie-basierte Auth. Session-ID = id im httpOnly-Cookie; Ablauf über expiresAt.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Department Lead: genau eine Leitung pro Abteilung (Hauptverantwortliche).
+/// Leserechte auf Kontexte der Abteilung und ihrer Teams – nicht auf Nutzerspaces.
+model DepartmentLead {
+  departmentId String @id
+  userId       String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Company Lead: Nutzer mit Lese-/Schreibrechten auf Prozesse und Projekte mit Company-Owner.
+/// Darf für die Firma Prozesse/Projekte anlegen und bearbeiten. Nur Admins verwalten Company-Lead-Zuordnungen.
+model CompanyLead {
+  companyId String
+  userId    String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([companyId, userId])
+}
+
+/// Knowledge Manager ↔ Company-Scope (explizit; keine Vererbung auf Departments/Teams).
+model KnowledgeManagerCompany {
+  companyId String
+  userId    String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([companyId, userId])
+}
+
+/// Knowledge Manager ↔ Department-Scope (explizit).
+model KnowledgeManagerDepartment {
+  departmentId String
+  userId       String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([departmentId, userId])
+}
+
+/// Knowledge Manager ↔ Team-Scope (explizit).
+model KnowledgeManagerTeam {
+  teamId String
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
+}
+
+/// Owner-Abstraktion: Prozess/Projekt haben genau einen Owner (Schema: ownerId).
+/// Inhaltlich genau einer: Company, Abteilung, Team oder User (companyId, departmentId, teamId bzw. ownerUserId gesetzt, App-Validierung).
+model Owner {
+  id             String    @id @default(cuid())
+  companyId      String?
+  departmentId   String?
+  teamId         String?
+  ownerUserId    String?
+  displayName    String?   // Cached for catalog sort/display; synced when Company/Department/Team/User name changes
+  company        Company?    @relation("OwnerCompany", fields: [companyId], references: [id], onDelete: Restrict)
+  department     Department? @relation("OwnerDepartment", fields: [departmentId], references: [id], onDelete: Restrict)
+  team           Team?      @relation("OwnerTeam", fields: [teamId], references: [id], onDelete: Restrict)
+  ownerUser      User?      @relation("OwnerUser", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  processes      Process[]
+  projects       Project[]
+  tags           Tag[]
+}
+
+// --- Kontexte (Projekt, Prozess, Unterkontext; vgl. Konzept §3) ---
+
+/// Abstraktion „ein Kontext“: Jeder Kontexttyp hat genau eine Context-Zeile.
+/// Document hat Pflicht-FK contextId → genau ein Kontext im Schema. Löschen der Context-Zeile löscht den Kontexttyp und alle Documents (Cascade).
+model Context {
+  id               String       @id @default(cuid())
+  displayName      String?      // Cached from Process/Project/Subcontext name; for catalog sort
+  contextType      String?      // 'process' | 'project'
+  ownerDisplayName String?      // Cached from Owner; for catalog sort without extra join
+  process          Process?
+  project          Project?
+  subcontext       Subcontext?
+  documents        Document[]
+  moveRequestsFrom DocumentMoveRequest[] @relation("MoveRequestFromContext")
+  moveRequestsTo   DocumentMoveRequest[] @relation("MoveRequestToContext")
+}
+
+/// Prozess: dauerhafter Kontext (z. B. Onboarding), selten archiviert.
+/// Genau ein Owner (ownerId → Owner). Kontext-Zeile (contextId → Context); Dokumente über Context.
+model Process {
+  id          String     @id @default(cuid())
+  name        String
+  contextId   String     @unique
+  context     Context    @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       Owner      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  deletedAt   DateTime?  // Soft delete
+  archivedAt  DateTime?  // Archiv: aus normalen Listen ausgeblendet
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+/// Projekt: zeitlich begrenzter Kontext, wird archiviert. Genau ein Owner über ownerId.
+/// Kann Unterkontexte haben (z. B. Protokolle, Meilensteine).
+model Project {
+  id           String       @id @default(cuid())
+  name         String
+  contextId    String       @unique
+  context      Context      @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  ownerId      String
+  owner        Owner        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  subcontexts  Subcontext[]
+  deletedAt    DateTime?    // Soft delete
+  archivedAt   DateTime?    // Archiv: aus normalen Listen ausgeblendet
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+/// Unterkontext: optionale Gliederung unter einem Projekt (z. B. Protokolle, Meilensteine, Module).
+/// Nur bei Projekten; Zugriff auf Unterkontexte kann vererbt oder explizit gesetzt werden.
+model Subcontext {
+  id         String    @id @default(cuid())
+  name       String
+  contextId  String    @unique
+  context    Context   @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+// --- Pinned (Dokumente pro Scope angepinnt; nur Dokumente) ---
+
+enum PinnedScopeType {
+  team
+  department
+  company
+}
+
+/// Document ist in diesem Scope (Team/Department/Company) gepinnt. Pin/Unpin-Berechtigung = Scope-Lead (Rolle), nicht User.
+model DocumentPinnedInScope {
+  id         String         @id @default(cuid())
+  documentId String
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  scopeType  PinnedScopeType
+  scopeId    String         // teamId, departmentId oder companyId (keine FK; bei Unit-Löschung in App bereinigen)
+  order      Int            @default(0)
+  pinnedById String?        // optional; User löschen → SetNull, Pins bleiben
+  pinnedBy   User?          @relation(fields: [pinnedById], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+
+  @@unique([scopeType, scopeId, documentId])
+  @@index([scopeType, scopeId])
+}
+
+// --- Dokumente und Tags ---
+
+/// Einzelne inhaltliche Einheit (Block-Lead-Draft + veröffentlichte Versionen). Optional genau ein Kontext (contextId); null = kontextfreier Draft (nur Ersteller/Grants).
+/// Optional: PDF-Version (pdfUrl, z. B. Export-URL aus MinIO). Zugriff über Grants; Rechteableitung siehe docs/platform/datenmodell/Rechteableitung.
+/// Invariante (DB-`CHECK`): Ist `publishedAt` gesetzt, muss `currentPublishedVersionId` gesetzt sein.
+/// Lead-Draft (Edit-System, ADR 001): `draftBlocks` + `draftRevision`.
+model Document {
+  id                        String                   @id @default(cuid())
+  title                     String
+  /// Optional document type key: `builtin:<slug>` or `custom:<cuid>` (ADR 008). Template seeds only on create.
+  documentTypeKey           String?
+  /// Gemeinsamer Lead-Draft als Block-JSON (schemaVersion im JSON); null = noch nicht initialisiert.
+  draftBlocks               Json?
+  /// Erhöht sich bei jedem erfolgreichen PATCH des Lead-Drafts (Optimistic-Concurrency).
+  draftRevision             Int                      @default(0)
+  /// User IDs who edited the lead draft since the last publish (frozen onto DocumentVersion on publish).
+  draftContributorUserIds   String[]                 @default([])
+  pdfUrl                    String?                  // URL zur PDF-Version (z. B. MinIO/S3 nach Export)
+  contextId                 String?                  // null = kontextfreier Draft; Veröffentlichung nur mit Kontext
+  context                   Context?                 @relation(fields: [contextId], references: [id], onDelete: SetNull)
+  deletedAt                 DateTime?                // Soft delete: aus Listen ausblenden, ggf. wiederherstellbar
+  archivedAt                DateTime?                // Archiv: aus normalen Listen ausgeblendet, nur in Archive-Tab
+  documentTags              DocumentTag[]
+  grantUser                 DocumentGrantUser[]
+  grantTeam                 DocumentGrantTeam[]
+  grantDepartment           DocumentGrantDepartment[]
+  pinnedInScopes            DocumentPinnedInScope[]
+  startHereForTeams         Team[]                   @relation("TeamStartDocument")
+  startHereForDepartments   Department[]             @relation("DepartmentStartDocument")
+  startHereForCompanies     Company[]                @relation("CompanyStartDocument")
+  publishedAt               DateTime?                // null = Draft; nur für canWrite sichtbar
+  description               String?                 @db.Text // optional, Kurzbeschreibung (API: max 500 Zeichen)
+  createdById               String?                  // optional; „Erstellt von“ / Autor
+  createdBy                 User?                    @relation("DocumentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  currentPublishedVersionId String?                  @unique // FK auf aktuelle veröffentlichte DocumentVersion (1:1)
+  currentPublishedVersion   DocumentVersion?         @relation("CurrentPublishedVersion", fields: [currentPublishedVersionId], references: [id], onDelete: SetNull)
+  versions                  DocumentVersion[]
+  attachments               DocumentAttachment[]
+  comments                  DocumentComment[]
+  moveRequests              DocumentMoveRequest[]
+  /// Distinct authenticated reader-days (UTC); used for Explore popularity sort.
+  viewCount                 Int                      @default(0)
+  views                     DocumentView[]
+  /// Do11y: doc interval override; null = use SystemSettings.healthCheckDefaultIntervalDays.
+  healthCheckIntervalDays     Int?
+  healthCheckNextAt           DateTime?
+  healthCheckNeedsUpdate      Boolean                  @default(false)
+  /// Lead marked archive recommended; stays action_needed until archived or cleared.
+  healthCheckNeedsArchive     Boolean                  @default(false)
+  healthCheckSnoozedUntil     DateTime?
+  /// still_valid | needs_update | archive | snooze (app-validated).
+  healthCheckLastDecision     String?
+  healthCheckLastDecisionAt   DateTime?
+  healthCheckLastDecisionById String?
+  healthCheckLastDecisionBy   User?                    @relation("DocumentHealthCheckLastDecisionBy", fields: [healthCheckLastDecisionById], references: [id], onDelete: SetNull)
+  healthCheckEvents           DocumentHealthCheckEvent[]
+
+  @@index([documentTypeKey])
+  @@index([viewCount])
+  @@index([healthCheckNextAt])
+  @@index([healthCheckNeedsUpdate])
+  @@index([healthCheckNeedsArchive])
+}
+
+/// Append-only Do11y audit trail (still_valid / needs_update / archive / snooze / publish_reset).
+model DocumentHealthCheckEvent {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  at           DateTime @default(now())
+  actorUserId  String?
+  actor        User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  decision     String
+  nextAt       DateTime?
+  snoozedUntil DateTime?
+  intervalDays Int?
+  note         String?
+
+  @@index([documentId, at])
+  @@index([actorUserId])
+}
+
+/// One row per authenticated reader per UTC calendar day (popularity dedup).
+model DocumentView {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// UTC calendar date only (@db.Date).
+  viewedOn   DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId, viewedOn])
+  @@index([documentId])
+  @@index([userId])
+}
+
+enum DocumentMoveRequestStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+/// Cross-owner move approval (Phase 2). Same-owner moves use POST /documents/:id/move without a request.
+model DocumentMoveRequest {
+  id             String                    @id @default(cuid())
+  documentId     String
+  document       Document                  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  fromContextId  String
+  fromContext    Context                   @relation("MoveRequestFromContext", fields: [fromContextId], references: [id], onDelete: Restrict)
+  toContextId    String
+  toContext      Context                   @relation("MoveRequestToContext", fields: [toContextId], references: [id], onDelete: Restrict)
+  fromOwnerId    String
+  toOwnerId      String
+  status         DocumentMoveRequestStatus @default(pending)
+  requestedById  String
+  requestedBy    User                      @relation("DocumentMoveRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  decidedById    String?
+  decidedBy      User?                     @relation("DocumentMoveDecidedBy", fields: [decidedById], references: [id], onDelete: SetNull)
+  note           String?                   @db.Text
+  decisionNote   String?                   @db.Text
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  decidedAt      DateTime?
+
+  @@index([documentId, status])
+  @@index([toOwnerId, status])
+  @@index([fromOwnerId, status])
+  @@index([requestedById, status])
+}
+
+/// Custom document type (scope-bound or platform-wide). Built-ins live in code (ADR 008).
+model CustomDocumentType {
+  id           String                   @id @default(cuid())
+  label        String
+  whenToUse    String                   @db.Text
+  oftenUsedIn  String? // 'process' | 'project'
+  deLabel      String?
+  companyId    String?
+  company      Company?                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department?              @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  teamId       String?
+  team         Team?                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdById  String?
+  createdBy    User?                    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  deletedAt    DateTime?
+  templates    CustomDocumentTemplate[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([teamId])
+}
+
+/// Custom template for a custom document type (v1: one default per type).
+model CustomDocumentTemplate {
+  id           String             @id @default(cuid())
+  typeId       String
+  type         CustomDocumentType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  exampleTitle String
+  whenToUse    String             @db.Text
+  /// Array of { heading: string, prompts: string[] }
+  sections     Json
+  isDefault    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([typeId])
+}
+
+/// Tag: scope-gebunden (ownerId → Owner), für Kategorisierung und Filterung. Eindeutigkeit pro Scope: (ownerId, name).
+model Tag {
+  id           String        @id @default(cuid())
+  name         String
+  ownerId      String
+  owner        Owner         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  documentTags DocumentTag[]
+
+  @@unique([ownerId, name])
+}
+
+/// n:m Dokument ↔ Tag.
+model DocumentTag {
+  documentId String
+  tagId      String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([documentId, tagId])
+}
+
+/// Anhang oder Bild zu einem Dokument (Binärdatei in MinIO/S3). Speicherort = objectKey im Bucket.
+model DocumentAttachment {
+  id           String    @id @default(cuid())
+  documentId   String
+  document     Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  objectKey    String    // Key im S3-Bucket, z. B. attachments/{documentId}/{id}.{ext}
+  filename     String    // Originaldateiname
+  contentType  String?   // MIME-Type
+  sizeBytes    Int
+  uploadedById String?
+  uploadedBy   User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+
+  @@index([documentId])
+  @@index([uploadedById])
+}
+
+/// Kommentar zu einem Dokument (Diskussion/Feedback). Rechte: siehe docs/platform/datenmodell/Rechtesystem.md §6c.
+model DocumentComment {
+  id              String   @id @default(cuid())
+  documentId      String
+  document        Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User     @relation("DocumentCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  text            String   @db.Text
+  parentId        String?
+  parent          DocumentComment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         DocumentComment[] @relation("CommentThread")
+  /// Markdown heading slug; only on root comments (parentId null).
+  anchorHeadingId String?
+  /// Soft-delete for top-level comments only; replies stay visible.
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([documentId])
+  @@index([parentId])
+}
+
+// --- Versionierung & PR (vgl. docs/plan/Prisma-Schema-Entwurf.md §8) ---
+
+/// Snapshot einer veröffentlichten Version (Full-Version). Nur bei Publish.
+/// `blocks` + `blocksSchemaVersion`: Block-JSON pro Version.
+model DocumentVersion {
+  id                        String    @id @default(cuid())
+  documentId                String
+  document                  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  blocks                    Json?
+  blocksSchemaVersion       Int?
+  versionNumber             Int
+  /// MinIO/S3 object key for the published PDF snapshot (set asynchronously after publish).
+  pdfObjectKey              String?
+  /// Scope-lead names frozen when the PDF was rendered (comma-separated).
+  pdfResponsibleLabel       String?
+  createdAt                 DateTime  @default(now())
+  createdById               String?
+  createdBy                 User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  /// User IDs who contributed to this published version (frozen at publish).
+  contributorUserIds        String[]  @default([])
+  parentVersionId           String?
+  parentVersion             DocumentVersion?  @relation("VersionChain", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  childVersions             DocumentVersion[] @relation("VersionChain")
+  currentPublishedForDocument Document?        @relation("CurrentPublishedVersion")
+
+  @@index([documentId])
+  @@index([documentId, createdAt])
+}
+
+// --- Zugriffsrechte (explizit; vgl. Rechteableitung) ---
+
+/// Rolle pro Grant: Lesen oder Schreiben. Schreibrechte nur für Team Lead bzw. explizit gewährte Schreiber.
+enum GrantRole {
+  Read
+  Write
+}
+
+/// Zugriffsrecht Dokument → User. Pro Zeile genau ein Grantee (Schema).
+model DocumentGrantUser {
+  documentId String
+  userId     String
+  role       GrantRole
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([documentId, userId, role])
+  @@index([documentId])
+  @@index([userId])
+}
+
+/// Zugriffsrecht Dokument → Team. Pro Zeile genau ein Grantee (Schema).
+model DocumentGrantTeam {
+  documentId String
+  teamId     String
+  role       GrantRole
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  @@id([documentId, teamId, role])
+  @@index([documentId])
+  @@index([teamId])
+}
+
+/// Zugriffsrecht Dokument → Department. Pro Zeile genau ein Grantee (Schema).
+model DocumentGrantDepartment {
+  documentId   String
+  departmentId String
+  role         GrantRole
+  document     Document   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  @@id([documentId, departmentId, role])
+  @@index([documentId])
+  @@index([departmentId])
+}
+
+// --- Operational backup (§25) ---
+
+enum BackupDestinationType {
+  S3_COMPATIBLE
+  SSH
+  WEBDAV
+}
+
+enum BackupRunStatus {
+  queued
+  running
+  uploading
+  succeeded
+  failed
+}
+
+enum BackupRunTriggerSource {
+  manual
+  schedule
+  pre_update
+}
+
+enum UpdateRunStatus {
+  queued
+  backing_up
+  applying
+  succeeded
+  failed
+}
+
+/// Singleton settings for operational backups (id = "default").
+model BackupSettings {
+  id                    String             @id @default("default")
+  retentionCount        Int                @default(7)
+  defaultDestinationId  String?
+  autoBackupConfigured  Boolean            @default(false)
+  defaultDestination    BackupDestination? @relation("BackupSettingsDefaultDestination", fields: [defaultDestinationId], references: [id], onDelete: SetNull)
+  updatedAt             DateTime           @updatedAt
+}
+
+/// Singleton platform system settings (id = "default").
+model SystemSettings {
+  id                      String   @id @default("default")
+  updateCheckEnabled      Boolean  @default(true)
+  /// When true and SMTP fields are complete, notification emails are sent via SMTP.
+  smtpEnabled             Boolean  @default(false)
+  smtpHost                String?
+  smtpPort                Int?
+  /// `none` | `starttls` | `tls`
+  smtpEncryption          String?
+  smtpUsername            String?
+  /// AES-GCM ciphertext via secretBox (`BACKUP_ENCRYPTION_KEY`); never expose in API.
+  smtpPasswordCiphertext  String?
+  smtpFromAddress         String?
+  smtpFromName            String?
+  /// Display labels for org roles (singular/plural, instance language). Validated in app (Zod). Null/empty = i18n defaults.
+  orgRoleLabels           Json?
+  /// Do11y org default interval (days); app-validated against HEALTH_CHECK_INTERVAL_DAYS.
+  healthCheckDefaultIntervalDays Int     @default(90)
+  /// Config only in Phase 1; worker = Phase 5.
+  healthCheckAutoScanEnabled     Boolean @default(false)
+  updatedAt               DateTime @updatedAt
+}
+
+/// External or secondary storage target for backup archives.
+model BackupDestination {
+  id                    String                 @id @default(cuid())
+  name                  String
+  type                  BackupDestinationType
+  enabled               Boolean                @default(true)
+  configJson            Json
+  credentialsCiphertext String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  backupRuns            BackupRun[]
+  defaultForSettings    BackupSettings[]       @relation("BackupSettingsDefaultDestination")
+}
+
+/// One operational backup execution (manual or scheduled).
+model BackupRun {
+  id                String                 @id @default(cuid())
+  destinationId     String?
+  destination       BackupDestination?     @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  status            BackupRunStatus        @default(queued)
+  triggerSource     BackupRunTriggerSource
+  triggeredByUserId String?
+  triggeredBy       User?                  @relation("BackupRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  archiveSha256     String?
+  sizeBytes         BigInt?
+  remotePath        String?
+  localObjectKey    String?
+  manifestJson      Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime               @default(now())
+
+  restoreRuns       RestoreRun[]
+  updateRuns        UpdateRun[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// One in-app system update execution (auto-backup then host-agent apply).
+model UpdateRun {
+  id                String          @id @default(cuid())
+  status            UpdateRunStatus @default(queued)
+  targetVersion     String
+  targetReleaseTag  String
+  backupRunId       String?
+  backupRun         BackupRun?      @relation(fields: [backupRunId], references: [id], onDelete: SetNull)
+  triggeredByUserId String?
+  triggeredBy       User?           @relation("UpdateRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  errorMessage      String?
+  agentPhase        String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Active maintenance lock (singleton row id = "backup" during operational backup, restore, or platform import).
+model SystemMaintenanceLock {
+  id                 String    @id @default("backup")
+  reason             String
+  backupRunId        String?
+  restoreRunId       String?
+  platformImportRunId String?
+  updateRunId        String?
+  lockedAt           DateTime  @default(now())
+}
+
+enum RestoreRunStatus {
+  queued
+  running
+  validating
+  restoring_db
+  restoring_minio
+  succeeded
+  failed
+}
+
+enum RestoreRunSource {
+  history
+  upload
+}
+
+/// One operational disaster-recovery restore execution.
+model RestoreRun {
+  id                String           @id @default(cuid())
+  status            RestoreRunStatus @default(queued)
+  source            RestoreRunSource
+  backupRunId       String?
+  backupRun         BackupRun?       @relation(fields: [backupRunId], references: [id], onDelete: SetNull)
+  uploadObjectKey   String?
+  triggeredByUserId String?
+  triggeredBy       User?            @relation("RestoreRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime         @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Audit log for admin backup actions.
+model AdminBackupActionAudit {
+  id            String   @id @default(cuid())
+  actorUserId   String
+  actor         User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action        String
+  backupRunId   String?
+  restoreRunId  String?
+  destinationId String?
+  status        String
+  details       Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action, status, createdAt(sort: Desc)])
+}
+
+// --- Platform export / import (§27) ---
+
+enum PlatformExportRunStatus {
+  queued
+  running
+  packaging
+  succeeded
+  failed
+}
+
+enum PlatformImportRunStatus {
+  uploaded
+  preflight_failed
+  awaiting_confirm
+  queued
+  running
+  importing_organization
+  importing_users
+  importing_owners
+  importing_contexts
+  importing_documents
+  importing_versions
+  importing_tags
+  importing_grants
+  importing_pins
+  importing_comments
+  importing_suggestions
+  importing_files
+  succeeded
+  failed
+}
+
+enum PlatformImportRunSource {
+  upload
+  push
+}
+
+/// One platform export execution (logical domain archive for migration).
+model PlatformExportRun {
+  id                String                  @id @default(cuid())
+  status            PlatformExportRunStatus @default(queued)
+  triggeredByUserId String?
+  triggeredBy       User?                   @relation("PlatformExportRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  archiveSha256     String?
+  sizeBytes         BigInt?
+  localObjectKey    String?
+  manifestJson      Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime                @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// One platform import execution (logical domain restore into empty instance).
+model PlatformImportRun {
+  id                String                   @id @default(cuid())
+  status            PlatformImportRunStatus  @default(uploaded)
+  source            PlatformImportRunSource  @default(upload)
+  uploadObjectKey   String?
+  triggeredByUserId String?
+  triggeredBy       User?                    @relation("PlatformImportRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: SetNull)
+  pgBossJobId       String?
+  preflightJson     Json?
+  optionsJson       Json?
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime                 @default(now())
+  receiveSlot       PlatformImportReceiveSlot?
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Single-use, TTL-bound token for another instance to PUSH a platform export archive here.
+model PlatformImportReceiveSlot {
+  id                  String    @id @default(cuid())
+  tokenHash           String    @unique
+  expiresAt           DateTime
+  usedAt              DateTime?
+  createdByUserId     String
+  createdBy           User      @relation("PlatformImportReceiveSlotCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  platformImportRunId String?   @unique
+  platformImportRun   PlatformImportRun? @relation(fields: [platformImportRunId], references: [id], onDelete: SetNull)
+  createdAt           DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([usedAt])
+  @@index([createdAt(sort: Desc)])
+}
+
+/// Audit log for admin platform migration actions.
+model AdminPlatformMigrationAudit {
+  id                  String   @id @default(cuid())
+  actorUserId         String
+  actor               User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  action              String
+  platformExportRunId String?
+  platformImportRunId String?
+  status              String
+  details             Json     @default("{}")
+  createdAt           DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action, status, createdAt(sort: Desc)])
+}

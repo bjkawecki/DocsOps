@@ -1,0 +1,33 @@
+---
+description: Projekt-Kontext und Technologie-Stack der internen Dokumentationsplattform
+alwaysApply: true
+---
+
+# Projekt: Interne Dokumentationsplattform
+
+Dieses Repo ist eine **interne Dokumentationsplattform** (Firma → Abteilung → Team, Kontexte Prozess/Projekt/Nutzerspace, Markdown-Dokumente mit expliziten Rechten, PR/Draft-Workflow). Konzept und Designprinzipien stehen in **`docs/platform/`** (Struktur siehe `docs/platform/README.md`), Umsetzungsplan in **`docs/plan/`**.
+
+## Technologie-Stack (verbindlich)
+
+- **Package Manager:** **pnpm** (durchgängig; keine npm/yarn). Befehle: `pnpm install`, `pnpm run lint`, `pnpm test` usw.
+- **Backend:** Node.js (TypeScript), **Fastify**, **Prisma**, PostgreSQL. Optional Bun als Runtime.
+- **Frontend:** **React** mit **Vite** und TypeScript (kein Next.js für die interne App).
+- **Infrastruktur:** Docker, **Caddy** als Reverse Proxy, **MinIO** (S3-kompatibel) für Anhänge/Exporte, **pg-boss** für Async-Jobs (z. B. PDF-Export mit Pandoc).
+- **Validierung:** **Zod** (verbindlich). Request-Bodies und Parameter im Backend und Frontend mit Zod-Schemas validieren; Typen aus Schemas ableiten (z. B. `z.infer`). Kein Fastify-JSON-Schema für Request-Input.
+- **Datenmodell:** Siehe `docs/platform/datenmodell/` (Pseudocode Datenmodell, Rechtesystem); Rechte explizit (Leser/Schreiber pro Dokument, Teams, Lead-Rollen).
+
+## Repo-Struktur (geplant)
+
+- Backend und Frontend getrennt (z. B. `apps/backend`, `apps/frontend` oder `backend/`, `frontend/`). `docker-compose.yml` im Repo-Root, `scripts/` für install/update, `docs/` wie vorhanden. Geteilte Typen (z. B. aus Prisma) zwischen Backend und Frontend nutzen.
+
+## Beim Coden
+
+- **Vorausschauend programmieren:** Keine Platzhalter-Lösungen mit der Absicht, es „später anders“ zu machen. Schema, APIs und Strukturen von vornherein so anlegen, dass sie den geplanten Anforderungen entsprechen (z. B. Auth-Felder, normalisierte Strukturen, explizite FKs statt Polymorph).
+- Bei Architektur-, Stack- oder Konventionsfragen zuerst **`docs/plan/`** und **`docs/platform/`** heranziehen. Umsetzungsschritte: **`docs/plan/Umsetzungs-Todo.md`**. Keine Stack-Änderungen ohne Abgleich mit dem Plan (z. B. kein anderes Framework/ORM als festgelegt).
+- **API:** REST, JSON. Dokumentbezogene Zugriffe nur mit Rechteprüfung (`canRead`/`canWrite`). Schwere Aufgaben (PDF-Export, Index-Update) als Job (pg-boss), nicht im Request.
+- **Prisma:** Möglichst **kein SQL selbst schreiben**. Schema in `prisma/schema.prisma` anpassen und Migrationen von Prisma erzeugen lassen (`pnpm exec prisma migrate dev --name <name>` im Backend). **Keine CHECK-Constraints in der DB:** Constraints vor allem durch gutes Schema abbilden (Struktur, FKs, Unique, NOT NULL). Was das Schema nicht ausdrücken kann (z. B. „genau einer von mehreren FKs“), in der App validieren (z. B. Zod). Nur in echten Ausnahmen (z. B. komplexe Datenmigrationen) Migrationen manuell anpassen.
+- **Konfiguration:** Über Umgebungsvariablen; keine Secrets oder Passwörter im Repo oder in Default-Configs.
+- **Tests:** Vitest, Supertest für API. Neue Logik und Rechte-Funktionen testen; TDD optional.
+- **Kommentare:** Sinnvoll und nach offizieller Konvention. JSDoc für öffentliche APIs (exportierte Funktionen, Klassen); Inline-Kommentare nur wo nötig („warum“, nicht „was“). Orientierung an TypeScript/React-Docs.
+- **Sprache (Code & Produkt):** **Standardsprache ist Englisch** für UI-Texte (Labels, Buttons, Meldungen), URL-Pfade und Routen (z. B. `/teams`, `/repositories`, `/admin`), API-Pfade (`/api/v1/...`), Log-/Fehlerschlüssel und nutzerbezogene Bezeichner. i18n optional später; bis dahin alles auf Englisch. Doku in `docs/` und Kommentare können weiterhin auf Deutsch sein.
+- Antworten und Code auf Deutsch, sofern der Nutzer auf Deutsch schreibt.

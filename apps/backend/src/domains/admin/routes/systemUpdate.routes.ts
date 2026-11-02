@@ -1,0 +1,137 @@
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import {
+  requireAuthPreHandler,
+  requireAdminPreHandler,
+  getEffectiveUserId,
+  type RequestWithUser,
+} from '../../auth/middleware.js';
+import { requireNotDemoMutatingPreHandler } from '../../../config/demoModeGuard.js';
+import {
+  adminSystemCheckUpdatesResponseSchema,
+  adminSystemMailTestBodySchema,
+  adminSystemMailTestResponseSchema,
+  adminSystemRuntimeSchema,
+  adminSystemSettingsSchema,
+  adminSystemUpdateStatusSchema,
+  patchAdminSystemSettingsBodySchema,
+} from '../schemas/systemUpdate.js';
+import {
+  DemoModeSmtpForbiddenError,
+  getSystemSettings,
+  sendSmtpTestEmail,
+  SmtpSettingsValidationError,
+  updateSystemSettings,
+} from '../services/adminSystemSettingsService.js';
+import { getAdminSystemRuntime } from '../services/adminSystemRuntimeService.js';
+import {
+  checkAdminSystemUpdatesAndNotify,
+  getAdminSystemUpdateStatus,
+  resetAdminSystemUpdateCacheForTests,
+} from '../services/adminSystemUpdateService.js';
+import { resolveMailLocale } from '../../../infrastructure/mail/mailI18n.js';
+
+function settingsToResponse(settings: Awaited<ReturnType<typeof getSystemSettings>>) {
+  return adminSystemSettingsSchema.parse({
+    updateCheckEnabled: settings.updateCheckEnabled,
+    smtpEnabled: settings.smtpEnabled,
+    smtpHost: settings.smtpHost,
+    smtpPort: settings.smtpPort,
+    smtpEncryption: settings.smtpEncryption,
+    smtpUsername: settings.smtpUsername,
+    smtpPasswordConfigured: settings.smtpPasswordConfigured,
+    smtpFromAddress: settings.smtpFromAddress,
+    smtpFromName: settings.smtpFromName,
+    orgRoleLabels: settings.orgRoleLabels,
+    healthCheckDefaultIntervalDays: settings.healthCheckDefaultIntervalDays,
+    healthCheckAutoScanEnabled: settings.healthCheckAutoScanEnabled,
+    updatedAt: settings.updatedAt.toISOString(),
+  });
+}
+
+const adminSystemUpdateRoutes: FastifyPluginAsync = (app: FastifyInstance) => {
+  const preAdmin = [requireAuthPreHandler, requireAdminPreHandler];
+  const preAdminMutating = [...preAdmin, requireNotDemoMutatingPreHandler];
+
+  app.get('/admin/system/update-status', { preHandler: preAdmin }, async (request, reply) => {
+    const status = await getAdminSystemUpdateStatus(request.server.prisma);
+    return reply.send(adminSystemUpdateStatusSchema.parse(status));
+  });
+
+  app.get('/admin/system/runtime', { preHandler: preAdmin }, async (request, reply) => {
+    const runtime = await getAdminSystemRuntime(request.server.prisma);
+    return reply.send(adminSystemRuntimeSchema.parse(runtime));
+  });
+
+  app.post(
+    '/admin/system/check-updates',
+    { preHandler: preAdminMutating },
+    async (request, reply) => {
+      const result = await checkAdminSystemUpdatesAndNotify(request.server.prisma);
+      return reply.send(adminSystemCheckUpdatesResponseSchema.parse(result));
+    }
+  );
+
+  app.get('/admin/system/settings', { preHandler: preAdmin }, async (request, reply) => {
+    const settings = await getSystemSettings(request.server.prisma);
+    return reply.send(settingsToResponse(settings));
+  });
+
+  app.patch('/admin/system/settings', { preHandler: preAdminMutating }, async (request, reply) => {
+    const body = patchAdminSystemSettingsBodySchema.parse(request.body);
+    try {
+      const settings = await updateSystemSettings(request.server.prisma, body);
+      resetAdminSystemUpdateCacheForTests();
+      return reply.send(settingsToResponse(settings));
+    } catch (err) {
+      if (err instanceof DemoModeSmtpForbiddenError) {
+        return reply.status(403).send({ error: err.message });
+      }
+      if (err instanceof SmtpSettingsValidationError) {
+        return reply.status(400).send({ error: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.post('/admin/system/mail/test', { preHandler: preAdminMutating }, async (request, reply) => {
+    const body = adminSystemMailTestBodySchema.parse(request.body ?? {});
+    const prisma = request.server.prisma;
+    const userId = getEffectiveUserId(request as RequestWithUser);
+
+    const admin = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, preferences: true },
+    });
+
+    let to = body.to?.trim();
+    if (!to) {
+      to = admin?.email?.trim() || undefined;
+    }
+    if (!to) {
+      return reply
+        .status(400)
+        .send({ error: 'No recipient email; pass "to" or set your account email' });
+    }
+
+    const locale = resolveMailLocale(admin?.preferences);
+
+    try {
+      await sendSmtpTestEmail(prisma, to, locale);
+      return reply.send(adminSystemMailTestResponseSchema.parse({ ok: true }));
+    } catch (err) {
+      if (err instanceof DemoModeSmtpForbiddenError) {
+        return reply.status(403).send({ error: err.message });
+      }
+      if (err instanceof SmtpSettingsValidationError) {
+        return reply.status(400).send({ error: err.message });
+      }
+      const message = err instanceof Error ? err.message : 'SMTP send failed';
+      request.log.warn({ err }, 'SMTP test email failed');
+      return reply.status(502).send({ error: message });
+    }
+  });
+
+  return Promise.resolve();
+};
+
+export default adminSystemUpdateRoutes;

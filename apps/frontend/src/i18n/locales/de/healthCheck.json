@@ -1,0 +1,94 @@
+{
+  "nav": "Aktualität",
+  "title": "Aktualität",
+  "breadcrumb": "Aktualität prüfen",
+  "description": "Dokumente in deinen Bereichen, die eine Aktualitätsentscheidung brauchen.",
+  "noAccess": "Du hast keinen Zugriff auf die Aktualitätsprüfung.",
+  "empty": "Aktuell ist nichts offen.",
+  "loadFailed": "Die Aktualitätsliste konnte nicht geladen werden.",
+  "itemCount_one": "{{count}} Dokument",
+  "itemCount_other": "{{count}} Dokumente",
+  "scan": "Scannen",
+  "scanDone": "Scan abgeschlossen. {{count}} Dokument(e) aktualisiert.",
+  "scanFailed": "Scan fehlgeschlagen.",
+  "filters": {
+    "reason": "Grund",
+    "reasonAll": "Alle",
+    "reasonDue": "Prüftermin erreicht",
+    "outcome": "Stand",
+    "outcomeAll": "Alle",
+    "outcomeOpen": "Fällig",
+    "outcomeNeedsUpdate": "Benötigt Update",
+    "outcomeArchive": "Archivierbar",
+    "scope": "Bereich",
+    "scopeAll": "Alle Bereiche"
+  },
+  "columns": {
+    "title": "Dokument",
+    "reason": "Grund",
+    "outcome": "Stand",
+    "nextAt": "Termin",
+    "context": "Kontext",
+    "owner": "Bereich",
+    "actions": "Entscheidung"
+  },
+  "reasons": {
+    "due": "Prüftermin erreicht"
+  },
+  "outcomes": {
+    "open": "Fällig",
+    "needs_update": "Benötigt Update",
+    "archive": "Archivierbar"
+  },
+  "status": {
+    "label": "Stand:",
+    "current": "Aktuell",
+    "due": "Prüfung fällig",
+    "needsUpdate": "Benötigt Update",
+    "archive": "Archivierbar"
+  },
+  "attention": {
+    "highTraffic": "Viel gelesen"
+  },
+  "actions": {
+    "stillValid": "Aktuell",
+    "needsUpdate": "Benötigt Update",
+    "archive": "Archivierbar",
+    "apply": "Übernehmen",
+    "revoke": "Zurücknehmen",
+    "saved": "Gespeichert.",
+    "failed": "Aktion fehlgeschlagen."
+  },
+  "confirmModal": {
+    "stillValidTitle": "Prüftermin neu setzen",
+    "stillValidBody": "Der Inhalt gilt weiter. Der Eintrag verschwindet aus dieser Liste. Der nächste Prüftermin folgt dem Intervall unten.",
+    "needsUpdateTitle": "Überarbeitung erforderlich",
+    "needsUpdateBody": "Der Eintrag bleibt in der Liste. Schreibberechtigte sollen den Inhalt überarbeiten und erneut veröffentlichen. Erst danach verschwindet er hier.",
+    "archiveTitle": "Archivierung vorsehen",
+    "archiveBody": "Der Eintrag bleibt in der Liste. Archiviert wird erst auf der Dokumentseite. Hier wird nur festgehalten, dass eine Archivierung vorgesehen ist.",
+    "revokeNeedsUpdateTitle": "Überarbeitung zurücknehmen?",
+    "revokeNeedsUpdateBody": "Die Anforderung zur Überarbeitung entfällt. Der Eintrag bleibt in der Liste, solange der Prüftermin überschritten ist.",
+    "revokeArchiveTitle": "Archivierung zurücknehmen?",
+    "revokeArchiveBody": "Die vorgesehene Archivierung entfällt. Der Eintrag bleibt in der Liste, solange der Prüftermin überschritten ist.",
+    "intervalLabel": "Nächster Termin in"
+  },
+  "interval": {
+    "periodStandard": "{{period}} (Standard)",
+    "daysOption": "{{count}} Tage",
+    "label": "Prüfintervall:",
+    "nextCheck": "Prüftermin:",
+    "setBy": "Gesetzt von:",
+    "setByAutomatic": "Automatisch",
+    "lastDecision": "Letzte Entscheidung:",
+    "lastDecisionBy": "von {{name}}",
+    "automaticScanOn": "Automatischer Scan: an",
+    "automaticScanManual": "Automatischer Scan: nur manuell",
+    "decisions": {
+      "still_valid": "Aktuell",
+      "needs_update": "Benötigt Update",
+      "archive": "Archivierbar",
+      "snooze": "Zurückgestellt"
+    },
+    "none": "Keine"
+  }
+}

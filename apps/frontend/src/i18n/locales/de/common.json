@@ -1,0 +1,91 @@
+{
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "search": "Suchen",
+    "clearSearch": "Suche leeren",
+    "close": "Schließen",
+    "create": "Anlegen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "retry": "Erneut versuchen"
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen.",
+    "loadFailed": "Daten konnten nicht geladen werden. Seite neu laden oder später erneut versuchen."
+  },
+  "status": {
+    "loading": "Laden…",
+    "active": "Aktiv",
+    "empty": "Hier ist noch nichts.",
+    "untitled": "Unbenannt"
+  },
+  "toasts": {
+    "error": "Etwas ist schiefgelaufen.",
+    "saved": "Gespeichert"
+  },
+  "scopePeople": {
+    "loadFailed": "Personen konnten nicht geladen werden.",
+    "refreshFailed": "Liste konnte nicht aktualisiert werden.",
+    "noMembersYet": "Noch keine Mitglieder.",
+    "noMembers": "Keine Mitglieder.",
+    "departmentLeads": "Abteilungsleitung",
+    "companyLeads": "Unternehmensleitung",
+    "authors": "Autoren",
+    "roleLeadMember": "Leitung, Mitglied",
+    "roleLead": "Leitung",
+    "roleAuthor": "Autor",
+    "roleMember": "Mitglied",
+    "setAsMember": "Als Mitglied festlegen",
+    "setAsAuthor": "Als Autor festlegen",
+    "setAsMemberInTeam": "Mitglied · {{team}}",
+    "peopleOnlineSummary": "{{count}} · {{online}} online",
+    "departmentCount_one": "{{count}} Abteilung",
+    "departmentCount_other": "{{count}} Abteilungen",
+    "peopleCount_one": "{{count}} Person",
+    "peopleCount_other": "{{count}} Personen",
+    "teamCount_one": "{{count}} Team",
+    "teamCount_other": "{{count}} Teams",
+    "teamsHeading_one": "Team",
+    "teamsHeading_other": "Teams",
+    "onlineActiveCount_one": "{{count}} aktiv",
+    "onlineActiveCount_other": "{{count}} aktiv",
+    "presence": {
+      "online": "Online",
+      "activeJustNow": "Gerade aktiv",
+      "activeMinutesAgo": "Aktiv vor {{count}} Min.",
+      "lastSeenHoursAgo": "Zuletzt vor {{count}} Std.",
+      "lastSeenDaysAgo": "Zuletzt vor {{count}} T.",
+      "lastSeenOn": "Zuletzt {{date}}"
+    }
+  },
+  "orgRoles": {
+    "companyLead": {
+      "singular": "Unternehmensleitung",
+      "plural": "Unternehmensleitungen"
+    },
+    "departmentLead": {
+      "singular": "Abteilungsleitung",
+      "plural": "Abteilungsleitungen"
+    },
+    "teamLead": {
+      "singular": "Team-Leitung",
+      "plural": "Team-Leitungen"
+    },
+    "teamMember": {
+      "singular": "Teammitglied",
+      "plural": "Teammitglieder"
+    },
+    "knowledgeManager": {
+      "singular": "Wissensmanager",
+      "plural": "Wissensmanager"
+    }
+  },
+  "orgRolesExtra": {
+    "admin": "Admin",
+    "companyAuthor": "Unternehmensautor",
+    "departmentAuthor": "Abteilungsautor",
+    "teamAuthor": "Teamautor",
+    "user": "Nutzer"
+  }
+}

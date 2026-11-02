@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "releases": [
+    {
+      "version": "0.6.3",
+      "date": "2026-11-02",
+      "title": "Authors, landing features, and help"
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-11-01",
+      "title": "Freshness and faster first load"
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-08-02",
+      "title": "Initial platform"
+    }
+  ]
+}

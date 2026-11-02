@@ -1,0 +1,377 @@
+import {
+  Badge,
+  Box,
+  Button,
+  Card,
+  Container,
+  Group,
+  NativeSelect,
+  Skeleton,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { apiFetch } from '../../api/client';
+import { PageHeader } from '../../components/ui/PageHeader';
+import {
+  DocumentDocBreadcrumbs,
+  type DocumentForDocBreadcrumbs,
+} from '../../components/documents/DocumentDocBreadcrumbs';
+import DiffMatchPatch from 'diff-match-patch';
+import { useMemo, useState } from 'react';
+import { IconFileText, IconPencil } from '@tabler/icons-react';
+
+type DocumentVersionsDoc = DocumentForDocBreadcrumbs & {
+  title: string;
+  publishedAt: string | null;
+  canPublish?: boolean;
+};
+
+type VersionItem = {
+  id: string;
+  versionNumber: number;
+  createdAt: string;
+  createdById: string | null;
+  createdByName: string | null;
+  contributors?: Array<{ id: string; name: string }>;
+  pdfReady?: boolean;
+  pdfResponsibleLabel?: string | null;
+};
+
+type VersionDetail = VersionItem & {
+  content: string;
+};
+
+/** Operation: -1 delete, 0 equal, 1 insert (diff-match-patch). */
+type DiffTuple = [number, string];
+
+function DiffView({ fromContent, toContent }: { fromContent: string; toContent: string }) {
+  const dmp = useMemo(() => new DiffMatchPatch(), []);
+  const diffs = useMemo((): DiffTuple[] => {
+    const d = dmp.diff_main(fromContent, toContent) as DiffTuple[];
+    dmp.diff_cleanupSemantic(d);
+    return d;
+  }, [dmp, fromContent, toContent]);
+
+  return (
+    <Box
+      component="pre"
+      style={{
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+        fontFamily: 'var(--mantine-font-family-monospace)',
+        fontSize: 'var(--mantine-font-size-sm)',
+        padding: 'var(--mantine-spacing-md)',
+        borderRadius: 'var(--mantine-radius-md)',
+        overflow: 'auto',
+      }}
+      bg="dark.6"
+    >
+      {diffs.map(([op, text], i) => {
+        if (op === 0) return <span key={i}>{text}</span>;
+        if (op === -1)
+          return (
+            <span
+              key={i}
+              style={{
+                backgroundColor: 'rgba(255, 0, 0, 0.35)',
+                textDecoration: 'line-through',
+              }}
+            >
+              {text}
+            </span>
+          );
+        return (
+          <span
+            key={i}
+            style={{
+              backgroundColor: 'rgba(0, 200, 0, 0.35)',
+            }}
+          >
+            {text}
+          </span>
+        );
+      })}
+    </Box>
+  );
+}
+
+export function DocumentVersionsPage() {
+  const { t } = useTranslation('documents');
+  const { documentId } = useParams<{ documentId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewVersionId = searchParams.get('version') ?? '';
+  const fromId = searchParams.get('from') ?? '';
+  const toId = searchParams.get('to') ?? '';
+  const [compareFromId, setCompareFromId] = useState(fromId);
+  const [compareToId, setCompareToId] = useState(toId);
+
+  const { data: doc, isPending: docPending } = useQuery({
+    queryKey: ['document', documentId],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/v1/documents/${documentId}`);
+      if (!res.ok) throw new Error(t('versionsPage.loadDocumentFailed'));
+      return res.json() as Promise<DocumentVersionsDoc>;
+    },
+    enabled: !!documentId,
+  });
+
+  const {
+    data: versionsData,
+    isPending: versionsPending,
+    isError: versionsError,
+  } = useQuery({
+    queryKey: ['document-versions', documentId],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/v1/documents/${documentId}/versions`);
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionsFailed'));
+      return res.json() as Promise<{ items: VersionItem[] }>;
+    },
+    enabled: !!documentId,
+  });
+
+  const versions = versionsData?.items ?? [];
+  const canPublish = !!doc?.canPublish;
+  const fromVersion = versions.find((v) => v.id === (fromId || compareFromId));
+  const toVersion = versions.find((v) => v.id === (toId || compareToId));
+
+  const { data: fromDetail, isPending: fromPending } = useQuery({
+    queryKey: ['document-version', documentId, fromId || compareFromId],
+    queryFn: async () => {
+      const id = fromId || compareFromId;
+      const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${id}`);
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
+      return res.json() as Promise<VersionDetail>;
+    },
+    enabled: !!documentId && !!(fromId || compareFromId),
+  });
+
+  const { data: toDetail, isPending: toPending } = useQuery({
+    queryKey: ['document-version', documentId, toId || compareToId],
+    queryFn: async () => {
+      const id = toId || compareToId;
+      const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${id}`);
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
+      return res.json() as Promise<VersionDetail>;
+    },
+    enabled: !!documentId && !!(toId || compareToId),
+  });
+
+  const { data: viewDetail, isPending: viewPending } = useQuery({
+    queryKey: ['document-version', documentId, viewVersionId],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/v1/documents/${documentId}/versions/${viewVersionId}`);
+      if (!res.ok) throw new Error(t('versionsPage.loadVersionFailed'));
+      return res.json() as Promise<VersionDetail>;
+    },
+    enabled: !!documentId && !!viewVersionId,
+  });
+
+  const showCompare = (fromId || compareFromId) && (toId || compareToId);
+  const comparePending = fromPending || toPending;
+  const showSingleVersion = !!viewVersionId && !showCompare;
+  const canApplyCompare = compareFromId && compareToId && compareFromId !== compareToId;
+
+  const handleCompare = () => {
+    if (!canApplyCompare) return;
+    setSearchParams({ from: compareFromId, to: compareToId });
+  };
+
+  const versionOptions = versions.map((v) => ({
+    value: v.id,
+    label: `v${v.versionNumber} – ${new Date(v.createdAt).toLocaleString()}${v.createdByName ? ` (${v.createdByName})` : ''}`,
+  }));
+
+  if (docPending || !documentId || !doc) {
+    return (
+      <Stack gap="md">
+        <Skeleton height={32} width="60%" />
+        <Skeleton height={200} />
+      </Stack>
+    );
+  }
+
+  return (
+    <Container fluid maw={1600} px="md" mb="xl">
+      <Stack gap="lg" mb="xl" mt="md">
+        <DocumentDocBreadcrumbs documentId={documentId} doc={doc} linkDocumentTitle />
+        <PageHeader
+          title={doc.title}
+          titleOrder={1}
+          noBottomMargin
+          titleIcon={
+            doc.publishedAt ? (
+              <IconFileText size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
+            ) : (
+              <IconPencil size={32} stroke={1.5} color="var(--mantine-color-dimmed)" />
+            )
+          }
+          description={t('versionsPage.description')}
+        />
+      </Stack>
+
+      <Stack gap="lg">
+        {versionsPending ? (
+          <Skeleton height={120} />
+        ) : versionsError ? (
+          <Text size="sm" c="dimmed">
+            {t('versionsPage.loadVersionsFailed')}
+          </Text>
+        ) : versions.length === 0 ? (
+          <Text size="sm" c="dimmed">
+            {canPublish ? t('versionsPage.emptyCanPublish') : t('versionsPage.empty')}
+          </Text>
+        ) : (
+          <>
+            <Card withBorder padding="md">
+              <Text size="sm" fw={500} mb="xs">
+                {t('versionsPage.listTitle')}
+              </Text>
+              <Stack gap="xs">
+                {versions.map((v) => (
+                  <Group key={v.id} justify="space-between" wrap="nowrap">
+                    <Group gap="xs">
+                      <Badge size="sm" variant="filled">
+                        v{v.versionNumber}
+                      </Badge>
+                      <Text size="sm">
+                        {new Date(v.createdAt).toLocaleString()}
+                        {v.contributors && v.contributors.length > 0
+                          ? ` · ${v.contributors.map((c) => c.name).join(', ')}`
+                          : v.createdByName
+                            ? ` · ${v.createdByName}`
+                            : ''}
+                        {v.pdfResponsibleLabel ? ` · ${v.pdfResponsibleLabel}` : ''}
+                      </Text>
+                    </Group>
+                    <Group gap="xs" wrap="nowrap">
+                      {v.pdfReady ? (
+                        <Button
+                          variant="subtle"
+                          size="compact-xs"
+                          onClick={() => {
+                            void (async () => {
+                              const res = await apiFetch(
+                                `/api/v1/documents/${documentId}/versions/${v.id}/pdf`
+                              );
+                              if (!res.ok) return;
+                              const blob = await res.blob();
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `v${v.versionNumber}.pdf`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            })();
+                          }}
+                        >
+                          {t('versionsPage.downloadPdf')}
+                        </Button>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          {t('versionsPage.pdfPending')}
+                        </Text>
+                      )}
+                      <Button
+                        variant="subtle"
+                        size="compact-xs"
+                        component={Link}
+                        to={`/documents/${documentId}/versions?version=${v.id}`}
+                      >
+                        {t('versionsPage.view')}
+                      </Button>
+                    </Group>
+                  </Group>
+                ))}
+              </Stack>
+            </Card>
+
+            <Card withBorder padding="md">
+              <Text size="sm" fw={500} mb="xs">
+                {t('versionsPage.compareTitle')}
+              </Text>
+              <Group align="flex-end" gap="sm" wrap="wrap">
+                <NativeSelect
+                  label={t('versionsPage.fromVersion')}
+                  data={[
+                    { value: '', label: t('versionsPage.selectPlaceholder') },
+                    ...versionOptions,
+                  ]}
+                  value={fromId || compareFromId}
+                  onChange={(e) => setCompareFromId(e.target.value)}
+                  style={{ minWidth: 280 }}
+                />
+                <NativeSelect
+                  label={t('versionsPage.toVersion')}
+                  data={[
+                    { value: '', label: t('versionsPage.selectPlaceholder') },
+                    ...versionOptions,
+                  ]}
+                  value={toId || compareToId}
+                  onChange={(e) => setCompareToId(e.target.value)}
+                  style={{ minWidth: 280 }}
+                />
+                <Button disabled={!canApplyCompare} onClick={handleCompare} size="sm">
+                  {t('versionsPage.compare')}
+                </Button>
+              </Group>
+            </Card>
+
+            {showSingleVersion && (
+              <Card withBorder padding="md">
+                <Text size="sm" fw={500} mb="xs">
+                  {t('versionsPage.versionContent')}
+                  {viewDetail && (
+                    <Text component="span" size="sm" c="dimmed" ml="xs">
+                      v{viewDetail.versionNumber}
+                      {viewDetail.createdByName ? ` · ${viewDetail.createdByName}` : ''}
+                    </Text>
+                  )}
+                </Text>
+                {viewPending ? (
+                  <Skeleton height={200} />
+                ) : viewDetail ? (
+                  <Box
+                    component="pre"
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      fontFamily: 'var(--mantine-font-family-monospace)',
+                      fontSize: 'var(--mantine-font-size-sm)',
+                      padding: 'var(--mantine-spacing-md)',
+                      borderRadius: 'var(--mantine-radius-md)',
+                      overflow: 'auto',
+                    }}
+                    bg="dark.6"
+                  >
+                    {viewDetail.content}
+                  </Box>
+                ) : null}
+              </Card>
+            )}
+
+            {showCompare && (
+              <Card withBorder padding="md">
+                <Text size="sm" fw={500} mb="xs">
+                  {t('versionsPage.diff')}
+                  {fromVersion && toVersion && (
+                    <Text component="span" size="sm" c="dimmed" ml="xs">
+                      v{fromVersion.versionNumber} → v{toVersion.versionNumber}
+                    </Text>
+                  )}
+                </Text>
+                {comparePending ? (
+                  <Skeleton height={200} />
+                ) : fromDetail && toDetail ? (
+                  <DiffView fromContent={fromDetail.content} toContent={toDetail.content} />
+                ) : null}
+              </Card>
+            )}
+          </>
+        )}
+      </Stack>
+    </Container>
+  );
+}
