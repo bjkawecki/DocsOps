@@ -1,20 +1,20 @@
 # Landing Page – Plan & Technik
 
 **Status:** §19 – `apps/landing` existiert; **inhaltliche Leitlinie:** [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)  
-**Sprache Landing:** Deutsch · **App/Demo:** Englisch  
+**Sprache Landing (Ziel):** Deutsch + Englisch · **App/Demo:** EN/DE (App-i18n)  
 **Domain:** `docsops.de` · Demo: `demo.docsops.de`  
-**Design:** Mantine 8, dunkles Theme (Coolify-inspiriert)
+**Design:** Mantine; **Ist:** fest dark · **Ziel:** Light/Dark/Auto (siehe §9)
 
 ---
 
 ## 1. Ziel
 
 - Erklären, **wofür** DocsOps gedacht ist (offizieller Wissensstand, Hierarchie, Veröffentlichung).
-- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophie`.
-- **Vertrauen:** Self-hosted, quelloffen, Impressum/Datenschutz.
+- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophy` (heute noch `/philosophie`).
+- **Vertrauen:** Self-hosted, quelloffen, Impressum/Datenschutz (DE+EN).
 - **Konvertieren:** Story verstehen → Philosophie (optional) → Live-Demo oder `/install`.
 
-**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/vergleich`).
+**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/compare`, heute `/vergleich`).
 
 ---
 
@@ -23,7 +23,7 @@
 | Aspekt  | Stand                                                                                                         |
 | ------- | ------------------------------------------------------------------------------------------------------------- |
 | Stack   | `apps/landing` – Vite + React + Mantine 8                                                                     |
-| Theme   | Fest dark, Cornflower-Blue-Akzent                                                                             |
+| Theme   | **Ist:** fest dark · **Ziel:** Light/Dark + Auto (`prefers-color-scheme`), Toggle, Persistenz – §9            |
 | Build   | `make landing-build` → `apps/landing/dist`                                                                    |
 | Env     | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL`, `VITE_SITE_URL`, optional `VITE_SPONSOR_GITHUB_URL` (`.env.example`) |
 | Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
@@ -53,35 +53,33 @@
 
 **Vergleichstabelle:** weiterhin **`/vergleich`**, nicht auf `/`.
 
-### Routen
+### Routen (Ist → Ziel: englische Pfadsegmente)
 
-| Route                        | Inhalt                                                                       |
-| ---------------------------- | ---------------------------------------------------------------------------- |
-| `/`                          | Startseite                                                                   |
-| `/philosophie`               | Philosophie (Abgrenzung indirekt, keine Vergleichs-CTA)                      |
-| `/warum`, `/ansatz`          | Redirect → `/philosophie`                                                    |
-| `/install`                   | Marketing-Install (curl, Voraussetzungen, Link zu `docs/install.md`)         |
-| `/changelog`                 | Root-`CHANGELOG.md` (Build-Import)                                           |
-| `/sponsor`                   | Sponsor us. (externe Links per Env)                                          |
-| `/vergleich`                 | DocsOps · Confluence · Docmost (Tabelle + Reibungspunkte); Nav unter Projekt |
-| `/impressum`, `/datenschutz` | Strukturierte Platzhalter (`legalCopy.ts`) – vor Go-live ausfüllen           |
+| Ist (DE-Slug)                | Ziel-Slug (DE unprefixed / EN unter `/en/…`) | Inhalt                         |
+| ---------------------------- | -------------------------------------------- | ------------------------------ |
+| `/`                          | `/`                                          | Startseite                     |
+| `/philosophie`               | `/philosophy`                                | Philosophie                    |
+| `/warum`, `/ansatz`          | Redirect → `/philosophy`                     | Legacy                         |
+| `/install`                   | `/install`                                   | Marketing-Install              |
+| `/changelog`                 | `/changelog`                                 | Changelog                      |
+| `/sponsor`                   | `/sponsor`                                   | Sponsor                        |
+| `/vergleich`                 | `/compare`                                   | DocsOps · Confluence · Docmost |
+| `/impressum`, `/datenschutz` | `/legal/imprint`, `/legal/privacy`           | Legal (DE+EN ausformulieren)   |
+
+Alte DE-Slugs: **301** auf die Ziel-Slugs (gleiche Locale).
 
 ---
 
 ## 4. Navbar & Footer
 
-**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** ▾ · GitHub · Changelog · Unterstützen · **Live-Demo**
+**Navbar (Desktop):** Logo · **So funktioniert’s** ▾ · **Philosophie** ▾ · Sprachumschalter · (später Theme-Toggle) · GitHub · Changelog · Unterstützen · **Live-Demo**
 
-- So funktioniert’s: `#scope`, `#kontext`, `#rollen`, `#einordnen`, `#features`
-- Philosophie: Unser Ansatz (`/philosophie`), DocsOps vs. Confluence (`/vergleich`)
+- So funktioniert’s: Anker auf Startseite (`#scope`, …) – Anker-IDs bei i18n stabil Englisch halten
+- Philosophie: Unser Ansatz (`/philosophy`), DocsOps vs. Confluence (`/compare`)
 
 **Navbar (Mobile):** Burger/Drawer mit gleichen Links + Demo-CTA.
 
 **Footer:** Produkt · **DocsOps vs.** · Projekt · Rechtliches · `vX.Y.Z` → Changelog
-
-- Produkt: So funktioniert’s (`/#scope`), Unser Ansatz, Installation, Live-Demo
-- DocsOps vs.: Confluence (später weitere Gegner); Eintrag nur Opponent-Name
-- Projekt: GitHub, Changelog, Unterstützen, Autor-Link
 
 Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
@@ -89,9 +87,9 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ## 5. Vergleich & FAQ
 
-- **`/vergleich`:** Hauptort der Gegenüberstellung; Navbar unter Philosophie ▾; Footer-Spalte **DocsOps vs.**
-- Startseite: kein großes Vergleichs-Grid; FAQ verweist auf `/vergleich`.
-- Abgrenzung Haltung: `/philosophie`. Tabellendaten: [vergleich/](./vergleich/).
+- **`/compare`:** Hauptort der Gegenüberstellung (Ist: `/vergleich`).
+- Startseite: kein großes Vergleichs-Grid; FAQ verweist auf Compare.
+- Abgrenzung Haltung: `/philosophy`. Tabellendaten: [vergleich/](./vergleich/).
 - FAQ auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
 
 ---
@@ -112,23 +110,62 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 - [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
 - [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
-- [x] **Feature-Grid auf `/`:** Section `#features` nach Philosophie-Teaser (Beispiel → Warum-Regeln bleibt zusammen); Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
-- [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen
+- [x] **Feature-Grid auf `/`:** Section `#features` nach Philosophie-Teaser; Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
+- [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen (**DE + EN**)
 - [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (Tabelle + Reibungspunkte; FAQ-Link)
-- [ ] Demo-Seed-Story
+- [ ] Demo-Seed-Story (App; Landing-unabhängig)
+- [ ] **Landing EN-Copy:** alle Seiten inkl. Vergleich und Legal (DE freigeben → EN nachziehen)
 
 ### Technik
 
 - [x] Mobile Navbar, OG-Tags, Hero LCP-Attribute, Version-Badge
 - [x] SEO: robots/sitemap, Canonicals, Prerender, Search-Console-Checkliste ([Landing-SEO.md](./Landing-SEO.md))
 - [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
-- [x] **Favicon Color Scheme:** Landing + App: nur SVG `docops.svg` / `docops-dark.svg` mit `prefers-color-scheme: light|dark` (wie App). Landing: keine ICO/PNG-`<link>`s mehr (die überschrieben Dark-SVG). Legacy-Dateien `favicon.ico`/16/32 aus `docops-dark.svg` neu erzeugt (Auto-Request `/favicon.ico`). Optional später: light/dark-ICO und `site.webmanifest`.
+- [x] **Favicon Color Scheme:** Landing + App: SVG `docops.svg` / `docops-dark.svg` mit `prefers-color-scheme`
+- [ ] **Landing i18n** – siehe §8
+- [ ] **Landing Color Theme** – siehe §9
 - [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 
 ---
 
-## 8. Referenzen
+## 8. Landing i18n (geplant, zuerst umsetzen)
+
+**Reihenfolge:** Sprache vor Color Theme.
+
+| Entscheidung        | Vorgabe                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Locales             | `de` \| `en`                                                                                                     |
+| Pfadsegmente        | **Englisch** in beiden Locales (`/philosophy`, `/compare`, `/legal/imprint`, …)                                  |
+| Locale im URL       | DE **ohne** Präfix; EN unter **`/en/…`** (gleiche Segmente). Kein `?lang=` als Primärmodell                      |
+| Default (1. Besuch) | Browser `de` / `de-*` → DE; sonst → EN. Danach: URL-Locale und gespeicherte Wahl gewinnen                        |
+| Persistenz          | localStorage (oder Cookie) für explizite Sprachwahl                                                              |
+| Scope               | **alle** Landing-Routen inkl. Vergleich und Legal                                                                |
+| SEO                 | Canonical + `hreflang` je Locale; Sitemap und Prerender für DE- und EN-URLs – [Landing-SEO.md](./Landing-SEO.md) |
+| Copy                | DE SSoT freigeben, dann EN; Marketing-Prosa-Regeln                                                               |
+| Redirects           | Alte DE-Slugs → neue EN-Slugs (301); optional Root `/` nur beim Erstbesuch locale-redirecten                     |
+
+**Nicht:** App-`i18next`-Namespaces 1:1 übernehmen (Landing-Copy bleibt in `apps/landing` Content-Modulen, locale-aufgeteilt oder Key-basiert).
+
+---
+
+## 9. Landing Color Theme (geplant, nach i18n)
+
+| Entscheidung | Vorgabe                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| System       | `prefers-color-scheme` beachten (Modus **Auto**)                                           |
+| UI           | Toggle Light / Dark / Auto                                                                 |
+| Persistenz   | lokale Speicherung der expliziten Wahl; ohne Wahl → Auto                                   |
+| Look         | **App-ähnlich** (Mantine Light/Dark, gleicher Blau-Akzent)                                 |
+| Diagramme    | eigene Flächen/Kontraste für Light und Dark (Scope-Baum, Rollen-Flow, nicht nur Textfarbe) |
+| Ist-Blocker  | `forceColorScheme="dark"`, `theme-dark.css`, viele `dark-*`-Hardcodes in `landing.css`     |
+
+Favicon folgt weiter `prefers-color-scheme` bzw. dem effektiven Scheme, sobald Toggle existiert.
+
+---
+
+## 10. Referenzen
 
 - [Landing-Sections-Plan.md](./Landing-Sections-Plan.md)
 - [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)
+- [Landing-SEO.md](./Landing-SEO.md)
 - [install.md](../install.md) – vollständige Installationsdoku (extern verlinkt)

@@ -17,7 +17,9 @@
 
 `VITE_SITE_URL` ist Pflicht (kein stiller Fallback) – siehe [`apps/landing/.env.example`](../../apps/landing/.env.example).
 
-Indexierbare Routen: `/`, `/philosophie`, `/install`, `/changelog`, `/vergleich`, `/sponsor`, `/impressum`, `/datenschutz` (SSoT: [`apps/landing/seo/routes.ts`](../../apps/landing/seo/routes.ts)).
+Indexierbare Routen (**Ist**): `/`, `/philosophie`, `/install`, `/changelog`, `/vergleich`, `/sponsor`, `/impressum`, `/datenschutz` (SSoT: [`apps/landing/seo/routes.ts`](../../apps/landing/seo/routes.ts)).
+
+**Ziel (Landing i18n):** englische Pfadsegmente; DE unprefixed, EN unter `/en/…`; je Locale Canonical + `hreflang` (`de` / `en` / `x-default`); Sitemap und Prerender beide Locales. Details: [Landing-Page-Plan §8](./Landing-Page-Plan.md#8-landing-i18n-geplant-zuerst-umsetzen).
 
 ## Google Search Console – Checkliste
 

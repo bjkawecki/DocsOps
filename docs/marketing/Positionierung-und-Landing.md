@@ -231,7 +231,7 @@ In-App-Hilfe zu Document Types & Templates: `/help/document-types` (ADR 008 / §
 
 ## 8. Nächste Schritte (Landing-Implementierung)
 
-Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
+Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F) und Ausbau in [Landing-Page-Plan §8–9](./Landing-Page-Plan.md).
 
 - [x] Mermaid + React Flow Rechte-Diagramm – [diagramme/rollen-dokument.mmd](./diagramme/rollen-dokument.mmd)
 - [x] Landing: Scope-Vorläufer (`ScopeHierarchySection`, Refactor → Phase B)
@@ -243,6 +243,8 @@ Siehe [Landing-Sections-Plan.md](./Landing-Sections-Plan.md) (Phasen A–F).
 - [x] Philosophie-Seite `/philosophie` (Ansatz, Was das bedeutet, Kurz gesagt)
 - [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (siehe Umsetzungs-Todo §19)
 - [ ] Demo-Seed: Beispiel IT / Software X / Stand Barrierefreiheit
+- [ ] Landing DE+EN (englische Pfade, `/en/…`, Legal EN) – [Landing-Page-Plan §8](./Landing-Page-Plan.md#8-landing-i18n-geplant-zuerst-umsetzen)
+- [ ] Landing Light/Dark/Auto – [Landing-Page-Plan §9](./Landing-Page-Plan.md#9-landing-color-theme-geplant-nach-i18n)
 
 ---
 
