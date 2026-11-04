@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
   UnstyledButton,
+  useComputedColorScheme,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconChevronDown } from '@tabler/icons-react';
@@ -21,7 +22,7 @@ import { useLocale } from '../../i18n/LocaleProvider';
 import { localizePath, pathFor, stripLocalePrefix } from '../../i18n/locale';
 import { LandingExternalButton, LandingExternalLink } from '../LandingExternalLink';
 import { LandingNavAnchor, LandingNavLink } from '../LandingNavLink';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import { PageSettingsMenu } from './PageSettingsMenu';
 
 function navMenuClassName(active: boolean, className?: string) {
   return [
@@ -95,6 +96,8 @@ export function Navbar() {
   const location = useLocation();
   const { locale } = useLocale();
   const { site } = useLandingCopy();
+  const resolvedScheme = useComputedColorScheme('dark');
+  const brandIcon = resolvedScheme === 'light' ? '/docops.svg' : '/docops-dark.svg';
   const { navbarCopy, modellNavLinks, philosophieNavLinks, projectNavLinks } = site;
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
 
@@ -107,7 +110,7 @@ export function Navbar() {
   return (
     <>
       <Box component="header" className="landing-navbar">
-        <Container size="lg">
+        <Container size="lg" className="landing-navbar-inner">
           <Group justify="space-between" wrap="nowrap">
             <Group gap="sm" wrap="nowrap">
               <Burger
@@ -120,11 +123,11 @@ export function Navbar() {
                 component={Link}
                 to={homePath}
                 underline="never"
-                c="white"
+                className="landing-brand-link"
                 onClick={closeDrawer}
               >
                 <Group gap="sm" wrap="nowrap">
-                  <Image src="/docops-dark.svg" alt="" w={36} h={36} fit="contain" />
+                  <Image src={brandIcon} alt="" w={36} h={36} fit="contain" />
                   <Box component="span" fw={700} fz="xl">
                     DocsOps
                   </Box>
@@ -203,19 +206,17 @@ export function Navbar() {
               })}
             </Group>
 
-            <Group gap="md" wrap="nowrap">
-              <span className="landing-navbar-cta-slot">
-                <span className="landing-navbar-cta-sizer" aria-hidden>
-                  <LandingExternalButton href={demoUrl} tabIndex={-1}>
-                    {navbarCopy.demoCta}
-                  </LandingExternalButton>
-                </span>
+            <span className="landing-navbar-cta-slot">
+              <span className="landing-navbar-cta-sizer" aria-hidden>
                 <LandingExternalButton href={demoUrl}>{navbarCopy.demoCta}</LandingExternalButton>
               </span>
-              <LanguageSwitcher />
-            </Group>
+              <LandingExternalButton href={demoUrl}>{navbarCopy.demoCta}</LandingExternalButton>
+            </span>
           </Group>
         </Container>
+        <div className="landing-settings-edge">
+          <PageSettingsMenu />
+        </div>
       </Box>
 
       <Drawer
@@ -226,7 +227,7 @@ export function Navbar() {
         size="xs"
       >
         <Stack gap="md">
-          <Text fw={600} size="sm" c="gray.5" tt="uppercase">
+          <Text fw={600} size="sm" c="dimmed" tt="uppercase">
             {navbarCopy.modell}
           </Text>
           {modellNavLinks.map((link) => (
@@ -238,7 +239,7 @@ export function Navbar() {
               {link.label}
             </LandingNavAnchor>
           ))}
-          <Text fw={600} size="sm" c="gray.5" tt="uppercase" mt="xs">
+          <Text fw={600} size="sm" c="dimmed" tt="uppercase" mt="xs">
             {navbarCopy.philosophie}
           </Text>
           {philosophieNavLinks.map((link) => (
@@ -278,7 +279,6 @@ export function Navbar() {
           <LandingExternalButton href={demoUrl} fullWidth mt="sm">
             {navbarCopy.demoCta}
           </LandingExternalButton>
-          <LanguageSwitcher onNavigate={closeDrawer} />
         </Stack>
       </Drawer>
     </>

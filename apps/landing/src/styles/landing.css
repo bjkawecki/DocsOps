@@ -3,6 +3,20 @@
   --landing-section-gap-bottom: 6rem;
 }
 
+.landing-shell {
+  background-color: var(--landing-page-bg);
+  color: var(--mantine-color-text);
+}
+
+.landing-brand-link {
+  color: var(--landing-heading);
+}
+
+.landing-brand-link:hover {
+  color: var(--landing-heading);
+  opacity: 0.92;
+}
+
 .landing-section {
   padding-top: var(--landing-section-gap-top);
   padding-bottom: var(--landing-section-gap-bottom);
@@ -88,11 +102,12 @@
   width: 100%;
   max-width: min(820px, 100%);
   margin-inline: auto;
-  color: var(--mantine-color-white);
+  color: var(--landing-heading);
 }
 
 .landing-hero-headline-lead {
   display: block;
+  white-space: nowrap;
 }
 
 .landing-hero-headline-second {
@@ -211,7 +226,7 @@
   line-height: 1.55;
   letter-spacing: -0.01em;
   text-align: center;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
 }
 
 .landing-hero-trust-line {
@@ -238,10 +253,11 @@
   max-width: 1120px;
   margin-top: 0.25rem;
   margin-inline: auto;
-  border: 1px solid var(--mantine-color-dark-5);
+  border: 1px solid var(--landing-border);
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
-  background: var(--mantine-color-dark-8);
+  background: var(--landing-surface-1);
+  aspect-ratio: 2658 / 1744;
 }
 
 .landing-hero-preview-image {
@@ -276,11 +292,11 @@
 }
 
 .landing-roles-diagram-scope {
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
 }
 
 .landing-roles-diagram-card {
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
 }
 
 .landing-diagram-desktop,
@@ -311,7 +327,7 @@
   top: 2rem;
   width: 320px;
   min-height: 5rem;
-  background: var(--mantine-color-dark-9);
+  background: var(--landing-page-bg);
   padding: 0;
   z-index: 2;
 }
@@ -362,7 +378,7 @@
 .landing-roles-flow-node {
   position: relative;
   overflow: visible !important;
-  border-color: var(--mantine-color-dark-5) !important;
+  border-color: var(--landing-border) !important;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -424,7 +440,7 @@
   min-width: 8px;
   min-height: 8px;
   border: 2px solid var(--mantine-color-blue-4);
-  background: var(--mantine-color-dark-7);
+  background: var(--landing-surface-2);
 }
 
 .landing-roles-flow-wrap:not(.landing-roles-flow-wrap--edit) .landing-roles-flow-handle {
@@ -445,13 +461,13 @@
 .landing-roles-flow-wrap .react-flow__edge-textbg {
   fill: #25262b;
   fill-opacity: 0.95;
-  stroke: var(--mantine-color-dark-4);
+  stroke: var(--landing-border-strong);
   stroke-width: 1;
 }
 
 .landing-roles-flow-scope-frame {
-  border: 1px solid var(--mantine-color-dark-4);
-  background: var(--mantine-color-dark-7);
+  border: 1px solid var(--landing-border-strong);
+  background: var(--landing-surface-2);
   padding: 1.5rem 1.75rem;
   box-sizing: border-box;
 }
@@ -470,8 +486,8 @@
 }
 
 .landing-roles-flow-document-frame {
-  border: 1px solid var(--mantine-color-dark-5);
-  background: var(--mantine-color-dark-8);
+  border: 1px solid var(--landing-border);
+  background: var(--landing-surface-1);
   padding: 1rem 1.1rem;
   box-shadow: none;
 }
@@ -496,7 +512,7 @@
 }
 
 .landing-flow-step {
-  border-color: var(--mantine-color-dark-5) !important;
+  border-color: var(--landing-border) !important;
 }
 
 .landing-flow-arrow {
@@ -510,7 +526,7 @@
 .landing-flow-arrow-line {
   width: 2px;
   flex: 1;
-  background: var(--mantine-color-dark-4);
+  background: var(--landing-border-strong);
 }
 
 .landing-flow-arrow-head {
@@ -562,15 +578,15 @@
 }
 
 .landing-comparison-table thead th {
-  background: var(--mantine-color-dark-7);
+  background: var(--landing-surface-2);
   font-weight: 600;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--mantine-color-dark-5);
+  border-bottom: 1px solid var(--landing-border);
 }
 
 .landing-comparison-table tbody td {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--mantine-color-dark-6);
+  border-bottom: 1px solid var(--landing-surface-3);
   vertical-align: middle;
 }
 
@@ -617,7 +633,7 @@
 }
 
 .landing-scope-diagram-card {
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
   pointer-events: none;
 }
 
@@ -646,10 +662,10 @@
   width: 100%;
   min-width: 10.75rem;
   padding: 0.85rem 1.25rem;
-  border: 1px solid var(--mantine-color-dark-5);
+  border: 1px solid var(--landing-border);
   border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-dark-8);
-  color: var(--mantine-color-gray-0);
+  background: var(--landing-surface-1);
+  color: var(--mantine-color-text);
   cursor: pointer;
   font: inherit;
   white-space: nowrap;
@@ -747,10 +763,10 @@
   gap: 0.2rem;
   min-width: 10rem;
   padding: 0.85rem 1.25rem;
-  border: 1px solid var(--mantine-color-dark-5);
+  border: 1px solid var(--landing-border);
   border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-dark-8);
-  color: var(--mantine-color-gray-0);
+  background: var(--landing-surface-1);
+  color: var(--mantine-color-text);
   cursor: pointer;
   font: inherit;
   transition:
@@ -777,7 +793,7 @@
 }
 
 .landing-scope-node--dimmed:hover {
-  border-color: var(--mantine-color-dark-5);
+  border-color: var(--landing-border);
 }
 
 .landing-scope-node--alternate {
@@ -796,7 +812,7 @@
 .landing-scope-connector {
   width: 2px;
   height: 1.75rem;
-  background: var(--mantine-color-dark-4);
+  background: var(--landing-border-strong);
   flex-shrink: 0;
 }
 
@@ -804,11 +820,11 @@
   width: 2px;
   height: 1.75rem;
   background: none;
-  border-left: 2px dashed var(--mantine-color-dark-4);
+  border-left: 2px dashed var(--landing-border-strong);
 }
 
 .landing-scope-mobile-card {
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
 }
 
 .landing-scope-mobile-list {
@@ -862,7 +878,7 @@
   font-size: clamp(10rem, 36vw, 18rem);
   font-weight: 700;
   line-height: 1;
-  color: color-mix(in srgb, var(--mantine-color-blue-4) 55%, var(--mantine-color-dark-4));
+  color: color-mix(in srgb, var(--mantine-color-blue-4) 55%, var(--landing-border-strong));
   opacity: 0.14;
   pointer-events: none;
   user-select: none;
@@ -875,21 +891,21 @@
   font-size: clamp(1.625rem, 3.5vw, 2.25rem);
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
   text-transform: lowercase;
 }
 
 .landing-context-type-card {
   display: flex;
   flex-direction: column;
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
 }
 
 .landing-context-type-card-title {
   font-size: clamp(1.375rem, 2.8vw, 1.75rem);
   font-weight: 700;
   line-height: 1.25;
-  color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
 }
 
 .landing-context-type-description {
@@ -941,12 +957,12 @@
 }
 
 .landing-example-step--bordered {
-  border-top: 1px solid var(--mantine-color-dark-5);
+  border-top: 1px solid var(--landing-border);
   padding-top: 1.75rem;
 }
 
 .landing-example-step-question {
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
   line-height: 1.35;
 }
 
@@ -962,18 +978,19 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  /* Absolute settings control anchors to the viewport edge of the bar. */
   padding-block: var(--mantine-spacing-md);
-  border-bottom: 1px solid var(--mantine-color-dark-5);
-  background-color: rgba(16, 16, 16, 0.92);
+  border-bottom: 1px solid var(--landing-border);
+  background-color: var(--landing-navbar-bg);
   backdrop-filter: blur(8px);
 }
 
 .landing-navbar a.landing-nav-link--menu {
-  cursor: text !important;
+  cursor: default !important;
 }
 
 .landing-navbar button.landing-nav-link--menu {
-  cursor: text !important;
+  cursor: default !important;
   background: none;
   border-top: none;
   border-right: none;
@@ -984,12 +1001,75 @@
 
 /* Nav dropdowns (portal – not under .landing-navbar) */
 .landing-nav-menu {
-  background: var(--mantine-color-dark-6);
-  border: 1px solid var(--mantine-color-dark-3);
+  background: var(--landing-menu-bg);
+  border: 1px solid var(--landing-border-soft);
   border-radius: 6px;
   padding: 0.25rem;
   min-width: 12rem;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--landing-menu-shadow);
+}
+
+.landing-navbar-inner {
+  /* Keep CTA clear of the edge settings control. */
+  padding-inline-end: 2.75rem;
+}
+
+.landing-settings-edge {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.landing-settings-menu {
+  min-width: 0;
+  width: max-content;
+}
+
+/* Hide suppressed default Sub.Item right chevron (empty placeholder). */
+.landing-settings-menu .mantine-Menu-itemSection[data-position='right']:empty {
+  display: none;
+  width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--mantine-color-gray-5);
+  border-radius: 6px;
+  padding: 0;
+  cursor: default;
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+  opacity: 0.85;
+}
+
+.landing-settings-trigger:hover,
+.landing-settings-trigger[data-expanded],
+.landing-settings-trigger[aria-expanded='true'] {
+  color: var(--mantine-color-text);
+  opacity: 1;
+  background-color: var(--landing-menu-hover);
+  border-color: var(--landing-border);
+}
+
+.landing-settings-leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .landing-nav-menu-item {
@@ -999,13 +1079,15 @@
   line-height: 1.35;
   padding: 0.45rem 0.75rem;
   border-radius: 4px;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
+  text-decoration: none;
 }
 
 .landing-nav-menu-item:hover,
 .landing-nav-menu-item[data-hovered] {
-  background: var(--mantine-color-dark-4);
-  color: var(--mantine-color-white);
+  background: var(--landing-menu-hover);
+  color: var(--mantine-color-text);
+  text-decoration: none;
 }
 
 .landing-navbar a.landing-nav-link,
@@ -1036,7 +1118,7 @@
 .landing-navbar .landing-nav-link--menu:hover,
 .landing-navbar .landing-nav-link--menu[data-expanded],
 .landing-navbar .landing-nav-link--menu[aria-expanded='true'] {
-  color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
   font-weight: 500;
   border-bottom-color: color-mix(in srgb, var(--mantine-color-blue-4) 55%, transparent);
 }
@@ -1050,7 +1132,7 @@
 .landing-navbar .landing-nav-link--menu.landing-nav-link--active:hover,
 .landing-navbar .landing-nav-link--menu.landing-nav-link--active[data-expanded],
 .landing-navbar .landing-nav-link--menu.landing-nav-link--active[aria-expanded='true'] {
-  color: var(--mantine-color-white);
+  color: var(--mantine-color-text);
   font-weight: 500;
   border-bottom-color: var(--mantine-color-blue-4);
 }
@@ -1063,11 +1145,11 @@
 
 .landing-nav-link:hover,
 a.landing-nav-link:hover {
-  color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
 }
 
 .landing-nav-link--active {
-  color: var(--mantine-color-white);
+  color: var(--mantine-color-text);
   font-weight: 500;
 }
 
@@ -1075,29 +1157,10 @@ a.landing-nav-link:hover {
   color: inherit;
 }
 
-.landing-lang-switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding-inline: 0.35rem;
-}
-
-.landing-lang-switcher-code {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.landing-lang-switcher-check-spacer {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-}
-
 .landing-footer {
   padding-block: var(--mantine-spacing-xl);
   margin-top: var(--mantine-spacing-xl);
-  border-top: 1px solid var(--mantine-color-dark-5);
+  border-top: 1px solid var(--landing-border);
 }
 
 .landing-footer-brand-column {
@@ -1115,7 +1178,7 @@ a.landing-nav-link:hover {
 }
 
 .landing-footer-heading {
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
   margin-bottom: 0.25rem;
 }
 
@@ -1127,12 +1190,12 @@ a.landing-nav-link:hover {
 }
 
 .landing-footer-link:hover {
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
 }
 
 .landing-footer-meta {
   padding-top: 0.5rem;
-  border-top: 1px solid var(--mantine-color-dark-6);
+  border-top: 1px solid var(--landing-surface-3);
 }
 
 .landing-page {
@@ -1167,7 +1230,7 @@ a.landing-nav-link:hover {
   font-size: clamp(1.125rem, 2.5vw, 1.35rem);
   font-weight: 600;
   text-align: center;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
   margin-bottom: 0.25rem;
 }
 
@@ -1215,7 +1278,7 @@ a.landing-nav-link:hover {
   line-height: 1.3;
   letter-spacing: -0.01em;
   text-align: center;
-  color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-text);
 }
 
 .landing-subpage-body {
@@ -1264,7 +1327,7 @@ a.landing-nav-link:hover {
   width: 100%;
   max-width: 28rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--mantine-color-dark-4);
+  border-top: 1px solid var(--landing-border-strong);
   text-align: center;
 }
 
@@ -1285,9 +1348,9 @@ a.landing-nav-link:hover {
 
 .landing-install-code {
   width: 100%;
-  border-color: var(--mantine-color-dark-4) !important;
+  border-color: var(--landing-border-strong) !important;
   border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-dark-8);
+  background: var(--landing-surface-1);
 }
 
 .landing-philosophy-page {
@@ -1317,7 +1380,7 @@ a.landing-nav-link:hover {
 
 .landing-philosophy-body {
   font-size: 1rem;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
 }
 
 .landing-philosophy-section-title {
@@ -1367,12 +1430,12 @@ a.landing-nav-link:hover {
 .landing-philosophy-summary-card {
   height: 100%;
   min-width: 0;
-  border-color: var(--mantine-color-dark-5) !important;
+  border-color: var(--landing-border) !important;
   padding: clamp(1.5rem, 3vw, 2rem) !important;
 }
 
 .landing-philosophy-summary-card--muted {
-  --landing-surface-glow-color: var(--mantine-color-dark-4);
+  --landing-surface-glow-color: var(--landing-border-strong);
 }
 
 .landing-philosophy-summary-list {
@@ -1403,7 +1466,7 @@ a.landing-nav-link:hover {
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.015em;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
 }
 
 .landing-philosophy-summary-column-title--muted {
@@ -1421,7 +1484,7 @@ a.landing-nav-link:hover {
   word-break: break-word;
   font-size: 0.875rem;
   background: transparent;
-  color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
 }
 
 .landing-changelog {

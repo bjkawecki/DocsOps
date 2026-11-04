@@ -6,8 +6,8 @@ import { getDemoUrl } from '../../config/env';
 import { useLandingCopy } from '../../content/useLandingCopy';
 import { useLocale } from '../../i18n/LocaleProvider';
 import { pathFor } from '../../i18n/locale';
-import showroomImage from '../../assets/images/showroom.png';
 import { HeroHeadline } from './HeroHeadline';
+import { HeroShowroomPreview } from './HeroShowroomPreview';
 
 export function HeroSection() {
   const demoUrl = getDemoUrl();
@@ -46,18 +46,7 @@ export function HeroSection() {
           </Button>
         </Group>
 
-        <Box className="landing-hero-preview landing-surface-card" w="100%">
-          <img
-            src={showroomImage}
-            alt={heroCopy.showroomAlt}
-            className="landing-hero-preview-image"
-            width={2894}
-            height={1556}
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
-        </Box>
+        <HeroShowroomPreview alt={heroCopy.showroomAlt} />
 
         <Anchor href="#scope" className="landing-hero-scroll" underline="never">
           <Text span className="landing-hero-scroll-label">

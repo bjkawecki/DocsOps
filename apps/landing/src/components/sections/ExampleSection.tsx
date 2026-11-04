@@ -25,7 +25,7 @@ export function ExampleSection() {
               <Title order={3} size="h4" fw={600} mb="sm" className="landing-example-step-question">
                 {index + 1}. {step.question}
               </Title>
-              <Text size="md" c="gray.2" lh={1.65}>
+              <Text size="md" c="dimmed" lh={1.65}>
                 {step.answer}
               </Text>
             </Box>

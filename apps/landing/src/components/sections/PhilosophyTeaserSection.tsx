@@ -16,7 +16,7 @@ export function PhilosophyTeaserSection() {
           <Title order={2} size="h3">
             {philosophyTeaserCopy.title}
           </Title>
-          <Text c="gray.2" lh={1.65}>
+          <Text c="dimmed" lh={1.65}>
             {philosophyTeaserCopy.body}
           </Text>
           <Box>

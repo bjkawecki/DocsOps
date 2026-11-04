@@ -22,6 +22,7 @@ const MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
+  '.avif': 'image/avif',
   '.woff2': 'font/woff2',
   '.json': 'application/json',
   '.txt': 'text/plain; charset=utf-8',
@@ -51,6 +52,15 @@ function resolveStaticFile(outDir: string, urlPath: string): string {
     return candidate;
   }
   return join(outDir, 'index.html');
+}
+
+/**
+ * Playwright serializes absolute asset URLs against the local preview origin.
+ * Strip that origin so prod serves relative `/assets/…` paths.
+ */
+function relativizePrerenderHtml(html: string, previewOrigin: string): string {
+  const withoutPreview = html.split(previewOrigin).join('');
+  return withoutPreview.replace(/https?:\/\/127\.0\.0\.1:\d+/g, '');
 }
 
 async function main(): Promise<void> {
@@ -86,7 +96,7 @@ async function main(): Promise<void> {
       await page.goto(url, { waitUntil: 'networkidle' });
       await page.waitForSelector('h1', { timeout: 30_000 });
       await new Promise((r) => setTimeout(r, 150));
-      const html = await page.content();
+      const html = relativizePrerenderHtml(await page.content(), baseUrl);
       const target = routeToFile(outDir, route.path);
       const body =
         html.startsWith('<!DOCTYPE html>') || html.startsWith('<!doctype html>')

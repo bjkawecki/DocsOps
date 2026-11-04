@@ -31,7 +31,7 @@ const FOCUSED_EDGE_STYLE = {
   strokeWidth: 2.5,
 };
 const DIMMED_EDGE_STYLE = {
-  stroke: 'var(--mantine-color-dark-5)',
+  stroke: 'var(--landing-diagram-stroke-dim)',
   strokeWidth: 2,
   opacity: 0.35,
 };
@@ -53,17 +53,17 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | 
     <Box className="landing-diagram-detail-panel">
       {detail ? (
         <>
-          <Text size="sm" tt="uppercase" fw={700} c="gray.3" lts={0.6} mb="sm">
+          <Text size="sm" tt="uppercase" fw={700} c="dimmed" lts={0.6} mb="sm">
             {detail.title}
           </Text>
           {detail.description.split(/\n\n+/).map((paragraph, index) => (
-            <Text key={index} size="md" c="gray.2" lh={1.65} mb={index === 0 ? 'sm' : 0}>
+            <Text key={index} size="md" c="dimmed" lh={1.65} mb={index === 0 ? 'sm' : 0}>
               {paragraph}
             </Text>
           ))}
         </>
       ) : (
-        <Text size="md" c="gray.4" lh={1.65}>
+        <Text size="md" c="dimmed" lh={1.65}>
           {scopeCopy.diagramClickHint}
         </Text>
       )}
@@ -81,9 +81,9 @@ function MobileScopeList() {
         className="landing-scope-mobile-card landing-surface-card"
         p="lg"
         withBorder
-        bg="dark.7"
+        style={{ backgroundColor: 'var(--landing-surface-2)' }}
       >
-        <Text size="sm" c="gray.3" lh={1.55} mb="md">
+        <Text size="sm" c="dimmed" lh={1.55} mb="md">
           {scopeCopy.mobileIntro}
         </Text>
         <Box component="ol" className="landing-scope-mobile-list">
@@ -99,7 +99,7 @@ function MobileScopeList() {
                     <Text size="md" fw={600} lh={1.35}>
                       {title}
                     </Text>
-                    <Text size="sm" c="gray.4" lh={1.55}>
+                    <Text size="sm" c="dimmed" lh={1.55}>
                       {description}
                     </Text>
                   </Stack>
@@ -134,7 +134,7 @@ function resolveEdgeVisualState(
   return {
     style: { ...edge.style, ...DIMMED_EDGE_STYLE },
     markerEnd: edge.markerEnd
-      ? { ...FOCUSED_MARKER, color: 'var(--mantine-color-dark-5)' }
+      ? { ...FOCUSED_MARKER, color: 'var(--landing-diagram-stroke-dim)' }
       : undefined,
   };
 }
@@ -195,7 +195,7 @@ export function ScopeDiagram() {
             className="landing-scope-diagram-card landing-surface-card"
             p="xl"
             withBorder
-            bg="dark.7"
+            style={{ backgroundColor: 'var(--landing-surface-2)' }}
           >
             <Box className="landing-scope-flow-wrap">
               <ReactFlow

@@ -22,7 +22,7 @@ export function ChangelogPage() {
       <LandingPageLayout title={changelogCopy.title} intro={changelogCopy.intro} narrow>
         <Stack gap="lg">
           {releases.length === 0 ? (
-            <Text c="gray.4" ta="center">
+            <Text c="dimmed" ta="center">
               {changelogCopy.empty}
             </Text>
           ) : (
@@ -32,7 +32,7 @@ export function ChangelogPage() {
                 withBorder
                 padding="lg"
                 radius="md"
-                bg="dark.7"
+                style={{ backgroundColor: 'var(--landing-surface-2)' }}
                 className="landing-surface-card"
               >
                 <Stack gap="sm">
@@ -44,7 +44,7 @@ export function ChangelogPage() {
                         color="var(--mantine-color-gray-4)"
                         aria-hidden
                       />
-                      <Title order={2} size="h3" m={0} lh={1.2} c="gray.1">
+                      <Title order={2} size="h3" m={0} lh={1.2}>
                         v{release.version}
                       </Title>
                     </Group>
@@ -61,7 +61,7 @@ export function ChangelogPage() {
                   {release.markdown.trim() ? (
                     <BoxMarkdown markdown={release.markdown} />
                   ) : (
-                    <Text size="sm" c="gray.5">
+                    <Text size="sm" c="dimmed">
                       {changelogCopy.noBody}
                     </Text>
                   )}

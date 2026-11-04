@@ -8,17 +8,17 @@ export const changelogMarkdownComponents: Partial<Components> = {
     </Title>
   ),
   h2: ({ children }) => (
-    <Text component="h3" size="md" fw={600} mt="md" mb={6} lh={1.4} c="gray.2">
+    <Text component="h3" size="md" fw={600} mt="md" mb={6} lh={1.4} c="dimmed">
       {children}
     </Text>
   ),
   h3: ({ children }) => (
-    <Text component="h4" size="sm" fw={600} mt="sm" mb={4} lh={1.4} c="gray.2">
+    <Text component="h4" size="sm" fw={600} mt="sm" mb={4} lh={1.4} c="dimmed">
       {children}
     </Text>
   ),
   p: ({ children }) => (
-    <Text component="p" size="md" mb="sm" lh={1.65} c="gray.3">
+    <Text component="p" size="md" mb="sm" lh={1.65} c="dimmed">
       {children}
     </Text>
   ),
@@ -33,14 +33,14 @@ export const changelogMarkdownComponents: Partial<Components> = {
     </Box>
   ),
   li: ({ children }) => (
-    <Box component="li" mb={4} c="gray.3">
+    <Box component="li" mb={4} c="dimmed">
       <Text span size="md" lh={1.65}>
         {children}
       </Text>
     </Box>
   ),
   strong: ({ children }) => (
-    <Text component="strong" span fw={600} c="gray.2">
+    <Text component="strong" span fw={600} c="dimmed">
       {children}
     </Text>
   ),

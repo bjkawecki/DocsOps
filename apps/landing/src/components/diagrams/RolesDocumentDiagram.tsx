@@ -37,15 +37,15 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: string | null 
     <Box className="landing-diagram-detail-panel">
       {detail ? (
         <>
-          <Text size="sm" tt="uppercase" fw={700} c="gray.3" lts={0.6} mb="sm">
+          <Text size="sm" tt="uppercase" fw={700} c="dimmed" lts={0.6} mb="sm">
             {detail.title}
           </Text>
-          <Text size="md" c="gray.2" lh={1.65}>
+          <Text size="md" c="dimmed" lh={1.65}>
             {detail.description}
           </Text>
         </>
       ) : (
-        <Text size="md" c="gray.4" lh={1.65}>
+        <Text size="md" c="dimmed" lh={1.65}>
           {rolesPublicationCopy.diagramClickHint}
         </Text>
       )}
@@ -78,9 +78,9 @@ function MobileRolesList() {
         className="landing-roles-diagram-scope landing-surface-card"
         p="lg"
         withBorder
-        bg="dark.7"
+        style={{ backgroundColor: 'var(--landing-surface-2)' }}
       >
-        <Text size="sm" c="gray.3" lh={1.55} mb="md">
+        <Text size="sm" c="dimmed" lh={1.55} mb="md">
           {rolesPublicationCopy.mobileIntro}
         </Text>
         <Box component="ol" className="landing-roles-diagram-mobile-list">
@@ -94,7 +94,7 @@ function MobileRolesList() {
                   <Text size="md" fw={600} lh={1.35}>
                     {title}
                   </Text>
-                  <Text size="sm" c="gray.4" lh={1.55}>
+                  <Text size="sm" c="dimmed" lh={1.55}>
                     {description}
                   </Text>
                 </Stack>
@@ -115,7 +115,12 @@ function DiagramEditToolbar({ nodes, onCopied }: { nodes: Node[]; onCopied: () =
   }, [nodes, onCopied]);
 
   return (
-    <Paper className="landing-roles-flow-edit-bar" p="sm" withBorder bg="dark.8">
+    <Paper
+      className="landing-roles-flow-edit-bar"
+      p="sm"
+      withBorder
+      style={{ backgroundColor: 'var(--landing-surface-1)' }}
+    >
       <Text size="sm" fw={600}>
         Diagram edit mode
       </Text>

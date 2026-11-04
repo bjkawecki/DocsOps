@@ -1,4 +1,14 @@
-import { Anchor, Box, Container, Group, Image, SimpleGrid, Stack, Text } from '@mantine/core';
+import {
+  Anchor,
+  Box,
+  Container,
+  Group,
+  Image,
+  SimpleGrid,
+  Stack,
+  Text,
+  useComputedColorScheme,
+} from '@mantine/core';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { LandingExternalLink } from '../LandingExternalLink';
@@ -29,6 +39,8 @@ export function Footer() {
   const year = new Date().getFullYear();
   const { locale } = useLocale();
   const { site } = useLandingCopy();
+  const resolvedScheme = useComputedColorScheme('dark');
+  const brandIcon = resolvedScheme === 'light' ? '/docops.svg' : '/docops-dark.svg';
   const { footerCopy, docsopsVsFooterLinks, projectNavLinks, authorSiteLink } = site;
 
   return (
@@ -41,11 +53,11 @@ export function Footer() {
                 component={Link}
                 to={pathFor(locale, 'home')}
                 underline="never"
-                className="landing-footer-brand"
+                className="landing-footer-brand landing-brand-link"
               >
                 <Group gap="sm" wrap="nowrap">
-                  <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
-                  <Text fw={700} fz="lg" c="white">
+                  <Image src={brandIcon} alt="" w={32} h={32} fit="contain" />
+                  <Text fw={700} fz="lg">
                     DocsOps
                   </Text>
                 </Group>
@@ -128,7 +140,7 @@ export function Footer() {
           </SimpleGrid>
 
           <Group justify="center" gap="md" className="landing-footer-meta">
-            <Text size="sm" c="gray.5">
+            <Text size="sm" c="dimmed">
               {footerCopy.meta(year)}
             </Text>
             <Anchor

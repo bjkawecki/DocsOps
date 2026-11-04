@@ -1,0 +1,48 @@
+/**
+ * Landing light theme tokens (Mantine overrides + page chrome).
+ */
+[data-mantine-color-scheme='light'] {
+  --mantine-color-body: var(--mantine-color-gray-1) !important;
+  --mantine-color-default: var(--mantine-color-white) !important;
+  --mantine-color-default-hover: var(--mantine-color-gray-2) !important;
+  --mantine-color-default-color: var(--mantine-color-gray-9) !important;
+  --mantine-color-default-border: var(--mantine-color-gray-4) !important;
+  --mantine-color-dimmed: var(--mantine-color-gray-7) !important;
+  --mantine-color-placeholder: var(--mantine-color-gray-6) !important;
+  --mantine-color-anchor: var(--mantine-color-blue-7) !important;
+  --mantine-color-text: var(--mantine-color-gray-9) !important;
+  --mantine-primary-color-contrast: var(--mantine-color-white) !important;
+  --mantine-primary-color-light-color: var(--mantine-color-blue-8) !important;
+  --mantine-color-blue-light-color: var(--mantine-color-blue-8) !important;
+
+  --landing-page-bg: var(--mantine-color-gray-1);
+  --landing-surface-1: var(--mantine-color-white);
+  --landing-surface-2: var(--mantine-color-white);
+  --landing-surface-3: var(--mantine-color-gray-0);
+  --landing-surface-muted: var(--mantine-color-gray-3);
+  --landing-border: var(--mantine-color-gray-4);
+  --landing-border-strong: var(--mantine-color-gray-5);
+  --landing-border-soft: var(--mantine-color-gray-4);
+  --landing-navbar-bg: color-mix(in srgb, var(--mantine-color-white) 92%, transparent);
+  --landing-menu-bg: var(--mantine-color-white);
+  --landing-menu-hover: var(--mantine-color-gray-1);
+  --landing-menu-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  --landing-heading: var(--mantine-color-gray-9);
+  --landing-diagram-stroke: var(--mantine-color-gray-5);
+  --landing-diagram-stroke-dim: var(--mantine-color-gray-3);
+  --landing-diagram-node-bg: var(--mantine-color-white);
+  --landing-diagram-panel-bg: var(--mantine-color-white);
+  --landing-faq-item-bg: var(--mantine-color-white);
+  --landing-faq-item-border: var(--mantine-color-gray-4);
+  --landing-theme-color-meta: #f1f3f5;
+}
+
+[data-mantine-color-scheme='light'] .landing-hero-headline,
+[data-mantine-color-scheme='light'] .landing-section-title,
+[data-mantine-color-scheme='light'] .landing-page-title,
+[data-mantine-color-scheme='light'] .landing-philosophy-headline,
+[data-mantine-color-scheme='light'] .landing-footer-brand Text,
+[data-mantine-color-scheme='light'] .landing-navbar a[href='/'],
+[data-mantine-color-scheme='light'] .landing-navbar a[href='/en'] {
+  color: var(--landing-heading);
+}

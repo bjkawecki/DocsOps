@@ -14,12 +14,12 @@ function ContextTypeCard({ typeId, types }: { typeId: ContextTypeId; types: Cont
       p="xl"
       h="100%"
       withBorder
-      bg="dark.7"
+      style={{ backgroundColor: 'var(--landing-surface-2)' }}
     >
       <Title order={3} className="landing-context-type-card-title" mb="md">
         {type.title}
       </Title>
-      <Text size="md" c="gray.1" lh={1.65} className="landing-context-type-description">
+      <Text size="md" lh={1.65} className="landing-context-type-description">
         {type.description}
       </Text>
       <Stack component="ul" gap="sm" mt="md" className="landing-context-type-examples">
@@ -28,7 +28,7 @@ function ContextTypeCard({ typeId, types }: { typeId: ContextTypeId; types: Cont
             key={example}
             component="li"
             size="md"
-            c="gray.2"
+            c="dimmed"
             lh={1.55}
             className="landing-context-type-example"
           >

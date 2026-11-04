@@ -622,8 +622,9 @@ a.document-chrome-nav-link:focus-visible,
 
 .app-shell-sidebar-badge-count {
   position: absolute;
-  top: -6px;
-  right: -8px;
+  top: auto;
+  bottom: -5px;
+  right: -6px;
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
@@ -637,6 +638,15 @@ a.document-chrome-nav-link:focus-visible,
   line-height: 11px;
   text-align: center;
   pointer-events: none;
+}
+
+/* ActionIcon defaults to overflow:hidden; badge sits outside the bell. */
+.app-shell-top-bar .app-shell-top-bar-action {
+  overflow: visible;
+}
+
+.app-shell-top-bar .app-shell-sidebar-icon-wrap {
+  overflow: visible;
 }
 
 .app-shell-sidebar-nav-link--mini {

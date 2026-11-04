@@ -163,15 +163,15 @@ export function buildRolesDiagramGraph(rolesPublicationCopy: RolesDiagramCopy): 
     },
   ];
 
-  const edgeStyle = { stroke: 'var(--mantine-color-dark-3)', strokeWidth: 2 };
+  const edgeStyle = { stroke: 'var(--landing-diagram-stroke)', strokeWidth: 2 };
   const markerEnd = {
     type: MarkerType.ArrowClosed,
     width: 18,
     height: 18,
     color: 'var(--mantine-color-blue-4)',
   };
-  const edgeLabelStyle = { fill: '#f1f3f5', fontSize: 15, fontWeight: 600 };
-  const edgeLabelBgStyle = { fill: '#25262b', fillOpacity: 0.98 };
+  const edgeLabelStyle = { fill: 'var(--mantine-color-text)', fontSize: 15, fontWeight: 600 };
+  const edgeLabelBgStyle = { fill: 'var(--landing-surface-1)', fillOpacity: 0.98 };
 
   const flowEdges: Edge[] = edges.map((edge) => {
     let targetHandle: string;

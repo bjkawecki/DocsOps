@@ -1,6 +1,5 @@
 /**
- * Global dark theme: main = dark-9, sidebar & cards = dark-8;
- * text-related variables one step lighter (dimmed, placeholder, etc.).
+ * Landing dark theme tokens (Mantine overrides + page chrome).
  */
 [data-mantine-color-scheme='dark'] {
   --mantine-primary-color-contrast: var(--mantine-color-white) !important;
@@ -26,10 +25,32 @@
   --mantine-color-dark-light-color: var(--mantine-color-dark-3) !important;
   --mantine-color-dark-outline: var(--mantine-color-dark-4) !important;
   --mantine-color-dark-outline-hover: rgba(66, 66, 66, 0.05) !important;
+
+  --landing-page-bg: var(--mantine-color-dark-9);
+  --landing-surface-1: var(--mantine-color-dark-8);
+  --landing-surface-2: var(--mantine-color-dark-7);
+  --landing-surface-3: var(--mantine-color-dark-6);
+  --landing-surface-muted: var(--mantine-color-dark-4);
+  --landing-border: var(--mantine-color-dark-5);
+  --landing-border-strong: var(--mantine-color-dark-4);
+  --landing-border-soft: var(--mantine-color-dark-3);
+  --landing-navbar-bg: rgba(16, 16, 16, 0.92);
+  --landing-menu-bg: var(--mantine-color-dark-6);
+  --landing-menu-hover: var(--mantine-color-dark-4);
+  --landing-menu-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --landing-heading: var(--mantine-color-white);
+  --landing-diagram-stroke: var(--mantine-color-dark-3);
+  --landing-diagram-stroke-dim: var(--mantine-color-dark-5);
+  --landing-diagram-node-bg: var(--mantine-color-dark-8);
+  --landing-diagram-panel-bg: var(--mantine-color-dark-7);
+  --landing-faq-item-bg: var(--mantine-color-dark-8);
+  --landing-faq-item-border: var(--mantine-color-dark-5);
+  --landing-theme-color-meta: #140a2e;
 }
 
 body {
   margin: 0;
-  background-color: var(--mantine-color-dark-9);
+  background-color: var(--landing-page-bg, var(--mantine-color-dark-9));
   overflow-x: clip;
+  color: var(--mantine-color-text);
 }

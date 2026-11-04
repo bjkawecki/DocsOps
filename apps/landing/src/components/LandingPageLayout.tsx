@@ -22,7 +22,7 @@ export function LandingPageLayout({
             {title}
           </Title>
           {intro ? (
-            <Text c="gray.3" size="lg" ta="center" maw={640} lh={1.65}>
+            <Text c="dimmed" size="lg" ta="center" maw={640} lh={1.65}>
               {intro}
             </Text>
           ) : null}

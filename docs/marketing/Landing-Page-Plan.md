@@ -3,7 +3,7 @@
 **Status:** §19 – `apps/landing` existiert; **inhaltliche Leitlinie:** [Positionierung-und-Landing.md](./Positionierung-und-Landing.md)  
 **Sprache Landing (Ziel):** Deutsch + Englisch · **App/Demo:** EN/DE (App-i18n)  
 **Domain:** `docsops.de` · Demo: `demo.docsops.de`  
-**Design:** Mantine; **Ist:** fest dark · **Ziel:** Light/Dark/Auto (siehe §9)
+**Design:** Mantine; Light/Dark/Auto (siehe §9)
 
 ---
 
@@ -23,7 +23,7 @@
 | Aspekt  | Stand                                                                                                         |
 | ------- | ------------------------------------------------------------------------------------------------------------- |
 | Stack   | `apps/landing` – Vite + React + Mantine 8                                                                     |
-| Theme   | **Ist:** fest dark · **Ziel:** Light/Dark + Auto (`prefers-color-scheme`), Toggle, Persistenz – §9            |
+| Theme   | Light/Dark/Auto (`prefers-color-scheme` + Toggle + Persistenz) – §9                                           |
 | Build   | `make landing-build` → `apps/landing/dist`                                                                    |
 | Env     | `VITE_DEMO_URL`, `VITE_GITHUB_REPO_URL`, `VITE_SITE_URL`, optional `VITE_SPONSOR_GITHUB_URL` (`.env.example`) |
 | Version | `VITE_APP_VERSION` aus Root-`package.json` beim Build (Vite `define`)                                         |
@@ -123,7 +123,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 - [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
 - [x] **Favicon Color Scheme:** Landing + App: SVG `docops.svg` / `docops-dark.svg` mit `prefers-color-scheme`
 - [x] **Landing i18n** – siehe §8
-- [ ] **Landing Color Theme** – siehe §9
+- [x] **Landing Color Theme** – siehe §9
 - [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 
 ---
@@ -148,18 +148,16 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ---
 
-## 9. Landing Color Theme (geplant, nach i18n)
+## 9. Landing Color Theme (umgesetzt)
 
-| Entscheidung | Vorgabe                                                                                    |
-| ------------ | ------------------------------------------------------------------------------------------ |
-| System       | `prefers-color-scheme` beachten (Modus **Auto**)                                           |
-| UI           | Toggle Light / Dark / Auto                                                                 |
-| Persistenz   | lokale Speicherung der expliziten Wahl; ohne Wahl → Auto                                   |
-| Look         | **App-ähnlich** (Mantine Light/Dark, gleicher Blau-Akzent)                                 |
-| Diagramme    | eigene Flächen/Kontraste für Light und Dark (Scope-Baum, Rollen-Flow, nicht nur Textfarbe) |
-| Ist-Blocker  | `forceColorScheme="dark"`, `theme-dark.css`, viele `dark-*`-Hardcodes in `landing.css`     |
-
-Favicon folgt weiter `prefers-color-scheme` bzw. dem effektiven Scheme, sobald Toggle existiert.
+| Entscheidung | Vorgabe                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| System       | `prefers-color-scheme` beachten (Modus **Auto**)                                             |
+| UI           | Hover-Menü Light / Dark / Auto rechts neben Sprache (`ColorSchemeSwitcher`)                  |
+| Persistenz   | `localStorage` Key `docsops-landing-color-scheme`; ohne Wahl → Auto                          |
+| Look         | **App-ähnlich** (Mantine Light/Dark, gleicher Blau-Akzent); Tokens in `theme-light/dark.css` |
+| Diagramme    | Surfaces/Edges über `--landing-diagram-*` Tokens                                             |
+| Favicon      | folgt resolved Scheme (`LandingColorSchemeEffects`)                                          |
 
 ---
 

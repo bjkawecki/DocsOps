@@ -36,8 +36,8 @@ export function FaqSection() {
           className="landing-faq-accordion"
           styles={{
             item: {
-              backgroundColor: 'var(--mantine-color-dark-8)',
-              border: '1px solid var(--mantine-color-dark-5)',
+              backgroundColor: 'var(--landing-faq-item-bg)',
+              border: '1px solid var(--landing-faq-item-border)',
             },
             control: {
               backgroundColor: 'transparent',
@@ -48,7 +48,7 @@ export function FaqSection() {
             <Accordion.Item key={item.question} value={item.question}>
               <Accordion.Control>{item.question}</Accordion.Control>
               <Accordion.Panel>
-                <Text size="md" c="gray.2" lh={1.65} className="landing-faq-answer">
+                <Text size="md" c="dimmed" lh={1.65} className="landing-faq-answer">
                   {item.answer}
                 </Text>
                 {item.link ? (

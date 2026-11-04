@@ -19,7 +19,7 @@ export function FinalCtaSection() {
         <Title order={2} ta="center">
           {finalCtaCopy.title}
         </Title>
-        <Text ta="center" c="gray.2" lh={1.65}>
+        <Text ta="center" c="dimmed" lh={1.65}>
           {finalCtaCopy.body}
         </Text>
         <Group justify="center" gap="md" w="100%">

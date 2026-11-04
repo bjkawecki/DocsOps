@@ -32,7 +32,7 @@ export function ComparisonSymbol({ value, note }: ComparisonSymbolProps) {
     ) : value === 'partial' ? (
       <IconCircleDashed size={22} stroke={1.8} color="var(--mantine-color-dimmed)" />
     ) : (
-      <IconCircleX size={22} stroke={1.8} color="var(--mantine-color-dark-3)" />
+      <IconCircleX size={22} stroke={1.8} color="var(--landing-border-soft)" />
     );
 
   return (

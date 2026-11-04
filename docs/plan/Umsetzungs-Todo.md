@@ -425,7 +425,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Landing Feature-Grid:** Section auf `/` (`#features`) – vier Kacheln (Org-Hierarchie, Governance, Do11y, Datenkontrolle); Position nach Philosophie-Teaser / vor FAQ. Vorgaben: [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
 [x] **Landing Favicon Color Scheme:** SVG light/dark via `prefers-color-scheme` (ICO/PNG-Override entfernt) – [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
 [x] **Landing i18n (zuerst):** DE + EN; Pfadsegmente Englisch; DE unprefixed, EN `/en/…`; Default Browser `de`/`de-*` sonst EN; Persistenz; alle Routen inkl. Compare + Legal; Canonical/`hreflang`/Sitemap/Prerender; Redirects von alten DE-Slugs – [Landing-Page-Plan §8](../marketing/Landing-Page-Plan.md#8-landing-i18n-umgesetzt), [Landing-SEO](../marketing/Landing-SEO.md).
-[ ] **Landing Color Theme (danach):** Light/Dark/Auto (`prefers-color-scheme` + Toggle + Persistenz); App-ähnlicher Look; Diagramm-Kontraste Light/Dark; `forceColorScheme="dark"` und `dark-*`-Hardcodes ablösen – [Landing-Page-Plan §9](../marketing/Landing-Page-Plan.md#9-landing-color-theme-geplant-nach-i18n).
+[x] **Landing Color Theme:** Light/Dark/Auto (`prefers-color-scheme` + Hover-Toggle neben Sprache + Persistenz `docsops-landing-color-scheme`); App-ähnlicher Look; Diagramm-Kontraste; kein `forceColorScheme` – [Landing-Page-Plan §9](../marketing/Landing-Page-Plan.md#9-landing-color-theme-umgesetzt).
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
 
@@ -454,7 +454,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, sechs Rollen inkl. Wissensmanager); öffentliche Demo unter `demo.docsops.de`.
 [x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Landing-Vergleich auf `/compare` (erledigt). Landing i18n DE+EN (erledigt). **Als Nächstes Landing:** Color Theme (Light/Dark/Auto). Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Landing-Vergleich auf `/compare` (erledigt). Landing i18n DE+EN (erledigt). Landing Color Theme Light/Dark/Auto (erledigt). Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
 
 ---
 

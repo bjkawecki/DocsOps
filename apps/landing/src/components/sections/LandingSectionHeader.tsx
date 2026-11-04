@@ -60,7 +60,7 @@ export function LandingSectionHeader({
         {paragraphs.map((paragraph, index) => (
           <Text
             key={index}
-            c="gray.3"
+            c="dimmed"
             ta="center"
             lh={1.65}
             size="lg"

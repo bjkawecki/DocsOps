@@ -15,7 +15,7 @@ const POSITIONS = {
   userPersonal: { x: 316, y: 312 },
 } as const;
 
-const edgeStyle = { stroke: 'var(--mantine-color-dark-3)', strokeWidth: 2 };
+const edgeStyle = { stroke: 'var(--landing-diagram-stroke)', strokeWidth: 2 };
 const markerEnd = {
   type: MarkerType.ArrowClosed,
   width: 18,
