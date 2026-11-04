@@ -11,6 +11,7 @@
   "scan": "Scannen",
   "scanDone": "Scan abgeschlossen. {{count}} Dokument(e) aktualisiert.",
   "scanFailed": "Scan fehlgeschlagen.",
+  "demoMutationsDisabled": "Im Demo-Modus deaktiviert",
   "filters": {
     "reason": "Grund",
     "reasonAll": "Alle",

@@ -1,4 +1,4 @@
-import { Button, Group } from '@mantine/core';
+import { Button, Group, Tooltip } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
 
 export type HealthCheckConfirmKind =
@@ -11,6 +11,8 @@ export type HealthCheckActionItem = {
 type Props = {
   item: HealthCheckActionItem;
   loading: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
   onOpen: (kind: HealthCheckConfirmKind) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 };
@@ -24,41 +26,54 @@ const actionButtonStyles = {
   },
 } as const;
 
-export function HealthCheckActionButtons({ item, loading, onOpen, t }: Props) {
+export function HealthCheckActionButtons({
+  item,
+  loading,
+  disabled = false,
+  disabledReason,
+  onOpen,
+  t,
+}: Props) {
   const needsUpdateActive = item.outcome === 'needs_update';
   const archiveActive = item.outcome === 'archive';
+  const tip = disabled ? (disabledReason ?? undefined) : undefined;
 
   return (
-    <Group gap={4} wrap="nowrap">
-      <Button
-        size="compact-xs"
-        variant="default"
-        styles={actionButtonStyles}
-        loading={loading}
-        onClick={() => onOpen('still_valid')}
-      >
-        {t('actions.stillValid')}
-      </Button>
-      <Button
-        size="compact-xs"
-        variant="default"
-        styles={actionButtonStyles}
-        loading={loading}
-        leftSection={needsUpdateActive ? <IconCheck size={12} stroke={2} /> : undefined}
-        onClick={() => onOpen(needsUpdateActive ? 'revoke_needs_update' : 'needs_update')}
-      >
-        {t('actions.needsUpdate')}
-      </Button>
-      <Button
-        size="compact-xs"
-        variant="default"
-        styles={actionButtonStyles}
-        loading={loading}
-        leftSection={archiveActive ? <IconCheck size={12} stroke={2} /> : undefined}
-        onClick={() => onOpen(archiveActive ? 'revoke_archive' : 'archive')}
-      >
-        {t('actions.archive')}
-      </Button>
-    </Group>
+    <Tooltip label={tip ?? ''} disabled={!tip}>
+      <Group gap={4} wrap="nowrap">
+        <Button
+          size="compact-xs"
+          variant="default"
+          styles={actionButtonStyles}
+          loading={loading}
+          disabled={disabled}
+          onClick={() => onOpen('still_valid')}
+        >
+          {t('actions.stillValid')}
+        </Button>
+        <Button
+          size="compact-xs"
+          variant="default"
+          styles={actionButtonStyles}
+          loading={loading}
+          disabled={disabled}
+          leftSection={needsUpdateActive ? <IconCheck size={12} stroke={2} /> : undefined}
+          onClick={() => onOpen(needsUpdateActive ? 'revoke_needs_update' : 'needs_update')}
+        >
+          {t('actions.needsUpdate')}
+        </Button>
+        <Button
+          size="compact-xs"
+          variant="default"
+          styles={actionButtonStyles}
+          loading={loading}
+          disabled={disabled}
+          leftSection={archiveActive ? <IconCheck size={12} stroke={2} /> : undefined}
+          onClick={() => onOpen(archiveActive ? 'revoke_archive' : 'archive')}
+        >
+          {t('actions.archive')}
+        </Button>
+      </Group>
+    </Tooltip>
   );
 }

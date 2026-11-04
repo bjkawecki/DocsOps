@@ -11,6 +11,7 @@
   "scan": "Scan",
   "scanDone": "Scan finished. {{count}} document(s) updated.",
   "scanFailed": "Scan failed.",
+  "demoMutationsDisabled": "Disabled in demo mode",
   "filters": {
     "reason": "Reason",
     "reasonAll": "All",

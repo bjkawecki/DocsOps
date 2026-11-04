@@ -10,6 +10,7 @@ import {
   Stack,
   Table,
   Text,
+  Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconFileCheck, IconRefresh } from '@tabler/icons-react';
@@ -19,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client.js';
 import { useMe } from '../hooks/useMe.js';
+import { usePublicConfig } from '../hooks/usePublicConfig.js';
 import {
   useSetAppShellBreadcrumbActions,
   useSetAppShellBreadcrumbs,
@@ -99,6 +101,7 @@ type ConfirmDraft = {
 export function HealthCheckPage() {
   const { t, i18n } = useTranslation(['healthCheck', 'common', 'shell']);
   const { data: me, isPending: mePending } = useMe();
+  const { data: publicConfig } = usePublicConfig();
   const queryClient = useQueryClient();
   const isWide = useWideLayout();
   const [reason, setReason] = useState<ReasonFilter>('all');
@@ -107,6 +110,8 @@ export function HealthCheckPage() {
   const [draft, setDraft] = useState<ConfirmDraft | null>(null);
 
   const canAccess = me?.capabilities?.healthCheck === true;
+  const demoMode = publicConfig?.demoMode === true;
+  const demoDisabledReason = t('demoMutationsDisabled');
 
   useSetAppShellBreadcrumbs(
     isWide && canAccess
@@ -167,6 +172,7 @@ export function HealthCheckPage() {
 
   const scanMutation = useMutation({
     mutationFn: async () => {
+      if (demoMode) throw new Error('demo disabled');
       const body: Record<string, string> = {};
       if (scopeKey !== 'all') {
         const [scope, id] = scopeKey.split(':');
@@ -220,6 +226,7 @@ export function HealthCheckPage() {
   });
 
   const openConfirm = (item: HealthCheckItem, kind: ConfirmKind) => {
+    if (demoMode) return;
     setDraft({
       item,
       kind,
@@ -252,20 +259,23 @@ export function HealthCheckPage() {
   const chromeActions = useMemo(
     () =>
       canAccess ? (
-        <Button
-          size="xs"
-          leftSection={<IconRefresh size={14} />}
-          loading={scanMutation.isPending}
-          onClick={() => scanMutation.mutate()}
-        >
-          {t('scan')}
-        </Button>
+        <Tooltip label={demoDisabledReason} disabled={!demoMode}>
+          <Button
+            size="xs"
+            leftSection={<IconRefresh size={14} />}
+            loading={scanMutation.isPending}
+            disabled={demoMode}
+            onClick={() => scanMutation.mutate()}
+          >
+            {t('scan')}
+          </Button>
+        </Tooltip>
       ) : null,
-    [canAccess, scanMutation, t]
+    [canAccess, demoMode, demoDisabledReason, scanMutation, t]
   );
   useSetAppShellBreadcrumbActions(
     chromeActions,
-    `freshness:${canAccess}:${scanMutation.isPending}`
+    `freshness:${canAccess}:${demoMode}:${scanMutation.isPending}`
   );
 
   const reasonSelect = (
@@ -338,13 +348,14 @@ export function HealthCheckPage() {
   const scanMobileAction: PageMobileAction = useMemo(
     () => ({
       key: 'scan',
-      label: t('scan'),
+      label: demoMode ? demoDisabledReason : t('scan'),
       icon: <IconRefresh size={16} stroke={1.5} />,
       tone: 'secondary',
       loading: scanMutation.isPending,
+      disabled: demoMode,
       onClick: () => scanMutation.mutate(),
     }),
-    [scanMutation, t]
+    [demoMode, demoDisabledReason, scanMutation, t]
   );
 
   // Hooks above must run unconditionally; early returns after.
@@ -453,6 +464,8 @@ export function HealthCheckPage() {
                         loading={
                           actionMutation.isPending && draft?.item.documentId === item.documentId
                         }
+                        disabled={demoMode}
+                        disabledReason={demoDisabledReason}
                         onOpen={(kind) => openConfirm(item, kind)}
                         t={t}
                       />
@@ -505,6 +518,8 @@ export function HealthCheckPage() {
                         loading={
                           actionMutation.isPending && draft?.item.documentId === item.documentId
                         }
+                        disabled={demoMode}
+                        disabledReason={demoDisabledReason}
                         onOpen={(kind) => openConfirm(item, kind)}
                         t={t}
                       />
