@@ -1,6 +1,6 @@
 import { Text } from '@mantine/core';
 import { Handle, Position, type NodeProps, type NodeTypes } from '@xyflow/react';
-import type { ScopeNodeId } from '../../content/siteCopy';
+import type { ScopeNodeId } from '../../content/types';
 
 type ScopeFlowNodeVisual = {
   variant?: 'personal';

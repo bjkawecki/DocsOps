@@ -416,15 +416,15 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 
 **Landing (Code `apps/landing` – inhaltlich weitgehend fertig; Ausbau Sprache + Theme):**
 
-[x] **Landing-App:** Vite + React + Mantine; DE-Copy; Routen `/`, `/philosophie`, `/install`, `/changelog`, `/sponsor`, `/impressum`, `/datenschutz`; Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
+[x] **Landing-App:** Vite + React + Mantine; DE+EN-Copy; Routen mit EN-Segmenten (`/philosophy`, `/compare`, `/legal/…`; EN unter `/en/…`); Env `VITE_DEMO_URL` u. a. ([Landing-Page-Plan](../marketing/Landing-Page-Plan.md)).
 [x] **Modell-Sections:** Scope · Kontext · Rollen · Beispiel (IT / Software X / A11y) laut [Landing-Sections-Plan](../marketing/Landing-Sections-Plan.md) / Positionierung Phasen B–E.
 [x] **Hero, Philosophie-Teaser, Abschluss-CTA, Navbar/Footer, Mobile Drawer.**
 [x] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
 [x] **Landing Go-live:** Deploy auf `docsops.de`; DNS/Caddy; Impressum/Datenschutz im Landing-Code; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
-[x] **Landing: Confluence vs DocsOps:** Gegenüberstellung auf **`/vergleich`** (nicht als volle Startseiten-Section) – Tabelle DocsOps · Confluence · Docmost, kurze Reibungspunkte, FAQ-Link, Nav unter Projekt; Datenbasis [vergleich/startseite-confluence-docmost.md](../marketing/vergleich/startseite-confluence-docmost.md). Startseite bleibt Modell-Erklärung.
+[x] **Landing: Confluence vs DocsOps:** Gegenüberstellung auf **`/compare`** (nicht als volle Startseiten-Section) – Tabelle DocsOps · Confluence, Nav unter Philosophie; Datenbasis [vergleich/startseite-confluence-docmost.md](../marketing/vergleich/startseite-confluence-docmost.md). Startseite bleibt Modell-Erklärung.
 [x] **Landing Feature-Grid:** Section auf `/` (`#features`) – vier Kacheln (Org-Hierarchie, Governance, Do11y, Datenkontrolle); Position nach Philosophie-Teaser / vor FAQ. Vorgaben: [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
 [x] **Landing Favicon Color Scheme:** SVG light/dark via `prefers-color-scheme` (ICO/PNG-Override entfernt) – [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
-[ ] **Landing i18n (zuerst):** DE + EN; Pfadsegmente Englisch; DE unprefixed, EN `/en/…`; Default Browser `de`/`de-*` sonst EN; Persistenz; alle Routen inkl. Compare + Legal; Canonical/`hreflang`/Sitemap/Prerender; 301 von alten DE-Slugs – [Landing-Page-Plan §8](../marketing/Landing-Page-Plan.md#8-landing-i18n-geplant-zuerst-umsetzen), [Landing-SEO](../marketing/Landing-SEO.md).
+[x] **Landing i18n (zuerst):** DE + EN; Pfadsegmente Englisch; DE unprefixed, EN `/en/…`; Default Browser `de`/`de-*` sonst EN; Persistenz; alle Routen inkl. Compare + Legal; Canonical/`hreflang`/Sitemap/Prerender; Redirects von alten DE-Slugs – [Landing-Page-Plan §8](../marketing/Landing-Page-Plan.md#8-landing-i18n-umgesetzt), [Landing-SEO](../marketing/Landing-SEO.md).
 [ ] **Landing Color Theme (danach):** Light/Dark/Auto (`prefers-color-scheme` + Toggle + Persistenz); App-ähnlicher Look; Diagramm-Kontraste Light/Dark; `forceColorScheme="dark"` und `dark-*`-Hardcodes ablösen – [Landing-Page-Plan §9](../marketing/Landing-Page-Plan.md#9-landing-color-theme-geplant-nach-i18n).
 
 **App-i18n (vor Demo-Deploy):** Vorgaben: [Plan-App-i18n](Plan-App-i18n.md).
@@ -454,7 +454,7 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Demo-Seed-Story (Inhalt):** erledigt mit schlankem DE-Seed (Software X / Barrierefreiheit, sechs Rollen inkl. Wissensmanager); öffentliche Demo unter `demo.docsops.de`.
 [x] **Demo online:** DNS `docsops.de` + `demo.docsops.de`, öffentlicher Demo-Stack; Checkliste [Plan-Demo-Oeffentlich](Plan-Demo-Oeffentlich.md) §7 soweit betreiberseitig erledigt.
 
-**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Landing-Vergleich Confluence vs DocsOps auf `/vergleich` (erledigt). **Als Nächstes Landing:** i18n (DE+EN, EN-Pfade) → danach Color Theme (Light/Dark/Auto). Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
+**Reihenfolge:** App-i18n EN/DE → Landing/Demo Go-live → Mobile-Review Landing (erledigt). Landing-Vergleich auf `/compare` (erledigt). Landing i18n DE+EN (erledigt). **Als Nächstes Landing:** Color Theme (Light/Dark/Auto). Betrieb: **§24–§27** ([Plan-Betrieb-Releases-Backup-Update](Plan-Betrieb-Releases-Backup-Update.md)). KI/Ask (**§21**) bewusst zurückgestellt.
 
 ---
 

@@ -1,11 +1,27 @@
-import { rolesPublicationCopy } from '../../content/siteCopy';
-
 export type DiagramNodeDetail = {
   title: string;
   description: string;
 };
 
-export function getDiagramNodeDetail(nodeId: string): DiagramNodeDetail | null {
+type RolesDetailCopy = {
+  nodeDescriptions: {
+    scope: string;
+    document: string;
+    lead: string;
+    author: string;
+    member: string;
+    entwurf: string;
+    version: string;
+  };
+  roles: { author: string; lead: string; member: string };
+  document: { title: string; entwurf: string; version: string };
+  scope: { title: string; hint: string };
+};
+
+export function getDiagramNodeDetail(
+  nodeId: string,
+  rolesPublicationCopy: RolesDetailCopy
+): DiagramNodeDetail | null {
   const { nodeDescriptions, roles, document, scope } = rolesPublicationCopy;
 
   switch (nodeId) {

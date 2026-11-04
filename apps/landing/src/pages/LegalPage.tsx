@@ -1,7 +1,7 @@
 import { Anchor, Stack, Text } from '@mantine/core';
 import { LandingHead } from '../components/LandingHead';
 import { LandingPageLayout, LandingPageSection } from '../components/LandingPageLayout';
-import { legalCopy } from '../content/legalCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 
 type LegalPageProps = {
   kind: 'impressum' | 'datenschutz';
@@ -29,7 +29,8 @@ function LegalParagraph({ text }: { text: string }) {
 }
 
 export function LegalPage({ kind }: LegalPageProps) {
-  const content = kind === 'impressum' ? legalCopy.impressum : legalCopy.datenschutz;
+  const { legal } = useLandingCopy();
+  const content = kind === 'impressum' ? legal.legalCopy.impressum : legal.legalCopy.datenschutz;
 
   return (
     <>

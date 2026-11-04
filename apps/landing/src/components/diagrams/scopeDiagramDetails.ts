@@ -1,4 +1,4 @@
-import { scopeCopy, type ScopeLevelId, type ScopeNodeId } from '../../content/siteCopy';
+import type { ScopeLevelId, ScopeNodeId } from '../../content/types';
 
 export type ScopeNodeDetail = {
   title: string;
@@ -68,7 +68,15 @@ export function getScopeHighlightState(selectedNodeId: ScopeNodeId | null): Scop
   return { pathNodes: new Set(pathNodes), pathEdgeIds: new Set(pathEdgeIds) };
 }
 
-export function getScopeNodeDetail(nodeId: ScopeNodeId): ScopeNodeDetail {
+type ScopeDetailCopy = {
+  nodes: Record<ScopeNodeId, { label: string }>;
+  levelDescriptions: Record<ScopeLevelId, string>;
+};
+
+export function getScopeNodeDetail(
+  nodeId: ScopeNodeId,
+  scopeCopy: ScopeDetailCopy
+): ScopeNodeDetail {
   const { nodes, levelDescriptions } = scopeCopy;
   const level = NODE_LEVEL[nodeId];
 

@@ -10,11 +10,11 @@
 ## 1. Ziel
 
 - Erklären, **wofür** DocsOps gedacht ist (offizieller Wissensstand, Hierarchie, Veröffentlichung).
-- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophy` (heute noch `/philosophie`).
+- **Abgrenzen:** anderer Weg als „alle schreiben gleichzeitig“ – siehe [Positionierung §1–3](./Positionierung-und-Landing.md) und `/philosophy` (EN: `/en/philosophy`).
 - **Vertrauen:** Self-hosted, quelloffen, Impressum/Datenschutz (DE+EN).
 - **Konvertieren:** Story verstehen → Philosophie (optional) → Live-Demo oder `/install`.
 
-**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/compare`, heute `/vergleich`).
+**Nicht:** vollständige Produkt-Doku (Help in der App), Feature-Checkbox-Schlacht, volle Vergleichstabelle auf der Startseite (Vergleich lebt auf `/compare`).
 
 ---
 
@@ -42,31 +42,31 @@
 1. Navbar (Desktop + Mobile Drawer)
 2. Hero (Demo extern · Installation → `/install`)
 3. **Scope** (`#scope`)
-4. **Kontext** (`#kontext`)
-5. **Rollen** (`#rollen`) – Titel: Rollenbasierte Zusammenarbeit
-6. **Beispiel** (`#einordnen`)
-7. **Philosophie-Teaser** → `/philosophie`
+4. **Context** (`#context`)
+5. **Roles** (`#roles`) – Titel: Rollenbasierte Zusammenarbeit
+6. **Example** (`#example`)
+7. **Philosophie-Teaser** → `/philosophy`
 8. **Feature-Grid** (`#features`) – Alle Features (Org-Hierarchie, Governance, Do11y, Datenkontrolle)
 9. **FAQ** (`#faq`)
 10. **Abschluss-CTA** (Demo · Installation)
 11. Footer (Version-Badge → `/changelog`)
 
-**Vergleichstabelle:** weiterhin **`/vergleich`**, nicht auf `/`.
+**Vergleichstabelle:** **`/compare`**, nicht auf `/`. EN-Home: `/en`.
 
-### Routen (Ist → Ziel: englische Pfadsegmente)
+### Routen (englische Pfadsegmente; DE unprefixed, EN `/en/…`)
 
-| Ist (DE-Slug)                | Ziel-Slug (DE unprefixed / EN unter `/en/…`) | Inhalt                         |
-| ---------------------------- | -------------------------------------------- | ------------------------------ |
-| `/`                          | `/`                                          | Startseite                     |
-| `/philosophie`               | `/philosophy`                                | Philosophie                    |
-| `/warum`, `/ansatz`          | Redirect → `/philosophy`                     | Legacy                         |
-| `/install`                   | `/install`                                   | Marketing-Install              |
-| `/changelog`                 | `/changelog`                                 | Changelog                      |
-| `/sponsor`                   | `/sponsor`                                   | Sponsor                        |
-| `/vergleich`                 | `/compare`                                   | DocsOps · Confluence · Docmost |
-| `/impressum`, `/datenschutz` | `/legal/imprint`, `/legal/privacy`           | Legal (DE+EN ausformulieren)   |
+| Pfad (DE)        | Pfad (EN)           | Inhalt                |
+| ---------------- | ------------------- | --------------------- |
+| `/`              | `/en`               | Startseite            |
+| `/philosophy`    | `/en/philosophy`    | Philosophie           |
+| `/install`       | `/en/install`       | Marketing-Install     |
+| `/changelog`     | `/en/changelog`     | Changelog             |
+| `/sponsor`       | `/en/sponsor`       | Sponsor               |
+| `/compare`       | `/en/compare`       | DocsOps · Confluence  |
+| `/legal/imprint` | `/en/legal/imprint` | Impressum / Imprint   |
+| `/legal/privacy` | `/en/legal/privacy` | Datenschutz / Privacy |
 
-Alte DE-Slugs: **301** auf die Ziel-Slugs (gleiche Locale).
+Legacy-Redirects (DE): `/philosophie`, `/warum`, `/ansatz` → `/philosophy`; `/vergleich` → `/compare`; `/impressum` → `/legal/imprint`; `/datenschutz` → `/legal/privacy`.
 
 ---
 
@@ -87,7 +87,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 ## 5. Vergleich & FAQ
 
-- **`/compare`:** Hauptort der Gegenüberstellung (Ist: `/vergleich`).
+- **`/compare`:** Hauptort der Gegenüberstellung.
 - Startseite: kein großes Vergleichs-Grid; FAQ verweist auf Compare.
 - Abgrenzung Haltung: `/philosophy`. Tabellendaten: [vergleich/](./vergleich/).
 - FAQ auf der Startseite (`#faq`) inkl. FAQPage-JSON-LD – siehe [Landing-SEO.md](./Landing-SEO.md).
@@ -109,12 +109,12 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 ### Inhalt
 
 - [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
-- [x] `/philosophie`, `/install`, `/changelog`, `/sponsor`
+- [x] `/philosophy`, `/install`, `/changelog`, `/sponsor`
 - [x] **Feature-Grid auf `/`:** Section `#features` nach Philosophie-Teaser; Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
-- [ ] Impressum/Datenschutz: Platzhalter `[FIRMA]` etc. vor Go-live ersetzen (**DE + EN**)
-- [x] Gegenüberstellung Confluence vs DocsOps auf `/vergleich` (Tabelle + Reibungspunkte; FAQ-Link)
+- [x] Impressum/Datenschutz (DE + EN) auf `/legal/imprint`, `/legal/privacy`
+- [x] Gegenüberstellung Confluence vs DocsOps auf `/compare`
 - [ ] Demo-Seed-Story (App; Landing-unabhängig)
-- [ ] **Landing EN-Copy:** alle Seiten inkl. Vergleich und Legal (DE freigeben → EN nachziehen)
+- [x] **Landing EN-Copy:** alle Seiten inkl. Vergleich und Legal
 
 ### Technik
 
@@ -122,13 +122,13 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 - [x] SEO: robots/sitemap, Canonicals, Prerender, Search-Console-Checkliste ([Landing-SEO.md](./Landing-SEO.md))
 - [x] `Caddyfile.lab` + Hosts-Doku (VM-Lab in [install.md](../install.md))
 - [x] **Favicon Color Scheme:** Landing + App: SVG `docops.svg` / `docops-dark.svg` mit `prefers-color-scheme`
-- [ ] **Landing i18n** – siehe §8
+- [x] **Landing i18n** – siehe §8
 - [ ] **Landing Color Theme** – siehe §9
 - [ ] VPS + DNS · SPA-Fallback für neue Routen prüfen
 
 ---
 
-## 8. Landing i18n (geplant, zuerst umsetzen)
+## 8. Landing i18n (umgesetzt)
 
 **Reihenfolge:** Sprache vor Color Theme.
 
@@ -138,7 +138,7 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 | Pfadsegmente        | **Englisch** in beiden Locales (`/philosophy`, `/compare`, `/legal/imprint`, …)                                  |
 | Locale im URL       | DE **ohne** Präfix; EN unter **`/en/…`** (gleiche Segmente). Kein `?lang=` als Primärmodell                      |
 | Default (1. Besuch) | Browser `de` / `de-*` → DE; sonst → EN. Danach: URL-Locale und gespeicherte Wahl gewinnen                        |
-| Persistenz          | localStorage (oder Cookie) für explizite Sprachwahl                                                              |
+| Persistenz          | `localStorage` Key `docsops-landing-locale` bei explizitem Umschalter                                            |
 | Scope               | **alle** Landing-Routen inkl. Vergleich und Legal                                                                |
 | SEO                 | Canonical + `hreflang` je Locale; Sitemap und Prerender für DE- und EN-URLs – [Landing-SEO.md](./Landing-SEO.md) |
 | Copy                | DE SSoT freigeben, dann EN; Marketing-Prosa-Regeln                                                               |

@@ -1,6 +1,6 @@
 import type { Edge, Node } from '@xyflow/react';
 import { MarkerType } from '@xyflow/react';
-import { scopeCopy, type ScopeNodeId } from '../../content/siteCopy';
+import type { ScopeNodeId } from '../../content/types';
 
 const NODE_WIDTH = 152;
 
@@ -31,13 +31,15 @@ type ScopeNodeData = {
   onPath?: boolean;
 };
 
-function scopeNode(id: ScopeNodeId): Node<ScopeNodeData> {
+type ScopeNodesCopy = Record<ScopeNodeId, { label: string }>;
+
+function scopeNode(id: ScopeNodeId, nodes: ScopeNodesCopy): Node<ScopeNodeData> {
   const variant = id === 'userPersonal' ? 'personal' : undefined;
   return {
     id,
     type: 'scopeNode',
     position: POSITIONS[id],
-    data: { label: scopeCopy.nodes[id].label, variant },
+    data: { label: nodes[id].label, variant },
     style: { width: NODE_WIDTH },
     draggable: false,
     selectable: false,
@@ -58,17 +60,20 @@ function treeEdge(source: ScopeNodeId, target: ScopeNodeId): Edge {
   };
 }
 
-export function buildScopeDiagramGraph(): { nodes: Node[]; edges: Edge[] } {
+export function buildScopeDiagramGraph(nodesCopy: ScopeNodesCopy): {
+  nodes: Node[];
+  edges: Edge[];
+} {
   return {
     nodes: [
-      scopeNode('company'),
-      scopeNode('departmentA'),
-      scopeNode('departmentB'),
-      scopeNode('teamA1'),
-      scopeNode('teamA2'),
-      scopeNode('teamB1'),
-      scopeNode('teamB2'),
-      scopeNode('userPersonal'),
+      scopeNode('company', nodesCopy),
+      scopeNode('departmentA', nodesCopy),
+      scopeNode('departmentB', nodesCopy),
+      scopeNode('teamA1', nodesCopy),
+      scopeNode('teamA2', nodesCopy),
+      scopeNode('teamB1', nodesCopy),
+      scopeNode('teamB2', nodesCopy),
+      scopeNode('userPersonal', nodesCopy),
     ],
     edges: [
       treeEdge('company', 'departmentA'),

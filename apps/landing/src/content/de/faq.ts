@@ -21,7 +21,7 @@ export const faqItems: FaqItem[] = [
     question: 'Was kostet DocsOps?',
     answer:
       'Die Software ist quelloffen und ohne Seat-Gebühren nutzbar. Kosten entstehen bei Ihnen durch Betrieb und Pflege der Instanz – Rechenleistung, Speicher und die Zeit für Updates.',
-    link: { to: '/install', label: 'Zur Installationsanleitung' },
+    link: { to: 'install', label: 'Zur Installationsanleitung' },
   },
   {
     question: 'Kann ich DocsOps erst ausprobieren?',

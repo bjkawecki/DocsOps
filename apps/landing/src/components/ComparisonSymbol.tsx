@@ -1,11 +1,19 @@
 import { Box, Text } from '@mantine/core';
 import { IconCircleCheck, IconCircleDashed, IconCircleX } from '@tabler/icons-react';
-import type { ComparisonValue } from '../content/comparison';
+import type { ComparisonValue } from '../content/types';
+import { useLocale } from '../i18n/LocaleProvider';
 
-const LABELS: Record<ComparisonValue, string> = {
-  yes: 'Trifft zu',
-  partial: 'Teilweise',
-  no: 'Trifft nicht zu',
+const LABELS: Record<'de' | 'en', Record<ComparisonValue, string>> = {
+  de: {
+    yes: 'Trifft zu',
+    partial: 'Teilweise',
+    no: 'Trifft nicht zu',
+  },
+  en: {
+    yes: 'Applies',
+    partial: 'Partial',
+    no: 'Does not apply',
+  },
 };
 
 type ComparisonSymbolProps = {
@@ -14,7 +22,9 @@ type ComparisonSymbolProps = {
 };
 
 export function ComparisonSymbol({ value, note }: ComparisonSymbolProps) {
-  const label = note ? `${LABELS[value]} (${note})` : LABELS[value];
+  const { locale } = useLocale();
+  const labels = LABELS[locale];
+  const label = note ? `${labels[value]} (${note})` : labels[value];
 
   const icon =
     value === 'yes' ? (

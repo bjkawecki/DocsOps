@@ -1,6 +1,14 @@
 import type { Edge, Node } from '@xyflow/react';
 import { MarkerType } from '@xyflow/react';
-import { rolesPublicationCopy } from '../../content/siteCopy';
+import type { RoleDiagramEdge } from '../../content/types';
+
+type RolesDiagramCopy = {
+  roles: { author: string; lead: string; member: string };
+  document: { title: string; entwurf: string; version: string };
+  scope: { title: string; hint: string };
+  transition: string;
+  edges: readonly RoleDiagramEdge[];
+};
 
 const ROLE_NODE_IDS = {
   lead: 'lead',
@@ -53,7 +61,10 @@ function centeredStateX(frameX: number, frameWidth: number): number {
   return frameX + (frameWidth - STATE_NODE_WIDTH) / 2;
 }
 
-export function buildRolesDiagramGraph(): { nodes: Node[]; edges: Edge[] } {
+export function buildRolesDiagramGraph(rolesPublicationCopy: RolesDiagramCopy): {
+  nodes: Node[];
+  edges: Edge[];
+} {
   const { roles, document, edges, transition, scope } = rolesPublicationCopy;
   const docFrameY = documentFrameY();
   const stateX = centeredStateX(LAYOUT.documentFrame.x, LAYOUT.documentFrame.width);
@@ -162,25 +173,32 @@ export function buildRolesDiagramGraph(): { nodes: Node[]; edges: Edge[] } {
   const edgeLabelStyle = { fill: '#f1f3f5', fontSize: 15, fontWeight: 600 };
   const edgeLabelBgStyle = { fill: '#25262b', fillOpacity: 0.98 };
 
-  const flowEdges: Edge[] = edges.map((edge) => ({
-    id: `role-edge-${edge.from}-${edge.to}`,
-    source: ROLE_NODE_IDS[edge.from],
-    target: DOC_NODE_IDS[edge.to],
-    sourceHandle: SOURCE_HANDLES[edge.from],
-    targetHandle:
-      edge.to === 'entwurf' ? TARGET_HANDLES.entwurf[edge.from] : TARGET_HANDLES.version.member,
-    label: edge.label,
-    type: 'default',
-    style: edgeStyle,
-    markerEnd,
-    selectable: false,
-    focusable: false,
-    labelShowBg: true,
-    labelStyle: edgeLabelStyle,
-    labelBgStyle: edgeLabelBgStyle,
-    labelBgPadding: [10, 7] as [number, number],
-    labelBgBorderRadius: 6,
-  }));
+  const flowEdges: Edge[] = edges.map((edge) => {
+    let targetHandle: string;
+    if (edge.to === 'entwurf' && (edge.from === 'lead' || edge.from === 'author')) {
+      targetHandle = TARGET_HANDLES.entwurf[edge.from];
+    } else {
+      targetHandle = TARGET_HANDLES.version.member;
+    }
+    return {
+      id: `role-edge-${edge.from}-${edge.to}`,
+      source: ROLE_NODE_IDS[edge.from],
+      target: DOC_NODE_IDS[edge.to],
+      sourceHandle: SOURCE_HANDLES[edge.from],
+      targetHandle,
+      label: edge.label,
+      type: 'default',
+      style: edgeStyle,
+      markerEnd,
+      selectable: false,
+      focusable: false,
+      labelShowBg: true,
+      labelStyle: edgeLabelStyle,
+      labelBgStyle: edgeLabelBgStyle,
+      labelBgPadding: [10, 7] as [number, number],
+      labelBgBorderRadius: 6,
+    };
+  });
 
   flowEdges.push({
     id: 'doc-transition',

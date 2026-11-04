@@ -1,7 +1,6 @@
 import { Box, Table, Text, Title } from '@mantine/core';
 import { ComparisonSymbol } from '../ComparisonSymbol';
-import { comparisonRows } from '../../content/comparison';
-import { comparisonCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 
 function ComparisonCell({ value, note }: { value: 'yes' | 'no' | 'partial'; note?: string }) {
   return <ComparisonSymbol value={value} note={note} />;
@@ -14,6 +13,10 @@ type Props = {
 
 /** Spaltenreihenfolge: Gegner zuerst, eigenes Produkt rechts. */
 export function ComparisonSection({ showTitle = true }: Props) {
+  const { comparison, site } = useLandingCopy();
+  const { comparisonRows } = comparison;
+  const { comparisonCopy } = site;
+
   return (
     <Box id="comparison" className="landing-section" component="section">
       {showTitle ? (

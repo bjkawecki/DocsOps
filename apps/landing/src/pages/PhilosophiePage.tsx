@@ -1,6 +1,6 @@
 import { Box, Stack, Text, Title } from '@mantine/core';
 import { LandingHead } from '../components/LandingHead';
-import { philosophieCopy } from '../content/siteCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 
 function PhilosophyAccentPeriod() {
   return (
@@ -11,6 +11,9 @@ function PhilosophyAccentPeriod() {
 }
 
 export function PhilosophiePage() {
+  const { site } = useLandingCopy();
+  const { philosophieCopy } = site;
+
   return (
     <>
       <LandingHead

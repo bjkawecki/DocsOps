@@ -1,4 +1,5 @@
 import { Stack } from '@mantine/core';
+import { useLocation } from 'react-router-dom';
 import { LandingHead } from '../components/LandingHead';
 import { LandingJsonLd } from '../components/LandingJsonLd';
 import { ContextSection } from '../components/sections/ContextSection';
@@ -11,10 +12,13 @@ import { PhilosophyTeaserSection } from '../components/sections/PhilosophyTeaser
 import { RolesPublicationSection } from '../components/sections/RolesPublicationSection';
 import { ScopeSection } from '../components/sections/ScopeSection';
 import { getGithubRepoUrl, getSiteUrl } from '../config/env';
-import { faqItems } from '../content/faq';
-import { heroCopy } from '../content/siteCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 
-function homeJsonLd(): Record<string, unknown>[] {
+function homeJsonLd(
+  heroMetaDescription: string,
+  faqItems: { question: string; answer: string }[],
+  homeUrl: string
+): Record<string, unknown>[] {
   const siteUrl = getSiteUrl();
   const githubUrl = getGithubRepoUrl();
   return [
@@ -22,7 +26,7 @@ function homeJsonLd(): Record<string, unknown>[] {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'DocsOps',
-      url: `${siteUrl}/`,
+      url: homeUrl,
       logo: `${siteUrl}/docops.svg`,
       sameAs: [githubUrl],
     },
@@ -32,8 +36,8 @@ function homeJsonLd(): Record<string, unknown>[] {
       name: 'DocsOps',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Linux',
-      url: `${siteUrl}/`,
-      description: heroCopy.metaDescription,
+      url: homeUrl,
+      description: heroMetaDescription,
       isAccessibleForFree: true,
       offers: {
         '@type': 'Offer',
@@ -57,10 +61,23 @@ function homeJsonLd(): Record<string, unknown>[] {
 }
 
 export function HomePage() {
+  const location = useLocation();
+  const { site, faq } = useLandingCopy();
+  const { heroCopy } = site;
+  const siteUrl = getSiteUrl();
+  const homeUrl =
+    location.pathname === '/en' || location.pathname.startsWith('/en/')
+      ? `${siteUrl}/en`
+      : `${siteUrl}/`;
+
   return (
     <Stack gap={0}>
-      <LandingHead title={heroCopy.pageTitle} description={heroCopy.metaDescription} path="/" />
-      <LandingJsonLd data={homeJsonLd()} />
+      <LandingHead
+        title={heroCopy.pageTitle}
+        description={heroCopy.metaDescription}
+        path={location.pathname === '/en' ? '/en' : '/'}
+      />
+      <LandingJsonLd data={homeJsonLd(heroCopy.metaDescription, faq.faqItems, homeUrl)} />
       <HeroSection />
       <ScopeSection />
       <ContextSection />

@@ -19,20 +19,37 @@ function buildRobotsTxt(origin: string, lab: boolean): string {
   return ['User-agent: *', 'Allow: /', `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
 }
 
+function pairLocalePath(path: string): { de: string; en: string } {
+  if (path === '/en' || path.startsWith('/en/')) {
+    const bare = path === '/en' ? '/' : path.slice(3);
+    return { de: bare === '' ? '/' : bare, en: path };
+  }
+  return { de: path, en: path === '/' ? '/en' : `/en${path}` };
+}
+
+function locFor(origin: string, path: string): string {
+  return path === '/' ? `${origin}/` : `${origin}${path}`;
+}
+
 function buildSitemapXml(origin: string): string {
   const urls = LANDING_SEO_ROUTES.map((route) => {
-    const loc = route.path === '/' ? `${origin}/` : `${origin}${route.path}`;
+    const loc = locFor(origin, route.path);
+    const { de, en } = pairLocalePath(route.path);
     return [
       '  <url>',
       `    <loc>${escapeXml(loc)}</loc>`,
       `    <changefreq>${route.changefreq}</changefreq>`,
       `    <priority>${route.priority}</priority>`,
+      `    <xhtml:link rel="alternate" hreflang="de" href="${escapeXml(locFor(origin, de))}" />`,
+      `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(locFor(origin, en))}" />`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(locFor(origin, de))}" />`,
       '  </url>',
     ].join('\n');
   });
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    '        xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...urls,
     '</urlset>',
     '',

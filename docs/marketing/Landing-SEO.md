@@ -7,9 +7,11 @@
 | Artefakt                 | Quelle                                                                                                |
 | ------------------------ | ----------------------------------------------------------------------------------------------------- |
 | `robots.txt`             | Vite-Plugin [`apps/landing/seo/seoEmitPlugin.ts`](../../apps/landing/seo/seoEmitPlugin.ts) beim Build |
-| `sitemap.xml`            | Nur Public-Build (Host ohne `.local`)                                                                 |
+| `sitemap.xml`            | Nur Public-Build (Host ohne `.local`); inkl. `xhtml:link` hreflang de/en/x-default                    |
 | Canonical / OG / Twitter | [`LandingHead`](../../apps/landing/src/components/LandingHead.tsx) + Defaults in `index.html`         |
-| JSON-LD                  | Home: Organization, SoftwareApplication, FAQPage                                                      |
+| `hreflang`               | `LandingHead`: `link rel="alternate"` de / en / x-default (x-default → DE)                            |
+| `html lang`              | aus URL-Locale (`LocaleProvider` / `LandingHead`)                                                     |
+| JSON-LD                  | Home: Organization, SoftwareApplication, FAQPage (locale-abhängig)                                    |
 | Prerender                | `pnpm --filter landing run prerender -- --outDir dist-public` (Playwright) nach `build:public`        |
 | Caddy                    | `try_files {path} {path}/index.html /index.html` in `Caddyfile.demo` / `Caddyfile.lab`                |
 
@@ -17,16 +19,25 @@
 
 `VITE_SITE_URL` ist Pflicht (kein stiller Fallback) – siehe [`apps/landing/.env.example`](../../apps/landing/.env.example).
 
-Indexierbare Routen (**Ist**): `/`, `/philosophie`, `/install`, `/changelog`, `/vergleich`, `/sponsor`, `/impressum`, `/datenschutz` (SSoT: [`apps/landing/seo/routes.ts`](../../apps/landing/seo/routes.ts)).
+## Locales & Pfade
 
-**Ziel (Landing i18n):** englische Pfadsegmente; DE unprefixed, EN unter `/en/…`; je Locale Canonical + `hreflang` (`de` / `en` / `x-default`); Sitemap und Prerender beide Locales. Details: [Landing-Page-Plan §8](./Landing-Page-Plan.md#8-landing-i18n-geplant-zuerst-umsetzen).
+| Locale | URL-Präfix | Beispiel                               |
+| ------ | ---------- | -------------------------------------- |
+| `de`   | keiner     | `/`, `/philosophy`, `/compare`         |
+| `en`   | `/en`      | `/en`, `/en/philosophy`, `/en/compare` |
+
+Indexierbare Routen (SSoT: [`apps/landing/seo/routes.ts`](../../apps/landing/seo/routes.ts)): jeweils DE + EN für `/`, `/philosophy`, `/install`, `/changelog`, `/compare`, `/sponsor`, `/legal/imprint`, `/legal/privacy`.
+
+Legacy-Slugs (`/philosophie`, `/vergleich`, `/impressum`, `/datenschutz`, …) redirecten clientseitig auf die englischen Segmente (DE unprefixed).
+
+Details: [Landing-Page-Plan §8](./Landing-Page-Plan.md#8-landing-i18n-umgesetzt).
 
 ## Google Search Console – Checkliste
 
 1. Property `https://docsops.de` anlegen (Domain oder URL-Präfix).
 2. Sitemap einreichen: `https://docsops.de/sitemap.xml`.
-3. URL-Prüfung: Startseite und `/install` (Live-URL testen).
-4. Nach Retag/Deploy von `v0.1.0` (oder neuer Version): Indexierung erneut prüfen; bei Bundle-Update Landing-Dist inkl. robots/sitemap/Prerender mit ausrollen.
+3. URL-Prüfung: Startseite, `/en`, `/install`, `/en/install` (Live-URL testen).
+4. Nach Retag/Deploy: Indexierung erneut prüfen; bei Bundle-Update Landing-Dist inkl. robots/sitemap/Prerender mit ausrollen.
 5. `demo.docsops.de` **nicht** als Marketing-Property führen; App setzt `noindex`.
 
 ## Was wir bewusst nicht tun

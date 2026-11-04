@@ -1,6 +1,6 @@
 import { Box, Stack } from '@mantine/core';
 import { lazy, Suspense } from 'react';
-import { scopeCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
@@ -9,6 +9,9 @@ const ScopeDiagram = lazy(() =>
 );
 
 export function ScopeSection() {
+  const { site } = useLandingCopy();
+  const { scopeCopy } = site;
+
   return (
     <Box id="scope" className="landing-section">
       <Stack gap="xl">

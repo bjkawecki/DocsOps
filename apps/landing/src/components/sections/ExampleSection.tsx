@@ -1,10 +1,13 @@
 import { Box, Stack, Text, Title } from '@mantine/core';
-import { exampleCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
 export function ExampleSection() {
+  const { site } = useLandingCopy();
+  const { exampleCopy } = site;
+
   return (
-    <Box id="einordnen" className="landing-section">
+    <Box id="example" className="landing-section">
       <Stack gap="xl">
         <LandingSectionHeader
           title={exampleCopy.title}

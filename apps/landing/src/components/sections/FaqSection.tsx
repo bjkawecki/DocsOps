@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { Accordion, Anchor, Box, Stack, Text, Title } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { faqItems } from '../../content/faq';
-import { faqCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import { useLocale } from '../../i18n/LocaleProvider';
+import { pathFor, type LandingSlugKey } from '../../i18n/locale';
 
 export function FaqSection() {
+  const { locale } = useLocale();
+  const { faq, site } = useLandingCopy();
+  const { faqItems } = faq;
+  const { faqCopy } = site;
   const firstQuestion = faqItems[0]?.question ?? '';
   const [opened, setOpened] = useState<string[]>(firstQuestion ? [firstQuestion] : []);
 
@@ -49,7 +54,7 @@ export function FaqSection() {
                 {item.link ? (
                   <Anchor
                     component={Link}
-                    to={item.link.to}
+                    to={pathFor(locale, item.link.to as LandingSlugKey)}
                     mt="sm"
                     display="inline-block"
                     className="landing-faq-link"

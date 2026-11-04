@@ -1075,6 +1075,25 @@ a.landing-nav-link:hover {
   color: inherit;
 }
 
+.landing-lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-inline: 0.35rem;
+}
+
+.landing-lang-switcher-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.landing-lang-switcher-check-spacer {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+}
+
 .landing-footer {
   padding-block: var(--mantine-spacing-xl);
   margin-top: var(--mantine-spacing-xl);
@@ -1435,5 +1454,31 @@ a.landing-nav-link:hover {
 .landing-external-button:focus-visible .landing-external-button-icon {
   opacity: 1;
   width: 1.125rem;
+  margin-left: 0.25rem;
+}
+
+/**
+ * Navbar CTA: invisible sizer keeps expanded width; real button grows leftward
+ * into the reserved slot so neighbors (language switcher) do not shift.
+ */
+.landing-navbar-cta-slot {
+  display: inline-grid;
+  justify-items: end;
+  align-items: center;
+}
+
+.landing-navbar-cta-slot > * {
+  grid-area: 1 / 1;
+}
+
+.landing-navbar-cta-sizer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.landing-navbar-cta-sizer .landing-external-button-icon {
+  opacity: 1;
+  width: 1.125rem;
+  min-width: 1.125rem;
   margin-left: 0.25rem;
 }

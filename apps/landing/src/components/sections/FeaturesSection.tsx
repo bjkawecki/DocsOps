@@ -1,8 +1,11 @@
 import { Box, SimpleGrid, Text, Title } from '@mantine/core';
-import { features } from '../../content/features';
-import { featuresSectionCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 
 export function FeaturesSection() {
+  const { features: featuresMod, site } = useLandingCopy();
+  const { features } = featuresMod;
+  const { featuresSectionCopy } = site;
+
   return (
     <Box id="features" className="landing-section">
       <Box className="landing-features" maw={880} mx="auto" w="100%">

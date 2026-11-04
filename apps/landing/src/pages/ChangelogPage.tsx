@@ -5,10 +5,12 @@ import remarkGfm from 'remark-gfm';
 import { LandingHead } from '../components/LandingHead';
 import { LandingPageLayout } from '../components/LandingPageLayout';
 import { changelogMarkdownComponents } from '../components/ChangelogMarkdown';
-import { changelogCopy } from '../content/siteCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 import { formatReleaseDate, getLandingReleases } from '../content/releases';
 
 export function ChangelogPage() {
+  const { site } = useLandingCopy();
+  const { changelogCopy } = site;
   const releases = getLandingReleases();
 
   return (

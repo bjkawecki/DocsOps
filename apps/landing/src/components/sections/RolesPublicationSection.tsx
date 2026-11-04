@@ -1,6 +1,6 @@
 import { Box, Stack } from '@mantine/core';
 import { lazy, Suspense } from 'react';
-import { rolesPublicationCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 import { LandingRouteFallback } from '../LandingRouteFallback';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
@@ -9,8 +9,11 @@ const RolesDocumentDiagram = lazy(() =>
 );
 
 export function RolesPublicationSection() {
+  const { site } = useLandingCopy();
+  const { rolesPublicationCopy } = site;
+
   return (
-    <Box id="rollen" className="landing-section">
+    <Box id="roles" className="landing-section">
       <Stack gap="xl">
         <LandingSectionHeader
           title={rolesPublicationCopy.title}

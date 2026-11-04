@@ -8,9 +8,9 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { ReactFlow, useEdgesState, useNodesState, type Node } from '@xyflow/react';
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import '@xyflow/react/dist/style.css';
-import { rolesPublicationCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 import { getDiagramNodeDetail } from './rolesDiagramDetails';
 import { buildRolesDiagramGraph, serializeDiagramNodePositions } from './rolesDiagramLayout';
 import { rolesDiagramNodeTypes } from './rolesDiagramNodes';
@@ -20,8 +20,18 @@ function isDiagramEditMode(): boolean {
   return new URLSearchParams(window.location.search).get('rolesDiagramEdit') === '1';
 }
 
+const MOBILE_ROLE_ICONS: Record<string, Icon> = {
+  lead: IconShieldCheck,
+  author: IconPencil,
+  member: IconEye,
+  entwurf: IconFileText,
+  version: IconCircleCheck,
+};
+
 function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: string | null }) {
-  const detail = selectedNodeId ? getDiagramNodeDetail(selectedNodeId) : null;
+  const { site } = useLandingCopy();
+  const { rolesPublicationCopy } = site;
+  const detail = selectedNodeId ? getDiagramNodeDetail(selectedNodeId, rolesPublicationCopy) : null;
 
   return (
     <Box className="landing-diagram-detail-panel">
@@ -43,41 +53,25 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: string | null 
   );
 }
 
-type MobileRoleLevel = {
-  title: string;
-  description: string;
-  Icon: Icon;
-};
-
-const MOBILE_ROLE_LEVELS: MobileRoleLevel[] = [
-  {
-    title: rolesPublicationCopy.roles.lead,
-    description: 'Qualität und Freigabe; veröffentlicht die verbindliche Version.',
-    Icon: IconShieldCheck,
-  },
-  {
-    title: rolesPublicationCopy.roles.author,
-    description: 'Formuliert inhaltliche Vorschläge im Entwurf.',
-    Icon: IconPencil,
-  },
-  {
-    title: rolesPublicationCopy.roles.member,
-    description: 'Liest die veröffentlichte Version und kann kommentieren.',
-    Icon: IconEye,
-  },
-  {
-    title: rolesPublicationCopy.document.entwurf,
-    description: 'Arbeitsfassung: Änderungen werden vorbereitet und zusammengeführt.',
-    Icon: IconFileText,
-  },
-  {
-    title: 'Veröffentlichte Version',
-    description: 'Verbindliche Fassung für alle mit Leserecht.',
-    Icon: IconCircleCheck,
-  },
-];
-
 function MobileRolesList() {
+  const { site } = useLandingCopy();
+  const { rolesPublicationCopy } = site;
+
+  const levels = rolesPublicationCopy.mobileLevels.map((level) => {
+    const Icon = MOBILE_ROLE_ICONS[level.role] ?? IconFileText;
+    let title: string;
+    if (level.role === 'version' && 'title' in level && level.title) {
+      title = level.title;
+    } else if (level.role === 'entwurf') {
+      title = rolesPublicationCopy.document.entwurf;
+    } else if (level.role === 'lead' || level.role === 'author' || level.role === 'member') {
+      title = rolesPublicationCopy.roles[level.role];
+    } else {
+      title = rolesPublicationCopy.document.version;
+    }
+    return { title, description: level.description, Icon };
+  });
+
   return (
     <Box className="landing-roles-diagram-mobile" hiddenFrom="sm">
       <Paper
@@ -87,10 +81,10 @@ function MobileRolesList() {
         bg="dark.7"
       >
         <Text size="sm" c="gray.3" lh={1.55} mb="md">
-          Mitwirken und Freigabe sind getrennt: vom Entwurf bis zur verbindlichen Version.
+          {rolesPublicationCopy.mobileIntro}
         </Text>
         <Box component="ol" className="landing-roles-diagram-mobile-list">
-          {MOBILE_ROLE_LEVELS.map(({ title, description, Icon }) => (
+          {levels.map(({ title, description, Icon }) => (
             <Box component="li" key={title}>
               <Group align="flex-start" gap="sm" wrap="nowrap">
                 <ThemeIcon variant="light" color="blue" radius="xl" size={30} mt={2}>
@@ -136,12 +130,23 @@ function DiagramEditToolbar({ nodes, onCopied }: { nodes: Node[]; onCopied: () =
 }
 
 export function RolesDocumentDiagram() {
+  const { site } = useLandingCopy();
+  const { rolesPublicationCopy } = site;
   const editMode = isDiagramEditMode();
-  const initial = useMemo(() => buildRolesDiagramGraph(), []);
-  const [nodes, , onNodesChange] = useNodesState(initial.nodes);
-  const [edges, , onEdgesChange] = useEdgesState(initial.edges);
+  const initial = useMemo(
+    () => buildRolesDiagramGraph(rolesPublicationCopy),
+    [rolesPublicationCopy]
+  );
+  const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
   const [copied, setCopied] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNodes(initial.nodes);
+    setEdges(initial.edges);
+    setSelectedNodeId(null);
+  }, [initial, setNodes, setEdges]);
 
   const onNodeClick = useCallback(
     (_event: MouseEvent, node: Node) => {
@@ -172,7 +177,7 @@ export function RolesDocumentDiagram() {
       {editMode ? <DiagramEditToolbar nodes={nodes} onCopied={() => setCopied(true)} /> : null}
       {copied ? (
         <Text size="xs" c="green.4" ta="center" mt="xs" visibleFrom="sm">
-          Layout copied to clipboard — paste into rolesDiagramLayout.ts
+          Layout copied to clipboard – paste into rolesDiagramLayout.ts
         </Text>
       ) : null}
 

@@ -3,9 +3,11 @@ import { IconCircleCheck, IconStar } from '@tabler/icons-react';
 import { LandingExternalButton } from '../components/LandingExternalLink';
 import { LandingHead } from '../components/LandingHead';
 import { getGithubRepoUrl, getSponsorGithubUrl } from '../config/env';
-import { sponsorCopy } from '../content/siteCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 
 export function SponsorPage() {
+  const { site } = useLandingCopy();
+  const { sponsorCopy } = site;
   const sponsorUrl = getSponsorGithubUrl();
   const githubUrl = getGithubRepoUrl();
 

@@ -61,6 +61,25 @@ export const scopeCopy = {
     team: 'Teams sind die kleinste operative Einheit der Organisation und gehören immer einer Abteilung an.\n\nIn DocsOps können Anwender genau einem Team zugeordnet werden. Dadurch erhalten diese Zugriff auf Kontexte und Dokumente des Teams sowie der übergeordneten Abteilung.',
     user: 'Jeder Anwender hat einen eigenen Organisationsbereich außerhalb der Firmenstruktur.\n\n Kontexte und Dokumente dort sind nicht über Firma, Abteilung oder Team einsehbar und gehören nur diesem Anwender.',
   },
+  mobileIntro: 'Sichtbarkeit und Zugänge folgen der Hierarchie von Firma, Abteilung und Team.',
+  mobileLevels: [
+    {
+      title: 'Firma',
+      description: 'Gemeinsamer organisatorischer Rahmen.',
+    },
+    {
+      title: 'Abteilung',
+      description: 'Verantwortung für ein Fachgebiet oder Produktfeld.',
+    },
+    {
+      title: 'Team',
+      description: 'Operative Zusammenarbeit im Tagesgeschäft.',
+    },
+    {
+      title: 'Persönlicher Bereich',
+      description: 'Eigene Inhalte außerhalb der Team-Hierarchie.',
+    },
+  ],
 } as const;
 
 export const contextCopy = {
@@ -163,13 +182,37 @@ export const rolesPublicationCopy = {
     { from: 'author', to: 'entwurf', label: 'Erstellt Vorschläge' },
     { from: 'member', to: 'version', label: 'Liest / Kommentiert' },
   ] satisfies RoleDiagramEdge[],
+  mobileIntro: 'Mitwirken und Freigabe sind getrennt: vom Entwurf bis zur verbindlichen Version.',
+  mobileLevels: [
+    {
+      role: 'lead' as const,
+      description: 'Qualität und Freigabe; veröffentlicht die verbindliche Version.',
+    },
+    {
+      role: 'author' as const,
+      description: 'Formuliert inhaltliche Vorschläge im Entwurf.',
+    },
+    {
+      role: 'member' as const,
+      description: 'Liest die veröffentlichte Version und kann kommentieren.',
+    },
+    {
+      role: 'entwurf' as const,
+      description: 'Arbeitsfassung: Änderungen werden vorbereitet und zusammengeführt.',
+    },
+    {
+      role: 'version' as const,
+      title: 'Veröffentlichte Version',
+      description: 'Verbindliche Fassung für alle mit Leserecht.',
+    },
+  ],
 } as const;
 
 export const featuresSectionCopy = {
   title: 'Alle Features',
 } as const;
 
-/** Tabelle auf `/vergleich` – `ComparisonSection` */
+/** Tabelle auf `/compare` – `ComparisonSection` */
 export const comparisonCopy = {
   title: 'Struktur und Kontrolle',
   /** Erste Spalte ohne Header (Kritikzeilen, kein Feature-Label). */
@@ -285,21 +328,22 @@ export const vergleichHubCopy = {
   intro: ['Beobachtungen aus dem Alltag mit Confluence und DocsOps.'],
 } as const;
 
+/** Bare paths (English segments); localize via `pathFor` / `localizePath`. */
 export const modellNavLinks = [
   { label: 'Organisation', href: '/#scope' },
-  { label: 'Kontext', href: '/#kontext' },
-  { label: 'Rollen', href: '/#rollen' },
-  { label: 'Beispiel', href: '/#einordnen' },
+  { label: 'Kontext', href: '/#context' },
+  { label: 'Rollen', href: '/#roles' },
+  { label: 'Beispiel', href: '/#example' },
   { label: 'Alle Features', href: '/#features' },
 ] as const;
 
 /** Navbar Philosophie ▾ – full labels; footer “DocsOps vs.” column uses short opponent names. */
 export const philosophieNavLinks = [
-  { label: 'Unser Ansatz', href: '/philosophie' },
-  { label: 'DocsOps vs. Confluence', href: '/vergleich' },
+  { label: 'Unser Ansatz', href: '/philosophy' },
+  { label: 'DocsOps vs. Confluence', href: '/compare' },
 ] as const;
 
-export const docsopsVsFooterLinks = [{ label: 'Confluence', href: '/vergleich' }] as const;
+export const docsopsVsFooterLinks = [{ label: 'Confluence', href: '/compare' }] as const;
 
 export const projectNavLinks = [
   { label: 'GitHub', href: 'github', external: true },

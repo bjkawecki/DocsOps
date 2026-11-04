@@ -14,9 +14,10 @@ import {
   type Edge,
   type Node,
 } from '@xyflow/react';
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import '@xyflow/react/dist/style.css';
-import { scopeCopy, type ScopeNodeId } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import type { ScopeNodeId } from '../../content/types';
 import {
   getScopeHighlightState,
   getScopeNodeDetail,
@@ -41,8 +42,12 @@ const FOCUSED_MARKER = {
   color: 'var(--mantine-color-blue-4)',
 };
 
+const MOBILE_ICONS: Icon[] = [IconBuilding, IconHierarchy2, IconUsersGroup, IconUser];
+
 function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | null }) {
-  const detail = selectedNodeId ? getScopeNodeDetail(selectedNodeId) : null;
+  const { site } = useLandingCopy();
+  const { scopeCopy } = site;
+  const detail = selectedNodeId ? getScopeNodeDetail(selectedNodeId, scopeCopy) : null;
 
   return (
     <Box className="landing-diagram-detail-panel">
@@ -66,36 +71,10 @@ function DiagramDetailPanel({ selectedNodeId }: { selectedNodeId: ScopeNodeId | 
   );
 }
 
-type MobileScopeLevel = {
-  title: string;
-  description: string;
-  Icon: Icon;
-};
-
-const MOBILE_SCOPE_LEVELS: MobileScopeLevel[] = [
-  {
-    title: 'Firma',
-    description: 'Gemeinsamer organisatorischer Rahmen.',
-    Icon: IconBuilding,
-  },
-  {
-    title: 'Abteilung',
-    description: 'Verantwortung für ein Fachgebiet oder Produktfeld.',
-    Icon: IconHierarchy2,
-  },
-  {
-    title: 'Team',
-    description: 'Operative Zusammenarbeit im Tagesgeschäft.',
-    Icon: IconUsersGroup,
-  },
-  {
-    title: 'Persönlicher Bereich',
-    description: 'Eigene Inhalte außerhalb der Team-Hierarchie.',
-    Icon: IconUser,
-  },
-];
-
 function MobileScopeList() {
+  const { site } = useLandingCopy();
+  const { scopeCopy } = site;
+
   return (
     <Box className="landing-scope-mobile" hiddenFrom="sm">
       <Paper
@@ -105,10 +84,11 @@ function MobileScopeList() {
         bg="dark.7"
       >
         <Text size="sm" c="gray.3" lh={1.55} mb="md">
-          Sichtbarkeit und Zugänge folgen der Hierarchie von Firma, Abteilung und Team.
+          {scopeCopy.mobileIntro}
         </Text>
         <Box component="ol" className="landing-scope-mobile-list">
-          {MOBILE_SCOPE_LEVELS.map(({ title, description, Icon }) => {
+          {scopeCopy.mobileLevels.map(({ title, description }, index) => {
+            const Icon = MOBILE_ICONS[index] ?? IconBuilding;
             return (
               <Box component="li" key={title}>
                 <Group align="flex-start" gap="sm" wrap="nowrap">
@@ -160,10 +140,18 @@ function resolveEdgeVisualState(
 }
 
 export function ScopeDiagram() {
-  const initial = useMemo(() => buildScopeDiagramGraph(), []);
-  const [nodes, , onNodesChange] = useNodesState(initial.nodes);
-  const [edges, , onEdgesChange] = useEdgesState(initial.edges);
+  const { site } = useLandingCopy();
+  const { scopeCopy } = site;
+  const initial = useMemo(() => buildScopeDiagramGraph(scopeCopy.nodes), [scopeCopy.nodes]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
   const [selectedNodeId, setSelectedNodeId] = useState<ScopeNodeId | null>(null);
+
+  useEffect(() => {
+    setNodes(initial.nodes);
+    setEdges(initial.edges);
+    setSelectedNodeId(null);
+  }, [initial, setNodes, setEdges]);
 
   const onNodeClick = useCallback((_event: MouseEvent, node: Node) => {
     setSelectedNodeId((current) => (current === node.id ? null : (node.id as ScopeNodeId)));

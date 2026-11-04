@@ -3,10 +3,15 @@ import { IconServer } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { LandingExternalButton } from '../LandingExternalLink';
 import { getDemoUrl } from '../../config/env';
-import { finalCtaCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import { useLocale } from '../../i18n/LocaleProvider';
+import { pathFor } from '../../i18n/locale';
 
 export function FinalCtaSection() {
   const demoUrl = getDemoUrl();
+  const { locale } = useLocale();
+  const { site } = useLandingCopy();
+  const { finalCtaCopy } = site;
 
   return (
     <Box className="landing-section landing-final-cta">
@@ -23,7 +28,7 @@ export function FinalCtaSection() {
           </LandingExternalButton>
           <Button
             component={Link}
-            to="/install"
+            to={pathFor(locale, 'install')}
             variant="default"
             className="landing-hero-cta-button"
             leftSection={<IconServer size={18} color="var(--mantine-color-blue-4)" />}

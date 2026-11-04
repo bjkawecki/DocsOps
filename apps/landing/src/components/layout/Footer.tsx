@@ -3,12 +3,9 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { LandingExternalLink } from '../LandingExternalLink';
 import { getAppVersion, getDemoUrl, resolveProjectNavHref } from '../../config/env';
-import {
-  authorSiteLink,
-  docsopsVsFooterLinks,
-  footerCopy,
-  projectNavLinks,
-} from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import { useLocale } from '../../i18n/LocaleProvider';
+import { localizePath, pathFor } from '../../i18n/locale';
 
 function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -30,6 +27,9 @@ export function Footer() {
   const demoUrl = getDemoUrl();
   const appVersion = getAppVersion();
   const year = new Date().getFullYear();
+  const { locale } = useLocale();
+  const { site } = useLandingCopy();
+  const { footerCopy, docsopsVsFooterLinks, projectNavLinks, authorSiteLink } = site;
 
   return (
     <Box component="footer" className="landing-footer">
@@ -37,7 +37,12 @@ export function Footer() {
         <Stack gap="xl">
           <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 5 }} spacing="xl">
             <Box className="landing-footer-brand-column">
-              <Anchor component={Link} to="/" underline="never" className="landing-footer-brand">
+              <Anchor
+                component={Link}
+                to={pathFor(locale, 'home')}
+                underline="never"
+                className="landing-footer-brand"
+              >
                 <Group gap="sm" wrap="nowrap">
                   <Image src="/docops-dark.svg" alt="" w={32} h={32} fit="contain" />
                   <Text fw={700} fz="lg" c="white">
@@ -51,9 +56,15 @@ export function Footer() {
               <Text fw={600} className="landing-footer-heading">
                 {footerCopy.productTitle}
               </Text>
-              <FooterAnchor href="/#scope">{footerCopy.links.howItWorks}</FooterAnchor>
-              <FooterLink href="/philosophie">{footerCopy.links.ourApproach}</FooterLink>
-              <FooterLink href="/install">{footerCopy.links.installation}</FooterLink>
+              <FooterAnchor href={pathFor(locale, 'home', 'scope')}>
+                {footerCopy.links.howItWorks}
+              </FooterAnchor>
+              <FooterLink href={pathFor(locale, 'philosophy')}>
+                {footerCopy.links.ourApproach}
+              </FooterLink>
+              <FooterLink href={pathFor(locale, 'install')}>
+                {footerCopy.links.installation}
+              </FooterLink>
               <LandingExternalLink href={demoUrl} className="landing-footer-link" underline="never">
                 {footerCopy.links.demo}
               </LandingExternalLink>
@@ -64,7 +75,7 @@ export function Footer() {
                 {footerCopy.docsopsVsTitle}
               </Text>
               {docsopsVsFooterLinks.map((link) => (
-                <FooterLink key={link.href} href={link.href}>
+                <FooterLink key={link.href} href={localizePath(locale, link.href)}>
                   {link.label}
                 </FooterLink>
               ))}
@@ -89,7 +100,7 @@ export function Footer() {
                   );
                 }
                 return (
-                  <FooterLink key={link.label} href={resolved.url}>
+                  <FooterLink key={link.label} href={localizePath(locale, resolved.url)}>
                     {link.label}
                   </FooterLink>
                 );
@@ -107,8 +118,12 @@ export function Footer() {
               <Text fw={600} className="landing-footer-heading">
                 {footerCopy.legalTitle}
               </Text>
-              <FooterLink href="/impressum">{footerCopy.links.impressum}</FooterLink>
-              <FooterLink href="/datenschutz">{footerCopy.links.datenschutz}</FooterLink>
+              <FooterLink href={pathFor(locale, 'legalImprint')}>
+                {footerCopy.links.impressum}
+              </FooterLink>
+              <FooterLink href={pathFor(locale, 'legalPrivacy')}>
+                {footerCopy.links.datenschutz}
+              </FooterLink>
             </Stack>
           </SimpleGrid>
 
@@ -118,7 +133,7 @@ export function Footer() {
             </Text>
             <Anchor
               component={Link}
-              to="/changelog"
+              to={pathFor(locale, 'changelog')}
               size="sm"
               className="landing-footer-link"
               underline="never"

@@ -3,12 +3,17 @@ import { IconChevronDown, IconServer } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { LandingExternalButton } from '../LandingExternalLink';
 import { getDemoUrl } from '../../config/env';
-import { heroCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import { useLocale } from '../../i18n/LocaleProvider';
+import { pathFor } from '../../i18n/locale';
 import showroomImage from '../../assets/images/showroom.png';
 import { HeroHeadline } from './HeroHeadline';
 
 export function HeroSection() {
   const demoUrl = getDemoUrl();
+  const { locale } = useLocale();
+  const { site } = useLandingCopy();
+  const { heroCopy } = site;
 
   return (
     <Box className="landing-hero">
@@ -31,7 +36,7 @@ export function HeroSection() {
           </LandingExternalButton>
           <Button
             component={Link}
-            to="/install"
+            to={pathFor(locale, 'install')}
             className="landing-hero-cta-button"
             variant="default"
             size="md"

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { heroCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 
 const ROTATE_MS = 3_400;
 const REDUCED_MOTION_INDEX = 2;
@@ -23,7 +23,8 @@ function usePrefersReducedMotion(): boolean {
 }
 
 export function HeroHeadline() {
-  const { headlineLead, headlineQualities, headlineTail, headlineAccessible } = heroCopy;
+  const { site } = useLandingCopy();
+  const { headlineLead, headlineQualities, headlineTail, headlineAccessible } = site.heroCopy;
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const [outgoingIndex, setOutgoingIndex] = useState<number | null>(null);

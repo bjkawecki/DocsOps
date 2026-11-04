@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getSiteUrl } from '../config/env';
+import { useLocale } from '../i18n/LocaleProvider';
+import {
+  localeFromPathname,
+  localizePath,
+  stripLocalePrefix,
+  type LandingLocale,
+} from '../i18n/locale';
 
 type LandingHeadProps = {
   title: string;
@@ -23,11 +30,15 @@ function upsertMeta(name: string, content: string, attribute: 'name' | 'property
   element.setAttribute('content', content);
 }
 
-function upsertLink(rel: string, href: string) {
-  let element = document.head.querySelector(`link[rel="${rel}"]`);
+function upsertLink(rel: string, href: string, hreflang?: string) {
+  const selector = hreflang
+    ? `link[rel="${rel}"][hreflang="${hreflang}"]`
+    : `link[rel="${rel}"]:not([hreflang])`;
+  let element = document.head.querySelector(selector);
   if (!element) {
     element = document.createElement('link');
     element.setAttribute('rel', rel);
+    if (hreflang) element.setAttribute('hreflang', hreflang);
     document.head.appendChild(element);
   }
   element.setAttribute('href', href);
@@ -39,17 +50,31 @@ function absoluteUrl(path: string): string {
   return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+function alternatePath(barePath: string, locale: LandingLocale): string {
+  return localizePath(locale, barePath === '/' ? '/' : barePath);
+}
+
 export function LandingHead({ title, description, path }: LandingHeadProps) {
   const location = useLocation();
+  const { locale } = useLocale();
   const resolvedPath = path ?? location.pathname;
+  const barePath = stripLocalePrefix(resolvedPath);
   const pageUrl = absoluteUrl(resolvedPath);
   const imageUrl = absoluteUrl(OG_IMAGE_PATH);
+  const deUrl = absoluteUrl(alternatePath(barePath, 'de'));
+  const enUrl = absoluteUrl(alternatePath(barePath, 'en'));
+  const pathLocale = localeFromPathname(resolvedPath);
 
   useEffect(() => {
     document.title = title;
+    document.documentElement.lang = pathLocale;
     upsertLink('canonical', pageUrl);
+    upsertLink('alternate', deUrl, 'de');
+    upsertLink('alternate', enUrl, 'en');
+    upsertLink('alternate', deUrl, 'x-default');
     upsertMeta('og:url', pageUrl, 'property');
     upsertMeta('og:title', title, 'property');
+    upsertMeta('og:locale', pathLocale === 'de' ? 'de_DE' : 'en_US', 'property');
     upsertMeta('twitter:title', title);
     upsertMeta('og:image', imageUrl, 'property');
     upsertMeta('og:image:width', OG_IMAGE_WIDTH, 'property');
@@ -61,7 +86,7 @@ export function LandingHead({ title, description, path }: LandingHeadProps) {
       upsertMeta('og:description', description, 'property');
       upsertMeta('twitter:description', description);
     }
-  }, [title, description, pageUrl, imageUrl]);
+  }, [title, description, pageUrl, imageUrl, deUrl, enUrl, pathLocale, locale]);
 
   return null;
 }

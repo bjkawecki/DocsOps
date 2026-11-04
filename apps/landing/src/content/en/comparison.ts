@@ -10,47 +10,47 @@ export type ComparisonRow = {
 };
 
 /**
- * Kritik-Gegenüberstellung auf `/vergleich`.
- * ✓ = Kritik trifft zu · ✗ = so nicht angelegt.
+ * Critique comparison on `/compare`.
+ * ✓ = critique applies · ✗ = not designed that way.
  */
 export const comparisonRows: ComparisonRow[] = [
   {
-    label: 'Veraltete Seiten, Duplikate, niemand räumt auf',
+    label: 'Stale pages, duplicates, nobody cleans up',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Keine feste Struktur im Produkt',
+    label: 'No fixed structure in the product',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Teuer',
+    label: 'Expensive',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Spaces und Pages schwer für Einsteiger',
+    label: 'Spaces and pages hard for newcomers',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Cloud-Zwang',
+    label: 'Cloud lock-in',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Aufgeblähtes UI',
+    label: 'Bloated UI',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Probleme mit der Sicherheit',
+    label: 'Security issues',
     docsops: 'no',
     confluence: 'yes',
   },
   {
-    label: 'Vom Editor will ich gar nicht erst anfangen',
+    label: 'Don’t get me started on the editor',
     docsops: 'no',
     confluence: 'yes',
   },
@@ -67,25 +67,25 @@ export const vergleichHubItems: VergleichHubItem[] = [
   {
     slug: 'confluence',
     name: 'Confluence',
-    description: 'Spaces, Plugins und etablierte Intranet-Doku – im Vergleich zu DocsOps.',
+    description: 'Spaces, plugins, and established intranet docs – compared to DocsOps.',
     ready: true,
   },
   {
     slug: 'notion',
     name: 'Notion',
-    description: 'Flexibilität und All-in-one – vs. org-native Leitplanken.',
+    description: 'Flexibility and all-in-one – vs. org-native guardrails.',
     ready: false,
   },
   {
     slug: 'docmost',
     name: 'Docmost',
-    description: 'Self-hosted OSS mit Echtzeit-Kollaboration – vs. hierarchische Kontrolle.',
+    description: 'Self-hosted OSS with realtime collaboration – vs. hierarchical control.',
     ready: false,
   },
   {
     slug: 'outline',
     name: 'Outline',
-    description: 'Team-Wiki mit klarem Fokus – vs. DocsOps-Strukturmodell.',
+    description: 'Team wiki with a clear focus – vs. the DocsOps structure model.',
     ready: false,
   },
 ];

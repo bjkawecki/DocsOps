@@ -3,11 +3,13 @@ import { IconCircleCheck } from '@tabler/icons-react';
 import { LandingExternalButton } from '../components/LandingExternalLink';
 import { LandingHead } from '../components/LandingHead';
 import { getInstallDocsUrl, getInstallScriptUrl } from '../config/env';
-import { installCopy } from '../content/siteCopy';
+import { useLandingCopy } from '../content/useLandingCopy';
 
 const installCommand = (scriptUrl: string) => `curl -fsSL ${scriptUrl} | sudo bash`;
 
 export function InstallPage() {
+  const { site } = useLandingCopy();
+  const { installCopy } = site;
   const installDocsUrl = getInstallDocsUrl();
   const installScriptUrl = getInstallScriptUrl();
   const command = installCommand(installScriptUrl);

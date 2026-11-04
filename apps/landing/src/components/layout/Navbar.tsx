@@ -16,16 +16,12 @@ import { IconChevronDown } from '@tabler/icons-react';
 import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getDemoUrl, resolveProjectNavHref } from '../../config/env';
-import {
-  modellNavLinks,
-  navbarCopy,
-  philosophieNavLinks,
-  projectNavLinks,
-} from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
+import { useLocale } from '../../i18n/LocaleProvider';
+import { localizePath, pathFor, stripLocalePrefix } from '../../i18n/locale';
 import { LandingExternalButton, LandingExternalLink } from '../LandingExternalLink';
 import { LandingNavAnchor, LandingNavLink } from '../LandingNavLink';
-
-const navbarProjectLinks = projectNavLinks;
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 function navMenuClassName(active: boolean, className?: string) {
   return [
@@ -53,7 +49,6 @@ type NavMenuLinkTriggerProps = {
   href: string;
 } & Omit<ComponentPropsWithoutRef<'a'>, 'href'>;
 
-/** Link + hover menu (e.g. So funktioniert’s → /#scope). */
 const NavMenuLinkTrigger = forwardRef<HTMLAnchorElement, NavMenuLinkTriggerProps>(
   function NavMenuLinkTrigger({ label, active, href, className, ...others }, ref) {
     return (
@@ -78,7 +73,6 @@ type NavMenuButtonTriggerProps = {
   menuLabel: string;
 } & ComponentPropsWithoutRef<'button'>;
 
-/** Menu-only trigger (no navigation) – default cursor, not link pointer. */
 const NavMenuButtonTrigger = forwardRef<HTMLButtonElement, NavMenuButtonTriggerProps>(
   function NavMenuButtonTrigger({ label, active, menuLabel, className, ...others }, ref) {
     return (
@@ -99,10 +93,16 @@ const NavMenuButtonTrigger = forwardRef<HTMLButtonElement, NavMenuButtonTriggerP
 export function Navbar() {
   const demoUrl = getDemoUrl();
   const location = useLocation();
+  const { locale } = useLocale();
+  const { site } = useLandingCopy();
+  const { navbarCopy, modellNavLinks, philosophieNavLinks, projectNavLinks } = site;
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
-  const isHome = location.pathname === '/';
-  const philosophieActive =
-    location.pathname === '/philosophie' || location.pathname === '/vergleich';
+
+  const barePath = stripLocalePrefix(location.pathname);
+  const isHome = barePath === '/';
+  const philosophieActive = barePath === '/philosophy' || barePath === '/compare';
+  const homePath = pathFor(locale, 'home');
+  const scopeHref = pathFor(locale, 'home', 'scope');
 
   return (
     <>
@@ -114,9 +114,15 @@ export function Navbar() {
                 opened={drawerOpened}
                 onClick={toggleDrawer}
                 hiddenFrom="sm"
-                aria-label="Menü"
+                aria-label="Menu"
               />
-              <Anchor component={Link} to="/" underline="never" c="white" onClick={closeDrawer}>
+              <Anchor
+                component={Link}
+                to={homePath}
+                underline="never"
+                c="white"
+                onClick={closeDrawer}
+              >
                 <Group gap="sm" wrap="nowrap">
                   <Image src="/docops-dark.svg" alt="" w={36} h={36} fit="contain" />
                   <Box component="span" fw={700} fz="xl">
@@ -136,11 +142,11 @@ export function Navbar() {
                 classNames={{ dropdown: 'landing-nav-menu', item: 'landing-nav-menu-item' }}
               >
                 <Menu.Target>
-                  <NavMenuLinkTrigger label={navbarCopy.modell} active={isHome} href="/#scope" />
+                  <NavMenuLinkTrigger label={navbarCopy.modell} active={isHome} href={scopeHref} />
                 </Menu.Target>
                 <Menu.Dropdown>
                   {modellNavLinks.map((link) => (
-                    <Menu.Item key={link.href} component="a" href={link.href}>
+                    <Menu.Item key={link.href} component="a" href={localizePath(locale, link.href)}>
                       {link.label}
                     </Menu.Item>
                   ))}
@@ -159,19 +165,23 @@ export function Navbar() {
                   <NavMenuButtonTrigger
                     label={navbarCopy.philosophie}
                     active={philosophieActive}
-                    menuLabel={`${navbarCopy.philosophie} öffnen`}
+                    menuLabel={`${navbarCopy.philosophie} menu`}
                   />
                 </Menu.Target>
                 <Menu.Dropdown>
                   {philosophieNavLinks.map((link) => (
-                    <Menu.Item key={link.href} component={Link} to={link.href}>
+                    <Menu.Item
+                      key={link.href}
+                      component={Link}
+                      to={localizePath(locale, link.href)}
+                    >
                       {link.label}
                     </Menu.Item>
                   ))}
                 </Menu.Dropdown>
               </Menu>
 
-              {navbarProjectLinks.map((link) => {
+              {projectNavLinks.map((link) => {
                 const resolved = resolveProjectNavHref(link.href);
                 if (resolved.external) {
                   return (
@@ -186,14 +196,24 @@ export function Navbar() {
                   );
                 }
                 return (
-                  <LandingNavLink key={link.label} to={resolved.url}>
+                  <LandingNavLink key={link.label} to={localizePath(locale, resolved.url)}>
                     {link.label}
                   </LandingNavLink>
                 );
               })}
             </Group>
 
-            <LandingExternalButton href={demoUrl}>{navbarCopy.demoCta}</LandingExternalButton>
+            <Group gap="md" wrap="nowrap">
+              <span className="landing-navbar-cta-slot">
+                <span className="landing-navbar-cta-sizer" aria-hidden>
+                  <LandingExternalButton href={demoUrl} tabIndex={-1}>
+                    {navbarCopy.demoCta}
+                  </LandingExternalButton>
+                </span>
+                <LandingExternalButton href={demoUrl}>{navbarCopy.demoCta}</LandingExternalButton>
+              </span>
+              <LanguageSwitcher />
+            </Group>
           </Group>
         </Container>
       </Box>
@@ -210,7 +230,11 @@ export function Navbar() {
             {navbarCopy.modell}
           </Text>
           {modellNavLinks.map((link) => (
-            <LandingNavAnchor key={link.href} href={link.href} onClick={closeDrawer}>
+            <LandingNavAnchor
+              key={link.href}
+              href={localizePath(locale, link.href)}
+              onClick={closeDrawer}
+            >
               {link.label}
             </LandingNavAnchor>
           ))}
@@ -218,11 +242,15 @@ export function Navbar() {
             {navbarCopy.philosophie}
           </Text>
           {philosophieNavLinks.map((link) => (
-            <LandingNavLink key={link.href} to={link.href} onClick={closeDrawer}>
+            <LandingNavLink
+              key={link.href}
+              to={localizePath(locale, link.href)}
+              onClick={closeDrawer}
+            >
               {link.label}
             </LandingNavLink>
           ))}
-          {navbarProjectLinks.map((link) => {
+          {projectNavLinks.map((link) => {
             const resolved = resolveProjectNavHref(link.href);
             if (resolved.external) {
               return (
@@ -238,7 +266,11 @@ export function Navbar() {
               );
             }
             return (
-              <LandingNavLink key={link.label} to={resolved.url} onClick={closeDrawer}>
+              <LandingNavLink
+                key={link.label}
+                to={localizePath(locale, resolved.url)}
+                onClick={closeDrawer}
+              >
                 {link.label}
               </LandingNavLink>
             );
@@ -246,6 +278,7 @@ export function Navbar() {
           <LandingExternalButton href={demoUrl} fullWidth mt="sm">
             {navbarCopy.demoCta}
           </LandingExternalButton>
+          <LanguageSwitcher onNavigate={closeDrawer} />
         </Stack>
       </Drawer>
     </>

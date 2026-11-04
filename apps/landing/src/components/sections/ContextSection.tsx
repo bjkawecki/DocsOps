@@ -1,11 +1,12 @@
 import { Box, Paper, Stack, Text, Title } from '@mantine/core';
-import { contextCopy } from '../../content/siteCopy';
+import { useLandingCopy } from '../../content/useLandingCopy';
 import { LandingSectionHeader } from './LandingSectionHeader';
 
-type ContextTypeId = keyof typeof contextCopy.types;
+type ContextTypes = ReturnType<typeof useLandingCopy>['site']['contextCopy']['types'];
+type ContextTypeId = keyof ContextTypes;
 
-function ContextTypeCard({ typeId }: { typeId: ContextTypeId }) {
-  const type = contextCopy.types[typeId];
+function ContextTypeCard({ typeId, types }: { typeId: ContextTypeId; types: ContextTypes }) {
+  const type = types[typeId];
 
   return (
     <Paper
@@ -39,18 +40,12 @@ function ContextTypeCard({ typeId }: { typeId: ContextTypeId }) {
   );
 }
 
-function ContextOrDivider() {
-  return (
-    <Box className="landing-context-or-divider" aria-hidden>
-      <Text className="landing-context-or-watermark">?</Text>
-      <Text className="landing-context-or-label">{contextCopy.orLabel}</Text>
-    </Box>
-  );
-}
-
 export function ContextSection() {
+  const { site } = useLandingCopy();
+  const { contextCopy } = site;
+
   return (
-    <Box id="kontext" className="landing-section">
+    <Box id="context" className="landing-section">
       <Stack gap="xl">
         <LandingSectionHeader
           title={contextCopy.title}
@@ -59,9 +54,12 @@ export function ContextSection() {
         />
 
         <Box className="landing-context-choice" maw={900} mx="auto" w="100%">
-          <ContextTypeCard typeId="process" />
-          <ContextOrDivider />
-          <ContextTypeCard typeId="project" />
+          <ContextTypeCard typeId="process" types={contextCopy.types} />
+          <Box className="landing-context-or-divider" aria-hidden>
+            <Text className="landing-context-or-watermark">?</Text>
+            <Text className="landing-context-or-label">{contextCopy.orLabel}</Text>
+          </Box>
+          <ContextTypeCard typeId="project" types={contextCopy.types} />
         </Box>
       </Stack>
     </Box>
