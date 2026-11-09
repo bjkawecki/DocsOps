@@ -23,7 +23,7 @@ export interface RecentItemsCardProps {
   items: RecentItem[];
   /** Optional icon shown left of card title (e.g. dashboard). */
   titleIcon?: ReactNode;
-  /** If set, show a "View more" link at the bottom right (e.g. dashboard → /catalog). */
+  /** If set, show a "View more" link at the bottom right (e.g. dashboard -> /catalog). */
   viewMoreHref?: string;
 }
 

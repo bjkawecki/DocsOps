@@ -3,7 +3,7 @@ import { useAdminSystemSettings } from '../../hooks/useAdminUpdateStatus.js';
 import { AdminSystemMailSection } from './AdminSystemTab/AdminSystemMailSection.js';
 
 /**
- * Admin Platform → Mail: SMTP configuration and test email.
+ * Admin Platform -> Mail: SMTP configuration and test email.
  */
 export function AdminMailTab() {
   const settingsQuery = useAdminSystemSettings();

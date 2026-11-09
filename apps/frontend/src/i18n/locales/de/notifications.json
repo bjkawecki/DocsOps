@@ -10,17 +10,37 @@
     "total_other": "{{count}} Benachrichtigungen"
   },
   "categories": {
-    "all": { "label": "Alle" },
-    "documents": { "label": "Dokumente", "description": "Veröffentlichen, Updates, Archiv, …" },
-    "comments": { "label": "Kommentare", "description": "Erwähnungen und Diskussionen" },
-    "reviews": { "label": "Reviews", "description": "Draft-Anfragen" },
+    "all": {
+      "label": "Alle"
+    },
+    "documents": {
+      "label": "Dokumente",
+      "description": "Veröffentlichen, Updates, Archiv, …"
+    },
+    "comments": {
+      "label": "Kommentare",
+      "description": "Erwähnungen und Diskussionen"
+    },
+    "reviews": {
+      "label": "Reviews",
+      "description": "Draft-Anfragen"
+    },
     "reminders": {
       "label": "Aktualität",
       "description": "Dokumente mit Aktualitätsbedarf"
     },
-    "announcements": { "label": "Ankündigungen", "description": "Admin-Rundschreiben" },
-    "operations": { "label": "Betrieb", "description": "Backups und Migrationsjobs" },
-    "org": { "label": "Organisation", "description": "Rollen und Mitgliedschaft" }
+    "announcements": {
+      "label": "Ankündigungen",
+      "description": "Admin-Rundschreiben"
+    },
+    "operations": {
+      "label": "Betrieb",
+      "description": "Backups und Migrationsjobs"
+    },
+    "org": {
+      "label": "Organisation",
+      "description": "Rollen und Mitgliedschaft"
+    }
   },
   "inbox": {
     "table": {
@@ -37,7 +57,8 @@
     "read": "Gelesen",
     "markAsRead": "Als gelesen markieren",
     "openSource": "Quelle öffnen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "downloadFile": "Zip herunterladen"
   },
   "toasts": {
     "updateFailedTitle": "Aktualisierung fehlgeschlagen",
@@ -61,7 +82,16 @@
     "softwareUpdate": "Software-Update",
     "updateVersion": "Update {{version}}",
     "untitledDocument": "Dokument ohne Titel",
-    "activity": "Aktivität"
+    "activity": "Aktivität",
+    "scopePdfExport": "PDF-Export",
+    "scopePdfExportKind": {
+      "company": "Company",
+      "departments": "Departments",
+      "departmentNamed": "Departments · {{name}}",
+      "teams": "Teams",
+      "teamNamed": "Teams · {{name}}"
+    },
+    "scopePdfExportWithScope": "PDF-Export · {{scope}}"
   },
   "body": {
     "adminBroadcastFallbackTitle": "Systemmeldung",
@@ -81,8 +111,8 @@
     "platformExportDocumentsSuffix": " · {{count}} Dokumente",
     "platformImportSucceededWithCount": "{{count}} Dokumente importiert. Neuindizierung wurde eingeplant.",
     "platformImportSucceeded": "Plattformdaten importiert. Neuindizierung wurde eingeplant.",
-    "updateAvailableWithInstalled": "Version {{latest}} ist verfügbar (installiert: {{installed}}). Update-Schritte unter Admin → System.",
-    "updateAvailable": "Version {{latest}} ist verfügbar. Update-Schritte unter Admin → System.",
+    "updateAvailableWithInstalled": "Version {{latest}} ist verfügbar (installiert: {{installed}}). Update-Schritte unter System im Admin-Bereich.",
+    "updateAvailable": "Version {{latest}} ist verfügbar. Update-Schritte unter System im Admin-Bereich.",
     "updateSucceeded": "DocsOps wurde auf {{target}} aktualisiert.",
     "commentMention": "Du wurdest in einem Kommentar erwähnt.",
     "commentReply": "Jemand hat in einem Kommentarthread geantwortet.",
@@ -98,7 +128,11 @@
     "draftRequestGeneric": "Bezieht sich auf eine Review-Anfrage.",
     "healthCheckActionNeeded_one": "{{count}} Dokument braucht eine Aktualitätsentscheidung.",
     "healthCheckActionNeeded_other": "{{count}} Dokumente brauchen eine Aktualitätsentscheidung.",
-    "healthCheckNeedsUpdate": "Als aktualisierungsbedürftig markiert."
+    "healthCheckNeedsUpdate": "Als aktualisierungsbedürftig markiert.",
+    "scopePdfExportSucceeded": "PDF-Export bereit ({{scope}}){{size}}{{docsSuffix}}.",
+    "scopePdfExportDocsSuffix": " · {{docsOk}}/{{docsTotal}} Dokumente",
+    "scopePdfExportZipNotFound": "Das Zip-Werkzeug fehlt im Job-Worker. Worker-Image neu bauen.",
+    "scopePdfExportZipFailed": "Das PDF-Zip-Archiv konnte nicht erzeugt werden."
   },
   "eventTypes": {
     "document-created": "Dokument erstellt",
@@ -146,6 +180,12 @@
     "admin-granted": "Administratorzugriff gewährt",
     "admin-revoked": "Administratorzugriff entzogen",
     "health-check-action-needed": "Aktualitätsentscheidung nötig",
-    "health-check-needs-update": "Dokument braucht Update"
+    "health-check-needs-update": "Dokument braucht Update",
+    "scope-pdf-export-succeeded": "PDF-Export bereit",
+    "scope-pdf-export-failed": "PDF-Export fehlgeschlagen"
+  },
+  "titles": {
+    "scope-pdf-export-succeeded": "PDF-Export bereit",
+    "scope-pdf-export-failed": "PDF-Export fehlgeschlagen"
   }
 }

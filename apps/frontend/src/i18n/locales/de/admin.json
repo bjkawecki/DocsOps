@@ -11,6 +11,7 @@
     "jobs": "Jobs",
     "scheduler": "Zeitplaner",
     "backup": "Backup",
+    "destinations": "Ziele",
     "migration": "Migration",
     "system": "System",
     "healthCheck": "Aktualität",
@@ -29,6 +30,7 @@
     "createMessage": "Nachricht erstellen",
     "backupNow": "Jetzt sichern",
     "backupSettings": "Einstellungen",
+    "createPublishedArchive": "Spiegel erstellen",
     "exportPlatform": "Plattform exportieren",
     "importPlatform": "Plattform importieren",
     "receivePush": "Push empfangen",
@@ -267,7 +269,8 @@
       "retentionLabel": "Aufbewahrung",
       "defaultDestinationLabel": "Standard-externes Ziel",
       "autoLabel": "Automatisch",
-      "notScheduled": "Nicht geplant"
+      "notScheduled": "Nicht geplant",
+      "manageDestinations": "Ziele verwalten"
     },
     "schedulerLink": "Zeitplaner",
     "maintenanceActiveTooltip": "Wartungsmodus ist aktiv",
@@ -356,15 +359,15 @@
       },
       "add": "Ziel hinzufügen",
       "edit": "Bearbeiten",
-      "setDefault": "Als Standard festlegen",
-      "default": "Standard",
+      "setDefault": "Als Backup-Standard",
+      "default": "Backup-Standard",
       "deleteConfirmTitle": "Externes Ziel {{name}} löschen?",
       "deleteConfirmBody": "Kann nicht rückgängig gemacht werden.",
       "empty": "Noch keine externen Ziele eingerichtet.",
       "columnName": "Name",
       "columnType": "Typ",
       "columnEnabled": "Aktiviert",
-      "columnDefault": "Standard",
+      "columnDefault": "Backup-Standard",
       "enableAriaLabel": "Externes Ziel {{name}} aktivieren",
       "editModal": {
         "editTitle": "{{name}} bearbeiten",
@@ -421,7 +424,6 @@
     "settings": {
       "title": "Backup-Einstellungen",
       "tabGeneral": "Allgemein",
-      "tabDestinations": "Externe Ziele",
       "tabRestore": "Notfall-Wiederherstellung",
       "general": {
         "retentionLabel": "Erfolgreiche Backups aufbewahren",
@@ -958,7 +960,7 @@
       "storageUnavailableTitle": "Objektspeicher nicht verfügbar",
       "storageUnavailableMessage": "MinIO ist nicht konfiguriert oder nicht erreichbar. Plattform-Export und -Import benötigen Objektspeicher.",
       "workerDisconnectedTitle": "Job-Worker getrennt",
-      "workerDisconnectedMessage": "Export- und Import-Jobs im Hintergrund benötigen einen verbundenen Worker. Siehe Admin → Jobs.",
+      "workerDisconnectedMessage": "Export- und Import-Jobs im Hintergrund benötigen einen verbundenen Worker. Siehe Jobs unter Admin.",
       "maintenanceActiveTitle": "Wartungsmodus aktiv",
       "maintenanceActiveMessage": "Migrationsaktionen können blockiert sein, solange der Wartungsmodus aktiv ist ({{reason}}).",
       "maintenanceReasonUnknown": "unbekannt",
@@ -994,10 +996,22 @@
     "exportModal": {
       "title": "Plattform exportieren",
       "steps": {
-        "overview": { "label": "Übersicht", "description": "Was exportiert wird" },
-        "confirm": { "label": "Bestätigen", "description": "Export-Job starten" },
-        "progress": { "label": "Fortschritt", "description": "Job-Status" },
-        "done": { "label": "Fertig", "description": "Archiv herunterladen" }
+        "overview": {
+          "label": "Übersicht",
+          "description": "Was exportiert wird"
+        },
+        "confirm": {
+          "label": "Bestätigen",
+          "description": "Export-Job starten"
+        },
+        "progress": {
+          "label": "Fortschritt",
+          "description": "Job-Status"
+        },
+        "done": {
+          "label": "Fertig",
+          "description": "Archiv herunterladen"
+        }
       },
       "overviewDescriptionBefore": "Erstellt ein",
       "overviewDescriptionAfter": "Archiv mit Organisation, Nutzern, Kontexten, Dokumenten, Berechtigungen, Tags, Pins, Kommentaren und Dateianhängen. Sessions, Benachrichtigungen und Backup-Metadaten sind nicht enthalten.",
@@ -1017,7 +1031,7 @@
       "downloadAgain": "Erneut herunterladen",
       "done": "Fertig",
       "pushTitle": "An andere Instanz pushen",
-      "pushDescription": "Füge die Empfangs-URL vom Ziel ein (Admin → Migration → Push empfangen). Das Archiv wird server-zu-server gesendet.",
+      "pushDescription": "Füge die Empfangs-URL vom Ziel ein (unter Admin, Migration, Push empfangen). Das Archiv wird server-zu-server gesendet.",
       "receiveUrlLabel": "Empfangs-URL des Ziels",
       "pushSubmit": "Zum Ziel pushen",
       "pushSucceeded": "Zum Ziel gepusht",
@@ -1042,10 +1056,22 @@
     "importModal": {
       "title": "Plattform-Export importieren",
       "steps": {
-        "upload": { "label": "Hochladen & prüfen", "description": "Archiv-Preflight" },
-        "options": { "label": "Optionen", "description": "Import-Einstellungen" },
-        "confirm": { "label": "Bestätigen", "description": "Wartungshinweis" },
-        "result": { "label": "Ergebnis", "description": "Fortschritt & Ausgang" }
+        "upload": {
+          "label": "Hochladen & prüfen",
+          "description": "Archiv-Preflight"
+        },
+        "options": {
+          "label": "Optionen",
+          "description": "Import-Einstellungen"
+        },
+        "confirm": {
+          "label": "Bestätigen",
+          "description": "Wartungshinweis"
+        },
+        "result": {
+          "label": "Ergebnis",
+          "description": "Fortschritt & Ausgang"
+        }
       },
       "uploadErrorTitle": {
         "serverError": "Serverfehler beim Hochladen",
@@ -1227,7 +1253,7 @@
       "manualUpgradeHintBefore": "Solange das One-Click-Update nicht eingerichtet ist, das Upgrade auf dem Host per SSH durchführen. Zuerst ein operatives Backup erstellen unter",
       "manualUpgradeHintAfter": ".",
       "manualBackupHintBefore": "Für einen manuellen Lauf zuerst ein Backup erstellen unter",
-      "adminBackupLink": "Admin → Backup",
+      "adminBackupLink": "Backup",
       "manualUpgradeTitle": "Manuelles Upgrade auf dem Host",
       "defaultVersionHintBefore": "Ohne Versionsangabe delegiert",
       "defaultVersionHintAfter": "an",
@@ -1258,5 +1284,19 @@
     "autoScanHint": "Aktualisiert einmal täglich, welche Dokumente eine Aktualitätsprüfung brauchen. Persönliche Dokumente sind ausgenommen.",
     "saved": "Aktualitäts-Einstellungen gespeichert.",
     "saveFailed": "Aktualitäts-Einstellungen konnten nicht gespeichert werden."
+  },
+  "destinations": {
+    "intro": "Gemeinsame Remote-Ziele für betriebliche Backups (S3-kompatibel, SSH, WebDAV).",
+    "toasts": {
+      "errorTitle": "Fehler",
+      "loadFailed": "Ziele konnten nicht geladen werden",
+      "saveFailed": "Ziel konnte nicht gespeichert werden",
+      "savedTitle": "Ziel gespeichert",
+      "deleteFailed": "Ziel konnte nicht gelöscht werden",
+      "deletedTitle": "Ziel gelöscht",
+      "updateFailed": "Ziel konnte nicht aktualisiert werden",
+      "setDefaultFailed": "Backup-Standardziel konnte nicht aktualisiert werden",
+      "defaultUpdatedTitle": "Backup-Standardziel aktualisiert"
+    }
   }
 }

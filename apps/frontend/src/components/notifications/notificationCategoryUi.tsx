@@ -21,6 +21,8 @@ const DOCUMENT_EVENT_TYPES = new Set([
   'document-restored',
   'document-moved',
   'document-grants-changed',
+  'scope-pdf-export-succeeded',
+  'scope-pdf-export-failed',
 ]);
 
 const COMMENT_EVENT_TYPES = new Set(['document-comment-created']);

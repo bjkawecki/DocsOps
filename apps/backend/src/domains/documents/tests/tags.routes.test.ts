@@ -82,7 +82,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     await app.close();
   });
 
-  it('GET /api/v1/tags ohne ownerId/contextId → 400', async () => {
+  it('GET /api/v1/tags ohne ownerId/contextId -> 400', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -100,7 +100,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(body.error).toMatch(/ownerId|contextId|required/i);
   });
 
-  it('GET /api/v1/tags?ownerId=... mit Auth → 200, nur Tags dieses Owners', async () => {
+  it('GET /api/v1/tags?ownerId=... mit Auth -> 200, nur Tags dieses Owners', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -122,7 +122,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(inUse?.documentCount).toBe(1);
   });
 
-  it('POST /api/v1/tags ohne Auth → 401', async () => {
+  it('POST /api/v1/tags ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/tags',
@@ -132,7 +132,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('DELETE /api/v1/tags/:tagId ohne Auth → 401', async () => {
+  it('DELETE /api/v1/tags/:tagId ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'DELETE',
       url: `/api/v1/tags/${tagForDeleteId}`,
@@ -140,7 +140,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('POST /api/v1/tags mit Auth und name+ownerId → 201 + Tag', async () => {
+  it('POST /api/v1/tags mit Auth und name+ownerId -> 201 + Tag', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -164,7 +164,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(body.name).toBe(name);
   });
 
-  it('POST /api/v1/tags mit doppeltem Namen im gleichen Scope → 409', async () => {
+  it('POST /api/v1/tags mit doppeltem Namen im gleichen Scope -> 409', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -186,7 +186,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(body.error).toMatch(/existiert bereits|Scope/i);
   });
 
-  it('DELETE /api/v1/tags/:tagId mit Auth und existierendem Tag → 204', async () => {
+  it('DELETE /api/v1/tags/:tagId mit Auth und existierendem Tag -> 204', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -202,7 +202,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(res.statusCode).toBe(204);
   });
 
-  it('DELETE /api/v1/tags/:tagId bei Verwendung in Dokument → 409', async () => {
+  it('DELETE /api/v1/tags/:tagId bei Verwendung in Dokument -> 409', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -220,7 +220,7 @@ describe('Tags-API (GET/POST/DELETE /tags) scope-aware', () => {
     expect(body.error).toMatch(/used|document/i);
   });
 
-  it('DELETE /api/v1/tags/:tagId bei unbekanntem Tag → 404', async () => {
+  it('DELETE /api/v1/tags/:tagId bei unbekanntem Tag -> 404', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

@@ -13,7 +13,7 @@ import { excludeUserIds, listUserIdsWhoCanWriteDocument } from './notificationRe
 
 /**
  * Lead recipients for a Do11y owner-scope aggregate notification.
- * Team/Department → the single lead; Company → all company leads; Personal → none.
+ * Team/Department -> the single lead; Company -> all company leads; Personal -> none.
  */
 export async function listHealthCheckLeadUserIdsForOwnerScope(
   prisma: PrismaClient,

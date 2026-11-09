@@ -40,8 +40,8 @@ Vor Schreiben und bei „prüfen“: alle Checks bestehen – sonst streichen od
 
 - Unpersönlich (nicht Du/Sie); generisches Maskulinum oder neutral („die Leitung“, „der Nutzer“, „in der Organisation wird…“). Kein Partizip-Gendern („Mitarbeitende“).
 - Sachlich, vollständige Sätze; kein Telegrafenstil, keine Umgangssprache, kein Pathos, keine Help-Floskeln.
-- Genug Raum zum Mitführen (Problem → Einordnung → Antwort) – nicht stenografieren und nicht mit leerer Wiederholung strecken.
-- Kein Em-Dash; kein Chat-Meta in der Copy ([no-em-dash](no-em-dash.mdc), [copy-feedback-kontext](copy-feedback-kontext.mdc)).
+- Genug Raum zum Mitführen (Problem -> Einordnung -> Antwort) – nicht stenografieren und nicht mit leerer Wiederholung strecken.
+- Kein Em-Dash und kein Pfeil U+2192; kein Chat-Meta in der Copy ([forbidden-typography](forbidden-typography.mdc), [copy-feedback-kontext](copy-feedback-kontext.mdc)).
 - Keine Querverweise auf andere Help-Artikel. DE-Titel ohne EN-Lehnwörter; keine Stub-Labels in fertiger Copy. EN später gleicher Aufbau wie freigegebenes DE (siehe Arbeitsweise).
 
 ### 5. Abschnittswert

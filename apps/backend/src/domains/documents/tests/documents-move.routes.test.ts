@@ -91,7 +91,7 @@ describe('POST /documents/:id/move (same-owner)', () => {
     });
   });
 
-  it('writer (grant only) cannot move → 403', async () => {
+  it('writer (grant only) cannot move -> 403', async () => {
     const cookie = await ctx.loginAsWriter();
     const res = await ctx.app.inject({
       method: 'POST',
@@ -102,7 +102,7 @@ describe('POST /documents/:id/move (same-owner)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('cross-owner target → 409', async () => {
+  it('cross-owner target -> 409', async () => {
     const cookie = await ctx.loginAsScopeLead();
     const res = await ctx.app.inject({
       method: 'POST',
@@ -113,7 +113,7 @@ describe('POST /documents/:id/move (same-owner)', () => {
     expect(res.statusCode).toBe(409);
   });
 
-  it('context-free draft cannot move → 400', async () => {
+  it('context-free draft cannot move -> 400', async () => {
     const cookie = await ctx.loginAsScopeLead();
     const free = await prisma.document.create({
       data: {
@@ -136,7 +136,7 @@ describe('POST /documents/:id/move (same-owner)', () => {
     }
   });
 
-  it('PATCH context A→B is rejected; use move', async () => {
+  it('PATCH context A->B is rejected; use move', async () => {
     const cookie = await ctx.loginAsScopeLead();
     const res = await ctx.app.inject({
       method: 'PATCH',

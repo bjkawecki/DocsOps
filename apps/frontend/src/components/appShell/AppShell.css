@@ -57,7 +57,7 @@
  * Always reserve the classic scrollbar track (custom ::-webkit-scrollbar is
  * 8–10px). With overflow-y:auto the track appears only when content overflows,
  * the centered reading column recenters, and the sticky content-nav jumps ~5px
- * horizontally (asideLeft 294→289). overflow-y:scroll keeps width stable.
+ * horizontally (asideLeft 294->289). overflow-y:scroll keeps width stable.
  */
 .app-shell-outlet--document {
   overflow-y: scroll;
@@ -569,7 +569,7 @@ a.document-chrome-nav-link:focus-visible,
   }
 }
 
-/* Brand row: same height + bottom border as main top bar → continuous chrome line */
+/* Brand row: same height + bottom border as main top bar -> continuous chrome line */
 .app-shell-navbar-chrome {
   box-sizing: border-box;
   display: flex;

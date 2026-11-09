@@ -152,6 +152,11 @@ const AdminSchedulerTab = lazy(() =>
 const AdminBackupTab = lazy(() =>
   import('./pages/admin/AdminBackupTab/AdminBackupTab').then((m) => ({ default: m.AdminBackupTab }))
 );
+const AdminDestinationsTab = lazy(() =>
+  import('./pages/admin/AdminDestinationsTab/AdminDestinationsTab').then((m) => ({
+    default: m.AdminDestinationsTab,
+  }))
+);
 const AdminMigrationTab = lazy(() =>
   import('./pages/admin/AdminMigrationTab/AdminMigrationTab').then((m) => ({
     default: m.AdminMigrationTab,
@@ -350,6 +355,7 @@ function App() {
               <Route path="data">
                 <Route index element={<Navigate to="backup" replace />} />
                 <Route path="backup" element={<AdminBackupTab />} />
+                <Route path="destinations" element={<AdminDestinationsTab />} />
                 <Route path="migration" element={<AdminMigrationTab />} />
               </Route>
               <Route path="platform">

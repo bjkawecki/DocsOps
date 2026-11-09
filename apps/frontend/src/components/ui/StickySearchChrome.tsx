@@ -57,7 +57,7 @@ export type UseCompactFabBottomPanelResult = {
 };
 
 /**
- * Generic compact FAB → fixed bottom panel toggle (search, filter, …).
+ * Generic compact FAB -> fixed bottom panel toggle (search, filter, …).
  * Second tap on the same FAB closes; list behind stays visible.
  */
 export function useCompactFabBottomPanel({

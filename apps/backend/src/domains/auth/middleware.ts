@@ -24,7 +24,7 @@ export function getEffectiveUserId(request: RequestWithUser): string {
 
 /**
  * PreHandler: Liest Session-Cookie, lädt Session und User aus Postgres, hängt User an request.user.
- * Bei fehlender/ungültiger/abgelaufener Session → 401.
+ * Bei fehlender/ungültiger/abgelaufener Session -> 401.
  * Wenn User Admin und Cookie impersonateUserId gesetzt: prüft Ziel-User (existiert, nicht gelöscht),
  * setzt request.effectiveUserId oder löscht ungültiges Cookie.
  */

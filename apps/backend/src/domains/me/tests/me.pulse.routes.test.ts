@@ -435,7 +435,7 @@ describe('GET /api/v1/me/pulse/explore', () => {
   });
   it('returns empty columns for user without readable explore docs', async () => {
     const lonelyCookie = await ctx.loginAsReaderOnly();
-    // Reader-only has grants but no org membership → no team/dept/company; no createdById docs.
+    // Reader-only has grants but no org membership -> no team/dept/company; no createdById docs.
     const res = await ctx.app.inject({
       method: 'GET',
       url: '/api/v1/me/pulse/explore',

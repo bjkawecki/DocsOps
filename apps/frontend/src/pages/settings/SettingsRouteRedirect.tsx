@@ -1,7 +1,7 @@
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { SETTINGS_QUERY_KEY, settingsSectionFromLegacySearch } from './settingsLayout.js';
 
-/** Legacy `/settings` bookmarks → home with settings modal query. */
+/** Legacy `/settings` bookmarks -> home with settings modal query. */
 export function SettingsRouteRedirect() {
   const [searchParams] = useSearchParams();
   const section = settingsSectionFromLegacySearch(searchParams);

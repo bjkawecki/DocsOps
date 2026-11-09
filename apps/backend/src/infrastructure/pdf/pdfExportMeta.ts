@@ -2,7 +2,7 @@ import type { PrismaClient } from '../../../generated/prisma/client.js';
 
 /**
  * Resolve scope-lead display names for the document's owner unit at export time.
- * Personal owner → that user; org owner → leads of company/department/team.
+ * Personal owner -> that user; org owner -> leads of company/department/team.
  */
 export async function resolveDocumentPdfResponsibleNames(
   prisma: PrismaClient,
@@ -128,7 +128,7 @@ export function localeFromAcceptLanguage(header: string | undefined | null): Pdf
 
 /**
  * Locale for PDF meta line at enqueue time.
- * Order matches UI: request body → preferences → Accept-Language → en.
+ * Order matches UI: request body -> preferences -> Accept-Language -> en.
  */
 export function resolvePdfExportLocale(input: {
   bodyLocale?: string | null;

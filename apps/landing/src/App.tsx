@@ -43,7 +43,7 @@ export default function App() {
     <LocaleProvider>
       <FirstVisitLocaleRedirect />
       <Routes>
-        {/* Legacy German slugs → English segments (DE unprefixed) */}
+        {/* Legacy German slugs -> English segments (DE unprefixed) */}
         <Route path="philosophie" element={<Navigate to="/philosophy" replace />} />
         <Route path="warum" element={<Navigate to="/philosophy" replace />} />
         <Route path="ansatz" element={<Navigate to="/philosophy" replace />} />

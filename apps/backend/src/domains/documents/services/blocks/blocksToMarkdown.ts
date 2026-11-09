@@ -62,7 +62,7 @@ function blockquotePrefixedChildren(node: BlockNode, ctx: MarkdownExportContext)
 }
 
 /**
- * Block-Dokument v0 → Markdown (EPIC-2 / PR-2b).
+ * Block-Dokument v0 -> Markdown (EPIC-2 / PR-2b).
  * Spiegelbild zu {@link markdownToBlockDocumentV0}; für Export/Pandoc-Pipeline.
  */
 export function blockDocumentV0ToMarkdown(doc: BlockDocument): string {

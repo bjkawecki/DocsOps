@@ -50,6 +50,13 @@
   align-items: center;
 }
 
+.landing-latest-badge {
+  text-transform: none;
+  font-weight: 600;
+  border-color: var(--mantine-color-blue-4);
+  color: var(--mantine-color-blue-4);
+}
+
 .landing-surface-card {
   --landing-surface-glow-color: var(--mantine-color-blue-6);
   --landing-surface-glow-a: 0 6px 24px

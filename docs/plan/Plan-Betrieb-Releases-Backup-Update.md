@@ -1,6 +1,6 @@
 # Betrieb: Releases, Backup, Update
 
-Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **Update** und **Plattform-Migration**. Ergänzt [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md); Umsetzungsschritte in [Umsetzungs-Todo §24–§27](Umsetzungs-Todo.md).
+Plan für Betriebs-Features: **What's new**, **Backup** (Disaster Recovery), **Update**, **Plattform-Migration** und **Published-PDF-Corpus-Archiv**. Ergänzt [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md); Umsetzungsschritte in [Umsetzungs-Todo §24–§27](Umsetzungs-Todo.md) bzw. **§30** (PDF-Corpus).
 
 ---
 
@@ -311,6 +311,52 @@ Tab-Label Backup: **Backup** oder **Disaster recovery** (nicht „Data backup“
 
 ---
 
+## 4a. Scope PDF export (Lead)
+
+**Ziel:** Scope-Leads (und Schreibberechtigte am Kontext) erzeugen asynchron ein **menschenlesbares Zip** der **published** PDFs für den **Owner-Scope des aktuellen Kontexts** – Offline-Spiegel, kein Admin-Bypass.
+
+**Nicht** Operational Backup (§3) und **nicht** Plattform-Export (§4): nicht wieder einspielbar. Einzel-PDF pro Dokument bleibt `documents.export.pdf` (§17).
+
+### Regeln (Produkt)
+
+| Regel          | Vorgabe                                                                               |
+| -------------- | ------------------------------------------------------------------------------------- |
+| Auslöser       | Kontext-`⋮`-Menü (neben Archivieren); async Job + Notification/Download               |
+| Inhalt         | Nur **published**; Owner **genau** = Owner des aktuellen Kontexts (keine Kind-Scopes) |
+| Scopes         | Company **oder** Department **oder** Team (je Auslöser-Kontext)                       |
+| Ausgeschlossen | Persönliche Kontexte (`ownerUserId`)                                                  |
+| Rechte         | `canWriteContext`; Download nur Auslöser                                              |
+| Destinations   | Nein (nur lokale MinIO-Kopie + Download)                                              |
+| UI             | Kein Admin-Tab; Einstieg im Context Workspace                                         |
+| Archivformat   | **`.zip`**                                                                            |
+| Job            | `documents.scope-pdf-export`                                                          |
+
+### Ordnerbaum im Archiv (ein Owner-Zweig)
+
+```text
+Company/Prozesse|Projekte/<kontext>/…pdf
+Departments/<dept>/Prozesse|Projekte/<kontext>/…pdf
+Teams/<team>/Prozesse|Projekte/<kontext>/…pdf
+```
+
+Subcontexts optional unter Projekten. Dateinamen: slug(title) + kurzes Doc-Id-Suffix.
+
+### Abgrenzung (Drei-Wege)
+
+|                         | **Operational Backup** (§3) | **Plattform-Export** (§4) | **Scope PDF export** (§4a)     |
+| ----------------------- | --------------------------- | ------------------------- | ------------------------------ |
+| **Zweck**               | DR / Restore                | Migration / Klon          | Offline-Lesen / Scope-Spiegel  |
+| **Format**              | `pg_dump` + MinIO-Keys      | Domänen-JSON + files      | `.zip` Ordnerbaum + Typst-PDFs |
+| **Wieder einspielbar?** | ja                          | ja (Import)               | nein                           |
+| **Persönlich**          | gesamter Stack              | gesamter Domänen-Export   | **nein**                       |
+
+### Umsetzungshinweise
+
+- API: `POST /api/v1/contexts/:contextId/pdf-export`, Status/Download unter `/api/v1/scope-pdf-exports/:runId`.
+- Todos: [Umsetzungs-Todo §30](Umsetzungs-Todo.md#30-scope-pdf-export).
+
+---
+
 ## 5. Update (Admin)
 
 **Ziel:** Admins sehen installierte vs. verfügbare Version und können Updates kontrolliert anstoßen.
@@ -374,6 +420,7 @@ Siehe auch [Infrastruktur §3](Infrastruktur-und-Deployment.md#3-update-aus-der-
 5. **Plattform-Export & Import** (§4, Umsetzungs-Todo §27) – eigener Admin-Tab Migration
 6. Update Phase 2 (Updater-Sidecar)
 7. Update Phase 3 (Host-Agent, Go) – [Plan-Host-Agent](Plan-Host-Agent.md)
+8. **Published PDF corpus** (§4a, Umsetzungs-Todo §30) – nach stabilem Einzel-PDF + Destinations; nicht vor DR-Backup
 
 Siehe auch [Infrastruktur §12](Infrastruktur-und-Deployment.md) (Managed Hosting, optional, später).
 

@@ -194,12 +194,12 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(canPin).toBe(true);
   });
 
-  it('GET /api/v1/pinned ohne Auth → 401', async () => {
+  it('GET /api/v1/pinned ohne Auth -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/pinned' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('POST /api/v1/pinned ohne Auth → 401', async () => {
+  it('POST /api/v1/pinned ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/pinned',
@@ -209,7 +209,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('DELETE /api/v1/pinned/:id ohne Auth → 401', async () => {
+  it('DELETE /api/v1/pinned/:id ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'DELETE',
       url: '/api/v1/pinned/cxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -217,7 +217,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/pinned mit Auth → 200, items Array', async () => {
+  it('GET /api/v1/pinned mit Auth -> 200, items Array', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -235,7 +235,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(Array.isArray(body.items)).toBe(true);
   });
 
-  it('POST /api/v1/pinned als Nicht-Scope-Lead → 403', async () => {
+  it('POST /api/v1/pinned als Nicht-Scope-Lead -> 403', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -254,7 +254,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(body.error).toContain('Permission denied');
   });
 
-  it('POST /api/v1/pinned als Team Lead → 201', async () => {
+  it('POST /api/v1/pinned als Team Lead -> 201', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -333,7 +333,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(pin!.canUnpin).toBe(true);
   });
 
-  it('POST /api/v1/pinned ohne Leserecht auf Dokument → 403', async () => {
+  it('POST /api/v1/pinned ohne Leserecht auf Dokument -> 403', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -355,7 +355,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(body.error).toMatch(/read|denied/i);
   });
 
-  it('DELETE /api/v1/pinned/:id als Nicht-Scope-Lead → 403', async () => {
+  it('DELETE /api/v1/pinned/:id als Nicht-Scope-Lead -> 403', async () => {
     const userLoginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -370,7 +370,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('DELETE /api/v1/pinned/:id als Team Lead → 204', async () => {
+  it('DELETE /api/v1/pinned/:id als Team Lead -> 204', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -385,7 +385,7 @@ describe('Pinned routes (GET/POST/DELETE /pinned)', () => {
     expect(res.statusCode).toBe(204);
   });
 
-  it('DELETE /api/v1/pinned/:id bei unbekanntem id → 404', async () => {
+  it('DELETE /api/v1/pinned/:id bei unbekanntem id -> 404', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

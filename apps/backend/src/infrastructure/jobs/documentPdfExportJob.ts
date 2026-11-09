@@ -57,18 +57,31 @@ async function getStorage(): Promise<StorageService | null> {
   return storagePromise;
 }
 
-/** Render a published version to PDF, write-protect, store on DocumentVersion + Document.pdfUrl. */
-export async function exportDocumentToPdf(
-  payload: JobPayloadByType['documents.export.pdf'],
+export type RenderDocumentPdfOptions = {
+  documentId: string;
+  versionId: string;
+  /** When set, enforces canRead for this user. Omit for trusted admin/corpus jobs. */
+  requestedByUserId?: string;
+  locale?: 'en' | 'de';
+};
+
+/**
+ * Render a published version to PDF, write-protect, store on DocumentVersion + Document.pdfUrl.
+ * Returns the MinIO object key.
+ */
+export async function renderAndStoreDocumentPdf(
+  options: RenderDocumentPdfOptions,
   context: JobContext
-): Promise<void> {
-  const canExport = await canRead(context.prisma, payload.requestedByUserId, payload.documentId);
-  if (!canExport) {
-    throw new Error('Permission denied for PDF export');
+): Promise<string> {
+  if (options.requestedByUserId) {
+    const canExport = await canRead(context.prisma, options.requestedByUserId, options.documentId);
+    if (!canExport) {
+      throw new Error('Permission denied for PDF export');
+    }
   }
 
   const version = await context.prisma.documentVersion.findFirst({
-    where: { id: payload.versionId, documentId: payload.documentId },
+    where: { id: options.versionId, documentId: options.documentId },
     select: {
       id: true,
       versionNumber: true,
@@ -123,13 +136,17 @@ export async function exportDocumentToPdf(
     version.document.id
   );
   const responsibleLabel = responsibleNames.join(', ');
-  let metaLocale = payload.locale;
+  let metaLocale = options.locale;
   if (metaLocale !== 'de' && metaLocale !== 'en') {
-    const requester = await context.prisma.user.findUnique({
-      where: { id: payload.requestedByUserId },
-      select: { preferences: true },
-    });
-    metaLocale = resolvePdfMetaLocale(requester?.preferences);
+    if (options.requestedByUserId) {
+      const requester = await context.prisma.user.findUnique({
+        where: { id: options.requestedByUserId },
+        select: { preferences: true },
+      });
+      metaLocale = resolvePdfMetaLocale(requester?.preferences);
+    } else {
+      metaLocale = 'en';
+    }
   }
   const metaLine = buildPdfResponsibleMetaLine({
     responsibleNames,
@@ -186,5 +203,22 @@ export async function exportDocumentToPdf(
   context.logger.info(
     { documentId: version.document.id, versionId: version.id, objectKey },
     'Stored version PDF and updated document.pdfUrl'
+  );
+  return objectKey;
+}
+
+/** Render a published version to PDF (user-permission checked). */
+export async function exportDocumentToPdf(
+  payload: JobPayloadByType['documents.export.pdf'],
+  context: JobContext
+): Promise<void> {
+  await renderAndStoreDocumentPdf(
+    {
+      documentId: payload.documentId,
+      versionId: payload.versionId,
+      requestedByUserId: payload.requestedByUserId,
+      locale: payload.locale,
+    },
+    context
   );
 }

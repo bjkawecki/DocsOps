@@ -28,7 +28,7 @@ export function localeFromBrowser(languages: readonly string[] | undefined): App
 }
 
 /**
- * Resolve UI locale: preference → ?lang= → browser → en.
+ * Resolve UI locale in order: preference, ?lang=, browser, then en.
  * Pass preference only when the user is authenticated and preferences are loaded.
  */
 export function resolveAppLocale(input: {

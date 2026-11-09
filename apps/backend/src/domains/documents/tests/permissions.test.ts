@@ -246,7 +246,7 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('isAdmin → canRead company-owned only; dept/personal false; canWrite false', async () => {
+  it('isAdmin -> canRead company-owned only; dept/personal false; canWrite false', async () => {
     // Update + Prüfung in einer Transaktion, damit parallele Suites (z. B. admin.test updateMany) den Admin nicht überschreiben
     const companyOwner = await prisma.owner.create({ data: { companyId } });
     const ctxCompany = await prisma.context.create({ data: {} });
@@ -276,16 +276,16 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('deleted User → canRead/canWrite false', async () => {
+  it('deleted User -> canRead/canWrite false', async () => {
     expect(await canRead(prisma, deletedUserId, docProcessId)).toBe(false);
     expect(await canWrite(prisma, deletedUserId, docProcessId)).toBe(false);
   });
 
-  it('Department Lead der Abteilung → canRead true (Dokument im Process)', async () => {
+  it('Department Lead der Abteilung -> canRead true (Dokument im Process)', async () => {
     expect(await canRead(prisma, supervisorId, docProcessId)).toBe(true);
   });
 
-  it('Team Lead → canRead true for unpublished document in team-owned context', async () => {
+  it('Team Lead -> canRead true for unpublished document in team-owned context', async () => {
     const teamOwner = await prisma.owner.create({
       data: { teamId, departmentId, companyId },
     });
@@ -310,26 +310,26 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('Personal process owner (ownerUserId) → canRead/canWrite true', async () => {
+  it('Personal process owner (ownerUserId) -> canRead/canWrite true', async () => {
     expect(await canRead(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     expect(await canWrite(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
   });
 
-  it('Expliziter Grant User Read → canRead true', async () => {
+  it('Expliziter Grant User Read -> canRead true', async () => {
     expect(await canRead(prisma, otherUserId, docProcessId)).toBe(true);
   });
 
-  it('Expliziter Grant Team Read (Mitglied) → canRead true', async () => {
+  it('Expliziter Grant Team Read (Mitglied) -> canRead true', async () => {
     expect(await canRead(prisma, teamMemberId, docProcessId)).toBe(true);
   });
 
-  it('Department author → canWrite true; team member without author role → canWrite false', async () => {
+  it('Department author -> canWrite true; team member without author role -> canWrite false', async () => {
     expect(await canWrite(prisma, writerOnlyUserId, docProcessId)).toBe(true);
     expect(await canWrite(prisma, teamMemberId, docProcessId)).toBe(false);
     expect(await canWrite(prisma, teamLeaderId, docProcessId)).toBe(false);
   });
 
-  it('Company author → canWrite on company-owned document; non-author false', async () => {
+  it('Company author -> canWrite on company-owned document; non-author false', async () => {
     const companyOwner = await prisma.owner.create({ data: { companyId } });
     const ctxCompany = await prisma.context.create({ data: {} });
     await prisma.process.create({
@@ -419,12 +419,12 @@ describe('Permissions (canRead, canWrite)', () => {
     }
   });
 
-  it('Expliziter Grant Department Read → canRead true für User in Abteilung', async () => {
+  it('Expliziter Grant Department Read -> canRead true für User in Abteilung', async () => {
     expect(await canRead(prisma, teamMemberId, docProcessId)).toBe(true);
     expect(await canRead(prisma, teamLeaderId, docProcessId)).toBe(true);
   });
 
-  it('Document nicht vorhanden (ID) → false', async () => {
+  it('Document nicht vorhanden (ID) -> false', async () => {
     expect(await canRead(prisma, adminId, 'non-existent-doc-id')).toBe(false);
     expect(await canWrite(prisma, adminId, 'non-existent-doc-id')).toBe(false);
   });
@@ -434,28 +434,28 @@ describe('Permissions (canRead, canWrite)', () => {
       // Other test files (e.g. admin.test) may set isAdmin false globally; ensure our admin is admin.
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
-    it('isAdmin → canDeleteDocument false', async () => {
+    it('isAdmin -> canDeleteDocument false', async () => {
       expect(await canDeleteDocument(prisma, adminId, docProcessId)).toBe(false);
     });
 
-    it('Scope-Lead (Department Lead) → canDeleteDocument true', async () => {
+    it('Scope-Lead (Department Lead) -> canDeleteDocument true', async () => {
       expect(await canDeleteDocument(prisma, supervisorId, docProcessId)).toBe(true);
     });
 
-    it('Personal process owner (ownerUserId) → canDeleteDocument true for document in personal context', async () => {
+    it('Personal process owner (ownerUserId) -> canDeleteDocument true for document in personal context', async () => {
       expect(await canDeleteDocument(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     });
 
-    it('Department author (kein Lead) → canWrite true, canDeleteDocument false', async () => {
+    it('Department author (kein Lead) -> canWrite true, canDeleteDocument false', async () => {
       expect(await canWrite(prisma, writerOnlyUserId, docProcessId)).toBe(true);
       expect(await canDeleteDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
 
-    it('Team Lead ohne Kontext-Ownership (Process-Owner = Department) → canDeleteDocument false', async () => {
+    it('Team Lead ohne Kontext-Ownership (Process-Owner = Department) -> canDeleteDocument false', async () => {
       expect(await canDeleteDocument(prisma, teamLeaderId, docProcessId)).toBe(false);
     });
 
-    it('Dokument nicht vorhanden → canDeleteDocument false', async () => {
+    it('Dokument nicht vorhanden -> canDeleteDocument false', async () => {
       expect(await canDeleteDocument(prisma, adminId, 'non-existent-doc-id')).toBe(false);
     });
   });
@@ -464,19 +464,19 @@ describe('Permissions (canRead, canWrite)', () => {
     beforeAll(async () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
-    it('isAdmin → canPublishDocument false', async () => {
+    it('isAdmin -> canPublishDocument false', async () => {
       expect(await canPublishDocument(prisma, adminId, docProcessId)).toBe(false);
     });
-    it('Scope-Lead (Department Lead) → canPublishDocument true', async () => {
+    it('Scope-Lead (Department Lead) -> canPublishDocument true', async () => {
       expect(await canPublishDocument(prisma, supervisorId, docProcessId)).toBe(true);
     });
-    it('Personal process owner → canPublishDocument true for document in personal context', async () => {
+    it('Personal process owner -> canPublishDocument true for document in personal context', async () => {
       expect(await canPublishDocument(prisma, personalOwnerUserId, docPersonalId)).toBe(true);
     });
-    it('Department author (kein Lead) → canPublishDocument false', async () => {
+    it('Department author (kein Lead) -> canPublishDocument false', async () => {
       expect(await canPublishDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
-    it('Dokument nicht vorhanden → canPublishDocument false', async () => {
+    it('Dokument nicht vorhanden -> canPublishDocument false', async () => {
       expect(await canPublishDocument(prisma, adminId, 'non-existent-doc-id')).toBe(false);
     });
   });
@@ -486,17 +486,17 @@ describe('Permissions (canRead, canWrite)', () => {
       await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     });
 
-    it('scope author without publish → canEditLeadDraft true', async () => {
+    it('scope author without publish -> canEditLeadDraft true', async () => {
       expect(await canEditLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
       expect(await canPublishDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
       expect(await canLeadCanonEditDocument(prisma, writerOnlyUserId, docProcessId)).toBe(false);
     });
 
-    it('scope lead → canLeadCanonEditDocument true', async () => {
+    it('scope lead -> canLeadCanonEditDocument true', async () => {
       expect(await canLeadCanonEditDocument(prisma, supervisorId, docProcessId)).toBe(true);
     });
 
-    it('context-free personal creator → canEditLeadDraft and canLeadCanonEdit true', async () => {
+    it('context-free personal creator -> canEditLeadDraft and canLeadCanonEdit true', async () => {
       const freeDoc = await prisma.document.create({
         data: {
           title: `Context-free ${TS}`,
@@ -514,25 +514,25 @@ describe('Permissions (canRead, canWrite)', () => {
       }
     });
 
-    it('reader without author role → canEditLeadDraft false', async () => {
+    it('reader without author role -> canEditLeadDraft false', async () => {
       expect(await canEditLeadDraft(prisma, otherUserId, docProcessId)).toBe(false);
     });
 
-    it('nur User-Read-Grant (ohne Write/Lead) → canReadLeadDraft false', async () => {
+    it('nur User-Read-Grant (ohne Write/Lead) -> canReadLeadDraft false', async () => {
       expect(await canRead(prisma, otherUserId, docProcessId)).toBe(true);
       expect(await canWrite(prisma, otherUserId, docProcessId)).toBe(false);
       expect(await canReadLeadDraft(prisma, otherUserId, docProcessId)).toBe(false);
     });
 
-    it('Department author → canReadLeadDraft true', async () => {
+    it('Department author -> canReadLeadDraft true', async () => {
       expect(await canReadLeadDraft(prisma, writerOnlyUserId, docProcessId)).toBe(true);
     });
 
-    it('Team lead without scope publish on department-owned doc → canReadLeadDraft false', async () => {
+    it('Team lead without scope publish on department-owned doc -> canReadLeadDraft false', async () => {
       expect(await canReadLeadDraft(prisma, teamLeaderId, docProcessId)).toBe(false);
     });
 
-    it('Team-Mitglied ohne Write-Grant → canReadLeadDraft false', async () => {
+    it('Team-Mitglied ohne Write-Grant -> canReadLeadDraft false', async () => {
       expect(await canReadLeadDraft(prisma, teamMemberId, docProcessId)).toBe(false);
     });
   });
@@ -558,7 +558,7 @@ describe('Permissions (canRead, canWrite)', () => {
             }
             expect(await canRead(prisma, uid, docProcessId)).toBe(true);
           }
-          // Department author is in the department → matches department Read grant.
+          // Department author is in the department -> matches department Read grant.
           expect(await canRead(prisma, writerOnlyUserId, docProcessId)).toBe(true);
           expect(ids).toContain(writerOnlyUserId);
           if (await canRead(prisma, adminId, docProcessId)) {
@@ -643,7 +643,7 @@ describe('requireDocumentAccess (GET /api/v1/documents/:documentId)', () => {
     await app?.close();
   });
 
-  it('ohne Cookie → 401', async () => {
+  it('ohne Cookie -> 401', async () => {
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/documents/${documentId}`,
@@ -651,7 +651,7 @@ describe('requireDocumentAccess (GET /api/v1/documents/:documentId)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('ungültige documentId → 404', async () => {
+  it('ungültige documentId -> 404', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -670,7 +670,7 @@ describe('requireDocumentAccess (GET /api/v1/documents/:documentId)', () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it('mit Cookie, gültige documentId aber ohne Zugriff → 403', async () => {
+  it('mit Cookie, gültige documentId aber ohne Zugriff -> 403', async () => {
     const noAccessEmail = `noaccess-${Date.now()}@test.de`;
     const pw = await hashPassword('test');
     const noAccessUser = await prisma.user.create({
@@ -699,7 +699,7 @@ describe('requireDocumentAccess (GET /api/v1/documents/:documentId)', () => {
     }
   });
 
-  it('mit Cookie und Zugriff → 200', async () => {
+  it('mit Cookie und Zugriff -> 200', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

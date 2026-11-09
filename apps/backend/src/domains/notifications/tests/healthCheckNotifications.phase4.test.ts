@@ -58,7 +58,7 @@ describe('Do11y Phase 4 notifications', () => {
       await prisma.$executeRaw`DELETE FROM user_notification WHERE user_id = ${userId}`;
     });
 
-    it('coalesces health-check-action-needed by owner scope and updates count 5→10', async () => {
+    it('coalesces health-check-action-needed by owner scope and updates count 5->10', async () => {
       const prevW = process.env.NOTIFICATION_COALESCE_WINDOW_MINUTES;
       process.env.NOTIFICATION_COALESCE_WINDOW_MINUTES = '60';
       try {

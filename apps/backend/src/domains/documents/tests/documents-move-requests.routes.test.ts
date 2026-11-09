@@ -117,7 +117,7 @@ describe('Document move requests (cross-owner)', () => {
     await disposeDocumentsTestContext(ctx);
   });
 
-  it('same-owner target cannot create move request → 400', async () => {
+  it('same-owner target cannot create move request -> 400', async () => {
     const cookie = await ctx.loginAsScopeLead();
     const res = await ctx.app.inject({
       method: 'POST',
@@ -128,7 +128,7 @@ describe('Document move requests (cross-owner)', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('writer cannot create move request → 403', async () => {
+  it('writer cannot create move request -> 403', async () => {
     const cookie = await ctx.loginAsWriter();
     const res = await ctx.app.inject({
       method: 'POST',
@@ -139,7 +139,7 @@ describe('Document move requests (cross-owner)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('create → accept strips tags; second pending blocked; withdraw works', async () => {
+  it('create -> accept strips tags; second pending blocked; withdraw works', async () => {
     const senderCookie = await ctx.loginAsScopeLead();
     const createRes = await ctx.app.inject({
       method: 'POST',

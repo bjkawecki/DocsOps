@@ -83,12 +83,12 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     throw new Error(`loginAs failed for ${email}`);
   }
 
-  it('GET /api/v1/admin/users ohne Cookie → 401', async () => {
+  it('GET /api/v1/admin/users ohne Cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/users' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/admin/users als Normalnutzer → 403', async () => {
+  it('GET /api/v1/admin/users als Normalnutzer -> 403', async () => {
     const cookie = await loginAs(NORMAL_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -100,7 +100,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('Administrator');
   });
 
-  it('GET /api/v1/admin/users als Admin → 200 + items, total, limit, offset', async () => {
+  it('GET /api/v1/admin/users als Admin -> 200 + items, total, limit, offset', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -143,7 +143,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     });
   });
 
-  it('POST /api/v1/admin/users als Admin → 201, Nutzer angelegt', async () => {
+  it('POST /api/v1/admin/users als Admin -> 201, Nutzer angelegt', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const newEmail = `new-${TS}@example.com`;
     const res = await app.inject({
@@ -167,7 +167,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     createdUserIds.push(body.id);
   });
 
-  it('POST /api/v1/admin/users mit doppelter E-Mail → 409', async () => {
+  it('POST /api/v1/admin/users mit doppelter E-Mail -> 409', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'POST',
@@ -180,7 +180,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('email');
   });
 
-  it('PATCH /api/v1/admin/users/:userId als Admin (Name) → 200', async () => {
+  it('PATCH /api/v1/admin/users/:userId als Admin (Name) -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'PATCH',
@@ -194,7 +194,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     await prisma.user.update({ where: { id: normalUserId }, data: { name: 'Normal User' } });
   });
 
-  it('PATCH letzter Admin isAdmin: false → 403', async () => {
+  it('PATCH letzter Admin isAdmin: false -> 403', async () => {
     await prisma.user.updateMany({
       where: { id: { not: adminId } },
       data: { isAdmin: false },
@@ -211,7 +211,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('last');
   });
 
-  it('PATCH letzter Admin deaktivieren (deletedAt) → 403', async () => {
+  it('PATCH letzter Admin deaktivieren (deletedAt) -> 403', async () => {
     await prisma.user.updateMany({
       where: { id: { not: adminId } },
       data: { isAdmin: false },
@@ -228,7 +228,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('last');
   });
 
-  it('PATCH E-Mail auf bereits vergebene → 409', async () => {
+  it('PATCH E-Mail auf bereits vergebene -> 409', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'PATCH',
@@ -241,7 +241,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('email');
   });
 
-  it('PATCH isKnowledgeManager true → 200; scopes replace; disable clears junctions', async () => {
+  it('PATCH isKnowledgeManager true -> 200; scopes replace; disable clears junctions', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const company = await prisma.company.create({ data: { name: `KM Co ${TS}` } });
     try {
@@ -290,7 +290,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     }
   });
 
-  it('PATCH isKnowledgeManager on admin → 409', async () => {
+  it('PATCH isKnowledgeManager on admin -> 409', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'PATCH',
@@ -301,7 +301,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(res.statusCode).toBe(409);
   });
 
-  it('POST /api/v1/admin/users/:userId/reset-password als Admin → 204', async () => {
+  it('POST /api/v1/admin/users/:userId/reset-password als Admin -> 204', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'POST',
@@ -322,7 +322,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     });
   });
 
-  it('POST reset-password für User ohne passwordHash (SSO) → 400', async () => {
+  it('POST reset-password für User ohne passwordHash (SSO) -> 400', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'POST',
@@ -335,7 +335,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.error).toContain('SSO');
   });
 
-  it('POST reset-password als Normalnutzer → 403', async () => {
+  it('POST reset-password als Normalnutzer -> 403', async () => {
     const cookie = await loginAs(NORMAL_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'POST',
@@ -346,7 +346,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST reset-password für unbekannten User → 404', async () => {
+  it('POST reset-password für unbekannten User -> 404', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const tempUser = await prisma.user.create({
       data: {
@@ -367,12 +367,12 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it('GET /api/v1/admin/jobs ohne Cookie → 401', async () => {
+  it('GET /api/v1/admin/jobs ohne Cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/jobs' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/admin/jobs/health als Admin → 200 oder 503 (queue-abhängig)', async () => {
+  it('GET /api/v1/admin/jobs/health als Admin -> 200 oder 503 (queue-abhängig)', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -385,7 +385,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(body.status).toBeDefined();
   });
 
-  it('GET /api/v1/admin/companies/:id/stats für unbekannte Company → 404', async () => {
+  it('GET /api/v1/admin/companies/:id/stats für unbekannte Company -> 404', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -395,7 +395,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it('GET /api/v1/admin/departments/member-counts als Admin → 200 + Objekt', async () => {
+  it('GET /api/v1/admin/departments/member-counts als Admin -> 200 + Objekt', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -408,7 +408,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     expect(typeof body).toBe('object');
   });
 
-  it('GET /api/v1/admin/teams/list-summary als Admin → 200 + Objekt', async () => {
+  it('GET /api/v1/admin/teams/list-summary als Admin -> 200 + Objekt', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -420,7 +420,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
   });
 
   describe('Impersonation', () => {
-    it('POST /admin/impersonate als Admin → 204 + Set-Cookie, GET /me liefert Ziel-User + impersonation', async () => {
+    it('POST /admin/impersonate als Admin -> 204 + Set-Cookie, GET /me liefert Ziel-User + impersonation', async () => {
       const sessionCookie = await loginAs(ADMIN_EMAIL, PASSWORD);
       const impersonateRes = await app.inject({
         method: 'POST',
@@ -457,7 +457,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
       expect(meBody.impersonation!.realUser.name).toBe('Admin User');
     });
 
-    it('DELETE /admin/impersonate → 204, danach GET /me ohne Impersonation', async () => {
+    it('DELETE /admin/impersonate -> 204, danach GET /me ohne Impersonation', async () => {
       const sessionCookie = await loginAs(ADMIN_EMAIL, PASSWORD);
       await app.inject({
         method: 'POST',
@@ -487,7 +487,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     });
   });
 
-  it('PATCH isAdmin true for user with team membership → 409', async () => {
+  it('PATCH isAdmin true for user with team membership -> 409', async () => {
     const TS = Date.now();
     const pw = await hashPassword(PASSWORD);
     const company = await prisma.company.create({ data: { name: `Admin Role Co ${TS}` } });
@@ -518,7 +518,7 @@ describe('Admin routes (GET/POST/PATCH /admin/users, reset-password)', () => {
     await prisma.user.delete({ where: { id: member.id } });
   });
 
-  it('PATCH isAdmin true for user without org assignments → 200', async () => {
+  it('PATCH isAdmin true for user without org assignments -> 200', async () => {
     const TS = Date.now();
     const pw = await hashPassword(PASSWORD);
     const user = await prisma.user.create({

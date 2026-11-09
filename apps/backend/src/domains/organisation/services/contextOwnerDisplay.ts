@@ -108,7 +108,7 @@ export async function setContextDisplayFromSubcontext(
   });
 }
 
-/** After Owner.displayName is updated, refresh ownerDisplayName on all Contexts that use this owner (via Process or Project or Subcontext→Project). */
+/** After Owner.displayName is updated, refresh ownerDisplayName on all Contexts that use this owner (via Process or Project or Subcontext->Project). */
 export async function refreshContextOwnerDisplayForOwner(
   prisma: PrismaClient,
   ownerId: string

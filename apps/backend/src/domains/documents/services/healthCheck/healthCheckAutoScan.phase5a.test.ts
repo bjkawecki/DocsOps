@@ -318,8 +318,8 @@ describe('Do11y Phase 5a auto-scan', () => {
     });
 
     it('enqueues notifications when action_needed counts change', async () => {
-      // Null nextAt is not yet action_needed; materialize with old publishedAt → due (0→1).
-      // Neutralize expired-snooze doc so before/after are not a 1→1 swap.
+      // Null nextAt is not yet action_needed; materialize with old publishedAt -> due (0->1).
+      // Neutralize expired-snooze doc so before/after are not a 1->1 swap.
       await prisma.document.update({
         where: { id: orgDocExpiredSnoozeId },
         data: {

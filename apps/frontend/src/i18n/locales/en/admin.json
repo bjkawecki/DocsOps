@@ -11,6 +11,7 @@
     "jobs": "Jobs",
     "scheduler": "Scheduler",
     "backup": "Backup",
+    "destinations": "Destinations",
     "migration": "Migration",
     "system": "System",
     "healthCheck": "Freshness",
@@ -29,6 +30,7 @@
     "createMessage": "Create message",
     "backupNow": "Backup now",
     "backupSettings": "Settings",
+    "createPublishedArchive": "Create mirror",
     "exportPlatform": "Export platform",
     "importPlatform": "Import platform",
     "receivePush": "Receive push",
@@ -267,7 +269,8 @@
       "retentionLabel": "Retention",
       "defaultDestinationLabel": "Default external destination",
       "autoLabel": "Auto",
-      "notScheduled": "Not scheduled"
+      "notScheduled": "Not scheduled",
+      "manageDestinations": "Manage destinations"
     },
     "schedulerLink": "Scheduler",
     "maintenanceActiveTooltip": "Maintenance mode is active",
@@ -356,15 +359,15 @@
       },
       "add": "Add destination",
       "edit": "Edit",
-      "setDefault": "Set default",
-      "default": "Default",
+      "setDefault": "Set as backup default",
+      "default": "Backup default",
       "deleteConfirmTitle": "Delete external destination {{name}}?",
       "deleteConfirmBody": "This cannot be undone.",
       "empty": "No external destinations configured yet.",
       "columnName": "Name",
       "columnType": "Type",
       "columnEnabled": "Enabled",
-      "columnDefault": "Default",
+      "columnDefault": "Backup default",
       "enableAriaLabel": "Enable external destination {{name}}",
       "editModal": {
         "editTitle": "Edit {{name}}",
@@ -421,7 +424,6 @@
     "settings": {
       "title": "Backup settings",
       "tabGeneral": "General",
-      "tabDestinations": "External destinations",
       "tabRestore": "Disaster recovery",
       "general": {
         "retentionLabel": "Keep successful backups",
@@ -804,7 +806,7 @@
       "intro": "Optional company theme for PDF export (logo, primary color, page margins, body typeface). Applies to PDF exports of all organisation documents in this instance. Personal documents use the platform default. Empty color, margin or typeface fields also use the platform default.",
       "primaryColorLabel": "Primary color",
       "marginLabel": "Page margin (mm)",
-      "marginDescription": "12\u201340 mm on the sides and bottom; top grows when a logo is set",
+      "marginDescription": "12–40 mm on the sides and bottom; top grows when a logo is set",
       "fontFamilyLabel": "Body typeface",
       "fontFamilyDescription": "Sans-serif or serif for the PDF body text. Default is sans-serif.",
       "fontSans": "Sans-serif",
@@ -958,7 +960,7 @@
       "storageUnavailableTitle": "Object storage unavailable",
       "storageUnavailableMessage": "MinIO is not configured or unreachable. Platform export and import require object storage.",
       "workerDisconnectedTitle": "Job worker disconnected",
-      "workerDisconnectedMessage": "Background export and import jobs need a connected worker. Check Admin → Jobs.",
+      "workerDisconnectedMessage": "Background export and import jobs need a connected worker. Check Jobs under Admin.",
       "maintenanceActiveTitle": "Maintenance mode active",
       "maintenanceActiveMessage": "Migration actions may be blocked while maintenance is active ({{reason}}).",
       "maintenanceReasonUnknown": "unknown",
@@ -994,10 +996,22 @@
     "exportModal": {
       "title": "Export platform",
       "steps": {
-        "overview": { "label": "Overview", "description": "What is exported" },
-        "confirm": { "label": "Confirm", "description": "Start export job" },
-        "progress": { "label": "Progress", "description": "Job status" },
-        "done": { "label": "Done", "description": "Download archive" }
+        "overview": {
+          "label": "Overview",
+          "description": "What is exported"
+        },
+        "confirm": {
+          "label": "Confirm",
+          "description": "Start export job"
+        },
+        "progress": {
+          "label": "Progress",
+          "description": "Job status"
+        },
+        "done": {
+          "label": "Done",
+          "description": "Download archive"
+        }
       },
       "overviewDescriptionBefore": "Creates a",
       "overviewDescriptionAfter": "archive with organization, users, contexts, documents, grants, tags, pins, comments, and file attachments. Sessions, notifications, and backup metadata are not included.",
@@ -1017,7 +1031,7 @@
       "downloadAgain": "Download again",
       "done": "Done",
       "pushTitle": "Push to another instance",
-      "pushDescription": "Paste the receive URL from the target Admin → Migration → Receive push flow. The archive is sent server-to-server.",
+      "pushDescription": "Paste the receive URL from the target under Admin, Migration, Receive push. The archive is sent server-to-server.",
       "receiveUrlLabel": "Target receive URL",
       "pushSubmit": "Push to target",
       "pushSucceeded": "Pushed to target",
@@ -1042,10 +1056,22 @@
     "importModal": {
       "title": "Import platform export",
       "steps": {
-        "upload": { "label": "Upload & check", "description": "Archive preflight" },
-        "options": { "label": "Options", "description": "Import settings" },
-        "confirm": { "label": "Confirm", "description": "Maintenance warning" },
-        "result": { "label": "Result", "description": "Progress & outcome" }
+        "upload": {
+          "label": "Upload & check",
+          "description": "Archive preflight"
+        },
+        "options": {
+          "label": "Options",
+          "description": "Import settings"
+        },
+        "confirm": {
+          "label": "Confirm",
+          "description": "Maintenance warning"
+        },
+        "result": {
+          "label": "Result",
+          "description": "Progress & outcome"
+        }
       },
       "uploadErrorTitle": {
         "serverError": "Server error during upload",
@@ -1227,7 +1253,7 @@
       "manualUpgradeHintBefore": "Until one-click update is configured, upgrade on the host via SSH. Create an operational backup in",
       "manualUpgradeHintAfter": "first.",
       "manualBackupHintBefore": "For a manual run, create a backup first in",
-      "adminBackupLink": "Admin → Backup",
+      "adminBackupLink": "Backup",
       "manualUpgradeTitle": "Manual upgrade on the host",
       "defaultVersionHintBefore": "Without a version argument,",
       "defaultVersionHintAfter": "delegates to",
@@ -1258,5 +1284,19 @@
     "autoScanHint": "Once a day, refreshes which documents are due for a freshness review. Personal documents are excluded.",
     "saved": "Freshness settings saved.",
     "saveFailed": "Could not save freshness settings."
+  },
+  "destinations": {
+    "intro": "Shared remote targets for operational backups (S3-compatible, SSH, WebDAV).",
+    "toasts": {
+      "errorTitle": "Error",
+      "loadFailed": "Failed to load destinations",
+      "saveFailed": "Failed to save destination",
+      "savedTitle": "Destination saved",
+      "deleteFailed": "Failed to delete destination",
+      "deletedTitle": "Destination deleted",
+      "updateFailed": "Failed to update destination",
+      "setDefaultFailed": "Failed to update backup default destination",
+      "defaultUpdatedTitle": "Backup default destination updated"
+    }
   }
 }

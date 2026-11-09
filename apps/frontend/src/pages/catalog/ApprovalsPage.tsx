@@ -207,7 +207,7 @@ function MoveRequestsTable({
             meta={
               <Stack gap={4}>
                 <Text size="xs" c="dimmed">
-                  {item.fromScopeName} → {item.toScopeName}
+                  {`${item.fromScopeName} to ${item.toScopeName}`}
                 </Text>
                 <Text size="xs" c="dimmed">
                   {formatTableDate(item.createdAt)}

@@ -1,14 +1,14 @@
 import { Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import type { NotificationItem } from './meNotificationTypes.js';
+import { NotificationActionButton } from './NotificationActionLink.js';
 import { NotificationReadBadge } from './NotificationReadBadge.js';
 import {
   documentDisplayTitle,
   eventHeadline,
+  notificationActionTarget,
   notificationBodyText,
-  notificationDocumentHref,
   notificationSourceLabel,
 } from './notificationsInboxFormatters.js';
 
@@ -31,7 +31,7 @@ export function NotificationDetailModal({
   if (item == null) return null;
 
   const unread = item.readAt == null;
-  const sourceHref = notificationDocumentHref(item.eventType, item.payload);
+  const actionTarget = notificationActionTarget(item.eventType, item.payload);
   const body = notificationBodyText(t, item.eventType, item.payload);
 
   return (
@@ -77,10 +77,13 @@ export function NotificationDetailModal({
           ) : (
             <span />
           )}
-          {sourceHref != null ? (
-            <Button component={Link} to={sourceHref} variant="filled" onClick={onClose}>
-              {t('detail.openSource')}
-            </Button>
+          {actionTarget != null ? (
+            <NotificationActionButton
+              target={actionTarget}
+              routeLabel={t('detail.openSource')}
+              downloadLabel={t('detail.downloadFile')}
+              onNavigate={onClose}
+            />
           ) : (
             <Button variant="default" onClick={onClose}>
               {t('detail.close')}

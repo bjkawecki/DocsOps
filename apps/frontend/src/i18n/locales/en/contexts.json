@@ -39,7 +39,8 @@
     "delete": "Delete",
     "subcontexts": "Subcontexts",
     "createSubcontext": "Create subcontext",
-    "noSubcontexts": "No subcontexts yet."
+    "noSubcontexts": "No subcontexts yet.",
+    "exportPdfs": "Export PDFs"
   },
   "entry": {
     "emptyTitle": "No processes or projects yet",
@@ -172,5 +173,36 @@
     "documentColumn": "Document",
     "readerDaysColumn": "Reader-days",
     "readerDaysAria": "{{count}} reader-days"
+  },
+  "pdfExport": {
+    "queuedTitle": "PDF export queued",
+    "queuedMessage": "Collecting published PDFs for this scope…",
+    "inProgressTitle": "PDF export running",
+    "generatingMessage": "Building the zip archive…",
+    "readyTitle": "PDF export ready",
+    "readyMessagePrefix": "Download: ",
+    "downloadLink": "Open zip",
+    "successMessage": "PDF export finished.",
+    "failedTitle": "PDF export failed",
+    "failedDefaultMessage": "The PDF export failed.",
+    "timeoutMessage": "PDF export timed out. Check notifications later.",
+    "startFailed": "Could not start PDF export",
+    "errors": {
+      "zipNotFound": "The zip tool is missing on the job worker. Rebuild the worker image.",
+      "zipFailed": "Building the PDF zip archive failed.",
+      "downloadUnavailable": "This PDF export is no longer available. Start a new export from the context menu.",
+      "downloadNotReady": "This PDF export is not ready yet.",
+      "downloadStorageUnavailable": "Object storage is not available.",
+      "downloadFailed": "The PDF export could not be downloaded."
+    },
+    "readyTitleScoped": "PDF export ready ({{scope}})",
+    "failedTitleScoped": "PDF export failed ({{scope}})",
+    "scopeKind": {
+      "company": "Company",
+      "departments": "Departments",
+      "teams": "Teams",
+      "unknown": "Scope"
+    },
+    "downloadFailedTitle": "Download failed"
   }
 }

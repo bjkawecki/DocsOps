@@ -17,11 +17,27 @@ import {
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import type { TFunction } from 'i18next';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client';
 import { getAdminJobLabel } from './adminJobLabels';
 import { AdminScheduledBroadcastsSection } from './AdminScheduledBroadcastsSection';
+import {
+  BACKUP_JOB_NAME,
+  buildCronFromForm,
+  buildWeekdayOptions,
+  type CronFormState,
+  type CronMode,
+  DAY_OF_MONTH_OPTIONS,
+  DEFAULT_CRON_FORM,
+  HOUR_OPTIONS,
+  INTERVAL_OPTIONS,
+  MINUTE_OPTIONS,
+  parseCronToForm,
+  PRESET_FIELD_WIDTH,
+  SMALL_FIELD_WIDTH,
+  toSelectOptions,
+  WEEKDAY_FIELD_WIDTH,
+} from './adminSchedulerCron';
 
 type SchedulesResponse = {
   availableJobNames: string[];
@@ -33,167 +49,7 @@ type SchedulesResponse = {
   }>;
 };
 
-type CronMode = 'text' | 'form';
-type CronPreset = 'everyMinutes' | 'hourly' | 'daily' | 'weekly' | 'monthly';
-type CronFormState = {
-  preset: CronPreset;
-  intervalMinutes: string;
-  minute: string;
-  hour: string;
-  weekday: string;
-  dayOfMonth: string;
-};
-
-const DEFAULT_CRON_FORM: CronFormState = {
-  preset: 'everyMinutes',
-  intervalMinutes: '5',
-  minute: '0',
-  hour: '0',
-  weekday: '1',
-  dayOfMonth: '1',
-};
-
-const BACKUP_JOB_NAME = 'maintenance.backup';
-
-type BackupStatusResponse = {
-  autoBackupConfigured: boolean;
-};
-
-const INTERVAL_OPTIONS = ['1', '2', '5', '10', '15', '30', '45', '59'];
-const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, idx) => String(idx));
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, idx) => String(idx));
-const WEEKDAY_VALUES = ['1', '2', '3', '4', '5', '6', '0'] as const;
-const WEEKDAY_TRANSLATION_KEYS: Record<(typeof WEEKDAY_VALUES)[number], string> = {
-  '1': 'monday',
-  '2': 'tuesday',
-  '3': 'wednesday',
-  '4': 'thursday',
-  '5': 'friday',
-  '6': 'saturday',
-  '0': 'sunday',
-};
-function buildWeekdayOptions(t: TFunction): Array<{ value: string; label: string }> {
-  return WEEKDAY_VALUES.map((value) => ({
-    value,
-    label: t(`scheduler.cronForm.weekdays.${WEEKDAY_TRANSLATION_KEYS[value]}`),
-  }));
-}
-const DAY_OF_MONTH_OPTIONS = Array.from({ length: 31 }, (_, idx) => String(idx + 1));
-const PRESET_FIELD_WIDTH = 180;
-const SMALL_FIELD_WIDTH = 64;
-const WEEKDAY_FIELD_WIDTH = 120;
-
-function toSelectOptions(values: string[]): Array<{ value: string; label: string }> {
-  return values.map((value) => ({ value, label: value }));
-}
-
-function toIntInRange(value: string, min: number, max: number): number | null {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed)) return null;
-  if (parsed < min || parsed > max) return null;
-  return parsed;
-}
-
-function buildCronFromForm(form: CronFormState): string | null {
-  const minute = toIntInRange(form.minute, 0, 59);
-  const hour = toIntInRange(form.hour, 0, 23);
-  const dayOfMonth = toIntInRange(form.dayOfMonth, 1, 31);
-  const weekday = toIntInRange(form.weekday, 0, 6);
-
-  switch (form.preset) {
-    case 'everyMinutes': {
-      const interval = toIntInRange(form.intervalMinutes, 1, 59);
-      return interval ? `*/${interval} * * * *` : null;
-    }
-    case 'hourly':
-      return minute != null ? `${minute} * * * *` : null;
-    case 'daily':
-      return minute != null && hour != null ? `${minute} ${hour} * * *` : null;
-    case 'weekly':
-      return minute != null && hour != null && weekday != null
-        ? `${minute} ${hour} * * ${weekday}`
-        : null;
-    case 'monthly':
-      return minute != null && hour != null && dayOfMonth != null
-        ? `${minute} ${hour} ${dayOfMonth} * *`
-        : null;
-    default:
-      return null;
-  }
-}
-
-function parseCronToForm(cron: string): CronFormState | null {
-  const parts = cron.trim().split(/\s+/);
-  if (parts.length !== 5) return null;
-  const [minute, hour, dayOfMonth, month, weekday] = parts;
-
-  const everyMinutesMatch = /^\*\/(\d+)$/.exec(minute);
-  if (everyMinutesMatch && hour === '*' && dayOfMonth === '*' && month === '*' && weekday === '*') {
-    return {
-      ...DEFAULT_CRON_FORM,
-      preset: 'everyMinutes',
-      intervalMinutes: everyMinutesMatch[1],
-    };
-  }
-  if (
-    /^\d+$/.test(minute) &&
-    hour === '*' &&
-    dayOfMonth === '*' &&
-    month === '*' &&
-    weekday === '*'
-  ) {
-    return {
-      ...DEFAULT_CRON_FORM,
-      preset: 'hourly',
-      minute,
-    };
-  }
-  if (
-    /^\d+$/.test(minute) &&
-    /^\d+$/.test(hour) &&
-    dayOfMonth === '*' &&
-    month === '*' &&
-    weekday === '*'
-  ) {
-    return {
-      ...DEFAULT_CRON_FORM,
-      preset: 'daily',
-      minute,
-      hour,
-    };
-  }
-  if (
-    /^\d+$/.test(minute) &&
-    /^\d+$/.test(hour) &&
-    dayOfMonth === '*' &&
-    month === '*' &&
-    /^\d+$/.test(weekday)
-  ) {
-    return {
-      ...DEFAULT_CRON_FORM,
-      preset: 'weekly',
-      minute,
-      hour,
-      weekday,
-    };
-  }
-  if (
-    /^\d+$/.test(minute) &&
-    /^\d+$/.test(hour) &&
-    /^\d+$/.test(dayOfMonth) &&
-    month === '*' &&
-    weekday === '*'
-  ) {
-    return {
-      ...DEFAULT_CRON_FORM,
-      preset: 'monthly',
-      minute,
-      hour,
-      dayOfMonth,
-    };
-  }
-  return null;
-}
+type BackupStatusResponse = { autoBackupConfigured: boolean };
 
 export function AdminSchedulerTab() {
   const { t } = useTranslation('admin');
@@ -276,7 +132,9 @@ export function AdminSchedulerTab() {
     return buildCronFromForm(getOrCreateFormInput(jobName, fallbackCron));
   };
 
-  if (schedules.isPending || backupStatus.isPending) return <Loader size="sm" />;
+  if (schedules.isPending || backupStatus.isPending) {
+    return <Loader size="sm" />;
+  }
   if (schedules.isError) {
     return (
       <Alert color="red" title={t('scheduler.loadFailedTitle')}>
@@ -329,12 +187,14 @@ export function AdminSchedulerTab() {
             const resolvedCron = resolveCronForJob(name, cronValue);
             const jobMeta = getAdminJobLabel(name, t);
             const isBackupJob = name === BACKUP_JOB_NAME;
+            const isTabManagedJob = isBackupJob;
             const backupConfigured = backupStatus.data?.autoBackupConfigured ?? false;
             const backupRowLocked = isBackupJob && !backupConfigured;
-            const controlsDisabled = backupRowLocked || scheduleMutation.isPending;
+            const rowLocked = backupRowLocked;
+            const controlsDisabled = rowLocked || scheduleMutation.isPending;
 
             return (
-              <Table.Tr key={name} style={backupRowLocked ? { opacity: 0.55 } : undefined}>
+              <Table.Tr key={name} style={rowLocked ? { opacity: 0.55 } : undefined}>
                 <Table.Td>
                   <Text size="sm" fw={500}>
                     {jobMeta.label}
@@ -360,7 +220,7 @@ export function AdminSchedulerTab() {
                   )}
                 </Table.Td>
                 <Table.Td>
-                  {isBackupJob ? (
+                  {isTabManagedJob ? (
                     <Badge color={existing ? 'green' : 'gray'} variant="filled">
                       {existing
                         ? t('scheduler.table.enabledBadge')
@@ -394,7 +254,7 @@ export function AdminSchedulerTab() {
                   )}
                 </Table.Td>
                 <Table.Td>
-                  <Stack gap={6} style={backupRowLocked ? { pointerEvents: 'none' } : undefined}>
+                  <Stack gap={6} style={rowLocked ? { pointerEvents: 'none' } : undefined}>
                     {cronMode === 'text' ? (
                       <TextInput
                         value={cronValue}
@@ -575,7 +435,7 @@ export function AdminSchedulerTab() {
                         cron: resolvedCron,
                       });
                     }}
-                    disabled={controlsDisabled || !resolvedCron || (isBackupJob && !existing)}
+                    disabled={controlsDisabled || !resolvedCron || (isTabManagedJob && !existing)}
                   >
                     {t('scheduler.table.save')}
                   </Button>

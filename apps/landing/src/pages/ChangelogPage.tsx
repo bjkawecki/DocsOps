@@ -1,12 +1,9 @@
-import { Badge, Card, Group, Stack, Text, Title } from '@mantine/core';
-import { IconCalendar, IconPackage } from '@tabler/icons-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { Stack, Text } from '@mantine/core';
+import { ChangelogReleaseCard } from '../components/ChangelogReleaseCard';
 import { LandingHead } from '../components/LandingHead';
 import { LandingPageLayout } from '../components/LandingPageLayout';
-import { changelogMarkdownComponents } from '../components/ChangelogMarkdown';
 import { useLandingCopy } from '../content/useLandingCopy';
-import { formatReleaseDate, getLandingReleases } from '../content/releases';
+import { getLandingReleases } from '../content/releases';
 
 export function ChangelogPage() {
   const { site } = useLandingCopy();
@@ -27,58 +24,18 @@ export function ChangelogPage() {
             </Text>
           ) : (
             releases.map((release, index) => (
-              <Card
+              <ChangelogReleaseCard
                 key={release.version}
-                withBorder
-                padding="lg"
-                radius="md"
-                style={{ backgroundColor: 'var(--landing-surface-2)' }}
-                className="landing-surface-card"
-              >
-                <Stack gap="sm">
-                  <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
-                    <Group gap="sm" align="center" wrap="nowrap">
-                      <IconPackage
-                        size={22}
-                        stroke={1.5}
-                        color="var(--mantine-color-gray-4)"
-                        aria-hidden
-                      />
-                      <Title order={2} size="h3" m={0} lh={1.2}>
-                        v{release.version}
-                      </Title>
-                    </Group>
-                    {index === 0 ? (
-                      <Badge variant="light" color="blue">
-                        {changelogCopy.latestBadge}
-                      </Badge>
-                    ) : null}
-                  </Group>
-                  <Group gap={6} c="dimmed" wrap="nowrap">
-                    <IconCalendar size={14} aria-hidden />
-                    <Text size="sm">{formatReleaseDate(release.date)}</Text>
-                  </Group>
-                  {release.markdown.trim() ? (
-                    <BoxMarkdown markdown={release.markdown} />
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      {changelogCopy.noBody}
-                    </Text>
-                  )}
-                </Stack>
-              </Card>
+                release={release}
+                isLatest={index === 0}
+                latestBadge={changelogCopy.latestBadge}
+                noBodyLabel={changelogCopy.noBody}
+                defaultExpanded={index === 0}
+              />
             ))
           )}
         </Stack>
       </LandingPageLayout>
     </>
-  );
-}
-
-function BoxMarkdown({ markdown }: { markdown: string }) {
-  return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={changelogMarkdownComponents}>
-      {markdown}
-    </ReactMarkdown>
   );
 }

@@ -45,7 +45,7 @@ type ScopeContextSidebarProps = {
   activeContextId: string | null;
   /**
    * Click on a process/project/subcontext row.
-   * Same id while selected → deselect; same id while cleared → reselect; other id → navigate (Link).
+   * Same id while selected -> deselect; same id while cleared -> reselect; other id -> navigate (Link).
    */
   onContextNavClick: (contextId: string, event: MouseEvent<HTMLElement>) => void;
   /** Lead/admin only: Trash + Archive as peer rows (not under Projects). */

@@ -21,6 +21,12 @@ describe('resolveNotificationPreferenceCategory', () => {
     expect(resolveNotificationPreferenceCategory('update-available')).toBe('operations');
     expect(resolveNotificationPreferenceCategory('platform-export-succeeded')).toBe('operations');
     expect(resolveNotificationPreferenceCategory('platform-import-failed')).toBe('operations');
+    expect(resolveNotificationPreferenceCategory('scope-pdf-export-succeeded')).toBe(
+      'documentChanges'
+    );
+    expect(resolveNotificationPreferenceCategory('scope-pdf-export-failed')).toBe(
+      'documentChanges'
+    );
   });
 
   it('falls back from legacy system pref to announcements and operations', () => {

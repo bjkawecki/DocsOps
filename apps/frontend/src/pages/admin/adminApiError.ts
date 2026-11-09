@@ -18,7 +18,7 @@ export async function throwAdminApiError(res: Response): Promise<never> {
   throw new AdminApiError(body.error ?? res.statusText, body.code);
 }
 
-/** English server fallbacks → stable codes (until all clients send `code`). */
+/** English server fallbacks -> stable codes (until all clients send `code`). */
 const LEGACY_SCOPE_MESSAGE_TO_CODE: Record<string, string> = {
   'User not found': 'SCOPE_USER_NOT_FOUND',
   'Cannot assign platform administrator while user has organization or knowledge manager assignments. Remove those roles first.':

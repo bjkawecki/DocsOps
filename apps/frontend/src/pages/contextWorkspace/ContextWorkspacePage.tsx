@@ -24,6 +24,7 @@ import {
   IconArchive,
   IconDotsVertical,
   IconFilePlus,
+  IconFileTypePdf,
   IconPencil,
   IconTrash,
 } from '@tabler/icons-react';
@@ -284,6 +285,9 @@ export function ContextWorkspacePage() {
     </Badge>
   ) : null;
 
+  const canExportScopePdfs =
+    Boolean(data?.canWriteContext) && data?.owner != null && data.owner.ownerUserId == null;
+
   const leadBreadcrumbActions =
     showContextDetail && data?.canWriteContext ? (
       <>
@@ -309,17 +313,26 @@ export function ContextWorkspacePage() {
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
+            {canExportScopePdfs && (
+              <Menu.Item
+                leftSection={<IconFileTypePdf size={14} />}
+                onClick={() => void actions.handleExportPdfs()}
+              >
+                {t('workspace.exportPdfs')}
+              </Menu.Item>
+            )}
             {data.contextType !== 'subcontext' && (
               <>
+                {canExportScopePdfs ? <Menu.Divider /> : null}
                 <Menu.Item
                   leftSection={<IconArchive size={14} />}
                   onClick={() => void actions.handleArchive()}
                 >
                   {t('workspace.archive')}
                 </Menu.Item>
-                <Menu.Divider />
               </>
             )}
+            <Menu.Divider />
             <Menu.Item
               color="red"
               leftSection={<IconTrash size={14} />}
@@ -375,17 +388,26 @@ export function ContextWorkspacePage() {
             <Menu.Item leftSection={<IconPencil size={14} />} onClick={actions.handleEditClick}>
               {t('workspace.editContextAriaLabel')}
             </Menu.Item>
+            {canExportScopePdfs && (
+              <Menu.Item
+                leftSection={<IconFileTypePdf size={14} />}
+                onClick={() => void actions.handleExportPdfs()}
+              >
+                {t('workspace.exportPdfs')}
+              </Menu.Item>
+            )}
             {data.contextType !== 'subcontext' && (
               <>
+                <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconArchive size={14} />}
                   onClick={() => void actions.handleArchive()}
                 >
                   {t('workspace.archive')}
                 </Menu.Item>
-                <Menu.Divider />
               </>
             )}
+            <Menu.Divider />
             <Menu.Item
               color="red"
               leftSection={<IconTrash size={14} />}
@@ -399,7 +421,15 @@ export function ContextWorkspacePage() {
         ),
       },
     ];
-  }, [actions, data?.canWriteContext, data?.contextType, isWide, showContextDetail, t]);
+  }, [
+    actions,
+    canExportScopePdfs,
+    data?.canWriteContext,
+    data?.contextType,
+    isWide,
+    showContextDetail,
+    t,
+  ]);
 
   useRegisterPageMobileExtraActions(mobileActions, !isWide);
 

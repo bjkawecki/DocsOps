@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Projekt: Interne Dokumentationsplattform
 
-Dieses Repo ist eine **interne Dokumentationsplattform** (Firma → Abteilung → Team, Kontexte Prozess/Projekt/Nutzerspace, Markdown-Dokumente mit expliziten Rechten, PR/Draft-Workflow). Konzept und Designprinzipien stehen in **`docs/platform/`** (Struktur siehe `docs/platform/README.md`), Umsetzungsplan in **`docs/plan/`**.
+Dieses Repo ist eine **interne Dokumentationsplattform** (Firma -> Abteilung -> Team, Kontexte Prozess/Projekt/Nutzerspace, Markdown-Dokumente mit expliziten Rechten, PR/Draft-Workflow). Konzept und Designprinzipien stehen in **`docs/platform/`** (Struktur siehe `docs/platform/README.md`), Umsetzungsplan in **`docs/plan/`**.
 
 ## Technologie-Stack (verbindlich)
 

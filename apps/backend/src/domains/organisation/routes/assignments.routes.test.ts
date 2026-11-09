@@ -110,7 +110,7 @@ describe('assignments routes (scope role exclusivity)', () => {
     return cookieFrom(loginRes.headers['set-cookie']);
   }
 
-  it('POST team member for platform admin → 409', async () => {
+  it('POST team member for platform admin -> 409', async () => {
     const cookie = await loginAsAdmin();
     const res = await app.inject({
       method: 'POST',
@@ -123,7 +123,7 @@ describe('assignments routes (scope role exclusivity)', () => {
     expect(body.error).toContain('platform administrator');
   });
 
-  it('POST team lead without prior membership → 201', async () => {
+  it('POST team lead without prior membership -> 201', async () => {
     const cookie = await loginAsAdmin();
     const res = await app.inject({
       method: 'POST',
@@ -134,7 +134,7 @@ describe('assignments routes (scope role exclusivity)', () => {
     expect(res.statusCode).toBe(201);
   });
 
-  it('POST team member for user who is already team lead → 409', async () => {
+  it('POST team member for user who is already team lead -> 409', async () => {
     const cookie = await loginAsAdmin();
     const res = await app.inject({
       method: 'POST',
@@ -145,7 +145,7 @@ describe('assignments routes (scope role exclusivity)', () => {
     expect(res.statusCode).toBe(409);
   });
 
-  it('POST team author requires membership → promote keeps membership; demote removes author only', async () => {
+  it('POST team author requires membership -> promote keeps membership; demote removes author only', async () => {
     const cookie = await loginAsAdmin();
     await prisma.teamLead.deleteMany({ where: { teamId, userId: plainUserId } });
     await prisma.teamAuthor.deleteMany({ where: { teamId, userId: plainUserId } });
@@ -376,7 +376,7 @@ describe('assignments routes (single team/department lead)', () => {
     return cookieFrom(loginRes.headers['set-cookie']);
   }
 
-  it('POST team lead then same user → 409 ALREADY_TEAM_LEAD; other user → replace', async () => {
+  it('POST team lead then same user -> 409 ALREADY_TEAM_LEAD; other user -> replace', async () => {
     const cookie = await loginAsAdmin();
     await prisma.teamLead.deleteMany({ where: { teamId } });
 
@@ -409,7 +409,7 @@ describe('assignments routes (single team/department lead)', () => {
     expect(await prisma.teamLead.count({ where: { teamId } })).toBe(1);
   });
 
-  it('DELETE sole team lead → 409 LAST_TEAM_LEAD', async () => {
+  it('DELETE sole team lead -> 409 LAST_TEAM_LEAD', async () => {
     const cookie = await loginAsAdmin();
     await prisma.teamLead.deleteMany({ where: { teamId } });
     await prisma.teamLead.create({ data: { teamId, userId: leadAId } });
@@ -424,7 +424,7 @@ describe('assignments routes (single team/department lead)', () => {
     expect(await prisma.teamLead.count({ where: { teamId } })).toBe(1);
   });
 
-  it('POST department lead replace and DELETE last → 409', async () => {
+  it('POST department lead replace and DELETE last -> 409', async () => {
     const cookie = await loginAsAdmin();
     await prisma.teamLead.deleteMany({ where: { teamId } });
     await prisma.departmentLead.deleteMany({ where: { departmentId } });

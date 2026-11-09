@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-/** First major digit sequence (e.g. "18.4" → 18, "pg_dump (PostgreSQL) 15.19" → 15). */
+/** First major digit sequence (e.g. "18.4" -> 18, "pg_dump (PostgreSQL) 15.19" -> 15). */
 export function parsePostgresMajor(version: string): number | null {
   const match = version.trim().match(/(\d+)/);
   if (!match) return null;

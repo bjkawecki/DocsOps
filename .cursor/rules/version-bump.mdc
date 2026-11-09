@@ -9,12 +9,18 @@ Single Source of Truth: **`version` in der Root-`package.json`** (SemVer `X.Y.Z`
 
 ## Wann bumpen (Datei ändern)
 
-Wenn eine Aufgabe **abgeschlossen** ist und nutzerrelevante Code-/Produktänderung enthält:
+Nur wenn **alle** gelten:
+
+1. Aufgabe ist **abgeschlossen** (kein WIP / kein Feinschliff-Loop).
+2. Änderung ist nutzerrelevant (Code/Produkt).
+3. **`git` staged area ist leer** (`git diff --cached` ohne Output) – nicht mitten in einer schon teilweise gestagten Arbeit bumpen.
+
+Dann SemVer in Root-`package.json`:
 
 | Art | SemVer | Beispiel |
 |-----|--------|----------|
-| Bugfix, kleine UX | **patch** (`0.2.0` → `0.2.1`) | `fix(…)` |
-| Neues Feature, spürbare Verbesserung | **minor** (`0.2.1` → `0.3.0`) | `feat(…)` |
+| Bugfix, kleine UX | **patch** (`0.2.0` -> `0.2.1`) | `fix(…)` |
+| Neues Feature, spürbare Verbesserung | **minor** (`0.2.1` -> `0.3.0`) | `feat(…)` |
 | Breaking (Migration, inkompatible API) | **major** | bewusst, mit Nutzerhinweis |
 
 Während `0.x.y` dürfen sich API/Betrieb noch ändern; Major trotzdem nur bei echten Brüchen.
@@ -22,22 +28,25 @@ Während `0.x.y` dürfen sich API/Betrieb noch ändern; Major trotzdem nur bei e
 ## Wann nicht bumpen
 
 - Reine Doku, Plan, Cursor-Rules, Refactor ohne Nutzerwirkung, Tests-only, WIP
-- Aufgabe noch nicht fertig
+- Aufgabe noch nicht fertig / noch am Iterieren (UI-Feinschliff, Rename, kleine Follow-ups)
+- Es liegen **bereits gestagte** Änderungen (`git diff --cached` nicht leer)
 - Nutzer sagt ausdrücklich, Version nicht anfassen
 - **Release-Ritual** (Notes, Manifest, Git-Tag `vX.Y.Z`, Images): nur bei **explizitem** Release-Auftrag – nicht bei jedem Bump
 
 ## Ablauf für den Agenten
 
-1. Root-`package.json` → `version` anheben (nur diese Datei).
-2. Kurz in der Antwort nennen: alt → neu und warum (patch/minor/major).
-3. **Nicht** `content/releases/*`, Manifest oder Git-Tag anfassen, außer der Nutzer fordert ein Release.
-4. Commit-Message-Vorschlag darf den Bump einschließen (z. B. Scope weglassen oder `chore(release):` nur bei echtem Release).
+1. Prüfen: staged leer? Sonst **kein** Bump in diesem Schritt.
+2. Root-`package.json` -> `version` anheben (nur diese Datei).
+3. Kurz in der Antwort nennen: alt -> neu und warum (patch/minor/major).
+4. **Nicht** `content/releases/*`, Manifest oder Git-Tag anfassen, außer der Nutzer fordert ein Release.
+5. Commit-Message-Vorschlag darf den Bump einschließen (z. B. Scope weglassen oder `chore(release):` nur bei echtem Release).
 
 ## Beispiele
 
 ```text
-✅ feat(frontend): lazy TipTap → minor 0.1.0 → 0.2.0 in Root-package.json
-✅ fix(backup): restore race → patch 0.2.0 → 0.2.1
-❌ docs(plan): … → kein Bump
-❌ Jeden Zwischen-Commit in einer Session → höchstens ein Bump am Task-Ende
+✅ feat fertig, staged leer -> minor 0.1.0 -> 0.2.0
+✅ fix fertig, staged leer -> patch 0.2.0 -> 0.2.1
+❌ Jeder Zwischen-Schritt in einer Session (Rename, Icon, Popover) -> kein Bump
+❌ Schon Dateien gestaged, weiter entwickeln -> kein Bump dazwischen
+❌ docs(plan): … -> kein Bump
 ```

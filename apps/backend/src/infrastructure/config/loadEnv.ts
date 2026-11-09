@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/** Repo root: apps/backend/src/infrastructure/config → five levels up. */
+/** Repo root: apps/backend/src/infrastructure/config -> five levels up. */
 const REPO_ROOT_ENV = resolve(__dirname, '../../../../../.env');
 
 function envCandidates(): string[] {

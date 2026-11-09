@@ -1,0 +1,65 @@
+---
+description: Kein Em-Dash (U+2014) und keine Pfeil-Konstruktionen (→, ->, > als Pfad) in Texten, UI-Copy und Agent-Antworten
+alwaysApply: true
+---
+
+# Verbotene Schriftzeichen und Pfeil-Konstruktionen
+
+## Em-Dash `—` (U+2014)
+
+**Nicht verwenden** in:
+
+- UI-Strings (Labels, Meldungen, Buttons)
+- `docs/`, README, Plan-Dateien
+- Commit-Messages und PR-Beschreibungen
+- Agent-Antworten an den Nutzer
+
+### Stattdessen
+
+| Situation | Bevorzugt |
+|-----------|-----------|
+| Gedankenstrich im Fließtext | En-Dash `–` (U+2013) oder Satz mit Komma/Doppelpunkt |
+| Bereich (z. B. Datum) | En-Dash `–` oder „to“ (EN) |
+| Zusammensetzungen, Flags, Code | Bindestrich `-` (U+002D) |
+
+```
+❌  Automatic backups — configure in Scheduler
+✅  Automatic backups – configure in Scheduler
+✅  Automatic backups: configure in Scheduler
+```
+
+## Pfeil-Konstruktionen (`→`, `->`, `>` als Pfad)
+
+**Nicht verwenden**, um Navigation, Hierarchie oder „von … nach …“ anzudeuten. Solche Zeichen sind mehrdeutig (Vergleich, Redirect, Brotkrume, Implikation).
+
+Gilt in UI-Copy, Release Notes, Landing/Marketing, Help, Commits und Agent-Antworten.
+
+### Stattdessen
+
+| Situation | Bevorzugt |
+|-----------|-----------|
+| Ort in der App | ausgeschriebene Lage („under Admin, open System“, „im Admin-Bereich unter System“) |
+| Org-Hierarchie | Aufzählung mit „and“/„und“ oder kurze Sätze |
+| Vergleich zweier Stände | „from … to …“ / „von … nach …“ |
+| Code-Kommentare, Tests, Typ-Mapping | `->` dort erlaubt (nicht in Nutzer-Prosa) |
+
+```
+❌  Admin → Destinations
+❌  Admin -> Destinations
+❌  Admin > Destinations
+✅  Destinations under Admin
+✅  under Admin, open Destinations
+
+❌  Company > Department > Team
+✅  Company, department, and team
+
+❌  v3 -> v4
+✅  from v3 to v4
+```
+
+## Ausnahmen
+
+- Zeichen in fremden Zitaten oder Drittanbieter-Text unverändert lassen
+- Generierte Dateien nicht automatisch umschreiben
+- Diese Rule-Datei darf die Zeichen nur als Verbotsbeispiele nennen
+- Technisches `->` in Code-Kommentaren und Tests (nicht in i18n, Landing-Copy, Release Notes)

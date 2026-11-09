@@ -2,6 +2,11 @@
   "formatVersion": 1,
   "releases": [
     {
+      "version": "0.7.0",
+      "date": "2026-11-09",
+      "title": "Scope PDF export and landing polish"
+    },
+    {
       "version": "0.6.3",
       "date": "2026-11-02",
       "title": "Authors, landing features, and help"

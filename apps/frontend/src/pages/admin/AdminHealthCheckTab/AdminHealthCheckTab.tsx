@@ -4,7 +4,7 @@ import { useAdminSystemSettings } from '../../../hooks/useAdminUpdateStatus.js';
 import { AdminHealthCheckSettings } from './AdminHealthCheckSettings.js';
 
 /**
- * Admin Platform → Freshness: org default interval and auto-scan flag.
+ * Admin Platform -> Freshness: org default interval and auto-scan flag.
  */
 export function AdminHealthCheckTab() {
   const { t } = useTranslation('admin');

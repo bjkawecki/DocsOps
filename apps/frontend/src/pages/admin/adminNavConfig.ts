@@ -46,6 +46,7 @@ export const adminNavGroups = [
     items: [
       { to: '/admin/data/backup', labelKey: 'nav.backup' },
       { to: '/admin/data/migration', labelKey: 'nav.migration' },
+      { to: '/admin/data/destinations', labelKey: 'nav.destinations' },
     ],
   },
   {
@@ -70,7 +71,7 @@ export function getAdminNavGroups(): readonly AdminNavGroup[] {
   return adminNavGroups;
 }
 
-/** Legacy flat paths → nested paths (bookmarks / deep links). */
+/** Legacy flat paths -> nested paths (bookmarks / deep links). */
 export const adminLegacyRedirects: ReadonlyArray<{ from: string; to: string }> = [
   { from: 'users', to: '/admin/organisation/users' },
   { from: 'teams', to: '/admin/organisation/teams' },
@@ -79,6 +80,8 @@ export const adminLegacyRedirects: ReadonlyArray<{ from: string; to: string }> =
   { from: 'jobs', to: '/admin/operations/jobs' },
   { from: 'scheduler', to: '/admin/operations/scheduler' },
   { from: 'backup', to: '/admin/data/backup' },
+  { from: 'published-archive', to: '/admin/data/backup' },
+  { from: 'destinations', to: '/admin/data/destinations' },
   { from: 'migration', to: '/admin/data/migration' },
   { from: 'broadcast', to: '/admin/platform/broadcast' },
   { from: 'system', to: '/admin/platform/system' },

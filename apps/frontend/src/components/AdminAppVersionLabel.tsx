@@ -44,7 +44,7 @@ export function AdminAppVersionLabel({ isAdmin, isMiniRail = false, ta, pl, fz, 
 
   if (isMiniRail) {
     return (
-      <Tooltip label="Update available — open System" position="right">
+      <Tooltip label="Update available – open System" position="right">
         {versionLabel}
       </Tooltip>
     );

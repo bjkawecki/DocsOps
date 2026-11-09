@@ -38,7 +38,6 @@ import {
   assertBackupScheduleEnableDisableForbidden,
   isBackupScheduleActive,
 } from '../services/adminBackupScheduleService.js';
-
 const QUEUE_RETRY_AFTER_SECONDS = 15;
 
 const adminJobsRoutes: FastifyPluginAsync = (app: FastifyInstance) => {

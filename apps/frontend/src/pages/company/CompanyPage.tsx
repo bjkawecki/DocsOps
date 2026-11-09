@@ -7,7 +7,7 @@ import { ScopeWorkspaceEntry } from '../contextWorkspace/ScopeWorkspaceEntry.js'
 type CompanyRes = { id: string; name: string };
 
 /**
- * Company scope landing → default context workspace or empty create state.
+ * Company scope landing -> default context workspace or empty create state.
  */
 export function CompanyPage() {
   const { data: me, isPending: mePending } = useMe();

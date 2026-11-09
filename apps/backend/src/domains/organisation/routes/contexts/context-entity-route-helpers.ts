@@ -227,7 +227,7 @@ export async function withProjectWriteGatedContextIds(
   await fn(gated);
 }
 
-/** `true`, wenn Restore ausgeführt wurde; bei 400/403 bereits geantwortet → `false`. */
+/** `true`, wenn Restore ausgeführt wurde; bei 400/403 bereits geantwortet -> `false`. */
 export async function completeProjectRestoreFromTrash(
   prisma: PrismaClient,
   userId: string,
@@ -247,7 +247,7 @@ export async function completeProjectRestoreFromTrash(
   return true;
 }
 
-/** `true`, wenn Unarchive ausgeführt wurde; bei 400/403 bereits geantwortet → `false`. */
+/** `true`, wenn Unarchive ausgeführt wurde; bei 400/403 bereits geantwortet -> `false`. */
 export async function completeProjectUnarchive(
   prisma: PrismaClient,
   userId: string,

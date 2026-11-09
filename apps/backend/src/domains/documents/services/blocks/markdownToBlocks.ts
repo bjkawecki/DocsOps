@@ -34,11 +34,11 @@ function isHorizontalRule(line: string): boolean {
 const GFM_ALERT_LINE = /^\[!(NOTE|WARNING|TIP)\]\s*$/i;
 
 /**
- * Minimal Markdown → Block-Dokument v0 (EPIC-2 / PR-2b).
+ * Minimal Markdown -> Block-Dokument v0 (EPIC-2 / PR-2b).
  * Für Migration/Import; kein vollständiger CommonMark-Parser.
  * Unterstützt grob: Überschriften, Fließtext-Absätze, `-`/`*`- und nummerierte Listen,
- * Blockquotes, GFM Alerts (`[!NOTE|WARNING|TIP]` → callout), Horizontal Rules,
- * GFM-Tabellen, fenced ``` code ```, fenced ```mermaid``` → mermaid.
+ * Blockquotes, GFM Alerts (`[!NOTE|WARNING|TIP]` -> callout), Horizontal Rules,
+ * GFM-Tabellen, fenced ``` code ```, fenced ```mermaid``` -> mermaid.
  */
 export function markdownToBlockDocumentV0(markdown: string): BlockDocumentV0 {
   const md = markdown.replace(/\r\n/g, '\n');

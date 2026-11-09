@@ -20,7 +20,7 @@ export function ownerToScopeForBreadcrumb(owner: BreadcrumbOwner): RecentScope |
 }
 
 /**
- * Scope → URL für Navigation (Personal, Company, Department, Team).
+ * Scope -> URL für Navigation (Personal, Company, Department, Team).
  */
 export function scopeToUrl(scope: RecentScope): string {
   if (scope.type === 'personal') return '/personal';
@@ -31,7 +31,7 @@ export function scopeToUrl(scope: RecentScope): string {
   return '/';
 }
 
-/** Scope → Anzeige-Label (ohne Namen von Dept/Team). */
+/** Scope -> Anzeige-Label (ohne Namen von Dept/Team). */
 export function scopeToLabel(scope: RecentScope): string {
   if (scope.type === 'personal') return 'Personal';
   if (scope.type === 'shared') return 'Shared';

@@ -13,9 +13,9 @@ import { loadActiveUser } from './userAccessPredicates.js';
  * Whether the user may run Do11y health-check actions (hub/scan/doc decisions/interval)
  * for the given org scope.
  *
- * - Scope lead hierarchy (team/dept/company) → true
- * - Knowledge Manager on exactly this assigned scope → true (via isScopeLead)
- * - Platform admin → always false
+ * - Scope lead hierarchy (team/dept/company) -> true
+ * - Knowledge Manager on exactly this assigned scope -> true (via isScopeLead)
+ * - Platform admin -> always false
  * - Personal scopes are not Do11y; use {@link canRunHealthCheckForDocument}
  */
 export async function canRunHealthCheck(
@@ -31,7 +31,7 @@ export async function canRunHealthCheck(
 
 /**
  * Health-check right for a document's owner scope.
- * Personal-owned docs → false (outside Do11y). Missing context/owner → false.
+ * Personal-owned docs -> false (outside Do11y). Missing context/owner -> false.
  */
 export async function canRunHealthCheckForDocument(
   prisma: PrismaClient,

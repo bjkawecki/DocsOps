@@ -247,7 +247,7 @@ async function collectDocumentCandidateIdsByRole(
   if (owner?.ownerUserId) ids.add(owner.ownerUserId);
 
   if (role === GrantRole.Read) {
-    // Align heuristic with canRead → canReadOwnerScopeResolved (published org docs).
+    // Align heuristic with canRead -> canReadOwnerScopeResolved (published org docs).
     if (isCompanyOwnedDocument(doc) && owner?.companyId) {
       await addCompanyScopeReaderUserIds(prisma, owner.companyId, ids);
     } else {

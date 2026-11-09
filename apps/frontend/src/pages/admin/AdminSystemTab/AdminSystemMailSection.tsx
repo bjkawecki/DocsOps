@@ -32,7 +32,7 @@ type Props = {
 };
 
 /**
- * Admin Platform → Mail: platform SMTP configuration + send test email.
+ * Admin Platform -> Mail: platform SMTP configuration + send test email.
  */
 export function AdminSystemMailSection({ settings }: Props) {
   const { t } = useTranslation('admin');

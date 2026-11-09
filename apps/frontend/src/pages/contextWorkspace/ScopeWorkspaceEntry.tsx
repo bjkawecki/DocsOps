@@ -38,7 +38,7 @@ type PersonalDocumentItem = {
   contextId: string | null;
 };
 
-/** RecentScope → NewContextModal/NewDocumentModal scope. `null` for scopes without an owner (Shared). */
+/** RecentScope -> NewContextModal/NewDocumentModal scope. `null` for scopes without an owner (Shared). */
 function toNewContextScope(scope: RecentScope): NewContextScope | null {
   if (scope.type === 'company') return { type: 'company', companyId: scope.id };
   if (scope.type === 'department') return { type: 'department', departmentId: scope.id };

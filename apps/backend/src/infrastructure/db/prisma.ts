@@ -5,7 +5,7 @@ import { PrismaClient } from '../../../generated/prisma/client.js';
 /**
  * Konfiguration für den Pg-Adapter (kein eigenes `pg.Pool`-Objekt übergeben).
  * Sonst kann `pool instanceof require('pg').Pool` im CJS-Adapter false sein (ESM/CJS-Doppel-Ladung),
- * der Adapter würde den Pool fälschlich als Options-Objekt behandeln → z. B. dauerhaft ECONNREFUSED.
+ * der Adapter würde den Pool fälschlich als Options-Objekt behandeln -> z. B. dauerhaft ECONNREFUSED.
  */
 function pgPoolConfigFromEnv(): {
   connectionString: string;

@@ -17,7 +17,7 @@ describe('mailI18n', () => {
     expect(resolveMailLocale({ locale: 'fr' })).toBe('en');
   });
 
-  it('tMail interpolates and falls back DE→EN for missing DE key via EN catalog', () => {
+  it('tMail interpolates and falls back DE->EN for missing DE key via EN catalog', () => {
     expect(tMail('en', 'system.test.subject')).toContain('SMTP');
     expect(tMail('de', 'system.test.subject')).toContain('SMTP');
     expect(() => tMail('en', 'does.not.exist')).toThrow(MailI18nMissingKeyError);

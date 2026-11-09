@@ -134,7 +134,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         });
       }
 
-      // Unbekannt → 500
+      // Unbekannt -> 500
       request.log.error(err);
       const showErrorDetail =
         process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development';

@@ -10,17 +10,37 @@
     "total_other": "{{count}} notifications"
   },
   "categories": {
-    "all": { "label": "All" },
-    "documents": { "label": "Documents", "description": "Publish, updates, archive, …" },
-    "comments": { "label": "Comments", "description": "Mentions and discussion" },
-    "reviews": { "label": "Reviews", "description": "Draft requests" },
+    "all": {
+      "label": "All"
+    },
+    "documents": {
+      "label": "Documents",
+      "description": "Publish, updates, archive, …"
+    },
+    "comments": {
+      "label": "Comments",
+      "description": "Mentions and discussion"
+    },
+    "reviews": {
+      "label": "Reviews",
+      "description": "Draft requests"
+    },
     "reminders": {
       "label": "Freshness",
       "description": "Documents that need a freshness decision"
     },
-    "announcements": { "label": "Announcements", "description": "Admin broadcasts" },
-    "operations": { "label": "Operations", "description": "Backups and migration jobs" },
-    "org": { "label": "Organization", "description": "Roles and membership" }
+    "announcements": {
+      "label": "Announcements",
+      "description": "Admin broadcasts"
+    },
+    "operations": {
+      "label": "Operations",
+      "description": "Backups and migration jobs"
+    },
+    "org": {
+      "label": "Organization",
+      "description": "Roles and membership"
+    }
   },
   "inbox": {
     "table": {
@@ -37,7 +57,8 @@
     "read": "Read",
     "markAsRead": "Mark as read",
     "openSource": "Open linked item",
-    "close": "Close"
+    "close": "Close",
+    "downloadFile": "Download zip"
   },
   "toasts": {
     "updateFailedTitle": "Update failed",
@@ -61,7 +82,16 @@
     "softwareUpdate": "Software update",
     "updateVersion": "Update {{version}}",
     "untitledDocument": "Untitled document",
-    "activity": "Activity"
+    "activity": "Activity",
+    "scopePdfExport": "PDF export",
+    "scopePdfExportKind": {
+      "company": "Company",
+      "departments": "Departments",
+      "departmentNamed": "Departments · {{name}}",
+      "teams": "Teams",
+      "teamNamed": "Teams · {{name}}"
+    },
+    "scopePdfExportWithScope": "PDF export · {{scope}}"
   },
   "body": {
     "adminBroadcastFallbackTitle": "System message",
@@ -81,8 +111,8 @@
     "platformExportDocumentsSuffix": " · {{count}} documents",
     "platformImportSucceededWithCount": "Imported {{count}} documents. Search index reindex was queued.",
     "platformImportSucceeded": "Platform data imported. Search index reindex was queued.",
-    "updateAvailableWithInstalled": "Version {{latest}} is available (installed: {{installed}}). Open Admin → System for update steps.",
-    "updateAvailable": "Version {{latest}} is available. Open Admin → System for update steps.",
+    "updateAvailableWithInstalled": "Version {{latest}} is available (installed: {{installed}}). Open System under Admin for update steps.",
+    "updateAvailable": "Version {{latest}} is available. Open System under Admin for update steps.",
     "updateSucceeded": "DocsOps was upgraded to {{target}}.",
     "commentMention": "You were mentioned in a comment.",
     "commentReply": "Someone replied in a comment thread.",
@@ -98,7 +128,11 @@
     "draftRequestGeneric": "Related to a review request.",
     "healthCheckActionNeeded_one": "{{count}} document needs a freshness decision.",
     "healthCheckActionNeeded_other": "{{count}} documents need a freshness decision.",
-    "healthCheckNeedsUpdate": "Marked as needing an update."
+    "healthCheckNeedsUpdate": "Marked as needing an update.",
+    "scopePdfExportSucceeded": "PDF export ready ({{scope}}){{size}}{{docsSuffix}}.",
+    "scopePdfExportDocsSuffix": " · {{docsOk}}/{{docsTotal}} documents",
+    "scopePdfExportZipNotFound": "The zip tool is missing on the job worker. Rebuild the worker image.",
+    "scopePdfExportZipFailed": "Building the PDF zip archive failed."
   },
   "eventTypes": {
     "document-created": "Document created",
@@ -146,6 +180,12 @@
     "admin-granted": "Administrator access granted",
     "admin-revoked": "Administrator access revoked",
     "health-check-action-needed": "Freshness decision needed",
-    "health-check-needs-update": "Document needs update"
+    "health-check-needs-update": "Document needs update",
+    "scope-pdf-export-succeeded": "PDF export ready",
+    "scope-pdf-export-failed": "PDF export failed"
+  },
+  "titles": {
+    "scope-pdf-export-succeeded": "PDF export ready",
+    "scope-pdf-export-failed": "PDF export failed"
   }
 }

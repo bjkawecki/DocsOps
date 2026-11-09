@@ -88,7 +88,7 @@ export function logoExtensionForContentType(contentType: PdfLogoContentType): '.
 
 /**
  * Resolve export theme from optional Company row.
- * Null fields fall back to platform defaults; missing company → full defaults.
+ * Null fields fall back to platform defaults; missing company -> full defaults.
  */
 export function resolvePdfBrandingTheme(
   company: CompanyPdfBrandingRow | null

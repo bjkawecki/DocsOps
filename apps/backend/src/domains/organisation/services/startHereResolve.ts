@@ -70,7 +70,7 @@ async function tryResolveCandidate(
 }
 
 /**
- * List Start here for the user: all readable published docs, Teams → Depts → Companies (name asc).
+ * List Start here for the user: all readable published docs, Teams -> Depts -> Companies (name asc).
  */
 export async function listStartHereForUser(
   prisma: PrismaClient,

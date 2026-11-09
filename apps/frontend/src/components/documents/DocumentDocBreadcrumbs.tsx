@@ -177,7 +177,7 @@ export function buildDocumentBreadcrumbItems(
 }
 
 /**
- * Registers document breadcrumbs in the AppShell row (Scope → Context → Document).
+ * Registers document breadcrumbs in the AppShell row (Scope -> Context -> Document).
  * Compact viewports: single parent back-crumb only.
  * Renders nothing inline.
  */

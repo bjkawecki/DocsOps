@@ -64,7 +64,7 @@ describe('GET /api/v1/contexts/:contextId', () => {
     await app.close();
   });
 
-  it('ohne Auth → 401', async () => {
+  it('ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/contexts/${processContextId}`,
@@ -72,7 +72,7 @@ describe('GET /api/v1/contexts/:contextId', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('als Company-Lead → 200 mit process payload', async () => {
+  it('als Company-Lead -> 200 mit process payload', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -99,7 +99,7 @@ describe('GET /api/v1/contexts/:contextId', () => {
     expect(body.canWriteContext).toBe(true);
   });
 
-  it('ohne Leserecht → 403', async () => {
+  it('ohne Leserecht -> 403', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

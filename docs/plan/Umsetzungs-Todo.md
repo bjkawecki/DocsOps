@@ -2,7 +2,7 @@
 
 Phasen und Abschnitte für die Umsetzung der internen Dokumentationsplattform. Siehe [Technologie-Stack](Technologie-Stack.md), [Infrastruktur & Deployment](Infrastruktur-und-Deployment.md) und [Doc-Platform-Konzept](../platform/Doc-Platform-Konzept.md).
 
-**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Phase 2 (Tech-Docs & Templates):** Abschnitt 28 (inkl. **§28c** API-Freshness für System-/Ressourcen-Docs). **Docs Observability (Do11y / Freshness · Aktualität):** Abschnitt **§29** – [Policy](Plan-Do11y-Docs-Observability.md), [Phasen](Plan-Do11y-Phasen.md). **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
+**Empfohlener Einstieg:** Abschnitt 1 + 2 (Grundgerüst + Datenmodell), dann 3–4 (Auth, Rechte), danach 5–14 (Kern-API, Frontend, Layout, Settings, Admin-UI, Kontexte-Verwaltung, Company Page, Department/Team Pages, Dashboard, Catalog, Dokumente-UI). **Phase 2** (später): Abschnitte 15–20 (Versionierung, MinIO, Async Jobs, Volltextsuche, Deployment-Doku, Layout- & UX-Ergänzungen). **Optional:** Abschnitt 21 (KI-Assistent / Dokumenten-Frage), Abschnitt 22 (Kommentar-Sektion pro Dokument). **Phase 2 (Tech-Docs & Templates):** Abschnitt 28 (inkl. **§28c** API-Freshness für System-/Ressourcen-Docs). **Docs Observability (Do11y / Freshness · Aktualität):** Abschnitt **§29** – [Policy](Plan-Do11y-Docs-Observability.md), [Phasen](Plan-Do11y-Phasen.md). **Scope PDF export:** Abschnitt **§30** – [Plan-Betrieb §4a](Plan-Betrieb-Releases-Backup-Update.md#4a-scope-pdf-export-lead). **Notifications (Konzept & Ausbau):** Abschnitt 23; **Live-Updates (SSE):** Abschnitt 23a. **Referenz:** [Dokument-Lifecycle-Analyse](Dokument-Lifecycle-Analyse.md) – Zustandsmaschine, Events, Permissions, Seiteneffekte und Inkonsistenzen.
 
 **Geplante Großumstellung Edit-/Kollaborationsmodell:** [Edit-System: Blocks (JSON), Suggestions, Lead-Draft (Variante A)](Edit-System-Blocks-Suggestions-Lead-Draft.md) – ersetzt Markdown-first-Editing schrittweise. **Umgesetzt (ADR 003, historisch):** Direct Author PATCH + Draft-Change-Ops — wird durch **[ADR 004 Inline Draft Suggestions](../platform/adr/004-inline-draft-suggestions.md)** ersetzt (Track Changes im `draftBlocks`, Accept/Decline, Publish nur bei `pendingSuggestionCount === 0`; Legacy ADR 003 vollständig entfernen). **PR-/Epic-Aufteilung:** [Edit-System-Blocks-PR-Epics.md](Edit-System-Blocks-PR-Epics.md). **EPIC-9 (Legacy abschalten):** `DOCUMENT_LEGACY_DRAFT_ENABLED` und HTTP 410 für persönlichen Markdown-Entwurf / Draft-Requests; Details im Epic-Abschnitt EPIC-9.
 
@@ -422,7 +422,8 @@ Die Punkte unten sind **keine fehlenden Produktfeatures**, sondern optionale **V
 [x] **Mobile-Review Landing:** Alle Landing-Routen und Sections auf schmalen Viewports prüfen und verbessern (Navbar/Drawer, Hero, Modell-Diagramme, FAQ, Philosophie, Sponsor, Install/Changelog, Footer). App-Mobile-Wellen: siehe §20 / [Plan-Mobile-UX](Plan-Mobile-UX.md).
 [x] **Landing Go-live:** Deploy auf `docsops.de`; DNS/Caddy; Impressum/Datenschutz im Landing-Code; optional Vergleich/FAQ wieder auf `/` (bewusst zurückgestellt).
 [x] **Landing: Confluence vs DocsOps:** Gegenüberstellung auf **`/compare`** (nicht als volle Startseiten-Section) – Tabelle DocsOps · Confluence, Nav unter Philosophie; Datenbasis [vergleich/startseite-confluence-docmost.md](../marketing/vergleich/startseite-confluence-docmost.md). Startseite bleibt Modell-Erklärung.
-[x] **Landing Feature-Grid:** Section auf `/` (`#features`) – vier Kacheln (Org-Hierarchie, Governance, Do11y, Datenkontrolle); Position nach Philosophie-Teaser / vor FAQ. Vorgaben: [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
+[x] **Landing Feature-Grid (v1):** Section auf `/` (`#features`) – vier Kacheln (Org-Hierarchie, Governance, Do11y, Datenkontrolle); Position nach Philosophie-Teaser / vor FAQ. Vorgaben: [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
+[ ] **Landing Feature-Grid (Split Datenkontrolle):** Kachel „Datenkontrolle“ aufteilen in **Backup / Restore** (Disaster Recovery) und **Export / Import** (Migration/Portabilität); Org, Governance, Do11y bleiben; Copy DE+EN; ggf. 5er-Grid/Layout – [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
 [x] **Landing Favicon Color Scheme:** SVG light/dark via `prefers-color-scheme` (ICO/PNG-Override entfernt) – [Landing-Page-Plan](../marketing/Landing-Page-Plan.md).
 [x] **Landing i18n (zuerst):** DE + EN; Pfadsegmente Englisch; DE unprefixed, EN `/en/…`; Default Browser `de`/`de-*` sonst EN; Persistenz; alle Routen inkl. Compare + Legal; Canonical/`hreflang`/Sitemap/Prerender; Redirects von alten DE-Slugs – [Landing-Page-Plan §8](../marketing/Landing-Page-Plan.md#8-landing-i18n-umgesetzt), [Landing-SEO](../marketing/Landing-SEO.md).
 [x] **Landing Color Theme:** Light/Dark/Auto (`prefers-color-scheme` + Hover-Toggle neben Sprache + Persistenz `docsops-landing-color-scheme`); App-ähnlicher Look; Diagramm-Kontraste; kein `forceColorScheme` – [Landing-Page-Plan §9](../marketing/Landing-Page-Plan.md#9-landing-color-theme-umgesetzt).
@@ -883,3 +884,25 @@ Kurz: Hub = alles Handlungsbedarf; Scan setzt Status; Publish-Reset; Archive/Dra
 [ ] §28c-Signal – eigenes Epic unter [§28c](#28c-api-freshness-für-system---anwendungsressourcen-docs-geplant), nicht Do11y-Abschluss.
 
 [x] **Konzept + Phasenplan** festgehalten.
+
+---
+
+## 30. Scope PDF export
+
+**Ziel:** Lead (via `canWriteContext`) stößt am Kontext-Menü ein **PDF-Zip** der **published** Docs des **Owner-Scopes** an (kein Personal-Scope, keine Kind-Scopes). Async Job + Notification/Download – **nicht** DR-Backup (§25) und **nicht** Plattform-Migration (§27).
+
+**Plan:** [Plan-Betrieb-Releases-Backup-Update §4a](Plan-Betrieb-Releases-Backup-Update.md#4a-scope-pdf-export-lead).
+
+### Produktregeln
+
+- Nur **published**; genau ein Owner-Scope (Company **oder** Department **oder** Team).
+- Ordnerbaum: `Company/Prozesse|Projekte/…` bzw. `Departments/<dept>/…` bzw. `Teams/<team>/…`.
+- Auslöser: Kontext-`⋮`; Job `documents.scope-pdf-export`; kein Admin-Tab, kein Schedule, keine Destinations.
+
+### Todos
+
+[x] **Konzept** in Plan §4a (Lead-Scope-Export, Ordnerbaum, Abgrenzung Backup/Migration).
+[x] **Job** `documents.scope-pdf-export`: Owner-Docs → Typst/PDF → Zip → MinIO; Notify Auslöser.
+[x] **API** `POST /contexts/:id/pdf-export` + Status/Download; UI im Context Workspace.
+[x] **Benachrichtigungen** Erfolg/Fehler an Auslöser.
+[x] **Doku/Runbook:** Abgrenzung zu Backup-Restore und Plattform-Import.

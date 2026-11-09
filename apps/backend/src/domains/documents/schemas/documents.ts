@@ -78,7 +78,7 @@ export const createDocumentBodySchema = z
     typeId: z.string().min(1).max(80).optional(),
     /** Built-in or custom template id. Seeds draftBlocks and sets type. */
     templateId: z.string().min(1).max(80).optional(),
-    /** Do11y interval; omitted → org default is stored. No nextAt until first publish. */
+    /** Do11y interval; omitted -> org default is stored. No nextAt until first publish. */
     healthCheckIntervalDays: healthCheckIntervalDaysSchema.optional(),
   })
   .refine((data) => data.contextId != null || data.tagIds.length === 0, {

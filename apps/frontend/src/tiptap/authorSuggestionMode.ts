@@ -156,8 +156,8 @@ function segmentsInRange(
 
 /**
  * Author delete/cut on selection:
- * - own pending inserts → remove text
- * - canon → delete suggestion mark
+ * - own pending inserts -> remove text
+ * - canon -> delete suggestion mark
  * Returns null to defer to default handling (e.g. all foreign/delete-mark).
  */
 function buildAuthorDeleteSelectionTransaction(

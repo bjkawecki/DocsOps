@@ -168,7 +168,7 @@ export function useDocumentLeadDraftPanelState({
       return;
     }
 
-    // React Query placeholder while refetching — do not treat as remote rollback.
+    // React Query placeholder while refetching – do not treat as remote rollback.
     if (incomingRevision === 0 && appliedRevision > 0) return;
 
     const revisionAhead = incomingRevision > appliedRevision;

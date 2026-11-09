@@ -1,6 +1,6 @@
 import { createTheme, rem, type MantineTheme, type TextProps } from '@mantine/core';
 
-/** User-selectable UI text scale (Mantine `theme.scale` → `--mantine-scale`). */
+/** User-selectable UI text scale (Mantine `theme.scale` -> `--mantine-scale`). */
 export type TextSizePreference = 'default' | 'large' | 'larger';
 
 /** Labels for Settings SegmentedControl (accessibility). */
@@ -238,7 +238,7 @@ export function getPrimaryColorAccent(preset: PrimaryColorPreset): string {
 
 /**
  * Builds the app theme with the given primary color preset and optional text scale.
- * Used by AppMantineProvider from preferences (login/unauthenticated → default blue).
+ * Used by AppMantineProvider from preferences (login/unauthenticated -> default blue).
  */
 export function createAppTheme(
   primaryColor: PrimaryColorPreset,

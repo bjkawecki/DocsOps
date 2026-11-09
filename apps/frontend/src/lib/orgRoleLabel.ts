@@ -85,7 +85,7 @@ function i18nDefault(t: TranslateFn, key: DisplayRoleKey, form: OrgRoleForm): st
 }
 
 /**
- * Resolve a role label. Overrides are instance-wide (monolingual); empty → i18n default.
+ * Resolve a role label. Overrides are instance-wide (monolingual); empty -> i18n default.
  */
 export function resolveOrgRoleLabel(
   t: TranslateFn,

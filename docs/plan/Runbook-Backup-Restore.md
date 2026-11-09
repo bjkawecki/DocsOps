@@ -4,6 +4,8 @@ Manual restore procedure for DocsOps **operational** backups (§25). **Admin →
 
 **Not for platform migration:** Import of a **platform export** (`docsops-platform-export-*.tar.zst`, logical domain format) is a separate feature – use **Admin → Migration** (`/admin/data/migration`), the offline CLI (`pnpm --filter backend platform:export` / `platform:import`), or see [Plan-Betrieb §4](Plan-Betrieb-Releases-Backup-Update.md) and Umsetzungs-Todo §27. Do not use `pg_restore` on a platform export archive.
 
+**Not a scope PDF export:** A **scope PDF export** zip (`docsops-scope-pdf-*.zip` from the context actions menu) is a human-readable offline mirror of published documents for one org owner scope. It is **not** restorable into DocsOps. Do not treat it as a DR backup or platform import. See [Plan-Betrieb §4a](Plan-Betrieb-Releases-Backup-Update.md#4a-scope-pdf-export-lead) and Umsetzungs-Todo §30.
+
 ## UI restore (Admin → Backup)
 
 - **From history:** Restore button on succeeded runs that still have a local copy in MinIO (`localObjectKey`).

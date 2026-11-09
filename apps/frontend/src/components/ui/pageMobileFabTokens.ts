@@ -1,6 +1,6 @@
 /**
  * Semantic FAB tones for `PageMobileActionBar` (Plan-Mobile-UX §2.9).
- * Same icon/role → same color app-wide; all tones use opaque `filled`.
+ * Same icon/role -> same color app-wide; all tones use opaque `filled`.
  * Chrome uses `dark` (not `gray`): Mantine `gray` filled becomes too light in dark mode
  * and washes out light icons.
  */

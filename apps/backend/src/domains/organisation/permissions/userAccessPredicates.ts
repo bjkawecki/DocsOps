@@ -34,7 +34,7 @@ export function isKnowledgeManagerForTeam(user: LoadedUser, teamId: string): boo
   return isKnowledgeManager(user) && user.knowledgeManagerTeams.some((t) => t.teamId === teamId);
 }
 
-/** Exact owner-scope match for KM (no parent→child inheritance). */
+/** Exact owner-scope match for KM (no parent->child inheritance). */
 export function isKnowledgeManagerForOwnerScope(
   user: LoadedUser,
   owner: {

@@ -205,7 +205,7 @@ export class CompanyPdfLogoInvalidError extends Error {
 
 /**
  * Resolve company id for PDF branding from a document's owner scope.
- * Personal owners and missing context → null (platform default).
+ * Personal owners and missing context -> null (platform default).
  */
 export async function resolvePdfBrandingCompanyIdForDocument(
   prisma: PrismaClient,

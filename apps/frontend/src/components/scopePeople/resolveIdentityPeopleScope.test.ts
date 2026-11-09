@@ -35,14 +35,14 @@ describe('resolveIdentityPeopleScope', () => {
     expect(resolveIdentityPeopleScope(null)).toBeNull();
   });
 
-  it('member → own team', () => {
+  it('member -> own team', () => {
     expect(resolveIdentityPeopleScope(me({ teams: [team] }))).toEqual({
       scope: 'team',
       teamId: 't1',
     });
   });
 
-  it('department lead → department (not team)', () => {
+  it('department lead -> department (not team)', () => {
     expect(
       resolveIdentityPeopleScope(
         me({
@@ -53,7 +53,7 @@ describe('resolveIdentityPeopleScope', () => {
     ).toEqual({ scope: 'department', departmentId: 'd1' });
   });
 
-  it('department author → department', () => {
+  it('department author -> department', () => {
     expect(
       resolveIdentityPeopleScope(
         me({
@@ -63,7 +63,7 @@ describe('resolveIdentityPeopleScope', () => {
     ).toEqual({ scope: 'department', departmentId: 'd2' });
   });
 
-  it('company lead → company', () => {
+  it('company lead -> company', () => {
     expect(
       resolveIdentityPeopleScope(
         me({
@@ -75,14 +75,14 @@ describe('resolveIdentityPeopleScope', () => {
     ).toEqual({ scope: 'company', companyId: 'c1' });
   });
 
-  it('admin with team companyId → company', () => {
+  it('admin with team companyId -> company', () => {
     expect(resolveIdentityPeopleScope(me({ isAdmin: true, teams: [team] }))).toEqual({
       scope: 'company',
       companyId: 'c1',
     });
   });
 
-  it('admin without company id → null', () => {
+  it('admin without company id -> null', () => {
     expect(resolveIdentityPeopleScope(me({ isAdmin: true }))).toBeNull();
   });
 });

@@ -58,7 +58,7 @@ export function evaluateScopeCapability(
     return Boolean(hierarchy.companyId && !hierarchy.departmentId && !hierarchy.teamId);
   }
 
-  // Knowledge Manager: exact assigned scope only (no company→dept/team inheritance).
+  // Knowledge Manager: exact assigned scope only (no company->dept/team inheritance).
   if (isKnowledgeManager(user)) {
     const { companyId, departmentId, teamId } = hierarchy;
     if (teamId) return isKnowledgeManagerForTeam(user, teamId);

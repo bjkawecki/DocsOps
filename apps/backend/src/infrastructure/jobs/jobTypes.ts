@@ -35,7 +35,7 @@ export const jobPayloadSchemas = {
     ]),
     requestedByUserId: cuidSchema.optional(),
   }),
-  /** EPIC-3: Markdown → Block-JSON für `DocumentVersion.blocks` und `Document.draftBlocks` (idempotent). */
+  /** EPIC-3: Markdown -> Block-JSON für `DocumentVersion.blocks` und `Document.draftBlocks` (idempotent). */
   'documents.blocks.backfill': z.object({
     documentId: cuidSchema.optional(),
     limit: z.number().int().positive().max(500).optional(),
@@ -89,6 +89,10 @@ export const jobPayloadSchemas = {
   /** Do11y org-wide auto-scan (materialize nextAt / snooze; Phase-4 notifs on count change). */
   'docs.health-check.auto-scan': z.object({
     reason: z.enum(['scheduled', 'manual']).default('scheduled'),
+  }),
+  /** Lead-triggered zip of published PDFs for one org owner scope. */
+  'documents.scope-pdf-export': z.object({
+    runId: cuidSchema,
   }),
 } as const;
 

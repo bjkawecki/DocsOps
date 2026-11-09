@@ -38,12 +38,12 @@ describe('Me routes (GET/PATCH /me, storage, drafts)', () => {
     await app.close();
   });
 
-  it('GET /api/v1/me ohne Cookie → 401', async () => {
+  it('GET /api/v1/me ohne Cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/me' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/me mit Session → 200 + user, identity, preferences', async () => {
+  it('GET /api/v1/me mit Session -> 200 + user, identity, preferences', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -159,7 +159,7 @@ describe('Me routes (GET/PATCH /me, storage, drafts)', () => {
     await prisma.user.delete({ where: { id: author.id } });
   });
 
-  it('PATCH /api/v1/me → Name aktualisiert', async () => {
+  it('PATCH /api/v1/me -> Name aktualisiert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -181,7 +181,7 @@ describe('Me routes (GET/PATCH /me, storage, drafts)', () => {
     expect(updated.name).toBe('Me Test User Updated');
   });
 
-  it('GET /api/v1/me/storage (personal) → 200 mit usedBytes und attachmentCount', async () => {
+  it('GET /api/v1/me/storage (personal) -> 200 mit usedBytes und attachmentCount', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -205,12 +205,12 @@ describe('Me routes (GET/PATCH /me, storage, drafts)', () => {
     expect(body.attachmentCount).toBe(0);
   });
 
-  it('GET /api/v1/me/drafts ohne Cookie → 401', async () => {
+  it('GET /api/v1/me/drafts ohne Cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/me/drafts' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/me/drafts mit Session und scope=personal → 200 + draftDocuments', async () => {
+  it('GET /api/v1/me/drafts mit Session und scope=personal -> 200 + draftDocuments', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

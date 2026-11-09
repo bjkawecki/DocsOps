@@ -91,7 +91,7 @@ export function useSetAppShellBreadcrumbActions(actions: ReactNode | null, syncK
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
   // Presence must be in the effect deps: callers often gate on `isWide` without
-  // putting it in syncKey. First paint can be compact (`useMediaQuery` → false),
+  // putting it in syncKey. First paint can be compact (`useMediaQuery` -> false),
   // then wide – without `hasActions` the slot stays stuck at null.
   const hasActions = actions != null;
 

@@ -10,7 +10,7 @@ Wenn der Nutzer Copy, Marketing- oder UI-Texte erklärt, kritisiert oder Beispie
 ## Regeln
 
 1. **Nicht wörtlich übernehmen**, es sei denn der Nutzer sagt ausdrücklich, dass eine Formulierung so stehen soll (z. B. „nimm diesen Satz“, „Formulierung beibehalten“, „so übernehmen“).
-2. **Absicht umsetzen, Wortlaut neu schreiben** – nach den geltenden Prosa- und Produktregeln (z. B. deutsche Marketing-Prosa, kein Em-Dash, Sprache der UI).
+2. **Absicht umsetzen, Wortlaut neu schreiben** – nach den geltenden Prosa- und Produktregeln (z. B. deutsche Marketing-Prosa, [forbidden-typography](forbidden-typography.mdc), Sprache der UI).
 3. **Beispiele sind Illustration**, keine Vorlage. „z. B. …“ oder erläuternde Sätze aus dem Chat gehören nicht ungefiltert in Produktcopy.
 4. **Keine Meta-Kommentare** aus der Erklärung in die Copy ziehen (z. B. „Das ist ein normaler Vorgang“, „Entscheidend ist …“), wenn sie nur die Absicht markieren.
 

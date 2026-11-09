@@ -70,7 +70,7 @@ const ROLE_TITLE_KEYS: Record<OrgRoleKey, string> = {
 };
 
 /**
- * Admin Platform → Roles: singular/plural display labels (instance language).
+ * Admin Platform -> Roles: singular/plural display labels (instance language).
  */
 export function AdminRolesTab() {
   const { t } = useTranslation('admin');

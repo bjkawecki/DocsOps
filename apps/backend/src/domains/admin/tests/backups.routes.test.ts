@@ -57,12 +57,12 @@ describe('Admin backup routes', () => {
     return getCookieHeader(res);
   }
 
-  it('GET /admin/backups/status without cookie → 401', async () => {
+  it('GET /admin/backups/status without cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/backups/status' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /admin/backups/status as admin → 200', async () => {
+  it('GET /admin/backups/status as admin -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -80,7 +80,7 @@ describe('Admin backup routes', () => {
     expect(typeof body.autoBackupConfigured).toBe('boolean');
   });
 
-  it('PATCH /admin/backups/schedule enable without default destination → 400', async () => {
+  it('PATCH /admin/backups/schedule enable without default destination -> 400', async () => {
     const prevKey = process.env.BACKUP_ENCRYPTION_KEY;
     process.env.BACKUP_ENCRYPTION_KEY = Buffer.alloc(32, 9).toString('base64');
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
@@ -103,7 +103,7 @@ describe('Admin backup routes', () => {
     }
   });
 
-  it('PATCH /admin/jobs/schedules/maintenance.backup enable → 403', async () => {
+  it('PATCH /admin/jobs/schedules/maintenance.backup enable -> 403', async () => {
     await removeAdminJobSchedule('maintenance.backup').catch(() => undefined);
     await prisma.backupSettings.upsert({
       where: { id: 'default' },
@@ -120,7 +120,7 @@ describe('Admin backup routes', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /admin/backups without MinIO → 400 when unavailable', async () => {
+  it('POST /admin/backups without MinIO -> 400 when unavailable', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const statusRes = await app.inject({
       method: 'GET',
@@ -163,7 +163,7 @@ describe('Admin backup routes', () => {
     expect(persisted?.remotePath).toBe('offsite/archive.tar.zst');
   });
 
-  it('DELETE /admin/backups/:id/local without local copy → 400', async () => {
+  it('DELETE /admin/backups/:id/local without local copy -> 400', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'succeeded',
@@ -220,7 +220,7 @@ describe('Admin backup routes', () => {
     expect(persisted).toBeNull();
   });
 
-  it('DELETE /admin/backups/:id for actively locked running run → 400', async () => {
+  it('DELETE /admin/backups/:id for actively locked running run -> 400', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'running',
@@ -287,7 +287,7 @@ describe('Admin backup routes', () => {
     expect(persisted).toBeNull();
   });
 
-  it('GET /admin/backups/:id/download without local copy → 404', async () => {
+  it('GET /admin/backups/:id/download without local copy -> 404', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'succeeded',
@@ -305,7 +305,7 @@ describe('Admin backup routes', () => {
     expect(res.statusCode).toBe(404);
   });
 
-  it('POST /admin/backup-destinations WEBDAV → 201', async () => {
+  it('POST /admin/backup-destinations WEBDAV -> 201', async () => {
     const prevKey = process.env.BACKUP_ENCRYPTION_KEY;
     process.env.BACKUP_ENCRYPTION_KEY = Buffer.alloc(32, 11).toString('base64');
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
@@ -342,7 +342,7 @@ describe('Admin backup routes', () => {
     }
   });
 
-  it('POST /admin/backup-destinations WEBDAV with http URL → 400', async () => {
+  it('POST /admin/backup-destinations WEBDAV with http URL -> 400', async () => {
     const prevKey = process.env.BACKUP_ENCRYPTION_KEY;
     process.env.BACKUP_ENCRYPTION_KEY = Buffer.alloc(32, 12).toString('base64');
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);

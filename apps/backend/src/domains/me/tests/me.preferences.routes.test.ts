@@ -39,7 +39,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     await app.close();
   });
 
-  it('GET /api/v1/me/preferences mit Session → 200 + preferences', async () => {
+  it('GET /api/v1/me/preferences mit Session -> 200 + preferences', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -57,7 +57,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(body).toBeDefined();
   });
 
-  it('PATCH /api/v1/me/preferences → theme, sidebarPinned und sidebarCollapsed gespeichert', async () => {
+  it('PATCH /api/v1/me/preferences -> theme, sidebarPinned und sidebarCollapsed gespeichert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -91,7 +91,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.sidebarCollapsed).toBe(true);
   });
 
-  it('PATCH /api/v1/me/preferences → primaryColor gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> primaryColor gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -126,7 +126,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.primaryColor).toBe('green');
   });
 
-  it('PATCH /api/v1/me/preferences → textSize gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> textSize gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -161,7 +161,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.textSize).toBe('larger');
   });
 
-  it('PATCH /api/v1/me/preferences → documentReadingFont gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> documentReadingFont gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -196,7 +196,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.documentReadingFont).toBe('serif');
   });
 
-  it('PATCH /api/v1/me/preferences → scopeRecentPanelOpen gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> scopeRecentPanelOpen gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -241,7 +241,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.scopeRecentPanelOpen).toBe(true);
   });
 
-  it('PATCH /api/v1/me/preferences → recentItemsByScope gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> recentItemsByScope gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -286,7 +286,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     expect(prefs?.recentItemsByScope?.[scopeKey]).toHaveLength(2);
   });
 
-  it('PATCH /api/v1/me/preferences → recentItemsByScope dedupliziert type+id', async () => {
+  it('PATCH /api/v1/me/preferences -> recentItemsByScope dedupliziert type+id', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -427,7 +427,7 @@ describe('Me preferences routes (GET/PATCH /me/preferences)', () => {
     }
   });
 
-  it('PATCH /api/v1/me/preferences → lastSeenReleaseVersion gespeichert und per GET geliefert', async () => {
+  it('PATCH /api/v1/me/preferences -> lastSeenReleaseVersion gespeichert und per GET geliefert', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',

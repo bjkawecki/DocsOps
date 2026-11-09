@@ -62,12 +62,12 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     await app.close();
   });
 
-  it('GET /api/v1/companies ohne Auth → 401', async () => {
+  it('GET /api/v1/companies ohne Auth -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/companies' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('POST /api/v1/companies ohne Auth → 401', async () => {
+  it('POST /api/v1/companies ohne Auth -> 401', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/companies',
@@ -76,7 +76,7 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('POST /api/v1/companies als Nicht-Admin → 403', async () => {
+  it('POST /api/v1/companies als Nicht-Admin -> 403', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -92,8 +92,8 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /api/v1/companies als Admin → 201 oder 409 (nur eine Firma erlaubt)', async () => {
-    // Other test files (e.g. admin.test) may set isAdmin false globally → 403 bei parallelen Runs möglich
+  it('POST /api/v1/companies als Admin -> 201 oder 409 (nur eine Firma erlaubt)', async () => {
+    // Other test files (e.g. admin.test) may set isAdmin false globally -> 403 bei parallelen Runs möglich
     await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     const loginRes = await app.inject({
       method: 'POST',
@@ -135,7 +135,7 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     }
   });
 
-  it('GET /api/v1/companies mit Auth → 200 + paginierte Liste (genau eine Firma)', async () => {
+  it('GET /api/v1/companies mit Auth -> 200 + paginierte Liste (genau eine Firma)', async () => {
     await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     const loginRes = await app.inject({
       method: 'POST',
@@ -165,7 +165,7 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     expect(body.items.some((c) => c.id === currentCompany!.id)).toBe(true);
   });
 
-  it('POST department without leadUserId → 400; with lead → 201 and one lead row', async () => {
+  it('POST department without leadUserId -> 400; with lead -> 201 and one lead row', async () => {
     await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     const loginRes = await app.inject({
       method: 'POST',
@@ -200,7 +200,7 @@ describe('Organisation (Companies, Departments, Teams)', () => {
     await prisma.department.deleteMany({ where: { id: dept.id } });
   });
 
-  it('POST team without leadUserId → 400; with lead → 201 and one lead row', async () => {
+  it('POST team without leadUserId -> 400; with lead -> 201 and one lead row', async () => {
     await prisma.user.update({ where: { id: adminId }, data: { isAdmin: true } });
     const loginRes = await app.inject({
       method: 'POST',

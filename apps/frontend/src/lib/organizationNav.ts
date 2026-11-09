@@ -15,7 +15,7 @@ export function hasOrganizationMembership(me: MeResponse): boolean {
 
 /**
  * Show the Organization block in the sidebar when the user can reach at least one org scope.
- * Admins without a company yet use Admin → Company instead.
+ * Admins without a company yet use Admin -> Company instead.
  */
 export function shouldShowOrganizationNav(
   me: MeResponse | undefined,

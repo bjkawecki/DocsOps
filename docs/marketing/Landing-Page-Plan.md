@@ -46,7 +46,7 @@
 5. **Roles** (`#roles`) – Titel: Rollenbasierte Zusammenarbeit
 6. **Example** (`#example`)
 7. **Philosophie-Teaser** → `/philosophy`
-8. **Feature-Grid** (`#features`) – Alle Features (Org-Hierarchie, Governance, Do11y, Datenkontrolle)
+8. **Feature-Grid** (`#features`) – Alle Features (Org-Hierarchie, Governance, Do11y; **geplant:** Backup/Restore und Export/Import statt einer Kachel „Datenkontrolle“)
 9. **FAQ** (`#faq`)
 10. **Abschluss-CTA** (Demo · Installation)
 11. Footer (Version-Badge → `/changelog`)
@@ -110,7 +110,8 @@ Externe Links: einheitlich mit External-Icon (`LandingExternalLink`).
 
 - [x] Modell-Sections, Beispiel, Philosophie-Teaser, FAQ, Abschluss-CTA
 - [x] `/philosophy`, `/install`, `/changelog`, `/sponsor`
-- [x] **Feature-Grid auf `/`:** Section `#features` nach Philosophie-Teaser; Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
+- [x] **Feature-Grid auf `/` (v1):** Section `#features` nach Philosophie-Teaser; Titel „Alle Features“; Kacheln Org-Hierarchie, Governance, Do11y, Datenkontrolle.
+- [ ] **Feature-Grid Split:** „Datenkontrolle“ → **Backup / Restore** (DR) und **Export / Import** (Migration/Portabilität); DE+EN Copy; Layout für fünf Kacheln.
 - [x] Impressum/Datenschutz (DE + EN) auf `/legal/imprint`, `/legal/privacy`
 - [x] Gegenüberstellung Confluence vs DocsOps auf `/compare`
 - [ ] Demo-Seed-Story (App; Landing-unabhängig)

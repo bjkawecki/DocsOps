@@ -172,6 +172,7 @@ model User {
   platformImportRunsTriggered PlatformImportRun[] @relation("PlatformImportRunTriggeredBy")
   platformImportReceiveSlotsCreated PlatformImportReceiveSlot[] @relation("PlatformImportReceiveSlotCreatedBy")
   platformMigrationAudits     AdminPlatformMigrationAudit[]
+  scopePdfExportRunsTriggered ScopePdfExportRun[] @relation("ScopePdfExportRunTriggeredBy")
 }
 
 /// Session für Cookie-basierte Auth. Session-ID = id im httpOnly-Cookie; Ablauf über expiresAt.
@@ -706,7 +707,7 @@ model SystemSettings {
   updatedAt               DateTime @updatedAt
 }
 
-/// External or secondary storage target for backup archives.
+/// Shared remote storage target (operational backup). CRUD under Admin → Data → Destinations.
 model BackupDestination {
   id                    String                 @id @default(cuid())
   name                  String
@@ -743,6 +744,42 @@ model BackupRun {
   restoreRuns       RestoreRun[]
   updateRuns        UpdateRun[]
 
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum ScopePdfExportRunStatus {
+  queued
+  running
+  succeeded
+  failed
+}
+
+/// Lead-triggered zip of published PDFs for one org owner scope (company | department | team).
+model ScopePdfExportRun {
+  id                String                  @id @default(cuid())
+  status            ScopePdfExportRunStatus @default(queued)
+  triggeredByUserId String
+  triggeredBy       User                    @relation("ScopePdfExportRunTriggeredBy", fields: [triggeredByUserId], references: [id], onDelete: Cascade)
+  /// Context from which the export was started (for audit / UX).
+  contextId         String
+  /// Exactly one owner scope id is set (validated in app).
+  ownerCompanyId    String?
+  ownerDepartmentId String?
+  ownerTeamId       String?
+  pgBossJobId       String?
+  archiveSha256     String?
+  sizeBytes         BigInt?
+  localObjectKey    String?
+  docsOk            Int                     @default(0)
+  docsFailed        Int                     @default(0)
+  docsTotal         Int                     @default(0)
+  errorMessage      String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime                @default(now())
+
+  @@index([triggeredByUserId, createdAt(sort: Desc)])
   @@index([status, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }

@@ -18,7 +18,7 @@ export const MANTINE_DARK = {
 export const DARK_BODY = MANTINE_DARK[9];
 export const DARK_DEFAULT = MANTINE_DARK[8];
 export const DARK_TEXT = '#ffffff';
-/** `--mantine-color-dimmed` → dark-0 in theme-dark.css */
+/** `--mantine-color-dimmed` -> dark-0 in theme-dark.css */
 export const DARK_DIMMED = MANTINE_DARK[0];
 export const DARK_HOVER = '#3a3a3a';
 export const DARK_NAV_ACTIVE = '#3b4045';
@@ -59,7 +59,7 @@ export const DARK_THEME_CONTRAST_PAIRS: readonly DarkContrastPair[] = [
     minRatio: 4.5,
   },
   {
-    /* primary-light / blue-light dark wash → same slate as nav active */
+    /* primary-light / blue-light dark wash -> same slate as nav active */
     name: 'text on primary-light wash',
     foreground: DARK_TEXT,
     background: DARK_NAV_ACTIVE,

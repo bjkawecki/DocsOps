@@ -162,7 +162,7 @@ export async function canReadContext(
 }
 
 /**
- * Liefert die ownerId des Kontexts (Process, Project oder Subcontext → Projekt-Owner).
+ * Liefert die ownerId des Kontexts (Process, Project oder Subcontext -> Projekt-Owner).
  * Für Tag-Scope und Dokument-Tag-Validierung.
  */
 export async function getContextOwnerId(

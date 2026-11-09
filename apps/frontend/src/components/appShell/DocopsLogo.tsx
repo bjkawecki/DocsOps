@@ -18,7 +18,7 @@ interface DocopsLogoProps {
 /**
  * DocsOps logo as inline SVG. Primary (accent) uses theme primary color;
  * secondary (document shapes) uses contrast color for light/dark.
- * Uses resolved scheme so "auto" follows system (dark → light doc color).
+ * Uses resolved scheme so "auto" follows system (dark -> light doc color).
  */
 export function DocopsLogo({ width = 40, height = 40, style, className }: DocopsLogoProps) {
   const resolvedScheme = useResolvedColorScheme();

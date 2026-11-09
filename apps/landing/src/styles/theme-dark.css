@@ -25,6 +25,21 @@
   --mantine-color-dark-light-color: var(--mantine-color-dark-3) !important;
   --mantine-color-dark-outline: var(--mantine-color-dark-4) !important;
   --mantine-color-dark-outline-hover: rgba(66, 66, 66, 0.05) !important;
+  /* Default Mantine blue-light composites to ~#0E2345 on dark surfaces – too muddy. */
+  --mantine-color-blue-light: color-mix(
+    in srgb,
+    var(--mantine-color-blue-5) 28%,
+    transparent
+  ) !important;
+  --mantine-color-blue-light-hover: color-mix(
+    in srgb,
+    var(--mantine-color-blue-5) 38%,
+    transparent
+  ) !important;
+  --mantine-color-blue-light-color: var(--mantine-color-blue-3) !important;
+  --mantine-primary-color-light: var(--mantine-color-blue-light) !important;
+  --mantine-primary-color-light-hover: var(--mantine-color-blue-light-hover) !important;
+  --mantine-primary-color-light-color: var(--mantine-color-blue-light-color) !important;
 
   --landing-page-bg: var(--mantine-color-dark-9);
   --landing-surface-1: var(--mantine-color-dark-8);

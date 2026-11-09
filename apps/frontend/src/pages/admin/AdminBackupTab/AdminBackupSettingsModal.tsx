@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  ActionIcon,
   Button,
   Group,
   Modal,
@@ -11,15 +12,14 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { BackupRun, BackupStatus, Destination } from './adminBackupTypes';
-import type { DestinationFormState } from './adminBackupDestinationForm';
 import { formatBackupScheduleLabel } from './backupScheduleLabel';
-import { AdminBackupDestinationsPanel } from './AdminBackupDestinationsPanel';
 import { AdminBackupRestorePanel } from './AdminBackupRestorePanel';
 
-export type BackupSettingsTab = 'general' | 'destinations' | 'restore';
+export type BackupSettingsTab = 'general' | 'restore';
 
 type Props = {
   opened: boolean;
@@ -32,16 +32,9 @@ type Props = {
   enableBlockReason: string | null;
   scheduleSaving: boolean;
   restoreFromBackupLoading: boolean;
-  savingDestination: boolean;
-  deletingDestination: boolean;
-  togglingDestinationId: string | null;
   onRetentionChange: (value: number) => void;
   onDefaultDestinationChange: (value: string | null) => void;
   onAutoToggle: (enabled: boolean) => void;
-  onSaveDestination: (form: DestinationFormState, destinationId: string | null) => Promise<void>;
-  onDeleteDestination: (destination: Destination) => void;
-  onSetDefaultDestination: (destinationId: string) => void;
-  onToggleDestinationEnabled: (destinationId: string, enabled: boolean) => void;
   onRestoreFromBackup: (backupRunId: string) => void;
   onRestoreUploadComplete: (restoreRunId: string) => void;
 };
@@ -57,16 +50,9 @@ export function AdminBackupSettingsModal({
   enableBlockReason,
   scheduleSaving,
   restoreFromBackupLoading,
-  savingDestination,
-  deletingDestination,
-  togglingDestinationId,
   onRetentionChange,
   onDefaultDestinationChange,
   onAutoToggle,
-  onSaveDestination,
-  onDeleteDestination,
-  onSetDefaultDestination,
-  onToggleDestinationEnabled,
   onRestoreFromBackup,
   onRestoreUploadComplete,
 }: Props) {
@@ -107,7 +93,6 @@ export function AdminBackupSettingsModal({
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value="general">{t('backup.settings.tabGeneral')}</Tabs.Tab>
-            <Tabs.Tab value="destinations">{t('backup.settings.tabDestinations')}</Tabs.Tab>
             <Tabs.Tab value="restore">{t('backup.settings.tabRestore')}</Tabs.Tab>
           </Tabs.List>
 
@@ -124,14 +109,30 @@ export function AdminBackupSettingsModal({
                 }}
               />
 
-              <Select
-                label={t('backup.settings.general.defaultDestinationLabel')}
-                placeholder={t('backup.settings.general.defaultDestinationPlaceholder')}
-                data={destinationOptions}
-                clearable
-                value={status.defaultDestinationId}
-                onChange={onDefaultDestinationChange}
-              />
+              <Group gap={6} wrap="nowrap" align="flex-end">
+                <Select
+                  label={t('backup.settings.general.defaultDestinationLabel')}
+                  placeholder={t('backup.settings.general.defaultDestinationPlaceholder')}
+                  data={destinationOptions}
+                  clearable
+                  value={status.defaultDestinationId}
+                  onChange={onDefaultDestinationChange}
+                  style={{ flex: 1 }}
+                />
+                <Tooltip label={t('backup.overview.manageDestinations')}>
+                  <ActionIcon
+                    component={Link}
+                    to="/admin/data/destinations"
+                    variant="subtle"
+                    color="gray"
+                    size="lg"
+                    mb={2}
+                    aria-label={t('backup.overview.manageDestinations')}
+                  >
+                    <IconSettings size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
 
               <Group justify="space-between" align="flex-end">
                 <Tooltip
@@ -153,20 +154,6 @@ export function AdminBackupSettingsModal({
                 ) : null}
               </Group>
             </Stack>
-          </Tabs.Panel>
-
-          <Tabs.Panel value="destinations" pt="md">
-            <AdminBackupDestinationsPanel
-              destinations={destinations}
-              defaultDestinationId={status.defaultDestinationId}
-              savingDestination={savingDestination}
-              deletingDestination={deletingDestination}
-              togglingDestinationId={togglingDestinationId}
-              onSaveDestination={onSaveDestination}
-              onDeleteDestination={onDeleteDestination}
-              onSetDefault={onSetDefaultDestination}
-              onToggleEnabled={onToggleDestinationEnabled}
-            />
           </Tabs.Panel>
 
           <Tabs.Panel value="restore" pt="md">

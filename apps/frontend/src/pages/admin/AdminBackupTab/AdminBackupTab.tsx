@@ -11,7 +11,6 @@ import { useSetAppShellBreadcrumbActions } from '../../../components/appShell/Ap
 import { type PageMobileAction } from '../../../components/ui/PageMobileActionBar.js';
 import { useRegisterPageMobileExtraActions } from '../../../components/ui/pageMobileNav.js';
 import { meQueryKey } from '../../../hooks/useMe';
-import type { DestinationFormState } from './adminBackupDestinationForm';
 import { AdminBackupEnableAutoModal } from './AdminBackupEnableAutoModal';
 import { AdminBackupHistorySection } from './AdminBackupHistorySection';
 import { AdminBackupOverviewBar } from './AdminBackupOverviewBar';
@@ -247,15 +246,8 @@ export function AdminBackupTab() {
     }
   }, [runsQuery.data?.items, t]);
 
-  const {
-    patchSettings,
-    saveDestination,
-    deleteDestinationMutation,
-    patchDestinationEnabled,
-    patchSchedule,
-    deleteBackup,
-    deleteFailedBackup,
-  } = useAdminBackupSettingsMutations({ t, invalidateBackup });
+  const { patchSettings, patchSchedule, deleteBackup, deleteFailedBackup } =
+    useAdminBackupSettingsMutations({ t, invalidateBackup });
 
   const createBackup = useMutation({
     mutationFn: async (destinationId?: string) => {
@@ -508,7 +500,9 @@ export function AdminBackupTab() {
         onDeleteRun={async (id) => {
           await deleteFailedBackup.mutateAsync(id);
         }}
-        onOpenDestinationSettings={() => openBackupSettings('destinations')}
+        onOpenDestinationSettings={() => {
+          void navigate('/admin/data/destinations');
+        }}
       />
 
       <AdminBackupSettingsModal
@@ -522,11 +516,6 @@ export function AdminBackupTab() {
         enableBlockReason={enableBlockReason}
         scheduleSaving={patchSchedule.isPending}
         restoreFromBackupLoading={triggerRestore.isPending}
-        savingDestination={saveDestination.isPending}
-        deletingDestination={deleteDestinationMutation.isPending}
-        togglingDestinationId={
-          patchDestinationEnabled.isPending ? (patchDestinationEnabled.variables?.id ?? null) : null
-        }
         onRetentionChange={(retentionCount) => patchSettings.mutate({ retentionCount })}
         onDefaultDestinationChange={(defaultDestinationId) =>
           patchSettings.mutate({ defaultDestinationId })
@@ -537,25 +526,6 @@ export function AdminBackupTab() {
           } else {
             patchSchedule.mutate({ enabled: false });
           }
-        }}
-        onSaveDestination={async (form: DestinationFormState, destinationId) => {
-          await saveDestination.mutateAsync({ form, destinationId });
-        }}
-        onDeleteDestination={(d) => deleteDestinationMutation.mutate(d.id)}
-        onSetDefaultDestination={(destinationId) =>
-          patchSettings.mutate({ defaultDestinationId: destinationId })
-        }
-        onToggleDestinationEnabled={(destinationId, enabled) => {
-          patchDestinationEnabled.mutate(
-            { id: destinationId, enabled },
-            {
-              onSuccess: () => {
-                if (!enabled && status.defaultDestinationId === destinationId) {
-                  patchSettings.mutate({ defaultDestinationId: null });
-                }
-              },
-            }
-          );
         }}
         onRestoreFromBackup={(backupRunId) => triggerRestore.mutate(backupRunId)}
         onRestoreUploadComplete={handleRestoreUploadComplete}

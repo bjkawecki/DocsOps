@@ -1,24 +1,13 @@
-import {
-  Alert,
-  Anchor,
-  Box,
-  Group,
-  Loader,
-  Pagination,
-  Select,
-  Stack,
-  Table,
-  Text,
-} from '@mantine/core';
+import { Alert, Box, Group, Loader, Pagination, Select, Stack, Table, Text } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { apiFetch } from '../../api/client.js';
 import { formatLocalDateTime } from '../../lib/localDateTime.js';
 import { useMe } from '../../hooks/useMe.js';
 import { EntityListCard } from '../ui/EntityListCard.js';
+import { NotificationActionAnchor } from './NotificationActionLink.js';
 import { NotificationDetailModal } from './NotificationDetailModal.js';
 import { meNotificationsListQueryKey } from './meNotificationQueryParams.js';
 import { eventTypeToCategory, NotificationCategoryIcon } from './notificationCategoryUi.js';
@@ -33,7 +22,7 @@ import {
 import {
   documentDisplayTitle,
   eventHeadline,
-  notificationDocumentHref,
+  notificationActionTarget,
   secondaryDetail,
 } from './notificationsInboxFormatters.js';
 import { useWideLayout } from '../appShell/useWideLayout.js';
@@ -208,7 +197,7 @@ export function NotificationsInboxPanel({
                     </Table.Tr>
                   ) : (
                     notificationItems.map((item) => {
-                      const docHref = notificationDocumentHref(item.eventType, item.payload);
+                      const actionTarget = notificationActionTarget(item.eventType, item.payload);
                       const detail = secondaryDetail(t, item.eventType, item.payload);
                       const unread = item.readAt == null;
                       const itemCategory = eventTypeToCategory(item.eventType);
@@ -238,19 +227,10 @@ export function NotificationsInboxPanel({
                           </Table.Td>
                           <Table.Td>
                             <Stack gap={4}>
-                              {docHref != null ? (
-                                <Anchor
-                                  component={Link}
-                                  to={docHref}
-                                  c="inherit"
-                                  underline="hover"
-                                  fw={600}
-                                  size="sm"
-                                  lineClamp={2}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                              {actionTarget != null ? (
+                                <NotificationActionAnchor target={actionTarget} stopPropagation>
                                   {documentDisplayTitle(t, item)}
-                                </Anchor>
+                                </NotificationActionAnchor>
                               ) : (
                                 <Text fw={600} size="sm" lineClamp={2}>
                                   {documentDisplayTitle(t, item)}

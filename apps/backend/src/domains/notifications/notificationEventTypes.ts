@@ -35,6 +35,12 @@ export const OPERATIONS_NOTIFICATION_EVENT_TYPES = [
   'update-available',
 ] as const;
 
+/** Lead-triggered scope PDF zip export outcomes. */
+export const SCOPE_PDF_EXPORT_NOTIFICATION_EVENT_TYPES = [
+  'scope-pdf-export-succeeded',
+  'scope-pdf-export-failed',
+] as const;
+
 /** @deprecated use OPERATIONS_NOTIFICATION_EVENT_TYPES */
 export const BACKUP_SYSTEM_NOTIFICATION_EVENT_TYPES = OPERATIONS_NOTIFICATION_EVENT_TYPES;
 
@@ -134,6 +140,7 @@ export function resolveNotificationPreferenceCategory(
   if (eventType.startsWith('backup-')) return 'operations';
   if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-'))
     return 'operations';
+  if (eventType.startsWith('scope-pdf-export-')) return 'documentChanges';
   if (ORG_EVENT_TYPE_SET.has(eventType)) return 'orgChanges';
   if (eventType.includes('draft-request')) return 'draftRequests';
   if (eventType.startsWith('document-move-')) return 'draftRequests';

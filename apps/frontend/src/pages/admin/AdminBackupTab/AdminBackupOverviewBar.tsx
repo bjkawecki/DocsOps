@@ -1,4 +1,14 @@
-import { Badge, Group, NumberInput, Select, Switch, Text, Tooltip } from '@mantine/core';
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  NumberInput,
+  Select,
+  Switch,
+  Text,
+  Tooltip,
+} from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import type { BackupStatus, Destination } from './adminBackupTypes';
@@ -65,31 +75,49 @@ export function AdminBackupOverviewBar({
         </Tooltip>
       ) : null}
 
-      <Tooltip label={t('backup.overview.retentionTooltip')}>
-        <NumberInput
-          size="xs"
-          aria-label={t('backup.overview.retentionLabel')}
-          placeholder={t('backup.overview.retentionLabel')}
-          min={1}
-          max={365}
-          value={status.retentionCount}
-          onChange={(v) => {
-            if (typeof v === 'number') onRetentionChange(v);
-          }}
-          style={{ width: 88 }}
-        />
-      </Tooltip>
+      <Group gap={6} wrap="nowrap" align="center">
+        <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+          {t('backup.overview.retentionLabel')}
+        </Text>
+        <Tooltip label={t('backup.overview.retentionTooltip')}>
+          <NumberInput
+            size="xs"
+            aria-label={t('backup.overview.retentionLabel')}
+            min={1}
+            max={365}
+            value={status.retentionCount}
+            onChange={(v) => {
+              if (typeof v === 'number') onRetentionChange(v);
+            }}
+            style={{ width: 88 }}
+          />
+        </Tooltip>
+      </Group>
 
-      <Select
-        size="xs"
-        placeholder={t('backup.overview.defaultDestinationLabel')}
-        aria-label={t('backup.overview.defaultDestinationLabel')}
-        data={destinationOptions}
-        clearable
-        value={status.defaultDestinationId}
-        onChange={onDefaultDestinationChange}
-        style={{ width: 180 }}
-      />
+      <Group gap={4} wrap="nowrap" align="center">
+        <Select
+          size="xs"
+          placeholder={t('backup.overview.defaultDestinationLabel')}
+          aria-label={t('backup.overview.defaultDestinationLabel')}
+          data={destinationOptions}
+          clearable
+          value={status.defaultDestinationId}
+          onChange={onDefaultDestinationChange}
+          style={{ width: 180 }}
+        />
+        <Tooltip label={t('backup.overview.manageDestinations')}>
+          <ActionIcon
+            component={Link}
+            to="/admin/data/destinations"
+            variant="subtle"
+            color="gray"
+            size="sm"
+            aria-label={t('backup.overview.manageDestinations')}
+          >
+            <IconSettings size={16} />
+          </ActionIcon>
+        </Tooltip>
+      </Group>
 
       <Tooltip
         label={enableBlockReason ?? ''}

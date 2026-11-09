@@ -10,8 +10,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 function resolveSeedDataDir(): string {
   const candidates = [
-    resolve(__dirname, '../../../prisma/seed-data'), // dist/src/seed → package root
-    resolve(__dirname, '../../prisma/seed-data'), // src/seed → package root
+    resolve(__dirname, '../../../prisma/seed-data'), // dist/src/seed -> package root
+    resolve(__dirname, '../../prisma/seed-data'), // src/seed -> package root
     resolve(process.cwd(), 'prisma/seed-data'),
   ];
   for (const dir of candidates) {

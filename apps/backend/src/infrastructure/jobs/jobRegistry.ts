@@ -19,6 +19,7 @@ import {
   runOrgHealthCheckAutoScan,
 } from '../../domains/documents/services/healthCheck/healthCheckAutoScanService.js';
 import { exportDocumentToPdf } from './documentPdfExportJob.js';
+import { runScopePdfExport } from '../../domains/organisation/services/scopePdfExport/scopePdfExportJobService.js';
 
 export type JobLogger = {
   info: (obj: unknown, msg?: string) => void;
@@ -288,5 +289,12 @@ export const jobDefinitions: ReadonlyArray<JobDefinition> = [
     retryLimit: 2,
     handler: (payload, context) =>
       docsHealthCheckAutoScan(payload as JobPayloadByType['docs.health-check.auto-scan'], context),
+  },
+  {
+    name: 'documents.scope-pdf-export',
+    schema: jobPayloadSchemas['documents.scope-pdf-export'],
+    retryLimit: 0,
+    handler: (payload, context) =>
+      runScopePdfExport(payload as JobPayloadByType['documents.scope-pdf-export'], context),
   },
 ];

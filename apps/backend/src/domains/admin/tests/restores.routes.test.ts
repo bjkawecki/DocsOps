@@ -57,12 +57,12 @@ describe('Admin restore routes', () => {
     return getCookieHeader(res);
   }
 
-  it('GET /admin/restores without cookie → 401', async () => {
+  it('GET /admin/restores without cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/restores' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /admin/restores as admin → 200', async () => {
+  it('GET /admin/restores as admin -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -75,7 +75,7 @@ describe('Admin restore routes', () => {
     expect(typeof body.total).toBe('number');
   });
 
-  it('POST /admin/restores/from-backup without local copy → 400', async () => {
+  it('POST /admin/restores/from-backup without local copy -> 400', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'succeeded',
@@ -93,7 +93,7 @@ describe('Admin restore routes', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('POST /admin/restores/from-backup with local copy → 202', async () => {
+  it('POST /admin/restores/from-backup with local copy -> 202', async () => {
     const run = await prisma.backupRun.create({
       data: {
         status: 'succeeded',

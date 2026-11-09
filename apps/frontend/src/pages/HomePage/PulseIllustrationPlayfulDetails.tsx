@@ -25,13 +25,13 @@ type TrailDot = { id: number; planeId: string; x: number; y: number; born: numbe
  * Coords ≈ px inside the illustration wrap.
  */
 const PLANE_PATHS = [
-  /* left → right, gentle wave */
+  /* left -> right, gentle wave */
   'M -40,200 C 200,175 420,220 640,190 C 860,160 1080,200 1300,175 C 1480,155 1620,180 1750,170',
-  /* right → left */
+  /* right -> left */
   'M 1750,230 C 1550,210 1320,250 1100,220 C 880,190 660,240 440,210 C 260,190 80,220 -40,200',
-  /* left → right then turn back left */
+  /* left -> right then turn back left */
   'M -40,170 C 180,150 400,190 620,160 C 820,135 980,150 1080,180 C 1180,210 1120,250 920,255 C 700,260 420,240 180,220 C 60,210 -20,200 -40,195',
-  /* right → left then swing right again */
+  /* right -> left then swing right again */
   'M 1750,190 C 1500,170 1280,210 1050,185 C 860,165 740,155 620,175 C 480,200 520,245 720,250 C 960,255 1280,230 1580,210 C 1680,200 1740,195 1750,192',
   /* diagonal-ish LTR with height change */
   'M -40,280 C 220,240 480,160 760,150 C 1000,142 1240,180 1500,220 C 1620,240 1700,250 1750,255',

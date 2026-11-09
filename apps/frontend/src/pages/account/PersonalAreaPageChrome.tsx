@@ -18,7 +18,7 @@ import { useScopeSidebarNav } from '../contextWorkspace/useScopeSidebarNav.js';
 const PERSONAL_SCOPE = { type: 'personal' as const };
 
 export type PersonalAreaPageChromeProps = {
-  /** Crumbs after Persönlich (e.g. Offene Vorgänge → Prüfungen). */
+  /** Crumbs after Persönlich (e.g. Offene Vorgänge -> Prüfungen). */
   trailSuffix?: AppShellBreadcrumbItem[] | null;
   reviewsNested?: ReactNode;
   reviewsCount?: number;

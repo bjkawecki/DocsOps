@@ -15,6 +15,11 @@ import { apiFetch } from '../../api/client';
 import { submitNewContextDocumentDraft } from '../contextScope/submitNewContextDocumentDraft';
 import { contextUrl } from './contextPaths.js';
 import { entityEndpointBase, type ContextResponse } from './contextWorkspaceTypes.js';
+import {
+  showScopePdfExportQueuedNotification,
+  updateScopePdfExportStatusNotification,
+  type ScopePdfExportStatusResponse,
+} from './scopePdfExportNotification.js';
 
 type UseContextWorkspaceActionsArgs = {
   contextId: string | undefined;
@@ -64,6 +69,41 @@ export function useContextWorkspaceActions({
       message: t('toasts.nameUpdatedMessage'),
       color: 'green',
     });
+  };
+
+  const pollScopePdfExport = async (runId: string, ctxId: string) => {
+    const maxAttempts = 120;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      await new Promise((r) => setTimeout(r, attempt === 0 ? 800 : 2500));
+      const res = await apiFetch(`/api/v1/scope-pdf-exports/${runId}`);
+      if (!res.ok) continue;
+      const status = (await res.json()) as ScopePdfExportStatusResponse;
+      updateScopePdfExportStatusNotification(ctxId, status);
+      if (status.status === 'succeeded' || status.status === 'failed') return;
+    }
+    updateScopePdfExportStatusNotification(ctxId, {
+      id: runId,
+      status: 'failed',
+      downloadUrl: null,
+      errorMessage: t('pdfExport.timeoutMessage'),
+      scopeKind: null,
+      docsOk: 0,
+      docsFailed: 0,
+      docsTotal: 0,
+    });
+  };
+
+  const handleExportPdfs = async () => {
+    if (!contextId || !data) return;
+    if (data.owner?.ownerUserId) return;
+    const res = await apiFetch(`/api/v1/contexts/${contextId}/pdf-export`, { method: 'POST' });
+    if (!res.ok) {
+      await notifyApiErrorResponse(res, { title: t('pdfExport.startFailed') });
+      return;
+    }
+    const body = (await res.json()) as { runId: string };
+    showScopePdfExportQueuedNotification(contextId);
+    void pollScopePdfExport(body.runId, contextId);
   };
 
   const handleArchive = async () => {
@@ -190,6 +230,7 @@ export function useContextWorkspaceActions({
     deleteLoading,
     handleDeleteConfirm,
     handleArchive,
+    handleExportPdfs,
     newDocOpened,
     openNewDoc,
     closeNewDoc,

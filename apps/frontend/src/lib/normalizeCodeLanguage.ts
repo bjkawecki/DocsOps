@@ -40,7 +40,7 @@ const ALLOWED = new Set([
 
 /**
  * Map stored/TipTap language to a highlight.js language id.
- * Empty or unknown → `plaintext`.
+ * Empty or unknown -> `plaintext`.
  */
 export function normalizeCodeLanguage(lang: string | undefined | null): string {
   const raw = typeof lang === 'string' ? lang.trim().toLowerCase() : '';

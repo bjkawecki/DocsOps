@@ -3,7 +3,7 @@ import { ScopeWorkspaceEntry } from '../contextWorkspace/ScopeWorkspaceEntry.js'
 
 const PERSONAL_SCOPE = { type: 'personal' as const };
 
-/** Personal scope landing → default context workspace or empty create state. */
+/** Personal scope landing -> default context workspace or empty create state. */
 export function PersonalPage() {
   const { t } = useTranslation('contexts');
   return (

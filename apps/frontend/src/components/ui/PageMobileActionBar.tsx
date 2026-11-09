@@ -11,7 +11,7 @@ export type PageMobileAction = {
   /** Simple click action. Ignored when `menu` is set. */
   onClick?: () => void;
   /**
-   * Semantic FAB tone (preferred). Same role → same color app-wide.
+   * Semantic FAB tone (preferred). Same role -> same color app-wide.
    * See `pageMobileFabTokens.ts`.
    */
   tone?: PageMobileFabTone;

@@ -106,11 +106,23 @@ async function uploadViaWebDav(
   return putUrl;
 }
 
-export async function uploadBackupArchiveToDestination(
+export type ArchiveUploadOptions = {
+  /** S3 Content-Type; default application/zstd (operational backup). */
+  contentType?: string;
+};
+
+/**
+ * Push a local archive file to a shared remote destination (Backup + PDF corpus).
+ * `BackupDestination` rows are the shared target catalog; CRUD stays under Admin -> Backup.
+ */
+export async function uploadArchiveToDestination(
   destination: BackupDestination,
   localArchivePath: string,
-  remoteFileName: string
+  remoteFileName: string,
+  options: ArchiveUploadOptions = {}
 ): Promise<string> {
+  const contentType = options.contentType ?? 'application/zstd';
+
   if (destination.type === 'S3_COMPATIBLE') {
     const { config, credentials } = parseDestination(destination) as {
       config: S3DestinationConfig;
@@ -128,7 +140,7 @@ export async function uploadBackupArchiveToDestination(
     const client = createS3Client(s3Config);
     const base = config.basePath?.replace(/^\/+|\/+$/g, '') ?? '';
     const key = base ? `${base}/${remoteFileName}` : remoteFileName;
-    await uploadFilePath(client, s3Config.bucket, key, localArchivePath, 'application/zstd');
+    await uploadFilePath(client, s3Config.bucket, key, localArchivePath, contentType);
     return key;
   }
 
@@ -168,4 +180,13 @@ export async function uploadBackupArchiveToDestination(
   }
 
   throw new Error('Unsupported backup destination type');
+}
+
+/** @deprecated Prefer {@link uploadArchiveToDestination} (shared Backup + corpus). */
+export async function uploadBackupArchiveToDestination(
+  destination: BackupDestination,
+  localArchivePath: string,
+  remoteFileName: string
+): Promise<string> {
+  return uploadArchiveToDestination(destination, localArchivePath, remoteFileName);
 }

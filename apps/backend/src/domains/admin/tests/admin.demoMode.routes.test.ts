@@ -57,7 +57,7 @@ describe('Admin mutations blocked in DEMO_MODE', () => {
     expect(res.statusCode).toBe(200);
   });
 
-  it('POST /admin/users → 403', async () => {
+  it('POST /admin/users -> 403', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/users',
@@ -71,7 +71,7 @@ describe('Admin mutations blocked in DEMO_MODE', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /admin/updates/apply → 403', async () => {
+  it('POST /admin/updates/apply -> 403', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/updates/apply',
@@ -80,7 +80,7 @@ describe('Admin mutations blocked in DEMO_MODE', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /admin/notifications/broadcast → 403', async () => {
+  it('POST /admin/notifications/broadcast -> 403', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/notifications/broadcast',
@@ -90,7 +90,7 @@ describe('Admin mutations blocked in DEMO_MODE', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /admin/platform-exports → 403', async () => {
+  it('POST /admin/platform-exports -> 403', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/platform-exports',
@@ -99,7 +99,7 @@ describe('Admin mutations blocked in DEMO_MODE', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('POST /admin/backups → 403', async () => {
+  it('POST /admin/backups -> 403', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/admin/backups',

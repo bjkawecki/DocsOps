@@ -17,6 +17,38 @@ function payloadDraftRequestId(payload: Record<string, unknown>): string | null 
   return typeof payload.draftRequestId === 'string' ? payload.draftRequestId : null;
 }
 
+/** Company / Departments / Teams (+ unit name for dept/team). */
+export function scopePdfExportScopeLabel(t: TFunction, payload: Record<string, unknown>): string {
+  const kind = typeof payload.scopeKind === 'string' ? payload.scopeKind : null;
+  const name =
+    typeof payload.scopeName === 'string' && payload.scopeName.trim() !== ''
+      ? payload.scopeName.trim()
+      : null;
+  if (kind === 'company') return t('notifications:display.scopePdfExportKind.company');
+  if (kind === 'department') {
+    return name != null
+      ? t('notifications:display.scopePdfExportKind.departmentNamed', { name })
+      : t('notifications:display.scopePdfExportKind.departments');
+  }
+  if (kind === 'team') {
+    return name != null
+      ? t('notifications:display.scopePdfExportKind.teamNamed', { name })
+      : t('notifications:display.scopePdfExportKind.teams');
+  }
+  return t('notifications:display.scopePdfExport');
+}
+
+/** Bold inbox title: always include scope when payload has it. */
+export function scopePdfExportDisplayTitle(t: TFunction, payload: Record<string, unknown>): string {
+  const kind = typeof payload.scopeKind === 'string' ? payload.scopeKind : null;
+  if (kind !== 'company' && kind !== 'department' && kind !== 'team') {
+    return t('notifications:display.scopePdfExport');
+  }
+  return t('notifications:display.scopePdfExportWithScope', {
+    scope: scopePdfExportScopeLabel(t, payload),
+  });
+}
+
 function orgScopeLabel(payload: Record<string, unknown>): string | null {
   const scopeName = typeof payload.scopeName === 'string' ? payload.scopeName : null;
   const scopeType = typeof payload.scopeType === 'string' ? payload.scopeType : null;
@@ -132,6 +164,29 @@ export function notificationBodyText(
         : t('notifications:body.unknownError');
     return truncate(msg, 160);
   }
+  if (eventType === 'scope-pdf-export-succeeded') {
+    const size =
+      typeof payload.sizeBytes === 'number' ? ` (${Math.round(payload.sizeBytes / 1024)} KB)` : '';
+    const docsOk = typeof payload.docsOk === 'number' ? payload.docsOk : null;
+    const docsTotal = typeof payload.docsTotal === 'number' ? payload.docsTotal : null;
+    const docsSuffix =
+      docsOk != null && docsTotal != null
+        ? t('notifications:body.scopePdfExportDocsSuffix', { docsOk, docsTotal })
+        : '';
+    const scope = scopePdfExportScopeLabel(t, payload);
+    return t('notifications:body.scopePdfExportSucceeded', { size, docsSuffix, scope });
+  }
+  if (eventType === 'scope-pdf-export-failed') {
+    const raw = typeof payload.errorMessage === 'string' ? payload.errorMessage : null;
+    const msg =
+      raw === 'SCOPE_PDF_EXPORT_ZIP_NOT_FOUND' ||
+      (raw != null && /spawn zip ENOENT|zip.*ENOENT|ENOENT.*zip/i.test(raw))
+        ? t('notifications:body.scopePdfExportZipNotFound')
+        : raw?.startsWith('SCOPE_PDF_EXPORT_ZIP_FAILED')
+          ? t('notifications:body.scopePdfExportZipFailed')
+          : (raw ?? t('notifications:body.unknownError'));
+    return truncate(msg, 160);
+  }
   if (eventType === 'update-available') {
     const latest =
       typeof payload.latestVersion === 'string'
@@ -237,6 +292,12 @@ export function documentDisplayTitle(t: TFunction, item: NotificationItem): stri
     const title = typeof item.payload.title === 'string' ? item.payload.title : null;
     return title != null && title.trim() !== '' ? title : t('notifications:display.systemMessage');
   }
+  if (
+    item.eventType === 'scope-pdf-export-succeeded' ||
+    item.eventType === 'scope-pdf-export-failed'
+  ) {
+    return scopePdfExportDisplayTitle(t, item.payload);
+  }
   const orgLabel = orgScopeLabel(item.payload);
   if (orgLabel != null && item.eventType.startsWith('team-')) return orgLabel;
   if (orgLabel != null && item.eventType.startsWith('department-')) return orgLabel;
@@ -265,27 +326,44 @@ export function documentDisplayTitle(t: TFunction, item: NotificationItem): stri
   return t('notifications:display.untitledDocument');
 }
 
-export function notificationDocumentHref(
+/** SPA navigation vs cookie-authenticated file download (API path). */
+export type NotificationActionTarget =
+  { kind: 'route'; path: string } | { kind: 'download'; path: string };
+
+export function notificationActionTarget(
   eventType: string,
   payload: Record<string, unknown>
-): string | null {
+): NotificationActionTarget | null {
+  if (eventType === 'scope-pdf-export-succeeded') {
+    const path = typeof payload.downloadPath === 'string' ? payload.downloadPath.trim() : '';
+    return path.startsWith('/') ? { kind: 'download', path } : null;
+  }
   if (eventType.startsWith('platform-export-') || eventType.startsWith('platform-import-')) {
-    return '/admin/data/migration';
+    return { kind: 'route', path: '/admin/data/migration' };
   }
   if (eventType === 'update-available') {
-    return '/admin/platform/system';
+    return { kind: 'route', path: '/admin/platform/system' };
   }
   if (eventType === 'update-succeeded' || eventType === 'update-failed') {
-    return '/admin/platform/system';
+    return { kind: 'route', path: '/admin/platform/system' };
   }
   if (eventType === 'health-check-action-needed') {
-    return '/freshness';
+    return { kind: 'route', path: '/freshness' };
   }
   const docId = payloadDocumentId(payload);
   if (docId == null) return null;
   const commentId = payloadCommentId(payload);
   if (commentId != null && eventType === 'document-comment-created') {
-    return `/documents/${docId}#comment-${commentId}`;
+    return { kind: 'route', path: `/documents/${docId}#comment-${commentId}` };
   }
-  return `/documents/${docId}`;
+  return { kind: 'route', path: `/documents/${docId}` };
+}
+
+/** @deprecated Prefer notificationActionTarget for download-aware links. */
+export function notificationDocumentHref(
+  eventType: string,
+  payload: Record<string, unknown>
+): string | null {
+  const target = notificationActionTarget(eventType, payload);
+  return target?.path ?? null;
 }

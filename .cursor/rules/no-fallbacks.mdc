@@ -9,7 +9,7 @@ Fallbacks (Alternative Code-Pfade, wenn die primäre Quelle fehlt oder fehlschl�
 
 ## Regeln
 
-1. **Primärquelle explizit:** Eine dokumentierte SSoT oder Pflicht-Konfiguration; fehlt sie → **klarer Fehler** (Throw, Startup-Abbruch, 503 mit erklärender Meldung), nicht stiller Ersatzwert.
+1. **Primärquelle explizit:** Eine dokumentierte SSoT oder Pflicht-Konfiguration; fehlt sie -> **klarer Fehler** (Throw, Startup-Abbruch, 503 mit erklärender Meldung), nicht stiller Ersatzwert.
 2. **Kein Fallback ohne Absprache:** Neue Fallback-Ketten (`A ?? B ?? C`, Default-Env, „irgendwie weiterlaufen“) nur nach **expliziter Zustimmung** im Task/Review – in Code-Kommentar oder Plan kurz begründen.
 3. **Ableitung ≠ Fallback:** Werte, die **deterministisch** aus der SSoT beim Build/Start gesetzt werden (z. B. `APP_VERSION` aus Root-`package.json` im Dockerfile), sind kein Laufzeit-Fallback, solange Runtime **nur** den gesetzten Wert liest und bei Fehlen abbricht.
 4. **Dev/Test:** Gleiche Strenge; Umgebung über dokumentierte Skripte (`run-with-app-version`, Vitest-`env`) aus SSoT befüllen – nicht in Produktionscode aus `package.json` nachladen.

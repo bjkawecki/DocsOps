@@ -358,7 +358,7 @@ export function DocumentVersionsPage() {
                   {t('versionsPage.diff')}
                   {fromVersion && toVersion && (
                     <Text component="span" size="sm" c="dimmed" ml="xs">
-                      v{fromVersion.versionNumber} → v{toVersion.versionNumber}
+                      {`v${fromVersion.versionNumber} to v${toVersion.versionNumber}`}
                     </Text>
                   )}
                 </Text>

@@ -60,8 +60,8 @@ export type BuildContextBreadcrumbsArgs = {
 };
 
 /**
- * Process/Project: Scope → ContextName (company scope is icon-only; single-company rule).
- * Subcontext: Scope → ProjectName → SubcontextName
+ * Process/Project: Scope -> ContextName (company scope is icon-only; single-company rule).
+ * Subcontext: Scope -> ProjectName -> SubcontextName
  * Scope crumb links to `scopeToUrl(scope)`. Last crumb has no link.
  */
 export function buildContextBreadcrumbs({

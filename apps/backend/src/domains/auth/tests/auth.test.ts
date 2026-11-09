@@ -32,7 +32,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     await app.close();
   });
 
-  it('POST /api/v1/auth/login – gültige Credentials → 204 + Set-Cookie', async () => {
+  it('POST /api/v1/auth/login – gültige Credentials -> 204 + Set-Cookie', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -44,7 +44,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(String(setCookie)).toContain(SESSION_COOKIE_NAME);
   });
 
-  it('POST /api/v1/auth/login – falsches Passwort → 401', async () => {
+  it('POST /api/v1/auth/login – falsches Passwort -> 401', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -55,7 +55,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(body.error).toBe('Anmeldung fehlgeschlagen');
   });
 
-  it('POST /api/v1/auth/login – unbekannte E-Mail → 401', async () => {
+  it('POST /api/v1/auth/login – unbekannte E-Mail -> 401', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -64,7 +64,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/companies ohne Cookie → 401', async () => {
+  it('GET /api/v1/companies ohne Cookie -> 401', async () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/companies',
@@ -72,7 +72,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /api/v1/companies mit gültiger Session → 200', async () => {
+  it('GET /api/v1/companies mit gültiger Session -> 200', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -99,7 +99,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(body.offset).toBeDefined();
   });
 
-  it('GET /api/v1/auth/me mit gültiger Session → 200 + User', async () => {
+  it('GET /api/v1/auth/me mit gültiger Session -> 200 + User', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -121,7 +121,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(body.name).toBe('Auth Test User');
   });
 
-  it('POST /api/v1/auth/logout mit Cookie → 204, danach Session ungültig', async () => {
+  it('POST /api/v1/auth/logout mit Cookie -> 204, danach Session ungültig', async () => {
     const loginRes = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
@@ -146,7 +146,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     expect(afterRes.statusCode).toBe(401);
   });
 
-  it('POST /api/v1/auth/demo-login without DEMO_MODE → 403', async () => {
+  it('POST /api/v1/auth/demo-login without DEMO_MODE -> 403', async () => {
     const prev = process.env.DEMO_MODE;
     delete process.env.DEMO_MODE;
     try {
@@ -162,7 +162,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     }
   });
 
-  it('POST /api/v1/auth/demo-login invalid role → 400', async () => {
+  it('POST /api/v1/auth/demo-login invalid role -> 400', async () => {
     const prev = process.env.DEMO_MODE;
     process.env.DEMO_MODE = 'true';
     try {
@@ -178,7 +178,7 @@ describe('Auth (Login, Session, geschützte Routen)', () => {
     }
   });
 
-  it('POST /api/v1/auth/demo-login with DEMO_MODE → 204 + cookie', async () => {
+  it('POST /api/v1/auth/demo-login with DEMO_MODE -> 204 + cookie', async () => {
     const prev = process.env.DEMO_MODE;
     const prevAdmin = process.env.ADMIN_EMAIL;
     process.env.DEMO_MODE = 'true';

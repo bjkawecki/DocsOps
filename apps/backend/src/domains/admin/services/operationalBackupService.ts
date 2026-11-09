@@ -17,7 +17,7 @@ import {
 import { buildZstdTarArchive } from '../../../infrastructure/backup/archiveBuilder.js';
 import { exportMinioBucketToDirectory } from '../../../infrastructure/backup/minioExport.js';
 import { runPostgresDump } from '../../../infrastructure/backup/postgresDump.js';
-import { uploadBackupArchiveToDestination } from '../../../infrastructure/backup/destinationUpload.js';
+import { uploadArchiveToDestination } from '../../../infrastructure/backup/destinationUpload.js';
 import {
   applyBackupRetention,
   getEffectiveRetentionCount,
@@ -198,7 +198,7 @@ export async function runOperationalBackup(
         where: { id: backupRunId },
         data: { status: 'uploading' },
       });
-      remotePath = await uploadBackupArchiveToDestination(destination, archivePath, archiveName);
+      remotePath = await uploadArchiveToDestination(destination, archivePath, archiveName);
     }
 
     await prisma.backupRun.update({

@@ -77,12 +77,12 @@ describe('Admin platform migration routes', () => {
     return getCookieHeader(res);
   }
 
-  it('GET /admin/platform-exports without cookie → 401', async () => {
+  it('GET /admin/platform-exports without cookie -> 401', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/v1/admin/platform-exports' });
     expect(res.statusCode).toBe(401);
   });
 
-  it('GET /admin/platform-exports as non-admin → 403', async () => {
+  it('GET /admin/platform-exports as non-admin -> 403', async () => {
     const cookie = await loginAs(USER_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -92,7 +92,7 @@ describe('Admin platform migration routes', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  it('GET /admin/platform-exports as admin → 200', async () => {
+  it('GET /admin/platform-exports as admin -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -104,7 +104,7 @@ describe('Admin platform migration routes', () => {
     expect(Array.isArray(body.items)).toBe(true);
   });
 
-  it('GET /admin/platform-imports as admin → 200', async () => {
+  it('GET /admin/platform-imports as admin -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -116,7 +116,7 @@ describe('Admin platform migration routes', () => {
     expect(Array.isArray(body.items)).toBe(true);
   });
 
-  it('GET /admin/platform-migration/status as admin → 200', async () => {
+  it('GET /admin/platform-migration/status as admin -> 200', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const res = await app.inject({
       method: 'GET',
@@ -151,7 +151,7 @@ describe('Admin platform migration routes', () => {
     expect(body.lastImportRun === null || typeof body.lastImportRun === 'object').toBe(true);
   });
 
-  it('POST /admin/debug/reset-platform as admin → 200 and clears domain data', async () => {
+  it('POST /admin/debug/reset-platform as admin -> 200 and clears domain data', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const company = await prisma.company.create({ data: { name: `Reset Co ${TS}` } });
     const res = await app.inject({
@@ -171,7 +171,7 @@ describe('Admin platform migration routes', () => {
     await prisma.company.deleteMany({ where: { id: company.id } }).catch(() => undefined);
   });
 
-  it('POST /admin/debug/reseed-platform on non-empty DB → 400', async () => {
+  it('POST /admin/debug/reseed-platform on non-empty DB -> 400', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const company = await prisma.company.create({ data: { name: `Reseed Block ${TS}` } });
     const res = await app.inject({
@@ -183,7 +183,7 @@ describe('Admin platform migration routes', () => {
     await prisma.company.deleteMany({ where: { id: company.id } });
   });
 
-  it('POST /admin/debug/reseed-platform after reset → 200 and loads seed data', async () => {
+  it('POST /admin/debug/reseed-platform after reset -> 200 and loads seed data', async () => {
     const cookie = await loginAs(ADMIN_EMAIL, PASSWORD);
     const resetRes = await app.inject({
       method: 'POST',
