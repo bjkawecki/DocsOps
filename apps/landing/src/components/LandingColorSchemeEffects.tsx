@@ -2,13 +2,16 @@ import { useComputedColorScheme } from '@mantine/core';
 import { useEffect } from 'react';
 
 /**
- * Keeps theme-color meta and favicon in sync with the resolved Mantine scheme
- * (manual toggle can diverge from prefers-color-scheme media queries).
+ * Keeps theme-color meta, favicon, and `data-theme` in sync with the resolved
+ * Mantine scheme (manual toggle can diverge from prefers-color-scheme).
+ * `data-theme` is what @xyflow/react 13+ uses for automatic color mode.
  */
 export function LandingColorSchemeEffects() {
   const resolved = useComputedColorScheme('dark');
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolved);
+
     const themeColor = resolved === 'light' ? '#f1f3f5' : '#140a2e';
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {

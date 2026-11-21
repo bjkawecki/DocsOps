@@ -32,20 +32,20 @@
     "loadtest:jobs": "tsx scripts/run-jobs-loadtest.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1161.0",
-    "@aws-sdk/s3-request-presigner": "^3.1161.0",
+    "@aws-sdk/client-s3": "^3.1173.0",
+    "@aws-sdk/s3-request-presigner": "^3.1173.0",
     "@fastify/cookie": "^11.1.5",
-    "@fastify/multipart": "^10.1.6",
-    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/multipart": "^10.1.9",
+    "@fastify/rate-limit": "^11.2.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
-    "argon2": "^0.45.1",
-    "dotenv": "^18.0.9",
-    "fastify": "^5.12.7",
-    "image-size": "^2.0.4",
-    "nodemailer": "^10.3.1",
+    "argon2": "^0.45.2",
+    "dotenv": "^18.0.10",
+    "fastify": "^5.12.8",
+    "image-size": "^2.1.0",
+    "nodemailer": "^10.6.1",
     "pg": "^8.23.1",
-    "pg-boss": "^12.38.0",
+    "pg-boss": "^12.38.2",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^12.1.1",
     "three-way-merge": "^0.1.0",
@@ -59,9 +59,9 @@
     "@types/supertest": "^7.2.1",
     "pino-pretty": "^13.2.0",
     "prisma": "^7.10.1",
-    "supertest": "^7.3.1",
+    "supertest": "^7.3.2",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.1"
   }
 }

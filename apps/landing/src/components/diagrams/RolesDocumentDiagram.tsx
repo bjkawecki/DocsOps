@@ -9,7 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { ReactFlow, useEdgesState, useNodesState, type Node } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
-import '@xyflow/react/dist/style.css';
+import '@xyflow/react/style.css';
 import { useLandingCopy } from '../../content/useLandingCopy';
 import { getDiagramNodeDetail } from './rolesDiagramDetails';
 import { buildRolesDiagramGraph, serializeDiagramNodePositions } from './rolesDiagramLayout';
@@ -210,7 +210,7 @@ export function RolesDocumentDiagram() {
               preventScrolling={false}
               proOptions={{ hideAttribution: true }}
               fitView
-              fitViewOptions={{ padding: 0.08, maxZoom: 1, minZoom: 0.9 }}
+              fitViewOptions={{ padding: '8%', maxZoom: 1, minZoom: 0.9 }}
             />
           </Box>
 

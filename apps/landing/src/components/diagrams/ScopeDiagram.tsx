@@ -15,7 +15,7 @@ import {
   type Node,
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
-import '@xyflow/react/dist/style.css';
+import '@xyflow/react/style.css';
 import { useLandingCopy } from '../../content/useLandingCopy';
 import type { ScopeNodeId } from '../../content/types';
 import {
@@ -217,7 +217,7 @@ export function ScopeDiagram() {
                 preventScrolling={false}
                 proOptions={{ hideAttribution: true }}
                 fitView
-                fitViewOptions={{ padding: 0.06, maxZoom: 1, minZoom: 0.85 }}
+                fitViewOptions={{ padding: '6%', maxZoom: 1, minZoom: 0.85 }}
               />
             </Box>
           </Paper>

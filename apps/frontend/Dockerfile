@@ -30,7 +30,8 @@ COPY apps/backend/tsconfig.json apps/backend/tsconfig.build.json ./apps/backend/
 RUN pnpm --filter backend exec prisma generate
 RUN pnpm --filter frontend run build
 
-FROM nginx:alpine
+# Pin stable nginx (not floating :alpine) so rebuilds stay reproducible.
+FROM nginx:1.30.7-alpine
 RUN apk add --no-cache wget
 COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
